@@ -1,0 +1,212 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+raw : SEG: [0,0] 1 
+fmt : SEG [0,0]: 1 .text:0
+
+raw : EQU: [0,0] 1 6 
+fmt : EQU [0,0]: [FIXED_VALUE(index: 1)] = 6
+
+raw : INT<1>: [0,0] 0 
+fmt : INT<1> [0,0]: 
+
+raw : ERROR: [0,0] 1 
+fmt : ERROR [0,0]: ERROR: Requires argument
+
+
+raw : SKIP: [2,2] 0 
+fmt : SKIP [2,2]: 0
+
+raw : SKIP: [5,5] 2c 
+fmt : SKIP [5,5]: 44
+
+raw : ERROR: [0,0] 2 
+fmt : ERROR [0,0]: ERROR: Too many arguments
+
+
+raw : ERROR: [0,0] 3 
+fmt : ERROR [0,0]: ERROR: fill value must be constant
+
+
+raw : ERROR: [0,0] 5 
+fmt : ERROR [0,0]: ERROR: fixed skip value required
+
+
+raw : SKIP: [6,6] 0 
+fmt : SKIP [6,6]: 0
+
+raw : ERROR: [0,0] 6 
+fmt : ERROR [0,0]: ERROR: fixed skip value required
+
+
+raw : ERROR: [0,0] 7 
+fmt : ERROR [0,0]: ERROR: fill value must be constant
+
+
+raw : ERROR: [0,0] 8 
+fmt : ERROR [0,0]: ERROR: fill value must be constant
+
+
+raw : ERROR: [0,0] 9 
+fmt : ERROR [0,0]: ERROR: Requires argument
+
+
+raw : ALIGN: [0,0] 2 
+fmt : ALIGN [0,0]: 2
+
+raw : ERROR: [0,0] a 
+fmt : ERROR [0,0]: ERROR: Too many arguments
+
+
+raw : ERROR: [0,0] b 
+fmt : ERROR [0,0]: ERROR: fixed alignment required
+
+
+raw : ALIGN: [0,0] 1 
+fmt : ALIGN [0,0]: 1
+
+raw : ERROR: [0,0] c 
+fmt : ERROR [0,0]: ERROR: Too many arguments
+
+
+symbols:
+   0: FIXED_VALUE          E: value = 6
+   1: x                   LU: *undef*
+
+sections:
+   0: .text               :  1        6  0  0                     
+   1: .data               :  1        3  0  0                     
+   2: .bss                :  8        3  0  0                     
+
+dump: core_segment
+   0: : .text               :  0 [14,14] (hex) = e
+   1: : .bss                :  0 [0,0] (hex) = 0
+
+dump: core_fragment
+   0: : .text:0             : base = [0,0], size = [13,13], align = 4 (end) = 0xd (relaxed), next = 1
+   1: : .text:0             : base = [14,14], size = [0,0], align = 2 (end) = 0xe (relaxed), next = 2
+   2: : .text:0             : base = [14,14], size = [0,0], align = 1 (end) = 0xe (relaxed)
+
+dump: dl_data
+
+            = 0000_0006            FIXED_VALUE = 6
+0000_0000'                         .byte
+0000_0000'                         .skip
+                                   0000_0000'  0000                   .skip   2
+0000_0002'  002c 002c 2c           .skip   5, 44
+0000_0007'                         .skip   2, 3, 4
+                                   0000_0007'                         .skip   2, 1.4
+                                   0000_0007'                         .skip   2 + x
+                                   0000_0007'  0000 0000 0000         .skip   FIXED_VALUE
+0000_000d'                         .skip   FIXED_VALUE + 2
+                                   0000_000d'                         .skip   2, x
+                                   0000_000d'                         .skip   2, FIXED_VALUE + 4
+                                   0000_000d'                         .align
+                                   0000_000e'  00                     .align  2
+0000_000e'                         .align  3,5
+                                   0000_000e'                         .align  4.0
+                                   0000_000e'                         .even
+0000_000e'                         .even   1
+                                   symbols:
+   0: FIXED_VALUE          E: value = 6
+   1: x                   GU: *undef* sym_num = 4
+
+sections:
+   0: .text               :  1        6  0  0                     
+   1: .data               :  1        3  0  0                     
+   2: .bss                :  8        3  0  0                     
+
+dump: core_segment
+   0: : .text               :  0 [14,14] (hex) = e
+   1: : .bss                :  0 [0,0] (hex) = 0
+
+dump: core_fragment
+   0: : .text:0             : base = [0,0], size = [13,13], align = 4 (end) = 0xd (relaxed), next = 1
+   1: : .text:0             : base = [14,14], size = [0,0], align = 2 (end) = 0xe (relaxed), next = 2
+   2: : .text:0             : base = [14,14], size = [0,0], align = 1 (end) = 0xe (relaxed)
+
+dump: dl_data
+
+raw : SEG: [0,0] 1 
+fmt : SEG [0,0]: 1 .text:0
+
+raw : EQU: [0,0] 1 6 
+fmt : EQU [0,0]: [FIXED_VALUE(index: 1)] = 6
+
+raw : INT<1>: [0,0] 0 
+fmt : INT<1> [0,0]: 
+
+raw : ERROR: [0,0] 1 
+fmt : ERROR [0,0]: ERROR: Requires argument
+
+
+raw : SKIP: [2,2] 0 
+fmt : SKIP [2,2]: 0
+
+raw : SKIP: [5,5] 2c 
+fmt : SKIP [5,5]: 44
+
+raw : ERROR: [0,0] 2 
+fmt : ERROR [0,0]: ERROR: Too many arguments
+
+
+raw : ERROR: [0,0] 3 
+fmt : ERROR [0,0]: ERROR: fill value must be constant
+
+
+raw : ERROR: [0,0] 5 
+fmt : ERROR [0,0]: ERROR: fixed skip value required
+
+
+raw : SKIP: [6,6] 0 
+fmt : SKIP [6,6]: 0
+
+raw : ERROR: [0,0] 6 
+fmt : ERROR [0,0]: ERROR: fixed skip value required
+
+
+raw : ERROR: [0,0] 7 
+fmt : ERROR [0,0]: ERROR: fill value must be constant
+
+
+raw : ERROR: [0,0] 8 
+fmt : ERROR [0,0]: ERROR: fill value must be constant
+
+
+raw : ERROR: [0,0] 9 
+fmt : ERROR [0,0]: ERROR: Requires argument
+
+
+raw : ALIGN: [0,0] 2 
+fmt : ALIGN [0,0]: 2
+
+raw : ERROR: [0,0] a 
+fmt : ERROR [0,0]: ERROR: Too many arguments
+
+
+raw : ERROR: [0,0] b 
+fmt : ERROR [0,0]: ERROR: fixed alignment required
+
+
+raw : ALIGN: [0,0] 1 
+fmt : ALIGN [0,0]: 1
+
+raw : ERROR: [0,0] c 
+fmt : ERROR [0,0]: ERROR: Too many arguments
+
+

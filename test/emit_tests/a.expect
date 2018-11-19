@@ -1,0 +1,55 @@
+
+
+raw : SEG: [0,0] 1 
+fmt : SEG [0,0]: 1 .text:0
+
+raw : LABEL: [0,0] 0 
+fmt : LABEL [0,0]: 
+
+raw : EOI: [0,0] 0 
+fmt : EOI [0,0]: 
+
+symbols:
+   0: start               LL: addr = ca(.text+0)
+
+sections:
+   0: .text               :  1        6  0  0                     
+   1: .data               :  1        3  0  0                     
+   2: .bss                :  8        3  0  0                     
+
+dump: core_segment
+   0: : .text               :  0 [0,0] (hex) = 0
+   1: : .bss                :  0 [0,0] (hex) = 0
+
+dump: core_fragment
+   0: : .text:0             : base = [0,0], size = [0,0], align = 4 (relaxed)
+
+dump: dl_data
+
+0000_0000'                         start:
+symbols:
+   0: start               LL: addr = ca(.text+0) sym_num = 4
+
+sections:
+   0: .text               :  1        6  0  0                     
+   1: .data               :  1        3  0  0                     
+   2: .bss                :  8        3  0  0                     
+
+dump: core_segment
+   0: : .text               :  0 [0,0] (hex) = 0
+   1: : .bss                :  0 [0,0] (hex) = 0
+
+dump: core_fragment
+   0: : .text:0             : base = [0,0], size = [0,0], align = 4 (relaxed)
+
+dump: dl_data
+
+raw : SEG: [0,0] 1 
+fmt : SEG [0,0]: 1 .text:0
+
+raw : LABEL: [0,0] 0 
+fmt : LABEL [0,0]: 
+
+raw : EOI: [0,0] 0 
+fmt : EOI [0,0]: 
+

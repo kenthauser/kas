@@ -1,0 +1,45 @@
+in :  fabs.l   d0,fp1[\n]
+out:  fabsl	{}
+
+in :  fabs.s   a1@, fp2[\n]
+out:  fabss	{}
+
+in :  fabs.x   a2@+, fp3[\n]
+out:  fabsx	{}
+
+in :  fabs.p   a3@(d0),fp4[\n]
+out:  fabsp	{}
+
+in :  fabs.w   a4@(d1)@(0), fp5[\n]
+out:  fabsw	{}
+
+in :  fabs.d   #1, fp6[\n]
+out:  fabsd	{}
+
+in :  fabs.b   fp_short, fp7[\n]
+out:  fabsb	{}
+
+in :  fabs.x   fp1, fp2[\n]
+out:  fabsx	{}
+
+in :  fabs.x   fp3[\n]
+out:  fabsx	{}
+
+in :  fabs.d   d2, fp4[\n]
+out:  fabsd	{}
+
+in :  fsabs.l  d1, fp2[\n]
+out:  fsabsl	{}
+
+in :  fdabs.d  a2@, fp3[\n]
+out:  fdabsd	{}
+
+in :  
+out:  EOI	
+
+in :  
+out:  EOI	
+
+symbols:
+   0: fp_short            U : *undef*
+

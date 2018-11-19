@@ -1,0 +1,216 @@
+Modified 2017/06/22
+
+**** Expression Subsystem Configuration ***
+
+Declaring user-defined types and parsers and overiding default
+types and parsers.
+
+As `kas` utilizes c++ meta-programming for configuration / definiton,
+configuration is performed by specializing templates.
+
+Configuration types are overridden with full specializations.
+
+Partial specialization is used to inject types into configuration
+lists (such as lists of supported terminal types or lists of
+instructions) with a template specialization like the following:
+
+temmplate <tag> struct list_name : meta::list<*elements*> {};
+
+Where `*elements*` are joined to `list_name`. The `tag` used
+for specialization of system types is defined in "kas/defn_utils.h".
+Currently values as uses are:
+
+    defn_expr   : used by expression subsystem
+    defn_core   : used by kas core
+    defn_fmt    : used by kas pseudo-op system (eg: bsd)
+    defn_host   : used to define host specific values (eg: floating point)
+    defn_cpu    : used to define target specific value (eg: arm)
+
+
+NB: when specializing a template, the proper namespace must be open.
+Fortunately, the compiler will complain if you try to specialize a template
+when it hasn't seen the primary template.
+
+*** Expression Parsers ***
+
+1.  All configuration of *expression* parsing/evalaution must be done
+    in a header included in "machine_types.h". Typically this is file
+    matching template "%/%_types.h" (eg: "bsd/bsd_types.h").
+
+2.  Default expression types.
+
+    Some expression definitions have a default type. A list of these is
+    in "expr/expr_types.h". At present these are:
+
+    e_fixed_t   <typename = void> = int
+    e_float_t   <typename = void> = float
+    e_string_t  <typename = void> = kas_string
+
+    e_precedence<typename = void> = precedence_c (ie c-language precedence)
+
+    These are overridden by fully specifying the template in
+    namespace `kas::expression`.
+
+    Eg. to utilize a "long double" floating point value:
+
+    namespace kas::expression
+    {
+        template <> struct e_float_t<true> { type = long double; };
+    }
+
+    Only one such specialization can be seen, or the compiler will complain.
+
+    To eliminate floating point & string types, define as type `void`.
+    This automatically eliminates the associated parsers as well.
+
+3.  Overriding built-in parsers
+
+    XXX Work needed on this facet.
+
+    There are built-in parsers for the built-in types. These parsers are:
+
+    fixed_parser<T>   =
+    float_parser<T>   =
+    string_p<T>       =
+
+4.  Adding new types / parsers to the expression subsystem.
+
+    In addition to the basic numeric & string types, it can be useful to have
+    other types supported directly by the expression subsystem. For instance,
+    having a `symbol` type defined makes defining a parser for a
+    comma separated list of elements as simple as "e_list = expr % ','".
+    If the `symbol` were not directly supported, a much more complicated
+    facility would be required.
+
+    In addition, when a type is used in an algebraic expression (such as
+    the BSD method of defining a location as `. + 10`, or the m68k register
+    list `d0-d3/a2/sp`) The type must be declared to the expression subsystem.
+
+    New types (and optionally assocated parsers) are injected into the
+    expression variant by specializing (in the kas::expression namespace)
+
+    template <tag> struct term_types_v   : meta::list<...> {};
+    template <tag> struct term_parsers_v : meta::list<...> {};
+
+    Since the expression variant instance must be large enough to hold any
+    type in the variant, it is prefered (but not enforced) that the type
+    be no larger than `sizeof(void*)`. A pair of class templates in
+    "kas_core/core_deque_allocator.h" and "kas_core/ref_loc_h." can be used
+    manage larger types.
+
+5.  Adding user-defined type operations
+
+    The expression evaluation subsystem will perform algebraic operations
+    with user-defined types.
+
+    To add an operation, just declare it to c++. eg: (as a member declaration)
+
+    core_expr& operator+ (core_symbol const&);
+
+    Note: the arguments are passed as references. Typically, the types
+    which fit directly in the variant (eg: int) are passed as const &.
+    The types with `ref_loc_t` object manager are passed as mutable references.
+    The member operations are defined taking / returning mutable references.
+
+    Enabling the debugging line in `expression::op_visitor::operator()`
+    will trace types.
+
+    As with adding any type to the c++ operator system, it is typically
+    neccessary to add a non-member function to create the first expression
+    instance: (as non-member definition)
+
+    template <typename T, typename U, typename = ...enable_if_stuff... >
+    inline core_expr& operator+ (T&& t, U&& u)
+    {
+        return core_expr::add(t) + u;
+    }
+
+    This creates an instance of `core_expr` and uses member function to add.
+
+6. Adding a user-defined "division" operation
+
+    If a user-defined type supports the division operations (divide and mod)
+    and can result in a "divide-by-zero" situation, it is important that
+    the type be identified as arithmetic, and the template
+    expression::is_zero<T>(v) evaluate correctly.
+
+    To identify type `T`, specialize expression::kas_is_arithmetic<T>.
+
+    template <> struct kas_is_arithmetic<name-of-type> : std::true_type {};
+
+    NB: it is well-formed to fully specialize a template in `std`,
+    so an alternative is to specialize std::is_arithmetic: eg
+
+    // *** at top namespace ***
+    namespace std
+    {
+        template <> struct is_arithmetic<T> : true_type {};
+    }
+
+    Either specialization will work. It seemed prudent to add
+    `kas_is_arithmetic` in case specializing `std` had unintended
+    consequences. Jury is out on which is preferable.
+
+7. Adding a parser for a user-defined type
+
+    Parsers for user defined types generally come in two flavors:
+        - fixed string parser (such as for `dot` and `string literal`)
+        - a x3::strings<> parser to look for tokens.
+
+    In both cases, two things must be kept in mind.
+        - x3 parses streams. There is no tokenizer, so if necessary,
+          a parser may need to wrapped in x3::lexeme[... >> !x3:alnum]
+          to ensure a complete token is matched. (eg. one doesn't want to
+          return register name match to the start of an identifier.)
+
+        - x3 parsers are case sesitive. wrap parser in x3::no_case[]
+          if required.
+
+    There is boiler plate required for user-defined parsers. In most cases
+    (ie parsers listed in term_parsers_v), the following definitions should
+    be in `*_types.h` where the user-defined type is defined. By convention
+    it is placed in a sub-namespace `parser`
+
+    namespace parser
+    {
+        using m68k_reg_parser_p = x3::rule<struct _reg, m68k_reg>;
+        BOOST_SPIRIT_DECLARE(m68k_reg_parser_p)
+    }
+
+    The type `parser::m68k_reg_parser_p` is then added to the specialization
+    of `term_parsers_v`.
+
+    The actual parser is typically defined in the `*.cc` file for the
+    module.
+
+    namespace parser
+    {
+        using namespace kas::parser;
+        m68k_reg_parser_p m68k_reg_parser = "m68k reg";
+
+        using m68k_reg_seq_p = seq_parser<m68k_reg, m68k_reg>;
+        auto const m68k_reg_parser_def = x3::no_case[x3::lexeme[
+                m68k_reg_seq_p().add_seq(
+                      detail::m68k_all_reg_v{}
+                    , detail::m68k_reg_aliases{}
+                    )
+                >> !x3:alnum]];
+
+        BOOST_SPIRIT_DEFINE(m68k_reg_parser);
+        BOOST_SPIRIT_INSTANTIATE(
+            m68k_reg_parser_p, iterator_type, context_type)
+    }
+
+    This creates the parser template (BOOST_SPIRIT_DEFINE) and then
+    instantiates it (BOOST_SPIRIT_INSTANTIATE) according to the iterator.
+
+    This example is for a "strings" parser (ie list of tokens). A fixed
+    string parser woould be similar.
+
+    The thing to remember is that a `type` is added to `term_parsers_v`.
+    The `BOOST_SPIRIT_DECLARE` macro properly declares an overload for
+    the type to the templated spirit parser function. The
+    `BOOST_SPIRIT_DEFINE` macro defines an actual overload to use the
+    passed method. The `BOOST_SPIRIT_INSTANTIATION` macro prevents link errors.
+
+

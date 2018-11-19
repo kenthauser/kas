@@ -1,0 +1,180 @@
+in :  short:
+out:  LABEL	[sym: 1 loc: 1283]
+
+in :  .globl[\t]long[\n]
+out:  SYM	{1}, {[EXPR = [long(index: 2)]: src = "long"]}
+
+in :  expr[\t]= . - short[\n]
+out:  EQU	[IDENT: src = "expr"], [EXPR = cx[1](0+ca([dot])-[ident 0:short]): src = ". - short"]
+
+in :  fixed[\t]= 100[\n]
+out:  EQU	[IDENT: src = "fixed"], [EXPR = 64: src = "100"]
+
+in :  move.l[\t]d0, a1[\n]
+out:  movel	{}
+
+in :  move.w[\t]a1, (a2)[\n]
+out:  movew	{}
+
+in :  move.b  a2, -(a3)[\n]
+out:  moveb	{}
+
+in :  move.b  (a2)+, -(a3)[\n]
+out:  moveb	{}
+
+in :  move.w[\t]-(a4), 123(a5)[\n]
+out:  movew	{}
+
+in :  move.b[\t](12, a5), (20, d0)[\n]
+out:  moveb	{}
+
+in :  move.l[\t]3(a1,d2), short[\n]
+out:  movel	{}
+
+in :  move.w[\t]short, (long)[\n]
+out:  movew	{}
+
+in :  move.b[\t]long, #fixed[\n]
+out:  moveb	{}
+
+in :  move.l[\t]#fixed, d2[\n]
+out:  movel	{}
+
+in :  move.w[\t]#expr, d3[\n]
+out:  movew	{}
+
+in :  move.b[\t](pc), d4[\n]
+out:  moveb	{}
+
+in :  move.l [\t]124(pc, d1), d5[\n]
+out:  movel	{}
+
+in :  move.l[\t]#125, d0[\n]
+out:  movel	{}
+
+in :  move.w[\t]#126, d1[\n]
+out:  movew	{}
+
+in :  move.l[\t]#127, a2[\n]
+out:  movel	{}
+
+in :  move.w [\t]#128, a3[\n]
+out:  movew	{}
+
+in :  moveq.l[\t]#-100, d4[\n]
+out:  moveql	{}
+
+in :  moveq.l[\t]#-200, d4[\n]
+out:  moveql	{}
+
+in :  move.l[\t]#200, d5[\n]
+out:  movel	{}
+
+in :  move.l[\t]#0, d6[\n]
+out:  movel	{}
+
+in :  move.w[\t]#0, a7[\n]
+out:  movew	{}
+
+in :  move.w[\t]sr, a0[\n]
+out:  movew	{}
+
+in :  move.w[\t]sr, d1[\n]
+out:  movew	{}
+
+in :  move.w[\t](a2), sr[\n]
+out:  movew	{}
+
+in :  move.w[\t]ccr, d2[\n]
+out:  movew	{}
+
+in :  move.w[\t](a3), ccr[\n]
+out:  movew	{}
+
+in :  move.l[\t]a2, usp[\n]
+out:  movel	{}
+
+in :  move.l[\t]usp, a3[\n]
+out:  movel	{}
+
+in :  move.l[\t]usp, d2[\n]
+out:  movel	{}
+
+in :  movep.l[\t]d0,(a2)[\n]
+out:  movepl	{}
+
+in :  movep.w[\t]d1,130(a2)[\n]
+out:  movepw	{}
+
+in :  movep.l[\t](a3), d2[\n]
+out:  movepl	{}
+
+in :  movep.w 131(a3), d3[\n]
+out:  movepw	{}
+
+in :  movec[\t]dfc, d2[\n]
+out:  movec	{}
+
+in :  movec a1, vbr[\n]
+out:  movec	{}
+
+in :  moves.b[\t]d1,(a2)+[\n]
+out:  movesb	{}
+
+in :  moves.b[\t]a1,(a2)+[\n]
+out:  movesb	{}
+
+in :  moves.w[\t]-(a3),d2[\n]
+out:  movesw	{}
+
+in :  moves.l (d0),a3[\n]
+out:  movesl	{}
+
+in :  moves.l d3,d4[\n]
+out:  movesl	{}
+
+in :  movem.l[\t]#456, -(a2)[\n]
+out:  moveml	{}
+
+in :  movem.w[\t]d0-d2/a0-a2/a6/a7, -(a2)[\n]
+out:  movemw	{}
+
+in :  movem.l [\t](fp)+, d0-d2/a0-a2/a6/a7[\n]
+out:  moveml	{}
+
+in :  movem.l d1,-(a3)[\n]
+out:  moveml	{}
+
+in :  movem.w a0/usp,-(a2)[\n]
+out:  movemw	{}
+
+in :  movem.w[\t]d0-d2/a0-a2/a6/a7, long[\n]
+out:  movemw	{}
+
+in :  movem.l (sp)+, #456[\n]
+out:  moveml	{}
+
+in :  movem.w[\t]long, d0-d2/a0-a2/a6/a7[\n]
+out:  movemw	{}
+
+in :  move16  (a2)+, (a4)+[\n]
+out:  move16	{}
+
+in :  move16  (long).l, (a3)+[\n]
+out:  move16	{}
+
+in :  move16  (sp), long[\n]
+out:  move16	{}
+
+in :  bra[\t]short[\n]
+out:  bra	{}
+
+in :  
+out:  EOI	
+
+symbols:
+   0: short               U : *undef*
+   1: long                U : *undef*
+   2: fixed               U : *undef*
+   3: expr                U : *undef*
+

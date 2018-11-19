@@ -1,0 +1,96 @@
+Usage: m68k-elf-as [option...] [asmfile...]
+Options:
+  -a[sub-option...]	  turn on listings
+                      	  Sub-options [default hls]:
+                      	  c      omit false conditionals
+                      	  d      omit debugging directives
+                      	  g      include general info
+                      	  h      include high-level source
+                      	  l      include assembly
+                      	  m      include macro expansions
+                      	  n      omit forms processing
+                      	  s      include symbols
+                      	  =FILE  list to FILE (must be last sub-option)
+  --alternate             initially turn on alternate macro syntax
+  --compress-debug-sections[={none|zlib|zlib-gnu|zlib-gabi}]
+                          compress DWARF debug sections using zlib
+  --nocompress-debug-sections
+                          don't compress DWARF debug sections [default]
+  -D                      produce assembler debugging messages
+  --debug-prefix-map OLD=NEW
+                          map OLD to NEW in debug information
+  --defsym SYM=VAL        define symbol SYM to given value
+  --execstack             require executable stack for this object
+  --noexecstack           don't require executable stack for this object
+  --size-check=[error|warning]
+			  ELF .size directive check (default --size-check=error)
+  --elf-stt-common=[no|yes]
+                          generate ELF common symbols with STT_COMMON type
+  --sectname-subst        enable section name substitution sequences
+  -f                      skip whitespace and comment preprocessing
+  -g --gen-debug          generate debugging information
+  --gstabs                generate STABS debugging information
+  --gstabs+               generate STABS debug info with GNU extensions
+  --gdwarf-2              generate DWARF2 debugging information
+  --gdwarf-sections       generate per-function section names for DWARF line information
+  --hash-size=<value>     set the hash table size close to <value>
+  --help                  show this message and exit
+  --target-help           show target specific options
+  -I DIR                  add DIR to search list for .include directives
+  -J                      don't warn about signed overflow
+  -K                      warn when differences altered for long displacements
+  -L,--keep-locals        keep local symbols (e.g. starting with `L')
+  -M,--mri                assemble in MRI compatibility mode
+  --MD FILE               write dependency information in FILE (default none)
+  -nocpp                  ignored
+  -no-pad-sections        do not pad the end of sections to alignment boundaries
+  -o OBJFILE              name the object-file output OBJFILE (default a.out)
+  -R                      fold data section into text section
+  --reduce-memory-overheads 
+                          prefer smaller memory use at the cost of longer
+                          assembly times
+  --statistics            print various measured statistics from execution
+  --strip-local-absolute  strip local absolute symbols
+  --traditional-format    Use same format as native assembler when possible
+  --version               print assembler version number and exit
+  -W  --no-warn           suppress warnings
+  --warn                  don't suppress warnings
+  --fatal-warnings        treat warnings as errors
+  -w                      ignored
+  -X                      ignored
+  -Z                      generate object file even after errors
+  --listing-lhs-width     set the width in words of the output data column of
+                          the listing
+  --listing-lhs-width2    set the width in words of the continuation lines
+                          of the output data column; ignored if smaller than
+                          the width of the first line
+  --listing-rhs-width     set the max width in characters of the lines from
+                          the source file
+  --listing-cont-lines    set the maximum number of continuation lines used
+                          for the output data column of the listing
+  @FILE                   read options from FILE
+-march=<arch>		set architecture
+-mcpu=<cpu>		set cpu [default 68020]
+-m[no-]68851            enable/disable  m68k architecture extension
+-m[no-]68881            enable/disable  m68k architecture extension
+-m[no-]68882            enable/disable  m68k architecture extension
+-m[no-]float            enable/disable  architecture extension
+-m[no-]div              enable/disable  ColdFire architecture extension
+-m[no-]usp              enable/disable  ColdFire architecture extension
+-m[no-]mac              enable/disable  ColdFire architecture extension
+-m[no-]emac             enable/disable  ColdFire architecture extension
+-l			use 1 word for refs to undefined symbols [default 2]
+-pic, -k		generate position independent code
+-S			turn jbsr into jsr
+--pcrel                 never turn PC-relative branches into absolute jumps
+--register-prefix-optional
+			recognize register names without prefix character
+--bitwise-or		do not treat `|' as a comment character
+--base-size-default-16	base reg without size is 16 bits
+--base-size-default-32	base reg without size is 32 bits (default)
+--disp-size-default-16	displacement with unknown size is 16 bits
+--disp-size-default-32	displacement with unknown size is 32 bits (default)
+Architecture variants are: 68000 | 68010 | 68020 | 68030 | 68040 | 68060 | cpu32 | fidoa | isaa | isaaplus | isab | isac | cfv4 | cfv4e
+Processor variants are: 68000 | 68ec000 | 68hc000 | 68hc001 | 68008 | 68302 | 68306 | 68307 | 68322 | 68356 | 68010 | 68020 | 68k | 68ec020 | 68030 | 68ec030 | 68040 | 68ec040 | 68060 | 68ec060 | cpu32 | 68330 | 68331 | 68332 | 68333 | 68334 | 68336 | 68340 | 68341 | 68349 | 68360 | 51 | 51ac | 51ag | 51cn | 51em | 51je | 51jf | 51jg | 51jm | 51mm | 51qe | 51qm | 5200 | 5202 | 5204 | 5206 | 5206e | 5207 | 5208 | 5210a | 5211a | 5211 | 5212 | 5213 | 5214 | 5216 | 521x | 5221x | 52221 | 52223 | 52230 | 52233 | 52234 | 52235 | 5224 | 5225 | 52274 | 52277 | 5232 | 5233 | 5234 | 5235 | 523x | 5249 | 5250 | 5253 | 52252 | 52254 | 52255 | 52256 | 52258 | 52259 | 5270 | 5271 | 5272 | 5274 | 5275 | 5280 | 5281 | 5282 | 528x | 53011 | 53012 | 53013 | 53014 | 53015 | 53016 | 53017 | 5307 | 5327 | 5328 | 5329 | 532x | 5372 | 5373 | 537x | 5407 | 54410 | 54415 | 54416 | 54417 | 54418 | 54450 | 54451 | 54452 | 54453 | 54454 | 54455 | 5470 | 5471 | 5472 | 5473 | 5474 | 5475 | 547x | 5480 | 5481 | 5482 | 5483 | 5484 | 5485 | 548x | fidoa | fido
+
+Report bugs to <http://www.sourceware.org/bugzilla/>
