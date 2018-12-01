@@ -59,7 +59,7 @@ struct m68k_insn_adder;
 struct m68k_insn_defn
 {
     // import MAX_ARGS defn
-    static constexpr auto MAX_ARGS = m68k_insn_t::max_args;
+    static constexpr auto MAX_ARGS = m68k_insn_t::MAX_ARGS;
 
     static constexpr auto VALIDATOR_BASE = 4;
     using VAL_SEQ   = std::make_index_sequence<VALIDATOR_BASE + MAX_ARGS>;
@@ -127,6 +127,7 @@ struct m68k_opcode_t
 {
     using fmt_t     = m68k_opcode_fmt;
     using err_msg_t = error_msg;
+    static constexpr auto MAX_ARGS = 6;     // coldfire emac requires lots of args
 
     // allocate instances in `std::deque`
     using obstack_t = std::deque<m68k_opcode_t>;

@@ -136,6 +136,22 @@ struct fmt_immed
                     auto reg = m68k_reg(arg.mode, arg.reg_num);
                     m68k_reg_set rs(reg);
                     disp = rs.value(DIR);
+
+                    std::cout << "fmt_immed: " << reg << " -> ";
+                    rs.print(std::cout);
+                    std::cout << " = " << std::hex << disp << std::endl;
+                    
+                    auto reg2 = m68k_reg(arg.mode, arg.reg_num + 2);
+                    auto& rs2 = rs - reg2;
+                    
+                    std::cout << "fmt_immed: " << reg2 << " -> ";
+                    rs2.print(std::cout);
+                    std::cout << " = " << std::hex << rs2.value(DIR) << std::endl;
+                   
+                    auto& rs3 = reg - reg2;
+                    std::cout << "fmt_immed: ";
+                    rs2.print(std::cout);
+                    std::cout << " = " << std::hex << rs2.value(DIR) << std::endl;
                     break;
                  }
                 case MODE_REG:

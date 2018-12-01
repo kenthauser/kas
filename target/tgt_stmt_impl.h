@@ -1,28 +1,8 @@
 #ifndef KAS_TARGET_TGT_STMT_IMPL_H
 #define KAS_TARGET_TGT_STMT_IMPL_H
 
-//
-#if 0
-#include "m68k_arg_defn.h"
-#include "m68k_arg_size.h"
-#include "m68k_formats_type.h"
-
-#include "m68k_insn_types.h"
-#include "m68k_stmt_opcode.h"
-#include "m68k_insn_eval.h"
-
-#include "kas_core/opcode.h"
-#include "kas_core/core_print.h"
-
-#include "m68k_error_messages.h"
-
-//#include "opc_resolved.h"
-
-#include <array>
-#include <functional>
-#else
 #include "tgt_stmt.h"
-#endif
+
 // args is a container of "m68k_arg_t" from comma-separated arguments
 //
 // Two special caes:

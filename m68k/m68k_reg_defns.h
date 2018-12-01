@@ -6,7 +6,7 @@
 #include "m68k_reg_types.h"
 #include "m68k_hw_defns.h"
 
-#include "utility/make_reg_seq.h"
+#include "target/make_reg_seq.h"
 #include "kas/kas_string.h"
 
 namespace kas::m68k::defn

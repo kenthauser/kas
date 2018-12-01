@@ -112,7 +112,7 @@ const char *m68k_reg::validate_msg() const
 {
     return hw::cpu_defs[get_defn(reg_0_index).reg_tst];
 }
-
+#if 0
 
 ////////////////////////////////////////////////////////////////////////////
 //
@@ -260,7 +260,7 @@ void m68k_reg_set::print(OS& os) const {
     }
     os << "]";
 }
-
+#endif
 }
 
 #endif

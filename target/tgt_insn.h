@@ -12,8 +12,8 @@
 namespace kas::tgt
 {
     template <typename OPCODE_T
-            , std::size_t _MAX_ARGS    = 6
-            , std::size_t MAX_OPCODES = 32
+            , std::size_t _MAX_ARGS
+            , std::size_t MAX_OPCODES = 16 
             , typename TST_T          = std::uint16_t>
     
     // NB: complete definition required for `std::reference_wrapper` defn
@@ -23,14 +23,13 @@ namespace kas::tgt
 
         // define maximum number of ARGS
         static constexpr auto MAX_ARGS = _MAX_ARGS;
-        static constexpr auto max_args = MAX_ARGS;
 
         // limit of number of OPCODES per instruction
         // ie variants with same "name"
         static constexpr auto max_opcodes = MAX_OPCODES;
         using insn_bitset_t = std::bitset<max_opcodes>;
 
-        // pointers to all `m68k_opcode_t` instances with same "name"
+        // pointers to all `opcode_t` instances with same "name"
         std::vector<opcode_t const *> opcodes;
 
         // canonical name & insn_list is all stored in instance

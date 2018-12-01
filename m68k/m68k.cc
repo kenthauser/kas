@@ -17,9 +17,9 @@
 
 #include "m68k_stmt_opcode.h"
 //#include "m68k_stmt_impl.h"
-#include "tgt_stmt_impl.h"
-#include "tgt_insn_impl.h"
-#include "tgt_insn_eval.h"
+#include "target/tgt_stmt_impl.h"
+#include "target/tgt_insn_impl.h"
+#include "target/tgt_insn_eval.h"
 
 namespace kas::m68k::hw
 {

@@ -7,6 +7,7 @@
 // Implement the `shunting yard` algorithm to process precedence
 //
 
+
 #include "expr.h"                   // defines ast & parser terminals
 #include "operators.h"              // defines expression operations
 
@@ -81,14 +82,17 @@ namespace kas::expression::parser
                 auto  end_iter = expr.end();
                 auto& top_expr = *--end_iter;
                 auto& dest     = *--end_iter;
-
-                //std::cout << "eval: " << oper.back().oper->get().name;
-                //std::cout << " (" << dest << ", " << top_expr << ")" << std::endl;
-                //dest = oper.back()(dest, top_expr);
+//#define EXPR_TRACE_EVAL
+#ifdef EXPR_TRACE_EVAL
+                std::cout << "eval: " << oper.back().oper->name();
+                std::cout << " (" << dest << ", " << top_expr << ")" << std::endl;
+#endif
                 dest = oper.back()(std::move(dest), std::move(top_expr));
                 expr.pop_back();
                 oper.pop_back();
-                //std::cout << "result: " << dest << std::endl;
+#ifdef EXPR_TRACE_EVAL
+                std::cout << "result: " << dest << std::endl;
+#endif
             }
 
             bool operator<=(OPER_T const& node) const {

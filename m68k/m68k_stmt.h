@@ -16,7 +16,7 @@
 #define TGT_INSN_T    m68k::m68k_insn_t
 #define TGT_ARG_T     m68k::m68k_arg_t
 
-#include "tgt_stmt.h"
+#include "target/tgt_stmt.h"
 
 #include "kas_core/opcode.h"
 #include "parser/parser_stmt.h"

@@ -80,9 +80,10 @@ struct m68k_validate
 
 };
 
+// move to _impl
 struct m68k_validate_args
 {
-    static constexpr auto MAX_ARGS = m68k_insn_t::max_args;
+    static constexpr auto MAX_ARGS = m68k_insn_t::MAX_ARGS;
 
     template <typename...Ts>
     constexpr m68k_validate_args(list<Ts...>)

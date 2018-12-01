@@ -71,8 +71,8 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     iterator_type const end{std::end(source)};
 
     // std::stringstream parse_out;
-    //auto& parse_out = out;
-    auto& parse_out = std::cout;
+    auto& parse_out = out;
+    //auto& parse_out = std::cout;
 
     std::cout  << "\nparse begins: " << input_path << std::endl;
     kas::core::kas_assemble obj;

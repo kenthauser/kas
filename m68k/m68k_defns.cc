@@ -20,6 +20,8 @@
 
 #include "m68k_insn_impl.h"
 
+#include "target/tgt_regset_impl.h"
+
 // meta program to instantiate defns from type list
 #include "parser/sym_parser.h"
 
@@ -66,12 +68,12 @@ namespace kas::m68k::parser
         return _p;
     }
 }
-
+#if 1
 // instantiate printers
-namespace kas::m68k
+namespace kas::tgt
 {
     // template  void print_expr<std::ostream>(m68k::m68k_reg const&, std::ostream&);
-    template  void m68k_reg_set::print<std::ostream>(std::ostream&) const;
-    template  void m68k_reg_set::print<std::ostringstream>(std::ostringstream&) const;
+    template  void m68k::m68k_reg_set::print<std::ostream>(std::ostream&) const;
+    template  void m68k::m68k_reg_set::print<std::ostringstream>(std::ostringstream&) const;
 }
-
+#endif

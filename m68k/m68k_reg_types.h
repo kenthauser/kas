@@ -1,7 +1,6 @@
 #ifndef KAS_M68K_M68K_REG_TYPES_H
 #define KAS_M68K_M68K_REG_TYPES_H
 
-#include "kas_core/kas_object.h"
 
 //
 // m68k register patterns:
@@ -40,7 +39,10 @@
 //            `m68k_regset` is an expression type
 //            `m68k_reg`    needs to export parser to `expr`
 
-#include "m68k_types.h"
+//#include "m68k_types.h"
+
+#include "target/tgt_regset_type.h"
+
 
 namespace kas::m68k 
 {
@@ -68,8 +70,6 @@ enum
     , RC_FCTRL
     , NUM_REG_CLASS
 };
-
-static_assert(NUM_REG_CLASS < 12, "too many m68k register classes");
 
 // name special registers for easy access
 // NB: REG_CPU_* values completely arbitrary
@@ -132,11 +132,11 @@ struct m68k_reg_defn
     static inline const char *const *names_base;
 
     // first arg is which alias (0 = canonical, non-zero = which alias)
-    const char *name(unsigned n = 0, bool no_prefix = false) const noexcept
+    const char *name(unsigned n = 0, unsigned skip_initial = 0) const noexcept
     {
         if (n < MAX_REG_NAMES)
             if (auto idx = names[n])
-                return names_base[idx-1] + no_prefix;
+                return names_base[idx-1] + skip_initial;
         return {};
     }
 
@@ -150,10 +150,16 @@ struct m68k_reg_defn
     friend OS& operator<<(OS& os, m68k_reg_defn const& d)
     {
         os << "reg_defn: " << std::hex;
-        os << " names= " << +d.names[0] << " " << +d.names[1];
+        const char * prefix = "names= ";
+        for (auto& name : d.names)
+        {
+            if (name)
+                os << prefix << name;
+            prefix = ",";
+        }
         os << " class="  << +d.reg_class;
         os << " num="    << +d.reg_num;
-        os << " tst="    << d.reg_tst;
+        os << " tst="    <<  d.reg_tst;
         return os << std::endl;
     }
 };
@@ -234,56 +240,89 @@ private:
 //
 ////////////////////////////////////////////////////////////////////////////
 
-// use `ref_loc_t` wrapped type in variant
-using m68k_rs_ref = core::ref_loc_t<struct m68k_reg_set>;
+struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set, m68k_reg, uint16_t>
+{
+    using base_t::base_t;
 
-struct m68k_reg_set : core::kas_object<m68k_reg_set, m68k_rs_ref> {
-    // 16-bit result + error -> 32-bit signed value (-1 indicates error)
-    using rs_value_t = int32_t;
+    uint16_t reg_kind(m68k_reg const& r) const
+    {
+        std::cout << "m68k_reg_set::reg_kind: " << +r.kind() << std::endl;
+        switch (r.kind())
+        {
+            case RC_DATA:
+            case RC_ADDR:
+                return RC_DATA;
+            case RC_FLOAT:
+                return RC_FLOAT;
+            case RC_FCTRL:
+                return RC_FCTRL;
+            default:
+                return -1;
+        }
+    }
+    
+    // convert "register" to bit number in range [0-> (mask_bits - 1)]
+    uint8_t reg_bitnum(m68k_reg const& r) const
+    {
+        switch (r.kind())
+        {
+            case RC_DATA:  return  0 + r.value();
+            case RC_ADDR:  return  8 + r.value();
+            case RC_FLOAT: return  0 + r.value();
+            case RC_FCTRL:
+                // floating point control registers are "special"
+                switch (r.value())
+                {
+                    case REG_FPCTRL_CR:  return 12;
+                    case REG_FPCTRL_SR:  return 11;
+                    case REG_FPCTRL_IAR: return 10;
+                }
+                // FALLSTHRU
+            default:       return {};
+        }
+    }
 
-    // ctor (no default needed as not in x3 grammar)
-    m68k_reg_set(m68k_reg const& l);
+    
+    std::pair<bool, uint8_t> rs_mask_bits(bool reverse) const
+    {
+        // For CPU: sixteen bit mask with
+        // Normal bit-order: D0 -> LSB, A7 -> MSB
+        //
+        // For FPU: 8 bit mask with
+        // Normal bit-order: FP7 -> LSB, FP0 -> MSB
+        //
+        // Easiest solution: toggle reverse for FP
 
-    // need mutable operators only
-    auto& operator- (m68k_reg_set const& r)
-                        { return binop('-', r); }
-    auto& operator/ (m68k_reg_set const& r)
-                        { return binop('/', r); }
+        const int mask_bits  = (kind() == RC_FLOAT) ? 8 : 16;
+        const bool bit_order = (kind() == RC_FLOAT) ? RS_DIR_MSB0 : RS_DIR_LSB0;
 
-
-    // value is different for predecrement move to memory.
-    // value less than zero indicates invalid register set
-    rs_value_t value(bool is_predec = false) const;
-
-    // return RC_* for regset class. Use RC_DATA for DATA/ADDR combo
-    int16_t kind() const;
-
-    template <typename OS> void print(OS&) const;
-private:
-    m68k_reg_set& binop(const char op, m68k_reg_set const& r);
-
-    // state is list of reg-set ops
-    using reg_set_op = std::pair<char, m68k_reg>;
-    std::vector<reg_set_op> ops;
-
-    // cache expensive to calculate values
-    mutable rs_value_t _value {};
-    mutable bool  val_predec  {};
-    static inline core::kas_clear _c{base_t::obj_clear};
+        return { bit_order ^ reverse, mask_bits };
+    }
 };
 
-// hook regset into type system.
-inline m68k_reg_set& operator- (m68k_reg const& l, m68k_reg_set const& r)
-            { return m68k_reg_set::add(l) - r; }
-inline m68k_reg_set& operator/ (m68k_reg const& l, m68k_reg_set const& r)
-            { return m68k_reg_set::add(l) / r; }
+#if 1
+#if 1
+inline auto&  operator- (m68k_reg const& l, m68k_reg_set const& r)
+{
+    //return l - m68k_reg_set(r);
+    return m68k_reg_set::add(l) - r;
 }
+#else
+inline auto&  operator- (m68k_reg const& l, m68k_reg const& r)
+{
+    return l - m68k_reg_set(r);
+    //return m68k_reg_set::add(l) - r;
+}
+#endif
 
-////////////////////////////////////////////////////////////////////////////
-//
-// definition of m68k register set
-//
-////////////////////////////////////////////////////////////////////////////
+inline auto& operator/ (m68k_reg const& l, m68k_reg_set const& r)
+{
+    return m68k_reg_set::add(l) / r;
+}
+#endif
+
+using m68k_rs_ref = typename m68k_reg_set::ref_loc_t;
+}
 
 namespace kas::m68k::parser
 {

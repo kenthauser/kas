@@ -1,5 +1,5 @@
-#ifndef UTILITY_MAKE_REG_SEQ_H
-#define UTILITY_MAKE_REG_SEQ_H
+#ifndef KAS_TARGET_MAKE_REG_SEQ_H
+#define KAS_TARGET_MAKE_REG_SEQ_H
 
 #include "utility/string_mpl.h"
 
