@@ -27,29 +27,48 @@ namespace kas::tgt
 ////////////////////////////////////////////////////////////////////////////
 
 // forward declare "definition" structure
-template <typename HW_TST, typename NAME_IDX_T = uint8_t>
-struct tft_reg_defn;
+template <typename Reg_t>
+struct tgt_reg_defn;
 
 //
 // Declare the run-time class stored in the variant.  
 // Store up to two "defn" indexes with "hw_tst" in 64-bit value
 //
 
-template <typename T> 
-struct tgt_reg<typename T>
+template <typename Derived> 
+struct tgt_reg
 {
-    using base_t    = tgt_reg;
-    using derived_t = T;
+    using base_t      = tgt_reg;
+    using derived_t   = Derived;
+    
+    // Declare `constexpr defn` type
+    using defn_t      = tgt_reg_defn<Derived>;
 
     // declare default types
-    using reg_defn_t = uint16_t;
-    
-private:
-    static inline m68k_reg_defn const *insns;
-    static inline reg_data_t          insns_cnt;
+    using reg_defn_idx_t   = uint8_t;
+    using reg_name_idx_t   = uint8_t;
 
-    static m68k_reg_defn const& get_defn(reg_data_t n);
-    m68k_reg_defn const& select_defn() const;
+    using reg_defn_class_t = int8_t;
+    using reg_defn_value_t = uint16_t;
+    using hw_tst           = uint16_t;
+
+    static constexpr auto MAX_REG_ALIASES = 1;
+
+    // default: return name unaltered
+    static const char *format_name(const char *n, unsigned i = 0)
+    {
+        if (i == 0)
+            return n;
+        return {};
+    }
+
+
+private:
+    static inline defn_t const  *insns;
+    static inline reg_defn_idx_t insns_cnt;
+
+    static defn_t const& get_defn(reg_defn_idx_t n);
+    defn_t const&        select_defn() const;
 
 public:
     static void set_insns(decltype(insns) _insns, unsigned _cnt)
@@ -58,14 +77,15 @@ public:
         insns_cnt = _cnt;
     }
 
-    m68k_reg() = default;
+    // used in X3 expression
+    tgt_reg() = default;
 
     // create new register from class/data pair
     // NB: used primarily for disassembly
-    m68k_reg(reg_data_t reg_class, uint16_t value);
+    tgt_reg(reg_defn_idx_t reg_class, uint16_t value);
 
     // used to initialize `m68k_reg` structures
-    template <typename T> void add(T const& d, reg_data_t n);
+    template <typename T> void add(T const& d, reg_defn_idx_t n);
     
     // methods to examine register
     uint16_t const  kind(int reg_class = -1)  const;
@@ -80,21 +100,21 @@ public:
     }
 
 private:
-    static reg_data_t find_data(reg_data_t rc, uint16_t rv);
+    static reg_defn_idx_t find_data(reg_defn_idx_t rc, uint16_t rv);
     const char *validate_msg() const;
 
     template <typename OS>
-    friend OS& operator<<(OS& os, m68k_reg const& d)
+    friend OS& operator<<(OS& os, tgt_reg const& d)
     {
         d.print(os); 
         return os << std::endl;
     }
 
     // reg_ok is really a bool. 
-    reg_data_t  reg_0_index {};
-    reg_data_t  reg_0_ok    {};
-    reg_data_t  reg_1_index {};
-    reg_data_t  reg_1_ok    {};
+    reg_defn_idx_t  reg_0_index {};
+    reg_defn_idx_t  reg_0_ok    {};
+    reg_defn_idx_t  reg_1_index {};
+    reg_defn_idx_t  reg_1_ok    {};
 };
 
 }

@@ -63,7 +63,7 @@ namespace kas::expression::detail
     // directly parsed types
     template <> struct term_parsers_v<defn_cpu> :
         meta::list<
-              m68k::parser::X_m68k_reg_parser_p
+              m68k::parser::m68k_reg_parser_p
             > {};
 }
 

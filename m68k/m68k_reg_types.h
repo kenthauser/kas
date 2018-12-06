@@ -41,6 +41,7 @@
 
 //#include "m68k_types.h"
 
+#include "target/tgt_reg_type.h"
 #include "target/tgt_regset_type.h"
 
 
@@ -55,12 +56,11 @@ namespace kas::m68k
 
 
 // declare the classes of registers (data, address, fp, etc.)
-// Maximum of 12 register classes allowed (see `m68k_arg_validate.h`)
 // NB: RC_DATA & RC_ADDR must stay 0 & 1 (they nominate "general registers")
 enum
 {
-      RC_DATA
-    , RC_ADDR
+      RC_DATA = 0
+    , RC_ADDR = 1
     , RC_ZADDR
     , RC_PC         // register class has single member
     , RC_ZPC        // register class has single member
@@ -72,7 +72,7 @@ enum
 };
 
 // name special registers for easy access
-// NB: REG_CPU_* values completely arbitrary
+// NB: REG_CPU_* values are completely arbitrary
 enum
 {
       REG_CPU_USP
@@ -111,7 +111,7 @@ enum
 // definition of m68k register
 //
 ////////////////////////////////////////////////////////////////////////////
-
+#if 0
 // declare constexpr definition of register generated at compile-time
 struct m68k_reg_defn
 {
@@ -163,12 +163,36 @@ struct m68k_reg_defn
         return os << std::endl;
     }
 };
-
+#endif
 
 //
-// Declare the run-time class stored in the variant.  
+// Declare the run-time class stored in `m68k_arg_t`
 // Store up to two "defn" indexes with "hw_tst" in 64-bit value
 //
+
+
+#if 1
+
+enum m68k_reg_prefix { PFX_NONE, PFX_ALLOW, PFX_REQUIRE };
+struct m68k_reg : tgt::tgt_reg<m68k_reg>
+{
+    using hw_tst         = hw::hw_tst;
+    using reg_defn_idx_t = uint8_t;
+
+    using base_t::base_t;
+    
+    // MIT syntax only for now
+    static const char *format_name(const char *n, unsigned i = 0)
+    {
+        if (i == 0)
+            return n + 1;
+        return {};
+    }
+
+};
+
+#else
+
 
 struct m68k_reg
 {
@@ -232,7 +256,7 @@ private:
     reg_data_t  reg_1_index {};
     reg_data_t  reg_1_ok    {};
 };
-
+#endif
 
 ////////////////////////////////////////////////////////////////////////////
 //
@@ -246,16 +270,16 @@ struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set, m68k_reg, uint16_t>
 
     uint16_t reg_kind(m68k_reg const& r) const
     {
-        std::cout << "m68k_reg_set::reg_kind: " << +r.kind() << std::endl;
-        switch (r.kind())
+        auto kind = r.kind();
+        switch (kind)
         {
-            case RC_DATA:
             case RC_ADDR:
-                return RC_DATA;
+                kind = RC_DATA;
+                // FALLSTHRU
+            case RC_DATA:
             case RC_FLOAT:
-                return RC_FLOAT;
             case RC_FCTRL:
-                return RC_FCTRL;
+                return kind;
             default:
                 return -1;
         }
@@ -285,7 +309,7 @@ struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set, m68k_reg, uint16_t>
     
     std::pair<bool, uint8_t> rs_mask_bits(bool reverse) const
     {
-        // For CPU: sixteen bit mask with
+        // For M68K CPU: sixteen bit mask with
         // Normal bit-order: D0 -> LSB, A7 -> MSB
         //
         // For FPU: 8 bit mask with
@@ -326,13 +350,13 @@ using m68k_rs_ref = typename m68k_reg_set::ref_loc_t;
 
 namespace kas::m68k::parser
 {
-namespace x3 = boost::spirit::x3;
-using namespace x3;
-using namespace kas::parser;
+    namespace x3 = boost::spirit::x3;
+    using namespace x3;
+    using namespace kas::parser;
 
-// declare parser for M68K token
-using X_m68k_reg_parser_p = x3::rule<struct X_reg, m68k_reg>;
-BOOST_SPIRIT_DECLARE(X_m68k_reg_parser_p)
+    // declare parser for M68K token
+    using m68k_reg_parser_p = x3::rule<struct X_reg, m68k_reg>;
+    BOOST_SPIRIT_DECLARE(m68k_reg_parser_p)
 }
 
 

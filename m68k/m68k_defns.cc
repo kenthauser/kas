@@ -4,9 +4,9 @@
 #include "m68k_arg_size.h"
 
 #include "m68k_reg_defns.h"
-#include "m68k_reg_impl.h"
+//#include "m68k_reg_impl.h"
 
-#include "m68k_reg_adder.h"
+//#include "m68k_reg_adder.h"
 
 #include "m68k_insn_types.h"
 #include "m68k_insn_adder.h"
@@ -20,6 +20,7 @@
 
 #include "m68k_insn_impl.h"
 
+#include "target/tgt_reg_impl.h"
 #include "target/tgt_regset_impl.h"
 
 // meta program to instantiate defns from type list
@@ -37,14 +38,21 @@ namespace kas::m68k::parser
     //  Assembler Instruction Parser Definition
     //////////////////////////////////////////////////////////////////////////
 
-#if 1
-    X_m68k_reg_parser_p X_m68k_reg_parser = "m68k reg";
-    auto const X_m68k_reg_parser_def = defn::reg_parser.x3_deref();
+#if 0
+    auto const m68k_reg_parser_def = defn::reg_parser.x3_deref();
 
-    BOOST_SPIRIT_DEFINE(X_m68k_reg_parser);
-    BOOST_SPIRIT_INSTANTIATE(
-        X_m68k_reg_parser_p, iterator_type, context_type)
+#else
+    const auto m68k_reg_parser_def = kas::parser::sym_parser_t<
+                                          typename m68k_reg::defn_t
+                                        , defn::m68k_all_reg_l
+                                        , tgt::tgt_reg_adder<m68k_reg, defn::m68k_reg_aliases_l>
+                                        >().x3_deref();
 #endif
+
+    m68k_reg_parser_p m68k_reg_parser = "m68k reg";
+    BOOST_SPIRIT_DEFINE(m68k_reg_parser);
+    BOOST_SPIRIT_INSTANTIATE(
+        m68k_reg_parser_p, iterator_type, context_type)
     
     m68k_insn_parser_type m68k_insn_parser_p = "m68k opcode";
     using insns = all_defns_flatten<opc::m68k_insn_defn_list
@@ -72,6 +80,7 @@ namespace kas::m68k::parser
 // instantiate printers
 namespace kas::tgt
 {
+    template const char *m68k::m68k_reg::validate(int) const;
     // template  void print_expr<std::ostream>(m68k::m68k_reg const&, std::ostream&);
     template  void m68k::m68k_reg_set::print<std::ostream>(std::ostream&) const;
     template  void m68k::m68k_reg_set::print<std::ostringstream>(std::ostringstream&) const;
