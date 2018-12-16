@@ -111,73 +111,15 @@ enum
 // definition of m68k register
 //
 ////////////////////////////////////////////////////////////////////////////
-#if 0
-// declare constexpr definition of register generated at compile-time
-struct m68k_reg_defn
-{
-    // type definitions for `parser::sym_parser_t`
-    // NB: ctor NAMES index list will include aliases 
-    using NAME_LIST = meta::list<meta::int_<0>>;
-
-    template <typename...NAMES, typename N, typename REG_C, typename REG_V, typename REG_TST>
-    constexpr m68k_reg_defn(meta::list<meta::list<NAMES...>
-                                     , meta::list<N, REG_C, REG_V, REG_TST>>)
-        : names     { (NAMES::value + 1)... }
-        , reg_class { REG_C::value          }
-        , reg_num   { REG_V::value          }
-        , reg_tst   { REG_TST()             }
-    {}
-
-    static constexpr auto MAX_REG_NAMES = 2;        // allow single alias
-    static inline const char *const *names_base;
-
-    // first arg is which alias (0 = canonical, non-zero = which alias)
-    const char *name(unsigned n = 0, unsigned skip_initial = 0) const noexcept
-    {
-        if (n < MAX_REG_NAMES)
-            if (auto idx = names[n])
-                return names_base[idx-1] + skip_initial;
-        return {};
-    }
-
-    // each defn is 4 16-bit words (ie 64-bits)
-    uint8_t     names[MAX_REG_NAMES];
-    uint8_t     reg_class;
-    uint16_t    reg_num;
-    hw::hw_tst  reg_tst;
-  
-    template <typename OS>
-    friend OS& operator<<(OS& os, m68k_reg_defn const& d)
-    {
-        os << "reg_defn: " << std::hex;
-        const char * prefix = "names= ";
-        for (auto& name : d.names)
-        {
-            if (name)
-                os << prefix << name;
-            prefix = ",";
-        }
-        os << " class="  << +d.reg_class;
-        os << " num="    << +d.reg_num;
-        os << " tst="    <<  d.reg_tst;
-        return os << std::endl;
-    }
-};
-#endif
-
-//
-// Declare the run-time class stored in `m68k_arg_t`
-// Store up to two "defn" indexes with "hw_tst" in 64-bit value
-//
-
-
-#if 1
 
 enum m68k_reg_prefix { PFX_NONE, PFX_ALLOW, PFX_REQUIRE };
+
+struct m68k_reg_set;
 struct m68k_reg : tgt::tgt_reg<m68k_reg>
 {
     using hw_tst         = hw::hw_tst;
     using reg_defn_idx_t = uint8_t;
+    using reg_set_t      = m68k_reg_set;
 
     using base_t::base_t;
     
@@ -191,72 +133,6 @@ struct m68k_reg : tgt::tgt_reg<m68k_reg>
 
 };
 
-#else
-
-
-struct m68k_reg
-{
-    using reg_data_t = uint8_t;
-    
-private:
-    static inline m68k_reg_defn const *insns;
-    static inline reg_data_t          insns_cnt;
-
-    static m68k_reg_defn const& get_defn(reg_data_t n);
-    m68k_reg_defn const& select_defn() const;
-
-public:
-    static void set_insns(decltype(insns) _insns, unsigned _cnt)
-    {
-        insns = _insns;
-        insns_cnt = _cnt;
-    }
-
-    m68k_reg() = default;
-
-    // create new register from class/data pair
-    // NB: used primarily for disassembly
-    m68k_reg(reg_data_t reg_class, uint16_t value);
-
-    // used to initialize `m68k_reg` structures
-    template <typename T> void add(T const& d, reg_data_t n);
-    
-    // methods to examine register
-    uint16_t const  kind()     const;
-    uint16_t const  value()    const;
-    const char *name()     const;
-
-    const char *validate() const
-    {
-        if (reg_0_ok || reg_1_ok)
-            return {};
-        return validate_msg();
-    }
-
-    template <typename OS>
-    void print(OS& os) const
-    {
-        os << name();
-    }
-
-private:
-    static reg_data_t find_data(reg_data_t rc, uint16_t rv);
-    const char *validate_msg() const;
-
-    template <typename OS>
-    friend OS& operator<<(OS& os, m68k_reg const& d)
-    {
-        d.print(os); 
-        return os << std::endl;
-    }
-
-    // reg_ok is really a bool. 
-    reg_data_t  reg_0_index {};
-    reg_data_t  reg_0_ok    {};
-    reg_data_t  reg_1_index {};
-    reg_data_t  reg_1_ok    {};
-};
-#endif
 
 ////////////////////////////////////////////////////////////////////////////
 //
@@ -323,27 +199,6 @@ struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set, m68k_reg, uint16_t>
         return { bit_order ^ reverse, mask_bits };
     }
 };
-
-#if 1
-#if 1
-inline auto&  operator- (m68k_reg const& l, m68k_reg_set const& r)
-{
-    //return l - m68k_reg_set(r);
-    return m68k_reg_set::add(l) - r;
-}
-#else
-inline auto&  operator- (m68k_reg const& l, m68k_reg const& r)
-{
-    return l - m68k_reg_set(r);
-    //return m68k_reg_set::add(l) - r;
-}
-#endif
-
-inline auto& operator/ (m68k_reg const& l, m68k_reg_set const& r)
-{
-    return m68k_reg_set::add(l) / r;
-}
-#endif
 
 using m68k_rs_ref = typename m68k_reg_set::ref_loc_t;
 }

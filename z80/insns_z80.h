@@ -1,5 +1,5 @@
-#ifndef KAS_M68K_M68000_DEFNS_H
-#define KAS_M68K_M68000_DEFNS_H
+#ifndef KAS_Z80_M68000_DEFNS_H
+#define KAS_Z80_M68000_DEFNS_H
 
 // While the tables look cryptic, the MPL fields are generally as follows:
 //
@@ -18,39 +18,35 @@
 // 4. format index value on where values are inserted in the base opcode
 //          (register numbers, address modes, immediate values, etc)
 //
-// 5+ validator(s) for m68k arguments, if any. Maximum 6.
+// 5+ validator(s) for z80 arguments, if any. Maximum 6.
 //
-// The format names (and naming convention) are in `m68k_opcode_formats.h`
-// The argument validators are in `m68k_arg_validate.h`
+// The format names (and naming convention) are in `z80_opcode_formats.h`
+// The argument validators are in `z80_arg_validate.h`
 
 
-#include "m68k_insn_common.h"
+#include "z80_insn_common.h"
 
-namespace kas::m68k::opc::gen
+namespace kas::z80::opc::gen
 {
 //using namespace common;
 
 #define STR KAS_STRING
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// `move` instructions (and related)
-//
 
-using z80_insn_list = list<list<>
+using z80_insn_ld_l = list<list<>
 //
 // 8-bit load group
 //
 
 , defn<STR("ld"), 0x40, FMT_3_0, REG    , REG_GEN>
 , defn<STR("ld"), 0x40, FMT_3_0, REG_GEN, REG>
-, defn<STR("ld"), 0x06, FMT_3  , REG_GEN, IMMED>
+, defn<STR("ld"), 0x06, FMT_3  , REG_GEN, IMMED_8>
 , defn<STR("ld"), 0x46, FMT_3  , REG_GEN, INDIR>
 , defn<STR("ld"), 0x46, FMT_X_3, INDIR  , REG_GEN>
-, defn<STR("ld"), 0x06, FMT_X  , INDIR  , IMMED>
+, defn<STR("ld"), 0x06, FMT_X  , INDIR  , IMMED_8>
 
-, defn<STR("ld"), 0x0a, FMT_X_4, REG_A, DBL_INDIR>
-, defn<STR("ld"), 0x02, FMT_4  , DBL_INDIR, REG_A>
+, defn<STR("ld"), 0x0a, FMT_X_4, REG_A, INDIR_DBL>
+, defn<STR("ld"), 0x02, FMT_4  , INDIR_DBL, REG_A>
 
 , defn<STR("ld"), 0x3a, FMT_X  , REG_A, DIRECT>
 , defn<STR("ld"), 0x32, FMT_X  , DIRECT, REG_A>
@@ -64,8 +60,8 @@ using z80_insn_list = list<list<>
 // 16-bit load group
 //
 
-, defn<STR("ld"), 0x01, FMT_4, REG_DBL, IMMED>
-, defn<STR("ld"), 0x21, FMT_X, REG_IDX, IMMED>
+, defn<STR("ld"), 0x01, FMT_4, REG_DBL, IMMED_16>
+, defn<STR("ld"), 0x21, FMT_X, REG_IDX, IMMED_16>
 
 // XXX NB: IDX_HL also allows IX, IY
 , defn<STR("ld"), 0x2a  , FMT_X, IDX_HL , DIRECT>
@@ -99,10 +95,8 @@ using z80_insn_list = list<list<>
 , defn<STR("cpir"), 0xedb1>
 , defn<STR("cpd") , 0xeda9>
 , defn<STR("cpdr"), 0xedb9>
+>;
 
-//
-// 8-bit arithmetic group
-//
 
 // accumulator formats
 // 1) add a,b
@@ -119,18 +113,22 @@ using math = list<list<>
     , defn<NAME, OPC      , FMT_0    , REG_GEN>
     , defn<NAME, OPC      , FMT_IDX_0, REG_A, IDX_HL>
     , defn<NAME, OPC      , FMT_IDX_0, IDX_HL>
-    , defn<NAME, OPC_IMMED, FMT_X    , REG_A, IMMED>
-    , defn<NAME, OPC_IMMED, FMT_X    , IMMED>
+    , defn<NAME, OPC_IMMED, FMT_X    , REG_A, IMMED_8>
+    , defn<NAME, OPC_IMMED, FMT_X    , IMMED_8>
     >;
 
+using z80_insn_math_l = list<list<>
+//
+// 8-bit arithmetic group
+//
 , math<STR("add"), 0x80, 0xc6>
 , math<STR("adc"), 0x88, 0xce>
 , math<STR("sub"), 0x90, 0xd6>
 , math<STR("sbc"), 0x98, 0xde>
 , math<STR("and"), 0xa0, 0xe6>
-, math<str("xor"), 0xa8, 0xee>
-, math<str("or") , 0xb0, 0xf6>
-, math<str("cp") , 0xb8, 0xfe>
+, math<STR("xor"), 0xa8, 0xee>
+, math<STR("or") , 0xb0, 0xf6>
+, math<STR("cp") , 0xb8, 0xfe>
 
 , defn<STR("inc"), 0x04, FMT_3, REG_GEN>
 , defn<STR("inc"), 0x34, FMT_X, IDX_HL>        // pick up IDX
@@ -172,7 +170,6 @@ using math = list<list<>
 
 , defn<STR("adc"), 0xed4a, FMT_X_4, REG_HL, REG_DBL>
 , defn<STR("sbc"), 0xed42, FMT_X_4, REG_HL, REG_DBL>
-
 // 
 // Rotate & shift group
 //
@@ -192,8 +189,8 @@ using math = list<list<>
 , defn<STR("sra") , 0xcb28, FMT_0, REG_GEN>
 , defn<STR("srl") , 0xcb38, FMT_0, REG_GEN>
 
-, defn<STR("rld"), 0xed6f
-, defn<STR("rrd"), 0xed67
+, defn<STR("rld"), 0xed6f>
+, defn<STR("rrd"), 0xed67>
 
 //
 // Bit set, reset, and test group
@@ -202,7 +199,9 @@ using math = list<list<>
 , defn<STR("bit"), 0xcb40, FMT_3_0, BIT_NUM, REG_GEN>
 , defn<STR("res"), 0xcb80, FMT_3_0, BIT_NUM, REG_GEN>
 , defn<STR("set"), 0xcbc0, FMT_3_0, BIT_NUM, REG_GEN>
+>;
 
+using z80_insn_jmp_l = list<list<>
 //
 // Jump group
 //
@@ -226,17 +225,19 @@ using math = list<list<>
 , defn<STR("rst") , 0xc7, FMT_3, IMMED_RST>
 , defn<STR("reti"), 0xed4d>
 , defn<STR("retn"), 0xed45>
+>;
 
+using z80_insn_io_l = list<list<>
 //
 // Input and Output group
 //
 
 , defn<STR("in")  , 0xdb  , FMT_X  , INDIR>
-, defn<STR("in")  , 0xdb  , FMT_X  , REG_A      , INDIR>
-, defn<STR("in")  , 0xed40, FMT_3  , REG_DIRECT , REG_C_INDIR>
+, defn<STR("in")  , 0xdb  , FMT_X  , REG_A  , INDIR>
+, defn<STR("in")  , 0xed40, FMT_3  , REG    , INDIR_C>
 , defn<STR("out") , 0xd3  , FMT_X  , INDIR>
-, defn<STR("out") , 0xd3  , FMT_X  , INDIR      , REG_A>
-, defn<STR("out") , 0xed41, FMT_X_3, REG_C_INDIR, REG_DIRECT>
+, defn<STR("out") , 0xd3  , FMT_X  , INDIR  , REG_A>
+, defn<STR("out") , 0xed41, FMT_X_3, INDIR_C, REG>
 
 , defn<STR("ini") , 0xeda2>
 , defn<STR("inir"), 0xedb2>
@@ -246,15 +247,22 @@ using math = list<list<>
 , defn<STR("otir"), 0xedb3>
 , defn<STR("outd"), 0xedab>
 , defn<STR("otdr"), 0xedbb>
-
 >;
 
 
+using z80_insn_list = list<list<>
+                         , z80_insn_ld_l
+                         , z80_insn_math_l
+                         , z80_insn_jmp_l
+                         , z80_insn_io_l
+                         >;
 }
 
-namespace kas::m68k::opc
+namespace kas::z80::opc
 {
-    template <> struct m68k_insn_defn_list<OP_M68K_GEN> : gen::m68k_gen_v {};
+    template <> struct z80_insn_defn_list<OP_Z80_GEN> : gen::z80_insn_list {};
 }
+
+#undef STR
 
 #endif

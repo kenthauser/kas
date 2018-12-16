@@ -120,4 +120,8 @@ template <typename T>
 struct is_zero<T, std::void_t<typename T::is_zero>> : T::is_zero {};
 
 }
+
+// XXX can't import into namespace `kas` without errors. 
+using kas::expression::ast::expr_t;
+
 #endif

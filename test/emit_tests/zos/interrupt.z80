@@ -1,0 +1,187 @@
+/*
+ * Copyright (c) 1992 Twenty-First Designs, Inc.
+ * Unpublished work. All rights reserved.  
+ *
+ * THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF 
+ * TWENTY-FIRST DESIGNS, INC.
+ *
+ * This software source code contains trade secrets and other
+ * proprietary information of Twenty-First Designs, Inc. All
+ * disclosure or use of this source code is strictly restricted
+ * by contract to that required for operation and maintenance 
+ * of equipment provided by Twenty-First Designs, Inc.
+ * All other disclosure or use of this source code is prohibited.
+ *
+ ***********************************************************
+ *
+ * $Id: interrupt.z80,v 1.1.1.1 2000/10/18 04:29:57 kent Exp $
+ *
+ ***********************************************************
+ *
+ * interrupt.z80
+ *
+ * Allocate & control the interupt vectors for
+ * a dual Z80-SIO system.
+ *
+ * Entrypoints:
+ *	sbrk: allocate memory from the heap
+ *	   called:  HL = size req'd
+ *	   retuned: HL = base address
+ *
+ *	alloc_intv: allocate & initalize memory for interrupt vectors
+ *                  loads the `I' register & WR2 in SIOs
+ *	   called:  no arguments
+ *
+ *	set_intv:   set an interrupt vector & enable
+ *		    interrupt in the SIO.
+ *		    (leaves interrupts enabled/disabled as when called)
+ * 	   called:  HL = routine address
+ *	            DE = vector number (set interrupt.h)
+ *	   returns:
+ *		    HL = routine address
+ *
+ ***********************************************************
+ */
+
+
+#include "io_addr.h"
+
+.lcomm	intv,2		; base of interrupt table
+
+	.data	
+brk:	.word	_end
+	.text
+
+
+#ifndef MIN_STACK	
+#define MIN_STACK	1000
+#endif
+
+/*
+ * sbrk -- allocate heap memory. return pointer to base.
+ *
+ * called:  hl = size of memory required
+ * returns: hl = base of memory allocated
+ *
+ * preserves A/B/C
+ */
+	.globl	sbrk
+
+sbrk:	ld	de,(brk)	; current end of memory
+	add	hl,de		; bump by reqd amount
+	push	de		; save base pointer
+	jr	c,1$		; if overflow
+	ld	(brk),hl	; save new brk value
+	ld	de,#MIN_STACK	; check for overflow
+	add	hl,de
+	jr	c,1$		; if overflow
+	sbc	hl,sp		; room for stack?
+	jr	nc,1$		; if not
+	pop	hl		; restore base pointer
+	ret
+1$:	rst	0x38		; memory exhausted
+
+/*
+ * allocate an aligned 32 byte memory segment
+ * to serve as the interrupt vector table
+ */
+
+	.globl	alloc_intv
+
+alloc_intv:
+	push	hl
+	push	de
+	di			; avoid contention
+	ld	hl,(brk)	; beginning of heap
+	ld	a,l
+	and	0x1f		; need page alignment
+	jr	z,1$		; if already aligned
+	sub	#32
+	neg
+	ld	e,a
+	ld	d,#0
+	add	hl,de		; skip to beginning of aligned segment
+1$:	ld	(intv),hl	; save beginning of segment
+	ld	a,h		; set registers
+	ld	i,a		; load interrupt register
+	im	2		; vectored mode
+	ld	a,#2		; set chips too
+	out	(SIO_0b_ctrl),a	; interrupts already off
+#ifndef ONE_SIO
+	out	(SIO_1b_ctrl),a
+#endif
+	ld	a,l		; get low part of address
+	out	(SIO_0b_ctrl),a
+#ifndef ONE_SIO
+	add	#16
+	out	(SIO_1b_ctrl),a
+#endif
+; complete allocation of ram
+	ld	de,#32		; segment length
+	add	hl,de
+	ld	(brk),hl
+	ei
+	pop	de
+	pop	hl
+	ret
+
+	.globl	set_intv
+
+set_intv:
+	push	hl		; save routine address
+	ld	hl,(intv)	; get base
+	ld	d,#0		; only 256 vectors
+	add	hl,de		; add offset
+	pop	de		; restore address
+	ld	a,i		; get interrupt state
+	push	af
+	di			; prevent contention
+	ld	(hl),e
+	inc	hl
+	ld	(hl),d
+	push	bc
+	call	0$
+	pop	bc
+	pop	af		; restore interrupt flip-flop
+	ex	de,hl		; restore interrupt routine to HL
+	ret	po		; if interrupts were disabled
+	ei
+	ret
+
+; now enable all interrupts with vectors
+; must preserve DE
+0$:	ld	hl,(intv)
+	inc	hl		; point to high word
+	ld	c,#SIO_0b_ctrl
+	call	1$
+	ld	c,#SIO_0a_ctrl
+#ifndef ONE_SIO
+	call	1$
+	ld	c,#SIO_1b_ctrl
+	call	1$
+	ld	c,#SIO_1a_ctrl
+#endif
+; enable interrupts based on vector present
+1$:	xor	a		; need a zero
+	ld	b,#4		; accumulate here (status affects vector)
+	cp	(hl)		; check tx
+	jr	z,2$		; if absent
+	set	1,b
+2$:	inc	hl
+	inc	hl
+	cp	(hl)		; check esc
+	jr	z,3$		; if absent
+	set	0,b
+3$:	inc	hl
+	inc	hl
+	cp	(hl)		; check rx
+	jr	z,4$		; if absent
+	set	4,b		; also parity affects vector
+4$:	inc	hl
+	inc	hl
+	inc	hl		; ignore src
+	inc	hl
+	ld	a,#1		; write register 1
+	out	(c),a
+	out	(c),b		; update SIO
+	ret

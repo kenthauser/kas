@@ -13,10 +13,10 @@ namespace kas::tgt
 ////////////////////////////////////////////////////////////////////////////
 
 template <typename Derived, typename Reg_t, typename T, typename Loc>
-tgt_reg_set<Derived, Reg_t, T, Loc>::tgt_reg_set(Reg_t const& l)
+tgt_reg_set<Derived, Reg_t, T, Loc>::tgt_reg_set(Reg_t const& l, char op)
 {
     std::cout << "tgt_reg_set::ctor: " << l << std::endl;
-    ops.emplace_back('=', l);
+    ops.emplace_back(op, l);
 }
 
 template <typename Derived, typename Reg_t, typename T, typename Loc>
@@ -24,8 +24,11 @@ int16_t tgt_reg_set<Derived, Reg_t, T, Loc>::kind() const
 {
     if (_error)
         return -(_error);
-    
+
     auto& front = ops.front();
+    if (front.first == '+')
+        return -RS_OFFSET;
+    
     return derived().reg_kind(front.second);
 }
 
@@ -41,6 +44,29 @@ auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, tgt_reg_set const
     auto iter = std::begin(r.ops);
     ops.emplace_back(op, iter->second);
     ops.insert(ops.end(), ++iter, r.ops.end());
+    return derived();
+}
+
+// expression binop:: only +/- supported, so no precidence issue
+template <typename Derived, typename Reg_t, typename T, typename Loc>
+auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, core::core_expr& r)
+    -> derived_t&
+{
+    if (kind() != -RS_OFFSET)
+        _error = RS_ERROR_INVALID_CLASS;
+    
+    
+    if (!_expr && op == '-')
+        _expr = &-std::move(r);
+    else if (!_expr)
+        _expr = &r;
+    else if (op == '+')
+        _expr->operator+(std::move(r));
+    else if (op == '-')
+        _expr->operator-(std::move(r));
+    else
+        _error = RS_ERROR_INVALID_CLASS;
+    
     return derived();
 }
 

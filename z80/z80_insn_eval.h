@@ -1,17 +1,18 @@
-#ifndef KAS_TARGET_TGT_INSN_EVAL_H
-#define KAS_TARGET_TGT_INSN_EVAL_H
+#ifndef KAS_Z80_INSN_EVAL_H
+#define KAS_Z80_INSN_EVAL_H
 
-#include "tgt_insn.h"
 
-namespace kas::tgt
+
+namespace kas::z80::opc
 {
 
-template <typename INSN_T, typename OK_T, typename ARGS_T>
-core::opc::opcode const* eval_insn_list
-        ( INSN_T const& insn
-        , OK_T& ok
+
+template <typename ARGS_T>
+z80_opcode_t const* eval_insn_list
+        ( z80_insn_t const& insn
+        , z80_insn_t::insn_bitset_t& ok
         , ARGS_T& args
-        , core::opc::opcode::op_size_t& insn_size
+        , op_size_t& insn_size
         , expression::expr_fits const& fits
         , std::ostream* trace
         )
@@ -19,8 +20,7 @@ core::opc::opcode const* eval_insn_list
     using namespace expression;     // get fits_result
 
     // save current "match"
-    using mcode_t = typename INSN_T::opcode_t;
-    mcode_t const *opcode_p{};
+    z80_opcode_t const *opcode_p{};
     auto match_result = fits.no;
     auto match_index  = 0;
 
@@ -46,7 +46,7 @@ core::opc::opcode const* eval_insn_list
         if (trace)
             *trace << std::setw(2) << index << ": ";
         
-        core::opc::opcode::op_size_t size;
+        op_size_t size;
         auto result = (*op_p)->size(args, size, fits, trace);
 
         if (result == fits.no)
@@ -108,15 +108,6 @@ core::opc::opcode const* eval_insn_list
     }
 
     return opcode_p;
-}
-
-
-// templated definition to cut down on noise in `insn_t` defn
-template <typename OPCODE_T, std::size_t _MAX_ARGS, std::size_t MAX_OPCODES, typename TST_T>
-template <typename...Ts>
-core::opcode const* tgt_insn_t<OPCODE_T, _MAX_ARGS, MAX_OPCODES, TST_T>::eval(insn_bitset_t& ok, Ts&&...args) const
-{
-    return eval_insn_list(*this, ok, std::forward<Ts>(args)...);
 }
 }
 

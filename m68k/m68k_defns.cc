@@ -80,6 +80,8 @@ namespace kas::m68k::parser
 // instantiate printers
 namespace kas::tgt
 {
+    template auto m68k::m68k_reg_set::binop(const char, tgt_reg_set const&) -> derived_t&;
+    template auto m68k::m68k_reg_set::binop(const char, core::core_expr&)   -> derived_t&;
     template const char *m68k::m68k_reg::validate(int) const;
     // template  void print_expr<std::ostream>(m68k::m68k_reg const&, std::ostream&);
     template  void m68k::m68k_reg_set::print<std::ostream>(std::ostream&) const;

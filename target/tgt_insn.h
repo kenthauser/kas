@@ -39,11 +39,11 @@ namespace kas::tgt
         {
             return insn_name.c_str();
         }
-#if 1
+
         // methods are variadic templated to eliminate need for args to be forward declared
         template <typename...Ts>
         core::opc::opcode const *eval(insn_bitset_t&, Ts&&...) const;
-#endif
+
         // test if args suitable for INSN (eg: count) & processor flags
         template <typename...Ts>
         parser::tagged_msg validate_args(Ts&&...) const;

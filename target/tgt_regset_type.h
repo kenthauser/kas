@@ -56,10 +56,10 @@ struct tgt_reg_set : core::kas_object<Derived, Loc>
     using base_t     = tgt_reg_set;
     using derived_t  = Derived;
     using reg_t      = Reg_t;
-    using rs_value_t = T;
+    using rs_value_t = int32_t;     // NB: e_fixed_t
 
     // declare errors
-    enum  { RS_ERROR_INVALID_CLASS = 1, RS_ERROR_INVALID_RANGE };
+    enum  { RS_ERROR_INVALID_CLASS = 1, RS_ERROR_INVALID_RANGE, RS_OFFSET };
 
 protected:
     // Default Register-Set implementations. Override if `Derived`
@@ -104,7 +104,7 @@ public:
         { return *static_cast<derived_t*>(this); }
 
     // ctor (no default needed as not in x3 grammar)
-    tgt_reg_set(reg_t const& r);
+    tgt_reg_set(reg_t const& r, char op = '=');
 
     // need mutable operators only
     auto& operator- (derived_t const& r)
@@ -112,11 +112,17 @@ public:
         return binop('-', r);
     }
     auto& operator/ (derived_t const& r)
-                        { return binop('/', r); }
-
-    // never used, always defined
-    auto& operator+ (derived_t const& r)
-                        { return binop('/', r); }
+    {
+        return binop('/', r); 
+    }
+    auto& operator+ (core::core_expr& r)
+    { 
+        return binop('+', r); 
+    }
+    auto& operator- (core::core_expr& r)
+    { 
+        return binop('-', r); 
+    }
 
     // calculate register-set value 
     rs_value_t value(bool reverse = false) const;
@@ -125,18 +131,15 @@ public:
     // NB: negative value indicates error index
     int16_t kind() const;
 
+    // these methods only valid for `RC_OFFSET`
+    auto expr_p() const { return _expr; }
+    auto reg()    const { return ops.front().second; }
+
     template <typename OS> void print(OS&) const;
-#if 1
-    template <typename U>
-    std::enable_if_t<std::is_same_v<U, Reg_t>, derived_t&>
-    friend operator-(Reg_t const& l, U const& r)
-    {
-        return l - derived_t(r);
-    }
-#endif
     
 private:
     derived_t& binop(const char op, tgt_reg_set const& r);
+    derived_t& binop(const char op, core::core_expr& r);
 
     // state is list of reg-set ops
     using reg_set_op = std::pair<char, reg_t>;
@@ -146,38 +149,54 @@ private:
     mutable rs_value_t _value  {};
     mutable rs_value_t _value2 {};
     mutable int16_t    _error  {};
+    core::core_expr  * _expr   {};
 
     static inline core::kas_clear _c{base_t::obj_clear};
 };
 
-}
+//}
 
 // hook regset into type system.
 // NB: must be done in "kas" namespace so template is found
 //namespace kas
 //{
 
-#if 1
-// Add a bunch of TMP tests so only matches "reg, regset" pair
+// Declare operators to catch "reg op reg" to evaluate register sets
 // NB: Allocate a "kas-object" instance of regset & proceed with evaluation
-template <typename Derived, typename Reg_t
-        , typename = std::enable_if_t<std::is_same_v<Reg_t, typename Derived::reg_t>>
-        >
-inline auto operator- (Reg_t const& l, Derived const& r)
-    -> decltype(std::declval<Derived>().operator-(r))
+template <typename L, typename R, typename RS = typename L::reg_set_t
+        , typename = std::enable_if_t<std::is_constructible_v<RS, R>>>
+inline auto operator- (L const& l, R const& r)
+    -> decltype(std::declval<RS>().operator-(r))
 {
-    return Derived::add(l).operator-(r);
+    return RS::add(l).operator-(r);
 }
-#endif
-
-template <typename Derived, typename Reg_t
-        , typename = std::enable_if_t<std::is_same_v<Reg_t, typename Derived::reg_t>>>
-inline auto operator/ (Reg_t const& l, Derived const& r)
-    -> decltype(std::declval<Derived>().operator/(r))
+template <typename L, typename R, typename RS = typename L::reg_set_t
+        , typename = std::enable_if_t<std::is_constructible_v<RS, R>>>
+inline auto operator/ (L const& l, R const& r)
+    -> decltype(std::declval<RS>().operator/(r))
 {
-    return Derived::add(l).operator/(r);
+    return RS::add(l).operator/(r);
 }
 
-//}
+// Declare operators to handle displacements (Reg +/- expr, expr + Reg)
+template <typename L, typename RS = typename L::reg_set_t>
+inline auto operator+ (L const& l, core::core_expr& r)
+    -> decltype(std::declval<RS>().operator+(r))
+{
+    return RS::add(l, '+').operator+(r);
+}
+template <typename L, typename RS = typename L::reg_set_t>
+inline auto operator- (L const& l, core::core_expr& r)
+    -> decltype(std::declval<RS>().operator-(r))
+{
+    return RS::add(l, '+').operator-(r);
+}
+template <typename R, typename RS = typename R::reg_set_t>
+inline auto operator+ (core::core_expr& l, R const& r)
+    -> decltype(std::declval<RS>().operator+(l))
+{
+    return RS::add(r, '+').operator+(l);
+}
+}
 
 #endif
