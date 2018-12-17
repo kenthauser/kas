@@ -27,8 +27,10 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
     using opcode_t      = typename insn_t::opcode_t;
     using err_msg_t     = typename opcode_t::err_msg_t;
 
-    auto trace = opcode::trace;
+    auto trace = core::opcode::trace;
     auto& insn = *insn_p;
+
+    trace = &std::cout;
 
     // generate an "error" opcode if appropriate
     auto make_error = [&fixed=fixed,&insn_size=insn_size, &trace]

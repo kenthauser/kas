@@ -56,8 +56,9 @@ auto parse = [](std::string const& source, fs::path input_path)-> std::string
 
     for (auto&& stmt : stmt_stream) {
     	auto where = stmt_stream.where(stmt).second;
-    	std::cout << "in :  " << escaped_str(where) << std::endl;
-    	std::cout << "out:  " << stmt << '\n' << std::endl;
+        // `stmt` "moves" args. Can not "ostream" twice
+    	//std::cout << "1 in :  " << escaped_str(where) << std::endl;
+    	//std::cout << "1 out:  " << stmt << '\n' << std::endl;
          
     	out << "in :  " << escaped_str(where) << std::endl;
     	out << "out:  " << stmt << '\n' << std::endl;

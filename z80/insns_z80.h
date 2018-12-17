@@ -3,25 +3,31 @@
 
 // While the tables look cryptic, the MPL fields are generally as follows:
 //
-// 1. opcode name. The metafunction modifies the base name
-//     eg. lwb<STR("move") expands to "move.l", "move.w", "move.b"
-//         (and/or "movel", "movew", moveb") Base opcode size field value also
-//         updated with l/w/b size value
+// 1. opcode name. 
 //
-// 2. base opcode. 16-bit or 32-bit opcode value
+// 2. base machine code. 8-bit or 16-bit value
 //
-// 3. functor which returns enum to select which (virtual) subclass
-//          of `core::opcode` should be used for this instruction.
-//          returns zero if opcode not supported according to
-//          run time switches (eg 68020 instruction in 68000 mode)
+// 3. opcode formater: how to insert args into machine code
 //
-// 4. format index value on where values are inserted in the base opcode
-//          (register numbers, address modes, immediate values, etc)
-//
-// 5+ validator(s) for z80 arguments, if any. Maximum 6.
+// 4+ validator(s) for z80 arguments, if any. Maximum 2.
 //
 // The format names (and naming convention) are in `z80_opcode_formats.h`
 // The argument validators are in `z80_arg_validate.h`
+
+ 
+// The common validors with ambiguous names are:
+//
+// REG:     allow 8-bit registers: A, B, C, D, E, H, L
+// REG_GEN: allow REG and (HL), (IX+n), (IY+n)
+// REG_DBL: allow BC, DE, HL
+// IDX_HL:  allow HL, IX, IY
+// CC:      condition codes for JP, CALL, & RET
+// JR_CC:   condition codes for JR
+//
+// Formaters list "shifts" for args in order. 
+// code `X` indicates arg is not inserted in machine code
+// arg is either determined by "validatore" (eg REG_A) or immediate
+// immediate arg validators can declare size
 
 
 #include "z80_insn_common.h"
@@ -63,7 +69,7 @@ using z80_insn_ld_l = list<list<>
 , defn<STR("ld"), 0x01, FMT_4, REG_DBL, IMMED_16>
 , defn<STR("ld"), 0x21, FMT_X, REG_IDX, IMMED_16>
 
-// XXX NB: IDX_HL also allows IX, IY
+// NB: IDX_HL also allows IX, IY
 , defn<STR("ld"), 0x2a  , FMT_X, IDX_HL , DIRECT>
 , defn<STR("ld"), 0xed4b, FMT_4, REG_DBL, DIRECT>
 
@@ -72,8 +78,11 @@ using z80_insn_ld_l = list<list<>
 
 , defn<STR("ld"), 0xf9, FMT_X, REG_SP, IDX_HL>
 
-, defn<STR("push"), 0xc5, FMT_4, REG_DBL_AF>
-, defn<STR("pop") , 0xc1, FMT_4, REG_DBL_AF>
+, defn<STR("push"), 0xc5, FMT_4, REG_DBL>
+, defn<STR("pop") , 0xc1, FMT_4, REG_DBL>
+
+, defn<STR("push"), 0xf5, FMT_X, REG_AF>
+, defn<STR("pop") , 0xf1, FMT_X, REG_AF>
 
 , defn<STR("push"), 0xe5, FMT_X, REG_IDX>
 , defn<STR("pop") , 0xe1, FMT_X, REG_IDX>
@@ -81,11 +90,10 @@ using z80_insn_ld_l = list<list<>
 // exchange, block transfer, search group
 
 , defn<STR("ex")  , 0xeb, FMT_X, REG_DE, REG_HL>
+, defn<STR("ex")  , 0xe3, FMT_X, INDIR_SP, IDX_HL>
 , defn<STR("ex")  , 0x08, FMT_X, REG_AF, REG_AF>
 , defn<STR("exaf"), 0x08>
 , defn<STR("exx") , 0xd9>
-
-, defn<STR("ex")  , 0xe3, FMT_X, INDIR_SP, IDX_HL>
 
 , defn<STR("ldi") , 0xeda0>
 , defn<STR("ldir"), 0xedb0>
@@ -98,7 +106,7 @@ using z80_insn_ld_l = list<list<>
 >;
 
 
-// accumulator formats
+// math metafunction: generate accumulator formats
 // 1) add a,b
 // 2) add b     (a implied)
 // 3) add a,(hl) (idx+n allowed)

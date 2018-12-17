@@ -58,7 +58,7 @@ struct z80_insn_adder
         // (& allocate) `z80_insn_t` instance. Then add `z80_opcode_t`
         // instance pointer to `z80_insn_t` instance.
 
-        std::cout << "z80_insn_adder::add()" << std::endl;
+        //std::cout << "z80_insn_adder::add()" << std::endl;
 
         // allocate run-time objects in deques
         auto insn_obstack   = new typename z80_insn_t::obstack_t;
@@ -73,7 +73,7 @@ struct z80_insn_adder
         auto p = defns;
         for (int n = 0; n < count; ++p, ++n)
         {
-            std::cout << n << " base: " << p->name() << std::endl;
+            //std::cout << n << " base: " << p->name() << std::endl;
 
             // XXX don't worry about validators: allocate all
             z80_opcode_t *op_p {};
@@ -93,9 +93,11 @@ struct z80_insn_adder
 
             // add opcode to insn
             insn_p->opcodes.push_back(op_p);
+            if (insn_p->opcodes.size() > insn_p->max_opcodes)
+                throw std::logic_error("too many machine codes for " + std::string(name));
         }
 
-        std::cout << "z80_insn_adder::end" << std::endl;
+        //std::cout << "z80_insn_adder::end" << std::endl;
     }
     
     DEFN_T const *defns;

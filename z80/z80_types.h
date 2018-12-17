@@ -31,8 +31,8 @@ namespace opc
 
     template <typename=void> struct z80_insn_defn_list : meta::list<> {};
 
-    // declare Z80 INSN: 2 args, 16 opcodes with same name
-    using z80_insn_t = tgt::tgt_insn_t<struct z80_opcode_t, 2, 16>;
+    // declare Z80 INSN: 2 args, 32 opcodes with same name ("ld" has 21)
+    using z80_insn_t = tgt::tgt_insn_t<struct z80_opcode_t, 2, 32>;
 }
 
 using opc::z80_insn_t;
