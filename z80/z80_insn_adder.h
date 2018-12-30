@@ -43,6 +43,8 @@ struct z80_insn_adder
         using VAL_NAMES = transform<VALS, quote<front>>;
         z80_validate_args::vals_base  = at_c<types_defns, 2>::value;
         z80_validate_args::names_base = init_from_list<const char *, VAL_NAMES>::value;
+
+        //z80_validate_args::set_base(at_c<types_defns, 2>::value);
     };
 
     template <typename X3>
@@ -79,10 +81,15 @@ struct z80_insn_adder
             z80_opcode_t *op_p {};
 
             // create the "opcode"
-            op_p = &opcode_obstack->emplace_back(opcode_obstack->size()
-                                               , n, p);
-            
+            op_p = &opcode_obstack->emplace_back(opcode_obstack->size(), n, p);
             auto&& name = p->name();
+
+            // test for "list" opcode
+            if (name[0] == '*')
+            {
+                z80_insn_t::list_opcode = op_p;
+                continue;
+            }
                 
             // lookup name. Inserts empty if not found
             auto& insn_p = x3.at(name);

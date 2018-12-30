@@ -82,7 +82,7 @@ namespace kas::expression::parser
                 auto  end_iter = expr.end();
                 auto& top_expr = *--end_iter;
                 auto& dest     = *--end_iter;
-//#define EXPR_TRACE_EVAL
+#define EXPR_TRACE_EVAL
 #ifdef EXPR_TRACE_EVAL
                 std::cout << "eval: " << oper.back().oper->name();
                 std::cout << " (" << dest << ", " << top_expr << ")" << std::endl;
@@ -110,6 +110,7 @@ namespace kas::expression::parser
         };
     };
 
+#undef EXPR_TRACE_EVAL
 
     //////////////////////////////////////////////////////////////////////////
     //  Expression Parser Definition

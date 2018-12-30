@@ -56,6 +56,7 @@ namespace kas::tgt
 
         // retrieve instance from (zero-based) index
         static auto& get(uint16_t idx) { return (*index_base)[idx]; }
+        static inline const opcode_t  *list_opcode;
 
     //private:
         static inline const obstack_t *index_base;

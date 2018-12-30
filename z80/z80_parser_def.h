@@ -59,20 +59,23 @@
 
 #include <boost/spirit/home/x3.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
+#include <boost/fusion/include/std_pair.hpp>
 
-
+#if 0
 BOOST_FUSION_ADAPT_STRUCT(
-    kas::z80::z80_arg_t,
+    kas::z80::z80_parsed_arg_t,
     expr,
     mode
 )
-
+#endif
 
 namespace kas::z80::parser
 {
     namespace x3 = boost::spirit::x3;
     using namespace x3;
     using namespace kas::parser;
+
+    using z80_parsed_arg_t = std::pair<expr_t, int>;
 
     //////////////////////////////////////////////////////////////////////////
     // Parse Z80 argument using Zilog syntax
@@ -83,29 +86,32 @@ namespace kas::z80::parser
     // X3 parser rules: convert "parsed" args to location-stampped args
     //
     
-    x3::rule<class z80_arg,     z80_arg_t>  z80_arg     = "z80_arg";
-    x3::rule<class z80_missing, z80_arg_t>  z80_missing = "z80_missing";
-
-    auto const z80_arg_def =
+    x3::rule<class z80_p_arg,   z80_parsed_arg_t>  z80_parsed_arg = "z80_parsed_arg";
+    
+    auto const z80_parsed_arg_def =
               '(' > expr() > ')' > attr(MODE_INDIRECT) 
             | '#' > expr() >       attr(MODE_DIRECT)
             | expr()       >       attr(MODE_DIRECT)
             ;
 
+    x3::rule<class z80_arg    , z80_arg_t>  z80_arg        = "z80_arg";
+    x3::rule<class z80_missing, z80_arg_t>  z80_missing    = "z80_missing";
+   
+    auto const z80_arg_def     = z80_parsed_arg;
     auto const z80_missing_def = eps;      // need location tagging
 
-
     // tag location for each argument
-    struct z80_arg     : kas::parser::annotate_on_success {};
-    struct z80_missing : kas::parser::annotate_on_success {};
+    //struct z80_p_arg   : kas::parser::annotate_on_success {};
+    //struct z80_missing : kas::parser::annotate_on_success {};
 
 
-    BOOST_SPIRIT_DEFINE(z80_arg, z80_missing)
+    BOOST_SPIRIT_DEFINE(z80_parsed_arg, z80_arg, z80_missing)
 
     // an z80 instruction is "opcode" followed by comma-separated "arg_list"
     // no arguments indicated by location tagged `z80_arg` with type MODE_NONE
     
     rule<class _z80_args, std::list<z80_arg_t>> const z80_args = "z80_args";
+
     auto const z80_args_def
            //= (z80_arg >> *((',' > z80_arg) 
            = z80_arg % ','

@@ -68,7 +68,7 @@ private:
     static inline reg_defn_idx_t insns_cnt;
 
     static defn_t const& get_defn(reg_defn_idx_t n);
-    defn_t const&        select_defn() const;
+    defn_t const&        select_defn(int reg_class = -1) const;
 
 public:
     static void set_insns(decltype(insns) _insns, unsigned _cnt)
@@ -107,7 +107,7 @@ private:
     friend OS& operator<<(OS& os, tgt_reg const& d)
     {
         d.print(os); 
-        return os << std::endl;
+        return os;
     }
 
     // reg_ok is really a bool. 

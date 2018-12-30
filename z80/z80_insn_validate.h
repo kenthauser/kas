@@ -57,12 +57,16 @@ using op_size_t   = core::opcode::op_size_t;
 struct z80_validate
 {
     virtual fits_result ok  (z80_arg_t& arg, expr_fits const& fits) const = 0;
-    virtual fits_result size(z80_arg_t& arg, expr_fits const& fits, op_size_t *) const
+    virtual fits_result size(z80_arg_t& arg, expr_fits const& fits, op_size_t&) const
     { 
         // default: return "fits", don't update size
         return ok(arg, fits);
     }
-    
+
+    // insert & extract values from opcode
+    virtual unsigned get_value(z80_arg_t& arg)           const { return {}; }
+    virtual void     set_arg  (z80_arg_t& arg, unsigned) const {}
+
     // NB: literal types can't define dtors
     // virtual ~z80_validate() = default;
 };
@@ -71,6 +75,7 @@ struct z80_validate
 struct z80_validate_args
 {
     static constexpr auto MAX_ARGS = z80_insn_t::MAX_ARGS;
+    using val_index_t = uint8_t;
 
     template <typename...Ts>
     constexpr z80_validate_args(list<Ts...>)
@@ -78,11 +83,72 @@ struct z80_validate_args
         , arg_count { sizeof...(Ts)    }
         {}
 
+    struct iter : std::iterator<std::forward_iterator_tag, z80_validate>
+    {
+        iter(z80_validate_args const& obj, val_index_t index = 0) : obj(obj), index(index) {}
+
+    private:
+        // get index of current validator
+        auto val_index() const
+        {
+            return obj.arg_index[index] - 1;
+        }
+
+    public:
+        auto name() const
+        {
+            return names_base[val_index()];
+        }
+        
+        auto operator->() const
+        {
+            return vals_base[val_index()];
+        }
+
+        auto& operator*() const
+        {
+            return *operator->();
+        }
+
+        auto& operator++()
+        {
+            ++index;
+            return *this;
+        }
+
+        auto operator++(int)
+        {
+            auto value = *this;
+            ++index;
+            return value;
+        }
+        
+        auto operator!=(iter const& other) const
+        {
+            return &obj != &other.obj || index != other.index;
+        }
+
+    private:
+        val_index_t index;
+        z80_validate_args const& obj;
+    };
+
+    
+public:
+    auto size()  const { return arg_count; }
+    auto begin() const { return iter(*this);            }
+    auto end()   const { return iter(*this, arg_count); }
+
+    //static void set_base (z80_validate * const *base)  { vals_base = base;   }
+    //static void set_names(const char * const *names)   { names_base = names; }
+
+//private:
     static inline const z80_validate *const *vals_base;
     static inline const char *const   *names_base;
 
-    std::array<uint8_t, MAX_ARGS> arg_index;
-    uint8_t                       arg_count;
+    std::array<val_index_t, MAX_ARGS> arg_index;
+    val_index_t                       arg_count;
+
 };
 
 }

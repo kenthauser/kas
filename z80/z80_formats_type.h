@@ -24,45 +24,64 @@ struct z80_opcode_fmt
     
     // Implement `FMT_MAX_ARGS` inserters & extractors
     // default to no-ops for inserters/extractors instead of ABC
-    virtual bool insert_arg1(uint16_t* op, z80_arg_t& arg) const { return false; }
-    virtual bool insert_arg2(uint16_t* op, z80_arg_t& arg) const { return false; }
-    virtual bool insert_arg3(uint16_t* op, z80_arg_t& arg) const { return false; }
-    virtual bool insert_arg4(uint16_t* op, z80_arg_t& arg) const { return false; }
-    virtual bool insert_arg5(uint16_t* op, z80_arg_t& arg) const { return false; }
-    virtual bool insert_arg6(uint16_t* op, z80_arg_t& arg) const { return false; }
+    virtual bool insert_arg1(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const 
+    { 
+        if (val_p)
+            val_p->get_value(arg); 
+        return false;
+    }
+    virtual bool insert_arg2(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const
+        { if (val_p) val_p->get_value(arg); return false; }
+    virtual bool insert_arg3(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const
+        { if (val_p) val_p->get_value(arg); return false; }
+    virtual bool insert_arg4(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const
+        { if (val_p) val_p->get_value(arg); return false; }
+    virtual bool insert_arg5(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const
+        { if (val_p) val_p->get_value(arg); return false; }
+    virtual bool insert_arg6(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const
+        { if (val_p) val_p->get_value(arg); return false; }
 
-    virtual void extract_arg1(uint16_t const* op, z80_arg_t *arg) const {}
-    virtual void extract_arg2(uint16_t const* op, z80_arg_t *arg) const {}
-    virtual void extract_arg3(uint16_t const* op, z80_arg_t *arg) const {}
-    virtual void extract_arg4(uint16_t const* op, z80_arg_t *arg) const {}
-    virtual void extract_arg5(uint16_t const* op, z80_arg_t *arg) const {}
-    virtual void extract_arg6(uint16_t const* op, z80_arg_t *arg) const {}
+    virtual void extract_arg1(uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+    {
+        if (val_p)
+            val_p->set_arg(*arg, 0);
+    }
+    virtual void extract_arg2(uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+        { if (val_p) val_p->set_arg(*arg, 0); }
+    virtual void extract_arg3(uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+        { if (val_p) val_p->set_arg(*arg, 0); }
+    virtual void extract_arg4(uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+        { if (val_p) val_p->set_arg(*arg, 0); }
+    virtual void extract_arg5(uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+        { if (val_p) val_p->set_arg(*arg, 0); }
+    virtual void extract_arg6(uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+        { if (val_p) val_p->set_arg(*arg, 0); }
 
-    auto insert(unsigned n, uint16_t* op, z80_arg_t& arg) const
+    auto insert(unsigned n, uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const
     {
         switch (n)
         {
-            case 0: return insert_arg1(op, arg);
-            case 1: return insert_arg2(op, arg);
-            case 2: return insert_arg3(op, arg);
-            case 3: return insert_arg4(op, arg);
-            case 4: return insert_arg5(op, arg);
-            case 5: return insert_arg6(op, arg);
+            case 0: return insert_arg1(op, arg, val_p);
+            case 1: return insert_arg2(op, arg, val_p);
+            case 2: return insert_arg3(op, arg, val_p);
+            case 3: return insert_arg4(op, arg, val_p);
+            case 4: return insert_arg5(op, arg, val_p);
+            case 5: return insert_arg6(op, arg, val_p);
             default:
                 throw std::runtime_error("insert: bad index");
         }
     }
 
-    void extract(int n, uint16_t const* op, z80_arg_t *arg) const
+    void extract(int n, uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
     {
         switch (n)
         {
-            case 0: return extract_arg1(op, arg);
-            case 1: return extract_arg2(op, arg);
-            case 2: return extract_arg3(op, arg);
-            case 3: return extract_arg4(op, arg);
-            case 4: return extract_arg5(op, arg);
-            case 5: return extract_arg6(op, arg);
+            case 0: return extract_arg1(op, arg, val_p);
+            case 1: return extract_arg2(op, arg, val_p);
+            case 2: return extract_arg3(op, arg, val_p);
+            case 3: return extract_arg4(op, arg, val_p);
+            case 4: return extract_arg5(op, arg, val_p);
+            case 5: return extract_arg6(op, arg, val_p);
             default:
                 throw std::runtime_error("extract: bad index");
         }
@@ -88,10 +107,10 @@ template <unsigned, typename T> struct fmt_arg;
 template <typename T>                                                           \
 struct fmt_arg<N, T> : virtual z80_opcode_fmt                                  \
 {                                                                               \
-    bool insert_arg ## N (uint16_t* op, z80_arg_t& arg) const override         \
-        { return T::insert(op, arg);}                                           \
-    void extract_arg ## N (uint16_t const* op, z80_arg_t* arg) const override  \
-        { T::extract(op, arg); }                                                \
+    bool insert_arg ## N (uint16_t* op, z80_arg_t& arg, z80_validate const * val_p) const override         \
+        { return T::insert(op, arg, val_p);}                                           \
+    void extract_arg ## N (uint16_t const* op, z80_arg_t* arg, z80_validate const * val_p) const override  \
+        { T::extract(op, arg, val_p); }                                                \
 };
 
 // declare `FMT_MAX_ARGS` times

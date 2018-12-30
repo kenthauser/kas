@@ -52,20 +52,19 @@ protected:
     template <typename READER_T>
     struct serial_args
     {
-        serial_args(READER_T& reader, z80_opcode_fmt const& fmt, uint16_t *opcode_p)
-            : fmt(fmt), opcode_p(opcode_p)
+        serial_args(READER_T& reader, z80_opcode_t const& opcode)
+            : opcode(opcode)
         {
-            std::tie(args, update_handle) = z80_read_args(reader, fmt, opcode_p);
+            std::tie(data_p, args, update_handle) = z80_read_args(reader, opcode);
         }
         
         // create an `iterator` to allow range-for to process sizes
-        struct iter
+        struct iter : std::iterator<std::forward_iterator_tag, z80_arg_t>
         {
             iter(serial_args const& obj, bool make_begin = {}) 
                     : obj(obj)
                     , index(make_begin ? 0 : -1)
                     {}
-
 
             // range operations
             auto& operator++() 
@@ -79,7 +78,7 @@ protected:
             }
             auto operator!=(iter const& other) const
             {
-                auto tst = obj.args[index].mode == MODE_NONE ? -1 : 0;
+                auto tst = obj.args[index].mode() == MODE_NONE ? -1 : 0;
                 return tst != other.index;
             }
         
@@ -94,12 +93,12 @@ protected:
         void update_mode(z80_arg_t& arg)
         {
             auto n = &arg - args;
-            z80_arg_update(n, arg, update_handle, fmt, opcode_p);
+            z80_arg_update(opcode, n, arg, update_handle, data_p);
         }
         
-        z80_opcode_fmt const& fmt;
-        uint16_t        *opcode_p;
-        z80_arg_t      *args;
+        z80_opcode_t const& opcode;
+        uint16_t        *data_p;
+        z80_arg_t       *args;
         void            *update_handle;
     };
 };

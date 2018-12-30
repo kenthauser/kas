@@ -31,8 +31,8 @@ template <typename ARGS_T>
 const char * z80_opcode_t::validate_args(ARGS_T& args, std::ostream *trace) const
 {
     auto& val_c = defn().val_c();
-    auto  val_p = val_c.arg_index.begin();
-    auto  cnt   = val_c.arg_count;
+    auto  val_p = val_c.begin();
+    auto  cnt   = val_c.size();
 
     expr_fits fits;
     
@@ -41,11 +41,11 @@ const char * z80_opcode_t::validate_args(ARGS_T& args, std::ostream *trace) cons
         // if too many args
         if (!cnt--)
             return error_msg::ERR_invalid;
-       
         if (trace)
-            *trace << " " << val_c.names_base[*val_p - 1] << " ";
+            *trace << " " << val_p.name() << " ";
         
-        auto result = val_c.vals_base[*val_p - 1]->ok(arg, fits);
+        auto result = val_p->ok(arg, fits);
+
         if (result == expression::NO_FIT)
             return error_msg::ERR_argument;
         ++val_p;
@@ -65,10 +65,12 @@ auto z80_opcode_t::size(ARGS_T& args, op_size_t& size, expr_fits const& fits, st
 {
     // hook into validators
     auto& val_c = defn().val_c();
-    auto  val_p = val_c.arg_index.begin();
+    auto  val_p = val_c.begin();
 
     // size of base opcode
-    size = opc_long ? 4 : 2;
+    size = opc_long ? 2 : 1;
+    if (z80_arg_t::prefix)
+        size += 1;
 
     // here know val cnt matches
     auto result = fits.yes;
@@ -76,13 +78,11 @@ auto z80_opcode_t::size(ARGS_T& args, op_size_t& size, expr_fits const& fits, st
     {
         if (result == expression::NO_FIT)
             break;
-
         if (trace)
-            *trace << " " << val_c.names_base[*val_p - 1] << " ";
+            *trace << " " << val_p.name() << " ";
 
+        auto r = val_p->size(arg, fits, size);
         
-        //switch(val_c.vals_base[*val_p - 1]->size(arg, sz(), fits, &size))
-        auto r = val_c.vals_base[*val_p - 1]->size(arg, fits, &size);
         if (trace)
             *trace << +r << " ";
             

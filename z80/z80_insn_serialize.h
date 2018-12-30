@@ -70,16 +70,23 @@
 
 namespace kas::z80::opc
 {
-template <typename Inserter, typename ARGS_T>
+template <typename Inserter, typename MCODE_T, typename ARGS_T>
 void z80_insert_args(Inserter& inserter
+                    , MCODE_T const& m_code
                     , ARGS_T&& args
-                    , detail::z80_op_size_t* opcode_p
-                    , z80_opcode_fmt const& fmt
+                    //, detail::z80_op_size_t* opcode_p
                     )
 {
     using expression::expr_fits;
     using expression::fits_result;
     auto& ARGS_PER_INFO = detail::z80_arg_info::ARGS_PER_INFO;
+    
+    auto opcode_p = inserter(m_code.code(), m_code.opc_long ? M_SIZE_LONG : M_SIZE_WORD);
+
+    auto& fmt  = m_code.fmt();
+    auto& vals = m_code.vals();
+    auto val_iter     = vals.begin();
+    auto val_iter_end = vals.end();
 
     unsigned n = 0;
     detail::arg_info_t *p;
@@ -91,16 +98,21 @@ void z80_insert_args(Inserter& inserter
         if (auto idx_n = n % ARGS_PER_INFO) {
             // not modulo -- just increment
             ++p;
-        } else {
+        } 
+        else
+        {
             // need new arg_info
             auto& info = detail::z80_arg_info::cast(inserter(0, M_SIZE_WORD));
             p = info.info;
         }
 
-        // do work
-        z80_insert_one(inserter, n, arg, p, fmt, opcode_p);
-        ++n;
+        // do work: pass validator if present
+        if (val_iter != val_iter_end)
+            z80_insert_one(inserter, n, arg, p, fmt, &*val_iter++, opcode_p);
+        else
+            z80_insert_one(inserter, n, arg, p, fmt, nullptr, opcode_p);
 
+        ++n;
         // std::cout << std::hex;
         // std::cout << "write_arg :            mode = " << (int)arg.mode;
         // std::cout << " reg_num = " << arg.reg_num;
@@ -116,9 +128,7 @@ void z80_insert_args(Inserter& inserter
 
 // deserialize z80_arguments: for format, see above
 template <typename Z80_Iter>
-auto z80_read_args(Z80_Iter& reader
-                , z80_opcode_fmt const& fmt
-                , uint16_t *opcode_p)
+auto z80_read_args(Z80_Iter& reader, z80_opcode_t const& m_code)
 {
     // deserialize into static array.
     // add extra `static_arg` as an end-of-list flag.
@@ -132,19 +142,28 @@ auto z80_read_args(Z80_Iter& reader
 
     // initialize static array (default constructs to empty)
     for (auto& arg : static_args) arg = {};
+    z80_arg_t::reset();
 
     // get working pointers into static arrays
     auto arg_p  = std::begin(static_args);
     auto info_p = std::begin(static_info);
 
+    // get "opcode" info
+    auto  data_p = reader.get_fixed_p(M_SIZE_WORD);
+
     // read & decode arguments until empty
+    auto& fmt  = m_code.fmt();
+    auto& vals = m_code.vals();
+    auto val_iter     = vals.begin();
+    auto val_iter_end = vals.end();
+
     detail::arg_info_t *p;
     for (unsigned n = 0;;++n, ++arg_p)
     {
 
         // last static_arg is end-of-list flag, should never reach it.
         if (arg_p == std::end(static_args))
-            throw std::runtime_error {"z80_read_args"};
+            throw std::runtime_error {"z80_read_args: MAX_ARGS exceeded"};
 
         //std::cout << std::endl;
         
@@ -165,7 +184,10 @@ auto z80_read_args(Z80_Iter& reader
         }
 
         // do the work
-        z80_extract_one(reader, n, arg_p, p, fmt, opcode_p);
+        if (val_iter != val_iter_end)
+            z80_extract_one(reader, n, arg_p, p, fmt, &*val_iter++, data_p);
+        else
+            z80_extract_one(reader, n, arg_p, p, fmt, nullptr, data_p);
 
         // std::cout << std::hex;
         // std::cout << "read_arg  : mode = " << (int)p->arg_mode << " p_mode = " << arg_p->mode;
@@ -173,20 +195,32 @@ auto z80_read_args(Z80_Iter& reader
         // std::cout << " arg = " << *arg_p;
     }
     
-    return std::make_pair(static_args, static_info);
+    return std::make_tuple(data_p, static_args, static_info);
 }
 
 // update opcode with new reg/mode
+template <typename M_CODE>
 inline void z80_arg_update(
+        M_CODE const& m_code,   // machine code
         unsigned n,             // argument number
-        z80_arg_t& arg,        // argument reference
-        void  *update_handle,  // opaque value generated in `read_args`
-        z80_opcode_fmt const& fmt,
-        uint16_t *opcode_p      // opcode location
+        z80_arg_t& arg,         // argument reference
+        void  *update_handle,   // opaque value generated in `read_args`
+        uint16_t *data_p        // opcode data location
         )
 {
     auto& ARGS_PER_INFO = detail::z80_arg_info::ARGS_PER_INFO;
     auto info_p = static_cast<detail::z80_arg_info **>(update_handle);
+
+    // get format & validator
+    auto& fmt  = m_code.fmt();
+    auto& vals = m_code.vals();
+    auto val_iter     = vals.begin();
+    auto val_iter_end = vals.end();
+
+    if (n < vals.size())
+        std::advance(val_iter, n);
+    else
+        std::advance(val_iter, vals.size());
 
     // update saved `arg.mode`...
     auto& p = info_p[n/ARGS_PER_INFO]->info[n%ARGS_PER_INFO];
@@ -194,10 +228,14 @@ inline void z80_arg_update(
     std::cout << "z80_arg_update: " << arg;
     std::cout << " " << (int)p.arg_mode << " -> " << arg.mode << std::endl;
 #endif
-    p.arg_mode = arg.mode;      // so we know next time.
+    p.arg_mode = arg.mode();    // so we know next time.
 
-    // ...and update the opcode
-    fmt.insert(n, opcode_p, arg);
+    // ...and update the saved data 
+    // do work: pass validator if present
+    if (val_iter != val_iter_end)
+        fmt.insert(n, data_p, arg, &*val_iter);
+    else
+        fmt.insert(n, data_p, arg, nullptr);
 }
 }
 #endif

@@ -18,14 +18,20 @@ auto tgt_reg<Derived>::get_defn(reg_defn_idx_t n) -> defn_t const&
 }
 
 template <typename Derived>
-auto tgt_reg<Derived>::select_defn() const -> defn_t const&
+auto tgt_reg<Derived>::select_defn(int reg_class) const -> defn_t const&
 {
-    auto index = reg_0_index;
-    if (!reg_0_ok && reg_1_ok)
-        index = reg_0_index;
-    if (!index)
-        throw std::runtime_error("invalid register");
-    return get_defn(index);
+    auto& defn = get_defn(reg_0_index);
+
+    // if default or class matches, return reg_0
+    if (reg_class < 0 || defn.reg_class == reg_class)
+        return defn;
+
+    // if reg_1 defined, return it
+    if (reg_1_index)
+        return get_defn(reg_1_index);
+    
+    // kind doesn't match
+    return defn;
 }
 
 //
@@ -111,13 +117,13 @@ const char *tgt_reg<Derived>::name() const
 template <typename Derived>
 uint16_t const tgt_reg<Derived>::kind(int reg_class) const
 {
-    return select_defn().reg_class;
+    return select_defn(reg_class).reg_class;
 }
 
 template <typename Derived>
 uint16_t const tgt_reg<Derived>::value(int reg_class) const
 {
-    return select_defn().reg_num;
+    return select_defn(reg_class).reg_num;
 }
 
 template <typename Derived>

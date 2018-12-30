@@ -33,11 +33,22 @@ struct z80_opc_general : z80_stmt_opcode
     {
         // get size for this opcode
         auto& op = *opcode_p;
-       
+#if 0       
         insn_size = sizeof(uint8_t) * (1  + op.opc_long);
         for (auto& arg : args)
             insn_size += arg.size(expression::expr_fits{});
+#else
+        std::cout << "opc_general::gen_insn: " << insn.name();
+        auto delim = ": ";
+        for (auto& arg : args)
+        {
+            std::cout << delim << arg;
+            delim = ", ";
+        }
+        std::cout << std::endl;
         
+        op.size(args, insn_size, expression::expr_fits{}, trace);
+#endif
         // serialize format (for resolved instructions)
         // 1) opcode index
         // 2) opcode binary data (word or long)
@@ -46,8 +57,12 @@ struct z80_opc_general : z80_stmt_opcode
         auto inserter = z80_data_inserter(di, fixed);
         
         inserter(op.index, M_SIZE_WORD);
+#if 0
         auto data_p = inserter(op.code(), op.opc_long ? M_SIZE_LONG : M_SIZE_WORD);
-        z80_insert_args(inserter, std::move(args), data_p, op.fmt());
+        z80_insert_args(inserter, std::move(args), data_p, op);
+#else
+        z80_insert_args(inserter, op, std::move(args));
+#endif
         return *this;
     }
     
@@ -60,16 +75,19 @@ struct z80_opc_general : z80_stmt_opcode
         //  3) serialized args
         auto  reader = z80_data_reader(it, *fixed_p, cnt);
         auto& opcode = z80_opcode_t::get(reader.get_fixed(M_SIZE_WORD));
+#if 0
         auto  op_p   = reader.get_fixed_p(opcode.opc_long ? M_SIZE_LONG : M_SIZE_WORD);
         auto  args   = serial_args(reader, opcode.fmt(), op_p);
-
+#else
+        auto  args   = serial_args(reader, opcode);
+#endif
         // print "name" & "size"...
         os << opcode.defn().name();
         
         // ...print opcode...
-        os << std::hex << " " << std::setw(2) << *op_p++;
+        os << std::hex << " " << std::setw(2) << *args.data_p++;
         if (opcode.opc_long)
-            os << "'" << std::setw(2) << *op_p;
+            os << "'" << std::setw(2) << *args.data_p;
 
         // ...and args
         auto delim = " : ";
@@ -89,8 +107,8 @@ struct z80_opc_general : z80_stmt_opcode
         //  3) serialized args
         auto  reader = z80_data_reader(it, *fixed_p, cnt);
         auto& opcode = z80_opcode_t::get(reader.get_fixed(M_SIZE_WORD));
-        auto  op_p   = reader.get_fixed_p(opcode.opc_long ? M_SIZE_LONG : M_SIZE_WORD);
-        auto  args   = serial_args{reader, opcode.fmt(), op_p};
+        //auto  op_p   = reader.get_fixed_p(opcode.opc_long ? M_SIZE_LONG : M_SIZE_WORD);
+        auto  args   = serial_args{reader, opcode};
 
         // base instruction size
         op_size_t new_size = sizeof(uint16_t) * (1 + opcode.opc_long);
@@ -98,10 +116,10 @@ struct z80_opc_general : z80_stmt_opcode
         // evaluate args with new `fits`
         for (auto& arg : args)
         {
-            auto old_mode = arg.mode;
+            auto old_mode = arg.mode();
             new_size += arg.size(fits);
-            if (arg.mode != old_mode)
-                args.update_mode(arg);
+            if (arg.mode() != old_mode)
+                args.update_mode(arg);      // XXX fold into TGT method...Not called for Z80...
         }
         
         return new_size;
@@ -117,10 +135,10 @@ struct z80_opc_general : z80_stmt_opcode
         //  3) serialized args
         auto  reader = z80_data_reader(it, *fixed_p, cnt);
         auto& opcode = z80_opcode_t::get(reader.get_fixed(M_SIZE_WORD));
-        auto  op_p   = reader.get_fixed_p(opcode.opc_long ? M_SIZE_LONG : M_SIZE_WORD);
-        auto  args   = serial_args{reader, opcode.fmt(), op_p};
+        //auto  op_p   = reader.get_fixed_p(opcode.opc_long ? M_SIZE_LONG : M_SIZE_WORD);
+        auto  args   = serial_args{reader, opcode};
 
-        opcode.emit(base, op_p, args, dot);
+        opcode.emit(base, args.data_p, args, dot);
 #endif
     }
 };

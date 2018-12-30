@@ -19,10 +19,12 @@ namespace kas::z80
 enum { RC_NONE, RC_GEN, RC_DBL, RC_IDX, RC_SP, RC_AF, RC_I, RC_R, RC_CC, NUM_RC };
 
 // Z80 register type definition is regular
+struct z80_reg_set;
 struct z80_reg_t : tgt::tgt_reg<z80_reg_t>
 {
     using hw_tst         = hw::hw_tst;
     using reg_defn_idx_t = uint8_t;
+    using reg_set_t      = z80_reg_set;
 
     using base_t::base_t;
 };

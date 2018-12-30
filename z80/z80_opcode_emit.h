@@ -43,57 +43,56 @@ void z80_opcode_t::emit(
                  , core::core_expr_dot const& dot) const
 {
     using expression::expr_fits;
-    
-    base << *op_p;
+   
+    // prefix first...
+    uint8_t pfx = z80_arg_t::prefix;
+    if (pfx)
+        base << pfx;
+
+    // then first word of opcode
+    base << core::set_size(1) << *op_p;
+
+    // if prefix, must emit offset before anything else
+    if (pfx)
+    {
+        for (auto& arg : args)
+        {
+            switch (arg.mode())
+            {
+                default:
+                    continue;
+                case MODE_REG_OFFSET_IX:
+                case MODE_REG_OFFSET_IY:
+                    base << core::set_size(1) << arg.expr;
+                    break;      // exit switch
+            }
+            break;  // exit for loop
+        }
+    }
+
+    // now rest of opcode
     if (opc_long)
-        base << *++op_p;
+        base << core::set_size(1) << *++op_p;
+
+    // for `size` call
+    auto fits = core::core_fits(dot);
+    
+    // hook into validators
+    auto& val_c = defn().val_c();
+    auto  val_p = val_c.begin();
 
     // emit additional arg data
     for (auto& arg : args)
     {
-        switch (arg.mode) {
-            default:
-                 break;
-#if 0
-            // M_SIZE_WORD & M_SIZE_SWORD emit identically
-            case MODE_ADDR_DISP:
-            case MODE_DIRECT_ALTER:     // XXX should not happen?
-            case MODE_DIRECT_SHORT:
-            case MODE_INDEX_BRIEF:
-            case MODE_MOVEP:
-            case MODE_PC_DISP:
-                base << core::set_size(2) << arg.disp;
-                break;
-            
-            case MODE_DIRECT_LONG:
-                base << core::set_size(4) << arg.disp;
-                break;
-            
-            case MODE_DIRECT:
-                // always first extenion word.
-                // PC is address of first extension word.
-                // XXX may need to adjust for 32-bit opcode
-                base << core::emit_disp(dot, 2, 2) << arg.disp;
-                break;
+        op_size_t size;
 
-            case MODE_IMMED:
-            case MODE_IMMED_LONG:       // 0
-            case MODE_IMMED_SINGLE:     // 1
-            case MODE_IMMED_XTND:       // 2
-            case MODE_IMMED_PACKED:     // 3
-            case MODE_IMMED_WORD:       // 4
-            case MODE_IMMED_DOUBLE:     // 5
-            case MODE_IMMED_BYTE:       // 6
-                // calculate `insn_sz` from mode
-                emit_immed(sz(), arg.disp);
-                break;
+        // arg needs "size" to emit properly
+        val_p->size(arg, fits, size);
+        if (size())
+            arg.emit(base, size());
 
-            case MODE_INDEX:
-            case MODE_PC_INDEX:
-                emit_index(arg.ext, arg.disp, arg.outer);
-                break;
-#endif
-        } // switch
+        // next validator
+        ++val_p; 
     } // for
 }
 

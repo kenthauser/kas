@@ -31,7 +31,7 @@ namespace opc
 
     template <typename=void> struct z80_insn_defn_list : meta::list<> {};
 
-    // declare Z80 INSN: 2 args, 32 opcodes with same name ("ld" has 21)
+    // declare Z80 INSN: 2 args, 32 opcodes with same name (NB: "ld" has 21)
     using z80_insn_t = tgt::tgt_insn_t<struct z80_opcode_t, 2, 32>;
 }
 
@@ -49,6 +49,7 @@ namespace kas::expression::detail
     template <> struct term_types_v<defn_cpu> :
         meta::list<
               z80::z80_reg_t      // z80 register
+            , z80::z80_rs_ref     // index + offset
             , z80::z80_insn_ref   // z80 insn reference
             > {};
 

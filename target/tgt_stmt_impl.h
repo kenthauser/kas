@@ -43,6 +43,8 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
             
             fixed.diag = kas::parser::kas_diag::error(msg).ref();
             insn_size.set_error();
+            
+            TGT_ARG_T::reset();
             return err;
         };
 
@@ -158,15 +160,17 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
                                   ;
 
     // now use "format" to generate opcode
-    return fmt.get_opc().gen_insn(
-              insn
-            , ok
-            , matching_opcode_p
-            , std::move(args)
-            
-            // and boilerplate
-            , di, fixed, insn_size
-            );
+    auto& op =  fmt.get_opc().gen_insn(
+                  insn
+                , ok
+                , matching_opcode_p
+                , std::move(args)
+                
+                // and boilerplate
+                , di, fixed, insn_size
+                );
+    TGT_ARG_T::reset();
+    return op;
 }
 }
 

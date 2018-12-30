@@ -56,6 +56,16 @@ namespace kas::z80::opc
             {
                 default:
                     return M_SIZE_NONE;
+                
+                case MODE_REG:
+                    return M_SIZE_AUTO;
+
+                case MODE_DIRECT:
+                case MODE_INDIRECT:
+                case MODE_REG_OFFSET_IX:
+                case MODE_REG_OFFSET_IY:
+                    return M_SIZE_WORD;
+
 #if 0
                 case MODE_INDEX:
                 case MODE_PC_INDEX:
@@ -101,12 +111,15 @@ namespace kas::z80::opc
         }
     }
 
+struct z80_validator;
+
 template <typename Z80_Inserter>
 void z80_insert_one (Z80_Inserter& inserter
                     , unsigned n
                     , z80_arg_t& arg
                     , detail::arg_info_t *p
                     , z80_opcode_fmt const& fmt
+                    , z80_validate const *val_p
                     , detail::z80_op_size_t *opcode_p
                     )
 {
@@ -114,15 +127,19 @@ void z80_insert_one (Z80_Inserter& inserter
     using expression::fits_result;
 
     // write arg data into opcode in appropriate location
-    auto result = fmt.insert(n, opcode_p, arg);
+    auto result = fmt.insert(n, opcode_p, arg, val_p);
 
-    if (!result) {
-        // couldn't store arg in opcode -- save as data
+#if 1
+    p->has_expr = arg.serialize(inserter, result);
+    p->has_data = !result;
+    p->arg_mode = arg.mode();
+#else
+    // if couldn't store arg in opcode -- save as data
+    if (!result)
         p->has_data = true;
-    }
-
-    p->arg_mode = arg.mode;
-    auto ext_mode = detail::z80_arg_data_size(arg.mode);
+        
+    p->arg_mode = arg.mode();
+    auto ext_mode = detail::z80_arg_data_size(p->arg_mode);
     switch (ext_mode)
     {
         default:
@@ -184,10 +201,12 @@ void z80_insert_one (Z80_Inserter& inserter
             break;
 #endif
     }
+#endif
 
-    // std::cout << "write_one: mode = " << std::setw(2) << (int)p->arg_mode;
-    // std::cout << " bits: " << (int)p->has_data << "/" << (int)p->has_expr;
-    // std::cout << " -> ";
+    std::cout << "write_one: " << arg;
+    std::cout << ": mode = " << std::setw(2) << +p->arg_mode;
+    std::cout << " bits: " << +p->has_data << "/" << +p->has_expr;
+    std::cout << std::endl;
 }
 
 
@@ -198,19 +217,22 @@ void z80_extract_one(Z80_Iter& reader
                     , z80_arg_t *arg_p
                     , detail::arg_info_t *p
                     , z80_opcode_fmt const& fmt
+                    , z80_validate const *val_p
                     , detail::z80_op_size_t *opcode_p
                     )
 {
-    // std::cout << "read_one:  mode = " << std::setw(2) << (int)p->arg_mode;
-    // std::cout << " bits: " << (int)p->has_data << "/" << (int)p->has_expr;
-    // std::cout << " -> ";
+    std::cout << "read_one:  mode = " << std::setw(2) << +p->arg_mode;
+    std::cout << " bits: " << +p->has_data << "/" << +p->has_expr;
 
     // tell extract what to mode to extract
-    arg_p->mode = p->arg_mode;
-    fmt.extract(n, opcode_p, arg_p);
-    arg_p->mode = p->arg_mode;      // prevent disassembler override...
-
-    auto ext_mode = detail::z80_arg_data_size(arg_p->mode);
+    arg_p->set_mode(p->arg_mode);
+    fmt.extract(n, opcode_p, arg_p, val_p);
+    arg_p->set_mode(p->arg_mode);           // prevent val_p override...
+#if 1
+    arg_p->extract(reader, p->has_data, p->has_expr);
+#else
+    auto ext_mode = detail::z80_arg_data_size(arg_p->mode());
+    std::cout << " ext_mode = " << ext_mode << " -> ";
     switch (ext_mode) {
         default:
             throw std::runtime_error{"z80_extract_one"};
@@ -227,7 +249,7 @@ void z80_extract_one(Z80_Iter& reader
         case M_SIZE_LONG:
         case M_SIZE_SWORD:
         case M_SIZE_AUTO:
-            arg_p->expr = reader.get_expr(p->has_expr ? M_SIZE_AUTO : ext_mode);
+            arg_p->set_expr(reader.get_expr(p->has_expr ? M_SIZE_AUTO : ext_mode));
             break;
 
         case M_SIZE_UWORD:
@@ -239,7 +261,7 @@ void z80_extract_one(Z80_Iter& reader
                     p->has_expr = (unsigned)reader.get_fixed(M_SIZE_UWORD);
                     //arg_p->disp = (unsigned)reader.get_fixed(M_SIZE_UWORD);
 #else
-            arg_p->expr = reader.get_expr(p->has_expr ? M_SIZE_AUTO : M_SIZE_UWORD);
+            arg_p->set_expr(reader.get_expr(p->has_expr ? M_SIZE_AUTO : M_SIZE_UWORD));
 #endif
             }
             break;
@@ -261,6 +283,8 @@ void z80_extract_one(Z80_Iter& reader
             break;
 #endif
     }
+#endif
+    std::cout << " -> " << *arg_p;
 }
 
 }

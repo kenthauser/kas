@@ -62,14 +62,7 @@ namespace kas::z80::opc
 struct z80_opc_list: z80_stmt_opcode
 {
     using base_t::base_t;
-
-    static auto& fmt()
-    {
-        // break include loop
-        static const auto& _fmt = z80_opcode_fmt::get_list_fmt();
-        return _fmt;
-    }
-
+    
     OPC_INDEX();
     const char *name() const override { return "Z80_LIST"; }
 
@@ -98,9 +91,13 @@ struct z80_opc_list: z80_stmt_opcode
         inserter.reserve(-1);       // skip fixed area
         
         inserter(insn.index, M_SIZE_WORD);
+        auto& op = *z80_insn_t::list_opcode;
+#if 0
         auto data_p = inserter(0, M_SIZE_WORD);
-        z80_insert_args(inserter, std::move(args), data_p, fmt());
-        
+        z80_insert_args(inserter, std::move(args), data_p, op);
+#else
+        z80_insert_args(inserter, op, std::move(args));
+#endif
         // store OK bitset in fixed area
         fixed.fixed = ok.to_ulong();
         return *this;
@@ -121,8 +118,9 @@ struct z80_opc_list: z80_stmt_opcode
         reader.reserve(-1);
 
         auto& insn = z80_insn_t::get(reader.get_fixed(M_SIZE_WORD));
-        auto  op_p = reader.get_fixed_p(M_SIZE_WORD);
-        auto  args = serial_args{reader, fmt(), op_p};
+        //auto  data_p = reader.get_fixed_p(M_SIZE_WORD);
+        auto& op = *z80_insn_t::list_opcode;
+        auto  args = serial_args{reader, op};
 
         // print OK bits & name...
         os << ok.to_string().substr(ok.size() - insn.opcodes.size()) << " " << insn.name();
@@ -153,8 +151,9 @@ struct z80_opc_list: z80_stmt_opcode
         reader.reserve(-1);
 
         auto& insn = z80_insn_t::get(reader.get_fixed(M_SIZE_WORD));
-        auto  op_p = reader.get_fixed_p(M_SIZE_WORD);
-        auto  args = serial_args{reader, fmt(), op_p};
+        //auto  data_p = reader.get_fixed_p(M_SIZE_WORD);
+        auto& op = *z80_insn_t::list_opcode;
+        auto  args = serial_args{reader, op};
 
         // evaluate with new `fits`
         eval_insn_list(insn, ok, args, *size_p, fits, trace);
@@ -172,8 +171,9 @@ struct z80_opc_list: z80_stmt_opcode
         reader.reserve(-1);
 
         auto& insn = z80_insn_t::get(reader.get_fixed(M_SIZE_WORD));
-        auto  op_p = reader.get_fixed_p(M_SIZE_WORD);
-        auto  args = serial_args{reader, fmt(), op_p};
+        //auto  data_p = reader.yyget_fixed_p(M_SIZE_WORD);
+        auto& op = *z80_insn_t::list_opcode;
+        auto  args = serial_args{reader, op};
 
         // get best match
         op_size_t size; 
@@ -194,10 +194,19 @@ struct z80_opc_list: z80_stmt_opcode
         }
 
         // Insert args into opcode "base" value
-        auto& fmt = opcode.fmt();
+        auto& fmt  = opcode.fmt();
+        auto& vals = opcode.vals();
+        auto val_iter     = vals.begin();
+        auto val_iter_end = vals.end();
+
         unsigned n = 0;
         for (auto& arg : args)
-            fmt.insert(n++, code, arg);
+        {
+            if (val_iter != val_iter_end)
+                fmt.insert(n++, code, arg, &*val_iter++);
+            else
+                fmt.insert(n++, code, arg, nullptr);
+        }
 
         // now use common emit
         opcode.emit(base, code, args, dot);

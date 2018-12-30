@@ -92,8 +92,10 @@ namespace kas::z80
 // instantiate printers
 namespace kas::tgt
 {
-    template auto z80::z80_reg_set::binop(const char, tgt_reg_set const&) -> derived_t&;
-    template auto z80::z80_reg_set::binop(const char, core::core_expr&)   -> derived_t&;
+    template      z80::z80_reg_set::tgt_reg_set::tgt_reg_set(z80::z80_reg_t const&, char);
+    template auto z80::z80_reg_set::base_t::binop(const char, tgt_reg_set const&) -> derived_t&;
+    template auto z80::z80_reg_set::binop(const char, core::core_expr const&)   -> derived_t&;
+    template auto z80::z80_reg_set::binop(const char, int)   -> derived_t&;
     template const char *z80::z80_reg_t::validate(int) const;
     // template  void print_expr<std::ostream>(z80::z80_reg const&, std::ostream&);
     template  void z80::z80_reg_set::print<std::ostream>(std::ostream&) const;

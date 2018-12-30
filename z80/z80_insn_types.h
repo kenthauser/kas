@@ -146,6 +146,7 @@ struct z80_opcode_t
 
     auto& defn()  const { return defns_base[defn_index]; }
     auto& fmt()   const { return defn().fmt(); }
+    auto& vals()  const { return defn().val_c(); }
     auto  sz()    const { return 0; }
 
     uint32_t code() const

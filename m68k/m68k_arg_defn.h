@@ -133,6 +133,8 @@ struct m68k_arg_t : kas_token {
     // validate if arg suitable for target
     const char *ok_for_target(opc::m68k_size_t sz) const;
 
+    static void reset() {}
+
     uint16_t mode {};
     uint16_t reg_subword {};
     m68k_extension_t ext{};

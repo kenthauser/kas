@@ -123,7 +123,7 @@ namespace kas::expression {
 
         // ufits with value sz argument
         template <typename T>
-        auto ufits_sz(T&& e, unsigned sz)
+        auto ufits_sz(T&& e, unsigned sz) const
         {
             switch (sz)
             {

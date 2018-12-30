@@ -49,23 +49,55 @@ auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, tgt_reg_set const
 
 // expression binop:: only +/- supported, so no precidence issue
 template <typename Derived, typename Reg_t, typename T, typename Loc>
-auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, core::core_expr& r)
+auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, core::core_expr const& r)
     -> derived_t&
 {
     if (kind() != -RS_OFFSET)
         _error = RS_ERROR_INVALID_CLASS;
-    
-    
+
+    // if expression is fixed, treat as an int arg.
+    if (auto p = r.get_fixed_p())
+        return binop(op, *p);
+#if 0    
+    // allocate persistent `core_expr` if first
     if (!_expr && op == '-')
-        _expr = &-std::move(r);
+    {
+        auto& expr = _value - r;
+        _expr = &expr;
+    }
     else if (!_expr)
-        _expr = &r;
+#else
+    if (!_expr)
+#endif
+    {
+        //auto& expr = _value + r;
+        auto& expr = core::core_expr::add(r) + _value;
+        _expr = &expr;
+    }
     else if (op == '+')
         _expr->operator+(std::move(r));
     else if (op == '-')
         _expr->operator-(std::move(r));
     else
         _error = RS_ERROR_INVALID_CLASS;
+    
+    return derived();
+}
+
+template <typename Derived, typename Reg_t, typename T, typename Loc>
+auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, int r)
+    -> derived_t&
+{
+    if (kind() != -RS_OFFSET)
+        _error = RS_ERROR_INVALID_CLASS;
+
+    if (op == '-')
+        r = -r;
+    
+    if (_expr)
+        _expr->operator+(r);
+    else
+        _value += r;
     
     return derived();
 }
@@ -139,20 +171,53 @@ auto tgt_reg_set<Derived, Reg_t, T, Loc>::value(bool reverse) const -> rs_value_
     return mask;
 }
 
+template <typename Derived, typename Reg_t, typename T, typename Loc>
+template <typename OFFSET_T>
+OFFSET_T tgt_reg_set<Derived, Reg_t, T, Loc>::offset() const
+{
+    if (_expr) return *_expr;
+    return _value;
+}
+
+
 
 template <typename Derived, typename Reg_t, typename T, typename Loc>
 template <typename OS>
-void tgt_reg_set<Derived, Reg_t, T, Loc>::print(OS& os) const {
-    for (auto const& op : ops) {
-        if (op.first == '=')
-            os << "rs[";
-        else if (op.first == 'X')
-            os << "rs ERR[";
-        else
-            os << op.first;
-        op.second.print(os);
-    }
-    os << "]";
+void tgt_reg_set<Derived, Reg_t, T, Loc>::print(OS& os) const
+{
+    // print register-set
+    auto print_rs = [&]
+        {
+            for (auto const& op : ops) {
+                if (op.first == '=')
+                    os << "rs[";
+                else if (op.first == 'X')
+                    os << "rs ERR[";
+                else
+                    os << op.first;
+                op.second.print(os);
+            }
+            os << "]";
+        };
+
+    // print offset
+    auto print_offset = [&]
+        {
+            // print register
+            ops.front().second.print(os);
+            os << "@(";
+            if (_expr)
+                os << expr_t(*_expr);   // XXX _expr->print() gives link error
+            else
+                os << _value;
+            os << ")";
+        };
+
+    // select register-set or offset
+    if (ops.front().first == '+')
+        print_offset();
+    else
+        print_rs();
 }
 
 }
