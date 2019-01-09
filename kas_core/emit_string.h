@@ -41,8 +41,10 @@ namespace kas::core
 
             static constexpr int DIGITS_PER_BLOCK = 4;
             static constexpr int DIGIT_BLOCK_SEPERATOR = '_';
-            for (int i = DIGITS_PER_BLOCK; n--; i--) {
-                if (!i && DIGITS_PER_BLOCK) {
+            for (int i = DIGITS_PER_BLOCK; n--; --i)
+            {
+                if (!i && DIGITS_PER_BLOCK)
+                {
                     *--p = DIGIT_BLOCK_SEPERATOR;
                     i = DIGITS_PER_BLOCK;
                 }

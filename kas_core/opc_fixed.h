@@ -82,7 +82,7 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
         return sizeof(T);
     }
         
-    static void emit_one(emit_base& base, expr_t const& value, core_expr_dot const& dot)
+    static void emit_one(emit_base& base, expr_t const& value, core_expr_dot const *dot_p)
     {
         // evaluate expression & emit
 #if 0

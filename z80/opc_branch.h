@@ -152,7 +152,7 @@ struct z80_opc_branch : z80_stmt_opcode
         return new_size;
     }
 
-    void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const& dot) override
+    void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const *dot_p) override
     {
         // get opcode & destination 
         auto  reader = z80_data_reader(it, *fixed_p, cnt);
@@ -164,11 +164,11 @@ struct z80_opc_branch : z80_stmt_opcode
         std::cout << "opc_branch: " << *size_p << " dest = " << dest;
         if (auto sym_p = dest.get_p<core::core_symbol>()) {
             if (auto addr_p = sym_p->addr_p()) {
-                if (&addr_p->section() != &dot.section()) {
+                if (&addr_p->section() != &dot_p->section()) {
                     std::cout << " cross-section offset";
                 } else {
                     // XXX dot.offset() => absolute offset, not frag offset.
-                    auto delta = addr_p->offset() - dot.offset();
+                    auto delta = addr_p->offset() - dot_p->offset();
                     std::cout << " offset = " << std::hex << std::setw(size_p->max) << delta();
                 }
             }
@@ -186,12 +186,12 @@ struct z80_opc_branch : z80_stmt_opcode
                 // emit insn as two bytes...
                 // since DISP is always a constant, can always change to single word output
                 base << core::set_size(1) << (code >> 8);
-                base << core::emit_disp(dot, 1, 2) << dest;
+                base << core::emit_disp(*dot_p, 1, 2) << dest;
                 break;
             }
 
             case 4:
-                base << code << core::emit_disp(dot, 2, 2) << dest;
+                base << code << core::emit_disp(*dot_p, 2, 2) << dest;
                 break;
         }
     }

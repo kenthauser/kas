@@ -92,7 +92,7 @@ struct z80_opc_dbcc: z80_stmt_opcode
         }
     }
 
-    void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const& dot) override
+    void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const *dot_p) override
     {
         auto  reader  = z80_data_reader(it, *fixed_p, cnt);
         auto& opcode  = z80_opcode_t::get(reader.get_fixed(M_SIZE_WORD));
@@ -104,7 +104,7 @@ struct z80_opc_dbcc: z80_stmt_opcode
         // if "fits" just do word displacement
         if (size_p->max == 4)
         {
-            base << code << core::emit_disp(dot, 2, 2) << dest;
+            base << code << core::emit_disp(*dot_p, 2, 2) << dest;
                 
         } else
         {

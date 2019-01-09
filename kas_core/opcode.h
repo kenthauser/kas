@@ -94,7 +94,7 @@ struct insn_opcode
     }
     virtual void fmt(Iter iter, uint16_t cnt, std::ostream& out)
     {}
-    virtual void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const& dot)
+    virtual void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p)
     {}
 
 private:
@@ -272,7 +272,7 @@ struct opc_error : opcode
         out << (fixed_p->diag ? fixed_p->diag.get().message : "[[ Zero Errno ]]");
     }
 
-    void emit(Iter iter, uint16_t cnt, emit_base& emit, core_expr_dot const& dot) override
+    void emit(Iter iter, uint16_t cnt, emit_base& emit, core_expr_dot const *dot_p) override
     {
         if (fixed_p->diag)
             emit << emit_info << fixed_p->diag.get();

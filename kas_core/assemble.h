@@ -99,7 +99,7 @@ struct kas_assemble
                 container.proc_all_frags(
                     [&e](auto& insn_iter, core_expr_dot const& dot)
                     {
-                       e.emit(*insn_iter, dot);
+                       e.emit(*insn_iter, &dot);
                     });
             };
 

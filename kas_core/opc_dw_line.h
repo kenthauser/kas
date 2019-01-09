@@ -97,11 +97,11 @@ struct opc_dw_line : opcode
     }
 
 	// emit records `dot` in the `dwarf_line` entry for use generating `.debug_line`
-	void emit(Iter data, uint16_t cnt, emit_base& base, core_expr_dot const& dot) override
+	void emit(Iter data, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
 	{
 		auto& obj     = dl_data::get(fixed_p->fixed);
-		obj.section() = dot.section().index();
-		obj.address() = dot.offset()();
+		obj.section() = dot_p->section().index();
+		obj.address() = dot_p->offset()();
 	}
 };
 }

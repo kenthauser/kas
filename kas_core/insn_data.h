@@ -8,6 +8,7 @@ namespace kas::core::opc
     union insn_fixed_t {
         uint32_t    fixed;
         uint16_t    fixed_p[2];
+        uint8_t     data[sizeof(fixed)];
         addr_ref    addr;
         symbol_ref  sym;
         parser::kas_error_t diag;
@@ -15,6 +16,15 @@ namespace kas::core::opc
         addr_offset_t offset;
 
         insn_fixed_t(decltype(fixed) fixed = {}) : fixed(fixed) {};
+
+        template <typename T>
+        auto begin() const { return static_cast<T *>(data); }
+        
+        template <typename T>
+        auto begin()       { return static_cast<T *>(data); }
+
+        template <typename T>
+        auto size() const  { return sizeof(data)/sizeof(T); }
     };
 
     // using fixed_t = insn_fixed_t;

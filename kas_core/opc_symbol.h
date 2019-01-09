@@ -49,7 +49,7 @@ namespace kas { namespace core { namespace opc
             *size_p = size;
         }
 
-        void emit(Iter data, uint16_t cnt, emit_base& base, core_expr_dot const& dot) override
+        void emit(Iter data, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
         {
             base << emit_addr << 0;
 
@@ -82,7 +82,7 @@ namespace kas { namespace core { namespace opc
             os << " = " << *iter;
         }
 
-        void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const& dot) override
+        void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
         {
             // use `core_data_size_t` to size (listing) output
             base << core::set_size(sizeof_data_t) << emit_expr << *iter;
@@ -138,7 +138,7 @@ namespace kas { namespace core { namespace opc
                 os << *iter++ << " ";
         }
 
-        void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const&) override
+        void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const *) override
         {
             // just error messages
             while(cnt--)
@@ -211,7 +211,7 @@ namespace kas { namespace core { namespace opc
                 os << ": fixed = " << sym.size();
         }
         
-        void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const& dot) override
+        void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
         {
             // use `core_data_size_t` to size (listing) output
             base << core::set_size(sizeof_data_t) << emit_expr << *iter;

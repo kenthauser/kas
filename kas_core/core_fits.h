@@ -36,7 +36,7 @@ test: addr.offset.max <= dot.offset.max?
 #include "expr/expr_fits.h"
 #include "core_expr_dot.h"
 
-namespace kas { namespace core
+namespace kas::core
 {
     // get `core_addr_size_t` from metafunction configuration
     using addr_size_t = meta::_t<core_addr_size_trait<>>;
@@ -49,8 +49,12 @@ namespace kas { namespace core
         using expr_fits::fits;
         using expr_fits::disp;
 
-        core_fits(core_expr_dot const& dot, int fuzz = {})
-            : dot(dot), fuzz(fuzz) {}
+        core_fits(core_expr_dot const *dot_p, int fuzz = {})
+            : dot_p(dot_p), fuzz(fuzz) {}
+
+        
+        // XXX legacy
+        core_fits(core_expr_dot const& dot, int fuzz = {}) : core_fits(&dot, fuzz) {}
 
         //
         // Must re-implement the virtual-function trampoline functions
@@ -93,10 +97,11 @@ namespace kas { namespace core
         // used to disallow branch deletion
         bool seen_this_pass(expr_t const& e) const
         {
-            if (auto sym_p = e.template get_p<core_symbol>())
-                if (auto addr_p = sym_p->addr_p())
-                    if (&addr_p->section() == &dot.section())
-                        return dot.seen_this_pass(*addr_p);
+            if (dot_p)
+                if (auto sym_p = e.template get_p<core_symbol>())
+                    if (auto addr_p = sym_p->addr_p())
+                        if (&addr_p->section() == &dot_p->section())
+                            return dot_p->seen_this_pass(*addr_p);
 
             // not a symbol, not a label, or not same section
             return true;
@@ -104,7 +109,7 @@ namespace kas { namespace core
 
         auto& get_dot() const
         {
-            return dot;
+            return *dot_p;
         }
 
     protected:
@@ -219,11 +224,11 @@ namespace kas { namespace core
         }
 
     private:
-        // reference to real "dot"
-        core_expr_dot const& dot;
+        // pointer to real "dot"
+        core_expr_dot const *dot_p;
         int fuzz;
     };
-}}
+}
 
 
 #endif

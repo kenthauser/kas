@@ -281,7 +281,7 @@ namespace opc
             os << core_segment::get(this->fixed_p->fixed);
         }
 
-        void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const& dot) override
+        void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
         {
             auto& seg = core_segment::get(this->fixed_p->fixed); 
             base.set_segment(seg);

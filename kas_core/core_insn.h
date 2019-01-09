@@ -151,7 +151,7 @@ struct core_insn
     }
 
 
-    void emit(Iter& iter, uint16_t n, emit_base& base, core_expr_dot const& dot)
+    void emit(Iter& iter, uint16_t n, emit_base& base, core_expr_dot const *dot_p)
     {
         // XXX move this to test fixture impl.
         auto wr_size = size();
@@ -160,7 +160,7 @@ struct core_insn
         auto save_iter = iter;
 
         // emit copies iter
-        get_opcode().emit(iter, cnt, base, dot);
+        get_opcode().emit(iter, cnt, base, dot_p);
         iter += cnt;
 
         if (&base.get_section() != section_p)
@@ -193,13 +193,13 @@ struct core_insn
         op.fmt(iter, cnt, out);
     }
 
-    void emit(emit_base& base, core_expr_dot const& dot)
+    void emit(emit_base& base, core_expr_dot const *dot_p)
     {
         //std::cout << "core_insn::emit: first = " << std::dec << first << ", cnt = " << cnt << std::endl;
         // extra tests are in test fixture interface method only.
         auto iter = data.begin() + first;
         // auto position = base.position;
-        emit(iter, cnt, base, dot);
+        emit(iter, cnt, base, dot_p);
         // if ((position + size.min) != base.position) {
         //     std::cout << "core_insn::emit: expected: " << size.min;
         //     std::cout << " actual: " << base.position - position;

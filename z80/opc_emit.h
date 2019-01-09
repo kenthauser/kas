@@ -85,7 +85,7 @@ namespace kas { namespace z80 { namespace opc
             os << std::endl;
         }
 
-        void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const&) override
+        void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const *) override
         {
             auto reader = z80_data_reader(it, *fixed_p, cnt);
 

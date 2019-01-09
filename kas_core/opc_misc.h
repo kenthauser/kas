@@ -37,13 +37,13 @@ namespace kas { namespace core { namespace opc
             os << fixed_p->fixed;
         }
         
-        void emit(Iter data, uint16_t cnt, emit_base& base, core_expr_dot const& dot) override
+        void emit(Iter data, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
         {
             // XXX need alignment support & addr width support
             // XXX ignore alignment & just do words
             constexpr auto bytes_per_word = 2;
 
-            auto size = dot.frag_p->delta();
+            auto size = dot_p->frag_p->delta();
             auto fill = 0;//fixed_p->fixed;
 
             // XXX move algorithm to core_emit. Share with align/segment/skip
@@ -159,7 +159,7 @@ namespace kas { namespace core { namespace opc
         }
 
         void emit(Iter data, uint16_t cnt, emit_base& base
-                                 , core_expr_dot const& dot) override
+                                 , core_expr_dot const *dot_p) override
         {
             // XXX need alignment support & addr width support
             // XXX ignore alignment & just do words

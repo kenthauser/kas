@@ -48,10 +48,11 @@ struct emit_listing : emit_base
     // public interface: push listing after insn
     void gen_listing(core_expr_dot const& dot, parser::kas_loc loc);
 
-    void emit(core::core_insn& insn, core::core_expr_dot const& dot) override
+    void emit(core::core_insn& insn, core::core_expr_dot const *dot_p) override
     {
-        insn.emit(*this, dot);
-        gen_listing(dot, insn.loc);
+        // dot always specified for listing
+        insn.emit(*this, dot_p);
+        gen_listing(*dot_p, insn.loc);
     }
 
 private:

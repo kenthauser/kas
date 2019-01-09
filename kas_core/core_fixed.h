@@ -32,7 +32,7 @@ namespace detail {
     using op_size_t = typename opc::opcode::op_size_t;
 
     using SIZE_ONE = op_size_t(*)(expr_t const&, core_fits const&);
-    using EMIT_ONE = void(*)(emit_base&, expr_t const&, core_expr_dot const&);
+    using EMIT_ONE = void(*)(emit_base&, expr_t const&, core_expr_dot const *);
 
     struct opc_fixed_config
     {
@@ -124,10 +124,10 @@ namespace detail {
         }
 
         template <typename Iter>
-        void emit(fixed_reader_t<Iter>& reader, emit_base& base, core_expr_dot const& dot) const
+        void emit(fixed_reader_t<Iter>& reader, emit_base& base, core_expr_dot const *dot_p) const
         {
             using namespace expression;
-            auto fits   = core_fits(dot);
+            auto fits   = core_fits(dot_p);
 
             while(!reader.empty()) {
                 if(reader.is_chunk()) {
@@ -149,7 +149,7 @@ namespace detail {
                         //value = kas_diag::error("value out of range");
                         ; /* XXX don't error */
 
-                    config.emit_one(base, value, dot);
+                    config.emit_one(base, value, dot_p);
                 }
             }
         }
@@ -244,10 +244,10 @@ struct opc_data : opcode
         return impl.fmt(reader, os);
     }
 
-    void emit(Iter it, uint16_t cnt, emit_base& base, core_expr_dot const& dot) override
+    void emit(Iter it, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
     {
         auto reader = get_reader(it, cnt);
-        impl.emit(reader, base, dot);
+        impl.emit(reader, base, dot_p);
     }
 
 private:
@@ -275,7 +275,7 @@ private:
         throw std::logic_error("core_fixed::size_one undefined");
     }
 
-    static void emit_one(emit_base&, expr_t const&, core_expr_dot const&)
+    static void emit_one(emit_base&, expr_t const&, core_expr_dot const *)
     {
         throw std::logic_error("core_fixed::emit_one undefined");
     }

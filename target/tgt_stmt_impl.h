@@ -2,6 +2,7 @@
 #define KAS_TARGET_TGT_STMT_IMPL_H
 
 #include "tgt_stmt.h"
+#include "tgt_opc_quick.h"
 
 // args is a container of "m68k_arg_t" from comma-separated arguments
 //
@@ -116,8 +117,8 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
     // 1) if constant `args`, emit binary code
     // 2) if single match, use format for selected opcode
     // 3) otherwise, use opcode for "list"
-#if 0
-    if (0 && args_are_const)
+#if 1
+    if (args_are_const)
     {
         // all const args: can select best opcode & calculate size
         if (!matching_opcode_p)
@@ -137,18 +138,16 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
 
         if (trace)
             *trace << "size = " << insn_size << std::endl;
-#if 0
+#if 1
         // if binary data fits in "fixed" area of opcode, just emit as binary data
-        if (insn_size() <= m68k_opc_resolved::max_size)
+        if (insn_size() <= sizeof(fixed))
         {
-            m68k_opc_resolved opc;
-            return opc.gen_insn(
-                          insn
-                        , ok
-                        , matching_opcode_p
-                        , std::move(args)
-                        , di, fixed, insn_size
-                        );
+            static opc::tgt_opc_quick<uint8_t> opc_quick;
+            opc_quick.init(fixed, insn_size);
+#if 1
+            if (opc_quick.proc_args(di, *matching_opcode_p, args, insn_size()))
+                return opc_quick;
+#endif
         }
 #endif
     }

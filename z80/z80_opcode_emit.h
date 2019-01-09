@@ -40,7 +40,7 @@ void z80_opcode_t::emit(
                    core::emit_base& base
                  , uint16_t *op_p
                  , ARGS_T&&    args
-                 , core::core_expr_dot const& dot) const
+                 , core::core_expr_dot const *dot_p) const
 {
     using expression::expr_fits;
    
@@ -75,7 +75,7 @@ void z80_opcode_t::emit(
         base << core::set_size(1) << *++op_p;
 
     // for `size` call
-    auto fits = core::core_fits(dot);
+    auto fits = core::core_fits(dot_p);
     
     // hook into validators
     auto& val_c = defn().val_c();

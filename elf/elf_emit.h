@@ -15,9 +15,10 @@ struct elf_emit : core::emit_base
         , emit_base{stream}
         {}
 
-    void emit(core::core_insn& insn, core::core_expr_dot const& dot) override
+    void emit(core::core_insn& insn, core::core_expr_dot const *dot_p) override
     {
-        insn.emit(*this, dot);
+        // dot always known
+        insn.emit(*this, dot_p);
     }
 
     template <typename OS>

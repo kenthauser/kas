@@ -103,18 +103,18 @@ void core_expr::pair_nodes () const
 }
 
 #if 1
-expr_offset_t core_expr::expr_term::offset(core_expr_dot const *dot_ptr) const
+expr_offset_t core_expr::expr_term::offset(core_expr_dot const *dot_p) const
 {
     if (!addr_p)
         return {};
 
     auto offset = addr_p->offset(); 
 
-    if (!dot_ptr)
+    if (!dot_p)
         return offset;
 
 
-    auto delta  = dot_ptr->rebase(*addr_p);
+    auto delta  = dot_p->rebase(*addr_p);
     
     //std::cout << "expr_term::offset: offset = " << offset << " delta = " << delta << std::endl;
     return delta;
@@ -237,7 +237,10 @@ auto core_fits::operator()
     std::cout << " min/max = " << std::hex << min << "/" << max;
     std::cout << " disp = " << disp << std::endl;
 #endif
-    if (&addr.section() != &dot.section())
+    if (!dot_p)
+        return maybe;
+
+    if (&addr.section() != &dot_p->section())
         return no;
 
 #if 0
@@ -254,7 +257,7 @@ auto core_fits::operator()
     std::cout << " cur delta = "  << dot.cur_delta;
     std::cout << std::endl;
 #endif
-    expr_offset_t offset = dot.rebase(addr) - dot.offset() - disp;
+    expr_offset_t offset = dot_p->rebase(addr) - dot_p->offset() - disp;
     return (*this)(offset, min, max);
 }
 
@@ -284,7 +287,7 @@ auto core_fits::operator()
     if (fuzz < 0)
         return maybe;
 #endif
-    auto result = (*this)(e.get_offset(&dot), min, max);
+    auto result = (*this)(e.get_offset(dot_p), min, max);
 #if 0
     std::cout << "\nfits (" <<  min << ", " << max << "): ";
     std::cout << "\nexpr = " << expr_t(e) << " offset = " << e.get_offset(&dot);
@@ -314,20 +317,23 @@ auto core_fits::operator()
             // zero or multiple relocs: can not be `offset`
             return no;
     }
+    
+    if (!dot_p)
+        return maybe;
 
 #if 1
     std::cout << "\nfits (" <<  min << ", " << max << "): ";
-    std::cout << "\nexpr = " << expr_t(e) << " offset = " << e.get_offset(&dot);
-    std::cout << " dot_offset = " << dot.dot_offset();
-    std::cout << " base_delta = " << dot.base_delta;
+    std::cout << "\nexpr = " << expr_t(e) << " offset = " << e.get_offset(dot_p);
+    std::cout << " dot_offset = " << dot_p->dot_offset();
+    std::cout << " base_delta = " << dot_p->base_delta;
     //std::cout << " delta = " << dot.cur_delta;
     std::cout << std::endl;
 #endif
 
-if (!e.disp_ok(dot))
+if (!e.disp_ok(*dot_p))
         return no;
 
-    return (*this)(e.get_disp(dot) - delta, min, max);
+    return (*this)(e.get_disp(*dot_p) - delta, min, max);
 }
 
 

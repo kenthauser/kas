@@ -125,7 +125,7 @@ struct z80_opc_general : z80_stmt_opcode
         return new_size;
     }
 
-    void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const& dot) override
+    void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const *dot_p) override
     {
 #if 1
         // deserialze insn data
@@ -138,7 +138,7 @@ struct z80_opc_general : z80_stmt_opcode
         //auto  op_p   = reader.get_fixed_p(opcode.opc_long ? M_SIZE_LONG : M_SIZE_WORD);
         auto  args   = serial_args{reader, opcode};
 
-        opcode.emit(base, args.data_p, args, dot);
+        opcode.emit(base, args.data_p, args, dot_p);
 #endif
     }
 };

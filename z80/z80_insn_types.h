@@ -122,6 +122,7 @@ struct z80_opcode_t
     using fmt_t     = z80_opcode_fmt;
     using err_msg_t = error_msg;
     static constexpr auto MAX_ARGS = 2;
+    using mcode_size_t = uint8_t;
 
     // allocate instances in `std::deque`
     using obstack_t = std::deque<z80_opcode_t>;
@@ -142,7 +143,7 @@ struct z80_opcode_t
     fits_result size(ARGS_T& args, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
 
     template <typename ARGS_T>
-    void emit(core::emit_base&, uint16_t *, ARGS_T&&, core::core_expr_dot const&) const;
+    void emit(core::emit_base&, uint16_t *, ARGS_T&&, core::core_expr_dot const * = {}) const;
 
     auto& defn()  const { return defns_base[defn_index]; }
     auto& fmt()   const { return defn().fmt(); }

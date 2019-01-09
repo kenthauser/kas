@@ -163,7 +163,7 @@ struct z80_opc_list: z80_stmt_opcode
         return *size_p;
     }
 
-    void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const& dot) override
+    void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const *dot_p) override
     {
         z80_insn_t::insn_bitset_t ok(fixed_p->fixed);
 
@@ -186,7 +186,7 @@ struct z80_opc_list: z80_stmt_opcode
         uint16_t code[2];
         if (opcode.opc_long)
         {
-            code[0] = opcode.code() >> 16;
+            code[0] = opcode.code() >> 8;
             code[1] = opcode.code();
         } else
         {
@@ -209,7 +209,7 @@ struct z80_opc_list: z80_stmt_opcode
         }
 
         // now use common emit
-        opcode.emit(base, code, args, dot);
+        opcode.emit(base, code, args, dot_p);
     }
 };
 }

@@ -60,7 +60,7 @@ namespace detail
         }
 
         
-        static void emit_one(emit_base& base, expr_t const& e, core_expr_dot const& dot)
+        static void emit_one(emit_base& base, expr_t const& e, core_expr_dot const *dot_p)
         {
             std::cout << "opc_leb::emit_one: " << e << std::endl;
 #if 1  

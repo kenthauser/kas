@@ -75,7 +75,7 @@ struct emit_base
     emit_base(emit_stream& stream) : stream(stream) {}
 
     // Entry point to emit an insn
-    virtual void emit(struct core_insn& insn, core_expr_dot const& dot) = 0;
+    virtual void emit(struct core_insn& insn, core_expr_dot const *dot_p = {}) = 0;
     virtual ~emit_base() = default;
 
     //
@@ -109,7 +109,7 @@ struct emit_base
     std::size_t position() const;                   // for debug interface
     core_section const& get_section() const;        // for debug interface
 
-    // XXX support manipulator functions...
+    // XXX support manipulator functions..
     emit_base& operator<<(emit_base& (*fn)(emit_base&))
     {
         return fn(*this);
