@@ -38,7 +38,7 @@
 
  *****************************************************************************/
 
-#include "z80_arg_defn.h"
+#include "z80_arg.h"
 #include "z80_error_messages.h"
 #include "z80_insn_validate.h"
 #include "expr/expr_fits.h"
@@ -515,7 +515,7 @@ VAL_GEN(DIRECT      , val_range, 2, 0, 0xffff);
 
 VAL_GEN(IMMED_8     , val_range, 1, -(1<< 7), (1<< 8)-1);
 VAL_GEN(IMMED_16    , val_range, 2, -(1<<15), (1<<16)-1);
-VAL_GEN(IMMED_012   , val_range, 0, 0, 2);
+VAL_GEN(IMMED_IM    , val_range, 0, 0, 2);
 VAL_GEN(BIT_NUM     , val_range, 0, 0, 7);
 VAL_GEN(IMMED_RST   , val_restart);
 

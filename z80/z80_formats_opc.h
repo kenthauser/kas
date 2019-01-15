@@ -5,8 +5,8 @@
 
 #include "opc_general.h"
 #include "opc_list.h"
-#include "opc_branch.h"
-#include "opc_dbcc.h"
+//#include "opc_branch.h"
+//#include "opc_dbcc.h"
 
 namespace kas::z80::opc
 {
@@ -31,6 +31,7 @@ struct fmt_list : virtual z80_opcode_fmt
     }
 };
 
+#if 0
 // branch opcode format
 struct fmt_branch : virtual z80_opcode_fmt
 {
@@ -50,6 +51,7 @@ struct fmt_dbcc : virtual z80_opcode_fmt
         return opc;
     }
 };
+#endif
 
 }
 

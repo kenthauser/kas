@@ -65,222 +65,268 @@
 
 namespace kas::tgt::opc
 {
-
-template <typename value_type, typename Inserter>
-struct tgt_data_inserter
+namespace detail
 {
-    static_assert(std::is_unsigned_v<value_type>);
-    
+    // opcode fixed data area
     using fixed_t = typename core::opcode::fixed_t;
-    using chunk_inserter_t = typename core::chunk::chunk_inserter_t<Inserter, value_type>;
-    using signed_t = std::make_signed_t<value_type>;
-
-    // keep a ref to the `data inserter` then init `chunk_inserter`
-    tgt_data_inserter(Inserter& di, fixed_t &fixed) : di(di), ci(di)
-    {
-        n = fixed.size<value_type>();
-        p = fixed.begin<value_type>();
-    }
-
-    // make sure `n` chunks available in current "segment"
-    void reserve(unsigned cnt)
-    {
-        if (n == 0)
-            ci.reserve(cnt);
-        else if (n < cnt)
-            n = 0;
-    }
-
-    value_type* operator()(expr_t&&e, unsigned size = 0)
-    {
-        if (size)
-            if (auto ip = e.get_fixed_p())
-                return (*this)(*ip, size);
-
-        // insert expression after chunk
-        *di++ = std::move(e);
-        return nullptr;
-    }
-
-    // infer the size & signed/unsigned from T
-    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
-    value_type* operator()(T const& t)
-    {
-        if constexpr (std::is_signed_v<T>)
-            return (*this)(t, -sizeof(T));
-        else
-            return (*this)(t, sizeof(T));
-    }
-
-    value_type* operator()(int i, int size);
-
-
-private:
-    Inserter& di;
-    chunk_inserter_t ci;
-    value_type *p;
-    short n;
-};
-
-template <typename value_type, typename Inserter>
-value_type *tgt_data_inserter<value_type, Inserter>::operator()(int i, int size) 
-{
-    // Signed irrelevent on store
-    if (size < 0)
-        size = -size;
-
-    // convert bytes to chunks
-    auto chunks = (size + sizeof(value_type) - 1)/sizeof(value_type);
-
-    // no data -- return current pointer
-    if (chunks == 0)
-        return p;
-
-    // if multiple words, store big-endian & return pointer to first chunk
-    if (chunks > 1)
-    {
-        reserve(chunks);
-        
-        // store first word & save pointer
-        auto first_word  = i >> (--chunks * sizeof(value_type) * 8);
-        auto first_p     = (*this)(first_word, sizeof(value_type));
-        /* store rest */   (*this)(i, size - sizeof(value_type));
-        
-        return first_p;
-    }
     
-    // save one word in fixed area if room
-    if (n)
+    template <typename value_type, typename Inserter>
+    struct tgt_data_inserter
     {
-        --n;
-        *p++ = i;
-        return p - 1;
-    }
-
-    // save in chunk expression
-    *ci++ = i;
-    return ci.last_p();        // return last write location
-}
-
-// `tgt_data_reader_t`  deserializes data stored by `tgt_data_inserter_t` above.
-template <typename value_type, typename Iter>
-struct tgt_data_reader 
-{
-    static_assert(std::is_unsigned_v<value_type>);
-
-    using fixed_t        = typename core::opcode::fixed_t;
-    using chunk_reader_t = typename core::chunk::chunk_reader_t<Iter, value_type>;
-    using signed_t       = std::make_signed_t<value_type>;
-
-    tgt_data_reader(Iter& it, fixed_t& fixed, int cnt)
-                        : it(it), chunk_it(core::chunk_reader<value_type>(it, cnt))
-    {
-        n = sizeof(fixed.fixed) / sizeof(value_type);
-        p = static_cast<value_type *>(&fixed.fixed);
-    }
-
-    // make sure `n` words available in current "chunk"
-    void reserve(unsigned chunks)
-    {
-        if (n == 0)
-            chunk_it.reserve(chunks);
-        else if (n < chunks)
-            n = 0;
-    }
-
-    // copy next value to expression
-    auto& get_expr()
-    {
-        chunk_it.decr_cnt();        // stealing expression
-        return *it++;
-    }
-
-    // get fixed value
-    expression::e_fixed_t get_fixed(int size);
-
-    // infer the size & signed/unsigned from T
-    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
-    void get(T& t)
-    {
-        if constexpr (std::is_signed_v<T>)
-            t = (*this)(t, -sizeof(T));
-        else
-            t = (*this)(t, sizeof(T));
-    }
-
-
-    // get *mutable* pointer to chunk data
-    // used to get pointer to stored machine-code.
-    // NB: assume size is positive multiple of sizeof(value_type)
-    value_type* get_fixed_p(int size)
-    {
-        auto chunks = size/sizeof(value_type);
+        static_assert(std::is_unsigned_v<value_type>);
         
-        reserve(chunks);
-        auto p = next_word_p();
+        using chunk_inserter_t = typename core::chunk::chunk_inserter_t<Inserter, value_type>;
+        using signed_t = std::make_signed_t<value_type>;
 
-        // read & discard additional words
-        while(--chunks)
-            next_word_p();
-
-        return p;
-    }
-
-    bool empty() const
-    {
-        return n == 0 && chunk_it.empty();
-    }
-
-
-private:
-    // get next word
-    value_type*  next_word_p()
-    {
-        if (n > 0) {
-            n--;
-            return p++;
+        // keep a ref to the `data inserter` then init `chunk_inserter`
+        tgt_data_inserter(Inserter& di, fixed_t& fixed) : di(di), ci(di)
+        {
+            n = fixed.size<value_type>();
+            p = fixed.begin<value_type>();
         }
-        return chunk_it.get_p();
-    }
 
-    Iter& it;
-    chunk_reader_t chunk_it;
-    unsigned n;
-    value_type *p;
-};
+        // make sure `n` bytes available in current "segment"
+        void reserve(unsigned bytes)
+        {
+            // convert to chunks
+            auto chunks = (bytes + sizeof(value_type) - 1)/sizeof(value_type);
+            
+            if (n == 0)
+                ci.reserve(chunks);
+            else if (n < chunks)
+                n = 0;
+        }
 
-template <typename value_type, typename Iter>
-expression::e_fixed_t tgt_data_reader<value_type, Iter>::get_fixed(int size)
-{
-    expression::e_fixed_t value {};
+        // insert fixed or expression
+        value_type* operator()(expr_t&&e, unsigned size = 0)
+        {
+            if (size)
+                if (auto ip = e.get_fixed_p())
+                    return (*this)(*ip, size);
 
-    if (size == 0)
-        return 0;
+            // insert expression after chunk
+            *di++ = std::move(e);
+            return nullptr;
+        }
 
-    // check if signed
-    bool is_signed = size < 0;
-    if (size < 0)
-        size = -size;
+        // insert data via pointer: NB size must be > 0
+        value_type* operator()(value_type *code_p, unsigned size)
+        {
+            reserve(size);
 
-    // convert bytes to chunks
-    auto chunks = (size + sizeof(value_type) - 1)/sizeof(value_type);
-   
-    // multiple chunks are stored big-endian
-    // sign-extend first word
-    reserve(chunks);
-    if (is_signed)
-        value = static_cast<signed_t>(*next_word_p());
-    else
-        value = *next_word_p();
+            auto p = insert_one(*code_p);
+            while (size > sizeof(value_type))
+            {
+                size -= sizeof(value_type);
+                insert_one(*++code_p);
+            }
+            return p;
+        }
 
-    // extend with rest of chunks    
-    while(--chunks)
+        // infer the size & signed/unsigned from T
+        template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
+        value_type* operator()(T const& t, unsigned size = sizeof(T))
+        {
+            if constexpr (std::is_signed_v<T>)
+                return insert_fixed(t, -size);
+            else
+                return insert_fixed(t, size);
+        }
+
+    private:
+        value_type* insert_fixed(int i, int size);
+        value_type* insert_one(value_type i);
+        
+        Inserter& di;
+        chunk_inserter_t ci;
+        value_type *p;
+        short n;
+    };
+
+    template <typename value_type, typename Inserter>
+    value_type *tgt_data_inserter<value_type, Inserter>::insert_fixed(int i, int size) 
     {
-        value <<= sizeof(value_type) * 8;
-        value  |= *next_word_p();       // don't sign-extend extension words
+        // Signed irrelevent on store
+        if (size < 0)
+            size = -size;
+
+        // convert bytes to chunks
+        auto chunks = (size + sizeof(value_type) - 1)/sizeof(value_type);
+
+        // no data -- return current pointer
+        if (chunks == 0)
+            return p;
+
+        // if multiple words, store big-endian & return pointer to first chunk
+        if (chunks > 1)
+        {
+            reserve(chunks);
+            
+            // store first word & save pointer
+            auto first_word  = i >> (--chunks * sizeof(value_type) * 8);
+            auto first_p     = (*this)(first_word, sizeof(value_type));
+            /* store rest */   (*this)(i, size - sizeof(value_type));
+            
+            return first_p;
+        }
+        
+        return insert_one(i);
     }
 
-    return value;
+    template <typename value_type, typename Inserter>
+    value_type *tgt_data_inserter<value_type, Inserter>::insert_one(value_type i)
+    {
+        // save one word in fixed area if room
+        if (n)
+        {
+            --n;
+            *p++ = i;
+            return p - 1;
+        }
+
+        // save in chunk expression
+        *ci++ = i;
+        return ci.last_p();        // return last write location
+    }
+
+    // `tgt_data_reader_t`  deserializes data stored by `tgt_data_inserter_t` above.
+    template <typename value_type, typename Iter>
+    struct tgt_data_reader 
+    {
+        static_assert(std::is_unsigned_v<value_type>);
+
+        using fixed_t        = typename core::opcode::fixed_t;
+        using chunk_reader_t = typename core::chunk::chunk_reader_t<Iter, value_type>;
+        using signed_t       = std::make_signed_t<value_type>;
+
+        tgt_data_reader(Iter& it, fixed_t& fixed, int cnt)
+                            : it(it), chunk_it(core::chunk_reader<value_type>(it, cnt))
+        {
+            n = fixed.size<value_type>();
+            p = fixed.begin<value_type>();
+        }
+
+        // make sure `n` words available in current "chunk"
+        void reserve(unsigned bytes)
+        {
+            // convert to chunks
+            auto chunks = (bytes + sizeof(value_type) - 1)/sizeof(value_type);
+            if (n == 0)
+                chunk_it.reserve(chunks);
+            else if (n < chunks)
+                n = 0;
+        }
+
+        // copy next value to expression
+        auto& get_expr()
+        {
+            chunk_it.decr_cnt();        // stealing expression
+            return *it++;
+        }
+
+        // get fixed value
+        expression::e_fixed_t get_fixed(int size);
+
+        // infer the size & signed/unsigned from T
+        template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
+        void get(T& t)
+        {
+            if constexpr (std::is_signed_v<T>)
+                t = (*this)(t, -sizeof(T));
+            else
+                t = (*this)(t, sizeof(T));
+        }
+
+
+        // get *mutable* pointer to chunk data
+        // used to get pointer to stored machine-code.
+        // NB: assume size is positive multiple of sizeof(value_type)
+        value_type* get_fixed_p(int size)
+        {
+            auto chunks = size/sizeof(value_type);
+            
+            reserve(chunks);
+            auto p = next_word_p();
+
+            // read & discard additional words
+            while(--chunks)
+                next_word_p();
+
+            return p;
+        }
+
+        bool empty() const
+        {
+            return n == 0 && chunk_it.empty();
+        }
+
+
+    private:
+        // get next word
+        value_type*  next_word_p()
+        {
+            if (n > 0) {
+                n--;
+                return p++;
+            }
+            return chunk_it.get_p();
+        }
+
+        Iter& it;
+        chunk_reader_t chunk_it;
+        unsigned n;
+        value_type *p;
+    };
+
+    template <typename value_type, typename Iter>
+    expression::e_fixed_t tgt_data_reader<value_type, Iter>::get_fixed(int size)
+    {
+        expression::e_fixed_t value {};
+
+        if (size == 0)
+            return 0;
+
+        // check if signed
+        bool is_signed = size < 0;
+        if (size < 0)
+            size = -size;
+
+        // convert bytes to chunks
+        auto chunks = (size + sizeof(value_type) - 1)/sizeof(value_type);
+       
+        // multiple chunks are stored big-endian
+        // sign-extend first word
+        reserve(chunks);
+        if (is_signed)
+            value = static_cast<signed_t>(*next_word_p());
+        else
+            value = *next_word_p();
+
+        // extend with rest of chunks    
+        while(--chunks)
+        {
+            value <<= sizeof(value_type) * 8;
+            value  |= *next_word_p();       // don't sign-extend extension words
+        }
+
+        return value;
+    }
 }
+
+// class template agument deduction doesn't support partial deduction. 
+// Use forwarding functions.
+template <typename value_type, typename Inserter, typename...Ts>
+auto tgt_data_inserter(Inserter& inserter, Ts&&...args)
+{
+    return detail::tgt_data_inserter<value_type, Inserter>(inserter, std::forward<Ts>(args)...);
+}
+
+template <typename value_type, typename Iter, typename...Ts>
+auto tgt_data_reader(Iter& iter, Ts&&...args)
+{
+    return detail::tgt_data_reader<value_type, Iter>(iter, std::forward<Ts>(args)...);
+}
+
+
 }
 #endif

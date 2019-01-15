@@ -9,7 +9,7 @@
 //
 // format is regular:  opcode + [args]
 
-#include "z80_arg_defn.h"
+#include "z80_arg.h"
 
 // XXX clang problem
 #define TGT_STMT_NAME stmt_z80

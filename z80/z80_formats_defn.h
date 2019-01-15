@@ -23,11 +23,11 @@ using gen_4b1 = fmt_generic<4, 1>;
 
 
 // extract from second word
-using gen_1w0b3 = fmt_generic<0, 3, 0>;
-using gen_1w3b3 = fmt_generic<3, 3, 0>;
-using gen_1w3b2 = fmt_generic<3, 2, 0>;
+using gen_1w0b3 = fmt_generic<0, 3, 1>;
+using gen_1w3b3 = fmt_generic<3, 3, 1>;
+using gen_1w3b2 = fmt_generic<3, 2, 1>;
 
-using gen_1w4b2 = fmt_generic<4, 2, 0>;
+using gen_1w4b2 = fmt_generic<4, 2, 1>;
 
 // Z80 lists DST first
 using arg1_0b3 = fmt_arg<1, gen_0b3>;

@@ -4,7 +4,7 @@
 #include "tgt_stmt.h"
 #include "tgt_opc_quick.h"
 
-// args is a container of "m68k_arg_t" from comma-separated arguments
+// args is a container of "MCODE_T::arg_t" from comma-separated arguments
 //
 // Two special caes:
 //  1)  if opcode has no arguments (eg "nop"), a single "MODE_NONE"

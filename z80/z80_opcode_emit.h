@@ -38,7 +38,7 @@ using expression::e_fixed_t;
 template <typename ARGS_T>
 void z80_opcode_t::emit(
                    core::emit_base& base
-                 , uint16_t *op_p
+                 , mcode_size_t *op_p
                  , ARGS_T&&    args
                  , core::core_expr_dot const *dot_p) const
 {

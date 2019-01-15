@@ -1,0 +1,76 @@
+#ifndef KAS_TARGET_TGT_ARG_H
+#define KAS_TARGET_TGT_ARG_H
+
+#include "kas_core/opcode.h"        // declares emit
+#include "parser/kas_position.h"
+
+namespace kas::tgt
+{
+
+using kas::parser::kas_token; 
+struct token_missing  : kas_token {};
+
+template <typename Derived, typename Mode_t>
+struct tgt_arg_t : kas_token
+{
+    using base_t    = tgt_arg_t;
+    using derived_t = Derived;
+    using mode_t    = Mode_t;
+
+    using op_size_t = core::opc::opcode::op_size_t;
+
+    // x3 parser requires default constructable
+    tgt_arg_t() : _mode(mode_t::MODE_NONE) {}
+
+    // error
+    tgt_arg_t(const char *err, expr_t e = {})
+            : _mode(derived_t::arg_mode_t::MODE_ERROR), err(err), expr(e)
+            {}
+
+protected:
+    // simplify derived class ctors
+    tgt_arg_t(uint8_t mode, expr_t e = {}) : _mode(mode), expr(e) {}
+
+public:
+    // arg mode: default getter/setter
+    auto mode() const           { return _mode; }
+    void set_mode(uint8_t mode) { _mode = mode; }
+
+    // for validate_min_max: default implmentation
+    bool is_missing() const { return _mode == derived_t::arg_mode_t::MODE_NONE; }
+
+    // validate methods: require derived implmentation
+    bool is_const () const;
+    template <typename...Ts> const char *ok_for_target(Ts&&...) const;
+    
+    // emit methods: require derived implementation
+    op_size_t size(expression::expr_fits const& fits = {});
+    void emit(core::emit_base& base, unsigned size) const;
+
+    // serialize methods
+    template <typename Inserter>
+    bool serialize(Inserter& inserter, bool& val_ok);
+    
+    template <typename Reader>
+    void extract(Reader& reader, bool has_data, bool has_expr);
+
+    // support methods
+    void print(std::ostream&) const;
+    static void reset()  {}
+    
+    // common member variables
+    expr_t      expr {};
+    const char *err  {};
+    
+  protected:
+    friend std::ostream& operator<<(std::ostream& os, tgt_arg_t const& arg)
+    {
+        static_cast<derived_t const&>(arg).print(os);
+        return os;
+    }
+    uint8_t    _mode {};
+};
+
+}
+
+#endif

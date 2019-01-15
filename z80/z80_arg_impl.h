@@ -2,15 +2,14 @@
 #define KAS_Z80_Z80_ARG_IMPL_H
 
 
-#include "z80_arg_defn.h"
+#include "z80_arg.h"
 #include "z80_error_messages.h"
 #include "kas_core/core_emit.h"
 
 namespace kas::z80
 {
 
-z80_arg_t::z80_arg_t(std::pair<expr_t, int> const& parsed)
-    : _mode(parsed.second), expr(parsed.first)
+z80_arg_t::z80_arg_t(std::pair<expr_t, int> const& parsed) : base_t(parsed.second, parsed.first)
 {
     auto set_prefix = [&](int base_mode)
     {
@@ -35,6 +34,7 @@ z80_arg_t::z80_arg_t(std::pair<expr_t, int> const& parsed)
     if (auto p = expr.template get_p<z80_reg_t>())
     {
         reg = *p;
+        expr = {};
 
         switch (_mode)
         {
@@ -76,10 +76,10 @@ z80_arg_t::z80_arg_t(std::pair<expr_t, int> const& parsed)
         }
     }
 
-    std::cout << "z80_arg_t ctor: expr = " << expr << " mode = " << _mode << " pfx = " << +prefix << std::endl;
+    //std::cout << "z80_arg_t ctor: expr = " << expr << " mode = " << _mode << " pfx = " << +prefix << std::endl;
 }
 
-void z80_arg_t::set_mode(unsigned mode)
+void z80_arg_t::set_mode(uint8_t mode)
 {
     _mode = mode;
     switch (mode)
@@ -99,13 +99,15 @@ void z80_arg_t::set_mode(unsigned mode)
     }
 }
 
-void z80_arg_t::set_expr(expr_t e)
+void z80_arg_t::set_expr(expr_t& e)
 {
     if (auto p = e.template get_p<z80_reg_t>())
         reg = *p;
-    expr = e;
+    else
+        expr = e;
 }
 
+#if 1
 template <typename...Ts>
 const char * z80_arg_t::ok_for_target(Ts&&...args) const
 {
@@ -116,6 +118,7 @@ const char * z80_arg_t::ok_for_target(Ts&&...args) const
     // OK
     return {};
 }
+#endif
 
 void z80_arg_t::print(std::ostream& os) const
 {
@@ -191,7 +194,7 @@ bool z80_arg_t::serialize(Inserter& inserter, bool& val_ok)
             {
                 auto r_class = reg.kind();
                 auto value   = reg.value();
-                inserter((r_class << 8) | value, opc::M_SIZE_WORD);
+                inserter((r_class << 8) | value, 2);
                 break;
             }
 
@@ -201,7 +204,7 @@ bool z80_arg_t::serialize(Inserter& inserter, bool& val_ok)
         case MODE_REG_OFFSET_IY:
             if (val_ok)
                 break;
-            return save_expr(opc::M_SIZE_WORD);
+            return save_expr(2);
     }
 
     return false;   // no expression
@@ -212,13 +215,13 @@ void z80_arg_t::extract(Reader& reader, bool has_data, bool has_expr)
 {
     if (has_expr)
     {
-        expr = reader.get_expr(opc::M_SIZE_AUTO);
+        expr = reader.get_expr();
         if (auto p = expr.template get_p<z80_reg_t>())
             reg = *p;
     }
     else if (has_data)
     {
-        auto value = reader.get_fixed(opc::M_SIZE_WORD);
+        auto value = reader.get_fixed(2);
         switch (mode())
         {
             default:

@@ -16,8 +16,9 @@ namespace kas::z80::opc
 template <unsigned SHIFT, unsigned BITS, unsigned WORD = 0>
 struct fmt_generic
 {
+    using mcode_size_t = uint8_t;
     static constexpr auto MASK = (1 << BITS) - 1;
-    static bool insert(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p)
+    static bool insert(mcode_size_t* op, z80_arg_t& arg, z80_validate const *val_p)
         {
             expression::expr_fits fits;
             auto result = val_p->ok(arg, fits);
@@ -36,7 +37,7 @@ struct fmt_generic
             return true;
         }
 
-    static void extract(uint16_t const* op, z80_arg_t* arg, z80_validate const *val_p)
+    static void extract(mcode_size_t const* op, z80_arg_t* arg, z80_validate const *val_p)
         {
             auto value = MASK & op[WORD] >> SHIFT;
             val_p->set_arg(*arg, value);

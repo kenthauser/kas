@@ -92,7 +92,7 @@ struct z80_opc_branch : z80_stmt_opcode
         os << opcode.defn().name();
         
         // ...print opcode...
-        os << std::hex << " " << std::setw(4) << opcode.code();
+        os << std::hex << " " << std::setw(4) << opcode.code().front();
 
         // ...and args
         os << " : " << dest;
@@ -175,7 +175,7 @@ struct z80_opc_branch : z80_stmt_opcode
         }
         std::cout << std::endl;
 #endif
-        uint16_t code = opcode.code();  // base op-code
+        auto code = opcode.code();  // base op-code
 
         switch (size_p->max)
         {
@@ -185,13 +185,13 @@ struct z80_opc_branch : z80_stmt_opcode
             {
                 // emit insn as two bytes...
                 // since DISP is always a constant, can always change to single word output
-                base << core::set_size(1) << (code >> 8);
+                base << core::set_size(1) << (code.front() >> 8);
                 base << core::emit_disp(*dot_p, 1, 2) << dest;
                 break;
             }
 
             case 4:
-                base << code << core::emit_disp(*dot_p, 2, 2) << dest;
+                base << code.front() << core::emit_disp(*dot_p, 2, 2) << dest;
                 break;
         }
     }

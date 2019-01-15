@@ -16,6 +16,7 @@ struct z80_stmt_opcode;
 struct z80_opcode_fmt
 {
     // NB: info only
+    using mcode_size_t = uint8_t;
     static constexpr auto FMT_MAX_ARGS = 6;
 
     // "instance" is just a virtual-pointer collection
@@ -24,40 +25,40 @@ struct z80_opcode_fmt
     
     // Implement `FMT_MAX_ARGS` inserters & extractors
     // default to no-ops for inserters/extractors instead of ABC
-    virtual bool insert_arg1(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const 
+    virtual bool insert_arg1(mcode_size_t* op, z80_arg_t& arg, z80_validate const *val_p) const 
     { 
         if (val_p)
             val_p->get_value(arg); 
         return false;
     }
-    virtual bool insert_arg2(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const
+    virtual bool insert_arg2(mcode_size_t* op, z80_arg_t& arg, z80_validate const *val_p) const
         { if (val_p) val_p->get_value(arg); return false; }
-    virtual bool insert_arg3(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const
+    virtual bool insert_arg3(mcode_size_t* op, z80_arg_t& arg, z80_validate const *val_p) const
         { if (val_p) val_p->get_value(arg); return false; }
-    virtual bool insert_arg4(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const
+    virtual bool insert_arg4(mcode_size_t* op, z80_arg_t& arg, z80_validate const *val_p) const
         { if (val_p) val_p->get_value(arg); return false; }
-    virtual bool insert_arg5(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const
+    virtual bool insert_arg5(mcode_size_t* op, z80_arg_t& arg, z80_validate const *val_p) const
         { if (val_p) val_p->get_value(arg); return false; }
-    virtual bool insert_arg6(uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const
+    virtual bool insert_arg6(mcode_size_t* op, z80_arg_t& arg, z80_validate const *val_p) const
         { if (val_p) val_p->get_value(arg); return false; }
 
-    virtual void extract_arg1(uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+    virtual void extract_arg1(mcode_size_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
     {
         if (val_p)
             val_p->set_arg(*arg, 0);
     }
-    virtual void extract_arg2(uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+    virtual void extract_arg2(mcode_size_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
         { if (val_p) val_p->set_arg(*arg, 0); }
-    virtual void extract_arg3(uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+    virtual void extract_arg3(mcode_size_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
         { if (val_p) val_p->set_arg(*arg, 0); }
-    virtual void extract_arg4(uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+    virtual void extract_arg4(mcode_size_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
         { if (val_p) val_p->set_arg(*arg, 0); }
-    virtual void extract_arg5(uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+    virtual void extract_arg5(mcode_size_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
         { if (val_p) val_p->set_arg(*arg, 0); }
-    virtual void extract_arg6(uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+    virtual void extract_arg6(mcode_size_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
         { if (val_p) val_p->set_arg(*arg, 0); }
 
-    auto insert(unsigned n, uint16_t* op, z80_arg_t& arg, z80_validate const *val_p) const
+    auto insert(unsigned n, mcode_size_t* op, z80_arg_t& arg, z80_validate const *val_p) const
     {
         switch (n)
         {
@@ -72,7 +73,7 @@ struct z80_opcode_fmt
         }
     }
 
-    void extract(int n, uint16_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
+    void extract(int n, mcode_size_t const* op, z80_arg_t *arg, z80_validate const *val_p) const
     {
         switch (n)
         {
@@ -107,9 +108,9 @@ template <unsigned, typename T> struct fmt_arg;
 template <typename T>                                                           \
 struct fmt_arg<N, T> : virtual z80_opcode_fmt                                  \
 {                                                                               \
-    bool insert_arg ## N (uint16_t* op, z80_arg_t& arg, z80_validate const * val_p) const override         \
+    bool insert_arg ## N (mcode_size_t* op, z80_arg_t& arg, z80_validate const * val_p) const override         \
         { return T::insert(op, arg, val_p);}                                           \
-    void extract_arg ## N (uint16_t const* op, z80_arg_t* arg, z80_validate const * val_p) const override  \
+    void extract_arg ## N (mcode_size_t const* op, z80_arg_t* arg, z80_validate const * val_p) const override  \
         { T::extract(op, arg, val_p); }                                                \
 };
 

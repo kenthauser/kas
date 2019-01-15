@@ -38,14 +38,15 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
-#include "z80_arg_defn.h"
+#include "z80_arg.h"
 
 #include "z80_insn_eval.h"
 #include "z80_formats_type.h"
-#include "z80_insn_serialize.h"
+//#include "z80_insn_serialize.h"
 #include "z80_insn_validate.h"
 //#include "z80_insn_impl.h"
 
+#include "target/tgt_insn_serialize.h"
 
 #include "kas_core/opcode.h"
 #include "kas_core/core_print.h"
@@ -62,6 +63,7 @@ namespace kas::z80::opc
 struct z80_opc_list: z80_stmt_opcode
 {
     using base_t::base_t;
+    using mcode_t = z80_opcode_t;
     
     OPC_INDEX();
     const char *name() const override { return "Z80_LIST"; }
@@ -87,16 +89,16 @@ struct z80_opc_list: z80_stmt_opcode
         // 2) dummy zero base opcode (word)
         // 3) serialized args
 
-        auto inserter = z80_data_inserter(di, fixed);
+        auto inserter = tgt_data_inserter<typename mcode_t::mcode_size_t>(di, fixed);
         inserter.reserve(-1);       // skip fixed area
         
-        inserter(insn.index, M_SIZE_WORD);
+        inserter(insn.index);
         auto& op = *z80_insn_t::list_opcode;
 #if 0
         auto data_p = inserter(0, M_SIZE_WORD);
         z80_insert_args(inserter, std::move(args), data_p, op);
 #else
-        z80_insert_args(inserter, op, std::move(args));
+        tgt_insert_args(inserter, op, std::move(args));
 #endif
         // store OK bitset in fixed area
         fixed.fixed = ok.to_ulong();
@@ -114,10 +116,10 @@ struct z80_opc_list: z80_stmt_opcode
 
         z80_insn_t::insn_bitset_t ok(fixed_p->fixed);
 
-        auto  reader = z80_data_reader(it, *fixed_p, cnt);
+        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, *fixed_p, cnt);
         reader.reserve(-1);
 
-        auto& insn = z80_insn_t::get(reader.get_fixed(M_SIZE_WORD));
+        auto& insn = z80_insn_t::get(reader.get_fixed(sizeof(z80_insn_t::index)));
         //auto  data_p = reader.get_fixed_p(M_SIZE_WORD);
         auto& op = *z80_insn_t::list_opcode;
         auto  args = serial_args{reader, op};
@@ -147,11 +149,11 @@ struct z80_opc_list: z80_stmt_opcode
 
         z80_insn_t::insn_bitset_t ok(fixed_p->fixed);
 
-        auto  reader = z80_data_reader(it, *fixed_p, cnt);
+        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, *fixed_p, cnt);
         reader.reserve(-1);
 
-        auto& insn = z80_insn_t::get(reader.get_fixed(M_SIZE_WORD));
-        //auto  data_p = reader.get_fixed_p(M_SIZE_WORD);
+        auto& insn = z80_insn_t::get(reader.get_fixed(sizeof(z80_insn_t::index)));
+        
         auto& op = *z80_insn_t::list_opcode;
         auto  args = serial_args{reader, op};
 
@@ -167,11 +169,11 @@ struct z80_opc_list: z80_stmt_opcode
     {
         z80_insn_t::insn_bitset_t ok(fixed_p->fixed);
 
-        auto  reader = z80_data_reader(it, *fixed_p, cnt);
+        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, *fixed_p, cnt);
         reader.reserve(-1);
 
-        auto& insn = z80_insn_t::get(reader.get_fixed(M_SIZE_WORD));
-        //auto  data_p = reader.yyget_fixed_p(M_SIZE_WORD);
+        auto& insn = z80_insn_t::get(reader.get_fixed(sizeof(z80_insn_t::index)));
+        
         auto& op = *z80_insn_t::list_opcode;
         auto  args = serial_args{reader, op};
 
@@ -183,15 +185,7 @@ struct z80_opc_list: z80_stmt_opcode
 
         // get opcode "base" value
         auto& opcode = *opcode_p;
-        uint16_t code[2];
-        if (opcode.opc_long)
-        {
-            code[0] = opcode.code() >> 8;
-            code[1] = opcode.code();
-        } else
-        {
-            code[0] = opcode.code();
-        }
+        auto code = opcode.code();
 
         // Insert args into opcode "base" value
         auto& fmt  = opcode.fmt();
@@ -199,17 +193,13 @@ struct z80_opc_list: z80_stmt_opcode
         auto val_iter     = vals.begin();
         auto val_iter_end = vals.end();
 
+        // now that opcode matches, must be validator for each arg
         unsigned n = 0;
         for (auto& arg : args)
-        {
-            if (val_iter != val_iter_end)
-                fmt.insert(n++, code, arg, &*val_iter++);
-            else
-                fmt.insert(n++, code, arg, nullptr);
-        }
+            fmt.insert(n++, code.data(), arg, &*val_iter++);
 
         // now use common emit
-        opcode.emit(base, code, args, dot_p);
+        opcode.emit(base, code.data(), args, dot_p);
     }
 };
 }

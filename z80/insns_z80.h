@@ -37,10 +37,10 @@
 // CC           : condition codes for JP, CALL, & RET
 // JR_CC        : condition codes for JR
 //
-// Formaters list "shifts" for args in order. 
-// code `X` indicates arg is not inserted in machine code
-// arg is either determined by "validator" (eg REG_A) or immediate
-// immediate arg validators can declare size
+// Conventions is for formater type names to list "shifts" for args in order. 
+// shift of `X` indicates arg is not inserted in machine code
+// for shift if `X`, arg is either determined by "validator" (eg REG_A) or immediate
+// immediate arg validators can determine emit size
 
 
 #include "z80_insn_common.h"
@@ -138,7 +138,7 @@ using z80_insn_math_l = list<list<>
 //
 // 8-bit arithmetic group
 //
-, math<STR("add"), 0x80, 0xc6>
+, math<STR("add"), 0x80, 0xc6>      // args: reg_a code, immed code
 , math<STR("adc"), 0x88, 0xce>
 , math<STR("sub"), 0x90, 0xd6>
 , math<STR("sbc"), 0x98, 0xde>
@@ -164,7 +164,7 @@ using z80_insn_math_l = list<list<>
 , defn<STR("halt"), 0x76>
 , defn<STR("di")  , 0xf3>
 , defn<STR("ei")  , 0xfb>
-, defn<STR("im")  , 0xed46, FMT_1W3B2, IMMED_012>
+, defn<STR("im")  , 0xed46, FMT_1W3B2, IMMED_IM>
 
 //
 // 16-bit arithmetic group

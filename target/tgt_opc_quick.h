@@ -105,10 +105,11 @@ namespace detail
         bool      ok{true};
     };
         
+    // use helper function to perform partial specialization
     template <typename mcode_size_t, typename Inserter>
-    struct quick_emit : core::emit_base
+    struct quick_emit_t : core::emit_base
     {
-        quick_emit(Inserter& inserter, unsigned size)
+        quick_emit_t(Inserter& inserter, unsigned size)
             : stream(inserter, size)
             , emit_base{stream}
             {}
@@ -121,6 +122,12 @@ namespace detail
 
         quick_stream<mcode_size_t, Inserter> stream;
     };
+
+    template <typename mcode_size_t, typename Inserter>
+    auto quick_emit(Inserter& inserter, unsigned size)
+    {
+        return quick_emit_t<mcode_size_t, Inserter>(inserter, size);
+    }
 }
 
 
@@ -140,19 +147,11 @@ struct tgt_opc_quick : core::opc::opcode
     bool proc_args(Inserter& di, mcode const& op, ARGS& args, unsigned size)
     {
         std::cout << "TGT_QUICK::proc_args()";
-        auto inserter = tgt_data_inserter<mcode_size_t, Inserter>(di, *fixed_p);
-        auto emitter  = detail::quick_emit<mcode_size_t, decltype(inserter)>(inserter, size);
-
-        uint16_t code[2];
-        if (op.opc_long)
-        {
-            code[0] = op.code() >> 8;
-            code[1] = op.code();
-        } else
-        {
-            code[0] = op.code();
-        }
-
+        
+        auto inserter = tgt_data_inserter<mcode_size_t>(di, *fixed_p);
+        auto emitter  = detail::quick_emit<mcode_size_t>(inserter, size);
+        
+        auto  code = op.code();
         auto& fmt  = op.fmt();
         auto& vals = op.vals();
         auto val_iter     = vals.begin();
@@ -161,11 +160,11 @@ struct tgt_opc_quick : core::opc::opcode
         // always validator for each arg
         unsigned n = 0;
         for (auto& arg : args)
-            fmt.insert(n++, code, arg, &*val_iter++);
+            fmt.insert(n++, code.data(), arg, &*val_iter++);
 
         std::cout << " before -> " << std::boolalpha << (bool)emitter.stream;
 
-        op.emit(emitter, code, args);
+        op.emit(emitter, code.data(), args);
         std::cout << " -> " << std::boolalpha << (bool)emitter.stream << std::endl;
         return emitter.stream;
     }

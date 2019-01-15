@@ -3,12 +3,13 @@
 
 
 
-#include "z80_arg_defn.h"
+#include "z80_arg.h"
 //#include "z80_arg_size.h"
 
 #include "z80_formats_type.h"
-#include "z80_insn_serialize.h"
+//#include "z80_insn_serialize.h"
 #include "z80_insn_validate.h"
+#include "target/tgt_insn_serialize.h"
 //#include "z80_insn_impl.h"
 
 #include "kas_core/opcode.h"
@@ -23,7 +24,9 @@ using op_size_t = kas::core::opcode::op_size_t;
 struct z80_stmt_opcode : opcode
 {
     using base_t = z80_stmt_opcode;
-
+    using MCODE_T = z80_opcode_t;
+    using mcode_size_t = typename MCODE_T::mcode_size_t;
+    using arg_t        = typename MCODE_T::arg_t;
 
     //
     // gen_insn:
@@ -52,14 +55,14 @@ protected:
     template <typename READER_T>
     struct serial_args
     {
-        serial_args(READER_T& reader, z80_opcode_t const& opcode)
-            : opcode(opcode)
+        serial_args(READER_T& reader, MCODE_T const& mcode)
+            : mcode(mcode)
         {
-            std::tie(data_p, args, update_handle) = z80_read_args(reader, opcode);
+            std::tie(code_p, args, update_handle) = tgt::opc::tgt_read_args(reader, mcode);
         }
         
         // create an `iterator` to allow range-for to process sizes
-        struct iter : std::iterator<std::forward_iterator_tag, z80_arg_t>
+        struct iter : std::iterator<std::forward_iterator_tag, arg_t>
         {
             iter(serial_args const& obj, bool make_begin = {}) 
                     : obj(obj)
@@ -90,16 +93,16 @@ protected:
         auto begin() const { return iter(*this, true); }
         auto end()   const { return iter(*this);       }
             
-        void update_mode(z80_arg_t& arg)
+        void update_mode(arg_t& arg)
         {
             auto n = &arg - args;
-            z80_arg_update(opcode, n, arg, update_handle, data_p);
+            tgt_arg_update(mcode, n, arg, update_handle, code_p);
         }
         
-        z80_opcode_t const& opcode;
-        uint16_t        *data_p;
-        z80_arg_t       *args;
-        void            *update_handle;
+        MCODE_T const& mcode;
+        mcode_size_t  *code_p;
+        arg_t         *args;
+        void          *update_handle;
     };
 };
 }
