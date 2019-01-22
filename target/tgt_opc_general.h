@@ -2,45 +2,61 @@
 #define KAS_Z80_OPC_GENERAL_H
 
 
-#include "z80_stmt_opcode.h"
-#include "z80_opcode_emit.h"
-#include "target/tgt_insn_serialize.h"
+//#include "z80/z80_stmt_opcode.h"
+//#include "z80_opcode_emit.h"
+//#include "target/tgt_insn_serialize.h"
 
-namespace kas::z80::opc
+#include "tgt_opcode.h"
+
+namespace kas::tgt::opc
 {
 using namespace kas::core::opc;
-using namespace kas::tgt::opc;
+//using namespace kas::tgt::opc;
 
-using args_t = decltype(stmt_z80::args);
+//using args_t = decltype(stmt_z80::args);
 using op_size_t = kas::core::opcode::op_size_t;
 
-struct z80_opc_general : z80_stmt_opcode
+template <typename MCODE_T>
+struct tgt_opc_general : tgt_opcode<MCODE_T>
 {
-    using base_t::base_t;
-    //using MCODE_T      = z80_opcode_t;
-    //using mcode_size_t = typename MCODE_T::mcode_size_t;
-    //using arg_t        = typename MCODE_T::arg_t;
+    using base_t  = tgt_opcode<MCODE_T>;
+    using mcode_t = MCODE_T;
+   
+    // XXX don't know why base_t types aren't found.
+    // XXX expose types & research later
+    using insn_t       = typename base_t::insn_t;
+    using bitset_t     = typename base_t::bitset_t;
+    using arg_t        = typename base_t::arg_t;
+    using stmt_args_t  = typename base_t::stmt_args_t;
+    using mcode_size_t = typename base_t::mcode_size_t;
+    using op_size_t    = typename base_t::op_size_t;
+
+    // XXX also need to expose `base_t` inherited types
+    using Inserter     = typename base_t::Inserter;
+    using fixed_t      = typename base_t::fixed_t;
+    using Iter         = typename base_t::Iter;
 
     OPC_INDEX();
 
-    const char *name() const override { return "Z80_GEN"; }
-    
+    const char *name() const override { return "TGT_GEN"; }
+   
     core::opcode& gen_insn(
                  // results of "validate" 
-                   z80_insn_t   const&        insn
-                 , z80_insn_t::insn_bitset_t& ok
-                 , z80_opcode_t const        *opcode_p
-                 , ARGS_T&&                    args
+                   insn_t const&  insn
+                 , bitset_t&      ok
+                 , mcode_t const *mcode_p
+                 , stmt_args_t&&  args
+
                  // and kas_core boilerplate
-                 , Inserter& di
-                 , fixed_t& fixed
+                 , Inserter&  di
+                 , fixed_t&   fixed
                  , op_size_t& insn_size
                  ) override
     {
         // get size for this opcode
-        auto& op = *opcode_p;
+        auto& op = *mcode_p;
         
-        std::cout << "opc_general::gen_insn: " << insn.name();
+        std::cout << "opc_general::gen_insn: " << insn.name;
         auto delim = ": ";
         for (auto& arg : args)
         {
@@ -49,7 +65,7 @@ struct z80_opc_general : z80_stmt_opcode
         }
         std::cout << std::endl;
         
-        op.size(args, insn_size, expression::expr_fits{}, trace);
+        op.size(args, insn_size, expression::expr_fits{}, this->trace);
 
         // serialize format (for resolved instructions)
         // 1) opcode index
@@ -97,22 +113,30 @@ struct z80_opc_general : z80_stmt_opcode
         }
 #else
 
-        auto  reader = tgt_data_reader<mcode_size_t>(it, *fixed_p, cnt);
-        auto& opcode = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto  reader = tgt_data_reader<mcode_size_t>(it, *this->fixed_p, cnt);
+        auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
         
-        auto args   = serial_args(reader, opcode);
+        auto args   = serial_args(reader, mcode);
         auto code_p = args.code_p;
 
         // print "mcode name"
-        os << opcode.defn().name();
+        os << mcode.name();
         
-        // ...print machine code...
-        os << std::hex << " " << +*code_p;
-        if (opcode.opc_long)
-            os << "'" << +*++code_p;
+        // ...print machine code
+        // ...first word
+        os << std::hex;
 
+        auto delim = " ";
+        auto n = mcode.code_size();
+        for(auto n = mcode.code_size(); n > 0; ++code_p)
+        {
+            os << delim << +*code_p;
+            delim = "'";
+            n -= sizeof(*code_p);
+        }
+        
         // ...and args
-        auto delim = " : ";
+        delim = " : ";
         for (auto& arg : args)
         {
             os << delim << arg;
@@ -149,13 +173,13 @@ struct z80_opc_general : z80_stmt_opcode
 #else
         //using MCODE_T = z80_opcode_t;
 
-        auto  reader = tgt_data_reader<mcode_size_t>(it, *fixed_p, cnt);
-        auto& opcode = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto  reader = tgt_data_reader<mcode_size_t>(it, *this->fixed_p, cnt);
+        auto& mcode = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
         
-        auto args   = serial_args(reader, opcode);
+        auto args   = serial_args(reader, mcode);
 
         // base instruction size
-        op_size_t new_size = opcode.emit_size();
+        op_size_t new_size = mcode.base_size();
        
         // evaluate args with new `fits`
         for (auto& arg : args)
@@ -176,7 +200,7 @@ struct z80_opc_general : z80_stmt_opcode
         //  1) opcode index
         //  2) opcode binary code (word or long)
         //  3) serialized args
-        auto  reader = tgt_data_reader<mcode_size_t>(it, *fixed_p, cnt);
+        auto  reader = tgt_data_reader<mcode_size_t>(it, *this->fixed_p, cnt);
         auto& opcode = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
 
         auto args   = serial_args(reader, opcode);

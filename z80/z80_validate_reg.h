@@ -38,12 +38,8 @@
 
  *****************************************************************************/
 
-#include "z80_arg.h"
-#include "z80_error_messages.h"
-#include "z80_insn_validate.h"
-#include "expr/expr_fits.h"
-
-
+#include "z80_mcode.h"
+#include "target/tgt_validate.h"
 
 
 namespace kas::z80::opc
@@ -60,7 +56,7 @@ using op_size_t   = core::opcode::op_size_t;
 #define VAL_GEN(N, ...) using N = _val_gen<KAS_STRING(#N), __VA_ARGS__>
 
 // validate based on "register class" or specific "register"
-struct val_reg : z80_validate
+struct val_reg : z80_mcode_t::val_t
 {
     constexpr val_reg(uint16_t r_class, uint16_t r_num = ~0, uint16_t mode = MODE_REG)
                         : r_class{r_class}, r_num(r_num), r_mode(mode) {}
@@ -118,7 +114,7 @@ struct val_reg : z80_validate
     
 
 // validate (HL), (IX+n), (IY+n), and optionally 8-bit general registers
-struct val_reg_gen: z80_validate
+struct val_reg_gen: z80_mcode_t::val_t
 {
     constexpr val_reg_gen() {}
 
@@ -210,7 +206,7 @@ struct val_reg_gen: z80_validate
 // 16-bit double registers BC, DE, HL have values 0, 1, 2
 // double register value of `3` overloaded as either AF or SP.
 // Specify "class" (RC_AF, RC_SP) enable DBL registers and specify overload
-struct val_reg_idx: z80_validate
+struct val_reg_idx: z80_mcode_t::val_t
 {
     constexpr val_reg_idx(int16_t r_class = -1) : r_class(r_class) {}
 
@@ -280,7 +276,7 @@ struct val_reg_idx: z80_validate
 };
 
 // Allow (HL), (IX), (IY): Indirect jmps
-struct val_indir_idx: z80_validate
+struct val_indir_idx: z80_mcode_t::val_t
 {
     constexpr val_indir_idx() {}
 
@@ -378,7 +374,7 @@ struct val_jrcc : val_reg
 };
 
 // the "range" validators all resolve to zero size
-struct val_range : z80_validate
+struct val_range : z80_mcode_t::val_t
 {
     constexpr val_range(uint16_t size, int32_t min, int32_t max) : _size(size), min(min), max(max) {}
 
@@ -415,7 +411,7 @@ struct val_range : z80_validate
     int32_t min, max;
 };
 
-struct val_restart : z80_validate
+struct val_restart : z80_mcode_t::val_t
 {
     constexpr val_restart() {}
 
@@ -451,7 +447,7 @@ struct val_restart : z80_validate
     }
 };
 
-struct val_indir : z80_validate
+struct val_indir : z80_mcode_t::val_t
 {
     constexpr val_indir(uint16_t size) : _size(size) {}
 

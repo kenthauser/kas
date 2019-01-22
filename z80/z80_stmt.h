@@ -9,28 +9,22 @@
 //
 // format is regular:  opcode + [args]
 
+// get base types for `z80_stmt`
 #include "z80_arg.h"
+#include "z80_hw_defns.h"
 
-// XXX clang problem
-#define TGT_STMT_NAME stmt_z80
-#define TGT_INSN_T    z80::z80_insn_t
-#define TGT_ARG_T     z80::z80_arg_t
-
+#include "target/tgt_insn.h"
 #include "target/tgt_stmt.h"
-
-#include "kas_core/opcode.h"
-#include "parser/parser_stmt.h"
-#include "parser/annotate_on_success.hpp"
 
 namespace kas::z80
 {
-#if 0
-    // crashes clang... KBH 2018/11/10
-    using stmt_z80 = tgt::tgt_stmt<z80_insn_t, z80_arg_t>;
-#else
+    // forward declare `mcode` type
+    struct z80_mcode;
 
-    using tgt::TGT_STMT_NAME;
-#endif
+    // declare types for parsing
+    // NB: there are 19 variants of `ld`
+    using z80_insn_t = tgt::tgt_insn_t<z80_mcode, hw::hw_tst, 32>;
+    using z80_stmt_t = tgt::tgt_stmt<z80_insn_t, z80_arg_t>;
 }
 
 
@@ -38,10 +32,11 @@ namespace kas::z80::parser
 {
     namespace x3 = boost::spirit::x3;
 
-    // declare parser for M68K instructions
+    // declare parser for Z80 instructions
     using z80_insn_parser_type = x3::rule<struct _insn, z80_insn_t const*>;
     BOOST_SPIRIT_DECLARE(z80_insn_parser_type)
 
+    // XXX ???
     z80_insn_parser_type const& z80_insn_parser();
 }
 

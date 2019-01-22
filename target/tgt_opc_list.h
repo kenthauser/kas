@@ -38,50 +38,68 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
-#include "z80_arg.h"
+//#include "z80_arg.h"
 
-#include "z80_insn_eval.h"
-#include "z80_formats_type.h"
+//#include "z80_insn_eval.h"
+//#include "z80_formats_type.h"
 //#include "z80_insn_serialize.h"
-#include "z80_insn_validate.h"
+//#include "z80_insn_validate.h"
 //#include "z80_insn_impl.h"
 
-#include "target/tgt_insn_serialize.h"
+//#include "target/tgt_insn_serialize.h"
+#include "tgt_opcode.h"
 
-#include "kas_core/opcode.h"
-#include "kas_core/core_print.h"
+//#include "kas_core/opcode.h"
+//#include "kas_core/core_print.h"
 //#include "parser/stmt_print.h"
 
-#include "z80_opcode_emit.h"
+//#include "z80_opcode_emit.h"
 
-#include "z80_stmt_opcode.h"
-#include "z80_opcode_emit.h"
+//#include "z80/z80_stmt_opcode.h"
+//#include "z80_opcode_emit.h"
+//#include "target/tgt_insn_eval.h"
 
-
-namespace kas::z80::opc
+namespace kas::tgt::opc
 {
-struct z80_opc_list: z80_stmt_opcode
+
+template <typename MCODE_T>
+struct tgt_opc_list : tgt_opcode<MCODE_T>
 {
-    using base_t::base_t;
-    using mcode_t = z80_opcode_t;
-    
+    using base_t  = tgt_opcode<MCODE_T>;
+    using mcode_t = MCODE_T;
+   
+    // XXX don't know why base_t types aren't found.
+    // XXX expose types & research later
+    using insn_t       = typename base_t::insn_t;
+    using bitset_t     = typename base_t::bitset_t;
+    using arg_t        = typename base_t::arg_t;
+    using stmt_args_t  = typename base_t::stmt_args_t;
+    using mcode_size_t = typename base_t::mcode_size_t;
+    using op_size_t    = typename base_t::op_size_t;
+
+    // XXX also need to expose `base_t` inherited types
+    using Inserter     = typename base_t::Inserter;
+    using fixed_t      = typename base_t::fixed_t;
+    using Iter         = typename base_t::Iter;
+
     OPC_INDEX();
-    const char *name() const override { return "Z80_LIST"; }
+    const char *name() const override { return "TGT_LIST"; }
 
     core::opcode& gen_insn(
                  // results of "validate" 
-                   z80_insn_t   const&        insn
-                 , z80_insn_t::insn_bitset_t& ok
-                 , z80_opcode_t const        *opcode_p
-                 , ARGS_T&&                    args
+                   insn_t const&  insn
+                 , bitset_t&      ok
+                 , mcode_t const *mcode_p
+                 , stmt_args_t&&  args
+
                  // and kas_core boilerplate
-                 , Inserter& di
-                 , fixed_t& fixed
+                 , Inserter&  di
+                 , fixed_t&   fixed
                  , op_size_t& insn_size
                  ) override
     {
         // process insn for size before saving
-        eval_insn_list(insn, ok, args, insn_size, expression::expr_fits(), trace);
+        eval_insn_list(insn, ok, args, insn_size, expression::expr_fits(), this->trace);
 
         // serialize format (for unresolved instructions)
         // 0) fixed area: OK bitset in host order
@@ -93,13 +111,9 @@ struct z80_opc_list: z80_stmt_opcode
         inserter.reserve(-1);       // skip fixed area
         
         inserter(insn.index);
-        auto& op = *z80_insn_t::list_opcode;
-#if 0
-        auto data_p = inserter(0, M_SIZE_WORD);
-        z80_insert_args(inserter, std::move(args), data_p, op);
-#else
-        tgt_insert_args(inserter, op, std::move(args));
-#endif
+        auto& mc = *insn.list_mcode_p;
+        tgt_insert_args(inserter, mc, std::move(args));
+        
         // store OK bitset in fixed area
         fixed.fixed = ok.to_ulong();
         return *this;
@@ -114,18 +128,18 @@ struct z80_opc_list: z80_stmt_opcode
         //  2) dummy word to hold args
         //  3) serialized args
 
-        z80_insn_t::insn_bitset_t ok(fixed_p->fixed);
+        bitset_t ok(this->fixed_p->fixed);
 
-        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, *fixed_p, cnt);
+        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, *this->fixed_p, cnt);
         reader.reserve(-1);
 
-        auto& insn = z80_insn_t::get(reader.get_fixed(sizeof(z80_insn_t::index)));
+        auto& insn = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         //auto  data_p = reader.get_fixed_p(M_SIZE_WORD);
-        auto& op = *z80_insn_t::list_opcode;
-        auto  args = serial_args{reader, op};
+        auto& mc = *insn.list_mcode_p;
+        auto  args = serial_args(reader, mc);
 
         // print OK bits & name...
-        os << ok.to_string().substr(ok.size() - insn.opcodes.size()) << " " << insn.name();
+        os << ok.to_string().substr(ok.size() - insn.mcodes.size()) << " " << insn.name;
 
         // ...and args
         auto delim = " : ";
@@ -138,7 +152,7 @@ struct z80_opc_list: z80_stmt_opcode
 
     op_size_t calc_size(Iter it, uint16_t cnt, core::core_fits const& fits) override
     {
-        if (trace) *trace << std::endl;
+        if (this->trace) *this->trace << std::endl;
         
         // deserialize insn data
         // format:
@@ -147,59 +161,60 @@ struct z80_opc_list: z80_stmt_opcode
         //  2) dummy word to hold args
         //  3) serialized args
 
-        z80_insn_t::insn_bitset_t ok(fixed_p->fixed);
+        bitset_t ok(this->fixed_p->fixed);
 
-        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, *fixed_p, cnt);
+        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, *this->fixed_p, cnt);
         reader.reserve(-1);
 
-        auto& insn = z80_insn_t::get(reader.get_fixed(sizeof(z80_insn_t::index)));
+        auto& insn = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         
-        auto& op = *z80_insn_t::list_opcode;
-        auto  args = serial_args{reader, op};
+        auto& mc = *insn.list_mcode_p;
+        auto  args = serial_args(reader, mc);
 
         // evaluate with new `fits`
-        eval_insn_list(insn, ok, args, *size_p, fits, trace);
+        eval_insn_list(insn, ok, args, *this->size_p, fits, this->trace);
         
         // save new "OK"
-        fixed_p->fixed = ok.to_ulong();
-        return *size_p;
+        this->fixed_p->fixed = ok.to_ulong();
+        return *this->size_p;
     }
 
     void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const *dot_p) override
     {
-        z80_insn_t::insn_bitset_t ok(fixed_p->fixed);
+        bitset_t ok(this->fixed_p->fixed);
 
-        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, *fixed_p, cnt);
+        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, *this->fixed_p, cnt);
         reader.reserve(-1);
 
-        auto& insn = z80_insn_t::get(reader.get_fixed(sizeof(z80_insn_t::index)));
-        
-        auto& op = *z80_insn_t::list_opcode;
-        auto  args = serial_args{reader, op};
+        auto& insn    = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
+        auto& list_mc = *insn.list_mcode_p;
+        auto  args    = serial_args(reader, list_mc);
 
         // get best match
         op_size_t size; 
-        auto opcode_p = eval_insn_list(insn, ok, args, size, expression::expr_fits(), trace);
+
+        // XXX need core_fits 
+        auto mcode_p = eval_insn_list(insn, ok, args, size, expression::expr_fits(), this->trace);
         
         // XXX need to handle error case...
 
         // get opcode "base" value
-        auto& opcode = *opcode_p;
-        auto code = opcode.code();
+        auto& mc = *mcode_p;
+        auto code = mc.code();
 
-        // Insert args into opcode "base" value
-        auto& fmt  = opcode.fmt();
-        auto& vals = opcode.vals();
+        // Insert args into machine code "base" value
+        auto& fmt         = mc.fmt();
+        auto& vals        = mc.vals();
         auto val_iter     = vals.begin();
         auto val_iter_end = vals.end();
 
-        // now that opcode matches, must be validator for each arg
+        // now that have selected machine code match, must be validator for each arg
         unsigned n = 0;
         for (auto& arg : args)
             fmt.insert(n++, code.data(), arg, &*val_iter++);
 
         // now use common emit
-        opcode.emit(base, code.data(), args, dot_p);
+        mc.emit(base, code.data(), args, dot_p);
     }
 };
 }

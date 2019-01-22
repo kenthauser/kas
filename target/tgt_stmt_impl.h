@@ -31,6 +31,7 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
     auto trace = core::opcode::trace;
     auto& insn = *insn_p;
 
+    // XXX ??? why
     trace = &std::cout;
 
     // generate an "error" opcode if appropriate
@@ -45,7 +46,6 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
             fixed.diag = kas::parser::kas_diag::error(msg).ref();
             insn_size.set_error();
             
-            TGT_ARG_T::reset();
             return err;
         };
 
@@ -117,7 +117,7 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
     // 1) if constant `args`, emit binary code
     // 2) if single match, use format for selected opcode
     // 3) otherwise, use opcode for "list"
-#if 1
+
     if (args_are_const)
     {
         // all const args: can select best opcode & calculate size
@@ -128,7 +128,7 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
                                   , insn_size, expression::expr_fits(), trace);
         }
 
-        // single opcode matched: calculate size to select format
+        // single opcode matched: calculate size
         else
         {
             insn_size = sizeof(uint16_t) * (1 + matching_opcode_p->opc_long);
@@ -138,26 +138,30 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
 
         if (trace)
             *trace << "size = " << insn_size << std::endl;
-#if 1
+
         // if binary data fits in "fixed" area of opcode, just emit as binary data
         if (insn_size() <= sizeof(fixed))
         {
             static opc::tgt_opc_quick<uint8_t> opc_quick;
             opc_quick.init(fixed, insn_size);
-#if 1
+
             if (opc_quick.proc_args(di, *matching_opcode_p, args, insn_size()))
                 return opc_quick;
-#endif
         }
-#endif
     }
-#endif
 
+#if 1
     // select "fmt" from `opcode_p` if set, else "list"
     auto& fmt = matching_opcode_p ? matching_opcode_p->fmt()
                                   : opcode_t::fmt_t::get_list_fmt()
                                   ;
-
+#else
+    // if no matching machine code, use "list" format
+    if (!matching_opcode_p)
+        matching_opcode_p = opcode_t::list_opcode;
+    auto& fmt = matching_opcode_p->fmt();
+#endif
+        
     // now use "format" to generate opcode
     auto& op =  fmt.get_opc().gen_insn(
                   insn
@@ -168,7 +172,6 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
                 // and boilerplate
                 , di, fixed, insn_size
                 );
-    TGT_ARG_T::reset();
     return op;
 }
 }

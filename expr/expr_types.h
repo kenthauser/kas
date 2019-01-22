@@ -37,9 +37,12 @@ namespace detail {
     template <typename = void> struct options_types_v : list<> {};
 }
 
-template<typename = void> struct e_fixed   { using type = int32_t; };
-template<typename = void> struct e_float   { using type = void;    };
-template<typename = void> struct e_string  { using type = void;    };
+template<typename = void> struct e_fixed   { using type = int32_t;  };
+template<typename = void> struct e_float   { using type = void;     };
+template<typename = void> struct e_string  { using type = void;     };
+
+template<typename = void> struct e_addr_t  { using type = uint32_t; };
+template<typename = void> struct err_msg_t { using type = void;     };
 
 // Forward declare operator precedence type & default to c-language rules
 namespace precedence

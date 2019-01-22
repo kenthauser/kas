@@ -48,6 +48,15 @@
 
 namespace kas::z80::opc
 {
+
+// declare opcode groups (ie: include files)
+using z80_insn_defn_groups = meta::list<
+      struct OP_Z80_GEN
+    >;
+
+template <typename=void> struct z80_insn_defn_list : meta::list<> {};
+
+
 ///////////////////////////////////////////////////////////////////////    
 //
 // NB: `insn` is a meta `trait` (which evaluates to a meta `list` of arguments) because
@@ -59,12 +68,12 @@ namespace kas::z80::opc
 
 // default fmt: no args (and thus no inserter)
 
-template <typename NAME, int CODE, typename FMT = void, typename...Ts>
+template <typename NAME, std::size_t CODE, typename FMT = void, typename...Ts>
 struct defn
 {
     // if no formatter specified, use "general" format w/o args
     using fmt  = meta::if_<std::is_void<FMT>, fmt_gen, FMT>;
-    using type = meta::list<NAME, std::integral_constant<int, CODE>, fmt, Ts...>;
+    using type = meta::list<NAME, std::integral_constant<std::size_t, CODE>, fmt, Ts...>;
 };
 
 }

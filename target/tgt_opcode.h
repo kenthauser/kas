@@ -1,33 +1,36 @@
-#ifndef KAS_Z80_Z80_STMT_OPCODE_H
-#define KAS_Z80_Z80_STMT_OPCODE_H
+#ifndef KAS_TARGET_TGT_OPCODE_H
+#define KAS_TARGET_TGT_OPCODE_H
 
 
-
-#include "z80_arg.h"
+//#include "z80_arg.h"
 //#include "z80_arg_size.h"
 
-#include "z80_formats_type.h"
+//#include "z80_formats_type.h"
 //#include "z80_insn_serialize.h"
-#include "z80_insn_validate.h"
+//#include "z80_insn_validate.h"
 #include "target/tgt_insn_serialize.h"
 //#include "z80_insn_impl.h"
 
 #include "kas_core/opcode.h"
 #include "kas_core/core_print.h"
 
-namespace kas::z80::opc
+namespace kas::tgt::opc
 {
-using namespace kas::core::opc;
-using args_t = decltype(stmt_z80::args);
-using op_size_t = kas::core::opcode::op_size_t;
 
-struct z80_stmt_opcode : opcode
+template <typename MCODE_T>
+struct tgt_opcode : core::opc::opcode
 {
-    using base_t = z80_stmt_opcode;
-    using MCODE_T = z80_opcode_t;
-    using mcode_size_t = typename MCODE_T::mcode_size_t;
+    using base_t       = tgt_opcode;
+    using mcode_t      = MCODE_T;
+    
+    using insn_t       = typename mcode_t::insn_t;
+    using bitset_t     = typename insn_t::bitset_t;
     using arg_t        = typename MCODE_T::arg_t;
+    using stmt_args_t  = typename MCODE_T::stmt_args_t;
+    using mcode_size_t = typename MCODE_T::mcode_size_t;
 
+    using op_size_t    = core::opcode::op_size_t;
+    
     //
     // gen_insn:
     //
@@ -36,17 +39,16 @@ struct z80_stmt_opcode : opcode
     // Generate header & save args as is appropriate for derived opcode
     //
 
-    using ARGS_T = decltype(stmt_z80::args);
-    
     virtual core::opcode& gen_insn(
                  // results of "validate" 
-                   z80_insn_t   const&        insn
-                 , z80_insn_t::insn_bitset_t& ok
-                 , z80_opcode_t const        *opcode_p
-                 , ARGS_T&&                    args
+                   insn_t const&  insn
+                 , bitset_t&      ok
+                 , mcode_t const *mcode_p
+                 , stmt_args_t&&  args
+
                  // and kas_core boilerplate
-                 , Inserter& di
-                 , fixed_t& fixed
+                 , Inserter&  di
+                 , fixed_t&   fixed
                  , op_size_t& insn_size
                  ) = 0;
 
@@ -81,7 +83,7 @@ protected:
             }
             auto operator!=(iter const& other) const
             {
-                auto tst = obj.args[index].mode() == MODE_NONE ? -1 : 0;
+                auto tst = obj.args[index].mode() == z80::MODE_NONE ? -1 : 0;
                 return tst != other.index;
             }
         

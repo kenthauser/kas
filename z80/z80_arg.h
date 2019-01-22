@@ -43,7 +43,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode>
 {
     // inherit default & error ctors
     using base_t::base_t;
-    using arg_mode_t = z80_arg_mode;
+    //using arg_mode_t = z80_arg_mode;
     
     // defn needed by `base_t`
     static constexpr auto MODE_NONE = z80_arg_mode::MODE_NONE;

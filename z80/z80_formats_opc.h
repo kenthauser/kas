@@ -1,7 +1,10 @@
 #ifndef KAS_Z80_Z80_FORMATS_OPC_H
 #define KAS_Z80_Z80_FORMATS_OPC_H
 
-#include "z80_formats_type.h"
+//#include "z80_formats_type.h"
+
+#include "z80_mcode.h"
+#include "target/tgt_format.h"
 
 #include "opc_general.h"
 #include "opc_list.h"
@@ -12,7 +15,7 @@ namespace kas::z80::opc
 {
 
 // general opcode format
-struct fmt_gen : virtual z80_opcode_fmt
+struct fmt_gen : virtual z80_mcode_t::fmt_t
 {
     static inline z80_opc_general opc; 
     virtual z80_stmt_opcode& get_opc() const override 
@@ -22,7 +25,7 @@ struct fmt_gen : virtual z80_opcode_fmt
 };
 
 // list opcode format
-struct fmt_list : virtual z80_opcode_fmt
+struct fmt_list : virtual z80_mcode_t::fmt_t
 {
     static inline z80_opc_list opc; 
     virtual z80_stmt_opcode& get_opc() const override 

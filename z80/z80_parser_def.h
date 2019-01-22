@@ -120,7 +120,7 @@ namespace kas::z80::parser
 
     BOOST_SPIRIT_DEFINE(z80_args)
 
-    auto const z80_stmt_def = (z80_insn_parser() > z80_args)[stmt_z80()];
+    auto const z80_stmt_def = (z80_insn_parser() > z80_args)[z80_stmt_t()];
 
     // Parser interface
     z80_stmt_x3 z80_stmt {"z80_stmt"};

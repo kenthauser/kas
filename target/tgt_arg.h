@@ -1,7 +1,7 @@
 #ifndef KAS_TARGET_TGT_ARG_H
 #define KAS_TARGET_TGT_ARG_H
 
-#include "kas_core/opcode.h"        // declares emit
+//#include "kas_core/opcode.h"        // declares emit
 #include "parser/kas_position.h"
 
 namespace kas::tgt
@@ -13,14 +13,14 @@ struct token_missing  : kas_token {};
 template <typename Derived, typename Mode_t>
 struct tgt_arg_t : kas_token
 {
-    using base_t    = tgt_arg_t;
-    using derived_t = Derived;
-    using mode_t    = Mode_t;
+    using base_t     = tgt_arg_t;
+    using derived_t  = Derived;
+    using arg_mode_t = Mode_t;
 
     using op_size_t = core::opc::opcode::op_size_t;
 
     // x3 parser requires default constructable
-    tgt_arg_t() : _mode(mode_t::MODE_NONE) {}
+    tgt_arg_t() : _mode(derived_t::arg_mode_t::MODE_NONE) {}
 
     // error
     tgt_arg_t(const char *err, expr_t e = {})

@@ -5,11 +5,25 @@
 // 2. Split into virtual functions, "workers" and combiners
 // 3. Add in `opc&` stuff
 
-#include "z80_formats_impl.h"
-#include "z80_formats_opc.h"
+//#include "z80_formats_impl.h"
+#include "target/tgt_format.h"
+//#include "z80_formats_opc.h"
 
 namespace kas::z80::opc
 {
+
+// get `opc` base classes to  
+using fmt_gen  = tgt::opc::tgt_fmt_opc_gen <z80_mcode_t>;
+using fmt_list = tgt::opc::tgt_fmt_opc_list<z80_mcode_t>;
+
+
+// use generic mixin
+template <unsigned...Ts>
+using fmt_generic = tgt::opc::tgt_fmt_generic<z80_mcode_t, Ts...>;
+
+template <unsigned N, typename T>
+using fmt_arg = tgt::opc::tgt_fmt_arg<z80_mcode_t, N, T>;
+
 // declare mixin classes to override virtual functions
 // override insert/extract pairs together...
 
@@ -59,12 +73,13 @@ using arg2_1w4b2  = fmt_arg<2, gen_1w4b2>;
 // used by OPC_LIST instructions
 struct FMT_LIST     : fmt_list, arg1_3b3, arg2_0b3 {};
 
-// define static member function
+#if 0
 z80_opcode_fmt const& z80_opcode_fmt::get_list_fmt()
 {
     static const FMT_LIST fmt;
     return fmt;
 };
+#endif
 
 // general registers are 3-bits shifted 0 or 3 bits
 struct FMT_X       : fmt_gen {};

@@ -7,7 +7,7 @@ namespace kas::tgt
 {
 
 template <typename INSN_T, typename OK_T, typename ARGS_T>
-core::opc::opcode const* eval_insn_list
+typename INSN_T::mcode_t const* eval_insn_list
         ( INSN_T const& insn
         , OK_T& ok
         , ARGS_T& args
@@ -110,7 +110,7 @@ core::opc::opcode const* eval_insn_list
     return opcode_p;
 }
 
-
+#if 0
 // templated definition to cut down on noise in `insn_t` defn
 template <typename OPCODE_T, std::size_t _MAX_ARGS, std::size_t MAX_OPCODES, typename TST_T>
 template <typename...Ts>
@@ -118,6 +118,7 @@ core::opcode const* tgt_insn_t<OPCODE_T, _MAX_ARGS, MAX_OPCODES, TST_T>::eval(in
 {
     return eval_insn_list(*this, ok, std::forward<Ts>(args)...);
 }
+#endif
 }
 
 

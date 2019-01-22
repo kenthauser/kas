@@ -1,6 +1,7 @@
 
 #include "z80.h"
 #include "z80_stmt.h"
+#include "z80_mcode.h"
 
 #include "z80_reg_defn.h"
 //#include "z80_reg_impl.h"
@@ -8,19 +9,18 @@
 //#include "z80_reg_adder.h"
 //#include "z80_insn_types.h"
 
-#include "z80_insn_adder.h"
+//#include "z80_insn_adder.h"
 #include "insns_z80.h"
-#include "z80_insn_impl.h"
+//#include "z80_insn_impl.h"
 #include "z80_arg_impl.h"
 #include "z80_parser_def.h"
 
 #include "target/tgt_reg_impl.h"
 #include "target/tgt_regset_impl.h"
-#include "target/tgt_stmt_impl.h"
-#include "target/tgt_insn_impl.h"
+//#include "target/tgt_insn_impl.h"
 
 // meta program to instantiate defns from type list
-#include "parser/sym_parser.h"
+//#include "parser/sym_parser.h"
 
 namespace kas::z80::parser
 {
@@ -61,8 +61,10 @@ namespace kas::z80::parser
                                 , opc::z80_insn_defn_groups
                                 , meta::quote<meta::_t>>;
 
+#if 0
     // x3 parser type for all insn names
-    using z80_insn_x3 = kas::parser::sym_parser_t<opc::z80_insn_defn, insns>;
+    using z80_insn_defn = tgt::opc::tgt_insn_defn<z80_mcode_t>;
+    using z80_insn_x3 = kas::parser::sym_parser_t<z80_insn_defn, insns>;
 
     // XXX shoud stop parsing on (PARSER_CHARS | '.')
     auto const z80_insn_parser_p_def = z80_insn_x3{}.x3();
@@ -77,6 +79,7 @@ namespace kas::z80::parser
         static z80_insn_parser_type _p;
         return _p;
     }
+#endif
 }
 
 namespace kas::z80

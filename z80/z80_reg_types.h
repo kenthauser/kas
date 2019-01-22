@@ -8,7 +8,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
-
+#include "z80_hw_defns.h"
 #include "target/tgt_reg_type.h"
 #include "target/tgt_regset_type.h"
 
