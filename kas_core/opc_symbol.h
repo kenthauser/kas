@@ -23,7 +23,7 @@ namespace kas { namespace core { namespace opc
         //  1. converting local common -> blocks starting with symbol (BSS)
         //  2. generating dwarf programs
 
-        opc_label(core_symbol& sym, short binding = STB_INTERNAL)
+        opc_label(data_t& data, core_symbol& sym, short binding = STB_INTERNAL)
         {
             if (auto msg = sym.make_label(binding)) { 
                 //throw std::logic_error(std::string(__FUNCTION__) + ": " + msg);
@@ -31,32 +31,33 @@ namespace kas { namespace core { namespace opc
             }
             
             // for case of block starting with symbol
-            *size_p = sym.size();
+            data.size = sym.size();
         }
 
-        opc_label(symbol_ref ref, short binding = STB_INTERNAL)
-            : opc_label(ref.get(), binding) {}
+        opc_label(data_t& data, symbol_ref ref, short binding = STB_INTERNAL)
+            : opc_label(data, ref.get(), binding) {}
 
         // ctor used for `labels`
-        void proc_args(Inserter& di, symbol_ref&& ref, uint32_t size = 0)
+        void proc_args(data_t& data, symbol_ref&& ref, uint32_t size = 0)
         {
             if (auto msg = ref.get().make_label(STB_LOCAL))
-               return make_error(msg, ref);
+               return make_error(data, msg, ref);
 
             if (auto msg = ref.get().size(size))
-                return make_error(msg, ref);
+                return make_error(data, msg, ref);
 
-            *size_p = size;
+            data.size = size;
         }
 
-        void emit(Iter data, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
+        void emit(data_t& data, Iter it, emit_base& base, core_expr_dot const *dot_p) const override
         {
             base << emit_addr << 0;
 
             // XXX override filler pattern
             static constexpr uint16_t filler = 0;
 
-            if (auto n = (*size_p)())
+            auto n = data.size();
+            if (n)
                 base << emit_filler(n, filler);
         }
     };
@@ -66,23 +67,25 @@ namespace kas { namespace core { namespace opc
         OPC_INDEX();
         const char *name() const override { return "EQU"; }
 
-        void proc_args(Inserter& di, symbol_ref&& ref, expr_t&& expr)
+        void proc_args(data_t& data, symbol_ref&& ref, expr_t&& expr)
         {
-            fixed_p->sym = ref;
+            auto& di = data.di();
+
+            data.fixed.sym = ref;
             *di++ = std::move(expr);
             auto& label = ref.get();
             if (auto msg = label.set_value(di.last()))
-                make_error("EQU previously defined as different type", ref);
+                make_error(data, "EQU previously defined as different type", ref);
         }
 
-        void fmt(Iter iter, uint16_t cnt, std::ostream& os) override
+        void fmt(data_t& data, Iter iter, std::ostream& os) const override
         {
-            auto sym = fixed_p->sym;
+            auto sym = data.fixed.sym;
             sym.get().print(os);
             os << " = " << *iter;
         }
 
-        void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
+        void emit(data_t& data, Iter iter, emit_base& base, core_expr_dot const *dot_p) const override
         {
             // use `core_data_size_t` to size (listing) output
             base << core::set_size(sizeof_data_t) << emit_expr << *iter;
@@ -94,18 +97,18 @@ namespace kas { namespace core { namespace opc
         OPC_INDEX();
         const char *name() const override { return "COMM"; }
 
-        void proc_args(Inserter& di, short binding, short comm_size, short align
+        void proc_args(data_t& data, short binding, short comm_size, short align
                        , core_symbol& sym, kas_loc const& loc)
         {
             if (auto result = sym.make_common(comm_size, binding, align))
-                return make_error(result, loc);
+                return make_error(data, result, loc);
 
-            fixed_p->sym = sym.ref();
+            data.fixed.sym = sym.ref();
         }
 
-        void fmt(Iter iter, uint16_t cnt, std::ostream& os) override
+        void fmt(data_t& data, Iter iter, std::ostream& os) const override
         {
-            fixed_p->sym.get().print(os);
+            data.fixed.sym.get().print(os);
         }
     };
 
@@ -114,7 +117,7 @@ namespace kas { namespace core { namespace opc
         OPC_INDEX();
         const char *name() const override { return "SYM"; }
         
-        auto gen_proc_one(Inserter& di, short binding)
+        auto gen_proc_one(data_t& data, short binding)
         {
             return [&,binding=binding](expr_t&& e, kas_loc const &loc) -> std::size_t
                 {
@@ -126,21 +129,23 @@ namespace kas { namespace core { namespace opc
                         std::cout << ": " << sym_ref_p->get().name() << " -> " << binding << std::endl;
                     }
                     else
-                        *di++ = kas_diag::error("Symbol argument required", loc);
+                        *data.di() = kas_diag::error("Symbol argument required", loc);
 
                     return 0;
                 };
         }
 
-        void fmt(Iter iter, uint16_t cnt, std::ostream& os) override
+        void fmt(data_t& data, Iter iter, std::ostream& os) const override
         {
+            auto cnt = data.cnt;
             while(cnt--)
                 os << *iter++ << " ";
         }
 
-        void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const *) override
+        void emit(data_t& data, Iter iter, emit_base& base, core_expr_dot const *) const override
         {
             // just error messages
+            auto cnt = data.cnt;
             while(cnt--)
                 base << *iter++;
         }
@@ -153,20 +158,21 @@ namespace kas { namespace core { namespace opc
         const char *name() const override { return "FILE"; }
 
         // need std::string && loc as args
-        void proc_args(Inserter& di, expr_t&& file)
+        // XXX why rvalue?
+        void proc_args(data_t& data, expr_t&& file)
         {
             if (auto file_name_p = file.get_p<e_string_t>()) {
                 // fixed_p->sym = core_symbol::add(*file_name_p);
                 // if (auto err = core_symbol::set_file(fixed_p->sym))
                 //     make_error(err);
             } else {
-                make_error("string value required", *file.get_loc_p());
+                make_error(data, "string value required", *file.get_loc_p());
             }
         }
 
-        void fmt(Iter iter, uint16_t cnt, std::ostream& os) override
+        void fmt(data_t& data, Iter iter, std::ostream& os) const override
         {
-            os << fixed_p->sym.get().name();
+            os << data.fixed.sym.get().name();
         }
     };
 
@@ -176,10 +182,10 @@ namespace kas { namespace core { namespace opc
 
         const char *name() const override { return "TYPE"; }
 
-        void proc_args(Inserter& di, int8_t type, core_symbol& sym, kas_loc const& loc)
+        void proc_args(data_t& data, int8_t type, core_symbol& sym, kas_loc const& loc)
         {
             if (auto msg = sym.set_type(type))
-                make_error(msg, loc);
+                make_error(data, msg, loc);
         }
     };
 
@@ -189,32 +195,41 @@ namespace kas { namespace core { namespace opc
 
         const char *name() const override { return "SIZE"; }
 
-        void proc_args(Inserter& di, core_symbol& sym, expr_t&& value, kas_loc const& loc)
+        void proc_args(data_t& data, core_symbol& sym, expr_t&& value, kas_loc const& loc)
         {
             std::cout << "opc_sym_size: " << sym.name() << " -> " << value << std::endl;
 
             // copy expr to persistent memory
+            auto& di = data.di();
             *di++ = std::move(value);
             if (auto msg = sym.size(di.last()))
-                return make_error(msg, loc);
+                return make_error(data, msg, loc);
                 
-            fixed_p->fixed = sym.index();
+            data.fixed.fixed = sym.index();
         }
         
-        void fmt(Iter it, uint16_t cnt, std::ostream& os) override
+        void fmt(data_t& data, Iter it, std::ostream& os) const override
         {
-            auto& sym = core_symbol::get(fixed_p->fixed); 
+            auto& sym = core_symbol::get(data.fixed.fixed); 
             os << sym.name();
-            if (cnt)
+
+            if (data.cnt)
                 os << ": raw = " << *it;
             else
                 os << ": fixed = " << sym.size();
         }
         
-        void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
+        void emit(data_t& data, Iter iter, emit_base& base, core_expr_dot const *dot_p) const override
         {
+            
             // use `core_data_size_t` to size (listing) output
-            base << core::set_size(sizeof_data_t) << emit_expr << *iter;
+            base << core::set_size(sizeof_data_t) << emit_expr;
+            
+            auto& sym = core_symbol::get(data.fixed.fixed); 
+            if (data.cnt)
+                base << *iter;
+            else
+                base << sym.size();
         }
     };
 

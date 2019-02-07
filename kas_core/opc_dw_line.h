@@ -17,33 +17,33 @@ struct opc_dw_file : opcode
 
 	const char *name() const override { return "DW_FILE"; }
 
-	void proc_args(Inserter& di, unsigned index, std::string name,
+	void proc_args(data_t& data, unsigned index, std::string name,
                     ::kas::parser::kas_position_tagged loc)
 	{
-		fixed_p->fixed = index;
+		data.fixed.fixed = index;
 		if (index == 0) {
 			auto& sym = core_symbol::add(name, STB_LOCAL, STT_FILE);
 #ifdef ENFORCE_FILE_FIRST_LOCAL
 			auto err = sym.set_file_symbol();
 			if (err)
-				make_error(err, loc);
+				make_error(data, err, loc);
 #else
             // save FILE:0 as negative of symbol::index
-            fixed_p->fixed = -sym.index();
+            data.fixed.fixed = -sym.index();
 #endif
 		} else {
 			auto& obj = dwarf::dwarf_file::get(index);
 			if (obj.name.empty())
 				obj.name = name;
 			else
-				make_error("file index previously defined", loc);
+				make_error(data, "file index previously defined", loc);
 		}
 	}
 
-	void fmt(Iter it, uint16_t cnt, std::ostream& os) override
+	void fmt(data_t& data, Iter it, std::ostream& os) const override
 	{
         // convert file# to signed index
-        int32_t index = fixed_p->fixed;
+        int32_t index = data.fixed.fixed;
 
         // if !defined FILE_SYMBOL
         if (index < 0)
@@ -61,9 +61,9 @@ struct opc_dw_file : opcode
 		} else {
 			auto& obj = dwarf::dwarf_file::get(index);
 			if (obj.name.empty())
-				os << fixed_p->fixed << " : **undefined**";
+				os << data.fixed.fixed << " : **undefined**";
 			else
-				os << fixed_p->fixed << " : " << obj.name;
+				os << data.fixed.fixed << " : " << obj.name;
 		}
 	}	
 };
@@ -77,16 +77,16 @@ struct opc_dw_line : opcode
 
 	const char *name() const override { return "DW_LINE"; }
 
-    void proc_args(Inserter& di, unsigned file, unsigned line
-                  , dl_pair const *data, unsigned cnt)
+    void proc_args(data_t& data, unsigned file, unsigned line
+                  , dl_pair const *dw_data, unsigned cnt)
     {
-		auto& obj = dl_data::add(file, line, data, cnt);
-		fixed_p->fixed = obj.index();
+		auto& obj = dl_data::add(file, line, dw_data, cnt);
+		data.fixed.fixed = obj.index();
 	}
 
-	void fmt(Iter it, uint16_t cnt, std::ostream& os) override
+	void fmt(data_t& data, Iter it, std::ostream& os) const override
 	{
-		auto& obj = dl_data::get(fixed_p->fixed);
+		auto& obj = dl_data::get(data.fixed.fixed);
 
         os << obj.line_num();
         if (obj.section())
@@ -97,9 +97,9 @@ struct opc_dw_line : opcode
     }
 
 	// emit records `dot` in the `dwarf_line` entry for use generating `.debug_line`
-	void emit(Iter data, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
+	void emit(data_t& data, Iter iter, emit_base& base, core_expr_dot const *dot_p) const override
 	{
-		auto& obj     = dl_data::get(fixed_p->fixed);
+		auto& obj     = dl_data::get(data.fixed.fixed);
 		obj.section() = dot_p->section().index();
 		obj.address() = dot_p->offset()();
 	}

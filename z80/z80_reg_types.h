@@ -6,7 +6,11 @@
 // Declare register constants
 // Derive  register types from `target` CRTP base types
 //
+// Declare `x3` parser for `reg_t`
+//
 ////////////////////////////////////////////////////////////////////////////
+
+#include "expr/expr_types.h"
 
 #include "z80_hw_defns.h"
 #include "target/tgt_reg_type.h"
@@ -39,13 +43,14 @@ struct z80_reg_set : tgt::tgt_reg_set<z80_reg_set, z80_reg_t>
 using z80_rs_ref = typename z80_reg_set::ref_loc_t;
 }
 
+// declare X3 parser for `reg_t`
 namespace kas::z80::parser
 {
     namespace x3 = boost::spirit::x3;
-
+    
     // declare parser for Z80 register tokens
-    using z80_reg_parser_p = x3::rule<struct X_reg, z80_reg_t>;
-    BOOST_SPIRIT_DECLARE(z80_reg_parser_p)
+    using z80_reg_x3 = x3::rule<struct X_reg, z80_reg_t>;
+    BOOST_SPIRIT_DECLARE(z80_reg_x3)
 }
 
 

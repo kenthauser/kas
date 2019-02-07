@@ -1,12 +1,11 @@
-#ifndef KAS_BSD_BSD_H
-#define KAS_BSD_BSD_H
+#ifndef KAS_BSD_BSD_PARSER_DEFS_H
+#define KAS_BSD_BSD_PARSER_DEFS_H
 
 // public interface to the bsd parser object
 //#include "parser/parser.h"
-#include "bsd_options.h"
 #include "bsd_insn.h"
 #include <boost/spirit/home/x3.hpp>
-#if 0
+
 namespace kas
 {
     namespace x3 = boost::spirit::x3;
@@ -14,27 +13,27 @@ namespace kas
     namespace bsd::parser
     {
         using namespace kas::parser;
-        using stmt_t = parser_stmt;
-
+#if 1
         // declare statment parsers
-        using pseudo_stmt_x3 = x3::rule<class _pseudo, stmt_t>;
+        using pseudo_stmt_x3 = x3::rule<class _pseudo, bsd_stmt_pseudo>;
         BOOST_SPIRIT_DECLARE(pseudo_stmt_x3);
         
-        using dwarf_stmt_x3  = x3::rule<class _dwarf,  stmt_t>;
+        using dwarf_stmt_x3  = x3::rule<class _dwarf,  bsd_stmt_pseudo>;
         BOOST_SPIRIT_DECLARE(dwarf_stmt_x3);
         
-        using equ_stmt_x3    = x3::rule<class _equ,    stmt_t>;
+        using equ_stmt_x3    = x3::rule<class _equ,    bsd_stmt_equ>;
         BOOST_SPIRIT_DECLARE(equ_stmt_x3);
         
-        using org_stmt_x3    = x3::rule<class _org,    stmt_t>;
+        using org_stmt_x3    = x3::rule<class _org,    bsd_stmt_org>;
         BOOST_SPIRIT_DECLARE(org_stmt_x3);
 
-        using label_stmt_x3  = x3::rule<class _label,  stmt_t>;
+        using label_stmt_x3  = x3::rule<class _label,  bsd_stmt_label>;
         BOOST_SPIRIT_DECLARE(label_stmt_x3);
     }
-
+#endif
     // parser public interface
     namespace parser::detail {
+#if 1
         // declare default BSD comment & separator values
         template<typename = void> struct fmt_separator_str : string<'!'> {};
         template<typename = void> struct fmt_comment_str   : string<';'> {};
@@ -51,7 +50,6 @@ namespace kas
                 , bsd::bsd_stmt_equ
                 , bsd::bsd_stmt_org
                 > {};
-#if 0
         // declare bsd instruction definitions
         template <> struct stmt_ops_l<defn_fmt> : meta::list<
               bsd::parser::pseudo_stmt_x3
@@ -67,6 +65,6 @@ namespace kas
 #endif
     }
 }
-#endif
+
 
 #endif

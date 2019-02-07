@@ -28,8 +28,8 @@ namespace kas::core::opc
 {
 
 namespace detail {
-    using fixed_t   = typename opc::opcode::fixed_t;
-    using op_size_t = typename opc::opcode::op_size_t;
+    using fixed_t   = typename opc::opcode::data_t::fixed_t;
+    using op_size_t = typename opc::opcode::data_t::op_size_t;
 
     using SIZE_ONE = op_size_t(*)(expr_t const&, core_fits const&);
     using EMIT_ONE = void(*)(emit_base&, expr_t const&, core_expr_dot const *);
@@ -43,8 +43,8 @@ namespace detail {
     };
 
     // implmement `fixed` opcode backend methods
-    struct opc_fixed_impl {
-
+    struct opc_fixed_impl
+    {
         constexpr opc_fixed_impl(opc_fixed_config const& config) : config(config) {}
 
         template <typename Iter>
@@ -191,10 +191,10 @@ struct opc_data : opcode
 #else
 #endif
 
-    auto gen_proc_one(Inserter& di)
+    auto gen_proc_one(data_t& data)
     {
         // create chunk back-inserter
-        auto bi = detail::fixed_inserter_t<value_t>(di, *fixed_p);
+        auto bi = detail::fixed_inserter_t<value_t>(data.di(), data.fixed);
 
         // move fixed-inserter into lambda context
         // NB: if `loc` not provided, don't pass args that could generate errors...
@@ -206,24 +206,22 @@ struct opc_data : opcode
 
 
     // each type represents a different inserter. Instantiated as `opcode::proc_args`
-    template <typename Arg_Inserter, typename C>
-    void proc_args(Arg_Inserter& di, C&& c)
+    template <typename C>
+    void proc_args(data_t& data, C&& c)
     {
         // handle the solo "missing_arg" case
         opcode::validate_min_max(c);
         
-        //auto bi = inserter<typename C::value_type>(di);
-        auto fn = gen_proc_one(di);
-
+        auto fn = gen_proc_one(data);
         op_size_t size = 0;
 
         // loop to move data from `parsed` expressions to `opc` data
         // NB: no loc for errors...so don't pass error values!
         for (auto&& e : c)
-            size += bi(std::move(e), kas_loc());
+            size += fn(std::move(e), kas_loc());
 
         // accumulated size
-        *size_p = size;
+        data.size = size;
     }
 
     // override `opcode` virtual methods
@@ -232,21 +230,21 @@ struct opc_data : opcode
         return INSN::NAME::value;
     }
 
-    op_size_t calc_size(Iter it, uint16_t cnt, core_fits const& fits) override
+    op_size_t calc_size(data_t& data, Iter it, core_fits const& fits) const override
     {
-        auto reader = get_reader(it, cnt);
+        auto reader = get_reader(data, it);
         return impl.calc_size(reader, fits); 
     }
 
-    void fmt(Iter it, uint16_t cnt, std::ostream& os) override
+    void fmt(data_t& data, Iter it, std::ostream& os) const override
     {
-        auto reader = get_reader(it, cnt);
+        auto reader = get_reader(data, it);
         return impl.fmt(reader, os);
     }
 
-    void emit(Iter it, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
+    void emit(data_t& data, Iter it, emit_base& base, core_expr_dot const *dot_p) const override
     {
-        auto reader = get_reader(it, cnt);
+        auto reader = get_reader(data, it);
         impl.emit(reader, base, dot_p);
     }
 
@@ -263,10 +261,10 @@ private:
     
     static constexpr detail::opc_fixed_impl impl{config};
 
-    template <typename Iter>
-    auto get_reader(Iter& it, uint16_t cnt)
+    //template <typename Iter>
+    auto get_reader(data_t& data, Iter& it) const
     {
-        return detail::fixed_reader_t<Iter>(fixed_p, it, cnt, sizeof(value_t));
+        return detail::fixed_reader_t<Iter>(data.fixed, it, data.cnt, sizeof(value_t));
     }
 
     // provide defaults for `opc_fixed_config`

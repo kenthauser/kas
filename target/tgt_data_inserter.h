@@ -68,7 +68,7 @@ namespace kas::tgt::opc
 namespace detail
 {
     // opcode fixed data area
-    using fixed_t = typename core::opcode::fixed_t;
+    using fixed_t = typename core::opcode::data_t::fixed_t;
     
     template <typename value_type, typename Inserter>
     struct tgt_data_inserter
@@ -195,7 +195,7 @@ namespace detail
     {
         static_assert(std::is_unsigned_v<value_type>);
 
-        using fixed_t        = typename core::opcode::fixed_t;
+        using fixed_t        = typename core::opcode::data_t::fixed_t;
         using chunk_reader_t = typename core::chunk::chunk_reader_t<Iter, value_type>;
         using signed_t       = std::make_signed_t<value_type>;
 

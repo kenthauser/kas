@@ -49,7 +49,7 @@ template <> struct string_p<void> : meta::id<void> {};
 using e_fixed_t   = typename e_fixed<>::type;
 using e_float_t   = typename e_float<>::type;
 using e_string_t  = typename e_string<>::type;
-using e_bigint_host_t  = kas_bigint_host;
+//using e_bigint_host_t  = kas_bigint_host;
 
 namespace detail
 {
@@ -60,7 +60,7 @@ namespace detail
           list<e_fixed_t,   fixed_p<e_fixed_t>>
         , list<e_float_t,   float_p<e_float_t>>
         , list<e_string_t,  string_p<e_string_t>>
-        , list<e_bigint_host_t,  void>
+//        , list<e_bigint_host_t,  void>
         >;
 
     // zip expr terminals into lists of types and parsers

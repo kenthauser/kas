@@ -1,9 +1,10 @@
 #ifndef KAS_PARSER_PARSER_OBJ_H
 #define KAS_PARSER_PARSER_OBJ_H
 
-#include "parser.h"
-#include "error_handler.h"
-#include "parser_stmt.h"
+//#include "parser.h"
+//#include "error_handler.h"
+//#include "parser_stmt.h"
+//#include "parser_variant.h"
 
 // development path:
 // - ctor for parser: container + fs::path
@@ -14,17 +15,19 @@ namespace kas::parser
 {
 namespace fs = boost::filesystem;
 namespace x3 = boost::spirit::x3;
-
+#if 1
 namespace detail
 {
     using Iter = kas::parser::iterator_type;
-    using value_type = stmt_t;
+    using value_type = all_stmts_t;
     
 
-    struct kas_parser {
+    struct kas_parser 
+    {
     private:
         // describe object (eg file) to be parsed
-        struct parser_obj {
+        struct parser_obj
+        {
             parser_obj(Iter const&   first
                      , Iter const&   last
                      , std::string&& fname
@@ -77,7 +80,7 @@ namespace detail
         }
 #endif
         // parser public interface via begin/end `iter` pair. Define `iter`
-        struct iter_t : std::iterator<std::input_iterator_tag, stmt_t>
+        struct iter_t : std::iterator<std::input_iterator_tag, value_type>
         {
             // NB: iter is `at eof` or not. 
             iter_t(kas_parser *parser = {}) : parser(parser) {}
@@ -109,7 +112,8 @@ namespace detail
         parser_type   parser;
         std::ostream& out;
     };
-    
+#endif
+#if 0
     // extract statement from current input.
     auto inline kas_parser::parser_obj::do_parse(kas_parser& p) -> value_type
     {
@@ -150,9 +154,6 @@ namespace detail
     {
         auto& s = obstack();
 
-        // XXX add `try` logic so users don't need to.
-        value_type eoi;
-
         do {
             // retrieve next instruction from current source.
             auto& back = s.back();
@@ -161,18 +162,19 @@ namespace detail
                
             // last source ended. resume with previous source.
             // save eoi token, if needed
-            back.gen_eoi(eoi);
+            // XXX back.gen_eoi(eoi);
             s.pop_back();
         } while (!s.empty());
 
         // end of input on last source file -- return EOI
         *this = parser->end();      // mark end
-        return eoi;
+        return stmt_eoi();
     }
+#endif
 }
 
 //using detail::parser_obj;
-using detail::kas_parser;
+//using detail::kas_parser;
 }
 
 #endif

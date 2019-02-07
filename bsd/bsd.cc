@@ -12,7 +12,7 @@ namespace kas::bsd
         using namespace x3;
         using kas::parser::iterator_type;
         using kas::parser::context_type;
-        
+#if 0
         // expression parsers
         BOOST_SPIRIT_INSTANTIATE(dot_parser_x3, iterator_type, context_type)
         BOOST_SPIRIT_INSTANTIATE(sym_parser_x3, iterator_type, context_type)
@@ -23,6 +23,7 @@ namespace kas::bsd
         BOOST_SPIRIT_INSTANTIATE(equ_stmt_x3   , iterator_type, context_type)
         BOOST_SPIRIT_INSTANTIATE(org_stmt_x3   , iterator_type, context_type)
         BOOST_SPIRIT_INSTANTIATE(label_stmt_x3 , iterator_type, context_type)
+#endif
     }
 
     // instantiate pseudo_op printer for test runners

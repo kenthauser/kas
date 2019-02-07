@@ -29,7 +29,7 @@ struct tgt_opcode : core::opc::opcode
     using stmt_args_t  = typename MCODE_T::stmt_args_t;
     using mcode_size_t = typename MCODE_T::mcode_size_t;
 
-    using op_size_t    = core::opcode::op_size_t;
+    using op_size_t    = typename core::opcode::op_size_t;
     
     //
     // gen_insn:
@@ -39,7 +39,7 @@ struct tgt_opcode : core::opc::opcode
     // Generate header & save args as is appropriate for derived opcode
     //
 
-    virtual core::opcode& gen_insn(
+    virtual core::opcode *gen_insn(
                  // results of "validate" 
                    insn_t const&  insn
                  , bitset_t&      ok
@@ -47,9 +47,7 @@ struct tgt_opcode : core::opc::opcode
                  , stmt_args_t&&  args
 
                  // and kas_core boilerplate
-                 , Inserter&  di
-                 , fixed_t&   fixed
-                 , op_size_t& insn_size
+                 , opcode::data_t& data
                  ) = 0;
 
 protected:

@@ -17,7 +17,7 @@
  * 2) "eoi"   stmt: generated at end-of-input
  *
  * Also support the `print` module.
- * Provide indirection to `print_stmt` as required
+ * Provide indirection to `print_stmt` as required`
  */
 
 
@@ -28,6 +28,9 @@ namespace detail {
     using boost::mpl::string;
 
     // vector of types in variant
+    template <typename tag = void> struct parser_type_l : list<> {};
+
+    // vector of rules for statments 
     template <typename tag = void> struct parser_stmt_l : list<> {};
 
     // vector of rules for label
@@ -54,105 +57,30 @@ namespace print {
     void print_stmt(OS&, Ts&&...);
 }
 
-using print_fn = print::stmt_print<std::ostream>;
+
+using print_obj = print::stmt_print<std::ostream>;
 struct parser_stmt : kas_position_tagged
 {
-    // static functions which generate & print insns
-    struct vtable
-    {
-        const char *(*name)();
-        opcode& (*gen_insn)(opcode::Inserter&, opcode::fixed_t&, opcode::op_size_t&);
-        void (*print_args)(print_fn&);
-    };
+    using base_t = parser_stmt;
+    using print_obj = print::stmt_print<std::ostream>;
+    using opcode = core::opcode;
 
-    parser_stmt()
-    {
-        //std::cout << "parser_stmt: default_ctor" << std::endl;
-    }
+    // this type has no local members to initialize
+    parser_stmt() = default;
     
-    parser_stmt(vtable const &vt) : vptr(&vt)
-    {
-        //std::cout << "parser_stmt: vtable_ctor" << std::endl;
-    }
-    
+    virtual const char *name() const = 0;
+    virtual void  print_args(print_obj const&) const = 0;
+    virtual opcode *gen_insn(opcode::data_t&) = 0;
+    virtual ~parser_stmt() = default;
+
     // interface to insn: call operator() generates insn
     template <typename...Ts>
     opcode& operator()(Ts&&...);
 
     // interface to insn: ostream& operator<< prints
     template <typename OS>
-    friend OS& operator<<(OS& os, parser_stmt&);
-    
-private:
-    static const char *_name() { return "*UNINIT*"; }
-    static constexpr vtable vtable_default = { _name };
-
-    vtable const *vptr = &vtable_default;
+    friend OS& operator<<(OS& os, parser_stmt const&);
 };
-
-template <typename DERIVED, typename OPCODE = opc_nop<>>
-struct insn_stmt : parser_stmt
-{
-    using opcode_t  = OPCODE;
-    using derived_t = DERIVED;
-
-    insn_stmt() : parser_stmt(vt) {}
-    
-    // declare out-of-line static methods
-    static auto& get_opcode();
-    static auto  get_args();
-    static const char *name();
-    static void print_args(print_fn& fn);
-    static opcode& gen_insn(opcode::Inserter& di
-                    , opcode::fixed_t& fixed
-                    , opcode::op_size_t& size);
-    
-private:
-    static constexpr vtable vt
-            { derived_t::name, derived_t::gen_insn, derived_t::print_args };
-};
-
-// default values for opcode/args
-template <typename DERIVED, typename OPCODE>
-auto& insn_stmt<DERIVED, OPCODE>::get_opcode()
-{
-    static opcode_t opc;
-    return opc;
-}
-
-template <typename DERIVED, typename OPCODE>
-auto insn_stmt<DERIVED, OPCODE>::get_args()
-{
-    return std::tuple<>{};
-}
-
-template <typename DERIVED, typename OPCODE>
-const char *insn_stmt<DERIVED, OPCODE>::name()
-{
-    return derived_t::get_opcode().name();
-}
-
-template <typename DERIVED, typename OPCODE>
-void insn_stmt<DERIVED, OPCODE>::print_args(print_fn& fn)
-{
-    std::apply(fn, derived_t::get_args());
-}
-
-template <typename DERIVED, typename OPCODE>
-opcode& insn_stmt<DERIVED, OPCODE>::gen_insn(opcode::Inserter& di
-                , opcode::fixed_t& fixed
-                , opcode::op_size_t& size)
-{
-    auto& opc = derived_t::get_opcode();
-    opc.init(fixed, size);
-
-    auto proc_args = [&](auto&&...args)
-        {
-            opc.proc_args(di, std::forward<decltype(args)>(args)...);
-        };
-    std::apply(proc_args, derived_t::get_args());
-    return opc;
-}
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -160,29 +88,53 @@ opcode& insn_stmt<DERIVED, OPCODE>::gen_insn(opcode::Inserter& di
 //
 ////////////////////////////////////////////////////////////////////////
 
-struct stmt_empty : insn_stmt<stmt_empty , opc_nop<>> {};
-struct stmt_eoi   : insn_stmt<stmt_eoi   , opc_nop<KAS_STRING("EOI")>> {};
-struct stmt_error : insn_stmt<stmt_error , opc_error>
+namespace detail
 {
-    static inline kas_error_t diag;
-    
-    stmt_error(kas_error_t diag)
+    template <typename OPC>
+    struct stmt_diag : parser_stmt
     {
-        this->diag = diag;
-    }
+        static inline OPC opc;
 
-    static auto get_args()
-    {
-        return std::forward_as_tuple(diag);
-    }
-};
+        stmt_diag(kas_error_t diag = {}) : diag(diag) {}
 
-namespace detail {
-    template<> struct parser_stmt_l<defn_expr> : list<
-        //  stmt_empty        // default value for variant
-        // stmt_eoi
-        // stmt_error
-           parser_stmt
+        const char *name() const override
+        {
+            return opc.name();
+        }
+
+        void print_args(print_obj const& p_obj) const override
+        {
+            if (diag)
+                p_obj(std::make_tuple(diag));
+        }
+
+        opcode *gen_insn(insn_data& data) override
+        {
+            // fixed area unused otherwise...
+            data.fixed.diag = diag;
+            return &opc;
+        }
+        
+        kas_error_t diag;
+    };
+}
+
+using stmt_empty = detail::stmt_diag<opc_nop<>>;
+using stmt_eoi   = detail::stmt_diag<opc_nop<KAS_STRING("EOI")>>;
+using stmt_error = detail::stmt_diag<opc_error>;
+
+
+namespace detail
+{
+    // stmts defined by parser
+    template<> struct parser_type_l<defn_parser> : list<
+          stmt_empty        // default value for variant
+        , stmt_error
+        > {};
+
+    // don't allow label_l to be empty
+    template<> struct parser_label_l<defn_parser> : list<
+          stmt_eoi
         > {};
 }
 

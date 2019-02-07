@@ -44,16 +44,16 @@ namespace kas { namespace core
 
             return [fits=std::move(fits), trace=trace](auto& insn_iter, core_expr_dot const&)
                 {
-                    auto& insn = *insn_iter;
+                    core_insn insn(*insn_iter);
                     if (!insn.is_relaxed()) {
                         if (trace)
                             *trace << "relax: " << insn.print_fmt()
-                                   << " from " << insn.size;
+                                   << " from " << insn.size();
 
                         insn.calc_size(fits);
 
                         if (trace)
-                            *trace << " -> " << insn.size << std::endl;
+                            *trace << " -> " << insn.size() << std::endl;
                     }
                 };
         }

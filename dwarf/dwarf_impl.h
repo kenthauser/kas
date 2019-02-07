@@ -23,11 +23,11 @@ auto gen_dwarf_32_header(T& emit)
     auto ehdr_ref = core_symbol::add("dwarf_ehdr", core::STB_INTERNAL).ref(); 
 
     // section length (not including section length field)
-    emit(opc_label(bgn_ref));
+    emit(opc_label(), bgn_ref);
     emit(UWORD(), end_ref.get() - bgn_ref.get() - UWORD::size);
     emit(UHALF(), 4);                       // dwarf version
     emit(UWORD(), ehdr_ref.get() - bhdr_ref.get());     // to end of header
-    emit(opc_label(bhdr_ref));
+    emit(opc_label(), bhdr_ref);
 
     emit(UBYTE(), K_LNS_MIN_INSN_LENGTH);
     emit(UBYTE(), K_LNS_MAX_OPS_PER_INSN);  // added version 4
@@ -69,7 +69,7 @@ auto gen_dwarf_32_header(T& emit)
     emit(UBYTE(), 0);
 
     // header complete
-    emit(opc_label(ehdr_ref));
+    emit(opc_label(), ehdr_ref);
     return end_ref;
 }
 
@@ -252,7 +252,7 @@ void emit_rule(DL_STATE& s, EMIT& emit, Ts...args)
     
     // emit label if needed to calculate length for EXTENDED format
     if (ext_ref)
-        emit(opc_label(ext_ref));
+        emit(opc_label(), ext_ref);
 
     emit_side_effects(s, emit, meta::drop_c<R, DW_INSN_OP_INDEX>());
     std::cout << std::dec << std::endl;
@@ -416,10 +416,10 @@ void dwarf_gen(Inserter inserter)
 {
     std::cout << __FUNCTION__ << std::endl;
     
-    emit_opc<Inserter> emit(inserter);
+    emit_opc<Inserter> emit{inserter};
     DL_STATE state;
 
-    // generate header. Return "end" label to be emitted at end
+    // generate header. Return "end" symbol to be defined after data emited
     auto end_ref = gen_dwarf_32_header(emit);
 #if 0
     fsm_xlate(std::make_index_sequence<meta::size<DW_INSNS>::value>(),
@@ -437,7 +437,7 @@ void dwarf_gen(Inserter inserter)
     dl_data::for_each(gen_line);
 
     // now emit end label.
-    emit(opc_label(end_ref));
+    emit(opc_label(), end_ref);
 }
 
 

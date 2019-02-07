@@ -6,11 +6,12 @@
 #endif
 
 #include "parser.h"                 // parser public interface
-#include "error_handler_base.h"
-#include "annotate_on_success.hpp"
+//#include "parser_variant.h"         // variant of all stmt types
+//#include "error_handler_base.h"
+//#include "annotate_on_success.hpp"
 
-#include "machine_parsers.h"
-#include "utility/make_type_over.h"
+//#include "machine_parsers.h"
+//#include "utility/make_type_over.h"
 
 #include <boost/spirit/home/x3.hpp>
 #include <utility>
@@ -31,6 +32,8 @@ auto stmt_separator = detail::stmt_separator_p<
 //  Assembler Instruction Parser Definition
 //////////////////////////////////////////////////////////////////////////
 
+#if 0
+// parse to comment, separator, or end-of-line
 auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
       stmt_comment > *(x3::omit[x3::char_] - x3::eol) > (x3::eol | x3::eoi)
     | stmt_separator
@@ -38,8 +41,8 @@ auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
     ;
 
 // insn defns
-x3::rule<class _stmt,     stmt_t> const stmt = "stmt";
-x3::rule<class statement, stmt_t> const statement = "statement";
+x3::rule<class _stmt,     all_stmts_t> const stmt = "stmt";
+x3::rule<class statement, all_stmts_t> const statement = "statement";
 
 // get meta list of parsers from config vectors<>
 using label_parsers =  all_defns<detail::label_ops_l>;
@@ -64,15 +67,15 @@ struct junk_token : kas_token
 };
 
 // statement is: label, insn (to end of line), or end-of-input
-// parser to find point to restart scan after error
-auto const resync = *(x3::char_ - stmt_eol) > stmt_eol;
-
 auto const statement_def = 
          (stmt_tuple > stmt_eol)
        | label_tuple
        | x3::eoi > x3::attr(stmt_eoi{})
        ;
        
+// parser to find point to restart scan after error
+auto const resync = *(x3::char_ - stmt_eol) > stmt_eol;
+
 // insn is statment (after skipping blank or commented lines)
 auto const stmt_def  = *stmt_eol > statement;
 
@@ -128,9 +131,10 @@ private:
 struct statement : annotate_on_success {};
 struct _stmt : resync_base {};
 struct _junk : resync_base {};
+#endif
 
 }
-#if 1
+#if 0
 namespace kas
 {
 parser::parser_type stmt()

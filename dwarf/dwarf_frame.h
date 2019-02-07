@@ -41,8 +41,8 @@ auto& gen_cie_32(T& emit)
     for (auto p = std::begin(cmds); p != std::end(cmds); ++p)
         emit(UBYTE(), *p);
 
-    emit(opc_align(4));                     // pad to multiple of addr_size
-    emit(opc_label(end_cie.ref()));
+    emit(opc_align(), 4);                     // pad to multiple of addr_size
+    emit(opc_label(), end_cie.ref());
     return bgn_cie;
 }
 
@@ -77,8 +77,8 @@ void gen_fde_32(T& emit, df_data const& d, CIE& cie)
         emit_cf_cmd(emit, *iter++);
     }
 
-    emit(opc_align(4));                     // pad to multiple of addr_size
-    emit(opc_label(end_fde.ref()));
+    emit(opc_align(), 4);                     // pad to multiple of addr_size
+    emit(opc_label(), end_fde.ref());
 }
 
 template <typename T>

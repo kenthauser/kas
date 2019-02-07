@@ -7,7 +7,7 @@
 namespace kas::core::chunk
 {
 using expr_fits = expression::expr_fits;
-using fixed_t   = core::opc::insn_fixed_t;
+using fixed_t   = typename opcode::data_t::fixed_t;
 
 namespace detail
 {

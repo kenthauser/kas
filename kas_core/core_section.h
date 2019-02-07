@@ -23,9 +23,9 @@
  */
 
 
+#include "kas_object.h"
 #include "opcode.h"
 #include "core_fragment.h"
-#include "kas_object.h"
 #include "utility/print_type_name.h"
 
 #include "elf/elf_common.h"
@@ -39,11 +39,11 @@ namespace kas::elf
 {
     struct es_data;
 }
-
 namespace kas::core 
 {
 
-struct core_section : kas_object<core_section> {
+struct core_section : kas_object<core_section>
+{
     // not sure where this table should go
     static const auto is_reserved(std::string const& name)
     {
@@ -250,18 +250,18 @@ namespace opc
         static inline core_section::index_t current, previous;
 
         opc_section() = default;
-        opc_section(core_section::index_t index)
+        opc_section(data_t& data, core_section::index_t index)
         {
-            fixed_p->fixed = index;
+            data.fixed = index;
         }
         
-        opc_section(core_segment const& seg) : opc_section(seg.index()) {}
+        opc_section(data_t& data, core_segment const& seg) : opc_section(data, seg.index()) {}
 
-        void proc_args(Inserter& di, core_section::index_t index)
+        void proc_args(data_t& data, core_section::index_t index)
         {
             previous = current;
             current  = index;
-            fixed_p->fixed = index;
+            data.fixed = index;
         }
 
 #if 0
@@ -276,14 +276,16 @@ namespace opc
             this->fixed_p->fixed = section[0].index();
         }
 #endif
-        void fmt(Iter iter, uint16_t cnt, std::ostream& os) override {
-            os << this->fixed_p->fixed << ' ';
-            os << core_segment::get(this->fixed_p->fixed);
+        void fmt(data_t& data, Iter iter, std::ostream& os) const override
+        {
+            auto index = data.fixed.fixed;
+            os << index << ' ';
+            os << core_segment::get(index);
         }
 
-        void emit(Iter iter, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
+        void emit(data_t& data, Iter iter, emit_base& base, core_expr_dot const *dot_p) const override
         {
-            auto& seg = core_segment::get(this->fixed_p->fixed); 
+            auto& seg = core_segment::get(data.fixed.fixed); 
             base.set_segment(seg);
         }
     };

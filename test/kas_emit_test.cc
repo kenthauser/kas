@@ -86,7 +86,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
             container.proc_all_frags(
                 [&parse_out](auto& insn_iter, auto& dot)
                 {
-                    auto& insn = *insn_iter;
+                    kas::core::core_insn insn = *insn_iter;
 #if 0 
                     // unpack location into file_num/first/last
                     auto where = parser::error_handler<Iter>::where(loc);
@@ -95,7 +95,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
                     auto last  = where.second.end();
 #endif
                     //auto where = stmt_stream.where(stmt).second;
-                    auto& loc = insn.loc;
+                    auto& loc = insn.get_loc();
                     //auto where = kas::parser::error_handler<Iter>::where(loc);
                     //parse_out << "in  : " << escaped_str(where) << std::endl;
                     parse_out << "raw : " << insn.print_raw() << std::endl;

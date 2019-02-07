@@ -8,15 +8,16 @@
 #include "bsd_ops_symbol.h"
 #include "bsd_ops_section.h"
 #include "bsd_ops_dwarf.h"
-#include "bsd_ops_cfi.h"
+//#include "bsd_ops_cfi.h"
 
 //#include "parser/op_parser.h"
-#include "parser/sym_parser.h"
+//#include "parser/sym_parser.h"
 
 #include "kas/defn_utils.h"
 #include "kas/kas_string.h"
 #include "utility/string_mpl.h"
 
+#if 0
 namespace kas::bsd
 {
 namespace detail
@@ -238,28 +239,29 @@ auto const dwarf_op_x3  = x3::no_case[x3::lexeme['.' >> detail::dw_ops.x3()]];
 // implement bsd_stmt methods for pseudo-ops
 //
 
-const char *bsd_stmt_pseudo::name()
+const char *bsd_stmt_pseudo::name() const
 {
-    return d.op->op().name();
+    return op->op().name();
 }
 
 //template <typename...Ts>
 opcode& bsd_stmt_pseudo::gen_insn(opcode::Inserter& di, opcode::fixed_t& fixed, opcode::op_size_t& size)
 {
-    d.op->op().init(fixed, size);
-    return (d.op->*d.op->proc_args)(di, std::move(d.v_args));
+    op->op().init(fixed, size);
+    return (op->*op->proc_args)(di, std::move(v_args));
 }
 
-void bsd_stmt_pseudo::print_args(kas::parser::print_fn& fn)
+void bsd_stmt_pseudo::print_args(kas::parser::print_obj const& fn) const
 {
     // if fixed args, copy to container
-    auto n = d.op->arg_c;
-    std::vector<const char *> xtra_args(d.op->str_v, d.op->str_v + n);
+    auto n = op->arg_c;
+    std::vector<const char *> xtra_args(op->str_v, op->str_v + n);
     
     if (xtra_args.size())
-        fn(xtra_args, d.v_args);
+        fn(xtra_args, v_args);
     else
-        fn(d.v_args);
+        fn(v_args);
 }
 }
+#endif
 #endif

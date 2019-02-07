@@ -32,7 +32,7 @@
 namespace kas::core::opc::detail
 {
     
-using fixed_t      = typename opcode::fixed_t;
+using fixed_t      = typename opcode::data_t::fixed_t;
 
 template <typename value_t>
 static constexpr auto FIXED_MAX_N = sizeof(fixed_t::fixed)/sizeof(value_t);
@@ -104,7 +104,7 @@ constexpr uint16_t get_count(void const *v, uint16_t sz)
 template <typename value_t>
 struct fixed_inserter_t
 {
-    using opc_inserter = typename opcode::Inserter;
+    using opc_inserter = typename opcode::data_t::Inserter;
 
     using chunk_inserter_t = 
             typename core::chunk::chunk_inserter_t<opc_inserter, value_t>;
@@ -177,10 +177,10 @@ struct fixed_reader_t
     // tuple:  pointer, size, count
     using tpl = std::tuple<void const *, uint16_t, uint16_t>;
     
-    fixed_reader_t(fixed_t const* fixed_p, Iter& it, uint16_t cnt, uint16_t value_sz)
-        : p(fixed_p), it(it), cnt(cnt), value_sz(value_sz)
+    // XXX `p` initialization suspect
+    fixed_reader_t(fixed_t& fixed, Iter& it, uint16_t cnt, uint16_t value_sz)
+        : p(fixed.data), it(it), cnt(cnt), value_sz(value_sz)
         {}
-
 
     bool empty() const
     {

@@ -14,30 +14,33 @@ namespace kas { namespace core { namespace opc
         OPC_INDEX();
         const char *name() const override { return "ALIGN"; }
 
-        opc_align(uint16_t align = 0) {
-            fixed_p->fixed = align;
+        opc_align() = default;
+
+        opc_align(data_t& data, uint16_t align = 0)
+        {
+            data.fixed.fixed = align;
         }
 
-        void proc_args(Inserter& di, parser::kas_position_tagged const& loc, uint16_t alignment)
+        void proc_args(data_t& data, parser::kas_position_tagged const& loc, uint16_t alignment)
         {
             // no idea what max_alignment should be...
             static constexpr auto max_alignment = 6;
 
             // XXX need kas_loc with alignment
             if (alignment > max_alignment)
-                make_error("alignment exceeds maximum", loc);
+                make_error(data, "alignment exceeds maximum", loc);
             else if (!alignment)
-                make_error("non-zero alignment required", loc);
+                make_error(data, "non-zero alignment required", loc);
             else
-                fixed_p->fixed = alignment;
+                data.fixed.fixed = alignment;
         }
 
-        void fmt(Iter iter, uint16_t cnt, std::ostream& os) override
+        void fmt(data_t& data, Iter iter, std::ostream& os) const override
         {
-            os << fixed_p->fixed;
+            os << data.fixed.fixed;
         }
         
-        void emit(Iter data, uint16_t cnt, emit_base& base, core_expr_dot const *dot_p) override
+        void emit(data_t& data, Iter it, emit_base& base, core_expr_dot const *dot_p) const override
         {
             // XXX need alignment support & addr width support
             // XXX ignore alignment & just do words
@@ -62,7 +65,7 @@ namespace kas { namespace core { namespace opc
 
         const char *name() const override { return "ORG"; }
 
-        void proc_args(Inserter& di, kas_loc loc, expr_t&& value
+        void proc_args(data_t& data, kas_loc loc, expr_t&& value
                         , uint8_t fill_size = {}, uint32_t fill_data = {})
         {
             // Be sure it's location tagged for deferred errors.
@@ -70,15 +73,15 @@ namespace kas { namespace core { namespace opc
                 throw std::runtime_error("opc_org: value not location tagged");
             
             if (auto p = value.get_fixed_p())
-                *size_p = { 0, static_cast<short>(*p) };
+                data.size = { 0, static_cast<short>(*p) };
             else
-                *size_p = { 0, max_skip };
+                data.size = { 0, max_skip };
 
-            fixed_p->loc = loc;
-            *di++ = std::move(value);
+            data.fixed.loc = loc;
+            *data.di() = std::move(value);
         }
 
-        op_size_t calc_size(Iter iter, uint16_t cnt, core_fits const& fits) override
+        op_size_t calc_size(data_t& data, Iter iter, core_fits const& fits) const override
         {
             auto& org = *iter;
             auto& dot = fits.get_dot();
@@ -104,7 +107,7 @@ namespace kas { namespace core { namespace opc
                 auto& base = core_addr::add().init_addr(segment.initial(), &zero);
                 auto& sum = base + *p;
                 std::cout << "opc_org: dest = " << expr_t(sum) << std::endl;
-                *iter = sum.ref(fixed_p->loc);
+                *iter = sum.ref(data.fixed.loc);
                 return { 0, static_cast<short>(*p) };
             }
             
@@ -123,7 +126,7 @@ namespace kas { namespace core { namespace opc
         }
         
 
-        void fmt(Iter iter, uint16_t cnt, std::ostream& os) override
+        void fmt(data_t& data, Iter iter, std::ostream& os) const override
         {
             os << *iter;
         }
@@ -137,36 +140,35 @@ namespace kas { namespace core { namespace opc
         // using opcode<opc_skip>::opcode;
         const char *name() const override { return "SKIP"; }
 
-        void proc_args(Inserter& di, kas_loc const& loc, expr_t&& skip, expr_t&& fill = {})
+        void proc_args(data_t& data, kas_loc const& loc, expr_t&& skip, expr_t&& fill = {})
         {
             static constexpr auto fill_default = 0;
 
             auto skip_p = skip.get_fixed_p();
             if (!skip_p)
-                return make_error("fixed skip value required", loc);
+                return make_error(data, "fixed skip value required", loc);
 
             auto fill_p = fill.get_fixed_p();
             
             if (!fill_p)
-                return make_error("fill value must be constant", loc);
+                return make_error(data, "fill value must be constant", loc);
 
-            *size_p = *skip_p;
+            data.size = *skip_p;
         }
 
-        void fmt(Iter iter, uint16_t cnt, std::ostream& os) override
+        void fmt(data_t& data, Iter iter, std::ostream& os) const override
         {
-            os << fixed_p->fixed;
+            os << data.fixed.fixed;
         }
 
-        void emit(Iter data, uint16_t cnt, emit_base& base
-                                 , core_expr_dot const *dot_p) override
+        void emit(data_t& data, Iter it, emit_base& base, core_expr_dot const *dot_p) const override
         {
             // XXX need alignment support & addr width support
             // XXX ignore alignment & just do words
             constexpr auto bytes_per_word = 2;
 
-            auto size = size_p->min;
-            auto fill = fixed_p->fixed;
+            auto size = data.size.min;
+            auto fill = data.fixed.fixed;
 
             for (; size >= bytes_per_word; size -= bytes_per_word)
                 base << set_size(bytes_per_word) << fill;

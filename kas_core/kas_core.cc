@@ -46,7 +46,7 @@ namespace kas::core
 
     // instantiate `core_addr` references
 
-    decltype(core_insn::data)        core_insn::data;
+    //decltype(core_insn::data)        core_insn::data;
 
     template <typename OS>
     void core_fragment::print(OS& os) const

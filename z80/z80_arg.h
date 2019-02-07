@@ -1,6 +1,7 @@
 #ifndef KAS_Z80_ARG_DEFN_H
 #define KAS_Z80_ARG_DEFN_H
 
+#include "z80_reg_types.h"
 #include "target/tgt_arg.h"
 //#include "kas_core/opcode.h"        // declares emit
 //#include "parser/kas_position.h"
@@ -86,6 +87,13 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode>
     const char *ok_for_target(Ts&&...) const;
 
     void print(std::ostream&) const;
+
+    // XXX in base_t??
+    friend std::ostream& operator<<(std::ostream& os, z80_arg_t const& t)
+    {
+        t.print(os);
+        return os;
+    }
 
     // clear the "prefix"
     static void reset()

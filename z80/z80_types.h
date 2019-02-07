@@ -1,7 +1,7 @@
-#ifndef KAS_Z80_TYPES_H
-#define KAS_Z80_TYPES_H
+#ifndef KAS_Z80_Z80_EXPR_TYPES_H
+#define KAS_Z80_Z80_EXPR_TYPES_H
 
-// Define the z80 terminals used in the expression subsystem
+// Define the tgt terminals used in the expression subsystem
 //
 // These definitions allow the `expr_t` variant to be defined,
 
@@ -34,7 +34,7 @@ namespace kas::expression::detail
     // directly parsed types
     template <> struct term_parsers_v<defn_cpu> :
         meta::list<
-              z80::parser::z80_reg_parser_p
+              z80::parser::z80_reg_x3
             > {};
 }
 

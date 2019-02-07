@@ -34,68 +34,102 @@ using namespace kas::core::opc;
 
 using e_fixed_t = typename expression::e_fixed_t;
 
-struct bsd_stmt_pseudo : kas::parser::insn_stmt<bsd_stmt_pseudo>
+struct bsd_stmt_pseudo : kas::parser::parser_stmt
 {
-    struct arg_t {
-        detail::pseudo_op_t const *op;
-        bsd_args v_args;
-    };
-    static inline arg_t d;
+    const char *name() const override;
 
-    static const char *name();
-
-    //template <typename...Ts>
-    static opcode& gen_insn(opcode::Inserter& di, opcode::fixed_t& fixed, opcode::op_size_t& size);
-    
-    static void print_args(::kas::parser::print_fn& fn);
+    opcode *gen_insn(opcode::data_t& data) override; 
+    void print_args(print_obj const& fn) const override;
     
     template <typename Context>
     void operator()(Context const& ctx);
+    
+    detail::pseudo_op_t const *op;
+    bsd_args v_args;
 };
 
 
-struct bsd_stmt_label : kas::parser::insn_stmt<bsd_stmt_label, opc_label>
+struct bsd_stmt_label : kas::parser::parser_stmt
 {
-    static inline core::symbol_ref ident;
+    static opc_label opc;
 
-    static auto get_args()
+    opcode *gen_insn(opcode::data_t& data) override
     {
-        return std::forward_as_tuple(std::move(ident));
+        opc.proc_args(data, std::move(ident));
+        return &opc;
     }
     
-    template <typename Context>
-    void operator()(Context const& ctx);
-};
-
-struct bsd_stmt_equ : kas::parser::insn_stmt<bsd_stmt_equ, opc_equ>
-{
-    struct arg_t {
-        bsd::token_ident ident;
-        bsd_arg          value;
-    };
-
-    static inline arg_t d;
-    
-    static auto get_args()
+    const char *name() const override
     {
-        return std::forward_as_tuple(std::move(d.ident), std::move(d.value));
+        return opc.name();
     }
     
-    template <typename Context>
-    void operator()(Context const& ctx);
-};
-
-struct bsd_stmt_org : kas::parser::insn_stmt<bsd_stmt_org, bsd_org>
-{
-    static inline bsd_args v_args;
-
-    static auto get_args()
+    void print_args(print_obj const& fn) const override
     {
-        return std::forward_as_tuple(std::move(v_args));
+        //fn(std::make_tuple(ident));
+        fn(ident);
     }
 
     template <typename Context>
     void operator()(Context const& ctx);
+    
+    core::symbol_ref ident;
+};
+
+struct bsd_stmt_equ : kas::parser::parser_stmt
+{
+    static opc_equ opc;
+
+    opcode *gen_insn(opcode::data_t& data) override
+    {
+        opc.proc_args(data, ident, value);
+        return &opc;
+    }
+    
+    const char *name() const override
+    {
+        return opc.name();
+    }
+    
+    void print_args(print_obj const& fn) const override
+    {
+        //fn(std::make_tuple(ident, value));
+        fn(ident);
+        fn(value);
+    }
+
+    template <typename Context>
+    void operator()(Context const& ctx);
+    
+    bsd::token_ident ident;
+    bsd_arg          value;
+};
+
+struct bsd_stmt_org : kas::parser::parser_stmt
+{
+    static bsd_org opc;
+
+    opcode *gen_insn(opcode::data_t& data) override
+    {
+        opc.proc_args(data, std::move(v_args));
+        return &opc;
+    }
+    
+    const char *name() const override
+    {
+        return opc.name();
+    }
+    
+    void print_args(print_obj const& fn) const override
+    {
+        //fn(std::make_tuple(v_args));
+        fn(v_args);
+    }
+
+    template <typename Context>
+    void operator()(Context const& ctx);
+    
+    bsd_args v_args;
 };
 
 //
@@ -106,8 +140,8 @@ template <typename Context>
 void bsd_stmt_pseudo::operator()(Context const& ctx)
 {
     auto& args = x3::_attr(ctx);
-    d.op       = boost::fusion::at_c<0>(args);
-    d.v_args   = boost::fusion::at_c<1>(args);
+    op       = boost::fusion::at_c<0>(args);
+    v_args   = boost::fusion::at_c<1>(args);
     x3::_val(ctx) = *this;
 }
 
@@ -123,8 +157,8 @@ template <typename Context>
 void bsd_stmt_equ::operator()(Context const& ctx)
 {
     auto& args = x3::_attr(ctx);
-    d.ident    = std::move(boost::fusion::at_c<0>(args));
-    d.value    = std::move(boost::fusion::at_c<1>(args));
+    ident      = std::move(boost::fusion::at_c<0>(args));
+    value      = std::move(boost::fusion::at_c<1>(args));
     x3::_val(ctx) = *this;
 }
 
@@ -138,5 +172,6 @@ void bsd_stmt_org::operator()(Context const& ctx)
 }
 
 }
+
 
 #endif

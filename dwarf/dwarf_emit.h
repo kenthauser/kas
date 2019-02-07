@@ -106,15 +106,15 @@ struct emit_opc
     }
 
     // emit other ops (eg labels)
-    template <typename OP>
-    void operator()(OP&& op)
+    template <typename...Ts>
+    void operator()(opcode const& op, Ts&&...args)
     {
-        do_emit(std::forward<OP>(op));
+        do_emit(op, std::forward<Ts>(args)...);
     }
 
     void operator()(core::symbol_ref const& sym)
     {
-        do_emit(core::opc::opc_label{sym});
+        do_emit(core::opc::opc_label{}, sym);
     }
 
 private:
@@ -124,7 +124,7 @@ private:
     {
         //print_type_name{"do_fixed_emit"}.name<OP>();
         OP op;
-
+#ifdef XXX
         // XXX this is a mess. Will clean up a lot with insn 
         // refactor to keep loc & first_data out of `insn` proper.
         
@@ -143,20 +143,25 @@ private:
         insn.cnt   = core_insn::data.size() - initial_size;
 
         do_emit(std::move(insn));
+#endif
     }
 
-    template <typename OP>
-    void do_emit(OP&& op)
+    template <typename...Ts>
+    void do_emit(opcode const& op, Ts&&...args)
     {
-        *bi++ = std::forward<OP>(op);
+
+        // create stmt from opcode + args tuple 
+        core_insn insn{op, std::forward<Ts>(args)...};
+        *bi++ = insn;
     }
 
     // init object inserter from ctor
     INSN_INSERTER& bi;
-
+#ifdef XXX
     // get data inserter (which is a static object)
     // XXX query insn_inserter to get data_inserter
     static inline auto& di = INSN_T::data_inserter();
+#endif
 };
 
 

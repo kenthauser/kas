@@ -37,7 +37,7 @@ Forward-Inserter
 
   */
 
-#include "core_insn.h"
+#include "insn_container_data.h"
 #include "core_section.h"
 #include "core_addr.h"
 #include "core_expr_dot.h"
@@ -52,14 +52,15 @@ Forward-Inserter
 namespace kas::core
 {
 
-    template <typename Insn_Deque_t = std::deque<core_insn>>
+    template <typename Insn_Deque_t = std::deque<insn_container_data>>
     struct insn_container : kas_object<insn_container<Insn_Deque_t>>
     {
-        using base_t    = kas_object<insn_container<Insn_Deque_t>>;
-        using op_size_t = typename opc::opcode::op_size_t;
+        using base_t      = kas_object<insn_container<Insn_Deque_t>>;
+        using value_type  = typename Insn_Deque_t::value_type;
+        using op_size_t   = typename opc::opcode::op_size_t;
 
-        using insn_iter = typename Insn_Deque_t::iterator;
-        using PROC_FN = std::function<void(insn_iter&, core_expr_dot const&)>;
+        using insn_iter   = typename Insn_Deque_t::iterator;
+        using PROC_FN     = std::function<void(insn_iter&, core_expr_dot const&)>;
 
         // insn_iter & count for iterating a frag
         using frag_iter_t = std::pair<insn_iter, uint32_t>;
@@ -79,7 +80,7 @@ namespace kas::core
         // create container inserter
         auto inserter()
         {
-            data_initial = core_insn::data.size();
+            //data_initial = core_insn::data.size();
             return insn_inserter(*this);
         }
         
@@ -117,7 +118,7 @@ namespace kas::core
         
         void do_frag(core_fragment&, insn_iter&, uint32_t, PROC_FN);
         Insn_Deque_t insns;
-        decltype(core_insn::data)::size_type data_initial = -1;
+        //decltype(core_insn::data)::size_type data_initial = -1;
         std::deque<uint32_t> insn_index_list;
         std::vector<frag_iter_t> *insn_iters{};
         core_expr_dot dot;
@@ -139,7 +140,8 @@ namespace kas::core
         ~insn_inserter();
 
         // inserter iterator methods
-        insn_inserter& operator=(core_insn&&);
+        //insn_inserter& operator=(value_type&&);
+        insn_inserter& operator=(core_insn const&);
         auto& operator++()    { return *this; }
         auto& operator++(int) { return *this; }
         auto& operator*()     { return *this; }
@@ -156,11 +158,11 @@ namespace kas::core
         op_size_t      op_size;     // size of current insn
 
         // insn types (generic & special requirements)
-        void put_insn(core_insn&&);
-        void put_label(core_insn&&);
-        void put_segment(core_insn&&);
-        void put_align(core_insn&&);
-        void put_org(core_insn&&);
+        void put_insn   (value_type const&);
+        void put_label  (value_type const&);
+        void put_segment(value_type const&);
+        void put_align  (value_type const&);
+        void put_org    (value_type const&);
 
         void reserve(op_size_t const&);
 
@@ -246,7 +248,7 @@ namespace kas::core
     {
         static const auto idx_label = opc::opc_label().index();
 #define TRACE_DO_FRAG   3       // 1 = FRAG, 2 = INSN, 3 = RAW
-//#undef  TRACE_DO_FRAG
+#undef  TRACE_DO_FRAG
         
 #ifdef  TRACE_DO_FRAG
         std::cout << "do_frag::begin: " << frag;
@@ -279,14 +281,14 @@ namespace kas::core
 #endif
 #endif
             // update label with `dot` offset
-            if (it->index == idx_label) {
-                auto& offset = it->get_fixed().offset;
-                it->get_fixed().offset = dot.frag_offset();
+            if (it->opc_index == idx_label) {
+                auto& offset = it->fixed.offset;
+                it->fixed.offset = dot.frag_offset();
             }
 
-            auto old_size = it->size;
+            auto old_size = it->size();
             fn(it, dot);
-            dot.advance(it->size, old_size);
+            dot.advance(it->size(), old_size);
             ++it;
         }
 #ifdef TRACE_DO_FRAG
@@ -318,9 +320,11 @@ namespace kas::core
         insn_inserter::insn_inserter(insn_container& c)
             : c(c), bi(std::back_inserter(c.insns))
     {
+#ifdef XXX
         // initialize container with SEG (initial_segment)
         put_segment(opc::opc_section(c.initial_segment));
         c.first_frag_p = frag_p;
+#endif
     }
 
     // inserter `dtor`: resolve symbols
@@ -339,38 +343,41 @@ namespace kas::core
     // `inserter` primary method
     template <typename Insn_Deque_t>
     auto insn_container<Insn_Deque_t>::
-        insn_inserter::operator=(core_insn&& insn) -> insn_inserter&
+        //insn_inserter::operator=(value_type&& data) -> insn_inserter&
+        insn_inserter::operator=(core_insn const& insn) -> insn_inserter&
     {
         // get special opcode indexes
-        static const auto idx_section = opc::opc_section().index();
-        static const auto idx_org     = opc::opc_org()    .index();
-        static const auto idx_align   = opc::opc_align()  .index();
-        static const auto idx_label   = opc::opc_label()  .index();
+        static const auto idx_section = opc::opc_section().opc_index();
+        static const auto idx_org     = opc::opc_org()    .opc_index();
+        static const auto idx_align   = opc::opc_align()  .opc_index();
+        static const auto idx_label   = opc::opc_label()  .opc_index();
+
+        // generate container_data from insn
+        value_type data{insn};
 
         // allocate new frag if current doesn't have room
         // NB: op_size is instance variable which can be modified
-        op_size = insn.get_size();
-        reserve(op_size);
+        reserve(data.size());
 
         // see if special insn & process accordingly
         // if `dot` referenced: drop a label
-        if (insn.index == idx_label)
-            put_label(std::move(insn));
+        if (data.opc_index == idx_label)
+            put_label(std::move(data));
         else if (core_addr::must_init_dot())
-            put_label(opc::opc_label());
+            *this = opc::opc_label();       // insert dummy label insn
 
-        // XXX ripe for optimization: vector of fns + put_insn()
-        if (insn.index == idx_section)
-            put_segment(std::move(insn));
-        else if (insn.index == idx_org)
-            put_org(std::move(insn));
-        else if (insn.index == idx_align)
-            put_align(std::move(insn));
-        else if (insn.index != idx_label)
-            put_insn(std::move(insn));
+        if (data.opc_index == idx_section)
+            put_segment(std::move(data));
+        else if (data.opc_index == idx_org)
+            put_org(std::move(data));
+        else if (data.opc_index == idx_align)
+            put_align(std::move(data));
+        else if (data.opc_index != idx_label)
+            put_insn(std::move(data));
 
         // move dot if object code emitted data
-        if (op_size.max) {
+        if (op_size.max)
+        {
             core_addr::new_dot();
             c.dot.dot_offset += op_size;
         }
@@ -381,16 +388,16 @@ namespace kas::core
     // insert insn: generic instruction
     template <typename Insn_Deque_t>
     void insn_container<Insn_Deque_t>::
-        insn_inserter::put_insn(core_insn&& insn)
+        insn_inserter::put_insn(value_type const& data)
     {
         //std::cout << "core_insn::put: first = " << std::dec << insn.first << ", cnt = " << insn.cnt << std::endl;
-        *bi++ = std::move(insn);
+        *bi++ = std::move(data);
     }
 
     // insert insn: label
     template <typename Insn_Deque_t>
     void insn_container<Insn_Deque_t>::
-        insn_inserter::put_label(core_insn&& insn)
+        insn_inserter::put_label(value_type const& data)
     {
         // emit label insn & init `core_addr` instance
 
@@ -399,14 +406,14 @@ namespace kas::core
         // init referenced addr from current dot.
 
         // NB: insn is temporary. don't take reference
-        auto  lbl_ref = insn.get_fixed().addr;
+        auto  lbl_ref = data.fixed.addr;
         auto& cur_dot = core_addr::cur_dot();
 
         // use "fixed" area of insn for `offset`...
         // ...and initialize frag_p
 	
-        put_insn(std::move(insn));
-        auto& fixed  = c.insns.back().get_fixed();
+        put_insn(std::move(data));
+        auto& fixed  = c.insns.back().fixed;
         fixed.offset = c.dot.frag_offset();
 #if 0
         // if `cur_dot` not allocated, use `lbl_ref`
@@ -426,34 +433,35 @@ namespace kas::core
     // insert insn: segment
     template <typename Insn_Deque_t>
     void insn_container<Insn_Deque_t>::
-        insn_inserter::put_segment(core_insn&& insn)
+        insn_inserter::put_segment(value_type const& data)
     {
         // get segment from insn & start new frag
-        auto& segment = core_segment::get(insn.get_fixed().fixed);
+        auto& segment = core_segment::get(data.fixed.fixed);
         new_frag(&segment);
         frag_p->set_alignment(segment.section().align());
-        return put_insn(std::move(insn));
+        return put_insn(std::move(data));
     }
 
     // insert insn: align
     template <typename Insn_Deque_t>
     void insn_container<Insn_Deque_t>::
-        insn_inserter::put_align(core_insn&& insn)
+        insn_inserter::put_align(value_type const& data)
     {
         // alignment stored in fragment, so need a new frag.
-        auto align = insn.get_fixed().fixed;
+        auto align = data.fixed.fixed;
         new_frag();
         frag_p->set_alignment(align);
-        put_insn(std::move(insn));
+        put_insn(std::move(data));
     }
 
     // insert insn: org
     template <typename Insn_Deque_t>
     void insn_container<Insn_Deque_t>::
-        insn_inserter::put_org(core_insn&& insn)
+        insn_inserter::put_org(value_type const& data)
     {
+#if 0
         // determine if new "org" address is org or skip...
-        auto& target = core_insn::data[insn.first];
+        auto& target = core_insn::data[data.first];
         
         // calculate displacement to see if `skip`
         // NB: can't be skip if `dot` not previously allocated
@@ -462,10 +470,10 @@ namespace kas::core
             auto& disp =  target - core_addr::get_dot();
             if (auto skip = disp.get_fixed_p()) {
                 // create skip insn...
-                insn.set_index(opc::opc_skip().index());
-                insn.set_size(*skip);
+                data.set_index(opc::opc_skip().index());
+                data.set_size(*skip);
                 target = disp;
-                return put_insn(std::move(insn));
+                return put_insn(std::move(data));
             }
         }
 
@@ -475,20 +483,21 @@ namespace kas::core
             auto offset = frag_p->set_org(*p);
             if (offset.is_error()) {
                 auto& err = parser::kas_diag::error("can't org backwards");
-                insn.get_fixed().fixed = err.index();
+                data.fixed.fixed = err.index();
             } else {
                 // XXX fix when relax loop installed
                 if (offset.is_relaxed())
                     offset = {0, 4};
                 op_size = offset;
-                insn.set_size(offset);
+                data.set_size(offset);
             }
         } else {
             // error -- need fixed target address 
             auto& err = parser::kas_diag::error("org requires fixed address");
-            insn.get_fixed().fixed = err.index();
+            data.fixed.fixed = err.index();
         }
-        return put_insn(std::move(insn));
+#endif
+        return put_insn(std::move(data));
     }
 
     //

@@ -43,7 +43,7 @@ struct tgt_insn_t
     // stmt interface: NB: defer naming types
     //template <typename...Ts> core::opcode& gen_insn(Ts&&...) const;
     template <typename ARGS_T>
-    core::opcode& gen_insn(opcode::Inserter&, opcode::fixed_t&, opcode::op_size_t&, ARGS_T&&) const;
+    core::opcode *gen_insn(core::opcode::data_t&, ARGS_T&&) const;
 
     // methods are variadic templated to eliminate need for args to be forward declared
     template <typename...Ts>

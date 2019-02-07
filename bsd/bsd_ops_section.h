@@ -252,76 +252,76 @@ struct bsd_section_base :  opc_section
 struct bsd_section : bsd_section_base
 {
 
-    void proc_args(Inserter& di, bsd_args&& args
+    void proc_args(data_t& data, bsd_args&& args
                     , short arg_c, const char * const *str_v, short const *num_v)
     {
-        proc_args(di, std::move(args), str_v[0], num_v[1]);
+        proc_args(data, std::move(args), str_v[0], num_v[1]);
     }
 
-    void proc_args(Inserter& di, bsd_args&& args,
+    void proc_args(data_t& data, bsd_args&& args,
                     const char *seg_name = {}, short subsection = {});
 };
 
-void bsd_section::proc_args(Inserter& di, bsd_args&& args
+void bsd_section::proc_args(data_t& data, bsd_args&& args
                                 , const char *seg_name, short subsection)
 {
     auto [ err, seg_num ] = get_segment(std::move(args), seg_name, subsection);
     if (err)
-        return make_error(err);
+        return make_error(data, err);
 
-    opc_section::proc_args(di, seg_num);
+    opc_section::proc_args(data, seg_num);
 }
 
 struct bsd_push_section : bsd_section_base
 {
-    void proc_args(Inserter& di, bsd_args&& args
+    void proc_args(data_t& data, bsd_args&& args
                     , short arg_c, const char * const *str_v, short const *num_v)
     {
         auto [ err, seg_num ] = get_segment(std::move(args), str_v[0], num_v[1]);
         if (err)
-            return make_error(err);
+            return make_error(data, err);
 
         stack().push_back(opc_section::current);
-        opc_section::proc_args(di, seg_num);
+        opc_section::proc_args(data, seg_num);
     }
 };
 
 struct bsd_pop_section : bsd_section_base
 {
-    void proc_args(Inserter& di, bsd_args&& args
+    void proc_args(data_t& data, bsd_args&& args
                     , short arg_c, const char * const *str_v, short const *num_v)
     {
-        proc_args(di, std::move(args), str_v[0], num_v[1]);
+        proc_args(data, std::move(args), str_v[0], num_v[1]);
     }
 
-    void proc_args(Inserter& di, bsd_args&& args,
+    void proc_args(data_t& data, bsd_args&& args,
                     const char *seg_name = {}, short subsection = {})
     {
         if (auto msg = validate_min_max(args, 0, 0))
-            return make_error(msg);
+            return make_error(data, msg);
 
         auto& s = stack();
         auto seg_num = s.back();
         s.pop_back();
-        opc_section::proc_args(di, seg_num);
+        opc_section::proc_args(data, seg_num);
     }
 };
 
 struct bsd_previous_section : bsd_section_base
 {
-    void proc_args(Inserter& di, bsd_args&& args
+    void proc_args(data_t& data, bsd_args&& args
                     , short arg_c, const char * const *str_v, short const *num_v)
     {
-        proc_args(di, std::move(args), str_v[0], num_v[1]);
+        proc_args(data, std::move(args), str_v[0], num_v[1]);
     }
 
-    void proc_args(Inserter& di, bsd_args&& args,
+    void proc_args(data_t& data, bsd_args&& args,
                     const char *seg_name = {}, short subsection = {})
     {
         if (auto msg = validate_min_max(args, 0, 0))
-            return make_error(msg);
+            return make_error(data, msg);
 
-        opc_section::proc_args(di, opc_section::previous);
+        opc_section::proc_args(data, opc_section::previous);
     }
 };
 

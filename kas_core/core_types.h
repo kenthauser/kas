@@ -28,8 +28,11 @@ extern const uint8_t sizeof_data_t;
 // alias a couple of types from ::kas::parser namespace
 using kas_pos = ::kas::parser::kas_position_tagged;
 using kas_loc = ::kas::parser::kas_loc;
+
+// forward declaration
+struct insn_container_data;
 }
-#if 1
+
 namespace opc
 {
     template <typename Container = std::deque<kas::expression::ast::expr_t>>
@@ -41,7 +44,7 @@ namespace opc
     // create alias using default types
     using opcode = insn_opcode<>;
 }
-#endif
+
 
 namespace kas::expression::detail
 {

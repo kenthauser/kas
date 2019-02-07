@@ -12,10 +12,13 @@ struct core_section;
 struct core_expr_dot;
 struct arg_missing;
 
+#if 0
 namespace opc
 {
-    template <typename Container = std::deque<kas::expression::ast::expr_t>>
-    struct insn_data;// : protected Container;
+    template <typename T         = kas::expression::ast::expr_t
+            , typename Container = std::deque<T>
+            >
+    struct insn_data;
 
     template <typename DATA = insn_data<>>
     struct insn_opcode;
@@ -23,7 +26,7 @@ namespace opc
     // create alias using default types
     using opcode = insn_opcode<>;
 }
-
+#endif
 
 // `symbol_ref` is an opaque type holding a "reference" to
 // a `core_symbol` object. Only `core_symbol` can look inside.

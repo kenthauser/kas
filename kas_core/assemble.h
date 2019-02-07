@@ -94,6 +94,7 @@ struct kas_assemble
 
     void emit(emit_base& e)
     {
+#ifdef XXX
         auto proc_container = [&e](auto& container)
             {
                 container.proc_all_frags(
@@ -109,6 +110,7 @@ struct kas_assemble
                     gen_dwarf();
                 proc_container(container);
             });
+#endif
     }
 
 private:
@@ -117,7 +119,7 @@ private:
     {
     
         kas::core::opcode::trace = out;
-
+#ifdef XXX
         // create parser object
         auto stmt_stream = parser::kas_parser(kas::stmt(), std::cout);
         stmt_stream.add(begin, end, "dummy_path");
@@ -133,6 +135,7 @@ private:
             if (out)
                 *out  << std::endl;
         }
+#endif
     }
 
     // don't need to forward declare static lambdas
@@ -155,22 +158,23 @@ private:
                     sym.set_binding(STB_GLOBAL);
 
                 // 3. convert local common to bss symbol
-                if (sym.binding() != STB_GLOBAL && sym.kind() == STT_COMMON) {
+                if (sym.binding() != STB_GLOBAL && sym.kind() == STT_COMMON)
+                {
 
                 // put commons in specified segment (do once)
                     if (seg) {
-                        *inserter++ = opc::opc_section(seg);
+                        *inserter++ = { opc::opc_section(), seg };
                         seg = {};
                         std::cout << "opening local common segment" << std::endl;
                     }
-                    
                     // if common specified alignment, make it so
                     if (sym.align() > 1)
-                        *inserter++ = opc::opc_align(sym.align());
-                    
+                        *inserter++ = { opc::opc_align(), sym.align() };
+#ifdef XXX
                     // common now Block-Starting-with-Symbol (bss)
                     std::cout << "move to bss: " << sym.name() << std::endl;
                     *inserter++ = opc::opc_label(sym.ref(), STB_LOCAL);   // picks up size from symbol 
+#endif
                 }
             };
             core::core_symbol::dump(std::cout);

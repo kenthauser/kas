@@ -5,10 +5,10 @@
 #include "kas_core/opc_dw_line.h"
 #include "bsd_insn.h"
 
-#include "parser/parser_obj.h"
+//#include "parser/parser_obj.h"
 
 #include <ostream>
-
+#if 0
 namespace kas::bsd
 {
 struct bsd_file : core::opc::opc_dw_file
@@ -182,5 +182,5 @@ struct bsd_loc : opc_dw_line
 
 }
 
-
+#endif
 #endif
