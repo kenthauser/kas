@@ -22,7 +22,7 @@
 
 #include "opcode.h"
 #include "core_fits.h"
-#include "parser/parser.h"
+//#include "parser/parser.h"
 //#include "parser/parser_variant.h"
 
 #include <ostream>
@@ -38,7 +38,7 @@ struct core_insn
     // used by internal methods the use opcode ctor
     template <typename...Ts>
     core_insn(opcode const&, Ts&&...);
-
+    core_insn(parser::kas_loc loc = {});
     core_insn(insn_container_data const);
     void calc_size(core_fits const&) const;
     void emit(emit_base& base, core_expr_dot const *dot_p) const;

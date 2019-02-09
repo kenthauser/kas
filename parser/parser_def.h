@@ -6,9 +6,9 @@
 #endif
 
 #include "parser.h"                 // parser public interface
-//#include "parser_variant.h"         // variant of all stmt types
-//#include "error_handler_base.h"
-//#include "annotate_on_success.hpp"
+#include "parser_variant.h"         // variant of all stmt types
+#include "error_handler_base.h"
+#include "annotate_on_success.hpp"
 
 //#include "machine_parsers.h"
 //#include "utility/make_type_over.h"
@@ -20,6 +20,7 @@ namespace kas::parser
 {
 namespace x3 = boost::spirit::x3;
 
+#if 1
 // instantiate comment and seperator parsers...
 auto stmt_comment   = detail::stmt_comment_p  <
         typename detail::stmt_comment_str<>::type
@@ -31,7 +32,6 @@ auto stmt_separator = detail::stmt_separator_p<
 //////////////////////////////////////////////////////////////////////////
 //  Assembler Instruction Parser Definition
 //////////////////////////////////////////////////////////////////////////
-
 #if 0
 // parse to comment, separator, or end-of-line
 auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
@@ -41,9 +41,10 @@ auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
     ;
 
 // insn defns
-x3::rule<class _stmt,     all_stmts_t> const stmt = "stmt";
-x3::rule<class statement, all_stmts_t> const statement = "statement";
+//x3::rule<class _stmt,     stmt_t> const stmt = "stmt";
+x3::rule<class _tag_stmt, stmt_t> const statement = "statement";
 
+#if 0
 // get meta list of parsers from config vectors<>
 using label_parsers =  all_defns<detail::label_ops_l>;
 using stmt_parsers  =  all_defns<detail::stmt_ops_l>;
@@ -72,14 +73,17 @@ auto const statement_def =
        | label_tuple
        | x3::eoi > x3::attr(stmt_eoi{})
        ;
-       
+#else
+auto const statement_def = x3::eoi > x3::attr(stmt_eoi{});
+
+#endif
 // parser to find point to restart scan after error
 auto const resync = *(x3::char_ - stmt_eol) > stmt_eol;
 
 // insn is statment (after skipping blank or commented lines)
 auto const stmt_def  = *stmt_eol > statement;
 
-BOOST_SPIRIT_DEFINE(stmt)
+//BOOST_SPIRIT_DEFINE(stmt)
 BOOST_SPIRIT_DEFINE(statement)
 
 ///////////////////////////////////////////////////////////////////////////
@@ -88,7 +92,8 @@ BOOST_SPIRIT_DEFINE(statement)
 
 // annotation is performed `per-parser`. only error-handling is here.
 
-struct resync_base {
+struct resync_base
+{
 
     template <typename Iterator, typename Exception, typename Context>
     auto on_error(Iterator& first , Iterator const& last
@@ -128,20 +133,18 @@ private:
 };
 
 // XXX undef of statement screws up parser 
-struct statement : annotate_on_success {};
+struct _tag_stmt : annotate_on_success {};
 struct _stmt : resync_base {};
 struct _junk : resync_base {};
+
+// interface to statement parser
+stmt_x3 stmt { "stmt" };
+
+BOOST_SPIRIT_DEFINE(stmt)
+
+#endif
 #endif
 
 }
-#if 0
-namespace kas
-{
-parser::parser_type stmt()
-  //    parser::parser_type const& stmt()
-{
-    return parser::stmt;
-}
-}
-#endif
+
 #endif

@@ -161,6 +161,11 @@ namespace kas::parser
         {
             return pos_cache.first();
         }
+
+        auto get_file() const
+        {
+            return file;
+        }
         
     private:
         auto position_max() const

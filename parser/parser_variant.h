@@ -4,6 +4,7 @@
 
 #include "parser_stmt.h"
 #include "machine_parsers.h"
+//#include "kas_core/core_insn.h"
 
 #include "kas/defn_utils.h"
 
@@ -26,38 +27,49 @@ namespace detail
 struct stmt_t : detail::parser_variant
 {
     using base_t = detail::parser_variant;
+    using base_t::base_t;
 
-    template <typename...Ts>
-    stmt_t(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
+    //template <typename...Ts>
+    //stmt_t(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
 
     // create trampoline to allow `base` methods to work on trampoline
     const char *name() const
     {
-        return get_base().name();
+        return "STMT"; //get_base().name();
     }
 
     void print_args(print_obj const& p_obj) const
     {
-        return get_base().print_args(p_obj);
+        //return get_base().print_args(p_obj);
     }
 
-    core::core_insn gen_insn(opcode::Inserter& di)
+#if 0
+    core::core_insn gen_insn() 
     {
-        return get_base().gen_insn(di, fixed, op_size);
+#if 0
+        auto& base = get_base();
+        core::core_insn insn{base};
+#else
+        static core::core_insn insn;
+#endif
+        return insn; // get_base().gen_insn(di, fixed, op_size);
     }
-
+#endif
     kas_position_tagged const& loc() const
     {
-        return get_base();
+        static kas_position_tagged dummy;
+        return dummy;// get_base();
     }
     
 
     template <typename...Ts>
     opcode& operator()(Ts&&...args)
     {
-        return get_base()(std::forward<Ts>(args)...);
+        static opc_nop<> opc;
+        return opc;
+        //return get_base()(std::forward<Ts>(args)...);
     }
-
+#if 0
 private:
     parser_stmt const& get_base() const 
     {
@@ -72,6 +84,7 @@ private:
             [](auto&& node) { return node; }
             ));
     }
+#endif
 };
 
 }

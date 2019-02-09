@@ -33,7 +33,7 @@ namespace kas
 #endif
     // parser public interface
     namespace parser::detail {
-#if 1
+#if 0
         // declare default BSD comment & separator values
         template<typename = void> struct fmt_separator_str : string<'!'> {};
         template<typename = void> struct fmt_comment_str   : string<';'> {};

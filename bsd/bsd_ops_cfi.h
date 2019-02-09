@@ -21,11 +21,11 @@ struct bsd_cfi_sections : core::opcode
     // default is `.eh_frame`
 
     template <typename...Ts>
-    void proc_args(Inserter& di, bsd_args&& args, Ts&&...)
+    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
     {
         // single value sets ELF name
         if (auto err = opcode::validate_min_max(args, 1, 2))
-            return make_error(err);
+            return make_error(data, err);
 
         // grab first arg
         auto& e = args.front();
@@ -41,22 +41,24 @@ struct bsd_cfi_sections : core::opcode
 struct bsd_cfi_startproc : opc_df_startproc
 {
     template <typename...Ts>
-    void proc_args(Inserter& di, bsd_args&& args, Ts&&...)
+    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
     {
         // optional arg "simple" omits prologue
         if (auto err = opcode::validate_min_max(args, 0, 1))
-            return make_error(err);
+            return make_error(data, err);
         bool omit_prologue = false;
         if (!args.empty()) {
             auto p = args.front().template get_p<core::symbol_ref>();
             if (p && p->get().name() == "simple")
                 omit_prologue = true;
             else
-                return make_error("Invalid argument: expected \"simple\"", 
-                                    args.front());
+                return make_error(data
+                                , "Invalid argument: expected \"simple\""
+                                , args.front()
+                                );
         }
 
-        opc_df_startproc::proc_args(di, args.front(), omit_prologue);
+        opc_df_startproc::proc_args(data, args.front(), omit_prologue);
     }
 
 };
@@ -64,26 +66,26 @@ struct bsd_cfi_startproc : opc_df_startproc
 struct bsd_cfi_endproc : opc_df_endproc
 {
     template <typename...Ts>
-    void proc_args(Inserter& di, bsd_args&& args, Ts&&...)
+    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
     {
         ::kas::parser::kas_position_tagged loc = args.front();
         if (auto err = opcode::validate_min_max(args, 0))
-            return make_error(err);
-        opc_df_endproc::proc_args(di, loc);
+            return make_error(data, err);
+        opc_df_endproc::proc_args(data, loc);
     }
 
 };
 
 struct bsd_cfi_oper : opc_df_oper
 {
-    void proc_args(Inserter& di, bsd_args&& args
+    void proc_args(data_t& data, bsd_args&& args
                     , short arg_c, const char * const *str_v, short const *num_v)
     {
-        proc_args(di, std::move(args), num_v[0], num_v[1]);
+        proc_args(data, std::move(args), num_v[0], num_v[1]);
     }
 
     // don't inline common routine
-    void proc_args(Inserter& di, bsd_args&& args, uint32_t cmd, uint32_t num_args);
+    void proc_args(data_t& data, bsd_args&& args, uint32_t cmd, uint32_t num_args);
     
     template <typename ARG_T>
     static const char *get_int_reg(ARG_T const& arg, uint32_t& result)
@@ -101,21 +103,21 @@ struct bsd_cfi_oper : opc_df_oper
 };
 
 
-void bsd_cfi_oper::proc_args(Inserter& di, bsd_args&& args, uint32_t cmd, uint32_t num_args)
+void bsd_cfi_oper::proc_args(data_t& data, bsd_args&& args, uint32_t cmd, uint32_t num_args)
 {
     // currently
     if (auto err = opcode::validate_min_max(args, num_args, num_args))
-        return make_error(err);
+        return make_error(data, err);
     uint32_t arg1{}, arg2{};
 
     auto arg_p = args.begin();
     if (auto p = get_int_reg(*arg_p, arg1))
-        return make_error(p, *arg_p);
+        return make_error(data, p, *arg_p);
 
     if (auto p = get_int_reg(*++arg_p, arg2))
-        return make_error(p, *arg_p);
+        return make_error(data, p, *arg_p);
 
-    opc_df_oper::proc_args(di, cmd, arg1, arg2);
+    opc_df_oper::proc_args(data, cmd, arg1, arg2);
 }
 
 struct bsd_cfi_undef: core::opcode
@@ -138,11 +140,11 @@ struct bsd_cfi_undef: core::opcode
         , DEFN_CFI<CFI("lsda")> encoding, [exp] // define LSDA & encoding
         , DEFN_CFI<CFI("inline_lsda")>  [align] // LSDA data section (compact)
 #endif
-    void proc_args(Inserter& di, bsd_args&& args
+    void proc_args(data_t& data, bsd_args&& args
                     , short arg_c, const char * const *str_v, short const *num_v);
 };
 
-void bsd_cfi_undef::proc_args(Inserter& d, bsd_args&& args
+void bsd_cfi_undef::proc_args(data_t& data, bsd_args&& args
                     , short arg_c, const char * const *str_v, short const *num_v)
 {
     auto cmd = str_v[0];

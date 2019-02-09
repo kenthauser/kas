@@ -61,7 +61,7 @@ namespace kas::bsd::parser
 
     // allowed characters in a BSD identifier (NB: can't begin with digit)
     const auto bsd_charset = char_("a-zA-Z_.0-9");
-#if 0
+
     //////////////////////////////////////////////////////////////////////////
     // BSD Token definitions
     //////////////////////////////////////////////////////////////////////////
@@ -176,7 +176,6 @@ namespace kas::bsd::parser
     org_stmt_x3    org_stmt    {"bsd_org"   };
 
     BOOST_SPIRIT_DEFINE(pseudo_stmt, dwarf_stmt, equ_stmt, org_stmt)
-#endif
 }
 
 #endif

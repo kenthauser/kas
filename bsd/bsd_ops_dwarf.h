@@ -5,19 +5,19 @@
 #include "kas_core/opc_dw_line.h"
 #include "bsd_insn.h"
 
-//#include "parser/parser_obj.h"
+#include "parser/parser_obj.h"
 
 #include <ostream>
-#if 0
+
 namespace kas::bsd
 {
 struct bsd_file : core::opc::opc_dw_file
 {
     template <typename...Ts>
-    void proc_args(Inserter& di, bsd_args&& args, Ts&&...)
+    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
     {
         if (auto err = validate_min_max(args, 1, 2))
-            return make_error(err);
+            return make_error(data, err);
         auto iter = args.begin();
         int  index{};
 
@@ -25,14 +25,14 @@ struct bsd_file : core::opc::opc_dw_file
             if (auto p = iter++->get_fixed_p())
                 index = *p;
             else
-                return make_error("fixed index required", args.front());
+                return make_error(data, "fixed index required", args.front());
         }
 
         auto name_p = iter->template get_p<e_string_t>();
         if (!name_p)
-            return make_error("file name required", *iter);
+            return make_error(data, "file name required", *iter);
 
-        opc_dw_file::proc_args(di, index, name_p->get().c_str(), args.back());
+        opc_dw_file::proc_args(data, index, name_p->get().c_str(), args.back());
     }
 };
 
@@ -43,14 +43,14 @@ struct bsd_elf_ident : core::opcode
     const char *name() const override { return "IDENT"; }
 
     template <typename...Ts>
-    void proc_args(Inserter& di, bsd_args&& args, Ts&&...)
+    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
     {
         if (auto err = opcode::validate_min_max(args, 1, 1))
-            return make_error(err);
+            return make_error(data, err);
         auto iter = args.begin();
         auto p = iter->template get_p<e_string_t>();
         if (!p)
-            return make_error("string required", *iter);
+            return make_error(data, "string required", *iter);
 
         std::ostringstream s;
 
@@ -60,7 +60,8 @@ struct bsd_elf_ident : core::opcode
 
         auto macro = new std::string(s.str());
 
-        ::kas::parser::kas_parser::add(macro->begin(), macro->end(), "ident");
+        ::kas::parser::parser_src::add(macro->begin(), macro->end(), "ident");
+        auto& di = data.di();
         *di++ = std::move(*iter);
     }
 };
@@ -96,7 +97,7 @@ struct bsd_loc : opc_dw_line
         };
 
     template <typename...Ts>
-    void proc_args(Inserter& di, bsd_args&& args, Ts&&...)
+    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
     {
         // first two positional args are required.
         // pick absurdly large number for max, so as to limit fixed buffer size
@@ -104,7 +105,7 @@ struct bsd_loc : opc_dw_line
         static constexpr auto MAX_LOC_ARGS = 2 * dwarf::NUM_DWARF_LINE_STATES;
 
         if (auto err = opcode::validate_min_max(args, MIN_LOC_ARGS, MAX_LOC_ARGS))
-            return make_error(err);
+            return make_error(data, err);
         // create array of "key/value" pairs for output
         dl_data::dl_pair values[MAX_LOC_ARGS];
 
@@ -149,38 +150,37 @@ struct bsd_loc : opc_dw_line
     
             // test if required positionals found
             if (reqd_cnt)
-                return make_error("fixed value required", *in);
+                return make_error(data, "fixed value required", *in);
             else
                 name_p = {};
 
             // lookup key
             if (!key_p)
-                return make_error("expected a dwarf line keyword", *in);
+                return make_error(data, "expected a dwarf line keyword", *in);
 
             auto key = dl_data::lookup(key_p->get().name().c_str());
 
             if (!key)
-                return make_error("unknown dwarf line keyword", *in);
+                return make_error(data, "unknown dwarf line keyword", *in);
 
             if (in == std::prev(end))
-                return make_error("keyword requires value", *in);
+                return make_error(data, "keyword requires value", *in);
 
             auto& value = *++in;
             if (auto p = value.get_fixed_p()) 
                 *out++ = { key, *p };
             else
-                return make_error("fixed value required", *in);
+                return make_error(data, "fixed value required", *in);
         }
 
         // calculate values generated
         auto cnt = out - values;
 
         // pass first two values (file, line) as fixed arguments
-        base_t::proc_args(di, values[0].second, values[1].second, &values[2], cnt - 2);
+        base_t::proc_args(data, values[0].second, values[1].second, &values[2], cnt-2);
     }
 };
 
 }
 
-#endif
 #endif

@@ -2,7 +2,8 @@
 #include "parser/parser.h"
 #include "parser/error_handler_base.h"
 
-#include "parser/parser_obj.h"
+//#include "parser/parser_obj.h"
+//#include "parser/parser_def.h"
 #include "bsd/bsd_symbol.h"        // for clear()
 
 #include <iostream>
@@ -48,14 +49,15 @@ auto parse = [](std::string const& source, fs::path input_path)-> std::string
     kas::core::kas_clear::clear();
 
     std::cout << "parsing: " << input_path.c_str() << '\n' << std::endl;
+#if 0
 
     // create parser object
     auto stmt_stream = kas::parser::kas_parser(kas::stmt() , std::cout);
     stmt_stream.add(source.begin(), source.end(), input_path.c_str());
 
-
-    for (auto&& stmt : stmt_stream) {
-    	auto where = stmt_stream.where(stmt).second;
+    for (auto&& stmt : stmt_stream)
+    {
+    	auto where = stmt_stream.where(stmt.loc()).second;
         // `stmt` "moves" args. Can not "ostream" twice
     	//std::cout << "1 in :  " << escaped_str(where) << std::endl;
     	//std::cout << "1 out:  " << stmt << '\n' << std::endl;
@@ -63,6 +65,7 @@ auto parse = [](std::string const& source, fs::path input_path)-> std::string
     	out << "in :  " << escaped_str(where) << std::endl;
     	out << "out:  " << stmt << '\n' << std::endl;
     }
+#endif
  	std::stringstream symtab;
 	kas::core::core_symbol::dump(symtab);
 	out << symtab.str();

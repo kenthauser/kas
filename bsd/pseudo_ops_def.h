@@ -8,16 +8,16 @@
 #include "bsd_ops_symbol.h"
 #include "bsd_ops_section.h"
 #include "bsd_ops_dwarf.h"
-//#include "bsd_ops_cfi.h"
+#include "bsd_ops_cfi.h"
 
-//#include "parser/op_parser.h"
+#include "parser/op_parser.h"
 //#include "parser/sym_parser.h"
 
 #include "kas/defn_utils.h"
 #include "kas/kas_string.h"
 #include "utility/string_mpl.h"
 
-#if 0
+#if 1
 namespace kas::bsd
 {
 namespace detail
@@ -206,16 +206,16 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
             {}
 
         template <typename OP, typename...Ts>
-        opcode& do_proc(opcode::Inserter& di, bsd_args&& args) const
+        opcode& do_proc(opcode::data_t& data, bsd_args&& args) const
         {
             auto& op = get_opcode<OP>();
-            op.proc_args(di, std::move(args), arg_c, str_v, num_v);
+            op.proc_args(data, std::move(args), arg_c, str_v, num_v);
             return op;
         }
 
         const char *name;
         opcode&   (*op)();
-        opcode&   (pseudo_op_t::*proc_args)(opcode::Inserter&, bsd_args&&) const;
+        opcode&   (pseudo_op_t::*proc_args)(opcode::data_t&, bsd_args&&) const;
         const char *str_v[MAX_FIXED_ARGS];
         short       num_v[MAX_FIXED_ARGS];
         short       arg_c;
@@ -223,13 +223,9 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
 
     using ps_defs = all_defns<pseudo_ops_v, bsd_pseudo_tags>;
     using dw_defs = all_defns<dwarf_ops_v,  bsd_pseudo_tags>;
-#if 0
+
     static const auto ps_ops = parser::op_parser_t<pseudo_op_t, ps_defs>();
     static const auto dw_ops = parser::op_parser_t<pseudo_op_t, dw_defs>();
-#else
-    static const auto ps_ops = parser::sym_parser_t<pseudo_op_t, ps_defs>();
-    static const auto dw_ops = parser::sym_parser_t<pseudo_op_t, dw_defs>();
-#endif
 }
 
 auto const pseudo_op_x3 = x3::no_case[x3::lexeme['.' >> detail::ps_ops.x3()]];
@@ -245,10 +241,9 @@ const char *bsd_stmt_pseudo::name() const
 }
 
 //template <typename...Ts>
-opcode& bsd_stmt_pseudo::gen_insn(opcode::Inserter& di, opcode::fixed_t& fixed, opcode::op_size_t& size)
+opcode *bsd_stmt_pseudo::gen_insn(opcode::data_t& data)
 {
-    op->op().init(fixed, size);
-    return (op->*op->proc_args)(di, std::move(v_args));
+    return &(op->*op->proc_args)(data, std::move(v_args));
 }
 
 void bsd_stmt_pseudo::print_args(kas::parser::print_obj const& fn) const

@@ -6,7 +6,7 @@
 #include "bsd_options.h"
 #include "bsd_insn.h"
 #include <boost/spirit/home/x3.hpp>
-#if 0
+
 namespace kas
 {
     namespace x3 = boost::spirit::x3;
@@ -14,22 +14,21 @@ namespace kas
     namespace bsd::parser
     {
         using namespace kas::parser;
-        using stmt_t = parser_stmt;
 
         // declare statment parsers
-        using pseudo_stmt_x3 = x3::rule<class _pseudo, stmt_t>;
+        using pseudo_stmt_x3 = x3::rule<class _pseudo, bsd::bsd_stmt_pseudo>;
         BOOST_SPIRIT_DECLARE(pseudo_stmt_x3);
         
-        using dwarf_stmt_x3  = x3::rule<class _dwarf,  stmt_t>;
+        using dwarf_stmt_x3  = x3::rule<class _dwarf,  bsd::bsd_stmt_pseudo>;
         BOOST_SPIRIT_DECLARE(dwarf_stmt_x3);
         
-        using equ_stmt_x3    = x3::rule<class _equ,    stmt_t>;
+        using equ_stmt_x3    = x3::rule<class _equ,    bsd::bsd_stmt_equ>;
         BOOST_SPIRIT_DECLARE(equ_stmt_x3);
         
-        using org_stmt_x3    = x3::rule<class _org,    stmt_t>;
+        using org_stmt_x3    = x3::rule<class _org,    bsd::bsd_stmt_org>;
         BOOST_SPIRIT_DECLARE(org_stmt_x3);
 
-        using label_stmt_x3  = x3::rule<class _label,  stmt_t>;
+        using label_stmt_x3  = x3::rule<class _label,  bsd::bsd_stmt_label>;
         BOOST_SPIRIT_DECLARE(label_stmt_x3);
     }
 
@@ -51,7 +50,7 @@ namespace kas
                 , bsd::bsd_stmt_equ
                 , bsd::bsd_stmt_org
                 > {};
-#if 0
+
         // declare bsd instruction definitions
         template <> struct stmt_ops_l<defn_fmt> : meta::list<
               bsd::parser::pseudo_stmt_x3
@@ -64,9 +63,7 @@ namespace kas
         template <> struct label_ops_l<defn_fmt> : meta::list<
             bsd::parser::label_stmt_x3
         > {};
-#endif
     }
 }
-#endif
 
 #endif

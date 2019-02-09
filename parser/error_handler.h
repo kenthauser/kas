@@ -39,7 +39,8 @@ namespace kas::parser
 {
 
 template <typename Iter>
-struct error_handler {
+struct error_handler
+{
 
     using x3_handler = x3_error_handler<Iter>;
     
@@ -221,6 +222,10 @@ public:
         return handler(err_out, w.second.begin(), w.second.end(), message, print_line);
     }
 
+    auto fname() const
+    {
+        return handler->get_file();
+    }
 
     // stream error message (see error_reporting.h for formats)
     // XXX these messages need to be routed thru `kas_diag`
