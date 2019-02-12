@@ -52,7 +52,7 @@ namespace kas::z80::parser
                                 , opc::z80_insn_defn_groups
                                 , meta::quote<meta::_t>>;
 
-    using z80_insn_defn         = tgt::opc::tgt_insn_defn<z80_mcode_t>;
+    using z80_insn_defn         = typename z80_mcode_t::insn_t;
     using z80_insn_sym_parser_t = kas::parser::sym_parser_t<z80_insn_defn, insns>;
 
     // XXX shoud stop parsing on (PARSER_CHARS | '.')
