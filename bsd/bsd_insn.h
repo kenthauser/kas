@@ -36,8 +36,11 @@ using e_fixed_t = typename expression::e_fixed_t;
 
 struct bsd_stmt_pseudo : kas::parser::parser_stmt
 {
-    const char *name() const override;
-
+    const char *name() const override
+    {
+        return "BSD_PSEUDO";
+    }
+    
     opcode *gen_insn(opcode::data_t& data) override; 
     void print_args(print_obj const& fn) const override;
     
@@ -51,7 +54,7 @@ struct bsd_stmt_pseudo : kas::parser::parser_stmt
 
 struct bsd_stmt_label : kas::parser::parser_stmt
 {
-    static opc_label opc;
+    static inline opc_label opc;
 
     opcode *gen_insn(opcode::data_t& data) override
     {
@@ -61,7 +64,7 @@ struct bsd_stmt_label : kas::parser::parser_stmt
     
     const char *name() const override
     {
-        return opc.name();
+        return "BSD_LABEL";
     }
     
     void print_args(print_obj const& fn) const override
@@ -78,7 +81,7 @@ struct bsd_stmt_label : kas::parser::parser_stmt
 
 struct bsd_stmt_equ : kas::parser::parser_stmt
 {
-    static opc_equ opc;
+    static inline opc_equ opc;
 
     opcode *gen_insn(opcode::data_t& data) override
     {
@@ -88,7 +91,7 @@ struct bsd_stmt_equ : kas::parser::parser_stmt
     
     const char *name() const override
     {
-        return opc.name();
+        return "BSD_EQU";
     }
     
     void print_args(print_obj const& fn) const override
@@ -107,7 +110,7 @@ struct bsd_stmt_equ : kas::parser::parser_stmt
 
 struct bsd_stmt_org : kas::parser::parser_stmt
 {
-    static bsd_org opc;
+    static inline bsd_org opc;
 
     opcode *gen_insn(opcode::data_t& data) override
     {
@@ -117,7 +120,7 @@ struct bsd_stmt_org : kas::parser::parser_stmt
     
     const char *name() const override
     {
-        return opc.name();
+        return "BSD_ORG";
     }
     
     void print_args(print_obj const& fn) const override

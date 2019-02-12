@@ -235,11 +235,6 @@ auto const dwarf_op_x3  = x3::no_case[x3::lexeme['.' >> detail::dw_ops.x3()]];
 // implement bsd_stmt methods for pseudo-ops
 //
 
-const char *bsd_stmt_pseudo::name() const
-{
-    return op->op().name();
-}
-
 //template <typename...Ts>
 opcode *bsd_stmt_pseudo::gen_insn(opcode::data_t& data)
 {

@@ -11,12 +11,6 @@
 
 namespace kas::z80::opc
 {
-
-// get `opc` base classes to  
-using fmt_gen  = tgt::opc::tgt_fmt_opc_gen <z80_mcode_t>;
-using fmt_list = tgt::opc::tgt_fmt_opc_list<z80_mcode_t>;
-
-
 // use generic mixin
 template <unsigned...Ts>
 using fmt_generic = tgt::opc::tgt_fmt_generic<z80_mcode_t, Ts...>;
@@ -34,7 +28,6 @@ using gen_3b2 = fmt_generic<3, 2>;
 
 using gen_4b2 = fmt_generic<4, 2>;
 using gen_4b1 = fmt_generic<4, 1>;
-
 
 // extract from second word
 using gen_1w0b3 = fmt_generic<0, 3, 1>;
@@ -59,27 +52,23 @@ using arg1_4b1  = fmt_arg<1, gen_4b1>;
 using arg2_4b1  = fmt_arg<2, gen_4b1>;
 
 // second word args
-using arg1_1w0b3 = fmt_arg<1, gen_1w0b3>;
-using arg1_1w3b3 = fmt_arg<1, gen_1w3b3>;
-using arg2_1w0b3 = fmt_arg<2, gen_1w0b3>;
-using arg2_1w3b3 = fmt_arg<2, gen_1w3b3>;
+using arg1_1w0b3  = fmt_arg<1, gen_1w0b3>;
+using arg1_1w3b3  = fmt_arg<1, gen_1w3b3>;
+using arg2_1w0b3  = fmt_arg<2, gen_1w0b3>;
+using arg2_1w3b3  = fmt_arg<2, gen_1w3b3>;
 
-using arg1_1w3b2 = fmt_arg<1, gen_1w3b2>;
-using arg2_1w3b2 = fmt_arg<2, gen_1w3b2>;
+using arg1_1w3b2  = fmt_arg<1, gen_1w3b2>;
+using arg2_1w3b2  = fmt_arg<2, gen_1w3b2>;
 
 using arg1_1w4b2  = fmt_arg<1, gen_1w4b2>;
 using arg2_1w4b2  = fmt_arg<2, gen_1w4b2>;
 
+// get `opc` generic base classes
+using fmt_gen  = tgt::opc::tgt_fmt_opc_gen <z80_mcode_t>;
+using fmt_list = tgt::opc::tgt_fmt_opc_list<z80_mcode_t>;
+
 // used by OPC_LIST instructions
 struct FMT_LIST     : fmt_list, arg1_3b3, arg2_0b3 {};
-
-#if 0
-z80_opcode_fmt const& z80_opcode_fmt::get_list_fmt()
-{
-    static const FMT_LIST fmt;
-    return fmt;
-};
-#endif
 
 // general registers are 3-bits shifted 0 or 3 bits
 struct FMT_X       : fmt_gen {};
@@ -90,7 +79,7 @@ struct FMT_3       : fmt_gen, arg1_3b3 {};
 struct FMT_X_3     : fmt_gen, arg2_3b3 {};
 
 // IM: 2 bits modified & shifed 3 bits
-struct FMT_1W3B2     : fmt_gen, arg1_1w3b2 {};
+struct FMT_1W3B2   : fmt_gen, arg1_1w3b2 {};
 
 // DBL registers are two bits shifted 4
 struct FMT_4       : fmt_gen, arg1_4b2 {};

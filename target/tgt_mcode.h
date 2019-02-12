@@ -9,6 +9,7 @@ template <typename MCODE_T> struct tgt_validate;
 template <typename MCODE_T> struct tgt_format;
 template <typename MCODE_T> struct tgt_validate_args;
 template <typename MCODE_T> struct tgt_insn_defn;
+template <typename MCODE_T> struct tgt_insn_adder;
 
 }
 // instruction per-size run-time object
@@ -42,7 +43,6 @@ struct tgt_mcode_size_t
 template <typename MCODE_T, typename STMT_T, typename ERR_MSG_T, typename SIZE_T = tgt_mcode_size_t>
 struct tgt_mcode_t
 {
-    
     // CRTP types
     using base_t    = tgt_mcode_t;
     using derived_t = MCODE_T;
@@ -56,6 +56,8 @@ struct tgt_mcode_t
     using insn_t       = typename stmt_t::insn_t;
     using arg_t        = typename stmt_t::arg_t;
     using stmt_args_t  = decltype(stmt_t::args);
+    
+    using bitset_t     = typename insn_t::bitset_t;
 
     // convenience type references
     using op_size_t    = typename core::opcode::op_size_t;
@@ -65,6 +67,7 @@ struct tgt_mcode_t
     using val_t     = opc::tgt_validate     <MCODE_T>;
     using val_c_t   = opc::tgt_validate_args<MCODE_T>;
     using defn_t    = opc::tgt_insn_defn    <MCODE_T>;
+    using adder_t   = opc::tgt_insn_adder   <MCODE_T>;
 
     // override sizes in `SIZE_T` if required
     using mcode_size_t = typename SIZE_T::mcode_size_t;
@@ -128,7 +131,7 @@ struct tgt_mcode_t
     auto code() const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
 
     mcode_idx_t index;         // -> access this instance (zero-based)
-    defn_idx_t  defn_index;    // -> access name, fmt, validator (zero-based)
+    defn_idx_t  defn_index;    // -> access associated defn for name, fmt, validator (zero-based)
 };
 
 }

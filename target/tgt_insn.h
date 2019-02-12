@@ -32,7 +32,7 @@ struct tgt_insn_t
     // limit of number of MACHINE CODES per instruction
     // ie variants with same "name"
     static constexpr auto max_mcodes = MAX_MCODES;
-    using insn_bitset_t = std::bitset<max_mcodes>;
+    using bitset_t = std::bitset<max_mcodes>;
 
     // pointers to all `mcode_t` instances with same "name"
     std::vector<mcode_t const *> mcodes;
@@ -47,7 +47,7 @@ struct tgt_insn_t
 
     // methods are variadic templated to eliminate need for args to be forward declared
     template <typename...Ts>
-    mcode_t const *eval(insn_bitset_t&, Ts&&...) const;
+    mcode_t const *eval(bitset_t&, Ts&&...) const;
 
     // test if args suitable for INSN (eg: count) & processor flags
     template <typename...Ts>

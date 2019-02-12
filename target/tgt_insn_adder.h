@@ -3,28 +3,37 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-#include "z80_arg.h"
-#include "z80_insn_types.h"
+#include "tgt_insn_defn.h"
 #include "parser/sym_parser.h"
 
-namespace kas::z80::opc
+namespace kas::tgt::opc
 {
 using namespace meta;
-using namespace hw;
+//using namespace hw;
 
-struct z80_insn_adder
+template <typename MCODE_T>
+struct tgt_insn_adder
 {
-    using DEFN_T     = z80_insn_defn;
-    using VALUE_T    = opc::z80_insn_t *;
-    using XLATE_LIST = typename DEFN_T::XLATE_LIST;    
+    using mcode_t    = MCODE_T;
+    
+    // types used by `tgt_insn_adder`
+    using defn_t     = typename mcode_t::defn_t;
+    using insn_t     = typename mcode_t::insn_t;
+    using val_c_t    = typename mcode_t::val_c_t;
+    
+    // types interpreted by `sym_parser`
+    using VALUE_T    = mcode_t const *;
+    using XLATE_LIST = typename defn_t::XLATE_LIST;
+
+
 
     template <typename PARSER>
-    z80_insn_adder(PARSER) : defns { PARSER::sym_defns}
+    tgt_insn_adder(PARSER) : defns {PARSER::sym_defns}
     {
         // get types from sym_parser
         using types_defns = typename PARSER::all_types_defns; 
-        DEFN_T::names_base = at_c<types_defns, 0>::value;
-        DEFN_T::fmts_base  = at_c<types_defns, 1>::value;
+        defn_t::names_base = at_c<types_defns, 0>::value;
+        defn_t::fmts_base  = at_c<types_defns, 1>::value;
 
         // xlate VAL_C types as index into VAL array
         using VALS  = at_c<typename PARSER::all_types, 2>;
@@ -37,12 +46,12 @@ struct z80_insn_adder
 
         // Also store combo index in DEFN_T
         using kas::parser::detail::init_from_list;
-        DEFN_T::val_c_base = init_from_list<const z80_validate_args, COMBO>::value;
+        defn_t::val_c_base = init_from_list<const val_c_t, COMBO>::value;
         
         // val list & names are stored in `combo` 
         using VAL_NAMES = transform<VALS, quote<front>>;
-        z80_validate_args::vals_base  = at_c<types_defns, 2>::value;
-        z80_validate_args::names_base = init_from_list<const char *, VAL_NAMES>::value;
+        val_c_t::vals_base  = at_c<types_defns, 2>::value;
+        val_c_t::names_base = init_from_list<const char *, VAL_NAMES>::value;
 
         //z80_validate_args::set_base(at_c<types_defns, 2>::value);
     };
@@ -63,31 +72,32 @@ struct z80_insn_adder
         //std::cout << "z80_insn_adder::add()" << std::endl;
 
         // allocate run-time objects in deques
-        auto insn_obstack   = new typename z80_insn_t::obstack_t;
-        z80_insn_t::index_base = insn_obstack;
+        auto insn_obstack   = new typename insn_t::obstack_t;
+        insn_t::index_base  = insn_obstack;
 
-        auto opcode_obstack = new typename z80_opcode_t::obstack_t;
-        z80_opcode_t::index_base = opcode_obstack;
+        auto mcode_obstack  = new typename mcode_t::obstack_t;
+        mcode_t::index_base = mcode_obstack;
 
-        // store defns in z80_opcode_t
-        z80_opcode_t::defns_base = defns;
+        // store defns base in `mcode`
+        mcode_t::defns_base = defns;
 
         auto p = defns;
         for (int n = 0; n < count; ++p, ++n)
         {
             //std::cout << n << " base: " << p->name() << std::endl;
 
-            // XXX don't worry about validators: allocate all
-            z80_opcode_t *op_p {};
+            // XXX don't worry about hw validators: allocate all
+            mcode_t *mcode_p {};
 
-            // create the "opcode"
-            op_p = &opcode_obstack->emplace_back(opcode_obstack->size(), n, p);
+            // create the "mcode instance" 
+            // NB: use "size()" for instance index
+            mcode_p = &mcode_obstack->emplace_back(mcode_obstack->size(), n, p);
             auto&& name = p->name();
 
             // test for "list" opcode
             if (name[0] == '*')
             {
-                z80_insn_t::list_opcode = op_p;
+                insn_t::list_mcode_p = mcode_p;
                 continue;
             }
                 
@@ -99,15 +109,15 @@ struct z80_insn_adder
                 insn_p = &insn_obstack->emplace_back(insn_obstack->size(), std::move(name));
 
             // add opcode to insn
-            insn_p->opcodes.push_back(op_p);
+            insn_p->opcodes.push_back(mcode_p);
             if (insn_p->opcodes.size() > insn_p->max_opcodes)
                 throw std::logic_error("too many machine codes for " + std::string(name));
         }
 
         //std::cout << "z80_insn_adder::end" << std::endl;
     }
-    
-    DEFN_T const *defns;
+
+    defn_t const *defns;
 };
 }
 #endif

@@ -99,21 +99,14 @@ struct tgt_format
                 throw std::runtime_error("extract: bad index");
         }
     }
-#if 0
-    // returns "fmt" for "resolved" instructions (ie all constant args)
-    static tgt_format const& get_resolved_fmt();
     
-    // returns "fmt" for "list" instructions
-    static tgt_format const& get_list_fmt();
-#endif
     // return "opcode derived type" for given fmt
     virtual core::opcode& get_opc() const = 0;
 };
 
 // generic types to support `opc_general & `opc_list` opcodes
-
 template <typename MCODE_T>
-struct tgt_fmt_opc_gen : MCODE_T::fmt_t
+struct tgt_fmt_opc_gen : virtual MCODE_T::fmt_t
 {
     static inline tgt_opc_general<MCODE_T> opc; 
     virtual core::opcode& get_opc() const override 
@@ -123,7 +116,7 @@ struct tgt_fmt_opc_gen : MCODE_T::fmt_t
 };
 
 template <typename MCODE_T>
-struct tgt_fmt_opc_list : MCODE_T::fmt_t
+struct tgt_fmt_opc_list : virtual MCODE_T::fmt_t
 {
     static inline tgt_opc_list<MCODE_T> opc; 
     virtual core::opcode& get_opc() const override 
@@ -139,11 +132,11 @@ struct tgt_fmt_opc_list : MCODE_T::fmt_t
 template <typename MCODE_T, unsigned SHIFT, unsigned BITS, unsigned WORD = 0>
 struct tgt_fmt_generic
 {
-    using mcode_t = MCODE_T;
-    using arg_t        = typename mcode_t::arg_t;
-    using val_t        = typename mcode_t::val_t;
-    using fmt_t        = typename mcode_t::fmt_t;
-    using mcode_size_t = typename mcode_t::mcode_size_t;
+    // extract types from `MCODE_T`
+    using arg_t        = typename MCODE_T::arg_t;
+    using val_t        = typename MCODE_T::val_t;
+    using fmt_t        = typename MCODE_T::fmt_t;
+    using mcode_size_t = typename MCODE_T::mcode_size_t;
     
     static constexpr auto MASK = (1 << BITS) - 1;
     static bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p)
@@ -159,9 +152,6 @@ struct tgt_fmt_generic
             auto old_word = op[WORD];
             op[WORD] &= ~(MASK << SHIFT);
             op[WORD] |= value << SHIFT;         // NB: logic error if (VALUE &~ MASK)
-            // std::cout << std::hex;
-            // std::cout << "fmt_gen: " << old_word << " -> " << op[WORD];
-            // std::cout << " mask = " << MASK  << " shift = " << SHIFT << std::endl;
             return true;
         }
 

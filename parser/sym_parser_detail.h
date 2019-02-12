@@ -31,8 +31,8 @@ namespace kas::parser::detail
 
     // if T has ADDER member type, use as ADDER
     template <typename T>
-    struct adder<T, std::void_t<typename T::ADDER>> : T::ADDER {}; 
-    
+    struct adder<T, std::void_t<typename T::ADDER>> : T::ADDER {};
+
     template <typename T, typename = void>
     struct name_list_impl
     {

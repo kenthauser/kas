@@ -25,9 +25,9 @@ struct tgt_opcode : core::opc::opcode
     
     using insn_t       = typename mcode_t::insn_t;
     using bitset_t     = typename insn_t::bitset_t;
-    using arg_t        = typename MCODE_T::arg_t;
-    using stmt_args_t  = typename MCODE_T::stmt_args_t;
-    using mcode_size_t = typename MCODE_T::mcode_size_t;
+    using arg_t        = typename mcode_t::arg_t;
+    using stmt_args_t  = typename mcode_t::stmt_args_t;
+    using mcode_size_t = typename mcode_t::mcode_size_t;
 
     using op_size_t    = typename core::opcode::op_size_t;
     

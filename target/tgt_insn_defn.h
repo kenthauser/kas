@@ -3,7 +3,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //
-// z80 instruction data structures: stored & runtime
+// instruction data structures: stored & runtime
 //
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -65,10 +65,7 @@ auto constexpr code_to_words(std::size_t value)
     return N;
 }
 
-// forward declare adder
-template <typename MCODE_T> struct tgt_insn_adder;
-
-// per-instruction constexpr definition
+// XXX per-instruction constexpr definition
 template <typename MCODE_T>
 struct tgt_insn_defn
 {
@@ -78,6 +75,7 @@ struct tgt_insn_defn
     using fmt_t        = typename mcode_t::fmt_t;
     using val_t        = typename mcode_t::val_t;
     using val_c_t      = typename mcode_t::val_c_t;
+    using adder_t      = typename mcode_t::adder_t;
     using name_idx_t   = typename mcode_t::name_idx_t;
     using fmt_idx_t    = typename mcode_t::fmt_idx_t;
     using val_c_idx_t  = typename mcode_t::val_c_idx_t;
@@ -99,8 +97,7 @@ struct tgt_insn_defn
                           , list<void, VAL_LIST, void, list<>, quote<list>>
                           >;
 
-    // hook for `parser::sym_parser_t`
-    using ADDER  = tgt_insn_adder<MCODE_T>;
+    using ADDER  = adder_t;
 
     template <typename NAME, typename FMT, typename...VALs, typename VAL_C,
               typename N, typename OP, typename...D>
@@ -111,7 +108,7 @@ struct tgt_insn_defn
             , fmt_index   { FMT::value   + 1   }
             , val_c_index { VAL_C::value + 1   }
             , code        { OP::value  }
-            , code_words  { code_to_words<mcode_size_t>(OP::value) }
+            //, code_words  { code_to_words<mcode_size_t>(OP::value) }
             //, tst         { OP::tst::value     }
             {}
             
@@ -131,8 +128,8 @@ struct tgt_insn_defn
     auto& val_c() const  { return  val_c_base[val_c_index - 1]; }
 
     uint16_t code;          // actual binary code
-    uint16_t tst;           // hw test
-    uint8_t  code_words;    // zero-based
+    uint16_t tst {};           // hw test
+    uint8_t  code_words {};    // zero-based
 
     // override sizes in `MCODE_T`
     name_idx_t  name_index;    //  ? bits
