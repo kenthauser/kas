@@ -59,7 +59,7 @@ using z80_insn_ld_l = list<list<>
 
 , defn<STR("*LIST*"), 0, FMT_LIST, REG_GEN, REG_GEN>
 
-
+#if 0
 //
 // 8-bit load group
 //
@@ -117,6 +117,7 @@ using z80_insn_ld_l = list<list<>
 , defn<STR("cpir"), 0xedb1>
 , defn<STR("cpd") , 0xeda9>
 , defn<STR("cpdr"), 0xedb9>
+#endif
 >;
 
 
@@ -260,9 +261,11 @@ using z80_insn_io_l = list<list<>
 
 using z80_insn_list = list<list<>
                          , z80_insn_ld_l
+#if 0
                          , z80_insn_math_l
                          , z80_insn_jmp_l
                          , z80_insn_io_l
+#endif
                          >;
 }
 

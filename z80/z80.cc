@@ -52,14 +52,14 @@ namespace kas::z80::parser
                                 , opc::z80_insn_defn_groups
                                 , meta::quote<meta::_t>>;
 
-    using z80_insn_defn         = typename z80_mcode_t::insn_t;
+    using z80_insn_defn         = typename z80_mcode_t::defn_t;
     using z80_insn_sym_parser_t = kas::parser::sym_parser_t<z80_insn_defn, insns>;
 
     // XXX shoud stop parsing on (PARSER_CHARS | '.')
-    //z80_insn_sym_parser_t insn_sym_parser;
+    z80_insn_sym_parser_t insn_sym_parser;
 
     // parser for opcode names
-    z80_insn_x3   z80_insn_parser {"z80 opcode"};
+    z80_insn_x3 z80_insn_parser {"z80 opcode"};
     
     //auto const z80_insn_parser_def = insn_sym_parser.x3();
     //BOOST_SPIRIT_DEFINE(z80_insn_parser);
@@ -75,7 +75,7 @@ namespace kas::z80::parser
 #endif
 }
 
-#if 1
+#if 0
 #if 1
 namespace kas::tgt
 {

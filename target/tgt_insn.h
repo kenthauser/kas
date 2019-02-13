@@ -34,9 +34,6 @@ struct tgt_insn_t
     static constexpr auto max_mcodes = MAX_MCODES;
     using bitset_t = std::bitset<max_mcodes>;
 
-    // pointers to all `mcode_t` instances with same "name"
-    std::vector<mcode_t const *> mcodes;
-
     // canonical name & insn_list is all stored in instance
     tgt_insn_t(index_t index, std::string name) : index(index), name(name) {}
 
@@ -64,8 +61,11 @@ struct tgt_insn_t
     static auto& get(index_t idx) { return (*index_base)[idx]; }
     static inline const mcode_t  *list_mcode_p;
     
-    index_t     index;          // zero-based index
+    // pointers to all `mcode_t` instances with same "name"
+    std::vector<mcode_t const *> mcodes;
+
     std::string name;
+    index_t     index;          // zero-based index
     tst_t       hw_tst{};       // error message if no mcodes
 };
 
