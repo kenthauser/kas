@@ -124,8 +124,8 @@ struct tgt_insn_defn
         return names_base[name_index - 1];
     }
 
-    auto& fmt()   const  { return *fmts_base [fmt_index   - 1]; }
-    auto& val_c() const  { return  val_c_base[val_c_index - 1]; }
+    auto& fmt()  const  { return *fmts_base [fmt_index   - 1]; }
+    auto& vals() const  { return *val_c_base[val_c_index - 1]; }
 
     uint16_t code;          // actual binary code
     uint16_t tst {};           // hw test

@@ -32,7 +32,7 @@ namespace detail
 
 using namespace kas::core::opc;
 
-using e_fixed_t = typename expression::e_fixed_t;
+using expression::e_fixed_t;
 
 struct bsd_stmt_pseudo : kas::parser::parser_stmt
 {

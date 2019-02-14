@@ -22,7 +22,8 @@
 #include "parser_config.h"
 #include <string>
 
-namespace kas::parser {
+namespace kas::parser
+{
 
 struct kas_loc
 {
@@ -45,6 +46,7 @@ template <typename Iter>
 struct kas_position_tagged_t 
 {
     // calculate & return `kas_loc`
+    // NB: implementation at end of `error_reporting.h`
     operator kas_loc&() const;
 
     // access underlying string.
@@ -54,6 +56,8 @@ struct kas_position_tagged_t
     Iter first;
     Iter last;
     error_handler<Iter> const *handler{};
+    
+private:
     mutable kas_loc loc;
 };
 

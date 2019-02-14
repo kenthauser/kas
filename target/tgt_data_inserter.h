@@ -194,7 +194,11 @@ namespace detail
     struct tgt_data_reader 
     {
         static_assert(std::is_unsigned_v<value_type>);
-
+        
+        // need iterator to non-const values
+        using iter_value_type = typename std::iterator_traits<Iter>::value_type;
+        static_assert(!std::is_const_v<iter_value_type>);
+    
         using fixed_t        = typename core::opcode::data_t::fixed_t;
         using chunk_reader_t = typename core::chunk::chunk_reader_t<Iter, value_type>;
         using signed_t       = std::make_signed_t<value_type>;

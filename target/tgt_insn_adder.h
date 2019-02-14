@@ -54,7 +54,7 @@ struct tgt_insn_adder
         val_c_t::names_base = init_from_list<const char *, VAL_NAMES>::value;
 
         //z80_validate_args::set_base(at_c<types_defns, 2>::value);
-    };
+    }
 
     template <typename X3>
     void operator()(X3& x3, unsigned count)

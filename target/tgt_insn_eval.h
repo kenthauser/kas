@@ -110,7 +110,7 @@ typename INSN_T::mcode_t const* eval_insn_list
     return opcode_p;
 }
 
-#if 0
+#if 1
 // templated definition to cut down on noise in `insn_t` defn
 template <typename OPCODE_T, std::size_t _MAX_ARGS, std::size_t MAX_OPCODES, typename TST_T>
 template <typename...Ts>

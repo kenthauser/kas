@@ -12,10 +12,10 @@ namespace kas::bsd
         using namespace x3;
         using kas::parser::iterator_type;
         using kas::parser::context_type;
-#if 0
         // expression parsers
         BOOST_SPIRIT_INSTANTIATE(dot_parser_x3, iterator_type, context_type)
         BOOST_SPIRIT_INSTANTIATE(sym_parser_x3, iterator_type, context_type)
+#if 0
 
         // stmt parsers
         BOOST_SPIRIT_INSTANTIATE(pseudo_stmt_x3, iterator_type, context_type)

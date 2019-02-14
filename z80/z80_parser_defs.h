@@ -7,7 +7,7 @@
 
 // get target stmt definitions
 #include "z80_stmt.h"
-
+#include "parser/parser_stmt.h"
 // XXX need x3 include...
 
 // Declare reg_t, insn_t & stmt_t parsers

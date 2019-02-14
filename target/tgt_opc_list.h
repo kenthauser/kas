@@ -12,6 +12,8 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
 {
     using base_t  = tgt_opcode<MCODE_T>;
     using mcode_t = MCODE_T;
+
+    using base_t::serial_args;
    
     using insn_t       = typename mcode_t::insn_t;
     using bitset_t     = typename mcode_t::bitset_t;
@@ -37,7 +39,8 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
                  ) override
     {
         // process insn for size before saving
-        eval_insn_list(insn, ok, args, data, expression::expr_fits(), this->trace);
+        //eval_insn_list(insn, ok, args, data.size, expression::expr_fits(), this->trace);
+        insn.eval(ok, args, data.size, expression::expr_fits(), this->trace);
 
         // serialize format (for unresolved instructions)
         // 0) fixed area: OK bitset in host order
@@ -56,7 +59,7 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         
         // store OK bitset in fixed area
         fixed.fixed = ok.to_ulong();
-        return *this;
+        return this;
     }
 
     void fmt(data_t& data, Iter it, std::ostream& os) const override
@@ -71,7 +74,7 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         auto& fixed = data.fixed;
         bitset_t ok(fixed.fixed);
 
-        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, fixed, data.cnt());
+        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, fixed, data.cnt);
         reader.reserve(-1);
 
         auto& insn = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
@@ -105,17 +108,18 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         auto& fixed = data.fixed;
         bitset_t ok(fixed.fixed);
 
-        auto  reader = tgt_data_reader<mcode_size_t>(it, fixed, data.cnt());
+        auto  reader = tgt_data_reader<mcode_size_t>(it, fixed, data.cnt);
         reader.reserve(-1);
 
         auto& insn = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         
         auto& mc = *insn.list_mcode_p;
-        auto  args = serial_args(reader, mc);
+        auto  args = base_t::serial_args(reader, mc);
 
         // evaluate with new `fits`
-        eval_insn_list(insn, ok, args, data.size, fits, this->trace);
-        
+        //eval_insn_list(insn, ok, args, data.size, fits, this->trace);
+        insn.eval(ok, args, data.size, fits, this->trace);
+
         // save new "OK"
         fixed.fixed = ok.to_ulong();
         return data.size;
@@ -126,7 +130,7 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         auto& fixed = data.fixed;
         bitset_t ok(fixed.fixed);
 
-        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, fixed, data.cnt());
+        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, fixed, data.cnt);
         reader.reserve(-1);
 
         auto& insn    = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
@@ -137,7 +141,8 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         op_size_t size; 
 
         // XXX need core_fits 
-        auto mcode_p = eval_insn_list(insn, ok, args, size, expression::expr_fits(), this->trace);
+        //auto mcode_p = eval_insn_list(insn, ok, args, size, expression::expr_fits(), this->trace);
+        auto mcode_p = insn.eval(ok, args, size, expression::expr_fits(), this->trace);
         
         // XXX need to handle error case...
 

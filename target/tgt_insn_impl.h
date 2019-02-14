@@ -142,7 +142,7 @@ auto tgt_mcode_t<S, D, A, E>::fmt()   const -> fmt_t   const&
 
 template <typename S, typename D, typename A, typename E>
 auto tgt_mcode_t<S, D, A, E>::vals()  const -> val_c_t const&
-    { return defn().val_c(); }
+    { return defn().vals(); }
 
 template <typename S, typename D, typename A, typename E>
 auto tgt_mcode_t<S, D, A, E>::code_size() const -> uint8_t
@@ -160,7 +160,7 @@ auto tgt_mcode_t<S, D, A, E>
 
     auto value = d.code;
     auto n     = d.code_words;
-    auto p     = &code_data.data[n];
+    auto p     = &code_data[n];
 
     while(n--)
     {

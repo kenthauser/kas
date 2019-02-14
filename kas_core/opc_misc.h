@@ -5,9 +5,9 @@
 #include "core_symbol.h"
 #include "core_section.h"
 
-namespace kas { namespace core { namespace opc
+namespace kas::core::opc
 {
-    using e_fixed_t = typename expression::e_fixed_t;
+    using expression::e_fixed_t;
 
     struct opc_align : opcode
     {
@@ -177,6 +177,6 @@ namespace kas { namespace core { namespace opc
                 base << static_cast<unsigned char>(fill);
         }
     };
-}}}
+}
 
 #endif

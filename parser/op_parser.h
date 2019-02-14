@@ -258,7 +258,7 @@ struct op_parser_t<T, DEFNS, ADDER, NAMES>
         void operator()(Context& ctx)
         {
             x3::_val(ctx) = *x3::_attr(ctx);
-        };
+        }
     };
     
     auto x3_deref() const

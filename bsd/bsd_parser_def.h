@@ -132,7 +132,7 @@ namespace kas::bsd::parser
     // NB: location tagged at top level
     label_stmt_x3 label_stmt {"bsd_label"};
     auto const label_stmt_def = all_labels[bsd_stmt_label()];
-    BOOST_SPIRIT_DEFINE(label_stmt);
+    BOOST_SPIRIT_DEFINE(label_stmt)
     
     //////////////////////////////////////////////////////////////////////////
     // BSD Assembler Instruction Definitions

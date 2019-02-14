@@ -5,7 +5,6 @@
 #include "expr/expr.h"
 #include "parser/parser.h"
 
-#include "z80_parser_defs.h"    // interface to "statement parser"
 #include "z80_options.h"        // command-line options
 
 #include <boost/spirit/home/x3.hpp>

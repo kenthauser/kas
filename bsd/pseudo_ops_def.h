@@ -115,6 +115,7 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
         , list<STR("skip"),         bsd_skip>
         , list<STR("org"),          bsd_org>
         , list<STR("align"),        bsd_align>
+#if 1
         , list<STR("even"),         bsd_align, _ONE>
     // section ops
         , list<STR("section"),      bsd_section>
@@ -159,6 +160,8 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
 #undef CFI
 #undef CFI_CFA
 #undef CFI_ADJ
+
+#endif
         > {};
 
     // space separated opcodes

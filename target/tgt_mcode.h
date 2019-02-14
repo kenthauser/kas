@@ -58,6 +58,7 @@ struct tgt_mcode_t
     using stmt_args_t  = decltype(stmt_t::args);
     
     using bitset_t     = typename insn_t::bitset_t;
+    static_assert(std::is_same_v<derived_t, typename insn_t::mcode_t>);
 
     // convenience type references
     using op_size_t    = typename core::opcode::op_size_t;

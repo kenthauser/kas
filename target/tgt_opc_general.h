@@ -31,16 +31,15 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
     using mcode_size_t = typename base_t::mcode_size_t;
     using op_size_t    = typename base_t::op_size_t;
 
-    // XXX also need to expose `base_t` inherited types
-    using Inserter     = typename base_t::Inserter;
-    using fixed_t      = typename base_t::fixed_t;
+    // XXX also need to expose `opcode` inherited types
+    using data_t       = typename base_t::data_t;
     using Iter         = typename base_t::Iter;
 
     OPC_INDEX();
 
     const char *name() const override { return "TGT_GEN"; }
    
-    core::opcode& gen_insn(
+    core::opcode *gen_insn(
                  // results of "validate" 
                    insn_t const&  insn
                  , bitset_t&      ok
@@ -48,9 +47,7 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
                  , stmt_args_t&&  args
 
                  // and kas_core boilerplate
-                 , Inserter&  di
-                 , fixed_t&   fixed
-                 , op_size_t& insn_size
+                 , data_t&  data
                  ) override
     {
         // get size for this opcode
@@ -65,6 +62,8 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
         }
         std::cout << std::endl;
         
+        // XXX incorrect
+        op_size_t insn_size;
         op.size(args, insn_size, expression::expr_fits{}, this->trace);
 
         // serialize format (for resolved instructions)
@@ -77,15 +76,15 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
         inserter(op.index, M_SIZE_WORD);
         z80_insert_args(inserter, op, std::move(args));
 #else
-        auto inserter = tgt_data_inserter<mcode_size_t>(di, fixed);
+        auto inserter = tgt_data_inserter<mcode_size_t>(data.di(), data.fixed);
         inserter(op.index);
         tgt_insert_args(inserter, op, std::move(args));
 
 #endif
-        return *this;
+        return this;
     }
     
-    void fmt(Iter it, uint16_t cnt, std::ostream& os) override
+    void fmt(data_t& data, Iter it, std::ostream& os) const override
     {
         // deserialize insn data
         // format:
@@ -113,7 +112,7 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
         }
 #else
 
-        auto  reader = tgt_data_reader<mcode_size_t>(it, *this->fixed_p, cnt);
+        auto  reader = tgt_data_reader<mcode_size_t>(it, data.fixed, data.cnt());
         auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
         
         auto args   = serial_args(reader, mcode);
@@ -146,7 +145,7 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
 #endif
     }
 
-    op_size_t calc_size(Iter it, uint16_t cnt, core::core_fits const& fits) override
+    op_size_t calc_size(data_t& data, Iter it, core::core_fits const& fits) const override
     {
         // deserialize insn data
         // format:
@@ -173,7 +172,7 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
 #else
         //using MCODE_T = z80_opcode_t;
 
-        auto  reader = tgt_data_reader<mcode_size_t>(it, *this->fixed_p, cnt);
+        auto  reader = tgt_data_reader<mcode_size_t>(it, data.fixed, data.cnt());
         auto& mcode = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
         
         auto args   = serial_args(reader, mcode);
@@ -193,14 +192,14 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
         return new_size;
     }
 
-    void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const *dot_p) override
+    void emit(data_t& data, Iter it, core::emit_base& base, core::core_expr_dot const *dot_p) const override
     {
         // deserialze insn data
         // format:
         //  1) opcode index
         //  2) opcode binary code (word or long)
         //  3) serialized args
-        auto  reader = tgt_data_reader<mcode_size_t>(it, *this->fixed_p, cnt);
+        auto  reader = tgt_data_reader<mcode_size_t>(it, data.fixed, data.cnt());
         auto& opcode = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
 
         auto args   = serial_args(reader, opcode);

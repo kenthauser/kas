@@ -137,6 +137,8 @@ Option list         : example: ("-compress,:,none,zlib,zlib-gnu,zlib-gabi")
 #include <stdexcept>
 #include <iostream>
 #include <cinttypes>
+#include <cstring>
+#include <functional>
 
 
 // define namespace
@@ -226,7 +228,7 @@ struct po_option_defn
     {
         int n{};
         for (auto& value : opts) {
-            if (!strcmp(arg, value))
+            if (!std::strcmp(arg, value))
                 return n;
             ++n;
         }

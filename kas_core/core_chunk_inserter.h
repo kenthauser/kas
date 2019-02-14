@@ -117,7 +117,7 @@ private:
     // add element to chunk. flush if full.
     void add_element (value_type t)
     {
-        auto& chunk = get_wr_chunk();
+        auto& chunk  = get_wr_chunk();
         last_write_p = chunk.end();
         if (chunk.add(t)) {
             // here chunk is full.
@@ -160,14 +160,14 @@ private:
     void flush()
     {
         last_write_p = nullptr;
-        chunk_p = nullptr;
-        n = 0;
+        chunk_p      = nullptr;
+        n            = 0;
     }
     
     expr_t     *chunk_p {};
     CHUNK_VT   *last_write_p {};
     Inserter&   di;
-    short       n {};       // count in fixed area
+    short       n {};       // XXX count in fixed area
 };
 
 // T too big for any chunk_t
@@ -266,8 +266,8 @@ namespace detail
             return false;
         }
 
-        CHUNK_VT *chunk_p {};
-        CHUNK_VT const* chunk_end {};
+        CHUNK_VT       *chunk_p {};
+        CHUNK_VT const *chunk_end {};
 
         Iter& it;
         std::size_t cnt;

@@ -206,7 +206,12 @@ struct tgt_fmt_arg<MCODE_T, N, T> : virtual MCODE_T::fmt_t                      
 };
 
 // declare `FMT_MAX_ARGS` times
-DEFN_ARG(1); DEFN_ARG(2); DEFN_ARG(3); DEFN_ARG(4); DEFN_ARG(5); DEFN_ARG(6)
+DEFN_ARG(1)
+DEFN_ARG(2)
+DEFN_ARG(3)
+DEFN_ARG(4)
+DEFN_ARG(5)
+DEFN_ARG(6)
 #undef DEFN_ARG
 
 #endif

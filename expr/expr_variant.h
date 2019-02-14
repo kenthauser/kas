@@ -61,30 +61,43 @@ namespace detail {
     using namespace meta;
     using namespace meta::placeholders;
 
-    using variant_types = term_types;
-
-    // scan types looking for wrapped types
+    // test for ref-loc-t wrapped types
     template <typename T, typename = void>
     struct is_ref_loc_wrapped: std::false_type {};
 
-    // test for declared (not defined) wrapped types
+    // works for declared (& not yet defined) types as well
     template <typename T>
     struct is_ref_loc_wrapped<T, std::void_t<typename T::object_t, typename T::index_t>> :
         std::is_same<T, core::ref_loc_t<typename T::object_t, typename T::index_t>> {};
 
-    struct get_object_t
-    {
-        template <typename T>
-        using invoke = typename T::object_t;
-    };
+    // alias to get `object_t` from T
+    template <typename T>
+    using get_object_t = typename T::object_t;
+
+    // Variant types:
+    //
+    // `variant_types` is list of actual types
+    // `plain`         is list of unwrapped types
+    // `wrapped`       is list of ref-loc-t wrapped types
+    // `unwrapped`     is list of object types `wrapped` in `wrapped`
+
+    using variant_types = term_types;
 
     using plain     = at_c<partition<variant_types, quote<is_ref_loc_wrapped>>, 1>;
     using wrapped   = at_c<partition<variant_types, quote<is_ref_loc_wrapped>>, 0>;
-    using unwrapped = transform<wrapped, get_object_t>;
+    using unwrapped = transform<wrapped, quote<get_object_t>>;
+
+    // re-wrap unwrapped type
+    template <typename T>
+    using wrap = at<wrapped, find_index<unwrapped, T>>;
+    
+    // simplify `do_visitor` enable-if types
+    template <typename LIST, typename T>
+    using decay_in = meta::in<LIST, std::decay_t<T>>;
 
     // XXX cannot reduce below 4* because of std::string...???
     static constexpr std::size_t expr_max_size_t = 8 * sizeof(void*);
-
+#if 1
     // XXX use std::void_t<>
     template <typename T, typename = void>
     struct has_wrapped_value_type_impl : std::false_type {};
@@ -99,7 +112,7 @@ namespace detail {
     // extract wrapped types
 
     using ref_loc_types     = filter<variant_types, quote<is_ref_loc_wrapped>>;
-    using ref_wrapped_types = transform<ref_loc_types, get_object_t>;
+    using ref_wrapped_types = transform<ref_loc_types, quote<get_object_t>>;
 
     template <typename T>
     using T2Ref = at<ref_loc_types, find_index<ref_wrapped_types, T>>;
@@ -118,16 +131,6 @@ namespace detail {
                                 , lambda<_a, std::is_constructible<_a, T>>
                                 >
                             >;
-
-    // using all_variant_types = term_types;
-    using expr_x3_variant = apply<quote<x3::variant>, variant_types>;
-
-    // be sure default variant type is e_fixed_t
-    static_assert(std::is_same<
-                      front<variant_types>
-                    , e_fixed_t
-                    >::value
-                , "expr_t variant default is not e_fixed_t");
 
     // helper to find "forwarded" types
     template <typename T>
@@ -155,6 +158,7 @@ namespace detail {
 
     template <typename T>
     static constexpr auto is_ref_wrapped_v = in<ref_wrapped_types, std::decay_t<T>>::value;
+#endif
 
     // primary template handles types that have no nested `get_p` member:
     template <typename, typename = e_fixed_t, typename = void>
@@ -165,57 +169,86 @@ namespace detail {
     struct has_get_template<T, U,
         std::void_t<decltype(std::declval<T>().template get_p<U>())>>
             : std::true_type {};
+    
+    // create x3::variant base-type
+    using expr_x3_variant = apply<quote<x3::variant>, variant_types>;
+
+    // be sure default variant type is e_fixed_t
+    static_assert(std::is_same<front<variant_types>, e_fixed_t>::value
+                , "expr_t variant default is not e_fixed_t");
+
 }
 
 struct expr_t : detail::expr_x3_variant
 {
-    using base_type = detail::expr_x3_variant;
-    using base_type::get;
-    using base_type::base_type;
+    using base_t = detail::expr_x3_variant;
+
+    // XXX inherit move operator, etc
 
     using variant_types   = detail::variant_types;
+    using plain           = detail::plain;
+    using wrapped         = detail::wrapped;
+    using unwrapped       = detail::unwrapped;
+
+    // XXX deprecated
     using unwrapped_types = meta::concat<detail::plain, detail::unwrapped>;
 
+    // define four public ctors
+    // 1. default ctor (value = zero)
+    // 2. integral ctor: allow only values which fit in `e_fixed_t`
+    // 3. wrapped ctor: allow lvalue refs which have `ref-loc-t` wrapper
+    // 4. base_type: not integral nor wrapped
+
+    // 1. default ctor
     expr_t() = default;
 
+    // 2. integral types
+    // vacuum up all integral types. filter back as appropriate
+    // three types of numeric arguments:
+    //  1. integers that can be converted to `e_fixed_t`
+    //  2. floating point args
+    //  3. big integers
+    //
+    // create "numeric" ctor which filters out floats
+    // then forward to private ctor which filters out big-integers
+
     template <typename T, typename = std::enable_if_t<
-                    detail::is_expr_v<T>
-                 && !std::is_integral_v<std::decay_t<T>>
-                 >>
-    expr_t(T&& t) : base_type(std::forward<T>(t)) {}
+                                        std::is_integral_v<
+                                            std::remove_reference_t<T>
+                                     >>>
+    expr_t(T&& value) : expr_t(value, true) {}
 
-    template <typename T, typename U = std::decay_t<T>, typename = std::enable_if_t<
-                            std::is_integral_v<U> 
-                            && sizeof(U) <= sizeof(e_fixed_t)>>
-    expr_t(T t) : base_type(static_cast<e_fixed_t>(t)) {}
+    // 3. wrapped ctor types
+    // NB: only accept lvalues as `unwrapped` instances must by permanently allocated
+    template <typename T, typename = std::enable_if_t<meta::in<unwrapped, T>::value>>
+    expr_t(T const& t) : base_t(t.ref()) {}
 
-    template <typename T, typename = std::enable_if_t<
-                    detail::is_ref_wrapped_v<T>// && !std::is_arithmetic_v<T>
-                    >>
-    expr_t(T const& t) : expr_t(t.ref()) {}
+    // 4. not integral nor wrapped: forward to base_t
+    template <typename T
+            , typename U = std::decay_t<T>  // remove const && ref
+            , typename   = std::enable_if_t<
+                             !meta::in<unwrapped, U>::value &&
+                             !std::is_integral_v<U>
+                            >>
+    expr_t(T&& value) : base_t(std::forward<T>(value)) {}
 
-    // XXX the templated constructor conflicts with integral ? 
-    expr_t(long double t) : expr_t(kas_float::add(t)) {}
-
-#if 0
-    // hold host integral types too big for `e_fixed_t`
-    template <typename T, typename = std::enable_if_t
-                <std::is_integral_v<T> && (sizeof(T) > sizeof(e_fixed_t))>>
-    expr_t(T t) : expr_t(kas_bigint_host::add(t)) {}
-#endif
+private:
+    // private ctor excludes integral types too big for `e_fixed_t`
+    expr_t(e_fixed_t value, bool) : base_t(value) {}
     
 private:
+#if 0
     // method to call visitor with `type` or `unwrapped` type
     // if `unwrapped` type has `value_type`, use actual value
     // (eg. floating points are too big to be put in variant directly)
     template <typename T, typename F>
     static auto do_visitor(T&& e, F&& v)
-        -> decltype(e.base_type::apply_visitor(std::declval<F>()))
+        -> decltype(e.base_t::apply_visitor(std::declval<F>()))
     {
         // if `ref_loc_t` type, call visitor with `wrapped` object
         using RT = typename std::decay_t<F>::result_type;
 
-        return e.base_type::apply_visitor(
+        return e.base_t::apply_visitor(
                     x3::make_lambda_visitor<RT>(
             [&v](auto&& node)
                 -> std::enable_if_t<detail::is_ref_loc_value_v<decltype(node)>, RT>
@@ -234,7 +267,40 @@ private:
                 }
             ));
     }
+#else
+    // method to call visitor with `type` or `unwrapped` type
+    // if `unwrapped` type has `value_type`, use actual value
+    // (eg. floating points are too big to be put in variant directly)
+    template <typename T, typename F>
+    static auto do_visitor(T&& e, F&& v)
+        -> decltype(e.base_t::apply_visitor(std::declval<F>()))
+    {
+        // if `ref_loc_t` type, call visitor with `wrapped` object
+        using RT = typename std::decay_t<F>::result_type;
 
+        return e.base_t::apply_visitor(
+                    x3::make_lambda_visitor<RT>(
+        #if 0
+            [&v](auto&& node)
+                -> std::enable_if_t<detail::decay_in<wrapped, decltype(node)>::value, RT>
+                {
+                    return v(node.get()());
+                },
+        #endif
+            [&v](auto&& node)
+                -> std::enable_if_t<detail::decay_in<wrapped, decltype(node)>::value, RT>
+                {
+                    return v(std::forward<decltype(node)>(node).get());
+                },
+            [&v](auto&& node)
+                -> std::enable_if_t<detail::decay_in<plain, decltype(node)>::value, RT>
+                {
+                    return v(std::forward<decltype(node)>(node));
+                }
+            ));
+    }
+
+#endif
     // recursively perform get_p<> on variant node to retrive `const *`
     template <typename T, typename = void>
     T const *get_nested_p() const
@@ -264,7 +330,7 @@ private:
                 }
             ));
     }
-
+#if 0
     // true if variant holds an integral type
     template <typename T>
     bool is_integral() const
@@ -280,7 +346,7 @@ private:
                 { return false; }
          ));
     }
-
+#endif
 public:
     // use common routine for const/mutable
     template <typename F>
@@ -294,44 +360,38 @@ public:
         return this->do_visitor(*this, std::forward<F>(v));
     }
 
+    // method `get_p` maps to `get_if` for std::variant
     template <typename T>
-    std::enable_if_t<detail::in_variant_v<T>, T const*>
-    get_p() const
+    std::enable_if_t<meta::in<variant_types, T>::value, T*>
+    get_p()
     {
-        return boost::get<T>(&this->get());
+        return boost::get<T>(this);
     }
-    // template <typename T>
-    // std::enable_if_t<detail::in_variant_v<T>, T*>
-    // get_p()
-    // {
-    //     return boost::get<T>(&this->get());
-    // }
 
     // check wrapped types
     template <typename T>
-    std::enable_if_t<detail::is_ref_wrapped_v<T>, T const*>
-    get_p() const
+    std::enable_if_t<meta::in<unwrapped, T>::value, T*>
+    get_p()
     {
-        if (auto p = boost::get<detail::T2Ref<T>>(&this->get()))
+        // if associated ref_loc_t found, return pointer to object
+        if (auto p = boost::get<detail::wrap<T>>(this))
             return &p->get();
         return nullptr;
     }
 
-    // template <typename T>
-    // std::enable_if_t<detail::in_variant_v<x3::forward_ast<T>>, T*>
-    // get_p()
-    // {
-    //     if (auto p = boost::get<x3::forward_ast<T>>(&this->get()))
-    //         return p->get_pointer();
-    //     return nullptr;
-    // }
+    // const `get_p`: use mutable method, but return const ptr
+    template <typename T>
+    T const *get_p() const
+    {
+        return const_cast<expr_t *>(this)->get_p<T>();
+    }
 
     // XXX need to refactor `get_fixed_p` so it can handle integral
     // XXX types larger than `e_fixed_t`. For instance, a `std::size_t`
     // XXX instance of `expr_t` returns nullptr for `get_fixed_p`
     auto get_fixed_p() const { return get_nested_p<e_fixed_t>(); }
     auto get_loc_p()   const { return get_nested_p<kas::parser::kas_loc>() ;  }
-    auto is_missing()  const { return false; }
+    //auto is_missing()  const { return false; }
 };
 
 static_assert (sizeof(expr_t) == sizeof(detail::expr_x3_variant)

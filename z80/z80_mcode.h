@@ -27,6 +27,7 @@ struct z80_mcode_t : tgt::tgt_mcode_t<z80_mcode_t, z80_stmt_t, error_msg, z80_mc
     using base_t::base_t;
 
     // prefix is part of `base` machine code size calculation
+    // not part of `arg` size calculation
     auto base_size() const
     {
         // NB: sizeof(mcode_size_t) == 1

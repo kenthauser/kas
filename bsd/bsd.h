@@ -17,19 +17,19 @@ namespace kas
 
         // declare statment parsers
         using pseudo_stmt_x3 = x3::rule<class _pseudo, bsd::bsd_stmt_pseudo>;
-        BOOST_SPIRIT_DECLARE(pseudo_stmt_x3);
+        BOOST_SPIRIT_DECLARE(pseudo_stmt_x3)
         
         using dwarf_stmt_x3  = x3::rule<class _dwarf,  bsd::bsd_stmt_pseudo>;
-        BOOST_SPIRIT_DECLARE(dwarf_stmt_x3);
+        BOOST_SPIRIT_DECLARE(dwarf_stmt_x3)
         
         using equ_stmt_x3    = x3::rule<class _equ,    bsd::bsd_stmt_equ>;
-        BOOST_SPIRIT_DECLARE(equ_stmt_x3);
+        BOOST_SPIRIT_DECLARE(equ_stmt_x3)
         
         using org_stmt_x3    = x3::rule<class _org,    bsd::bsd_stmt_org>;
-        BOOST_SPIRIT_DECLARE(org_stmt_x3);
+        BOOST_SPIRIT_DECLARE(org_stmt_x3)
 
         using label_stmt_x3  = x3::rule<class _label,  bsd::bsd_stmt_label>;
-        BOOST_SPIRIT_DECLARE(label_stmt_x3);
+        BOOST_SPIRIT_DECLARE(label_stmt_x3)
     }
 
     // parser public interface

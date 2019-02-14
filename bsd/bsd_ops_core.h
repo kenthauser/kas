@@ -20,26 +20,24 @@ struct bsd_align : core::opc::opc_align
         proc_args(data, std::move(args), num_v[0]);
     }
 
-    void proc_args(data_t& data, bsd_args&& args, short n = 0);
-};
-
-void bsd_align::proc_args(data_t& data, bsd_args&& args, short n)
-{
-    // copy location_tagged value
-    kas_token loc = args.front();
-    if (auto result = validate_min_max(args, !n, !n))
-        return make_error(data, result);
-
-    // if not implied size (eg: .even), arg must be fixed
-    if (args.size())
+    void proc_args(data_t& data, bsd_args&& args, short n = 0)
     {
-        if (auto p = args.front().get_fixed_p())
-            n = *p;
-        else
-            return make_error(data, "fixed alignment required", loc);
+        // copy location_tagged value
+        kas_token loc = args.front();
+        if (auto result = validate_min_max(args, !n, !n))
+            return make_error(data, result);
+
+        // if not implied size (eg: .even), arg must be fixed
+        if (args.size())
+        {
+            if (auto p = args.front().get_fixed_p())
+                n = *p;
+            else
+                return make_error(data, "fixed alignment required", loc);
+        }
+        opc_align::proc_args(data, loc, n);
     }
-    opc_align::proc_args(data, loc, n);
-}
+};
 
 struct bsd_org : core::opc::opc_org
 {

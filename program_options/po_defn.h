@@ -191,7 +191,7 @@ struct po_defns
             if (group_name == d.group_name)
                 return d;
             if (group_name && d.group_name)
-                if (!strcmp(group_name, d.group_name))
+                if (!std::strcmp(group_name, d.group_name))
                     return d;
         }
 

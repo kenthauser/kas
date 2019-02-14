@@ -58,9 +58,11 @@ namespace kas { namespace core
             T const& operator[](size_t n) const { return chunks[n]; }
             T&       operator[](size_t n)       { return chunks[n]; }
 
-            // XXX chunks are imutable? operator[] returns non-const ref
-            decltype(auto) begin() const { return std::begin(chunks); }
-            decltype(auto) end()   const { return std::end(chunks); }
+            value_type *begin()       { return std::begin(chunks); }
+            value_type *end()         { return std::end(chunks); }
+
+            //decltype(auto) begin() const { return std::begin(chunks); }
+            //decltype(auto) end()   const { return std::end(chunks); }
 
             template <typename OS>
             void print(OS& os) const
@@ -169,7 +171,8 @@ namespace kas { namespace core
             }
 
             using full_type::begin;
-            decltype(auto) end()  const { return begin() + chunks[index]; }
+            decltype(auto) end()        { return begin() + chunks[index]; }
+            //decltype(auto) end()  const { return begin() + chunks[index]; }
         };
 
 

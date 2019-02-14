@@ -53,9 +53,9 @@ struct tgt_opcode : core::opc::opcode
 protected:
     // create a "container" for deserialized args
     template <typename READER_T>
-    struct serial_args
+    struct serial_args_t
     {
-        serial_args(READER_T& reader, MCODE_T const& mcode)
+        serial_args_t(READER_T& reader, MCODE_T const& mcode)
             : mcode(mcode)
         {
             std::tie(code_p, args, update_handle) = tgt::opc::tgt_read_args(reader, mcode);
@@ -64,7 +64,7 @@ protected:
         // create an `iterator` to allow range-for to process sizes
         struct iter : std::iterator<std::forward_iterator_tag, arg_t>
         {
-            iter(serial_args const& obj, bool make_begin = {}) 
+            iter(serial_args_t const& obj, bool make_begin = {}) 
                     : obj(obj)
                     , index(make_begin ? 0 : -1)
                     {}
@@ -86,7 +86,7 @@ protected:
             }
         
         private:
-            serial_args const& obj;
+            serial_args_t const& obj;
             int                index;
         };
 
@@ -104,6 +104,12 @@ protected:
         arg_t         *args;
         void          *update_handle;
     };
+
+    template <typename READER_T>
+    static auto serial_args(READER_T& reader, MCODE_T const& mcode)
+    {
+        return serial_args_t<READER_T>(reader, mcode); 
+    }
 };
 }
 #endif

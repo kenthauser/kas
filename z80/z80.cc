@@ -1,25 +1,25 @@
 
 #include "z80.h"
-#include "z80_mcode.h"
+//#include "z80_mcode.h"
 
 #include "z80_reg_defn.h"
 
 //#include "z80_reg_adder.h"
 //#include "z80_insn_types.h"
 
-#include "target/tgt_insn_adder.h"
-#include "insns_z80.h"
+//#include "target/tgt_insn_adder.h"
+//#include "insns_z80.h"
 #include "z80_arg_impl.h"
 
 // parse z80 instruction + args
-#include "z80_parser.h"
+//#include "z80_parser.h"
 
 
 // boilerplate: tgt_impl & sym_parser (for insn & reg names)
 #include "parser/sym_parser.h"
 #include "target/tgt_reg_impl.h"
 #include "target/tgt_regset_impl.h"
-#include "target/tgt_insn_impl.h"
+//#include "target/tgt_insn_impl.h"
 
 namespace kas::z80::parser
 {
@@ -43,9 +43,9 @@ namespace kas::z80::parser
     // `expression`  parser for register names
     z80_reg_x3 z80_reg_parser {"z80 reg"};
     auto z80_reg_parser_def = reg_sym_parser.x3_deref();
-    BOOST_SPIRIT_DEFINE(z80_reg_parser);
+    BOOST_SPIRIT_DEFINE(z80_reg_parser)
 
-
+#if 0
 
     // combine all `insn` defns into single list & create symbol parser 
     using insns = all_defns_flatten<opc::z80_insn_defn_list
@@ -73,10 +73,11 @@ namespace kas::z80::parser
     //BOOST_SPIRIT_INSTANTIATE(z80_insn_x3, iterator_type, context_type)
     //BOOST_SPIRIT_INSTANTIATE(z80_stmt_x3, iterator_type, context_type)
 #endif
+#endif
 }
 
-#if 0
 #if 1
+#if 0
 namespace kas::tgt
 {
     template      z80::z80_reg_set::tgt_reg_set::tgt_reg_set(z80::z80_reg_t const&, char);
@@ -88,19 +89,27 @@ namespace kas::tgt
 #else
 namespace
 {
-    void _instantiate()
+    struct _instantiate
     {
-        kas::z80::z80_reg_t reg{};
-        kas::z80::z80_reg_set rs(reg);
-        rs.operator-(reg);
-        rs.operator/(reg);
+        _instantiate()
+        {
+            kas::z80::z80_reg_t reg{};
+            kas::z80::z80_reg_set rs(reg);
+            kas::core::core_expr e{42};
+            rs.operator-(reg);
+            rs.operator/(reg);
 
-        reg.validate(0);
-    } 
+            rs.operator-(e);
+            rs.operator+(e);
 
+            reg.validate(0);
+        }
+    } _xxx_instantiate;
 }
 #endif
 #endif
+
+#if 0
 // instantiate printers
 namespace kas::tgt
 {
@@ -108,3 +117,4 @@ namespace kas::tgt
     template  void z80::z80_reg_set::print<std::ostream>(std::ostream&) const;
     template  void z80::z80_reg_set::print<std::ostringstream>(std::ostringstream&) const;
 }
+#endif
