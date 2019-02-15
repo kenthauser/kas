@@ -12,11 +12,8 @@ namespace kas::parser::print
 template <typename OS>
 struct stmt_print
 {
-    stmt_print(OS& os, const char *name) : os(os)
-    {
-        os << std::hex << name << '\t';
-    }
-    
+    stmt_print(OS& os) : os(os) {}
+
     // empty is done...
     void operator()() const {};
 

@@ -219,7 +219,6 @@ struct opc_nop : opcode
     {
         return NAME::value;
     }
-
 };
 
 struct opc_error : opcode

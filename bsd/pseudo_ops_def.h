@@ -1,7 +1,6 @@
 #ifndef KAS_BSD_PSEUDO_OPS_DEF_H
 #define KAS_BSD_PSEUDO_OPS_DEF_H
 
-#include "bsd.h"
 #include "bsd_stmt.h"
 
 #include "bsd_ops_core.h"
@@ -11,13 +10,11 @@
 #include "bsd_ops_cfi.h"
 
 #include "parser/op_parser.h"
-//#include "parser/sym_parser.h"
 
 #include "kas/defn_utils.h"
 #include "kas/kas_string.h"
 #include "utility/string_mpl.h"
 
-#if 1
 namespace kas::bsd
 {
 namespace detail
@@ -93,7 +90,7 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
 
 
     // pseudo ops defns: name, core_opcode, [<additional args>]
-    template<> struct pseudo_ops_v<bsd_basic_tag> : list<
+    template<> struct comma_ops_v<bsd_basic_tag> : list<
     // fixed data ops
           list<STR("byte"),         bsd_fixed<opc_fixed<std::int8_t>>>
         , list<STR("word"),         bsd_fixed<opc_fixed<std::int16_t>>>
@@ -165,7 +162,7 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
         > {};
 
     // space separated opcodes
-    template<> struct dwarf_ops_v<bsd_basic_tag> : list<
+    template<> struct space_ops_v<bsd_basic_tag> : list<
           list<STR("loc"),          bsd_loc>
         , list<STR("file"),         bsd_file>
         
@@ -224,21 +221,25 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
         short       arg_c;
     };
 
-    using ps_defs = all_defns<pseudo_ops_v, bsd_pseudo_tags>;
-    using dw_defs = all_defns<dwarf_ops_v,  bsd_pseudo_tags>;
+    using comma_defs = all_defns<comma_ops_v, bsd_pseudo_tags>;
+    using space_defs = all_defns<space_ops_v,  bsd_pseudo_tags>;
 
-    static const auto ps_ops = parser::op_parser_t<pseudo_op_t, ps_defs>();
-    static const auto dw_ops = parser::op_parser_t<pseudo_op_t, dw_defs>();
+    static const auto comma_ops = parser::op_parser_t<pseudo_op_t, comma_defs>();
+    static const auto space_ops = parser::op_parser_t<pseudo_op_t, space_defs>();
 }
 
-auto const pseudo_op_x3 = x3::no_case[x3::lexeme['.' >> detail::ps_ops.x3()]];
-auto const dwarf_op_x3  = x3::no_case[x3::lexeme['.' >> detail::dw_ops.x3()]];
+auto const comma_op_x3 = x3::no_case[x3::lexeme['.' >> detail::comma_ops.x3()]];
+auto const space_op_x3  = x3::no_case[x3::lexeme['.' >> detail::space_ops.x3()]];
 
 //
 // implement bsd_stmt methods for pseudo-ops
 //
 
-//template <typename...Ts>
+std::string bsd_stmt_pseudo::name() const
+{
+    return std::string("BSD_PSEUDO:") + op->name;
+}
+
 opcode *bsd_stmt_pseudo::gen_insn(opcode::data_t& data)
 {
     return &(op->*op->proc_args)(data, std::move(v_args));
@@ -250,11 +251,10 @@ void bsd_stmt_pseudo::print_args(kas::parser::print_obj const& fn) const
     auto n = op->arg_c;
     std::vector<const char *> xtra_args(op->str_v, op->str_v + n);
     
-    if (xtra_args.size())
+    if (n)
         fn(xtra_args, v_args);
     else
         fn(v_args);
 }
 }
-#endif
 #endif

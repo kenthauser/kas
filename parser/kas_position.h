@@ -52,6 +52,11 @@ struct kas_position_tagged_t
     // access underlying string.
     auto  begin() const { return first; }
     auto& end()   const { return last;  }
+
+    auto where() const
+    {
+        return std::make_pair(0, std::string(first, last));
+    }
     
     Iter first;
     Iter last;

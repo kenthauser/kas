@@ -24,9 +24,6 @@ namespace detail
     using parser_variant = apply<quote<x3::variant>, all_types_l>;
 }
 
-#if 0
-using stmt_t = detail::parser_variant;
-#else
 struct stmt_t : detail::parser_variant
 {
     using base_t = detail::parser_variant;
@@ -61,10 +58,26 @@ struct stmt_t : detail::parser_variant
 #endif
     kas_position_tagged const& loc() const
     {
-        static kas_position_tagged dummy;
-        return dummy;// get_base();
+        return apply_visitor(x3::make_lambda_visitor<kas_position_tagged const&>(
+            [](auto& node) { return node; }
+            ));
     }
-    
+
+    std::string src() const
+    {
+        return apply_visitor(x3::make_lambda_visitor<std::string>(
+            [](auto&& node)
+            {
+                if (node.handler)
+                    return node.where().second;
+                
+                std::string result{"UNTAGGED: "};
+                result += typeid(node).name();
+                return result;
+            }
+            ));
+        //return "source";
+    }
 
     template <typename...Ts>
     opcode& operator()(Ts&&...args)
@@ -73,7 +86,27 @@ struct stmt_t : detail::parser_variant
         return opc;
         //return get_base()(std::forward<Ts>(args)...);
     }
+    
+
+    void print(std::ostream& os) const
+    {
+        this->apply_visitor(x3::make_lambda_visitor<void>(
+            [&os](auto&& node)
+            { 
+                print_obj pobj{os};
+                os << node.name() << "\t";
+                node.print_args(pobj);
+            }
+        ));
+    }
+    
+    friend std::ostream& operator<<(std::ostream& os, stmt_t const& stmt)
+    {
+        stmt.print(os);
+        return os;
+    }
 #if 0
+
 private:
     parser_stmt const& get_base() const 
     {
@@ -90,7 +123,6 @@ private:
     }
 #endif
 };
-#endif
 }
 
 

@@ -5,8 +5,8 @@
 //
 // BSD pseudo-op parser
 //
-// handle: pseudo-op instructions
-//         dwarf instructions
+// handle: pseudo-op instructions with comma seperated args (most)
+//         pseudo-op instructions with space separated args (mostly dwarf, but others) 
 //         label definitions & lookup (three types)
 //         `dot` declaration & definition (eg: . = error + 10)
 //         EQU definitions
@@ -44,11 +44,11 @@
 //
 /////////////////////////////////////////////////////////////
 
-#include "bsd.h"
+#include "bsd_parser_types.h"
 #include "bsd_elf_defns.h"
 #include "bsd_symbol.h"
-#include "bsd_stmt.h"
 #include "pseudo_ops_def.h"
+
 #include "parser/token_parser.h"
 #include "parser/annotate_on_success.hpp"
 
@@ -92,7 +92,7 @@ namespace kas::bsd::parser
     // parser @ "tokens" (used by ELF)
     auto const at_token_cs = omit[char_("@%#")];
     auto const at_ident = token<token_at_ident>[(at_token_cs >> !digit) > +bsd_charset];
-    auto const at_num  =  token<token_at_num>[at_token_cs > uint_ >> !bsd_charset];
+    auto const at_num  =  token<token_at_num>  [ at_token_cs > uint_ >> !bsd_charset];
     
     // 
     // expose dot and idents to `expr` parsers
@@ -142,40 +142,57 @@ namespace kas::bsd::parser
     struct _tag_expr : kas::parser::annotate_on_success {};
     auto const expr_arg   = rule<_tag_expr, bsd_arg>{} = expr();
 
-    // dwarf_arg is tagged expr_arg or any *tokens* except missing
+    // space_arg is tagged expr_arg or any *tokens* except missing
     // NB: need named rule for expectation error message
-    auto const dwarf_arg  = rule<class _, bsd_arg>{"dwarf_arg"}
+    auto const space_arg  = rule<class _, bsd_arg>{"space_arg"}
             = expr_arg | dot_ident | at_ident | at_num;
 
-    // pseudo_arg allows missing
-    auto const pseudo_arg = rule<class _, bsd_arg>{"pseudo_arg"}
-            = dwarf_arg | missing;
+    // comma_arg allows missing
+    auto const comma_arg = rule<class _, bsd_arg>{"comma_arg"}
+            = space_arg | missing;
     
     // NB: allow comma separated or space separated (needed for .type)
     // NB: no arguments is parsed as [missing]
-    auto const dwarf_args = rule<class _, bsd::bsd_args> {}
-            = dwarf_arg >> (+dwarf_arg | *(',' >> dwarf_arg))
+    auto const space_args = rule<class _, bsd::bsd_args> {}
+            = space_arg >> (+space_arg | *(',' >> space_arg))
             | repeat(1)[missing];
 
-    auto const pseudo_args = rule<class _, bsd::bsd_args> {}
-            = pseudo_arg % ',';
+    auto const comma_args = rule<class _, bsd::bsd_args> {}
+            = comma_arg % ',';
 
-    // NB: `pseudo_ops` have comma separated args. `dwarf_ops` have space separated 
+    // NB: `comma_ops` have comma separated args. `space_ops` have space separated 
     // Parse actual statements
-    auto const pseudo_stmt_def = (pseudo_op_x3 > pseudo_args)[bsd_stmt_pseudo()];
-    auto const dwarf_stmt_def  = (dwarf_op_x3  > dwarf_args) [bsd_stmt_pseudo()];
+    auto const raw_comma_stmt = rule<class _, bsd_stmt_pseudo> {} =
+                        (comma_op_x3 > comma_args)[bsd_stmt_pseudo()];
+    auto const raw_space_stmt  = rule<class _, bsd_stmt_pseudo> {} =
+                        (space_op_x3 > space_args) [bsd_stmt_pseudo()];
             
     // don't allow missing on "=" statements
-    auto const org_stmt_def = ((omit[dot_ident] >> '=') > dwarf_arg)[bsd_stmt_org()];
-    auto const equ_stmt_def = ((label           >> '=') > dwarf_arg)[bsd_stmt_equ()];
+    auto const raw_org_stmt = rule<class _, bsd_stmt_org> {} =
+                        ((omit[dot_ident] >> '=') > space_arg)[bsd_stmt_org()];
+
+    auto const raw_equ_stmt = rule<class _, bsd_stmt_equ> {} =
+                        ((label           >> '=') > space_arg)[bsd_stmt_equ()];
+   
+    // add extra parser rule to get tagging.
+    auto const comma_stmt_def = raw_comma_stmt;
+    auto const space_stmt_def = raw_space_stmt;
+    auto const equ_stmt_def   = raw_equ_stmt;
+    auto const org_stmt_def   = raw_org_stmt;
 
     // interface to top-level parser
-    pseudo_stmt_x3 pseudo_stmt {"bsd_pseudo"};
-    dwarf_stmt_x3  dwarf_stmt  {"bsd_dwarf" };
+    comma_stmt_x3  comma_stmt  {"bsd_comma"};
+    space_stmt_x3  space_stmt  {"bsd_space" };
     equ_stmt_x3    equ_stmt    {"bsd_equ"   };
     org_stmt_x3    org_stmt    {"bsd_org"   };
 
-    BOOST_SPIRIT_DEFINE(pseudo_stmt, dwarf_stmt, equ_stmt, org_stmt)
+    BOOST_SPIRIT_DEFINE(comma_stmt, space_stmt, equ_stmt, org_stmt)
+
+    struct _tag_com : kas::parser::annotate_on_success{};
+    struct _tag_spc : kas::parser::annotate_on_success{};
+    struct _tag_equ : kas::parser::annotate_on_success{};
+    struct _tag_org : kas::parser::annotate_on_success{};
+    struct _tag_lbl : kas::parser::annotate_on_success{};
 }
 
 #endif

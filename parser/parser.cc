@@ -9,13 +9,13 @@ namespace kas::parser
 {
     BOOST_SPIRIT_INSTANTIATE(stmt_x3, iterator_type, context_type)
 
-#if 0
 std::string kas_loc::where() const
 {
     auto w = error_handler_type::where(loc);
     return { w.second.begin(), w.second.end() };
 }
 
+#if 0
 
 template <typename Iter>
 kas_position_tagged_t<Iter>::operator kas_loc&() const

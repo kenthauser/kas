@@ -1,6 +1,6 @@
 // bsd/bsd.cc: instantiate parser elements
 
-#include "bsd.h"
+#include "bsd_parser_types.h"
 #include "bsd_parser_def.h"
 
 namespace kas::bsd
@@ -13,19 +13,14 @@ namespace kas::bsd
         // expression parsers
         BOOST_SPIRIT_INSTANTIATE(dot_parser_x3, iterator_type, context_type)
         BOOST_SPIRIT_INSTANTIATE(sym_parser_x3, iterator_type, context_type)
-#if 1
 
         // stmt parsers
-        BOOST_SPIRIT_INSTANTIATE(pseudo_stmt_x3, iterator_type, context_type)
-        BOOST_SPIRIT_INSTANTIATE(dwarf_stmt_x3 , iterator_type, context_type)
-        BOOST_SPIRIT_INSTANTIATE(equ_stmt_x3   , iterator_type, context_type)
-        BOOST_SPIRIT_INSTANTIATE(org_stmt_x3   , iterator_type, context_type)
-        BOOST_SPIRIT_INSTANTIATE(label_stmt_x3 , iterator_type, context_type)
-#endif
+        BOOST_SPIRIT_INSTANTIATE(comma_stmt_x3, iterator_type, context_type)
+        BOOST_SPIRIT_INSTANTIATE(space_stmt_x3, iterator_type, context_type)
+        BOOST_SPIRIT_INSTANTIATE(equ_stmt_x3  , iterator_type, context_type)
+        BOOST_SPIRIT_INSTANTIATE(org_stmt_x3  , iterator_type, context_type)
+        BOOST_SPIRIT_INSTANTIATE(label_stmt_x3, iterator_type, context_type)
     }
-
-    // instantiate pseudo_op printer for test runners
-//    template void stmt_pseudo::print<std::ostream>(std::ostream&);
 
     // define bsd_arg printer
     std::ostream& operator<<(std::ostream& os, bsd_arg const& arg)

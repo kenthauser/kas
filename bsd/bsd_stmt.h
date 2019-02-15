@@ -1,16 +1,14 @@
-#ifndef KAS_BSD_BSD_INSN_H
-#define KAS_BSD_BSD_INSN_H
+#ifndef KAS_BSD_BSD_STMT_H
+#define KAS_BSD_BSD_STMT_H
 
-#include "expr/expr.h"
-#include "parser/kas_position.h"
+
 #include "parser/parser_stmt.h"
+#include "bsd_arg_defn.h"
+
+// XXX try to move out of stmt -- don't inline gen_insn
 #include "kas_core/opc_symbol.h"
 #include "kas_core/opc_misc.h"
-
-#include "bsd_arg_defn.h"
 #include "bsd_ops_core.h"
-
-#include <list>
 
 namespace kas::bsd
 {
@@ -23,8 +21,9 @@ namespace detail
         , struct bsd_dwarf_tag
         >;
 
-    template <typename tag = void> struct pseudo_ops_v : meta::list<> {};
-    template <typename tag = void> struct dwarf_ops_v  : meta::list<> {};
+    // pseudos with "comma"-separated or "space"-separated args
+    template <typename tag = void> struct comma_ops_v : meta::list<> {};
+    template <typename tag = void> struct space_ops_v : meta::list<> {};
 
     // forward declare pseudo-op type
     struct pseudo_op_t;
@@ -34,12 +33,11 @@ using namespace kas::core::opc;
 
 using expression::e_fixed_t;
 
+
 struct bsd_stmt_pseudo : kas::parser::parser_stmt<bsd_stmt_pseudo>
 {
-    const char *name() const
-    {
-        return "BSD_PSEUDO";
-    }
+    // pseduos need out-of-line definations
+    std::string name() const;
     
     opcode *gen_insn(opcode::data_t& data);
     void print_args(print_obj const& fn) const;
@@ -95,9 +93,7 @@ struct bsd_stmt_equ : kas::parser::parser_stmt<bsd_stmt_equ>
     
     void print_args(print_obj const& fn) const
     {
-        //fn(std::make_tuple(ident, value));
-        fn(ident);
-        fn(value);
+        fn(ident, value);
     }
 
     template <typename Context>
@@ -124,7 +120,6 @@ struct bsd_stmt_org : kas::parser::parser_stmt<bsd_stmt_org>
     
     void print_args(print_obj const& fn) const 
     {
-        //fn(std::make_tuple(v_args));
         fn(v_args);
     }
     

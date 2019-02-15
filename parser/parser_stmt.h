@@ -1,11 +1,13 @@
-#ifndef KAS_PARSER_INSN_H
-#define KAS_PARSER_INSN_H
+#ifndef KAS_PARSER_PARSER_STMT_H
+#define KAS_PARSER_PARSER_STMT_H
 
 #include "expr/expr.h"
-#include "kas_core/opcode.h"
-#include "literal_parser.h"
+#include "kas_position.h"
 #include "stmt_print.h"
+#include "literal_parser.h"
+#include "kas_core/opcode.h"
 
+#include <boost/mpl/string.hpp>
 #include <functional>
 
 /*
@@ -23,7 +25,8 @@
 
 namespace kas::parser
 {
-namespace detail {
+namespace detail
+{
     using namespace meta;
     using boost::mpl::string;
 
@@ -74,11 +77,12 @@ struct parser_stmt : kas_position_tagged
     using kas_position_tagged::operator=;
 
     // CRTP casts
-    auto constexpr& derived() const
+    auto& derived() const
         { return *static_cast<derived_t const*>(this); }
-    auto constexpr& derived()
+    auto& derived()
         { return *static_cast<derived_t*>(this); }
 
+    // primary entrypoints:
     const char *name() const
     {
         return "STMT";
@@ -86,21 +90,14 @@ struct parser_stmt : kas_position_tagged
 
     void  print_args(print_obj const&) const
     {
-
+        // no args
     }
 
+    // XXX change to unimp?
     opcode *gen_insn(opcode::data_t& data)
     {
         return derived().gen_insn(data);
     }
-
-    // interface to insn: call operator() generates insn
-    template <typename...Ts>
-    opcode& operator()(Ts&&...);
-
-    // interface to insn: ostream& operator<< prints
-    template <typename OS>
-    friend OS& operator<<(OS& os, derived_t const&);
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -114,13 +111,14 @@ namespace detail
     template <typename OPC>
     struct stmt_diag : parser_stmt<stmt_diag<OPC>>
     {
-        static inline OPC opc;
+        // w/o braces, clang drops core on name(). 2019/02/15 KBH
+        static inline OPC opc{};
 
         stmt_diag(kas_error_t diag = {}) : diag(diag) {}
 
         const char *name() const
         {
-            return opc.name();
+            return opc.name();    // clang drops core w/o opc braces
         }
 
         void print_args(print_obj const& p_obj) const

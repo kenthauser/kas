@@ -93,6 +93,10 @@ static constexpr const char *bsd_token_names[] =
 static constexpr bool token_has_value[] =
             { false, false, false, true, false };
 
+
+// declare container of args
+using bsd_args = std::vector<struct bsd_arg>;
+
 // all `bsd_arg` instances are location tagged (for errors) 
 struct bsd_arg : kas_token
 {
@@ -182,13 +186,12 @@ private:
     void _() { static_assert(bsd_arg::get_idx<void>() == 0); }
 };
     
+// ostream "tokens" as bsd_arg
 template <typename T, typename = std::enable_if_t<bsd_arg::in<T>()>>
 inline std::ostream& operator<<(std::ostream& os, T const& t)
 {
     return os << bsd_arg(t);
 }
-    using bsd_args = std::vector<bsd_arg>;
-
 
 }
 

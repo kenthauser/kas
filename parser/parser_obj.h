@@ -183,11 +183,14 @@ auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
         obj = {};
     }
     
-    if (!success) {
+    if (!success)
+    {
         // create an error insn
-        ast = stmt_error{ parser::kas_diag::last().ref() };
-        c.e_handler.tag(ast, before, c.iter);
+        stmt_error err{ parser::kas_diag::last().ref() };
+        c.e_handler.tag(err, before, c.iter);
+        return err;
     }
+    
     return ast;
 }
 

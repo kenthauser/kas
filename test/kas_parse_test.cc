@@ -58,21 +58,15 @@ auto parse = [](std::string const& source, fs::path input_path)-> std::string
     // create parser object
     kas::parser::stmt_x3 stmt;
     auto stmt_stream = kas::parser::kas_parser(stmt, src);
-#if 1
     
     for (auto&& stmt : stmt_stream)
     {
-    #if 0
-    	auto where = stmt_stream.where(stmt.loc()).second;
-        // `stmt` "moves" args. Can not "ostream" twice
-    	//std::cout << "1 in :  " << escaped_str(where) << std::endl;
-    	//std::cout << "1 out:  " << stmt << '\n' << std::endl;
+        auto where = stmt.src();
          
     	out << "in :  " << escaped_str(where) << std::endl;
     	out << "out:  " << stmt << '\n' << std::endl;
-    #endif
     }
-#endif
+
  	std::stringstream symtab;
 	kas::core::core_symbol::dump(symtab);
 	out << symtab.str();
