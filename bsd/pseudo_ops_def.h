@@ -2,7 +2,7 @@
 #define KAS_BSD_PSEUDO_OPS_DEF_H
 
 #include "bsd.h"
-#include "bsd_insn.h"
+#include "bsd_stmt.h"
 
 #include "bsd_ops_core.h"
 #include "bsd_ops_symbol.h"

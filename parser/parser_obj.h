@@ -27,7 +27,7 @@ struct parser_src
 {
     using value_type = typename Iter::value_type;
 
-private:
+//private:
     // describe object (eg file) to be parsed
     struct src_obj
     {
@@ -49,7 +49,7 @@ private:
         //void gen_eoi(value_type&) const;
         //bool done() const { return iter == last; }
         
-    private:
+    //private:
         Iter iter;
         Iter last;
         error_handler_type e_handler;
@@ -111,47 +111,87 @@ private:
     static inline std::ostream *trace;
 };
 
-
+#if 1
+template <typename PARSER>
 struct kas_parser 
 {
-    // ctor
-    kas_parser(parser_src src)
-        : src(src) {}
+    using value_type = stmt_t;
 
 private:
-    parser_src src;
-};
+    // parser public interface via begin/end `iter` pair. Define `iter`
+    struct iter_t : std::iterator<std::input_iterator_tag, value_type>
+    {
+        // NB: iter is `at eof` or not. 
+        iter_t(kas_parser *obj = {}) : obj(obj) {}
 
-#if 0
+        // money function
+        value_type operator*();
+
+        // traditional `nop` functions
+        iter_t& operator++() { return *this; }
+        void operator++(int) {}
+
+        bool operator!=(iter_t const& it) const
+        {
+            return obj != it.obj;
+        }
+
+    private:
+        kas_parser *obj; 
+    };
+
+public:
+    // ctor
+    kas_parser(PARSER const& parser, parser_src& src)
+        : parser(parser), src(src)
+        {
+            current = &src.obstack().front();
+        }
+
+    auto begin()        { return iter_t{this}; }
+    auto end()   const  { return iter_t{};     }
+
+
+private:
+    PARSER const&        parser;
+    parser_src&          src;
+    parser_src::src_obj *current {};
+};
+#endif
+
 // extract statement from current input.
-auto inline kas_parser::parser_obj::do_parse(kas_parser& p) -> value_type
+template <typename PARSER>
+auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
 {
     value_type ast;
 
+    auto& c = *obj->current;
+    
     auto const skipper = as_parser(skipper_t{});
-    auto e_handler_ref = std::ref(e_handler);
+    auto e_handler_ref = std::ref(c.e_handler);
     auto skipper_ctx   = x3::make_context<x3::skipper_tag>(skipper);
     auto context = x3::make_context<kas::parser::error_handler_tag>(e_handler_ref, skipper_ctx);
 
-    auto before = iter;
+    auto before = c.iter;
 
-    bool success = p.parser.parse(iter, last, context, skipper_t{}, ast);
+    bool success = obj->parser.parse(c.iter, c.last, context, skipper_t{}, ast);
 
-    if (iter == before) {
-        e_handler(p.out, iter, "Error! No input consumed here:");
-        iter = last;
+    if (c.iter == before) {
+        c.e_handler(std::cout, c.iter, "Error! No input consumed here:");
+        c.iter = c.last;
         success = false;
+        obj = {};
     }
     
     if (!success) {
         // create an error insn
-        //ast = stmt_error{ parser::kas_diag::last().ref() };
         ast = stmt_error{ parser::kas_diag::last().ref() };
-        e_handler.tag(ast, before, iter);
+        c.e_handler.tag(ast, before, c.iter);
     }
     return ast;
 }
 
+#if 0
 void inline kas_parser::parser_obj::gen_eoi(value_type& stmt) const
 {
         stmt = stmt_eoi();
@@ -182,7 +222,7 @@ auto inline kas_parser::iter_t::operator*() -> value_type
 #endif
 }
 
-//using detail::parser_obj;
+using detail::kas_parser;
 using detail::parser_src;
 }
 

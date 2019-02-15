@@ -2,7 +2,7 @@
 #include "parser/parser.h"
 #include "parser/error_handler_base.h"
 
-//#include "parser/parser_obj.h"
+#include "parser/parser_obj.h"
 //#include "parser/parser_def.h"
 #include "bsd/bsd_symbol.h"        // for clear()
 
@@ -49,14 +49,20 @@ auto parse = [](std::string const& source, fs::path input_path)-> std::string
     kas::core::kas_clear::clear();
 
     std::cout << "parsing: " << input_path.c_str() << '\n' << std::endl;
-#if 0
+
+    kas::parser::parser_src src;
+    src.set_trace(&std::cout);
+    src.add(source.begin(), source.end(), input_path.c_str());
+
 
     // create parser object
-    auto stmt_stream = kas::parser::kas_parser(kas::stmt() , std::cout);
-    stmt_stream.add(source.begin(), source.end(), input_path.c_str());
-
+    kas::parser::stmt_x3 stmt;
+    auto stmt_stream = kas::parser::kas_parser(stmt, src);
+#if 1
+    
     for (auto&& stmt : stmt_stream)
     {
+    #if 0
     	auto where = stmt_stream.where(stmt.loc()).second;
         // `stmt` "moves" args. Can not "ostream" twice
     	//std::cout << "1 in :  " << escaped_str(where) << std::endl;
@@ -64,6 +70,7 @@ auto parse = [](std::string const& source, fs::path input_path)-> std::string
          
     	out << "in :  " << escaped_str(where) << std::endl;
     	out << "out:  " << stmt << '\n' << std::endl;
+    #endif
     }
 #endif
  	std::stringstream symtab;
@@ -92,7 +99,8 @@ auto overwrite = [](fs::path input_path, fs::path expect_path)
 int main(int argc, char* argv[])
 {
     bool do_overwrite = false;
-    if (argc && !std::strcmp(argv[1], "--overwrite")) {
+    if (argc && !std::strcmp(argv[1], "--overwrite"))
+    {
         argc--;
         argv++;
         do_overwrite = true;

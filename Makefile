@@ -3,7 +3,7 @@ CXXFLAGS += -isystem spirit/include -isystem meta/include -isystem /usr/local/in
 ## CXXFLAGS += -O2
 ##CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
 # CXXFLAGS += -O2 -isystem ../boost_1_58_0
-##CXX = g++-8
+#CXX = g++-8
 CFLAGS = -O2
 # CXXFLAGS += -DPRINT_EXPR_INFO
 
@@ -17,7 +17,7 @@ CXXFLAGS += -ftemplate-backtrace-limit=0
 
 ALL_TESTS = test_expr test_parse test_emit
 TESTS = $(ALL_TESTS)
-#TESTS = test_expr
+TESTS = test_expr
 TESTS = test_parse
 #TESTS = test_emit
 # TESTS = vtable-test

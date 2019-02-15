@@ -34,15 +34,15 @@ using namespace kas::core::opc;
 
 using expression::e_fixed_t;
 
-struct bsd_stmt_pseudo : kas::parser::parser_stmt
+struct bsd_stmt_pseudo : kas::parser::parser_stmt<bsd_stmt_pseudo>
 {
-    const char *name() const override
+    const char *name() const
     {
         return "BSD_PSEUDO";
     }
     
-    opcode *gen_insn(opcode::data_t& data) override; 
-    void print_args(print_obj const& fn) const override;
+    opcode *gen_insn(opcode::data_t& data);
+    void print_args(print_obj const& fn) const;
     
     template <typename Context>
     void operator()(Context const& ctx);
@@ -52,24 +52,23 @@ struct bsd_stmt_pseudo : kas::parser::parser_stmt
 };
 
 
-struct bsd_stmt_label : kas::parser::parser_stmt
+struct bsd_stmt_label : kas::parser::parser_stmt<bsd_stmt_label>
 {
     static inline opc_label opc;
 
-    opcode *gen_insn(opcode::data_t& data) override
+    opcode *gen_insn(opcode::data_t& data)
     {
         opc.proc_args(data, std::move(ident));
         return &opc;
     }
     
-    const char *name() const override
+    const char *name() const 
     {
         return "BSD_LABEL";
     }
     
-    void print_args(print_obj const& fn) const override
+    void print_args(print_obj const& fn) const
     {
-        //fn(std::make_tuple(ident));
         fn(ident);
     }
 
@@ -79,22 +78,22 @@ struct bsd_stmt_label : kas::parser::parser_stmt
     core::symbol_ref ident;
 };
 
-struct bsd_stmt_equ : kas::parser::parser_stmt
+struct bsd_stmt_equ : kas::parser::parser_stmt<bsd_stmt_equ>
 {
     static inline opc_equ opc;
 
-    opcode *gen_insn(opcode::data_t& data) override
+    opcode *gen_insn(opcode::data_t& data) 
     {
         opc.proc_args(data, ident, value);
         return &opc;
     }
     
-    const char *name() const override
+    const char *name() const 
     {
         return "BSD_EQU";
     }
     
-    void print_args(print_obj const& fn) const override
+    void print_args(print_obj const& fn) const
     {
         //fn(std::make_tuple(ident, value));
         fn(ident);
@@ -108,27 +107,27 @@ struct bsd_stmt_equ : kas::parser::parser_stmt
     bsd_arg          value;
 };
 
-struct bsd_stmt_org : kas::parser::parser_stmt
+struct bsd_stmt_org : kas::parser::parser_stmt<bsd_stmt_org>
 {
     static inline bsd_org opc;
 
-    opcode *gen_insn(opcode::data_t& data) override
+    opcode *gen_insn(opcode::data_t& data) 
     {
         opc.proc_args(data, std::move(v_args));
         return &opc;
     }
     
-    const char *name() const override
+    const char *name() const 
     {
         return "BSD_ORG";
     }
     
-    void print_args(print_obj const& fn) const override
+    void print_args(print_obj const& fn) const 
     {
         //fn(std::make_tuple(v_args));
         fn(v_args);
     }
-
+    
     template <typename Context>
     void operator()(Context const& ctx);
     

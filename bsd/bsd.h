@@ -4,7 +4,7 @@
 // public interface to the bsd parser object
 //#include "parser/parser.h"
 #include "bsd_options.h"
-#include "bsd_insn.h"
+#include "bsd_stmt.h"
 #include <boost/spirit/home/x3.hpp>
 
 namespace kas

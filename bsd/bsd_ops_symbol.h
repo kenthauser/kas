@@ -1,7 +1,7 @@
 #ifndef KAS_BSD_SYMBOL_OPS_DEF_H
 #define KAS_BSD_SYMBOL_OPS_DEF_H
 
-#include "bsd_insn.h"
+#include "bsd_stmt.h"
 #include "kas_core/opc_symbol.h"
 
 #include "kas/defn_utils.h"

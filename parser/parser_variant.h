@@ -24,13 +24,17 @@ namespace detail
     using parser_variant = apply<quote<x3::variant>, all_types_l>;
 }
 
+#if 0
+using stmt_t = detail::parser_variant;
+#else
 struct stmt_t : detail::parser_variant
 {
     using base_t = detail::parser_variant;
     using base_t::base_t;
+    using base_t::operator=;
 
-    //template <typename...Ts>
-    //stmt_t(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
+    template <typename...Ts>
+    stmt_t(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
 
     // create trampoline to allow `base` methods to work on trampoline
     const char *name() const
@@ -86,7 +90,7 @@ private:
     }
 #endif
 };
-
+#endif
 }
 
 

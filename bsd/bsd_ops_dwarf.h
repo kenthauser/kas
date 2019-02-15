@@ -3,7 +3,7 @@
 
 #include "kas_core/opc_symbol.h"
 #include "kas_core/opc_dw_line.h"
-#include "bsd_insn.h"
+#include "bsd_stmt.h"
 
 #include "parser/parser_obj.h"
 

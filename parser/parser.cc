@@ -7,10 +7,9 @@
 
 namespace kas::parser
 {
-#if 0
-BOOST_SPIRIT_INSTANTIATE(
-    parser_type, iterator_type, context_type)
+    BOOST_SPIRIT_INSTANTIATE(stmt_x3, iterator_type, context_type)
 
+#if 0
 std::string kas_loc::where() const
 {
     auto w = error_handler_type::where(loc);
@@ -29,6 +28,7 @@ kas_position_tagged_t<Iter>::operator kas_loc&() const
 }
 
 template kas_position_tagged_t<iterator_type>::operator kas_loc&() const;
+#endif
 
 template <typename OS>
 OS& operator<<(OS& os, kas_token const& tok)
@@ -37,24 +37,8 @@ OS& operator<<(OS& os, kas_token const& tok)
 }
 
 template std::ostream& operator<<(std::ostream&, kas_token const&);
-#endif
-
-#if 0
-template <typename OS>
-OS& operator<<(OS& os, stmt_t& stmt)
-{
-    auto   fn = print::stmt_print(os, stmt.vptr->name());
-    stmt.vptr->print_args(fn);
-    return os;
-}
-
-template <typename...Ts>
-opcode& stmt_t::operator()(Ts&&...args)
-{
-    return vptr->gen_insn(std::forward<Ts>(args)...);
-}
-#endif
 
 //template std::ostream& operator<<(std::ostream&, stmt_t&);
 //template opcode& stmt_t::operator()(opcode::Inserter&, opcode::fixed_t&, opcode::op_size_t&);
+
 }

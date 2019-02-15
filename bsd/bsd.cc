@@ -3,8 +3,6 @@
 #include "bsd.h"
 #include "bsd_parser_def.h"
 
-// #include "m68k/m68k_insn_parser.h"
-
 namespace kas::bsd
 {
     namespace parser
@@ -15,7 +13,7 @@ namespace kas::bsd
         // expression parsers
         BOOST_SPIRIT_INSTANTIATE(dot_parser_x3, iterator_type, context_type)
         BOOST_SPIRIT_INSTANTIATE(sym_parser_x3, iterator_type, context_type)
-#if 0
+#if 1
 
         // stmt parsers
         BOOST_SPIRIT_INSTANTIATE(pseudo_stmt_x3, iterator_type, context_type)

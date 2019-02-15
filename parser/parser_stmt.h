@@ -52,26 +52,47 @@ namespace detail {
 
 using namespace ::kas::core::opc;
 
-namespace print {
+namespace print
+{
     template <typename OS, typename...Ts>
     void print_stmt(OS&, Ts&&...);
 }
 
 
 using print_obj = print::stmt_print<std::ostream>;
+
+template <typename Derived>
 struct parser_stmt : kas_position_tagged
 {
-    using base_t = parser_stmt;
+    using base_t    = parser_stmt<Derived>;
+    using derived_t = Derived;
     using print_obj = print::stmt_print<std::ostream>;
     using opcode = core::opcode;
 
-    // this type has no local members to initialize
-    parser_stmt() = default;
-    
-    virtual const char *name() const = 0;
-    virtual void  print_args(print_obj const&) const = 0;
-    virtual opcode *gen_insn(opcode::data_t&) = 0;
-    virtual ~parser_stmt() = default;
+    // inherit base class operators
+    using kas_position_tagged::kas_position_tagged;
+    using kas_position_tagged::operator=;
+
+    // CRTP casts
+    auto constexpr& derived() const
+        { return *static_cast<derived_t const*>(this); }
+    auto constexpr& derived()
+        { return *static_cast<derived_t*>(this); }
+
+    const char *name() const
+    {
+        return "STMT";
+    }
+
+    void  print_args(print_obj const&) const
+    {
+
+    }
+
+    opcode *gen_insn(opcode::data_t& data)
+    {
+        return derived().gen_insn(data);
+    }
 
     // interface to insn: call operator() generates insn
     template <typename...Ts>
@@ -79,7 +100,7 @@ struct parser_stmt : kas_position_tagged
 
     // interface to insn: ostream& operator<< prints
     template <typename OS>
-    friend OS& operator<<(OS& os, parser_stmt const&);
+    friend OS& operator<<(OS& os, derived_t const&);
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -91,24 +112,24 @@ struct parser_stmt : kas_position_tagged
 namespace detail
 {
     template <typename OPC>
-    struct stmt_diag : parser_stmt
+    struct stmt_diag : parser_stmt<stmt_diag<OPC>>
     {
         static inline OPC opc;
 
         stmt_diag(kas_error_t diag = {}) : diag(diag) {}
 
-        const char *name() const override
+        const char *name() const
         {
             return opc.name();
         }
 
-        void print_args(print_obj const& p_obj) const override
+        void print_args(print_obj const& p_obj) const
         {
             if (diag)
-                p_obj(std::make_tuple(diag));
+                p_obj(diag);
         }
 
-        opcode *gen_insn(insn_data& data) override
+        opcode *gen_insn(insn_data& data)
         {
             // fixed area unused otherwise...
             data.fixed.diag = diag;
@@ -129,6 +150,7 @@ namespace detail
     // stmts defined by parser
     template<> struct parser_type_l<defn_parser> : list<
           stmt_empty        // default value for variant
+        , stmt_eoi
         , stmt_error
         > {};
 

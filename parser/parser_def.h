@@ -20,7 +20,6 @@ namespace kas::parser
 {
 namespace x3 = boost::spirit::x3;
 
-#if 1
 // instantiate comment and seperator parsers...
 auto stmt_comment   = detail::stmt_comment_p  <
         typename detail::stmt_comment_str<>::type
@@ -32,7 +31,7 @@ auto stmt_separator = detail::stmt_separator_p<
 //////////////////////////////////////////////////////////////////////////
 //  Assembler Instruction Parser Definition
 //////////////////////////////////////////////////////////////////////////
-#if 0
+
 // parse to comment, separator, or end-of-line
 auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
       stmt_comment > *(x3::omit[x3::char_] - x3::eol) > (x3::eol | x3::eoi)
@@ -40,24 +39,35 @@ auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
     | x3::eol
     ;
 
-// insn defns
-//x3::rule<class _stmt,     stmt_t> const stmt = "stmt";
-x3::rule<class _tag_stmt, stmt_t> const statement = "statement";
 
-#if 0
+auto const end_of_input = x3::rule<class _eoi, stmt_eoi> { "eoi" } = x3::eoi;
+
+// insn defns
+
 // get meta list of parsers from config vectors<>
 using label_parsers =  all_defns<detail::label_ops_l>;
 using stmt_parsers  =  all_defns<detail::stmt_ops_l>;
 
 // lambda functions: parse label only & parse to end-of-line
-auto const parse_eol = [](auto&& p) { return p()() > stmt_eol; };
-auto const parse_lbl = [](auto&& p) { return p()(); };
+auto const parse_eol = [](auto&& p) { return p > stmt_eol; };
+auto const parse_lbl = [](auto&& p) { return p; };
 
+template <typename F, typename...Ts>
+auto make_value_tuple(F&& fn, meta::list<Ts...>&&)
+{
+    return std::make_tuple(fn(Ts())...);
+}
+
+auto const stmt_tuple   = make_value_tuple(parse_eol, stmt_parsers()); 
+auto const label_tuple  = make_value_tuple(parse_lbl, label_parsers()); 
+
+#if 0
 using stmt_tuple_t = meta::apply<meta::quote<std::tuple>, stmt_parsers>;
 auto const stmt_tuple = reduce_tuple(std::bit_or<>(), stmt_tuple_t());
 
 using label_tuple_t = meta::apply<meta::quote<std::tuple>, label_parsers>;
 auto const label_tuple = reduce_tuple(std::bit_or<>(), label_tuple_t());
+#endif
 
 struct junk_token : kas_token
 {
@@ -67,30 +77,39 @@ struct junk_token : kas_token
     }
 };
 
+#if 0
 // statement is: label, insn (to end of line), or end-of-input
 auto const statement_def = 
          (stmt_tuple > stmt_eol)
        | label_tuple
-       | x3::eoi > x3::attr(stmt_eoi{})
+       | end_of_input
        ;
 #else
-auto const statement_def = x3::eoi > x3::attr(stmt_eoi{});
+
+auto const statement_def =
+            reduce_tuple(std::bit_or<>{}, stmt_tuple)
+          | reduce_tuple(std::bit_or<>{}, label_tuple)
+          | (x3::eoi > x3::attr(stmt_eoi()))
+          ;
 
 #endif
-// parser to find point to restart scan after error
-auto const resync = *(x3::char_ - stmt_eol) > stmt_eol;
+
+x3::rule<class _tag_stmt, stmt_t> const statement = "statement";
+stmt_x3 stmt { "stmt" };
 
 // insn is statment (after skipping blank or commented lines)
 auto const stmt_def  = *stmt_eol > statement;
 
-//BOOST_SPIRIT_DEFINE(stmt)
-BOOST_SPIRIT_DEFINE(statement)
+BOOST_SPIRIT_DEFINE(stmt, statement)
 
 ///////////////////////////////////////////////////////////////////////////
 // Annotation and Error handling
 ///////////////////////////////////////////////////////////////////////////
 
 // annotation is performed `per-parser`. only error-handling is here.
+
+// parser to find point to restart scan after error
+auto const resync = *(x3::char_ - stmt_eol) > stmt_eol;
 
 struct resync_base
 {
@@ -133,17 +152,11 @@ private:
 };
 
 // XXX undef of statement screws up parser 
-struct _tag_stmt : annotate_on_success {};
-struct _stmt : resync_base {};
-struct _junk : resync_base {};
+//struct _tag_stmt : annotate_on_success {};
+//struct _stmt : resync_base {};
+//struct _junk : resync_base {};
 
 // interface to statement parser
-stmt_x3 stmt { "stmt" };
-
-BOOST_SPIRIT_DEFINE(stmt)
-
-#endif
-#endif
 
 }
 

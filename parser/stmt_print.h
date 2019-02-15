@@ -31,16 +31,16 @@ struct stmt_print
         print(std::forward<T>(t), U());
     }
 
-    // print non-container method
+    // declare print containter
+    template <typename T>
+    void print(T&& t, std::true_type) const;
+    
+    // print single element
     template <typename T>
     void print(T const& t, std::false_type) const
     {
         os << t;
     }
-    
-    // declare print containter
-    template <typename T>
-    void print(T&& t, std::true_type) const;
     
     OS& os;
 };
@@ -64,7 +64,8 @@ void stmt_print<OS>::print(T&& t, std::true_type) const
 {
     os << "{";
     const char *delim = "";
-    for (auto const& e : t) {
+    for (auto const& e : t)
+    {
         os << delim;
         print(e);
         delim = ", ";
