@@ -15,20 +15,20 @@ namespace bsd::parser
     using namespace kas::parser;
 
     // declare statment parsers
-    using comma_stmt_x3 = x3::rule<class _tag_com, bsd::bsd_stmt_pseudo>;
-    BOOST_SPIRIT_DECLARE(comma_stmt_x3)
+    using stmt_comma_x3 = x3::rule<class _tag_com, bsd::bsd_stmt_pseudo>;
+    BOOST_SPIRIT_DECLARE(stmt_comma_x3)
     
-    using space_stmt_x3 = x3::rule<class _tag_spc, bsd::bsd_stmt_pseudo>;
-    BOOST_SPIRIT_DECLARE(space_stmt_x3)
+    using stmt_space_x3 = x3::rule<class _tag_spc, bsd::bsd_stmt_pseudo>;
+    BOOST_SPIRIT_DECLARE(stmt_space_x3)
     
-    using equ_stmt_x3   = x3::rule<class _tag_equ, bsd::bsd_stmt_equ>;
-    BOOST_SPIRIT_DECLARE(equ_stmt_x3)
+    using stmt_equ_x3   = x3::rule<class _tag_equ, bsd::bsd_stmt_equ>;
+    BOOST_SPIRIT_DECLARE(stmt_equ_x3)
     
-    using org_stmt_x3   = x3::rule<class _tag_org, bsd::bsd_stmt_org>;
-    BOOST_SPIRIT_DECLARE(org_stmt_x3)
+    using stmt_org_x3   = x3::rule<class _tag_org, bsd::bsd_stmt_org>;
+    BOOST_SPIRIT_DECLARE(stmt_org_x3)
 
-    using label_stmt_x3 = x3::rule<class _tag_lbl, bsd::bsd_stmt_label>;
-    BOOST_SPIRIT_DECLARE(label_stmt_x3)
+    using stmt_label_x3 = x3::rule<class _tag_lbl, bsd::bsd_stmt_label>;
+    BOOST_SPIRIT_DECLARE(stmt_label_x3)
 }
 
 // parser public interface
@@ -39,10 +39,11 @@ namespace parser::detail
     template<typename = void> struct fmt_comment_str   : string<';'> {};
 
     // use BSD comment & separator values as system values
+    // XXX need some `meta` defer mechanism...
     template<> struct stmt_separator_str<void> : fmt_separator_str<> {};
-    template<> struct stmt_comment_str<void>   : fmt_comment_str<>   {};
+    template<> struct stmt_comment_str  <void> : fmt_comment_str<>   {};
 
-    // target types for stmt variant
+    // types for stmt variant
     template <> struct parser_type_l<defn_fmt> : 
         meta::list<
               bsd::bsd_stmt_pseudo
@@ -51,17 +52,17 @@ namespace parser::detail
             , bsd::bsd_stmt_org
             > {};
 
-    // specialize `list` templates declared in `parser_stmt.h`
+    // specialize templates declared in `parser_stmt.h`
     template <> struct stmt_ops_l<defn_fmt> : meta::list<
-          bsd::parser::comma_stmt_x3
-        , bsd::parser::space_stmt_x3
-        , bsd::parser::equ_stmt_x3
-        , bsd::parser::org_stmt_x3
+          bsd::parser::stmt_comma_x3
+        , bsd::parser::stmt_space_x3
+        , bsd::parser::stmt_equ_x3
+        , bsd::parser::stmt_org_x3
     > {};
 
     // declare bsd label definitions
     template <> struct label_ops_l<defn_fmt> : meta::list<
-        bsd::parser::label_stmt_x3
+          bsd::parser::stmt_label_x3
     > {};
 }
 }

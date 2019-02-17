@@ -60,7 +60,7 @@ struct bsd_elf_ident : core::opcode
 
         auto macro = new std::string(s.str());
 
-        ::kas::parser::parser_src::add(macro->begin(), macro->end(), "ident");
+        ::kas::parser::parser_src::push(macro->begin(), macro->end(), "ident");
         auto& di = data.di();
         *di++ = std::move(*iter);
     }

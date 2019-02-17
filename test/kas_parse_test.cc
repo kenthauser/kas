@@ -50,10 +50,10 @@ auto parse = [](std::string const& source, fs::path input_path)-> std::string
 
     std::cout << "parsing: " << input_path.c_str() << '\n' << std::endl;
 
+    // create source object
     kas::parser::parser_src src;
     src.set_trace(&std::cout);
-    src.add(source.begin(), source.end(), input_path.c_str());
-
+    src.push(source.begin(), source.end(), input_path.c_str());
 
     // create parser object
     kas::parser::stmt_x3 stmt;
