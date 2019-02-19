@@ -31,8 +31,7 @@ struct kas_assemble
         core_section::get(".bss");
     }
 
-    template <typename It>
-    void assemble(It const& begin, It const& end, std::ostream *out = {})
+    void assemble(parser::parser_src& src, std::ostream *out = {})
     {
         // 1. assemble source code into ".text". Resolve symbols into ".bss"
         auto& text_seg  = core_section::get(".text")[0]; 
@@ -45,7 +44,7 @@ struct kas_assemble
         kas::core::core_fragment::dump(std::cout);
 #endif
         auto& obj = INSNS::add(text_seg, at_end);
-        assemble_src(obj.inserter(), begin, end, out);
+        assemble_src(obj.inserter(), src, out);
         std::cout << "parse complete" << std::endl;
 #if 0
         kas::core::core_section::dump(std::cout);
@@ -114,24 +113,40 @@ struct kas_assemble
     }
 
 private:
-    template <typename Inserter, typename It>
-    void assemble_src(Inserter inserter, It const& begin, It const& end, std::ostream *out)
+    template <typename Inserter>
+    void assemble_src(Inserter inserter, parser::parser_src& src, std::ostream *out)
     {
     
         kas::core::opcode::trace = out;
-#ifdef XXX
-        // create parser object
-        auto stmt_stream = parser::kas_parser(kas::stmt(), std::cout);
-        stmt_stream.add(begin, end, "dummy_path");
 
-        for (auto&& stmt : stmt_stream) {
-            try {
-                *inserter++ = core_insn::gen_insn(stmt); 
-            } catch (std::exception const& e) {
+        // trace source file operations
+        src.set_trace(out);
+        
+        // create parser object
+        auto stmt_stream = parser::kas_parser(parser::stmt_x3(), src);
+         
+#ifdef XXX     
+        for (auto&& stmt : stmt_stream)
+        {
+            auto where = stmt.src();
+            out << "in :  " << src.escaped_str(where) << std::endl;
+            out << "out:  " << stmt                   << std::endl;
+            try
+            {
+                auto insn = stmt();
+                out << "raw:" << insn.raw() << std::endl;
+                out << "fmt:" << insn.fmt() << std::endl;
+
+                //*inserter++ = std::move(insn);
+            } 
+            
+            catch (std::exception const& e)
+            {
                 auto exc_name = typeid(e).name();        // internal error: ugly name is fine
                 if (out)
-                    *out << "\n\nerr : " << exc_name << ": " << e.what() << std::endl;
+                    *out << "\n\nInternal error: " << exc_name << ": " << e.what() << std::endl;
             }
+            
             if (out)
                 *out  << std::endl;
         }

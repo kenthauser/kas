@@ -60,6 +60,7 @@ namespace {
             std::cout << "total types: " << variant_types::size();
             std::cout << ", largest type ("  << sizeof_<largest>::value;
             print_type_name{")"}.name<largest>();
+            std::cout << "sizeof(expr_t) = " << sizeof(expr_t) << std::endl;
 
 
             flt_info<float>      ("float      ");

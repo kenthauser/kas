@@ -8,25 +8,33 @@ namespace kas::core
 {
 
 // data stored in insn container
+// 
+// data values may be compressed for redundancy
+// access "compressable" values via methods
+
 // XXX store whole types for now.
-// XXX many redundancies to expliot
 struct insn_container_data
 {
     using fixed_t   = typename opc::insn_data::fixed_t;
     using op_size_t = typename opc::insn_data::op_size_t;
  
     insn_container_data() = default;
-    insn_container_data(core_insn);
+    insn_container_data(core_insn const&);
 
-    uint16_t        opc_index{};
-    uint16_t        cnt      {};
-    fixed_t         fixed    {};
-    op_size_t       _size    {};
-    uint32_t        first    {};
-    parser::kas_loc loc      {};
+    // implement inline for now
+    uint16_t    opc_index() const    { return _opc_index; }
+    uint16_t    cnt()       const    { return _cnt;       }
+    op_size_t   size()      const    { return _size;      }
+    parser::kas_loc loc()   const    { return _loc;       }
 
+    // fixed can't be compressed. Expose publically
+    fixed_t         fixed     {};
 
-    op_size_t size() const;
+private:
+    op_size_t       _size     {};
+    parser::kas_loc _loc      {};
+    uint16_t        _opc_index{};
+    uint16_t        _cnt      {};
 };
 
 

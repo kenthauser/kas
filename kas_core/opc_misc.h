@@ -16,7 +16,7 @@ namespace kas::core::opc
 
         opc_align() = default;
 
-        opc_align(data_t& data, uint16_t align = 0)
+        void operator()(data_t& data, uint16_t align = 0) const
         {
             data.fixed.fixed = align;
         }
@@ -35,12 +35,12 @@ namespace kas::core::opc
                 data.fixed.fixed = alignment;
         }
 
-        void fmt(data_t& data, Iter iter, std::ostream& os) const override
+        void fmt(data_t& data, std::ostream& os) const override
         {
             os << data.fixed.fixed;
         }
         
-        void emit(data_t& data, Iter it, emit_base& base, core_expr_dot const *dot_p) const override
+        void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
         {
             // XXX need alignment support & addr width support
             // XXX ignore alignment & just do words
@@ -81,8 +81,9 @@ namespace kas::core::opc
             *data.di() = std::move(value);
         }
 
-        op_size_t calc_size(data_t& data, Iter iter, core_fits const& fits) const override
+        op_size_t calc_size(data_t& data, core_fits const& fits) const override
         {
+            auto iter = data.iter();
             auto& org = *iter;
             auto& dot = fits.get_dot();
             
@@ -126,8 +127,9 @@ namespace kas::core::opc
         }
         
 
-        void fmt(data_t& data, Iter iter, std::ostream& os) const override
+        void fmt(data_t& data, std::ostream& os) const override
         {
+            auto iter = data.iter();
             os << *iter;
         }
     };
@@ -156,12 +158,12 @@ namespace kas::core::opc
             data.size = *skip_p;
         }
 
-        void fmt(data_t& data, Iter iter, std::ostream& os) const override
+        void fmt(data_t& data, std::ostream& os) const override
         {
             os << data.fixed.fixed;
         }
 
-        void emit(data_t& data, Iter it, emit_base& base, core_expr_dot const *dot_p) const override
+        void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
         {
             // XXX need alignment support & addr width support
             // XXX ignore alignment & just do words

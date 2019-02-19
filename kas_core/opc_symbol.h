@@ -18,6 +18,9 @@ namespace kas::core::opc
     // label & equ opcodes defined here to solve include problem...
     struct opc_label : opcode
     {
+        // inherit default case
+        using opcode::operator();
+        
         OPC_INDEX();
         const char *name() const override { return "LABEL"; }
 
@@ -28,7 +31,7 @@ namespace kas::core::opc
         //  1. converting local common -> blocks starting with symbol (BSS)
         //  2. generating dwarf programs
 
-        opc_label(data_t& data, core_symbol& sym, short binding = STB_INTERNAL)
+        void operator()(data_t& data, core_symbol& sym, short binding = STB_INTERNAL) const
         {
             if (auto msg = sym.make_label(binding)) { 
                 //throw std::logic_error(std::string(__FUNCTION__) + ": " + msg);
@@ -39,8 +42,10 @@ namespace kas::core::opc
             data.size = sym.size();
         }
 
-        opc_label(data_t& data, symbol_ref ref, short binding = STB_INTERNAL)
-            : opc_label(data, ref.get(), binding) {}
+        void operator()(data_t& data, symbol_ref ref, short binding = STB_INTERNAL) const
+        {
+            (*this)(data, ref.get(), binding);
+        }
 
         // ctor used for `labels`
         void proc_args(data_t& data, symbol_ref&& ref, uint32_t size = 0)
@@ -54,7 +59,7 @@ namespace kas::core::opc
             data.size = size;
         }
 
-        void emit(data_t& data, Iter it, emit_base& base, core_expr_dot const *dot_p) const override
+        void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
         {
             base << emit_addr << 0;
 
@@ -83,16 +88,20 @@ namespace kas::core::opc
                 make_error(data, "EQU previously defined as different type", ref);
         }
 
-        void fmt(data_t& data, Iter iter, std::ostream& os) const override
+        void fmt(data_t& data, std::ostream& os) const override
         {
+            auto iter = data.iter();
+            
             auto sym = data.fixed.sym;
             sym.get().print(os);
+
             os << " = " << *iter;
         }
 
-        void emit(data_t& data, Iter iter, emit_base& base, core_expr_dot const *dot_p) const override
+        void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
         {
             // use `core_data_size_t` to size (listing) output
+            auto iter = data.iter();
             base << core::set_size(sizeof_data_t) << emit_expr << *iter;
         }
     };
@@ -111,7 +120,7 @@ namespace kas::core::opc
             data.fixed.sym = sym.ref();
         }
 
-        void fmt(data_t& data, Iter iter, std::ostream& os) const override
+        void fmt(data_t& data, std::ostream& os) const override
         {
             data.fixed.sym.get().print(os);
         }
@@ -140,17 +149,19 @@ namespace kas::core::opc
                 };
         }
 
-        void fmt(data_t& data, Iter iter, std::ostream& os) const override
+        void fmt(data_t& data, std::ostream& os) const override
         {
-            auto cnt = data.cnt;
+            auto iter = data.iter();
+            auto cnt  = data.cnt;
             while(cnt--)
                 os << *iter++ << " ";
         }
 
-        void emit(data_t& data, Iter iter, emit_base& base, core_expr_dot const *) const override
+        void emit(data_t& data, emit_base& base, core_expr_dot const *) const override
         {
             // just error messages
-            auto cnt = data.cnt;
+            auto iter = data.iter();
+            auto cnt  = data.cnt;
             while(cnt--)
                 base << *iter++;
         }
@@ -175,7 +186,7 @@ namespace kas::core::opc
             }
         }
 
-        void fmt(data_t& data, Iter iter, std::ostream& os) const override
+        void fmt(data_t& data, std::ostream& os) const override
         {
             os << data.fixed.sym.get().name();
         }
@@ -213,20 +224,22 @@ namespace kas::core::opc
             data.fixed.fixed = sym.index();
         }
         
-        void fmt(data_t& data, Iter it, std::ostream& os) const override
+        void fmt(data_t& data, std::ostream& os) const override
         {
+            auto iter = data.iter();
             auto& sym = core_symbol::get(data.fixed.fixed); 
             os << sym.name();
 
             if (data.cnt)
-                os << ": raw = " << *it;
+                os << ": raw = " << *iter;
             else
                 os << ": fixed = " << sym.size();
         }
         
-        void emit(data_t& data, Iter iter, emit_base& base, core_expr_dot const *dot_p) const override
+        void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
         {
-            
+            auto iter = data.iter();
+
             // use `core_data_size_t` to size (listing) output
             base << core::set_size(sizeof_data_t) << emit_expr;
             

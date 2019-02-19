@@ -122,6 +122,7 @@ namespace kas::core
         std::deque<uint32_t> insn_index_list;
         std::vector<frag_iter_t> *insn_iters{};
         core_expr_dot dot;
+
         static inline core::kas_clear _c{base_t::obj_clear};
     };
 
@@ -141,7 +142,7 @@ namespace kas::core
 
         // inserter iterator methods
         //insn_inserter& operator=(value_type&&);
-        insn_inserter& operator=(core_insn const&);
+        insn_inserter& operator=(core_insn&&);
         auto& operator++()    { return *this; }
         auto& operator++(int) { return *this; }
         auto& operator*()     { return *this; }
@@ -281,7 +282,7 @@ namespace kas::core
 #endif
 #endif
             // update label with `dot` offset
-            if (it->opc_index == idx_label) {
+            if (it->opc_index() == idx_label) {
                 auto& offset = it->fixed.offset;
                 it->fixed.offset = dot.frag_offset();
             }
@@ -343,17 +344,17 @@ namespace kas::core
     // `inserter` primary method
     template <typename Insn_Deque_t>
     auto insn_container<Insn_Deque_t>::
-        //insn_inserter::operator=(value_type&& data) -> insn_inserter&
-        insn_inserter::operator=(core_insn const& insn) -> insn_inserter&
+        insn_inserter::operator=(core_insn&& insn) -> insn_inserter&
     {
         // get special opcode indexes
-        static const auto idx_section = opc::opc_section().opc_index();
-        static const auto idx_org     = opc::opc_org()    .opc_index();
-        static const auto idx_align   = opc::opc_align()  .opc_index();
-        static const auto idx_label   = opc::opc_label()  .opc_index();
+        static const auto idx_section = opc::opc_section().index();
+        static const auto idx_org     = opc::opc_org()    .index();
+        static const auto idx_align   = opc::opc_align()  .index();
+        static const auto idx_label   = opc::opc_label()  .index();
 
         // generate container_data from insn
         value_type data{insn};
+        auto opc_index = insn.op.index();
 
         // allocate new frag if current doesn't have room
         // NB: op_size is instance variable which can be modified
@@ -361,18 +362,18 @@ namespace kas::core
 
         // see if special insn & process accordingly
         // if `dot` referenced: drop a label
-        if (data.opc_index == idx_label)
+        if (opc_index == idx_label)
             put_label(std::move(data));
         else if (core_addr::must_init_dot())
             *this = opc::opc_label();       // insert dummy label insn
 
-        if (data.opc_index == idx_section)
+        if (opc_index == idx_section)
             put_segment(std::move(data));
-        else if (data.opc_index == idx_org)
+        else if (opc_index == idx_org)
             put_org(std::move(data));
-        else if (data.opc_index == idx_align)
+        else if (opc_index == idx_align)
             put_align(std::move(data));
-        else if (data.opc_index != idx_label)
+        else if (opc_index != idx_label)
             put_insn(std::move(data));
 
         // move dot if object code emitted data

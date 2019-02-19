@@ -40,7 +40,7 @@ struct opc_dw_file : opcode
 		}
 	}
 
-	void fmt(data_t& data, Iter it, std::ostream& os) const override
+	void fmt(data_t& data, std::ostream& os) const override
 	{
         // convert file# to signed index
         int32_t index = data.fixed.fixed;
@@ -84,7 +84,7 @@ struct opc_dw_line : opcode
 		data.fixed.fixed = obj.index();
 	}
 
-	void fmt(data_t& data, Iter it, std::ostream& os) const override
+	void fmt(data_t& data, std::ostream& os) const override
 	{
 		auto& obj = dl_data::get(data.fixed.fixed);
 
@@ -97,7 +97,7 @@ struct opc_dw_line : opcode
     }
 
 	// emit records `dot` in the `dwarf_line` entry for use generating `.debug_line`
-	void emit(data_t& data, Iter iter, emit_base& base, core_expr_dot const *dot_p) const override
+	void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
 	{
 		auto& obj     = dl_data::get(data.fixed.fixed);
 		obj.section() = dot_p->section().index();

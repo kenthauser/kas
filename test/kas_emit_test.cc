@@ -29,28 +29,6 @@
 namespace fs = boost::filesystem;
 namespace testing = boost::spirit::x3::testing;
 
-template <typename T>
-std::string escaped_str(T&& in)
-{
-    std::string output;
-
-    for (auto& c : in) {
-        switch (c) {
-            case L'\t':
-                output.append("[\\t]");
-                break;
-            case L'\n':
-                output.append("[\\n]");
-                break;
-            default:
-                output.push_back(c);
-                break;
-        }
-    }
-    return output;
-}
-
-
 auto sub_path_ext(std::string const& input, const std::string& new_ext)
 {
     auto s(input);
@@ -75,10 +53,14 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     //auto& parse_out = std::cout;
 
     std::cout  << "\nparse begins: " << input_path << std::endl;
-    kas::core::kas_assemble obj;
 
-    obj.assemble(source.begin(), source.end(), &parse_out);
-    //obj.assemble(source.begin(), source.end());
+    // create source object
+    kas::parser::parser_src src;
+    src.push(source.begin(), source.end(), input_path.c_str());
+    
+    // create assembler object
+    kas::core::kas_assemble obj;
+    obj.assemble(src, &parse_out);
 
     // dump raw
     auto dump_raw = [&parse_out](auto& container)
@@ -97,9 +79,9 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
                     //auto where = stmt_stream.where(stmt).second;
                     auto& loc = insn.get_loc();
                     //auto where = kas::parser::error_handler<Iter>::where(loc);
-                    //parse_out << "in  : " << escaped_str(where) << std::endl;
-                    parse_out << "raw : " << insn.print_raw() << std::endl;
-                    parse_out << "fmt : " << insn.print_fmt() << '\n' << std::endl;
+                    //parse_out << "in  : " << src.escaped_str(where) << std::endl;
+                    parse_out << "raw : " << insn.raw() << std::endl;
+                    parse_out << "fmt : " << insn.fmt() << '\n' << std::endl;
                 });
         };
 

@@ -63,10 +63,15 @@ struct opcode
     // pick up some types from `insn_data`
     using data_t     = insn_data;
     using op_size_t  = typename insn_data::op_size_t; 
-    using Iter       = typename insn_data::iter;
+    using Iter       = typename insn_data::Iter;
 
     virtual ~opcode() = default;
 
+    // default call operator is no-op
+    void operator()(data_t&) const
+    {
+    }
+    
     // declare virtual functions for evaluating opcodes
     virtual const char *name() const
     {
@@ -74,13 +79,13 @@ struct opcode
     }
 
     // NB: the `Iter` args are passed by value to generate a local copy
-    virtual op_size_t calc_size(insn_data& data, Iter iter, core_fits const& fits) const
+    virtual op_size_t calc_size(insn_data& data, core_fits const& fits) const
     {
         return data.size;
     }
-    virtual void fmt(insn_data& data, Iter iter, std::ostream& out) const
+    virtual void fmt(insn_data& data, std::ostream& out) const
     {}
-    virtual void emit(insn_data& data, Iter iter, emit_base& base, core_expr_dot const *dot_p) const
+    virtual void emit(insn_data& data, emit_base& base, core_expr_dot const *dot_p) const
     {}
 
 private:
@@ -114,7 +119,7 @@ private:
         return *_indexes;
     }
 
-    static uint16_t add_index(opcode *p)
+    static uint16_t add_index(opcode const *p)
     {
         auto& indexes = opc_indexes();
         indexes.emplace_back(p);
@@ -122,7 +127,7 @@ private:
     }
     // XXX
 public:
-    uint16_t index()
+    uint16_t index() const
     {
         auto& idx = opc_index();
         if (idx == 0)
@@ -139,10 +144,11 @@ public:
     void proc_args(insn_data&) {}
 
     // routine for test runner
-    void raw(insn_data const& data, Iter iter, std::ostream& out) const
+    void raw(insn_data const& data, std::ostream& out) const
     {
         out << std::dec << this->name() << ": " << data.size;
         out << std::hex << ' ' << data.fixed.fixed << ' ';
+        auto iter = data.iter();
         auto cnt  = data.cnt;
         while(cnt--)
             out << *iter++ << ' ';
@@ -234,7 +240,7 @@ struct opc_error : opcode
         data.fixed.diag = diag;
     }
 
-    void fmt(insn_data& data, Iter iter, std::ostream& out) const override
+    void fmt(insn_data& data, std::ostream& out) const override
     {
         auto& fixed = data.fixed;
 
@@ -242,7 +248,7 @@ struct opc_error : opcode
         out << (fixed.diag ? fixed.diag.get().message : "[[ Zero Errno ]]");
     }
 
-    void emit(insn_data& data, Iter iter, emit_base& emit, core_expr_dot const *dot_p) const override
+    void emit(insn_data& data, emit_base& emit, core_expr_dot const *dot_p) const override
     {
         auto& fixed = data.fixed;
         

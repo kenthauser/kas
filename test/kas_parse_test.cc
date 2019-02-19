@@ -5,6 +5,7 @@
 #include "parser/parser_obj.h"
 //#include "parser/parser_def.h"
 #include "bsd/bsd_symbol.h"        // for clear()
+#include "kas_core/opcode.h"
 
 #include <iostream>
 #include <iterator>
@@ -14,28 +15,6 @@
 
 namespace fs = boost::filesystem;
 namespace testing = boost::spirit::x3::testing;
-
-template <typename T>
-auto escaped_str(T&& where)
-{
-	std::string output;
-
-	for (auto& c : where) {
-		switch (c) {
-			case '\t':
-				output.append("[\\t]");
-				break;
-			case '\n':
-				output.append("[\\n]");
-				break;
-			default:
-				output.push_back(c);
-				break;
-		}
-	}
-	return output;
-}
-
 
 auto parse = [](std::string const& source, fs::path input_path)-> std::string
 {
@@ -63,7 +42,7 @@ auto parse = [](std::string const& source, fs::path input_path)-> std::string
     {
         auto where = stmt.src();
          
-    	out << "in :  " << escaped_str(where) << std::endl;
+    	out << "in :  " << src.escaped_str(where) << std::endl;
     	out << "out:  " << stmt << '\n' << std::endl;
     }
 

@@ -230,21 +230,27 @@ struct opc_data : opcode
         return INSN::NAME::value;
     }
 
-    op_size_t calc_size(data_t& data, Iter it, core_fits const& fits) const override
+    op_size_t calc_size(data_t& data, core_fits const& fits) const override
     {
-        auto reader = get_reader(data, it);
+        // get_reader requires iter l-value
+        auto iter = data.iter();
+        auto reader = get_reader(data, iter);
         return impl.calc_size(reader, fits); 
     }
 
-    void fmt(data_t& data, Iter it, std::ostream& os) const override
+    void fmt(data_t& data, std::ostream& os) const override
     {
-        auto reader = get_reader(data, it);
+        // get_reader requires iter l-value
+        auto iter = data.iter();
+        auto reader = get_reader(data, iter);
         return impl.fmt(reader, os);
     }
 
-    void emit(data_t& data, Iter it, emit_base& base, core_expr_dot const *dot_p) const override
-    {
-        auto reader = get_reader(data, it);
+    void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
+    { 
+        // get_reader requires iter l-value
+        auto iter = data.iter();
+        auto reader = get_reader(data, iter);
         impl.emit(reader, base, dot_p);
     }
 
@@ -262,9 +268,9 @@ private:
     static constexpr detail::opc_fixed_impl impl{config};
 
     //template <typename Iter>
-    auto get_reader(data_t& data, Iter& it) const
+    auto get_reader(data_t& data, Iter& iter) const
     {
-        return detail::fixed_reader_t<Iter>(data.fixed, it, data.cnt, sizeof(value_t));
+        return detail::fixed_reader_t<Iter>(data.fixed, iter, data.cnt, sizeof(value_t));
     }
 
     // provide defaults for `opc_fixed_config`

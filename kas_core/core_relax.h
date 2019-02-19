@@ -47,8 +47,8 @@ namespace kas { namespace core
                     core_insn insn(*insn_iter);
                     if (!insn.is_relaxed()) {
                         if (trace)
-                            *trace << "relax: " << insn.print_fmt()
-                                   << " from " << insn.size();
+                            *trace << "relax: " << insn.fmt()
+                                   << " from "  << insn.size();
 
                         insn.calc_size(fits);
 

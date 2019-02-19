@@ -85,6 +85,29 @@ public:
         trace = out;
     }
 
+
+// declare print utility
+    template <typename T>
+    static auto escaped_str(T&& where)
+    {
+        std::string output;
+
+        for (auto& c : where) {
+            switch (c) {
+                case '\t':
+                    output.append("[\\t]");
+                    break;
+                case '\n':
+                    output.append("[\\n]");
+                    break;
+                default:
+                    output.push_back(c);
+                    break;
+            }
+        }
+        return output;
+    }
+
 private:
     static inline src_obj *current;
     static inline std::ostream *trace;

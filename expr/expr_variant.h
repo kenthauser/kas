@@ -96,7 +96,7 @@ namespace detail {
     using decay_in = meta::in<LIST, std::decay_t<T>>;
 
     // XXX cannot reduce below 4* because of std::string...???
-    static constexpr std::size_t expr_max_size_t = 8 * sizeof(void*);
+    //static constexpr std::size_t expr_max_size_t = 8 * sizeof(void*);
 #if 1
     // XXX use std::void_t<>
     template <typename T, typename = void>

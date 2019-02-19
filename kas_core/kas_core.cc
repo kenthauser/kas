@@ -8,6 +8,7 @@
 #include "core_section.h"          // ostream core_fragment
 #include "core_symbol_impl.h"
 
+#include "core_data_impl.h"
 #include "core_emit_impl.h"
 #include "emit_reloc_impl.h"
 

@@ -106,15 +106,16 @@ struct emit_opc
     }
 
     // emit other ops (eg labels)
-    template <typename...Ts>
-    void operator()(opcode const& op, Ts&&...args)
+    template <typename OPCODE, typename...Ts,
+            typename = std::enable_if_t<std::is_base_of_v<opcode, OPCODE>>>
+    void operator()(OPCODE const& op, Ts&&...args)
     {
-        do_emit(op, std::forward<Ts>(args)...);
+        do_emit({op, std::forward<Ts>(args)...});
     }
 
     void operator()(core::symbol_ref const& sym)
     {
-        do_emit(core::opc::opc_label{}, sym);
+        do_emit({core::opc::opc_label{}, sym});
     }
 
 private:
@@ -146,13 +147,9 @@ private:
 #endif
     }
 
-    template <typename...Ts>
-    void do_emit(opcode const& op, Ts&&...args)
+    void do_emit(core_insn insn)
     {
-
-        // create stmt from opcode + args tuple 
-        core_insn insn{op, std::forward<Ts>(args)...};
-        *bi++ = insn;
+        *bi++ = std::move(insn);
     }
 
     // init object inserter from ctor
