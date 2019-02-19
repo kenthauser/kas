@@ -4,7 +4,7 @@
 
 #include "parser_stmt.h"
 #include "machine_parsers.h"
-//#include "kas_core/core_insn.h"
+#include "kas_core/core_insn.h"
 
 #include "kas/defn_utils.h"
 
@@ -32,7 +32,7 @@ struct stmt_t : detail::parser_variant
 
     template <typename...Ts>
     stmt_t(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
-
+#if 0
     // create trampoline to allow `base` methods to work on trampoline
     const char *name() const
     {
@@ -44,25 +44,13 @@ struct stmt_t : detail::parser_variant
         //return get_base().print_args(p_obj);
     }
 
-#if 0
-    core::core_insn gen_insn() 
-    {
-#if 0
-        auto& base = get_base();
-        core::core_insn insn{base};
-#else
-        static core::core_insn insn;
-#endif
-        return insn; // get_base().gen_insn(di, fixed, op_size);
-    }
-#endif
     kas_position_tagged const& loc() const
     {
         return apply_visitor(x3::make_lambda_visitor<kas_position_tagged const&>(
             [](auto& node) { return node; }
             ));
     }
-
+#endif
     std::string src() const
     {
         return apply_visitor(x3::make_lambda_visitor<std::string>(
@@ -76,15 +64,27 @@ struct stmt_t : detail::parser_variant
                 return result;
             }
             ));
-        //return "source";
     }
 
-    template <typename...Ts>
-    opcode& operator()(Ts&&...args)
+    core::core_insn operator()()
     {
-        static opc_nop<> opc;
-        return opc;
-        //return get_base()(std::forward<Ts>(args)...);
+        return apply_visitor(x3::make_lambda_visitor<core::core_insn>(
+            [](auto&& node) -> core::core_insn
+            {
+                static core::opc::opc_error error;
+
+                core::opc::insn_data data{node};     // get loc
+                auto op_p = node.gen_insn(data);
+                if (data.size.is_error())
+                {
+                    data.size = {};
+                    op_p      = {};
+                }
+                
+                if (!op_p)
+                    op_p = &error;
+                return {*op_p, data};
+            }));
     }
     
 
@@ -105,23 +105,6 @@ struct stmt_t : detail::parser_variant
         stmt.print(os);
         return os;
     }
-#if 0
-
-private:
-    parser_stmt const& get_base() const 
-    {
-        return apply_visitor(x3::make_lambda_visitor<parser_stmt const&>(
-            [](auto&& node) { return node; }
-            ));
-    }
-    
-    parser_stmt& get_base()
-    {
-        return apply_visitor(x3::make_lambda_visitor<parser_stmt&>(
-            [](auto&& node) { return node; }
-            ));
-    }
-#endif
 };
 }
 

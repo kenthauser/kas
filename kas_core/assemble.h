@@ -125,18 +125,23 @@ private:
         // create parser object
         auto stmt_stream = parser::kas_parser(parser::stmt_x3(), src);
          
-#ifdef XXX     
         for (auto&& stmt : stmt_stream)
         {
-            auto where = stmt.src();
-            out << "in :  " << src.escaped_str(where) << std::endl;
-            out << "out:  " << stmt                   << std::endl;
+            if (out)
+            {
+                auto where = stmt.src();
+                *out << "in :  " << src.escaped_str(where) << std::endl;
+                *out << "out:  " << stmt                   << std::endl;
+            }
+        
             try
             {
                 auto insn = stmt();
-                out << "raw:" << insn.raw() << std::endl;
-                out << "fmt:" << insn.fmt() << std::endl;
-
+                if (out)
+                {
+                    *out << "raw:  " << insn.raw() << std::endl;
+                    *out << "fmt:  " << insn.fmt() << std::endl;
+                }
                 //*inserter++ = std::move(insn);
             } 
             
@@ -150,7 +155,6 @@ private:
             if (out)
                 *out  << std::endl;
         }
-#endif
     }
 
     // don't need to forward declare static lambdas

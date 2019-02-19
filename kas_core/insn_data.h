@@ -79,7 +79,7 @@ public:
     using Iter     = typename decltype(insn_expr_data)::iterator;
     using fixed_t  = insn_fixed_t<>;
     using Inserter = opc_back_insert_iterator<decltype(insn_expr_data)>;
-    
+   
     // this ctor used when generating insn data
     insn_data(parser::kas_loc loc = {}) : _loc(loc)
     {
@@ -109,6 +109,7 @@ public:
 
     Iter iter() const
     {
+        cnt = insn_expr_data.size() - first;
         // XXX move to impl as `container` fn
         return begin() + first;
     }
@@ -124,14 +125,21 @@ public:
     {
         return _loc;
     }
+    
+    // XXX 2019/02/19 intializing `fixed{_fixed}` doesn't work ????
+    //fixed_t&         fixed{_fixed};
+    fixed_t          fixed;
+    op_size_t        size;
 
-    fixed_t&        fixed {_fixed};
-    op_size_t       size;
+    uint32_t         first;      // index of first expression
+    
+    // cnt is mutable to allow it to be set when calculating local ITER
+    // NB: This only happens when printing INSN before storing in container.
+    // NB: Since typically "raw" is run before "fmt", retrieving `iter` before 
+    // `cnt` allows `cnt` to be retrieved w/o getter
+    mutable uint16_t cnt;        // expressions used by this insn
 
-    uint32_t        first;      // index of first expression
-    uint16_t        cnt;        // expressions used by this insn
-
-private:
+//private:
     friend insn_container_data;
     
     // for test fixture
@@ -140,10 +148,10 @@ private:
         insn_expr_data.clear();
     }
 
+    fixed_t              _fixed;
     parser::kas_loc      _loc;
 
     // instances used during parsing of insns. 
-    fixed_t              _fixed {};
     insn_container_data *data_p {};
 
     static inline core::kas_clear _c{clear};

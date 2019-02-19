@@ -146,12 +146,11 @@ public:
     // routine for test runner
     void raw(insn_data const& data, std::ostream& out) const
     {
-        out << std::dec << this->name() << ": " << data.size;
-        out << std::hex << ' ' << data.fixed.fixed << ' ';
-        auto iter = data.iter();
-        auto cnt  = data.cnt;
+        out << std::hex << data.fixed.fixed;
+        auto iter = data.iter();        // NB: `iter` must be called before...
+        auto cnt  = data.cnt;           // ...accessing `cnt`: see `insn_defn.h`
         while(cnt--)
-            out << *iter++ << ' ';
+            out << ' ' << *iter++;
     }
 
     // declare methods for creating opcodes

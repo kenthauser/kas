@@ -80,13 +80,24 @@ struct core_insn
     // format for test fixture interface
     void raw(std::ostream& os) 
     {
-        os << op.name() << " " << data.size << ": ";
+    #if 0
+        // need this to debug data.fixed reference issue
+        auto iter = data.iter();
+        os << "fixed = "  << std::hex << data.fixed.fixed;
+        os << " _fixed = "  << data._fixed.fixed;
+        os << " first = " << data.first;
+        os << " cnt = "   << data.cnt;
+        os << " loc = "   << data.loc().get();
+        os << std::endl;
+        os << "raw:  ";
+    #endif
+        os << op.name() << " " << std::dec << data.size << ": ";
         op.raw(data, os);
     }
 
     void fmt(std::ostream& os) 
     {
-        os << op.name() << " " << data.size << ": ";
+        os << op.name() << " " << std::dec << data.size << ": ";
         op.fmt(data, os);
     }
     
