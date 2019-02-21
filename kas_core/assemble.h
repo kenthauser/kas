@@ -57,13 +57,16 @@ struct kas_assemble
 
         // 3. relax object code
         //do_relax(obj, &std::cout);
-        do_relax(obj);
+    #if 1
+        do_relax(obj, out);
         std::cout << "relax complete" << std::endl;
+    #endif
 #if 0
         kas::core::core_section::dump(std::cout);
         kas::core::core_segment::dump(std::cout);
         kas::core::core_fragment::dump(std::cout);
 #endif
+    #if 0
         // 4. generate `cframe` data into a second container
         if (dwarf::df_data::size() != 0) {
             auto& cf = core_section::get(".debug_frame", SHT_PROGBITS);
@@ -73,11 +76,13 @@ struct kas_assemble
             do_relax(cf_obj, &std::cout);
             std::cout << "cframe complete" << std::endl;
         }
+    #endif
 #if 0
         kas::core::core_section::dump(std::cout);
         kas::core::core_segment::dump(std::cout);
         kas::core::core_fragment::dump(std::cout);
 #endif
+    #if 0
         // 5. schedule `dwarf line` output for generation (after obj emit)
         if (dwarf::dl_data::size() != 0) {
             // add "end_sequence" to mark end of `dl_data` instructions 
@@ -88,6 +93,7 @@ struct kas_assemble
             // schedule generation after `text` addresses resolved
             do_gen_dwarf = &dw_obj;
         }
+    #endif
         std::cout << "assemble complete" << std::endl;
     }
 
@@ -142,14 +148,17 @@ private:
                     *out << "raw:  " << insn.raw() << std::endl;
                     *out << "fmt:  " << insn.fmt() << std::endl;
                 }
-                //*inserter++ = std::move(insn);
+                *inserter++ = std::move(insn);
             } 
             
             catch (std::exception const& e)
             {
                 auto exc_name = typeid(e).name();        // internal error: ugly name is fine
-                if (out)
-                    *out << "\n\nInternal error: " << exc_name << ": " << e.what() << std::endl;
+            
+                // print diagnostic message
+                std::ostream& diag = out ? *out : std::cout; 
+                diag << "\n\nInternal error: " << exc_name << ": " << e.what() << std::endl;
+                diag << "while processing: " << src.escaped_str(stmt.src()) << std::endl;
             }
             
             if (out)

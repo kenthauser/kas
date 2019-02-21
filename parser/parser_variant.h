@@ -73,17 +73,17 @@ struct stmt_t : detail::parser_variant
             {
                 static core::opc::opc_error error;
 
-                core::opc::insn_data data{node};     // get loc
-                auto op_p = node.gen_insn(data);
-                if (data.size.is_error())
+                core::core_insn insn{node};     // get loc
+                insn.op_p = node.gen_insn(insn.data);
+                if (insn.data.size.is_error())
                 {
-                    data.size = {};
-                    op_p      = {};
+                    insn.data.size = {};
+                    insn.op_p      = {};
                 }
                 
-                if (!op_p)
-                    op_p = &error;
-                return {*op_p, data};
+                if (!insn.op_p)
+                    insn.op_p = &error;
+                return insn;
             }));
     }
     

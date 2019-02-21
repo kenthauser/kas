@@ -20,7 +20,7 @@ struct opc_dw_file : opcode
 	void proc_args(data_t& data, unsigned index, std::string name,
                     ::kas::parser::kas_position_tagged loc)
 	{
-		data.fixed.fixed = index;
+		data.fixed().fixed = index;
 		if (index == 0) {
 			auto& sym = core_symbol::add(name, STB_LOCAL, STT_FILE);
 #ifdef ENFORCE_FILE_FIRST_LOCAL
@@ -29,7 +29,7 @@ struct opc_dw_file : opcode
 				make_error(data, err, loc);
 #else
             // save FILE:0 as negative of symbol::index
-            data.fixed.fixed = -sym.index();
+            data.fixed().fixed = -sym.index();
 #endif
 		} else {
 			auto& obj = dwarf::dwarf_file::get(index);
@@ -40,10 +40,10 @@ struct opc_dw_file : opcode
 		}
 	}
 
-	void fmt(data_t& data, std::ostream& os) const override
+	void fmt(data_t const& data, std::ostream& os) const override
 	{
         // convert file# to signed index
-        int32_t index = data.fixed.fixed;
+        int32_t index = data.fixed().fixed;
 
         // if !defined FILE_SYMBOL
         if (index < 0)
@@ -61,9 +61,9 @@ struct opc_dw_file : opcode
 		} else {
 			auto& obj = dwarf::dwarf_file::get(index);
 			if (obj.name.empty())
-				os << data.fixed.fixed << " : **undefined**";
+				os << data.fixed().fixed << " : **undefined**";
 			else
-				os << data.fixed.fixed << " : " << obj.name;
+				os << data.fixed().fixed << " : " << obj.name;
 		}
 	}	
 };
@@ -81,12 +81,12 @@ struct opc_dw_line : opcode
                   , dl_pair const *dw_data, unsigned cnt)
     {
 		auto& obj = dl_data::add(file, line, dw_data, cnt);
-		data.fixed.fixed = obj.index();
+		data.fixed().fixed = obj.index();
 	}
 
-	void fmt(data_t& data, std::ostream& os) const override
+	void fmt(data_t const& data, std::ostream& os) const override
 	{
-		auto& obj = dl_data::get(data.fixed.fixed);
+		auto& obj = dl_data::get(data.fixed().fixed);
 
         os << obj.line_num();
         if (obj.section())
@@ -99,7 +99,7 @@ struct opc_dw_line : opcode
 	// emit records `dot` in the `dwarf_line` entry for use generating `.debug_line`
 	void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
 	{
-		auto& obj     = dl_data::get(data.fixed.fixed);
+		auto& obj     = dl_data::get(data.fixed().fixed);
 		obj.section() = dot_p->section().index();
 		obj.address() = dot_p->offset()();
 	}

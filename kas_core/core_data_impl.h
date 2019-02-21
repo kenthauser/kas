@@ -7,11 +7,10 @@
 namespace kas::core
 {
 
-#if 1
 // initalize container from insn
 insn_container_data::insn_container_data(core_insn const &insn)
-    : _opc_index (insn.op.index())
-    , fixed      (insn.data.fixed)
+    : _opc_index (insn.op_p->index())
+    , fixed      (insn.data.fixed())
 {
     // XXX not encoding data
     _cnt  = insn.data.insn_expr_data.size() - insn.data.first;
@@ -19,13 +18,46 @@ insn_container_data::insn_container_data(core_insn const &insn)
     _loc  = insn.data._loc;
 }
 
+// initialize insn from container data
 core_insn::core_insn(insn_container_data& container_data)
-    : op(opcode::get(container_data.opc_index()))
-    , data_p(&container_data)
-{
+    : op_p(&opcode::get(container_data.opc_index()))
+    , data(container_data)
+    {}
 
+// initialize insn_data from container data
+insn_data::insn_data(insn_container_data& container_data)
+    //: fixed(container_data.fixed)
+    : fixed_p(&container_data.fixed)
+    , size(container_data.size())
+    , data_p(&container_data)
+    , cnt(container_data.cnt())
+    {}
+
+// `insn_data` methods which reference `insn_container_data` methods
+// return object, not reference
+auto insn_data::iter() const -> Iter
+{
+    if (data_p)
+        return data_p->iter();
+
+    cnt = insn_expr_data.size() - first;
+    return begin() + first;
 }
-#endif
+
+auto insn_data::index() const -> std::size_t
+{
+    return std::distance(begin(), iter());
 }
+
+auto insn_data::loc() const -> parser::kas_loc const&
+{
+    // seldom need loc(). Calculate on demand
+    if (data_p)
+        return data_p->loc();
+    return _loc;
+}
+}
+   
+
 
 #endif

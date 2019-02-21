@@ -63,7 +63,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     obj.assemble(src, &parse_out);
 
     // dump raw
-    auto dump_raw = [&parse_out](auto& container)
+    auto dump_container = [&parse_out](auto& container)
         {
             container.proc_all_frags(
                 [&parse_out](auto& insn_iter, auto& dot)
@@ -78,16 +78,46 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
 #endif
                     //auto where = stmt_stream.where(stmt).second;
                     auto& loc = insn.get_loc();
-                    //auto where = kas::parser::error_handler<Iter>::where(loc);
-                    //parse_out << "in  : " << src.escaped_str(where) << std::endl;
+                    kas::parser::parser_src src;
+
+                    parse_out << "loc : " << loc.get() << std::endl;
+                    if (loc)
+                    {
+                        auto where = loc.where();
+                        parse_out << "in  : " << src.escaped_str(where) << std::endl;
+                    }
                     parse_out << "raw : " << insn.raw() << std::endl;
                     parse_out << "fmt : " << insn.fmt() << '\n' << std::endl;
                 });
         };
 
-    kas::core::kas_assemble::INSNS::for_each(dump_raw);
+    // dump 
+    auto dump_raw = [&parse_out](auto& container)
+        {
+            parse_out << "new container: insn count = ";
+            parse_out << std::dec << container.insns.size() << std::endl;
+            unsigned n{};
+            std::remove_reference_t<decltype(container)>::value_type::reinit();
+            for (auto&& raw : container.insns)
+            {
+                parse_out << std::setw(4) << ++n;
+                parse_out << "data: ";
+                parse_out << " opc = "   << raw.opc_index();
+                parse_out << " index = " << raw.index();
+                parse_out << " cnt = "   << raw.cnt();
+                parse_out << " size = "  << raw.size();
+                parse_out << " loc = "   << raw.loc().get();
+                parse_out << " fixed = " << raw.fixed.fixed;
+                parse_out << std::endl;
 
-#if 0    
+                raw.advance();
+            };
+        };
+
+    kas::core::kas_assemble::INSNS::for_each(dump_raw);
+    kas::core::kas_assemble::INSNS::for_each(dump_container);
+
+#if 1    
     // dump tables
     kas::core::core_symbol::dump(out);
     kas::core::core_section::dump(out);
@@ -95,11 +125,11 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     kas::core::core_fragment::dump(out);
     kas::dwarf::dl_data::dump(out);
 #endif
-#if 1
+#if 0
     kas::core::emit_listing<iterator_type> listing(parse_out);
     obj.emit(listing);
 #endif
-#if 1
+#if 0
     kas::elf::elf_emit elf_obj(ELFCLASS32, ELFDATA2MSB, EM_68K); 
     obj.emit(elf_obj);
 

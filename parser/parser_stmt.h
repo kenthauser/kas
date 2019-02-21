@@ -70,7 +70,7 @@ struct parser_stmt : kas_position_tagged
     using base_t    = parser_stmt<Derived>;
     using derived_t = Derived;
     using print_obj = print::stmt_print<std::ostream>;
-    using opcode = core::opcode;
+    using opcode    = core::opcode;
 
     // inherit base class operators
     using kas_position_tagged::kas_position_tagged;
@@ -127,10 +127,10 @@ namespace detail
                 p_obj(diag);
         }
 
-        opcode *gen_insn(insn_data& data)
+        opcode *gen_insn(core::insn_data& data)
         {
             // fixed area unused otherwise...
-            data.fixed.diag = diag;
+            data.fixed().diag = diag;
             return &opc;
         }
         

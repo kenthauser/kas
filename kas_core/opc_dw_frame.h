@@ -25,7 +25,7 @@ struct opc_df_startproc : opcode
 
         auto& obj = df_data::add(omit_prologue);
         obj.set_begin(core_addr::get_dot().ref());
-        data.fixed.fixed = obj.index();
+        data.fixed().fixed = obj.index();
 	}
 };
 
@@ -45,7 +45,7 @@ struct opc_df_endproc : opcode
 
         // record current address in frame. error if different section
         p->set_end(core_addr::get_dot().ref());
-        data.fixed.fixed = p->index();
+        data.fixed().fixed = p->index();
         p = nullptr;                // no longer in frame
 	}
 };
@@ -65,7 +65,7 @@ struct opc_df_oper: opcode
     {
         // allocate a insn_data instance
         auto& obj = df_insn_data::add(cmd, arg1, arg2);
-        data.fixed.fixed = obj.index();
+        data.fixed().fixed = obj.index();
 
         // XXX Need better way to set "offset". For now just allocate label
         obj.set_addr(core_addr::get_dot().ref());

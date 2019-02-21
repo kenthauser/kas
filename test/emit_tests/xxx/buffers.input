@@ -1,0 +1,543 @@
+; configuration paramters
+	.globl	BLKLEN			; export block size
+BLKLEN		=	32
+DATALEN		=	BLKLEN-2
+
+BIDLEN		=	8		; bytes in BID
+LOG2BID		=	3		; log of BID length
+
+
+; external memory
+
+    	.lcomm	blockfree, 2		; head of block free list
+	.lcomm	bidfree, 2		; head of BID free list
+	.lcomm	bidcnt,	1		; BIDs remaining
+	.comm	blkcnt,	1		; blocks remaining
+
+
+; The BUFDESC offset definitions
+; because of bputw, these offsets must not be changed
+bheadorg	=	0
+bheadhi		=	1
+bheadlow	=	2
+bheadcnt	=	3
+brworg		=	4
+brwhi		=	5
+brwlow		=	6
+brwcnt		=	7
+
+	.globl	binit
+
+; routines to initially link the buffers together
+
+    bit 6,(iy+4)
+    
+binit:
+; link the buffers together
+	ld	a,#NUMBLK
+	ld	(blkcnt),a
+	ld	l,a			; and save
+	ld	bc,#BLKLEN
+	ld	de,#blkorg		; head pointer to DE
+	ld	(blockfree),de		; save head pointer
+	ld	a,c
+	dec	a
+	and	e
+	call	nz,bad_error
+	ld	a,l			; restore count
+	call	1$
+
+; link the BIDs together
+	ld	a,#NUMBID
+	ld	(bidcnt),a
+	ld	l,a			; save count
+	ld	bc,#BIDLEN
+	ld	de,#bidorg		; head pointer to DE
+	ld	(bidfree),de		; save head pointer
+	ld	a,c			; check alignment
+	dec	a
+	and	e
+	call	nz,bad_error
+	ld	a,l			; restore count
+
+; link the linked list: A = cnt, BC = size, DE = org
+1$:	ld	l,e
+	ld	h,d
+	add	hl,bc
+	ex	de,hl			; current blk to HL
+	ld	(hl),e
+	inc	hl
+	ld	(hl),d
+	dec	hl
+	dec	a
+	jr	nz,1$
+	ld	(hl),a			; null at EOL
+	inc	hl
+	ld	(hl),a
+	ret
+
+; The memory management routines
+	.globl	blkget, blkput	
+
+blkget:
+; must preserve BC
+	ld	hl,#blkcnt		; first update count
+	dec	(hl)
+	di
+	ld	hl,(blockfree)
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ld	(blockfree),de
+	ei
+	xor	a
+	ld	(hl),a
+	dec	hl
+	ld	(hl),a
+	ld	a,h			; test for zero block ptr
+	or	l
+	ret	nz
+	rst	0x38			; bad_error: if no blocks left
+
+blkput:
+	ex	de,hl
+	ld	hl,#blkcnt
+	inc	(hl)
+	di
+	ld	hl,(blockfree)
+	ex	de,hl
+	ld	(blockfree),hl
+	ld	(hl),e
+	inc	hl
+	ld	(hl),d
+	ei
+	ret
+
+putlink:
+; INTERNAL ROUTINE -- clobbers BC
+; place linked list back on free list
+; DE = first block on list, HL = last block on list, B = # blocks
+	ld	a,b			; number of blocks
+	di
+	ld	bc,(blockfree)
+	ld	(blockfree),de
+	ld	(hl),c
+	inc	hl
+	ld	(hl),b
+	ei
+	ld	b,a			; allow "ei" to take effect
+	di
+	ld	a,(blkcnt)
+	add	a,b
+	ld	(blkcnt),a
+	ei
+	ret
+
+
+; and the BID routines (these are not externally visible)
+bidget:
+; must preserve BC
+	ld	hl,#bidcnt		; update cnt
+	dec	(hl)
+	di
+	ld	hl,(bidfree)
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ld	(bidfree),de
+	ei
+	dec	hl
+	ld	a,h
+	or	l
+	ret	nz
+	rst	0x38			; bad_error: out of bids
+
+bidput:
+	di
+	ld	de,(bidfree)
+	ld	(bidfree),hl
+	ld	(hl),e
+	inc	hl
+	ld	(hl),d
+	ei
+	ld	a,h
+	ld	hl,#bidcnt		; update cnt
+	inc	(hl)
+	or	a			; page zero?
+	ret	nz
+	rst	0x38			; bad_error: bad queue
+
+; The routines which create and destroy buffers
+
+	.globl	bmake, bfree, bfree_bid, b2ptr, blen
+
+bmake:
+	push	bc
+	ld	b,a			; save the offset
+	call	bidget			; preserves BC
+	push	hl			; save two copies on stack
+	push	hl
+	pop	ix
+	ld	de,#bidorg
+	or	a
+	sbc	hl,de			; offset from BID beginning
+	add	hl,hl			; rept	8-LOG2BID ( = 5 )
+	add	hl,hl			; 2
+	add	hl,hl			; 3
+	add	hl,hl			; 4
+	add	hl,hl			; 5
+	push	hl			; H holds the BID #
+	call	blkget
+	ld	a,#DATALEN
+	cp	b
+	jr	c,1$			; branch if bad number
+	sub	b			; offset is OK
+1$:	ld	(ix+bheadcnt),a		; save the number of locations left
+	ld	(hl),a			; save count at block org
+	ld	a,#BLKLEN
+	sub	(hl)			; offset into block
+	add	l			; actual address
+	ld	(ix+bheadorg),l
+	ld	(ix+bheadhi),h
+	ld	(ix+bheadlow),a
+	ld	(ix+brworg),l
+	ld	(ix+brwhi),h
+	ld	(ix+brwlow),a
+	xor	a
+	ld	(ix+brwcnt),a
+	pop	af			; restore BID to A
+	pop	hl			; BPTR to HL
+	pop	bc
+	ret
+
+b2ptr:
+; convert the BID in A to a bufptr
+	ld	l,a
+	ld	h,#0
+	add	hl,hl			; rept LOG2BID ( = 3 )
+	add	hl,hl
+	adc	hl,hl			; use "adc" to trap bid == 0
+	call	z,bad_error
+	ld	de,#bidorg
+	add	hl,de
+	push	hl
+	pop	ix
+	ret
+
+bfree_bid:
+; free BID in A
+	push	ix			; call saved reg
+	call	b2ptr			; get BPTR
+	call	bfree			; delete buffer
+	pop	ix			; restore reg
+	ret
+
+bfree:
+; free buffer in IX
+	bit	7,(ix+brwhi)		; if previously freed...
+	call	z,bad_error		; ...program error
+	xor	a
+	ld	(ix+brwhi),a		; now clear ptr
+	ld	(ix+brwlow),a		; now clear ptr	
+	push	bc
+	ld	h,(ix+bheadhi)
+	ld	l,(ix+bheadorg)
+	push	hl
+	call	bcount
+	pop	de
+	call	putlink
+	push	ix
+	pop	hl
+	pop	bc
+	jp	bidput
+
+blen:
+; returns buffer length (from beginning) in HL
+	push	bc
+	ld	h,(ix+bheadhi)
+	ld	l,(ix+bheadorg)
+	call	bcount
+	ld	h,d
+	ld	l,(ix+bheadcnt)
+	or	a
+	sbc	hl,de
+	ld	de,#DATALEN
+1$:	add	hl,de
+	djnz	1$
+	sbc	hl,de
+	pop	bc
+	ret
+
+bcount:
+; count the blocks in chain starting at HL
+; return the last NEXTPOINTER in HL
+; return block count in B
+	xor	a
+	ld	b,#1			; block count
+1$:	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	dec	hl
+	cp	d			; next block pointer valid?
+	ret	z			; done if not
+	ex	de,hl
+	inc	b
+	jr	1$
+
+; character oriented routines
+	.globl	bget, bput, bpush, bpop, btop
+
+bget:
+; get the next character at the read pointer, Z and (A,L = 0) at eob
+	xor	a
+	ld	l,a
+	or	(ix+brwcnt)
+	ret	z			; if empty
+	ld	l,(ix+brwlow)
+	ld	h,(ix+brwhi)
+	ld	a,(hl)
+	ld	l,a
+	inc	(ix+brwlow)
+	dec	(ix+brwcnt)
+	ret	nz
+	ld	l,(ix+brworg)
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	bit	7,d			; last block ?
+	jr	z,9$			; branch if so
+	ex	de,hl
+	ld	(ix+brworg),l
+	ld	(ix+brwhi),h
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	(ix+brwlow),l
+	ld	l,a
+	ld	a,#DATALEN
+	bit	7,d			; is new block last ?
+	jr	nz,1$			; branch if not
+	sub	e
+1$:	ld	(ix+brwcnt),a
+	ld	a,l
+9$:	ld	l,a			; ret data in A & L
+	ld	h,#0
+	inc	h			; set NZ
+	ret
+
+bput:
+; put character from A at end of buffer
+	push	af
+	ld	a,(ix+brwcnt)
+	or	a
+	call	nz,bend
+	ld	h,(ix+brwhi)
+	ld	l,(ix+brwlow)
+	pop	af
+	ld	(hl),a
+	inc	l
+	ld	(ix+brwlow),l
+	ld	l,(ix+brworg)
+	di				; prevent zero from aliasing
+	dec	(hl)
+	jr	nz,1$
+	ld	(hl),#1			; want match block pointer
+	ei				; safe now
+	push	hl
+	call	blkget
+	ex	de,hl
+	pop	hl
+	di
+	ld	(hl),e
+	inc	l
+	ld	(hl),d
+	ex	de,hl
+	ld	(hl),#DATALEN
+	ld	(ix+brworg),l
+	ei
+	inc	l
+	inc	l
+	ld	(ix+brwlow),l
+	ld	(ix+brwhi),h
+1$:	ei
+	ret
+
+bpush:	push	af
+	ld	l,(ix+bheadlow)
+	ld	h,(ix+bheadhi)
+	dec	l
+	ld	a,(ix+bheadcnt)
+	cp	#DATALEN
+	jr	c,1$			; if room
+	dec	l			; point to first of block
+	push	hl			; and save
+	call	blkget
+	pop	de			; restore old block
+	ld	(ix+bheadhi),h
+	ld	(ix+bheadorg),l
+	ld	(hl),e
+	inc	l
+	ld	(hl),d
+	ld	a,#DATALEN
+	add	a,l
+	ld	l,a
+	xor	a
+1$:	inc	a
+	ld	(ix+bheadcnt),a
+	ld	(ix+bheadlow),l
+	pop	af
+	ld	(hl),a
+	ret
+
+bpop:	ld	d,(ix+bheadhi)
+	ld	e,(ix+bheadorg)
+	ld	a,(de)
+	sub	(ix+bheadcnt)
+	ld	l,a
+	ret	z
+	ex	de,hl			; head pointer to HL
+	ld	l,(ix+bheadlow)
+	ld	a,(hl)
+	inc	(ix+bheadlow)
+	dec	(ix+bheadcnt)
+	ld	l,a
+	ret	nz
+	push	af			; free block
+	ld	l,(ix+bheadorg)
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	dec	hl
+	ld	(ix+bheadorg),e
+	ld	(ix+bheadhi),d
+	inc	e
+	inc	e
+	ld	(ix+bheadlow),e
+	ld	(ix+bheadcnt),#DATALEN
+	call	blkput
+	pop	af
+	ld	h,#0
+	ld	l,a
+	inc	h
+	ret
+
+btop:	bit	7,(ix+brwhi)		; test for freed buffer
+	jr	z,2$
+	ld	h,(ix+bheadhi)
+	ld	l,(ix+bheadorg)
+	ld	(ix+brwhi),h
+	ld	(ix+brworg),l
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	bit	7,d
+	ld	a,(ix+bheadcnt)
+	jr	nz,1$			; if not only block
+	sub	e			; adjust count
+1$:	ld	(ix+brwcnt),a
+	ld	l,(ix+bheadlow)
+	ld	(ix+brwlow),l
+	ret
+2$:	rst	0x38			; btop on freed buffer
+
+; internal routine used by bput
+bend:	push	bc
+	ld	h,(ix+brwhi)
+	ld	l,(ix+brworg)
+	bit	7,h			; test for freed buffer
+	jr	z,1$
+	call	bcount
+	ld	(ix+brwhi),h
+	ld	(ix+brworg),l
+	ld	a,#BLKLEN
+	add	a,l
+	sub	e
+	ld	(ix+brwlow),a
+	ld	(ix+brwcnt),d
+	pop	bc
+	ret
+1$:	rst	0x38			; bend on freed buffer
+
+;a special routine for Router use
+; this routine insures that HL is written in consecutive buffer locations
+
+	.globl	bputw
+bputw:
+; write HL @ end of buffer
+	ld	a,(ix+brwcnt)
+	or	a
+	call	nz,bad_error	; problem !
+	push	bc		; need registers
+	ld	c,l		; copy data to BC
+	ld	b,h
+; loop here to try again
+1$:	ld	hl,#brworg
+	push	ix
+	pop	de
+	add	hl,de
+; test for room in current block, and write if so
+	di			; avoid contention
+	ld	e,(hl)
+	inc	l		; buffdesc are page aligned
+	ld	d,(hl)		; brwhi
+	ld	a,(de)
+	sub	#2
+	jr	z,3$		; if no room
+	ld	(de),a		; write new count
+	inc	l
+	ld	a,(hl)		; brwlow
+	add	#2		; bytes written
+	ei			; enabled after next instruction
+	ld	(hl),a		; new end pointer
+	ld	l,a		; now write data
+	ld	h,d
+	dec	l		; point to high byte
+2$:	ld	(hl),b
+	dec	l
+	ld	(hl),c
+	pop	bc
+	ret
+
+; will need additional block -- allocate it in preperation
+3$:	ei
+	push	bc		; save data
+	push	hl		; save bid pointer
+	call	blkget
+	ld	(hl),#DATALEN	; prepare block
+	ex	(sp),hl		; get back pointer to brwhi
+	pop	bc		; move new pointer to BC
+	di			; and test again (avoiding contention)
+	ld	d,(hl)
+	dec	l
+	ld	e,(hl)
+	ld	a,(de)		; get count
+	sub	#2		; bytes to write
+	jr	nz,4$		; somebody else added block!!
+	ld	(hl),c		; new low pointer
+	inc	l
+	ld	(hl),b
+	inc	l
+	inc	c
+	inc	c
+	ei			; almost there
+	ld	(hl),c		; buffdesc update complete
+	ex	de,hl		; old block pointer to HL
+	dec	c		; new block pointer to start
+	dec	c
+	ld	(hl),c
+	inc	l
+	ld	(hl),b
+; block added, room reserved -- now write data in old block
+	ld	de,#DATALEN
+	add	hl,de		; pointer to last data location
+	pop	bc		; restore data
+	jr	2$
+
+; block was added while we were getting ready -- free block and try again
+4$:	ei
+	ld	h,b
+	ld	l,c
+	call	blkput
+	pop	bc		; restore data to write
+	jr	1$

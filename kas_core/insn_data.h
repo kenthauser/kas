@@ -10,63 +10,67 @@
 #include "core_size.h"
 
 
-namespace kas::core::opc
+namespace kas::core
 {
-// an "pseudo-anonymous" union which holds several `core_types`
-template <typename FIXED_T = uint32_t>
-union insn_fixed_t
+namespace opc
 {
-    using fixed_t = FIXED_T;
+    // an "pseudo-anonymous" union which holds several `core_types`
+    template <typename FIXED_T = uint32_t>
+    union insn_fixed_t
+    {
+        using fixed_t = FIXED_T;
 
-    // access as fixed value or array of smaller types
-    fixed_t    fixed;
-    //uint16_t    fixed_p[2];
-    uint8_t     data[sizeof(fixed_t)];
+        // access as fixed value or array of smaller types
+        fixed_t    fixed;
+        //uint16_t    fixed_p[2];
+        uint8_t     data[sizeof(fixed_t)];
 
-    // access as `core` types
-    addr_ref    addr;
-    symbol_ref  sym;
-    parser::kas_error_t diag;
-    parser::kas_loc loc;
-    addr_offset_t offset;
+        // access as `core` types
+        addr_ref    addr;
+        symbol_ref  sym;
+        parser::kas_error_t diag;
+        parser::kas_loc loc;
+        addr_offset_t offset;
 
-    insn_fixed_t(fixed_t fixed = {}) : fixed(fixed) {};
+        insn_fixed_t(fixed_t fixed = {}) : fixed(fixed) {};
 
-    template <typename T>
-    auto begin() const { return static_cast<T *>(data); }
-    
-    template <typename T>
-    auto begin()       { return static_cast<T *>(data); }
+        template <typename T>
+        auto begin() const { return static_cast<T *>(data); }
+        
+        template <typename T>
+        auto begin()       { return static_cast<T *>(data); }
 
-    template <typename T>
-    constexpr auto size() const  { return sizeof(data)/sizeof(T); }
-};
+        template <typename T>
+        constexpr auto size() const  { return sizeof(data)/sizeof(T); }
+    };
 
-// using fixed_t = insn_fixed_t;
+    // using fixed_t = insn_fixed_t;
 
-// define a `back_inserter` which adds `last` method to return reference
-// to last stored item (eg: back)
-template <typename Container>
-struct opc_back_insert_iterator : std::back_insert_iterator<Container>
-{
-private:
-    Container& c;
+    // define a `back_inserter` which adds `last` method to return reference
+    // to last stored item (eg: back)
+    template <typename Container>
+    struct opc_back_insert_iterator : std::back_insert_iterator<Container>
+    {
+    private:
+        Container& c;
 
-public:
-    using value_type = typename Container::value_type;
-    using reference  = typename Container::reference;
+    public:
+        using value_type = typename Container::value_type;
+        using reference  = typename Container::reference;
 
-    opc_back_insert_iterator(Container &c)
-        : c(c), std::back_insert_iterator<Container>(c) {}
+        opc_back_insert_iterator(Container &c)
+            : c(c), std::back_insert_iterator<Container>(c) {}
 
-    auto& last() { return c.back(); }
-};
+        auto& last() { return c.back(); }
+    };
 
-template <typename Container>
-auto opc_back_inserter(Container& c)
-{
-    return opc_back_insert_iterator<Container>(c);
+    template <typename Container>
+    auto opc_back_inserter(Container& c)
+    {
+        return opc_back_insert_iterator<Container>(c);
+    }
 }
+
 
 struct insn_data 
 {
@@ -77,9 +81,10 @@ private:
 public:
     // types picked up by `struct opcode`
     using Iter     = typename decltype(insn_expr_data)::iterator;
-    using fixed_t  = insn_fixed_t<>;
-    using Inserter = opc_back_insert_iterator<decltype(insn_expr_data)>;
-   
+    using fixed_t  = opc::insn_fixed_t<>;
+    using Inserter = opc::opc_back_insert_iterator<decltype(insn_expr_data)>;
+  
+    
     // this ctor used when generating insn data
     insn_data(parser::kas_loc loc = {}) : _loc(loc)
     {
@@ -93,7 +98,7 @@ public:
     // get back-inserter for expression data when generating data
     auto& di() const
     {
-        static auto _di = opc_back_inserter(insn_expr_data);
+        static auto _di = opc::opc_back_inserter(insn_expr_data);
 
         if (data_p)
             throw std::logic_error{"back_inserter referenced during evaluation"};
@@ -107,28 +112,39 @@ public:
         return insn_expr_data.begin();
     }
 
-    Iter iter() const
-    {
-        cnt = insn_expr_data.size() - first;
-        // XXX move to impl as `container` fn
-        return begin() + first;
-    }
-
-
+    // return object, not reference
+    Iter iter() const;
+    std::size_t index() const;
+    
     // use signed type for opcode size
     // XXX why?
     using op_size_t   = offset_t<int16_t>;
 
 
     // XXX move to impl
-    parser::kas_loc const& loc() const
+    parser::kas_loc const& loc() const;
+   
+    // fixed is a `local` or `data_p` reference
+#if 0
+    fixed_t&         fixed;
+#else
+    // XXX 2019/02/19. `fixed` should be reference.
+    // but an apparent clang error prevents `fixed` being bound
+    // to local or `insn_container_data` instance.
+    // For now, make `fixed` a method which returns reference.
+    // run down when there is time...
+    auto& fixed()
     {
-        return _loc;
+        return *fixed_p;
     }
     
-    // XXX 2019/02/19 intializing `fixed{_fixed}` doesn't work ????
-    //fixed_t&         fixed{_fixed};
-    fixed_t          fixed;
+    auto& fixed() const
+    {
+        return *fixed_p;
+    }
+#endif
+
+    // size always needed & thus calculated
     op_size_t        size;
 
     uint32_t         first;      // index of first expression
@@ -150,6 +166,9 @@ public:
 
     fixed_t              _fixed;
     parser::kas_loc      _loc;
+    
+    // XXX
+    fixed_t             *fixed_p {&_fixed};
 
     // instances used during parsing of insns. 
     insn_container_data *data_p {};

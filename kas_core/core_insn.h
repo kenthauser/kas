@@ -39,32 +39,23 @@ struct core_insn
     using op_size_t = opcode::op_size_t;
    
     // init core_insn from `core_stmt` or `insn_container_data` 
-    core_insn(opcode const& op, opc::insn_data data) : op(op), data(data) {}
+    //core_insn(opcode const& op) : op_p(&op) {}
     core_insn(insn_container_data&);
+    core_insn(parser::kas_loc loc = {}) : data(loc) {};
 
     // construct core_insn from opcode & arg list
     template <typename OPCODE, typename...Ts
         , typename = std::enable_if_t<std::is_base_of_v<opcode, OPCODE>>>
-    core_insn(OPCODE const& op, Ts&&...args) : op(op)
+    core_insn(OPCODE const& op, Ts&&...args) : op_p(&op)
     {
         op(data, std::forward<Ts>(args)...);
     }
 
-    auto& size() const
-    {
-        return data.size;
-    }
-
-    auto& get_loc() const
-    {
-        return data.loc();
-    }
-
     // convenience methods
-    bool is_relaxed() const
-    {
-        return size().is_relaxed();
-    }
+    auto& size()      const { return data.size;  }
+    auto& size()            { return data.size;  }
+    auto& get_loc()   const { return data.loc(); }
+    bool is_relaxed() const { return size().is_relaxed(); }
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -74,37 +65,37 @@ struct core_insn
 
     auto name() const
     {
-        return op.name();
+        return op_p->name();
     }
 
     // format for test fixture interface
-    void raw(std::ostream& os) 
+    void raw(std::ostream& os) const
     {
     #if 0
         // need this to debug data.fixed reference issue
         auto iter = data.iter();
-        os << "fixed = "  << std::hex << data.fixed.fixed;
+        os << "fixed = "  << std::hex << data.fixed().fixed;
         os << " _fixed = "  << data._fixed.fixed;
-        os << " first = " << data.first;
+        os << " index = " << data.index();
         os << " cnt = "   << data.cnt;
         os << " loc = "   << data.loc().get();
         os << std::endl;
         os << "raw:  ";
     #endif
-        os << op.name() << " " << std::dec << data.size << ": ";
-        op.raw(data, os);
+        os << op_p->name() << " " << std::dec << data.size << ": ";
+        op_p->raw(data, os);
     }
 
-    void fmt(std::ostream& os) 
+    void fmt(std::ostream& os) const
     {
-        os << op.name() << " " << std::dec << data.size << ": ";
-        op.fmt(data, os);
+        os << op_p->name() << " " << std::dec << data.size << ": ";
+        op_p->fmt(data, os);
     }
     
     // used during relax
     auto calc_size(core_fits const& fits) 
     {
-        return op.calc_size(data, fits);
+        return op_p->calc_size(data, fits);
     }
 
     // emit to object file or listing
@@ -119,7 +110,7 @@ struct core_insn
 #endif
 
         // perform `opcode` method...
-        op.emit(data, base, dot_p);
+        op_p->emit(data, base, dot_p);
 
         
 #ifdef  VALIDATE_EMIT
@@ -151,8 +142,8 @@ struct core_insn
 private:
     struct print_t
     {
-        core_insn& obj;
-        void (core_insn::*fn)(std::ostream&);
+        core_insn const& obj;
+        void (core_insn::*fn)(std::ostream&) const;
     };
     
     // ostream formatted core_insn
@@ -163,12 +154,12 @@ private:
     }
 
 public:
-    print_t raw() 
+    print_t raw() const
     {
         return { *this, &core_insn::raw };
     }
 
-    print_t fmt() 
+    print_t fmt() const
     {
         return { *this, &core_insn::fmt };
     }
@@ -179,9 +170,8 @@ public:
 //
 ////////////////////////////////////////////////////////////////////////
 
-    opcode const&  op;
-    opc::insn_data data;
-    insn_container_data const *data_p{};
+    opcode const  *op_p {};
+    insn_data      data {};
 };
 }
 

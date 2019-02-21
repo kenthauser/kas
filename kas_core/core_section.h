@@ -253,7 +253,7 @@ namespace opc
 
         void operator()(data_t& data, core_section::index_t index) const
         {
-            data.fixed = index;
+            data.fixed() = index;
         }
         
         void operator()(data_t& data, core_segment const& seg) const
@@ -265,7 +265,7 @@ namespace opc
         {
             previous = current;
             current  = index;
-            data.fixed = index;
+            data.fixed() = index;
         }
 
 #if 0
@@ -280,16 +280,16 @@ namespace opc
             this->fixed_p->fixed = section[0].index();
         }
 #endif
-        void fmt(data_t& data, std::ostream& os) const override
+        void fmt(data_t const& data, std::ostream& os) const override
         {
-            auto index = data.fixed.fixed;
+            auto index = data.fixed().fixed;
             os << index << ' ';
             os << core_segment::get(index);
         }
 
         void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
         {
-            auto& seg = core_segment::get(data.fixed.fixed); 
+            auto& seg = core_segment::get(data.fixed().fixed); 
             base.set_segment(seg);
         }
     };

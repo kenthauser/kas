@@ -6,7 +6,8 @@
 #include <iostream>
 #include <utility>
 
-struct print_type_name {
+struct print_type_name
+{
     print_type_name() = default;
 
     template <typename T>
@@ -15,14 +16,15 @@ struct print_type_name {
         prefix += ": ";
     }
 
-
     template <typename T>
-    void operator()(T&, std::ostream& os = std::cout) const {
+    void operator()(T&, std::ostream& os = std::cout) const
+    {
         os << prefix << boost::typeindex::type_id_with_cvr<T>().pretty_name() << std::endl;
     }
 
     template <typename T>
-    void name(std::ostream& os = std::cout) const {
+    void name(std::ostream& os = std::cout) const
+    {
         os << prefix << boost::typeindex::type_id_with_cvr<T>().pretty_name() << std::endl;
     }
 

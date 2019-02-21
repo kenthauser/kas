@@ -62,8 +62,9 @@ namespace kas::core
         using insn_iter   = typename Insn_Deque_t::iterator;
         using PROC_FN     = std::function<void(insn_iter&, core_expr_dot const&)>;
 
-        // insn_iter & count for iterating a frag
-        using frag_iter_t = std::pair<insn_iter, uint32_t>;
+        // insn_iter, insn_state & count for iterating a frag
+        using insn_state_t = typename value_type::state_t;
+        using frag_iter_t  = std::tuple<insn_iter, insn_state_t, uint32_t>;
 
         using base_t::for_each;
 
@@ -83,14 +84,14 @@ namespace kas::core
             //data_initial = core_insn::data.size();
             return insn_inserter(*this);
         }
-        
+       #if 0 
         // getter for container data
         static auto& data()
         {
             static auto data_ = new std::deque<expr_t>;
             return *data_;
         }
-
+        #endif
         // getter for dot()
         auto& get_insn_dot() const
         {
@@ -105,7 +106,8 @@ namespace kas::core
         friend base_t;
         static void clear()
         {
-            data().clear();
+            //data().clear();
+            value_type::clear();
         }
     // XXX temp
     // private:
@@ -117,6 +119,7 @@ namespace kas::core
         core_fragment const *first_frag_p {};
         
         void do_frag(core_fragment&, insn_iter&, uint32_t, PROC_FN);
+        void do_frag(core_fragment&, frag_iter_t const&  , PROC_FN);
         Insn_Deque_t insns;
         //decltype(core_insn::data)::size_type data_initial = -1;
         std::deque<uint32_t> insn_index_list;
@@ -203,6 +206,8 @@ namespace kas::core
             insn_iters->reserve(insn_index_list.size() - 1);
         }
 
+        // proc_all: reinit "value_type" data structures
+        value_type::reinit();
         auto insn_iter = insns.begin();
         auto it = insn_index_list.begin();
 
@@ -210,7 +215,7 @@ namespace kas::core
             {
                 auto count = it[1] - it[0];
                 if (must_generate_iters)
-                    insn_iters->emplace_back(insn_iter, count);
+                    insn_iters->emplace_back(insn_iter, value_type::get_state(), count);
                 do_frag(frag, insn_iter, count, fn);
                 ++it;
             };
@@ -226,12 +231,9 @@ namespace kas::core
     {
         assert(insn_iters);
 
-        // NB: must copy `frag_iter_t`, don't use reference!
         unsigned index = frag.frag_num() - first_frag_p->frag_num();
-        if (index < insn_iters->size()) {
-            auto iter_info = (*insn_iters)[index];
-            do_frag(frag, iter_info.first, iter_info.second, fn);
-        }
+        if (index < insn_iters->size()) 
+            do_frag(frag, (*insn_iters)[index], fn);
         return frag;
     }
 
@@ -245,11 +247,22 @@ namespace kas::core
 
     template <typename Insn_Deque_t>
     void insn_container<Insn_Deque_t>::do_frag
+            (core_fragment& frag, frag_iter_t const& frag_it, PROC_FN fn)
+    {
+        // NB: must copy `frag_iter_t`, don't use reference!
+        auto it  = std::get<insn_iter>(frag_it);
+        auto cnt = std::get<uint32_t>(frag_it);
+        value_type::set_state(std::get<insn_state_t>(frag_it));
+        do_frag(frag, it, cnt, fn);
+    }
+
+    template <typename Insn_Deque_t>
+    void insn_container<Insn_Deque_t>::do_frag
             (core_fragment& frag, insn_iter& it, uint32_t n, PROC_FN fn)
     {
         static const auto idx_label = opc::opc_label().index();
 #define TRACE_DO_FRAG   3       // 1 = FRAG, 2 = INSN, 3 = RAW
-#undef  TRACE_DO_FRAG
+//#undef  TRACE_DO_FRAG
         
 #ifdef  TRACE_DO_FRAG
         std::cout << "do_frag::begin: " << frag;
@@ -264,6 +277,8 @@ namespace kas::core
         
         dot.set_frag(frag);
         while (n--) {
+            core_insn insn(*it);
+
 #ifdef TRACE_DO_FRAG
 #if    TRACE_DO_FRAG >= 2
             std::cout << "do_frag::dot.offset = " << dot.frag_offset();
@@ -273,11 +288,11 @@ namespace kas::core
 #if    TRACE_DO_FRAG >= 3
             std::cout << std::endl;
             std::cout << "raw : ";
-            it->raw(std::cout);
+            insn.raw(std::cout);
             std::cout << std::endl;
             std::cout << "fmt : ";
 #endif
-            it->fmt(std::cout);
+            insn.fmt(std::cout);
             std::cout << std::endl;
 #endif
 #endif
@@ -287,9 +302,15 @@ namespace kas::core
                 it->fixed.offset = dot.frag_offset();
             }
 
-            auto old_size = it->size();
+            auto old_size = insn.size();
             fn(it, dot);
+            auto new_size = insn.size();
+            if (old_size != new_size)
+                it->update(new_size());
+
+            // move dot & `value_type` data values
             dot.advance(it->size(), old_size);
+            it->advance();
             ++it;
         }
 #ifdef TRACE_DO_FRAG
@@ -321,11 +342,9 @@ namespace kas::core
         insn_inserter::insn_inserter(insn_container& c)
             : c(c), bi(std::back_inserter(c.insns))
     {
-#ifdef XXX
         // initialize container with SEG (initial_segment)
-        put_segment(opc::opc_section(c.initial_segment));
+        *this = {opc::opc_section(), c.initial_segment};
         c.first_frag_p = frag_p;
-#endif
     }
 
     // inserter `dtor`: resolve symbols
@@ -352,9 +371,11 @@ namespace kas::core
         static const auto idx_align   = opc::opc_align()  .index();
         static const auto idx_label   = opc::opc_label()  .index();
 
+        std::cout << "INSRT " << insn.raw() << std::endl;
+        
         // generate container_data from insn
         value_type data{insn};
-        auto opc_index = insn.op.index();
+        auto opc_index = insn.op_p->index();
 
         // allocate new frag if current doesn't have room
         // NB: op_size is instance variable which can be modified

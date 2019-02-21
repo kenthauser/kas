@@ -15,17 +15,73 @@ namespace kas::core
 // XXX store whole types for now.
 struct insn_container_data
 {
-    using fixed_t   = typename opc::insn_data::fixed_t;
-    using op_size_t = typename opc::insn_data::op_size_t;
+    // name `core_insn` interface type & inherit types
+    using fixed_t   = typename insn_data::fixed_t;
+    using op_size_t = typename insn_data::op_size_t;
+    using Iter      = typename insn_data::Iter;
  
     insn_container_data() = default;
     insn_container_data(core_insn const&);
+
+    // manage global running counters
+    static inline uint32_t _loc_base;
+    
+    using state_t = std::tuple<Iter>;
+
+    // iter is mutable. copy in `insn_data`
+    static auto& iter()
+    {
+        static auto iter = insn_data::begin();
+        return iter;
+    }
+
+    static auto index()
+    {
+        return std::distance(insn_data::begin(), iter());
+    }
+
+    void advance()
+    { 
+        //_loc_base += _loc;
+        std::advance(iter(), _cnt);
+    }
+
+    void update(op_size_t size)
+    {
+        _size = size;
+    }
+
+    // set pointers into new frag
+    static void set_state(state_t const& state)
+    { 
+        iter() = std::get<0>(state);
+    }
+    
+    static state_t get_state()
+    {
+        return {iter()};
+    }
+
+    static void reinit()
+    {
+        iter()    = insn_data::begin();
+        _loc_base = {};
+    }
+
+    // for test fixture multiple-file support
+    // clear static variables
+    static void clear()
+    {
+        // clear expression deque & static instances
+        insn_data::clear();
+        reinit();
+    }
 
     // implement inline for now
     uint16_t    opc_index() const    { return _opc_index; }
     uint16_t    cnt()       const    { return _cnt;       }
     op_size_t   size()      const    { return _size;      }
-    parser::kas_loc loc()   const    { return _loc;       }
+    auto&       loc()       const    { return _loc;       }
 
     // fixed can't be compressed. Expose publically
     fixed_t         fixed     {};
@@ -36,28 +92,6 @@ private:
     uint16_t        _opc_index{};
     uint16_t        _cnt      {};
 };
-
-
-namespace opc
-{
-#if 0
-
-insn_data::insn_data(insn_container_data)
-{
-}
-
-#if 0
-// don't precalculate `loc` as it's almost never needed
-parser::kas_loc loc() const
-{
-    if (data)
-        return data->loc();
-    return _opc_loc;
-}
-#endif
-
-#endif
-}
 
 
 }

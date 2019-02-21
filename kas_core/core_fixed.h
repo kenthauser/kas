@@ -194,7 +194,7 @@ struct opc_data : opcode
     auto gen_proc_one(data_t& data)
     {
         // create chunk back-inserter
-        auto bi = detail::fixed_inserter_t<value_t>(data.di(), data.fixed);
+        auto bi = detail::fixed_inserter_t<value_t>(data.di(), data.fixed());
 
         // move fixed-inserter into lambda context
         // NB: if `loc` not provided, don't pass args that could generate errors...
@@ -238,7 +238,7 @@ struct opc_data : opcode
         return impl.calc_size(reader, fits); 
     }
 
-    void fmt(data_t& data, std::ostream& os) const override
+    void fmt(data_t const& data, std::ostream& os) const override
     {
         // get_reader requires iter l-value
         auto iter = data.iter();
@@ -268,9 +268,9 @@ private:
     static constexpr detail::opc_fixed_impl impl{config};
 
     //template <typename Iter>
-    auto get_reader(data_t& data, Iter& iter) const
+    auto get_reader(data_t const& data, Iter& iter) const
     {
-        return detail::fixed_reader_t<Iter>(data.fixed, iter, data.cnt, sizeof(value_t));
+        return detail::fixed_reader_t<Iter>(data.fixed(), iter, data.cnt, sizeof(value_t));
     }
 
     // provide defaults for `opc_fixed_config`

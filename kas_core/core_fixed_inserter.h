@@ -178,7 +178,7 @@ struct fixed_reader_t
     using tpl = std::tuple<void const *, uint16_t, uint16_t>;
     
     // XXX `p` initialization suspect
-    fixed_reader_t(fixed_t& fixed, Iter& it, uint16_t cnt, uint16_t value_sz)
+    fixed_reader_t(fixed_t const& fixed, Iter& it, uint16_t cnt, uint16_t value_sz)
         : p(fixed.data), it(it), cnt(cnt), value_sz(value_sz)
         {}
 
