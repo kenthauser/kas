@@ -9,28 +9,28 @@ namespace kas::core
 
 // initalize container from insn
 insn_container_data::insn_container_data(core_insn const &insn)
-    : _opc_index (insn.op_p->index())
-    , fixed      (insn.data.fixed())
+    : _opc_index (insn.opc_index)
+    , fixed      (insn.data.fixed)
 {
     // XXX not encoding data
     _cnt  = insn.data.insn_expr_data.size() - insn.data.first;
     _size = insn.data.size;
-    _loc  = insn.data._loc;
+    _loc  = insn.data.loc;
 }
 
 // initialize insn from container data
 core_insn::core_insn(insn_container_data& container_data)
-    : op_p(&opcode::get(container_data.opc_index()))
+    : opc_index(container_data.opc_index())
     , data(container_data)
     {}
 
 // initialize insn_data from container data
 insn_data::insn_data(insn_container_data& container_data)
-    //: fixed(container_data.fixed)
-    : fixed_p(&container_data.fixed)
+    : fixed(container_data.fixed)
     , size(container_data.size())
     , data_p(&container_data)
     , cnt(container_data.cnt())
+    , loc(container_data.loc())
     {}
 
 // `insn_data` methods which reference `insn_container_data` methods
@@ -49,13 +49,6 @@ auto insn_data::index() const -> std::size_t
     return std::distance(begin(), iter());
 }
 
-auto insn_data::loc() const -> parser::kas_loc const&
-{
-    // seldom need loc(). Calculate on demand
-    if (data_p)
-        return data_p->loc();
-    return _loc;
-}
 }
    
 

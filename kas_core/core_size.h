@@ -27,18 +27,17 @@ frag_offset_t<uint32_t>
 
 #include <ios>
 
-namespace kas { namespace core
+namespace kas::core
 {
 
     template <typename T>
     struct offset_t {
         using OFFSET_T = T;
 
-        constexpr offset_t(T value = 0)
-            : min(value), max(value) {}
+        static constexpr auto max_limit = std::numeric_limits<T>::max();
 
-        constexpr offset_t(T min, T max)
-            : min(min), max(max) {}
+        constexpr offset_t(T min, T max) : min(min), max(max) {}
+        constexpr offset_t(T min = {})   : offset_t(min, min) {}
 
         // converting ctor (disallow narrowing)
         // XXX (allow narrowing...)
@@ -152,7 +151,13 @@ namespace kas { namespace core
         constexpr bool is_error()   const { return max < min; }
 
         // choose value with min > max. 
-        constexpr void set_error()        { *this = { 2, 0 }; }
+        constexpr offset_t ERROR() const { return  {2, 0}; };
+
+        void set_error()
+        {
+            max = min;          // save "actual" min
+            min = std::numeric_limits<T>::max();
+        };
 
         template <typename OS>
         friend OS& operator<< (OS& os, offset_t const& size)
@@ -160,9 +165,9 @@ namespace kas { namespace core
             return os << std::dec << "[" << size.min << "," << size.max << "]";
         }
 
-        T min{}, max{};
+        T min, max;
     };
 
 
-}}
+}
 #endif

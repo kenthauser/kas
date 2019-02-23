@@ -86,7 +86,7 @@ public:
   
     
     // this ctor used when generating insn data
-    insn_data(parser::kas_loc loc = {}) : _loc(loc)
+    insn_data(parser::kas_loc loc = {}) : loc(loc), fixed(_fixed)
     {
         // remember current status of data queue
         first = insn_expr_data.size();
@@ -120,32 +120,12 @@ public:
     // XXX why?
     using op_size_t   = offset_t<int16_t>;
 
-
-    // XXX move to impl
-    parser::kas_loc const& loc() const;
-   
-    // fixed is a `local` or `data_p` reference
-#if 0
+    // fixed is a `local` or `container_data` reference
     fixed_t&         fixed;
-#else
-    // XXX 2019/02/19. `fixed` should be reference.
-    // but an apparent clang error prevents `fixed` being bound
-    // to local or `insn_container_data` instance.
-    // For now, make `fixed` a method which returns reference.
-    // run down when there is time...
-    auto& fixed()
-    {
-        return *fixed_p;
-    }
-    
-    auto& fixed() const
-    {
-        return *fixed_p;
-    }
-#endif
 
     // size always needed & thus calculated
     op_size_t        size;
+    parser::kas_loc  loc;
 
     uint32_t         first;      // index of first expression
     
@@ -157,6 +137,9 @@ public:
 
 //private:
     friend insn_container_data;
+   
+    uint16_t        raw_cnt;
+    fixed_t         _fixed;
     
     // for test fixture
     static void clear()
@@ -164,11 +147,6 @@ public:
         insn_expr_data.clear();
     }
 
-    fixed_t              _fixed;
-    parser::kas_loc      _loc;
-    
-    // XXX
-    fixed_t             *fixed_p {&_fixed};
 
     // instances used during parsing of insns. 
     insn_container_data *data_p {};

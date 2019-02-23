@@ -146,7 +146,7 @@ public:
     // routine for test runner
     void raw(insn_data const& data, std::ostream& out) const
     {
-        out << std::hex << data.fixed().fixed;
+        out << std::hex << data.fixed.fixed;
         auto iter = data.iter();        // NB: `iter` must be called before...
         auto cnt  = data.cnt;           // ...accessing `cnt`: see `insn_defn.h`
         while(cnt--)
@@ -162,7 +162,7 @@ public:
 
     void make_error(insn_data& data, parser::kas_error_t err)
     {
-        data.fixed().diag = err;
+        data.fixed.diag = err;
         data.size.set_error();
     }
 
@@ -236,12 +236,12 @@ struct opc_error : opcode
 
     void proc_args(insn_data& data, kas::parser::kas_error_t diag)
     {
-        data.fixed().diag = diag;
+        data.fixed.diag = diag;
     }
 
     void fmt(insn_data const& data, std::ostream& out) const override
     {
-        auto& fixed = data.fixed();
+        auto& fixed = data.fixed;
 
         out << name() << ": ";
         out << (fixed.diag ? fixed.diag.get().message : "[[ Zero Errno ]]");
@@ -249,7 +249,7 @@ struct opc_error : opcode
 
     void emit(insn_data& data, emit_base& emit, core_expr_dot const *dot_p) const override
     {
-        auto& fixed = data.fixed();
+        auto& fixed = data.fixed;
         
         if (fixed.diag)
             emit << emit_info << fixed.diag.get();

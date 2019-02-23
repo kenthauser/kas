@@ -74,15 +74,15 @@ struct stmt_t : detail::parser_variant
                 static core::opc::opc_error error;
 
                 core::core_insn insn{node};     // get loc
-                insn.op_p = node.gen_insn(insn.data);
+                insn.opc_index = node.gen_insn(insn.data)->index();
                 if (insn.data.size.is_error())
                 {
                     insn.data.size = {};
-                    insn.op_p      = {};
+                    insn.opc_index = {};
                 }
                 
-                if (!insn.op_p)
-                    insn.op_p = &error;
+                if (!insn.opc_index)
+                    insn.opc_index = error.index();
                 return insn;
             }));
     }

@@ -8,6 +8,7 @@
 #include "core_section.h"          // ostream core_fragment
 #include "core_symbol_impl.h"
 
+#include "core_fragment_impl.h"
 #include "core_data_impl.h"
 #include "core_emit_impl.h"
 #include "emit_reloc_impl.h"
@@ -49,21 +50,6 @@ namespace kas::core
 
     //decltype(core_insn::data)        core_insn::data;
 
-    template <typename OS>
-    void core_fragment::print(OS& os) const
-    {
-        std::ostringstream str;
-        str << frag_num() << "[" << section().name() << "]";
-        os << str.str();
-    }
-
-    template <typename OS>
-    void core_segment::print(OS& os) const
-    {
-        std::ostringstream str;
-        str << *section_p << ":" << subsection;
-        os << str.str();  
-    }
     
     std::ostream& operator<<(std::ostream& os, core_symbol const& s)
     {

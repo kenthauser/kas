@@ -40,9 +40,11 @@ struct insn_container_data
         return std::distance(insn_data::begin(), iter());
     }
 
-    void advance()
+    void advance(core_insn const& insn)
     { 
-        //_loc_base += _loc;
+        //if (insn.loc)
+        //    loc_base = insn.data.loc;
+        //std::advance(iter(), insn.data.raw_cnt);
         std::advance(iter(), _cnt);
     }
 

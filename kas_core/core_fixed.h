@@ -194,7 +194,7 @@ struct opc_data : opcode
     auto gen_proc_one(data_t& data)
     {
         // create chunk back-inserter
-        auto bi = detail::fixed_inserter_t<value_t>(data.di(), data.fixed());
+        auto bi = detail::fixed_inserter_t<value_t>(data.di(), data.fixed);
 
         // move fixed-inserter into lambda context
         // NB: if `loc` not provided, don't pass args that could generate errors...
@@ -270,7 +270,7 @@ private:
     //template <typename Iter>
     auto get_reader(data_t const& data, Iter& iter) const
     {
-        return detail::fixed_reader_t<Iter>(data.fixed(), iter, data.cnt, sizeof(value_t));
+        return detail::fixed_reader_t<Iter>(data.fixed, iter, data.cnt, sizeof(value_t));
     }
 
     // provide defaults for `opc_fixed_config`

@@ -60,7 +60,7 @@ namespace kas::core
         using op_size_t   = typename opc::opcode::op_size_t;
 
         using insn_iter   = typename Insn_Deque_t::iterator;
-        using PROC_FN     = std::function<void(insn_iter&, core_expr_dot const&)>;
+        using PROC_FN     = std::function<void(core_insn&, core_expr_dot const&)>;
 
         // insn_iter, insn_state & count for iterating a frag
         using insn_state_t = typename value_type::state_t;
@@ -81,17 +81,9 @@ namespace kas::core
         // create container inserter
         auto inserter()
         {
-            //data_initial = core_insn::data.size();
             return insn_inserter(*this);
         }
-       #if 0 
-        // getter for container data
-        static auto& data()
-        {
-            static auto data_ = new std::deque<expr_t>;
-            return *data_;
-        }
-        #endif
+        
         // getter for dot()
         auto& get_insn_dot() const
         {
@@ -150,7 +142,7 @@ namespace kas::core
         auto& operator++(int) { return *this; }
         auto& operator*()     { return *this; }
 
-        void new_frag(core_segment *seg_p = {});
+        void new_frag(uint8_t align = {}, core_segment *seg_p = {});
       
     // XXX temp
     //private:
@@ -262,13 +254,16 @@ namespace kas::core
     {
         static const auto idx_label = opc::opc_label().index();
 #define TRACE_DO_FRAG   3       // 1 = FRAG, 2 = INSN, 3 = RAW
-//#undef  TRACE_DO_FRAG
-        
+#undef  TRACE_DO_FRAG
+#define TRACE_DO_FRAG   1
+
 #ifdef  TRACE_DO_FRAG
         std::cout << "do_frag::begin: " << frag;
         std::cout  << ": " << frag.base_addr() << " + " << frag.size();
         if (frag.alignment())
-            std::cout << " align = " << std::to_string(frag.alignment());
+            std::cout << " align = " << +frag.alignment();
+        if (frag.is_relaxed())
+            std::cout << " (relaxed)";
         std::cout << std::hex << " (" << frag.base_addr().min;
         std::cout << " / " << frag.base_addr().max << ")";
         std::cout << " count = " << std::dec << n;
@@ -276,7 +271,8 @@ namespace kas::core
 #endif
         
         dot.set_frag(frag);
-        while (n--) {
+        while (n--)
+        {
             core_insn insn(*it);
 
 #ifdef TRACE_DO_FRAG
@@ -297,20 +293,21 @@ namespace kas::core
 #endif
 #endif
             // update label with `dot` offset
-            if (it->opc_index() == idx_label) {
-                auto& offset = it->fixed.offset;
-                it->fixed.offset = dot.frag_offset();
+            if (insn.opc_index == idx_label)
+            {
+                auto& offset = insn.data.fixed.offset;
+                insn.data.fixed.offset = dot.frag_offset();
             }
 
             auto old_size = insn.size();
-            fn(it, dot);
+            fn(insn, dot);
             auto new_size = insn.size();
             if (old_size != new_size)
                 it->update(new_size());
 
             // move dot & `value_type` data values
-            dot.advance(it->size(), old_size);
-            it->advance();
+            dot.advance(new_size, old_size);
+            it->advance(insn);
             ++it;
         }
 #ifdef TRACE_DO_FRAG
@@ -322,6 +319,8 @@ namespace kas::core
 #ifdef TRACE_DO_FRAG
         std::cout << "do_frag::end: " << frag;
         std::cout  << ": " << frag.base_addr() << " + " << frag.size();
+        if (frag.is_relaxed())
+            std::cout << " (relaxed)";
         auto e = frag.base_addr() + frag.size();
         std::cout << std::hex << " (" << e.min;
         std::cout << " / " << e.max << ")";
@@ -375,7 +374,7 @@ namespace kas::core
         
         // generate container_data from insn
         value_type data{insn};
-        auto opc_index = insn.op_p->index();
+        auto& opc_index = insn.opc_index;
 
         // allocate new frag if current doesn't have room
         // NB: op_size is instance variable which can be modified
@@ -459,8 +458,8 @@ namespace kas::core
     {
         // get segment from insn & start new frag
         auto& segment = core_segment::get(data.fixed.fixed);
-        new_frag(&segment);
-        frag_p->set_alignment(segment.section().align());
+        auto  align   = segment.section().align();
+        new_frag(align, &segment);
         return put_insn(std::move(data));
     }
 
@@ -471,8 +470,7 @@ namespace kas::core
     {
         // alignment stored in fragment, so need a new frag.
         auto align = data.fixed.fixed;
-        new_frag();
-        frag_p->set_alignment(align);
+        new_frag(align);
         put_insn(std::move(data));
     }
 
@@ -529,7 +527,7 @@ namespace kas::core
     // NB: default (nullptr) is create frag in same segment
     template <typename Insn_Deque_t>
     void insn_container<Insn_Deque_t>::
-        insn_inserter::new_frag(core_segment *seg_p)
+        insn_inserter::new_frag(uint8_t align, core_segment *seg_p)
     {
         // update container accounting of fragments
         // NB: here, size is instruction index in container
@@ -539,13 +537,17 @@ namespace kas::core
         // NB: new segment might not be same, creating *total* error.
         // NB: new_dot() is no-op if old dot not previously referenced
         core_addr::new_dot();
-        
+
+#ifdef XXX
+        // XXX could reduce relax a bit, but currently
+        // screws up `frag.frag_is_relaxed` calculation
         // close old frag, recording it's size
         if (frag_p)
             frag_p->set_size(c.dot.frag_offset());
-
+#endif
+            
         // allocate new frag. possibly in new segment
-        frag_p = &core_fragment::add(seg_p);
+        frag_p = &core_fragment::add(seg_p, align);
 
         // clear fragment tuning counts
         c.dot.set_frag(*frag_p);

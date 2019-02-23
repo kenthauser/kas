@@ -77,7 +77,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
                     auto last  = where.second.end();
 #endif
                     //auto where = stmt_stream.where(stmt).second;
-                    auto& loc = insn.get_loc();
+                    auto& loc = insn.loc();
                     kas::parser::parser_src src;
 
                     parse_out << "loc : " << loc.get() << std::endl;
@@ -110,12 +110,12 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
                 parse_out << " fixed = " << raw.fixed.fixed;
                 parse_out << std::endl;
 
-                raw.advance();
+                raw.advance(raw);
             };
         };
 
     kas::core::kas_assemble::INSNS::for_each(dump_raw);
-    kas::core::kas_assemble::INSNS::for_each(dump_container);
+//    kas::core::kas_assemble::INSNS::for_each(dump_container);
 
 #if 1    
     // dump tables

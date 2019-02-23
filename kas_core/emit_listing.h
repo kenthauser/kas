@@ -52,7 +52,7 @@ struct emit_listing : emit_base
     {
         // dot always specified for listing
         insn.emit(*this, dot_p);
-        gen_listing(*dot_p, insn.get_loc());
+        gen_listing(*dot_p, insn.loc());
     }
 
 private:

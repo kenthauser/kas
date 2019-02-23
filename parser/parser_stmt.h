@@ -130,7 +130,7 @@ namespace detail
         opcode *gen_insn(core::insn_data& data)
         {
             // fixed area unused otherwise...
-            data.fixed().diag = diag;
+            data.fixed.diag = diag;
             return &opc;
         }
         

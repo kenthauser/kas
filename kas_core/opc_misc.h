@@ -18,7 +18,7 @@ namespace kas::core::opc
 
         void operator()(data_t& data, uint16_t align = 0) const
         {
-            data.fixed().fixed = align;
+            data.fixed.fixed = align;
         }
 
         void proc_args(data_t& data, parser::kas_position_tagged const& loc, uint16_t alignment)
@@ -32,12 +32,12 @@ namespace kas::core::opc
             else if (!alignment)
                 make_error(data, "non-zero alignment required", loc);
             else
-                data.fixed().fixed = alignment;
+                data.fixed.fixed = alignment;
         }
 
         void fmt(data_t const& data, std::ostream& os) const override
         {
-            os << data.fixed().fixed;
+            os << data.fixed.fixed;
         }
         
         void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
@@ -72,13 +72,12 @@ namespace kas::core::opc
             if (!loc)
                 throw std::runtime_error("opc_org: value not location tagged");
             
-            if (auto p = value.get_fixed_p())
-                data.size = { 0, static_cast<short>(*p) };
-            else
-                data.size = { 0, max_skip };
-
-            data.fixed().loc = loc;
-            *data.di() = std::move(value);
+            // fixed: error location for deferred errors
+            data.fixed.loc = loc;
+            data.size = fill_size;
+            auto& di  = data.di();
+            *di++     = std::move(value);
+            *di++     = fill_data;
         }
 
         op_size_t calc_size(data_t& data, core_fits const& fits) const override
@@ -108,7 +107,7 @@ namespace kas::core::opc
                 auto& base = core_addr::add().init_addr(segment.initial(), &zero);
                 auto& sum = base + *p;
                 std::cout << "opc_org: dest = " << expr_t(sum) << std::endl;
-                *iter = sum.ref(data.fixed().loc);
+                *iter = sum.ref(data.fixed.loc);
                 return { 0, static_cast<short>(*p) };
             }
             
@@ -160,7 +159,7 @@ namespace kas::core::opc
 
         void fmt(data_t const& data, std::ostream& os) const override
         {
-            os << data.fixed().fixed;
+            os << data.fixed.fixed;
         }
 
         void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
@@ -170,7 +169,7 @@ namespace kas::core::opc
             constexpr auto bytes_per_word = 2;
 
             auto size = data.size.min;
-            auto fill = data.fixed().fixed;
+            auto fill = data.fixed.fixed;
 
             for (; size >= bytes_per_word; size -= bytes_per_word)
                 base << set_size(bytes_per_word) << fill;

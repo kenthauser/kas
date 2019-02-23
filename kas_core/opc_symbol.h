@@ -81,7 +81,7 @@ namespace kas::core::opc
         {
             auto& di = data.di();
 
-            data.fixed().sym = ref;
+            data.fixed.sym = ref;
             *di++ = std::move(expr);
             auto& label = ref.get();
             if (auto msg = label.set_value(di.last()))
@@ -92,7 +92,7 @@ namespace kas::core::opc
         {
             auto iter = data.iter();
             
-            auto sym = data.fixed().sym;
+            auto sym = data.fixed.sym;
             sym.get().print(os);
 
             os << " = " << *iter;
@@ -117,12 +117,12 @@ namespace kas::core::opc
             if (auto result = sym.make_common(comm_size, binding, align))
                 return make_error(data, result, loc);
 
-            data.fixed().sym = sym.ref();
+            data.fixed.sym = sym.ref();
         }
 
         void fmt(data_t const& data, std::ostream& os) const override
         {
-            data.fixed().sym.get().print(os);
+            data.fixed.sym.get().print(os);
         }
     };
 
@@ -188,7 +188,7 @@ namespace kas::core::opc
 
         void fmt(data_t const& data, std::ostream& os) const override
         {
-            os << data.fixed().sym.get().name();
+            os << data.fixed.sym.get().name();
         }
     };
 
@@ -221,13 +221,13 @@ namespace kas::core::opc
             if (auto msg = sym.size(di.last()))
                 return make_error(data, msg, loc);
                 
-            data.fixed().fixed = sym.index();
+            data.fixed.fixed = sym.index();
         }
         
         void fmt(data_t const& data, std::ostream& os) const override
         {
             auto iter = data.iter();
-            auto& sym = core_symbol::get(data.fixed().fixed); 
+            auto& sym = core_symbol::get(data.fixed.fixed); 
             os << sym.name();
 
             if (data.cnt)
@@ -243,7 +243,7 @@ namespace kas::core::opc
             // use `core_data_size_t` to size (listing) output
             base << core::set_size(sizeof_data_t) << emit_expr;
             
-            auto& sym = core_symbol::get(data.fixed().fixed); 
+            auto& sym = core_symbol::get(data.fixed.fixed); 
             if (data.cnt)
                 base << *iter;
             else
