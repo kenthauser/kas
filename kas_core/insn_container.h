@@ -294,10 +294,7 @@ namespace kas::core
 #endif
             // update label with `dot` offset
             if (insn.opc_index == idx_label)
-            {
-                auto& offset = insn.data.fixed.offset;
-                insn.data.fixed.offset = dot.frag_offset();
-            }
+                insn.fixed().offset = dot.frag_offset();
 
             auto old_size = insn.size();
             fn(insn, dot);

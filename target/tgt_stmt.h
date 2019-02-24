@@ -14,36 +14,33 @@ namespace kas::tgt
 {
 
 template <typename INSN_T, typename ARG_T>
-struct tgt_stmt : kas::parser::parser_stmt
+struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<INSN_T, ARG_T>>
 {
     using insn_t = INSN_T;
     using arg_t  = ARG_T;
 
     // method used to assemble instruction
-    opcode *gen_insn(opcode::data_t& data) override
+    core::opcode *gen_insn(core::opcode::data_t& data) 
     {
-        auto op_p = insn_p->gen_insn(data, std::move(args));
+        auto op_p = eval(data);
         arg_t::reset();     // clear any static variables
         return op_p;
     }
+    
+    // actual method to generate opcode;
+    core::opcode *eval(core::opcode::data_t&);
 
     // methods used by test fixtures
-    const char *name() const override
+    const char *name() const 
     {
         return insn_p->name.c_str();
     }
 
-    void print_args(parser::print_obj const& p_obj) const override
+    void print_args(parser::print_obj const& p_obj) const
     {
         p_obj(args);
-        //p_obj(std::make_tuple(args));
     }
 
-    ~tgt_stmt() override
-    {
-        arg_t::reset();
-    }
-    
     // X3 method to initialize instance
     template <typename Context>
     void operator()(Context const& ctx)

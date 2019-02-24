@@ -131,8 +131,6 @@ namespace detail
 }
 
 
-
-
 template <typename mcode_size_t>
 struct tgt_opc_quick : core::opc::opcode
 {
@@ -144,7 +142,7 @@ struct tgt_opc_quick : core::opc::opcode
     }
 
     template <typename Inserter, typename mcode, typename ARGS>
-    bool proc_args(Inserter& di, mcode const& op, ARGS& args, unsigned size)
+    bool proc_args(core::opcode::data_t& data, mcode const& op, ARGS& args, unsigned size)
     {
         std::cout << "TGT_QUICK::proc_args()";
         
@@ -170,7 +168,7 @@ struct tgt_opc_quick : core::opc::opcode
     }
     
     
-    void fmt(Iter it, uint16_t cnt, std::ostream& os) override
+    void fmt(data_t const& data, std::ostream& os) const override
     {
         auto words = (*size_p)() / sizeof(mcode_size_t);
         auto p     = fixed_p->begin<mcode_size_t>();
@@ -180,7 +178,7 @@ struct tgt_opc_quick : core::opc::opcode
             os << " " << +*p++;
     }
 
-    void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const *dot_p) override
+    void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *dot_p) const override
     {
         auto words = (*size_p)() / sizeof(mcode_size_t);
         auto p     = fixed_p->begin<mcode_size_t>();

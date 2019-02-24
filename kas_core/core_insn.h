@@ -80,17 +80,6 @@ struct core_insn
     // format for test fixture interface
     void raw(std::ostream& os) const
     {
-    #if 0
-        // need this to debug data.fixed reference issue
-        auto iter = data.iter();
-        os << "fixed = "  << std::hex << data.fixed.fixed;
-        os << " _fixed = "  << data._fixed.fixed;
-        os << " index = " << data.index();
-        os << " cnt = "   << data.cnt;
-        os << " loc = "   << data.loc().get();
-        os << std::endl;
-        os << "raw:  ";
-    #endif
         os << name() << " " << std::dec << data.size << ": ";
         op().raw(data, os);
     }
@@ -113,8 +102,8 @@ struct core_insn
 #define VALIDATE_EMIT
 #ifdef  VALIDATE_EMIT
         // extra tests are for validation only
-        auto wr_size = data.size();
-        auto expect = base.position() + wr_size;
+        auto wr_size   = data.size();
+        auto expect    = base.position() + wr_size;
         auto section_p = &base.get_section();
 #endif
 

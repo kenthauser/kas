@@ -287,7 +287,7 @@ namespace opc
             os << core_segment::get(index);
         }
 
-        void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
+        void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
         {
             auto& seg = core_segment::get(data.fixed.fixed); 
             base.set_segment(seg);

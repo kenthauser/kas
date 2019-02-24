@@ -62,7 +62,7 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         return this;
     }
 
-    void fmt(data_t& data, Iter it, std::ostream& os) const override
+    void fmt(data_t const& data, std::ostream& os) const override
     {
         // deserialize insn data
         // format:
@@ -74,6 +74,7 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         auto& fixed = data.fixed;
         bitset_t ok(fixed.fixed);
 
+        auto  it = data.iter();
         auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, fixed, data.cnt);
         reader.reserve(-1);
 
@@ -94,7 +95,7 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         }
     }
 
-    op_size_t calc_size(data_t& data, Iter it, core::core_fits const& fits) const override
+    op_size_t calc_size(data_t& data, core::core_fits const& fits) const override
     {
         if (this->trace) *this->trace << std::endl;
         
@@ -108,6 +109,7 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         auto& fixed = data.fixed;
         bitset_t ok(fixed.fixed);
 
+        auto  it = data.iter();
         auto  reader = tgt_data_reader<mcode_size_t>(it, fixed, data.cnt);
         reader.reserve(-1);
 
@@ -125,11 +127,12 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         return data.size;
     }
 
-    void emit(data_t& data, Iter it, core::emit_base& base, core::core_expr_dot const *dot_p) const override
+    void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *dot_p) const override
     {
         auto& fixed = data.fixed;
         bitset_t ok(fixed.fixed);
-
+        
+        auto  it = data.iter();
         auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, fixed, data.cnt);
         reader.reserve(-1);
 

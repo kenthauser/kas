@@ -59,7 +59,7 @@ namespace kas::core::opc
             data.size = size;
         }
 
-        void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
+        void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
         {
             base << emit_addr << 0;
 
@@ -98,7 +98,7 @@ namespace kas::core::opc
             os << " = " << *iter;
         }
 
-        void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
+        void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
         {
             // use `core_data_size_t` to size (listing) output
             auto iter = data.iter();
@@ -157,7 +157,7 @@ namespace kas::core::opc
                 os << *iter++ << " ";
         }
 
-        void emit(data_t& data, emit_base& base, core_expr_dot const *) const override
+        void emit(data_t const& data, emit_base& base, core_expr_dot const *) const override
         {
             // just error messages
             auto iter = data.iter();
@@ -236,7 +236,7 @@ namespace kas::core::opc
                 os << ": fixed = " << sym.size();
         }
         
-        void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
+        void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
         {
             auto iter = data.iter();
 

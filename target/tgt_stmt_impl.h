@@ -2,7 +2,7 @@
 #define KAS_TARGET_TGT_STMT_IMPL_H
 
 #include "tgt_stmt.h"
-#include "tgt_opc_quick.h"
+//#include "tgt_opc_quick.h"
 
 // args is a container of "MCODE_T::arg_t" from comma-separated arguments
 //
@@ -16,37 +16,36 @@ namespace kas::tgt
 
 using namespace kas::core::opc;
 
-#ifndef TGT_STMT_NAME
-template <typename TGT_INSN_T, typename TGT_ARG_T>
-#endif
-core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
-                                        , core::opcode::fixed_t& fixed
-                                        , core::opcode::op_size_t& insn_size)
+template <typename INSN_T, typename ARG_T>
+core::opcode *tgt_stmt<INSN_T, ARG_T>
+        ::eval(core::opcode::data_t& data)
 {
-    // get support types from INSN
-    using insn_bitset_t = typename insn_t::insn_bitset_t;
-    using opcode_t      = typename insn_t::opcode_t;
-    using err_msg_t     = typename opcode_t::err_msg_t;
+    // get support types from `mcode`
+    using mcode_t   = typename insn_t::mcode_t;
 
-    auto trace = core::opcode::trace;
+    using err_msg_t = typename mcode_t::err_msg_t;
+    using bitset_t  = typename mcode_t::bitset_t;
+
+    // get kas types from opcode
+    using core::opcode;
+    auto trace  = opcode::trace;
+    
+    // convenience references 
     auto& insn = *insn_p;
+    auto& fixed = data.fixed;
 
     // XXX ??? why
     trace = &std::cout;
 
     // generate an "error" opcode if appropriate
-    auto make_error = [&fixed=fixed,&insn_size=insn_size, &trace]
-            (parser::tagged_msg const& msg) -> opcode&
+    auto make_error = [&fixed=fixed, &trace]
+            (parser::tagged_msg const& msg) -> opcode *
         {
-            static opc_error err;
-            
             if (trace)
                 *trace << "ERR: " << msg.msg << std::endl;
             
             fixed.diag = kas::parser::kas_diag::error(msg).ref();
-            insn_size.set_error();
-            
-            return err;
+            return {};
         };
 
     // copy "opcode" position from first (possibly dummy arg)
@@ -59,7 +58,7 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
     // print name/args
     if (trace)
     {
-        *trace << "gen_insn: " << insn.name() << " [" << insn.opcodes.size() << " opcodes]";
+        *trace << "tgt_stmt::eval: " << insn.name << " [" << insn.mcodes.size() << " opcodes]";
         for (auto& arg : args)
             *trace << ", " << arg;
         *trace << std::endl;
@@ -72,27 +71,27 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
         return make_error(diag);
 
     // select opcode matching args (normally only 1)
-    insn_bitset_t ok;
-    opcode_t const* matching_opcode_p {};
+    bitset_t ok;
+    mcode_t const* matching_mcode_p {};
     bool multiple_matches = false;
     const char *first_msg{};
 
     // loop thru opcodes, recording first error & recording all matches
     int i = 0; 
-    for (auto& op_p : insn.opcodes)
+    for (auto mcode_p : insn.mcodes)
     {
         if (trace)
             *trace << "validating: " << +i << ": ";
 
-        auto diag = op_p->validate_args(args, trace);
+        auto diag = mcode_p->validate_args(args, trace);
         
         if (trace)
             *trace << (diag ? diag : " = OK") << std::endl;
 
         if (!diag) {
             ok.set(i);
-            if (!matching_opcode_p)
-                matching_opcode_p = op_p;
+            if (!matching_mcode_p)
+                matching_mcode_p = mcode_p;
             else
                 multiple_matches = true;
         } else if (!first_msg)
@@ -105,25 +104,25 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
         *trace << "result: " << ok.count() << " OK" << std::endl;
 
     // no match: Invalid arguments
-    if (!matching_opcode_p)
+    if (!matching_mcode_p)
         return make_error({err_msg_t::ERR_invalid, opc_pos});
 
     // multiple match means no match
     if (multiple_matches)
-        matching_opcode_p = {};
+        matching_mcode_p = {};
 
 
     // logic: here at least one arg matches. 
     // 1) if constant `args`, emit binary code
     // 2) if single match, use format for selected opcode
     // 3) otherwise, use opcode for "list"
-
+#if 0 
     if (args_are_const)
     {
         // all const args: can select best opcode & calculate size
-        if (!matching_opcode_p)
+        if (!matching_mcode_p)
         {
-            matching_opcode_p = eval_insn_list(
+            matching_mcode_p = eval_insn_list(
                                     insn, ok, args
                                   , insn_size, expression::expr_fits(), trace);
         }
@@ -131,7 +130,7 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
         // single opcode matched: calculate size
         else
         {
-            insn_size = sizeof(uint16_t) * (1 + matching_opcode_p->opc_long);
+            insn_size = sizeof(uint16_t) * (1 + matching_mcode_p->opc_long);
             for (auto& arg : args)
                 insn_size += arg.size(expression::expr_fits{});
         }
@@ -149,30 +148,26 @@ core::opcode& TGT_STMT_TYPE::gen_insn(core::opcode::Inserter& di
                 return opc_quick;
         }
     }
-
-#if 1
-    // select "fmt" from `opcode_p` if set, else "list"
-    auto& fmt = matching_opcode_p ? matching_opcode_p->fmt()
-                                  : opcode_t::fmt_t::get_list_fmt()
-                                  ;
-#else
-    // if no matching machine code, use "list" format
-    if (!matching_opcode_p)
-        matching_opcode_p = opcode_t::list_opcode;
-    auto& fmt = matching_opcode_p->fmt();
 #endif
-        
-    // now use "format" to generate opcode
-    auto& op =  fmt.get_opc().gen_insn(
+    
+    // if `insn` not resolved to single `mcode`, use list
+    if (!matching_mcode_p)
+        matching_mcode_p = insn_t::list_mcode_p;
+
+#if 0
+    return matching_mcode_p->gen_insn(
                   insn
                 , ok
-                , matching_opcode_p
+                , matching_mcode_p
                 , std::move(args)
                 
-                // and boilerplate
-                , di, fixed, insn_size
+                // and opcode data
+                , data
                 );
     return op;
+#else
+    return nullptr;
+#endif
 }
 }
 

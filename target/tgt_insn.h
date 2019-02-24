@@ -16,7 +16,6 @@ template <typename MCODE_T
         , unsigned MAX_MCODES = 16 
         , typename INDEX_T    = std::uint16_t>
 
-// NB: complete definition required for `std::reference_wrapper` defn
 struct tgt_insn_t
 {
     using mcode_t   = MCODE_T;

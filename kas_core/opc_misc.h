@@ -40,7 +40,7 @@ namespace kas::core::opc
             os << data.fixed.fixed;
         }
         
-        void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
+        void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
         {
             // XXX need alignment support & addr width support
             // XXX ignore alignment & just do words
@@ -162,7 +162,7 @@ namespace kas::core::opc
             os << data.fixed.fixed;
         }
 
-        void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
+        void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
         {
             // XXX need alignment support & addr width support
             // XXX ignore alignment & just do words

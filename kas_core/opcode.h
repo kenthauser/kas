@@ -85,7 +85,7 @@ struct opcode
     }
     virtual void fmt(insn_data const& data, std::ostream& out) const
     {}
-    virtual void emit(insn_data& data, emit_base& base, core_expr_dot const *dot_p) const
+    virtual void emit(insn_data const& data, emit_base& base, core_expr_dot const *dot_p) const
     {}
 
 private:
@@ -247,7 +247,7 @@ struct opc_error : opcode
         out << (fixed.diag ? fixed.diag.get().message : "[[ Zero Errno ]]");
     }
 
-    void emit(insn_data& data, emit_base& emit, core_expr_dot const *dot_p) const override
+    void emit(insn_data const& data, emit_base& emit, core_expr_dot const *dot_p) const override
     {
         auto& fixed = data.fixed;
         

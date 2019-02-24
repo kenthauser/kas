@@ -246,7 +246,7 @@ struct opc_data : opcode
         return impl.fmt(reader, os);
     }
 
-    void emit(data_t& data, emit_base& base, core_expr_dot const *dot_p) const override
+    void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
     { 
         // get_reader requires iter l-value
         auto iter = data.iter();

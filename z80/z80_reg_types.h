@@ -39,7 +39,7 @@ struct z80_reg_set : tgt::tgt_reg_set<z80_reg_set, z80_reg_t>
     using base_t::base_t;
 };
 
-// declare a "reference" for register_set type
+// alias the "reference" used for for register_set type
 using z80_rs_ref = typename z80_reg_set::ref_loc_t;
 }
 

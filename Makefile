@@ -43,7 +43,7 @@ OBJS =  kas_core.o expr.o parser.o
 #OBJS += m68k.o m68k_defns.o
 
 OBJS += bsd.o
-#OBJS += z80.o
+OBJS += z80.o
 
 LIBS = -lboost_regex -lboost_filesystem -lboost_system
 
