@@ -131,9 +131,10 @@ namespace detail
 }
 
 
-template <typename mcode_size_t>
-struct tgt_opc_quick : core::opc::opcode
+template <typename MCODE_T>
+struct tgt_opc_quick : tgt_opcode<MCODE_T>
 {
+
     OPC_INDEX();
 
     const char *name() const override
@@ -141,12 +142,12 @@ struct tgt_opc_quick : core::opc::opcode
         return "TGT_Q";
     }
 
-    template <typename Inserter, typename mcode, typename ARGS>
-    bool proc_args(core::opcode::data_t& data, mcode const& op, ARGS& args, unsigned size)
+    template <typename MCODE, typename ARGS>
+    bool proc_args(core::opcode::data_t& data, MCODE const& op, ARGS& args, unsigned size)
     {
         std::cout << "TGT_QUICK::proc_args()";
         
-        auto inserter = tgt_data_inserter<mcode_size_t>(di, *fixed_p);
+        auto inserter = tgt_data_inserter(data);
         auto emitter  = detail::quick_emit<mcode_size_t>(inserter, size);
         
         auto  code = op.code();
@@ -156,13 +157,14 @@ struct tgt_opc_quick : core::opc::opcode
         auto val_iter_end = vals.end();
 
         // always validator for each arg
+        // NB: no expressions inserted. Must fit in `fixed` area
         unsigned n = 0;
         for (auto& arg : args)
             fmt.insert(n++, code.data(), arg, &*val_iter++);
 
         std::cout << " before -> " << std::boolalpha << (bool)emitter.stream;
 
-        op.emit(emitter, code.data(), args);
+        fmt.get_opc().emit(emitter, code.data(), args);
         std::cout << " -> " << std::boolalpha << (bool)emitter.stream << std::endl;
         return emitter.stream;
     }
@@ -170,8 +172,8 @@ struct tgt_opc_quick : core::opc::opcode
     
     void fmt(data_t const& data, std::ostream& os) const override
     {
-        auto words = (*size_p)() / sizeof(mcode_size_t);
-        auto p     = fixed_p->begin<mcode_size_t>();
+        auto words = data.size() / sizeof(mcode_size_t);
+        auto p     = data.fixed.begin<mcode_size_t>();
 
         os << std::hex << ":";
         while (words--)
@@ -180,8 +182,8 @@ struct tgt_opc_quick : core::opc::opcode
 
     void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *dot_p) const override
     {
-        auto words = (*size_p)() / sizeof(mcode_size_t);
-        auto p     = fixed_p->begin<mcode_size_t>();
+        auto words = data.size() / sizeof(mcode_size_t);
+        auto p     = data.fixed.begin<mcode_size_t>();
         while (words--)
             base << *p++;
     }

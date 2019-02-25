@@ -40,7 +40,7 @@ struct sym_parser_t
     // create a constexpr array of definitions with optional `CTOR` from adder.
     using ctor   = detail::ctor<ADDER>;
     using defn_t = detail::init_from_list<T, DEFNS, all_types, ctor>;
-    
+
     // expose symbol definitions
     static constexpr auto sym_defns     = defn_t::value;
     static constexpr auto sym_defns_cnt = defn_t::size;

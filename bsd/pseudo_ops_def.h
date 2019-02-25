@@ -199,7 +199,7 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
         constexpr pseudo_op_t(list<NAME, OPCODE, ARGS...>)
             : name      { NAME::value         }
             , arg_c     { sizeof...(ARGS)     }
-            , str_v     { {ARGS()}...         }
+            , str_v     { ARGS()...           }
             , num_v     { to_short(ARGS())... }
             , op        { get_ref<OPCODE>     }
             , proc_args { &pseudo_op_t::do_proc<OPCODE> } 
@@ -222,14 +222,14 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
     };
 
     using comma_defs = all_defns<comma_ops_v, bsd_pseudo_tags>;
-    using space_defs = all_defns<space_ops_v,  bsd_pseudo_tags>;
+    using space_defs = all_defns<space_ops_v, bsd_pseudo_tags>;
 
     static const auto comma_ops = parser::op_parser_t<pseudo_op_t, comma_defs>();
     static const auto space_ops = parser::op_parser_t<pseudo_op_t, space_defs>();
 }
 
 auto const comma_op_x3 = x3::no_case[x3::lexeme['.' >> detail::comma_ops.x3()]];
-auto const space_op_x3  = x3::no_case[x3::lexeme['.' >> detail::space_ops.x3()]];
+auto const space_op_x3 = x3::no_case[x3::lexeme['.' >> detail::space_ops.x3()]];
 
 //
 // implement bsd_stmt methods for pseudo-ops

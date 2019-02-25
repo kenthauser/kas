@@ -50,7 +50,7 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
 
         auto& di    = data.di();
         auto& fixed = data.fixed;
-        auto inserter = tgt_data_inserter<typename mcode_t::mcode_size_t>(di, fixed);
+        auto inserter = base_t::tgt_data_inserter(data);
         inserter.reserve(-1);       // skip fixed area
         
         inserter(insn.index);
@@ -74,14 +74,13 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         auto& fixed = data.fixed;
         bitset_t ok(fixed.fixed);
 
-        auto  it = data.iter();
-        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, fixed, data.cnt);
+        auto  reader = base_t::tgt_data_reader(data);
         reader.reserve(-1);
 
         auto& insn = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         //auto  data_p = reader.get_fixed_p(M_SIZE_WORD);
         auto& mc = *insn.list_mcode_p;
-        auto  args = serial_args(reader, mc);
+        auto  args = base_t::serial_args(reader, mc);
 
         // print OK bits & name...
         os << ok.to_string().substr(ok.size() - insn.mcodes.size()) << " " << insn.name;
@@ -109,13 +108,12 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         auto& fixed = data.fixed;
         bitset_t ok(fixed.fixed);
 
-        auto  it = data.iter();
-        auto  reader = tgt_data_reader<mcode_size_t>(it, fixed, data.cnt);
+        auto  reader = base_t::tgt_data_reader(data);
         reader.reserve(-1);
 
         auto& insn = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         
-        auto& mc = *insn.list_mcode_p;
+        auto& mc   = *insn.list_mcode_p;
         auto  args = base_t::serial_args(reader, mc);
 
         // evaluate with new `fits`
@@ -132,8 +130,7 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         auto& fixed = data.fixed;
         bitset_t ok(fixed.fixed);
         
-        auto  it = data.iter();
-        auto  reader = tgt_data_reader<typename mcode_t::mcode_size_t>(it, fixed, data.cnt);
+        auto  reader = base_t::tgt_data_reader(data);
         reader.reserve(-1);
 
         auto& insn    = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));

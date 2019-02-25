@@ -92,17 +92,13 @@ public:
         first = insn_expr_data.size();
     }
 
-    // this ctor used when evaluating insn data
+    // this ctor used when evaluating container data
     insn_data(insn_container_data&);
 
     // get back-inserter for expression data when generating data
     auto& di() const
     {
         static auto _di = opc::opc_back_inserter(insn_expr_data);
-
-        if (data_p)
-            throw std::logic_error{"back_inserter referenced during evaluation"};
-
         return _di;
     }
 

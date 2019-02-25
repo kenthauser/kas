@@ -22,7 +22,7 @@ struct tgt_insn_adder
     using val_c_t    = typename mcode_t::val_c_t;
     
     // types interpreted by `sym_parser`
-    using VALUE_T    = mcode_t const *;
+    using VALUE_T    = insn_t *;
     using XLATE_LIST = typename defn_t::XLATE_LIST;
 
 
@@ -46,7 +46,7 @@ struct tgt_insn_adder
 
         // Also store combo index in DEFN_T
         using kas::parser::detail::init_from_list;
-        defn_t::val_c_base = init_from_list<const val_c_t, COMBO>::value;
+        defn_t::val_c_base = &init_from_list<const val_c_t, COMBO>::value;
         
         // val list & names are stored in `combo` 
         using VAL_NAMES = transform<VALS, quote<front>>;
@@ -91,7 +91,7 @@ struct tgt_insn_adder
 
             // create the "mcode instance" 
             // NB: use "size()" for instance index
-            mcode_p = &mcode_obstack->emplace_back(mcode_obstack->size(), n, p);
+            mcode_p = &mcode_obstack->emplace_back(mcode_obstack->size(), n);
             auto&& name = p->name();
 
             // test for "list" opcode
@@ -109,8 +109,8 @@ struct tgt_insn_adder
                 insn_p = &insn_obstack->emplace_back(insn_obstack->size(), std::move(name));
 
             // add opcode to insn
-            insn_p->opcodes.push_back(mcode_p);
-            if (insn_p->opcodes.size() > insn_p->max_opcodes)
+            insn_p->mcodes.push_back(mcode_p);
+            if (insn_p->mcodes.size() > insn_p->max_mcodes)
                 throw std::logic_error("too many machine codes for " + std::string(name));
         }
 

@@ -367,8 +367,6 @@ namespace kas::core
         static const auto idx_align   = opc::opc_align()  .index();
         static const auto idx_label   = opc::opc_label()  .index();
 
-        std::cout << "INSRT " << insn.raw() << std::endl;
-        
         // generate container_data from insn
         value_type data{insn};
         auto& opc_index = insn.opc_index;

@@ -7,26 +7,28 @@ namespace kas::tgt
 {
 
 template <typename INSN_T, typename OK_T, typename ARGS_T>
-typename INSN_T::mcode_t const* eval_insn_list
+auto eval_insn_list
         ( INSN_T const& insn
         , OK_T& ok
         , ARGS_T& args
         , core::opc::opcode::op_size_t& insn_size
         , expression::expr_fits const& fits
         , std::ostream* trace
-        )
+        ) -> typename INSN_T::mcode_t const *
 {
     using namespace expression;     // get fits_result
 
     // save current "match"
-    using mcode_t = typename INSN_T::opcode_t;
-    mcode_t const *opcode_p{};
+    using mcode_t   = typename INSN_T::mcode_t;
+    using op_size_t = typename mcode_t::op_size_t;
+
+    mcode_t const *mcode_p{};
     auto match_result = fits.no;
     auto match_index  = 0;
 
     if (trace)
     {
-        std::cout << "eval: " << insn.name() << " [" << insn.opcodes.size() << " opcodes]";
+        std::cout << "eval: " << insn.name << " [" << insn.mcodes.size() << " mcodes]";
         for (auto& arg : args)
             std::cout << ", " << arg;
         std::cout << std::endl;
@@ -35,7 +37,7 @@ typename INSN_T::mcode_t const* eval_insn_list
     // loop thru "opcodes" until no more matches
     auto bitmask = ok.to_ulong();
     auto index = 0;
-    for (auto op_p = insn.opcodes.begin(); bitmask; ++op_p, ++index)
+    for (auto op_p = insn.mcodes.begin(); bitmask; ++op_p, ++index)
     {
         bool op_is_ok = bitmask & 1;    // test if current was OK
         bitmask >>= 1;                  // set up for next
@@ -46,7 +48,7 @@ typename INSN_T::mcode_t const* eval_insn_list
         if (trace)
             *trace << std::setw(2) << index << ": ";
         
-        core::opc::opcode::op_size_t size;
+        op_size_t size;
         auto result = (*op_p)->size(args, size, fits, trace);
 
         if (result == fits.no)
@@ -56,9 +58,9 @@ typename INSN_T::mcode_t const* eval_insn_list
         }
         
         // first "match" is always "current best"
-        if (!opcode_p)
+        if (!mcode_p)
         {
-            opcode_p     = *op_p;
+            mcode_p      = *op_p;
             insn_size    = size;
             match_result = result;
             match_index  = index;
@@ -69,14 +71,14 @@ typename INSN_T::mcode_t const* eval_insn_list
         else if (result == fits.yes)
         {
             // if new max better than current min, replace old
-            if (size.max < insn_size.min)
+            if (size() < insn_size.min)
             {
                 ok.reset(match_index);
-                opcode_p     = *op_p;
+                mcode_p      = *op_p;
                 insn_size    = size;
                 match_result = result;
                 match_index  = index;
-                continue;       // on to next opcode
+                continue;       // on to next mcode
             }
 
             // new `max` is this opcode
@@ -87,7 +89,7 @@ typename INSN_T::mcode_t const* eval_insn_list
         // otherwise a "MIGHT" match. if previous is also "MIGHT" update MIGHT
         else
         {
-            if (insn_size.max < insn_size.max)
+            if (insn_size.max < size.max)
                 insn_size.max = size.max;
         }
 
@@ -97,28 +99,28 @@ typename INSN_T::mcode_t const* eval_insn_list
     }
 
     // if no match, show error
-    if (!opcode_p)
+    if (!mcode_p)
         insn_size.set_error();
 
     if (trace) {
         *trace << "candidates: " << ok.count();
-        *trace << " : " << ok.to_string().substr(ok.size()-insn.opcodes.size());
+        *trace << " : " << ok.to_string().substr(ok.size()-insn.mcodes.size());
         *trace << " : size = "   << insn_size;
         *trace << '\n' << std::endl;
     }
 
-    return opcode_p;
+    return mcode_p;
 }
 
-#if 1
-// templated definition to cut down on noise in `insn_t` defn
-template <typename OPCODE_T, std::size_t _MAX_ARGS, std::size_t MAX_OPCODES, typename TST_T>
+// templated definition to cut down on noise in `tgt_insn_t` defn
+template <typename MCODE_T, typename TST_T, unsigned MAX_MCODES, typename INDEX_T>
 template <typename...Ts>
-core::opcode const* tgt_insn_t<OPCODE_T, _MAX_ARGS, MAX_OPCODES, TST_T>::eval(insn_bitset_t& ok, Ts&&...args) const
+auto tgt_insn_t<MCODE_T, TST_T, MAX_MCODES, INDEX_T>
+        ::eval(bitset_t& ok, Ts&&...args) const -> mcode_t const *
 {
     return eval_insn_list(*this, ok, std::forward<Ts>(args)...);
 }
-#endif
+
 }
 
 

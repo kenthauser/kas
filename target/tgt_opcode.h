@@ -30,7 +30,8 @@ struct tgt_opcode : core::opc::opcode
     using mcode_size_t = typename mcode_t::mcode_size_t;
 
     using op_size_t    = typename core::opcode::op_size_t;
-    
+   
+
     //
     // gen_insn:
     //
@@ -51,6 +52,16 @@ struct tgt_opcode : core::opc::opcode
                  ) = 0;
 
 protected:
+    static auto tgt_data_inserter(data_t& data)
+    {
+        return tgt_data_inserter_t<MCODE_T>(data);
+    }
+
+    static auto tgt_data_reader(data_t const& data)
+    {
+        return tgt_data_reader_t<MCODE_T>(data);
+    }
+
     // create a "container" for deserialized args
     template <typename READER_T>
     struct serial_args_t

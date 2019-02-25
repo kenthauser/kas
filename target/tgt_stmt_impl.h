@@ -18,13 +18,15 @@ using namespace kas::core::opc;
 
 template <typename INSN_T, typename ARG_T>
 core::opcode *tgt_stmt<INSN_T, ARG_T>
-        ::eval(core::opcode::data_t& data)
+        ::do_gen_insn(core::opcode::data_t& data)
 {
     // get support types from `mcode`
     using mcode_t   = typename insn_t::mcode_t;
 
-    using err_msg_t = typename mcode_t::err_msg_t;
-    using bitset_t  = typename mcode_t::bitset_t;
+    using err_msg_t    = typename mcode_t::err_msg_t;
+    using bitset_t     = typename mcode_t::bitset_t;
+    using op_size_t    = typename mcode_t::op_size_t;
+    using mcode_size_t = typename mcode_t::mcode_size_t;
 
     // get kas types from opcode
     using core::opcode;
@@ -76,7 +78,7 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
     bool multiple_matches = false;
     const char *first_msg{};
 
-    // loop thru opcodes, recording first error & recording all matches
+    // loop thru mcodes, recording first error & recording all matches
     int i = 0; 
     for (auto mcode_p : insn.mcodes)
     {
@@ -88,13 +90,19 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
         if (trace)
             *trace << (diag ? diag : " = OK") << std::endl;
 
-        if (!diag) {
+        if (!diag)
+        {
+            // match found. record in OK
+            // also record iff first matching
             ok.set(i);
             if (!matching_mcode_p)
                 matching_mcode_p = mcode_p;
             else
                 multiple_matches = true;
-        } else if (!first_msg)
+        }
+        
+        // diag: record first to match
+        else if (!first_msg)
             first_msg = diag;
         
         ++i;        // next
@@ -107,32 +115,33 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
     if (!matching_mcode_p)
         return make_error({err_msg_t::ERR_invalid, opc_pos});
 
-    // multiple match means no match
+    // multiple matches means no match
     if (multiple_matches)
         matching_mcode_p = {};
 
-
+#if 0
     // logic: here at least one arg matches. 
     // 1) if constant `args`, emit binary code
     // 2) if single match, use format for selected opcode
     // 3) otherwise, use opcode for "list"
-#if 0 
+
     if (args_are_const)
     {
+        op_size_t insn_size;
+        expression::expr_fits fits;
+
         // all const args: can select best opcode & calculate size
         if (!matching_mcode_p)
         {
-            matching_mcode_p = eval_insn_list(
-                                    insn, ok, args
-                                  , insn_size, expression::expr_fits(), trace);
+            matching_mcode_p = insn.eval(ok, args, insn_size, fits, trace);
         }
 
         // single opcode matched: calculate size
         else
         {
-            insn_size = sizeof(uint16_t) * (1 + matching_mcode_p->opc_long);
+            insn_size = matching_mcode_p->base_size();
             for (auto& arg : args)
-                insn_size += arg.size(expression::expr_fits{});
+                insn_size += arg.size(fits);
         }
 
         if (trace)
@@ -141,11 +150,10 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
         // if binary data fits in "fixed" area of opcode, just emit as binary data
         if (insn_size() <= sizeof(fixed))
         {
-            static opc::tgt_opc_quick<uint8_t> opc_quick;
-            opc_quick.init(fixed, insn_size);
+            static opc::tgt_opc_quick<mcode_size_t> opc_quick;
 
-            if (opc_quick.proc_args(di, *matching_opcode_p, args, insn_size()))
-                return opc_quick;
+            if (opc_quick.proc_args(data, *matching_mcode_p, args, insn_size()))
+                return &opc_quick;
         }
     }
 #endif

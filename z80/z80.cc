@@ -1,3 +1,4 @@
+#include "utility/print_type_name.h"
 
 #include "z80.h"
 #include "z80_mcode.h"
@@ -10,9 +11,10 @@
 #include "target/tgt_insn_adder.h"
 #include "insns_z80.h"
 #include "z80_arg_impl.h"
+#include "z80_opcode_emit.h"
 
 // parse z80 instruction + args
-//#include "z80_parser.h"
+#include "z80_parser.h"
 
 
 // boilerplate: tgt_impl & sym_parser (for insn & reg names)
@@ -21,13 +23,17 @@
 #include "target/tgt_regset_impl.h"
 #include "target/tgt_stmt_impl.h"
 #include "target/tgt_insn_impl.h"
+#include "target/tgt_insn_eval.h"
+
+#include <typeinfo>
+#include <iostream>
 
 namespace kas::z80::parser
 {
     namespace x3 = boost::spirit::x3;
     using namespace x3;
     using namespace kas::parser;
-
+#if 1
     //////////////////////////////////////////////////////////////////////////
     // Register Parser Definition
     //////////////////////////////////////////////////////////////////////////
@@ -46,8 +52,7 @@ namespace kas::z80::parser
 
     // instantiate parser `type` for register name parser
     BOOST_SPIRIT_INSTANTIATE(z80_reg_x3 , iterator_type, context_type)
-
-#if 0
+#endif
     //////////////////////////////////////////////////////////////////////////
     // Instruction Parser Definition
     //////////////////////////////////////////////////////////////////////////
@@ -58,7 +63,33 @@ namespace kas::z80::parser
                                 , meta::quote<meta::_t>>;
 
     using z80_insn_defn         = typename z80_mcode_t::defn_t;
-    using z80_insn_sym_parser_t = sym_parser_t<z80_insn_defn, insns>;
+    using z80_insn_adder        = typename z80_mcode_t::adder_t;
+    using z80_insn_sym_parser_t = sym_parser_t<z80_insn_defn, insns, z80_insn_adder>;
+
+
+    struct _xxx
+    {
+        _xxx()
+        {
+            tgt::opc::tgt_opc_general<z80_mcode_t> opc_gen;
+            tgt::opc::tgt_opc_list   <z80_mcode_t> opc_list;
+            opc::FMT_LIST fmt_list;
+            opc::FMT_X    fmt_x;
+            
+            opc::REG_GEN  reg_gen;
+
+            print_type_name{"insns"}.name<insns>();
+            print_type_name{"z80_insn_defn"}.name<z80_insn_defn>();
+            print_type_name{"z80_insn_adder"}.name<z80_insn_adder>();
+            print_type_name{"opc_gen"} (opc_gen);
+            print_type_name{"opc_list"}(opc_list);
+            print_type_name{"fmt_list"}(fmt_list);
+            print_type_name{"fmt_x"}(fmt_x);
+            print_type_name{"reg_gen"}(reg_gen);
+
+            print_type_name{"z80_insn_sym_parser_t"}.name<z80_insn_sym_parser_t>();
+        }
+    } ;//_xxx;
 
     // XXX shoud stop parsing on (PARSER_CHARS | '.')
     z80_insn_sym_parser_t insn_sym_parser;
@@ -66,16 +97,15 @@ namespace kas::z80::parser
     // parser for opcode names
     z80_insn_x3 z80_insn_parser {"z80 opcode"};
     
-    //auto const z80_insn_parser_def = insn_sym_parser.x3();
-    //BOOST_SPIRIT_DEFINE(z80_insn_parser);
+    auto const z80_insn_parser_def = insn_sym_parser.x3();
+    BOOST_SPIRIT_DEFINE(z80_insn_parser);
 
-#if 0 
     // instantiate parsers
     BOOST_SPIRIT_INSTANTIATE(z80_insn_x3, iterator_type, context_type)
     BOOST_SPIRIT_INSTANTIATE(z80_stmt_x3, iterator_type, context_type)
-#endif
-#endif
+
 }
+
 
 namespace kas::tgt
 {
@@ -95,13 +125,10 @@ namespace kas::tgt
     template auto tgt_reg_set<reg_set_t, reg_t>::binop(const char, int)   -> derived_t&;
     
     // instantiate routines referenced from stmt parsers
-    template core::opcode *tgt_stmt<insn_t, arg_t>::eval(core::opcode::data_t&);
+    template core::opcode *tgt_stmt<insn_t, arg_t>::do_gen_insn(core::opcode::data_t&);
+
+    // instantiate printers
+    template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostream>(std::ostream&) const;
+    template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostringstream>(std::ostringstream&) const;
 }
 
-// instantiate printers
-namespace kas::tgt
-{
-    // template  void print_expr<std::ostream>(z80::z80_reg const&, std::ostream&);
-    template  void z80::z80_reg_set::print<std::ostream>(std::ostream&) const;
-    template  void z80::z80_reg_set::print<std::ostringstream>(std::ostringstream&) const;
-}

@@ -20,7 +20,7 @@ static inline constexpr uint8_t HOST_ENDIAN()
 {
     return (std::endian::native == std::endian::little)
                 ? ELFDATA2LSB : ELFDATA2MSB; 
-};
+}
 
 namespace detail
 {

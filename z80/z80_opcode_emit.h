@@ -23,7 +23,7 @@
 #include "kas_core/core_emit.h"
 #include "expr/expr_fits.h"
 
-namespace kas::z80::opc
+namespace kas::z80
 {
 /////////////////////////////////////////////////////////////////////////
 //
@@ -36,7 +36,7 @@ using expression::e_fixed_t;
 
 
 template <typename ARGS_T>
-void z80_opcode_t::emit(
+void z80_mcode_t::emit(
                    core::emit_base& base
                  , mcode_size_t *op_p
                  , ARGS_T&&    args
@@ -71,14 +71,14 @@ void z80_opcode_t::emit(
     }
 
     // now rest of opcode
-    if (opc_long)
+    if (code_size() > 1)
         base << core::set_size(1) << *++op_p;
 
     // for `size` call
     auto fits = core::core_fits(dot_p);
     
     // hook into validators
-    auto& val_c = defn().val_c();
+    auto& val_c = defn().vals();
     auto  val_p = val_c.begin();
 
     // emit additional arg data

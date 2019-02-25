@@ -131,6 +131,17 @@ auto tgt_mcode_t<S, D, A, E>
     
     return result;
 }
+template <typename S, typename D, typename A, typename E>
+template <typename ARGS_T>
+void tgt_mcode_t<S, D, A, E>
+        ::emit(core::emit_base& base
+            , mcode_size_t *op_p
+            , ARGS_T&&   args
+            , core::core_expr_dot const* dot_p
+            ) const
+{
+    
+}
 
 template <typename S, typename D, typename A, typename E>
 auto tgt_mcode_t<S, D, A, E>::defn()  const -> defn_t  const&
@@ -143,6 +154,10 @@ auto tgt_mcode_t<S, D, A, E>::fmt()   const -> fmt_t   const&
 template <typename S, typename D, typename A, typename E>
 auto tgt_mcode_t<S, D, A, E>::vals()  const -> val_c_t const&
     { return defn().vals(); }
+
+template <typename S, typename D, typename A, typename E>
+auto tgt_mcode_t<S, D, A, E>::name()  const -> std::string
+    { return defn().name(); }
 
 template <typename S, typename D, typename A, typename E>
 auto tgt_mcode_t<S, D, A, E>::code_size() const -> uint8_t
@@ -172,4 +187,5 @@ auto tgt_mcode_t<S, D, A, E>
 }
 
 }
+
 #endif

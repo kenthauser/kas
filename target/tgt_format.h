@@ -38,6 +38,7 @@ struct tgt_format
     // format first, compress rest
     virtual bool insert_arg1(mcode_size_t* op, arg_t& arg, val_t const *val_p) const 
     { 
+        // prototype `arg1`
         if (val_p)
             val_p->get_value(arg); 
         return false;
@@ -56,6 +57,7 @@ struct tgt_format
     // format first, compress rest
     virtual void extract_arg1(mcode_size_t const* op, arg_t *arg, val_t const *val_p) const
     {
+        // prototype `arg1`
         if (val_p)
             val_p->set_arg(*arg, 0);
     }
@@ -108,9 +110,9 @@ struct tgt_format
 template <typename MCODE_T>
 struct tgt_fmt_opc_gen : virtual MCODE_T::fmt_t
 {
-    static inline tgt_opc_general<MCODE_T> opc; 
     virtual core::opcode& get_opc() const override 
     {
+        static tgt_opc_general<MCODE_T> opc; 
         return opc;
     }
 };
@@ -118,9 +120,9 @@ struct tgt_fmt_opc_gen : virtual MCODE_T::fmt_t
 template <typename MCODE_T>
 struct tgt_fmt_opc_list : virtual MCODE_T::fmt_t
 {
-    static inline tgt_opc_list<MCODE_T> opc; 
     virtual core::opcode& get_opc() const override 
     {
+        static tgt_opc_list<MCODE_T> opc; 
         return opc;
     }
 };

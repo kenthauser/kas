@@ -22,13 +22,13 @@ struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<INSN_T, ARG_T>>
     // method used to assemble instruction
     core::opcode *gen_insn(core::opcode::data_t& data) 
     {
-        auto op_p = eval(data);
+        auto op_p = do_gen_insn(data);
         arg_t::reset();     // clear any static variables
         return op_p;
     }
     
     // actual method to generate opcode;
-    core::opcode *eval(core::opcode::data_t&);
+    core::opcode *do_gen_insn(core::opcode::data_t&);
 
     // methods used by test fixtures
     const char *name() const 

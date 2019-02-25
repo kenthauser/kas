@@ -59,7 +59,7 @@ using z80_insn_ld_l = list<list<>
 
 , defn<STR("*LIST*"), 0, FMT_LIST, REG_GEN, REG_GEN>
 
-#if 0
+#if 1
 //
 // 8-bit load group
 //
