@@ -54,6 +54,7 @@ namespace parser::detail
 
     // specialize templates declared in `parser_stmt.h`
     template <> struct stmt_ops_l<defn_fmt> : meta::list<
+    //template <> struct stmt_ops_l<int> : meta::list<
           bsd::parser::stmt_comma_x3
         , bsd::parser::stmt_space_x3
         , bsd::parser::stmt_equ_x3

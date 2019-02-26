@@ -13,11 +13,11 @@
 namespace kas::tgt
 {
 
-template <typename INSN_T, typename ARG_T>
+template <typename INSN_T, typename ARG_T, typename NAME = KAS_STRING("TGT")>
 struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<INSN_T, ARG_T>>
 {
-    using insn_t = INSN_T;
-    using arg_t  = ARG_T;
+    using insn_t   = INSN_T;
+    using arg_t    = ARG_T;
 
     // method used to assemble instruction
     core::opcode *gen_insn(core::opcode::data_t& data) 
@@ -31,9 +31,10 @@ struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<INSN_T, ARG_T>>
     core::opcode *do_gen_insn(core::opcode::data_t&);
 
     // methods used by test fixtures
-    const char *name() const 
+    std::string name() const 
     {
-        return insn_p->name.c_str();
+        auto name_prefix = kas::str_cat<NAME, KAS_STRING(":")>::value;
+        return name_prefix + insn_p->name;
     }
 
     void print_args(parser::print_obj const& p_obj) const
@@ -49,6 +50,16 @@ struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<INSN_T, ARG_T>>
         insn_p        = boost::fusion::at_c<0>(x3_args);
         args          = boost::fusion::at_c<1>(x3_args);
         x3::_val(ctx) = *this;
+    
+#if 0
+        // XXX Revisit `taging` later
+        // XXX `where` from context begins "after" this parse
+        // XXX could get `begin` from `insn_p` if it were tagged.
+        // NB: where is a boost::iter_range
+        auto& where = x3::get<x3::where_context_tag>(ctx);
+        auto& error_handler = x3::get<parser::error_handler_tag>(ctx).get();
+        error_handler.tag(*this, where.begin(), where.end());
+#endif
     }
     
     insn_t const      *insn_p;

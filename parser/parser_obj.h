@@ -90,7 +90,17 @@ auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
     auto before = src.iter();
     
     value_type ast;
-    bool success = PARSER{}.parse(src.iter(), src.last(), context, skipper_t{}, ast);
+    bool success{};
+    try
+    {
+        success = PARSER{}.parse(src.iter(), src.last(), context, skipper_t{}, ast);
+    }
+    catch (std::exception const& e)
+    {
+        auto exec_name = typeid(e).name();
+        std::ostream& diag = std::cout;
+        diag << "\nInternal error: " << exec_name << ": " << e.what() << std::endl;
+    }
 
     if (src.iter() == before) {
         // need "can't parser anything" diag
@@ -105,8 +115,9 @@ auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
         src.e_handler().tag(err, before, src.iter());
         return err;
     }
-
+    
     return ast;
+
 }
 
 

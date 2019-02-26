@@ -16,7 +16,7 @@ namespace kas::z80
     // declare result of parsing
     // NB: there are 19 variants of `ld`
     using z80_insn_t = tgt::tgt_insn_t<struct z80_mcode_t, hw::hw_tst, 32>;
-    using z80_stmt_t = tgt::tgt_stmt<z80_insn_t, z80_arg_t>;
+    using z80_stmt_t = tgt::tgt_stmt<z80_insn_t, z80_arg_t, KAS_STRING("Z80")>;
 }
 
 

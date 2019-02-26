@@ -43,10 +43,6 @@ namespace kas::z80::parser
     auto const z80_arg_def     = z80_parsed_arg;
     auto const z80_missing_def = eps;      // need location tagging
 
-    // tag location for each argument
-    struct z80_arg     : kas::parser::annotate_on_success {};
-    struct z80_missing : kas::parser::annotate_on_success {};
-
 
     BOOST_SPIRIT_DEFINE(z80_parsed_arg, z80_arg, z80_missing)
 
@@ -62,12 +58,21 @@ namespace kas::z80::parser
 
     BOOST_SPIRIT_DEFINE(z80_args)
 
-    auto const z80_stmt_def = (z80_insn_x3() > z80_args)[z80_stmt_t()];
+    // need two rules to get tagging 
+    auto const raw_z80_stmt = rule<class _, z80_stmt_t> {} = 
+                        (z80_insn_x3() > z80_args)[z80_stmt_t()];
 
     // Parser interface
     z80_stmt_x3 z80_stmt {"z80_stmt"};
-    
+    auto const z80_stmt_def = raw_z80_stmt;
+
     BOOST_SPIRIT_DEFINE(z80_stmt)
+    
+    
+    // tag location for each argument
+    struct z80_arg       : kas::parser::annotate_on_success {};
+    struct z80_missing   : kas::parser::annotate_on_success {};
+    struct _tag_z80_stmt : kas::parser::annotate_on_success {}; 
 }
 
 #endif

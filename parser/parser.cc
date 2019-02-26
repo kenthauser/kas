@@ -42,3 +42,21 @@ template std::ostream& operator<<(std::ostream&, kas_token const&);
 //template opcode& stmt_t::operator()(opcode::Inserter&, opcode::fixed_t&, opcode::op_size_t&);
 
 }
+
+namespace kas::parser
+{
+struct _xxx
+{
+    _xxx()
+    {
+        print_type_name{"stmt_parsers"}.name<stmt_parsers>();
+
+        print_type_name{"stmt<cpu>"}.name<typename detail::parser_type_l<defn_cpu>::type>();
+        print_type_name{"stmt<fmt>"}.name<typename detail::parser_type_l<defn_fmt>::type>();
+
+        print_type_name{"stmt_tuple_t"}.name<XXX_stmt_tuple_t>();
+        print_type_name{"stmt_tuple"}(XXX_stmt_tuple);
+    }
+} _x;
+
+}

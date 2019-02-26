@@ -16,8 +16,8 @@ namespace kas::tgt
 
 using namespace kas::core::opc;
 
-template <typename INSN_T, typename ARG_T>
-core::opcode *tgt_stmt<INSN_T, ARG_T>
+template <typename INSN_T, typename ARG_T, typename NAME>
+core::opcode *tgt_stmt<INSN_T, ARG_T, NAME>
         ::do_gen_insn(core::opcode::data_t& data)
 {
     // get support types from `mcode`

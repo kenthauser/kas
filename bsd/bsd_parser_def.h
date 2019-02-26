@@ -165,16 +165,16 @@ auto const comma_args = rule<class _, bsd::bsd_args> {}
 
 // NB: `comma_ops` have comma separated args. `space_ops` have space separated 
 // Parse actual statements
-auto const raw_stmt_comma= rule<class _, bsd_stmt_pseudo> {} =
+auto const raw_stmt_comma = rule<class _, bsd_stmt_pseudo> {} =
                     (comma_op_x3 > comma_args)[bsd_stmt_pseudo()];
-auto const raw_stmt_space= rule<class _, bsd_stmt_pseudo> {} =
+auto const raw_stmt_space = rule<class _, bsd_stmt_pseudo> {} =
                     (space_op_x3 > space_args)[bsd_stmt_pseudo()];
         
 // don't allow missing on "=" statements
-auto const raw_stmt_org= rule<class _, bsd_stmt_org> {} =
+auto const raw_stmt_org = rule<class _, bsd_stmt_org> {} =
                     ((omit[dot_ident] >> '=') > space_arg)[bsd_stmt_org()];
 
-auto const raw_stmt_equ= rule<class _, bsd_stmt_equ> {} =
+auto const raw_stmt_equ = rule<class _, bsd_stmt_equ> {} =
                     ((label           >> '=') > space_arg)[bsd_stmt_equ()];
 
 // add extra parser rule to get tagging.

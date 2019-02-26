@@ -58,17 +58,6 @@ auto make_value_tuple(F&& fn, meta::list<Ts...>&&)
     return std::make_tuple(fn(Ts())...);
 }
 
-auto const stmt_tuple   = make_value_tuple(parse_eol, stmt_parsers()); 
-auto const label_tuple  = make_value_tuple(parse_lbl, label_parsers()); 
-
-#if 0
-using stmt_tuple_t = meta::apply<meta::quote<std::tuple>, stmt_parsers>;
-auto const stmt_tuple = reduce_tuple(std::bit_or<>(), stmt_tuple_t());
-
-using label_tuple_t = meta::apply<meta::quote<std::tuple>, label_parsers>;
-auto const label_tuple = reduce_tuple(std::bit_or<>(), label_tuple_t());
-#endif
-
 struct junk_token : kas_token
 {
     operator kas_error_t() const
@@ -77,7 +66,17 @@ struct junk_token : kas_token
     }
 };
 
+using XXX_stmt_tuple_t = meta::apply<meta::quote<std::tuple>, stmt_parsers>;
+auto const XXX_stmt_tuple = reduce_tuple(std::bit_or<>(), XXX_stmt_tuple_t());
+
 #if 0
+
+using stmt_tuple_t = meta::apply<meta::quote<std::tuple>, stmt_parsers>;
+auto const stmt_tuple = reduce_tuple(std::bit_or<>(), stmt_tuple_t());
+
+using label_tuple_t = meta::apply<meta::quote<std::tuple>, label_parsers>;
+auto const label_tuple = reduce_tuple(std::bit_or<>(), label_tuple_t());
+
 // statement is: label, insn (to end of line), or end-of-input
 auto const statement_def = 
          (stmt_tuple > stmt_eol)
@@ -85,9 +84,17 @@ auto const statement_def =
        | end_of_input
        ;
 #else
+auto const stmt_tuple   = make_value_tuple(parse_eol, stmt_parsers()); 
+auto const label_tuple  = make_value_tuple(parse_lbl, label_parsers()); 
+
 
 auto const statement_def =
-            reduce_tuple(std::bit_or<>{}, stmt_tuple)
+//            reduce_tuple(std::bit_or<>{}, stmt_tuple)
+            ( bsd::parser::stmt_comma_x3() > stmt_eol )
+          | ( bsd::parser::stmt_space_x3() > stmt_eol )
+          | ( bsd::parser::stmt_equ_x3  () > stmt_eol )
+          | ( bsd::parser::stmt_org_x3  () > stmt_eol )
+          | ( z80::parser::z80_stmt_x3  () > stmt_eol )
           | reduce_tuple(std::bit_or<>{}, label_tuple)
           | (x3::eoi > x3::attr(stmt_eoi()))
           ;
