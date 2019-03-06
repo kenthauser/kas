@@ -56,8 +56,9 @@ struct stmt_t : detail::parser_variant
         return apply_visitor(x3::make_lambda_visitor<std::string>(
             [](auto&& node)
             {
-                if (node.handler)
-                    return node.where().second;
+                kas_loc const& loc = node;
+                if (loc)
+                    return loc.where();
                 
                 std::string result{"UNTAGGED: "};
                 result += typeid(node).name();

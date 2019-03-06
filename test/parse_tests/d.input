@@ -11,12 +11,13 @@ FIXED_VALUE = 6
 .skip	2, x
 .skip	2, FIXED_VALUE + 4
 .align
-.align	2
+.align	2       JUNK
 .align	3,5
-.align	4.0
-.even
-.even	1
+MORE_JUNK
+.align	4.0 
+.even  ! .even FIXED_VALUE
+.even	1   ; comment on line
 ld  a,b
+; data before end
 ld hl,(ext)
-
-
+; data at end

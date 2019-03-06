@@ -29,7 +29,10 @@ auto stmt_separator = detail::stmt_separator_p<
         >();
 
 //////////////////////////////////////////////////////////////////////////
-//  Assembler Instruction Parser Definition
+//  Parser Support Methods
+//      * end-of-line
+//      * end-of-input
+//      * junk (non-matching input)
 //////////////////////////////////////////////////////////////////////////
 
 // parse to comment, separator, or end-of-line
@@ -39,69 +42,163 @@ auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
     | x3::eol
     ;
 
+// parser to recognize end-of-input
+struct _tag_eoi : annotate_on_success {};
+auto const end_of_input = x3::rule<_tag_eoi, stmt_eoi> { "eoi" } = x3::eoi;
 
-auto const end_of_input = x3::rule<class _eoi, stmt_eoi> { "eoi" } = x3::eoi;
+// parse invalid content to end-of-line or comment
+struct token_junk: kas_token
+{
+    operator kas_diag const& ()
+    {
+        if (!diag_p)
+            diag_p = &kas_diag::warning("Junk following statement, ignored", *this);
+        
+        std::cout << diag_p->ref() << std::endl;
+        return *diag_p;
+    }
 
-// insn defns
+    operator stmt_error()
+    {
+        kas_diag const& diag = *this;
+        std::cout << "token_junk: stmt_error: " << diag.ref() << std::endl; 
+        return diag;
+    }
+
+    ~token_junk()
+    {
+        std::cout << "token_junk destroyed";
+
+        if (diag_p)
+            std::cout << ": " << diag_p->ref();
+        std::cout << std::endl;
+
+        if (this->handler)
+            std::cout << "token_junk: parsed data: " << *this << std::endl;
+
+    }
+
+    kas_diag const *diag_p {};
+};
+
+auto const junk = token<token_junk>[+x3::omit[x3::char_ - stmt_eol]];
+auto end_of_line = x3::rule<class _junk> { "eol" } = stmt_eol | junk;
+
+//////////////////////////////////////////////////////////////////////////
+//  Parser List Support Methods
+//      * combine lists of parsers to single parser
+//      * handle empty list case
+//////////////////////////////////////////////////////////////////////////
+#if 0
+namespace detail
+{
+    using rule_t = x3::rule<class _, stmt_t>;
+    
+    // general recursion case
+    template <typename RT, typename T, typename...Ts>
+    rule_t make_parser_impl(RT parser, meta::list<T, Ts...>)
+    {
+        // recurse if more parsers
+        if constexpr (sizeof...(Ts) != 0)
+            return make_parser_impl(parser | x3::as_parser(T()), meta::list<Ts...>());
+    
+        // exit recursion
+        return parser | x3::as_parser(T());
+    }
+
+    // handle list of single or multiple parsers
+    template <typename T, typename...Ts>
+    rule_t make_parser(meta::list<T, Ts...>)
+    {
+        // if multiple, recurse.
+        if constexpr (sizeof...(Ts) != 0)
+            return make_parser_impl(x3::as_parser(T()), meta::list<Ts...>());
+
+        // if single element, just first
+        return x3::as_parser(T());
+    }
+
+    // handle empty list: don't match
+    auto make_parser(meta::list<>)
+    {
+        return x3::eps(false);
+    }
+
+}
+
+// generate parser from stmts & lists
+template <template<typename=void> class LIST>
+auto make_parser_from_list()
+{
+    return detail::make_parser(all_defns<LIST>());
+}
 
 // get meta list of parsers from config vectors<>
-using label_parsers =  all_defns<detail::label_ops_l>;
-using stmt_parsers  =  all_defns<detail::stmt_ops_l>;
+auto const label_parsers = make_parser_from_list<detail::label_ops_l>();
+auto const stmt_parsers  = make_parser_from_list<detail::stmt_ops_l >();
 
+#else
 // lambda functions: parse label only & parse to end-of-line
-auto const parse_eol = [](auto&& p) { return p > stmt_eol; };
-auto const parse_lbl = [](auto&& p) { return p; };
+auto const parse_lbl  = [](auto&& p) { return p; };
+auto const parse_eol  = [](auto&& p) { return p >> stmt_eol; };
+auto const parse_junk = [](auto&& p) { return p >> x3::omit[junk] >> stmt_eol; };
 
 template <typename F, typename...Ts>
 auto make_value_tuple(F&& fn, meta::list<Ts...>&&)
 {
     return std::make_tuple(fn(Ts())...);
 }
-
-struct junk_token : kas_token
-{
-    operator kas_error_t() const
-    {
-        return kas_diag::error("Invalid opcode").ref(*this);
-    }
-};
+using label_parsers =  all_defns<detail::label_ops_l>;
+using stmt_parsers  =  all_defns<detail::stmt_ops_l>;
 
 using XXX_stmt_tuple_t = meta::apply<meta::quote<std::tuple>, stmt_parsers>;
 auto const XXX_stmt_tuple = reduce_tuple(std::bit_or<>(), XXX_stmt_tuple_t());
 
+//auto const stmt_tuple   = make_value_tuple(parse_eol, stmt_parsers()); 
+auto const label_tuple  = make_value_tuple(parse_lbl , label_parsers()); 
+auto const stmt_tuple   = make_value_tuple(parse_eol , stmt_parsers()); 
+auto const junk_tuple   = make_value_tuple(parse_junk, stmt_parsers()); 
+#endif
+
+#if 1
+auto const statement_def =
 #if 0
-
-using stmt_tuple_t = meta::apply<meta::quote<std::tuple>, stmt_parsers>;
-auto const stmt_tuple = reduce_tuple(std::bit_or<>(), stmt_tuple_t());
-
-using label_tuple_t = meta::apply<meta::quote<std::tuple>, label_parsers>;
-auto const label_tuple = reduce_tuple(std::bit_or<>(), label_tuple_t());
-
-// statement is: label, insn (to end of line), or end-of-input
-auto const statement_def = 
-         (stmt_tuple > stmt_eol)
-       | label_tuple
-       | end_of_input
-       ;
+            reduce_tuple(std::bit_or<>{}, stmt_tuple)
 #else
-auto const stmt_tuple   = make_value_tuple(parse_eol, stmt_parsers()); 
-auto const label_tuple  = make_value_tuple(parse_lbl, label_parsers()); 
+            ( bsd::parser::stmt_comma_x3() > end_of_line )
+          | ( bsd::parser::stmt_space_x3() > end_of_line )
+          | ( bsd::parser::stmt_equ_x3  () > end_of_line )
+          | ( bsd::parser::stmt_org_x3  () > end_of_line )
+          | ( z80::parser::z80_stmt_x3  () > end_of_line )
+#endif
+          | reduce_tuple(std::bit_or<>{}, label_tuple)
+          | end_of_input
+         // | reduce_tuple(std::bit_or<>{}, junk_tuple)
+          | junk
+          ;
+#else
 
+//auto const stmt_list
+x3::rule<class _, stmt_t> stmt_list {}
+        = bsd::parser::stmt_comma_x3()
+		| bsd::parser::stmt_space_x3()
+		| bsd::parser::stmt_equ_x3()
+		| bsd::parser::stmt_org_x3()
+		| z80::parser::z80_stmt_x3()
+		;
 
 auto const statement_def =
-//            reduce_tuple(std::bit_or<>{}, stmt_tuple)
-            ( bsd::parser::stmt_comma_x3() > stmt_eol )
-          | ( bsd::parser::stmt_space_x3() > stmt_eol )
-          | ( bsd::parser::stmt_equ_x3  () > stmt_eol )
-          | ( bsd::parser::stmt_org_x3  () > stmt_eol )
-          | ( z80::parser::z80_stmt_x3  () > stmt_eol )
+            (stmt_list >> stmt_eol)          
           | reduce_tuple(std::bit_or<>{}, label_tuple)
-          | (x3::eoi > x3::attr(stmt_eoi()))
+          | end_of_input
+    // parser error cases
+          | (stmt_list >> junk >> stmt_eol)
+          | junk
           ;
 
 #endif
 
-x3::rule<class _tag_stmt, stmt_t> const statement = "statement";
+x3::rule<class _stmt, stmt_t> const statement = "statement";
 stmt_x3 stmt { "stmt" };
 
 // insn is statment (after skipping blank or commented lines)
@@ -146,8 +243,8 @@ struct resync_base
             first = last;
         }
 
-    //auto message = "\"" + std::string(first_unparsed, first) + "\"";
-    //std::cout << "unparsed: " << message << std::endl;
+    auto message = "\"" + std::string(first_unparsed, first) + "\"";
+    std::cout << "unparsed: " << message << std::endl;
 
         // return error from parser
         return x3::error_handler_result::fail;
@@ -160,8 +257,8 @@ private:
 
 // XXX undef of statement screws up parser 
 //struct _tag_stmt : annotate_on_success {};
-//struct _stmt : resync_base {};
-//struct _junk : resync_base {};
+struct _stmt : resync_base {};
+struct _junk : resync_base {};
 
 // interface to statement parser
 

@@ -103,7 +103,7 @@ auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
     }
 
     if (src.iter() == before) {
-        // need "can't parser anything" diag
+        // need "can't parse anything" diag
         src.iter() = src.last();
         success = false;
     }
@@ -111,7 +111,7 @@ auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
     if (!success)
     {
         // create an error insn
-        stmt_error err{ parser::kas_diag::last().ref() };
+        stmt_error err{ parser::kas_diag::last() };
         src.e_handler().tag(err, before, src.iter());
         return err;
     }

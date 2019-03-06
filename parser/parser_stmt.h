@@ -111,10 +111,15 @@ namespace detail
     template <typename OPC>
     struct stmt_diag : parser_stmt<stmt_diag<OPC>>
     {
+        using base_t = typename parser_stmt<stmt_diag<OPC>>::base_t;
         // w/o braces, clang drops core on name(). 2019/02/15 KBH
         static inline OPC opc{};
 
-        stmt_diag(kas_error_t diag = {}) : diag(diag) {}
+        using base_t::base_t;
+
+        stmt_diag(kas_diag const& diag)
+            : diag(diag.ref()), base_t(diag.loc())
+            {}
 
         const char *name() const
         {

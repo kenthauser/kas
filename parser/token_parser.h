@@ -44,7 +44,8 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK, Subjec
         if (this->subject.parse(
                   i, last
                 , x3::make_context<x3::skipper_tag>(unused_skipper, context)
-                , rcontext, value)) {
+                , rcontext, value))
+        {
             TOK token;
 #if 0
             print_type_name("token_parser::token_type").name<TOK>(std::cout); 

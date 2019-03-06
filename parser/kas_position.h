@@ -22,6 +22,8 @@
 #include "parser_config.h"
 #include <string>
 
+#include <iostream>
+
 namespace kas::parser
 {
 
@@ -45,6 +47,20 @@ private:
 template <typename Iter>
 struct kas_position_tagged_t 
 {
+    // three constructors: default, from iter, from loc
+    kas_position_tagged_t() = default;
+
+    kas_position_tagged_t(Iter&& first, Iter&& last, error_handler<Iter> const* handler)
+        : first(std::move(first)), last(std::move(last)), handler(handler)
+        {}
+
+    kas_position_tagged_t(kas_loc const& loc) : loc(loc.get())
+        {
+            std::cout << "position_tagged: ctor(loc&): loc = " << loc.get();
+            std::cout << " handler = " << handler << std::endl;
+        }
+
+
     // calculate & return `kas_loc`
     // NB: implementation at end of `error_reporting.h`
     operator kas_loc&() const;
@@ -55,9 +71,13 @@ struct kas_position_tagged_t
 
     auto where() const
     {
+        if (loc)
+            return std::make_pair(0, loc.where());
+            
         return std::make_pair(0, std::string(first, last));
     }
     
+//protected:
     Iter first;
     Iter last;
     error_handler<Iter> const *handler{};
