@@ -53,22 +53,24 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
         // get size for this opcode
         auto& op = *mcode_p;
         
-        std::cout << "opc_general::gen_insn: " << insn.name;
-        auto delim = ": ";
-        for (auto& arg : args)
+        if (auto trace = this->trace)
         {
-            std::cout << delim << arg;
-            delim = ", ";
+            *trace << "tgt_opc_general::gen_insn: " << insn.name;
+            auto delim = ": ";
+            for (auto& arg : args)
+            {
+                *trace << delim << arg;
+                delim = ", ";
+            }
+            *trace << std::endl;
         }
-        std::cout << std::endl;
         
-        // XXX incorrect
-        op_size_t insn_size;
-        op.size(args, insn_size, expression::expr_fits{}, this->trace);
+        // don't bother to trace, know mcode matches
+        op.size(args, data.size, expression::expr_fits{});
 
         // serialize format (for resolved instructions)
-        // 1) opcode index
-        // 2) opcode binary data
+        // 1) mcode index
+        // 2) mcode binary data
         // 3) serialized args
         
         auto inserter = base_t::tgt_data_inserter(data);

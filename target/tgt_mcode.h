@@ -10,6 +10,7 @@ template <typename MCODE_T> struct tgt_format;
 template <typename MCODE_T> struct tgt_validate_args;
 template <typename MCODE_T> struct tgt_insn_defn;
 template <typename MCODE_T> struct tgt_insn_adder;
+template <typename MCODE_T> struct tgt_opcode;
 
 }
 // instruction per-size run-time object
@@ -69,6 +70,7 @@ struct tgt_mcode_t
     using val_c_t   = opc::tgt_validate_args<MCODE_T>;
     using defn_t    = opc::tgt_insn_defn    <MCODE_T>;
     using adder_t   = opc::tgt_insn_adder   <MCODE_T>;
+    using opcode_t  = opc::tgt_opcode       <MCODE_T>;
 
     // override sizes in `SIZE_T` if required
     using mcode_size_t = typename SIZE_T::mcode_size_t;
@@ -130,6 +132,8 @@ struct tgt_mcode_t
     
     // machine code arranged as words: big-endian
     auto code() const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
+
+    void print(std::ostream&) const;
 
     mcode_idx_t index;         // -> access this instance (zero-based)
     defn_idx_t  defn_index;    // -> access associated defn for name, fmt, validator (zero-based)

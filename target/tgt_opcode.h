@@ -2,14 +2,7 @@
 #define KAS_TARGET_TGT_OPCODE_H
 
 
-//#include "z80_arg.h"
-//#include "z80_arg_size.h"
-
-//#include "z80_formats_type.h"
-//#include "z80_insn_serialize.h"
-//#include "z80_insn_validate.h"
-#include "target/tgt_insn_serialize.h"
-//#include "z80_insn_impl.h"
+#include "tgt_insn_serialize.h"
 
 #include "kas_core/opcode.h"
 #include "kas_core/core_print.h"

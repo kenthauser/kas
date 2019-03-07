@@ -71,10 +71,12 @@ struct kas_position_tagged_t
 
     auto where() const
     {
+        // if inited from `loc` only `loc` is valid. 
         if (loc)
-            return std::make_pair(0, loc.where());
+            return loc.where();
             
-        return std::make_pair(0, std::string(first, last));
+        // NB: if `first` & `last` not inited, range will be empty string
+        return std::string(first, last);
     }
     
 //protected:

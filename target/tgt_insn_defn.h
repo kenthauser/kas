@@ -56,12 +56,12 @@ struct VT_CTOR
 
 ////
 
-template <typename T, uint8_t N = 1>
-auto constexpr code_to_words(std::size_t value)
+template <typename T>
+uint8_t constexpr code_to_words(std::size_t value, uint8_t N = 1)
 {
     using limit = std::numeric_limits<T>;
-    if constexpr (value > limit::max)
-        return code_to_words<T, N + 1>(value >> limit::bits);
+    if (value > limit::max())
+        return code_to_words<T>(value >> limit::digits, N + 1);
     return N;
 }
 
@@ -89,7 +89,7 @@ struct tgt_insn_defn
     using FMT_LIST  = list<int_<2>>;
     using VAL_LIST  = drop_c<IS_as_list<VAL_SEQ>, VALIDATOR_BASE>;
 
-    using XLATE_LIST = list<list<const char *          , NAME_LIST>
+    using XLATE_LIST = list<list<const char * , NAME_LIST>
                           , list<const fmt_t *, FMT_LIST, quote<VT_CTOR>>
                           , list<const val_t *, VAL_LIST, quote<VT_CTOR>>
 
@@ -108,13 +108,26 @@ struct tgt_insn_defn
             , fmt_index   { FMT::value   + 1   }
             , val_c_index { VAL_C::value + 1   }
             , code        { OP::value  }
-            //, code_words  { code_to_words<mcode_size_t>(OP::value) }
+            , code_words  { code_to_words<mcode_size_t>(OP::value) }
             //, tst         { OP::tst::value     }
             {}
             
-    static inline const char  *   const *names_base;
-    static inline const fmt_t *   const *fmts_base;
-    static inline const val_c_t * const *val_c_base;
+    // `fmt_t` is abstract class. access via pminters to instances
+    static inline const char * const *names_base;
+    static inline const fmt_t *const *fmts_base;
+    static inline val_c_t      const *val_c_base;
+
+    void print(std::ostream& os) const
+    {
+        os << std::dec;
+        os << "tgt_insn_defn: name_idx = " << +name_index;
+        os << " val_c_index = " << +val_c_index;
+        os << " fmt_index = " << +fmt_index;
+        os << std::hex;
+        os << " code = " << +code;
+        os << std::dec;
+        os << std::endl;
+    }
     
     // alt gives alternate suffix, if available.
     // arch gives mit/moto alternate, if runtime configured
@@ -125,11 +138,11 @@ struct tgt_insn_defn
     }
 
     auto& fmt()  const  { return *fmts_base [fmt_index   - 1]; }
-    auto& vals() const  { return *val_c_base[val_c_index - 1]; }
+    auto& vals() const  { return  val_c_base[val_c_index - 1]; }
 
     uint16_t code;          // actual binary code
     uint16_t tst {};           // hw test
-    uint8_t  code_words {};    // zero-based
+    uint8_t  code_words;    // zero-based
 
     // override sizes in `MCODE_T`
     name_idx_t  name_index;    //  ? bits

@@ -28,7 +28,7 @@ auto eval_insn_list
 
     if (trace)
     {
-        std::cout << "eval: " << insn.name << " [" << insn.mcodes.size() << " mcodes]";
+        std::cout << "tgt_insn::eval: " << insn.name << " [" << insn.mcodes.size() << " mcodes]";
         for (auto& arg : args)
             std::cout << ", " << arg;
         std::cout << std::endl;

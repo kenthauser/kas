@@ -52,7 +52,7 @@ private:
     arg_info_t  info[ARGS_PER_INFO];
 };
 
-//#define TRACE_ARG_SERIALIZE
+#define TRACE_ARG_SERIALIZE 1
 #ifndef TRACE_ARG_SERIALIZE
 #define TRACE_ARG_SERIALIZE 0
 #endif

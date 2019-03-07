@@ -64,6 +64,7 @@ using z80_insn_ld_l = list<list<>
 //
 
 , defn<STR("ld"), 0x40, FMT_3_0, REG    , REG_GEN>
+#if 1
 , defn<STR("ld"), 0x40, FMT_3_0, REG_GEN, REG>
 , defn<STR("ld"), 0x06, FMT_3  , REG_GEN, IMMED_8>
 
@@ -116,6 +117,7 @@ using z80_insn_ld_l = list<list<>
 , defn<STR("cpir"), 0xedb1>
 , defn<STR("cpd") , 0xeda9>
 , defn<STR("cpdr"), 0xedb9>
+#endif
 >;
 
 
@@ -213,7 +215,7 @@ using z80_insn_jmp_l = list<list<>
 //
 // Jump group
 //
-
+#
 , defn<STR("jp")  , 0xc3, FMT_X   , DIRECT>
 , defn<STR("jp")  , 0xc2, FMT_3   , CC, DIRECT>
 , defn<STR("jp")  , 0xe9, FMT_X   , INDIR_IDX>
@@ -259,8 +261,10 @@ using z80_insn_io_l = list<list<>
 
 using z80_insn_list = list<list<>
                          , z80_insn_ld_l
+#if 1
                          , z80_insn_math_l
                          , z80_insn_jmp_l
+#endif
                          , z80_insn_io_l
                          >;
 }

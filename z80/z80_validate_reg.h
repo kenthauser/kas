@@ -97,7 +97,8 @@ struct val_reg : z80_mcode_t::val_t
             arg.reg = z80_reg_t(r_class, value);
         else
             arg.reg = z80_reg_t(r_class, r_num);
-        
+       
+#if 0
         std::cout << "val_reg::set: r_class = " << +r_class;
         if (!is_single_register())
             std::cout << " value = " << std::hex << value;
@@ -105,6 +106,7 @@ struct val_reg : z80_mcode_t::val_t
             std::cout << " num = " << std::hex << r_num;
 
         std::cout << " -> reg = " << arg.reg << std::endl;
+#endif
     }
     
     // registers by themselves have no size. Don't override default size() method 
@@ -137,7 +139,7 @@ struct val_reg_gen: z80_mcode_t::val_t
         case MODE_REG_OFFSET_IX:
         case MODE_REG_OFFSET_IY:
             // only 1 type of prefix register allowed per instruction
-            std::cout << "val_reg_gen: reg = " << arg.reg << " pfx = " << +arg.prefix << std::endl;
+            //std::cout << "val_reg_gen: reg = " << arg.reg << " pfx = " << +arg.prefix << std::endl;
             if (arg.reg.value() != arg.prefix)
                 break;
             return fits.yes;
@@ -197,8 +199,8 @@ struct val_reg_gen: z80_mcode_t::val_t
         else
             arg.reg = z80_reg_t(RC_DBL, 2);
         
-        std::cout << "val_reg_gen::set: value = " << +value;
-        std::cout << " -> reg = " << arg.reg << std::endl;
+        //std::cout << "val_reg_gen::set: value = " << +value;
+        //std::cout << " -> reg = " << arg.reg << std::endl;
     }
 };
 
@@ -396,7 +398,7 @@ struct val_range : z80_mcode_t::val_t
     
     void set_arg(z80_arg_t& arg, unsigned value) const override
     {
-        std::cout << "val_range::set_arg: value = " << value << std::endl;
+        //std::cout << "val_range::set_arg: value = " << value << std::endl;
         arg.expr = value;
     }
 

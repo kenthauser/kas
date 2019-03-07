@@ -87,6 +87,10 @@ namespace kas::parser::detail
     template <typename T>
     using xlate_list = _t<xlate_list_impl<T>>;
 
+//
+//  init_from_list<T LIST, Ts...>
+//
+//
 
     template <typename T, typename LIST, typename TYPES = list<>, typename CTOR = void>
     struct init_from_list_impl
@@ -290,6 +294,10 @@ template <typename T>
 using ctor = _t<ctor_impl<T, xlate_list<T>>>;
 
 /////////////////////
+//
+// apply the `XLATE_LIST` to `TYPES`
+//
+/////////////////////
 
 struct gen_all_defns_impl
 {
@@ -302,7 +310,8 @@ struct gen_all_defns_impl
     };
 
     template <typename XLATE, typename TYPE_LIST>
-    using invoke = _t<if_<std::is_void<front<XLATE>>, id<void>
+    using invoke = _t<if_<std::is_void<front<XLATE>>
+                        , id<void>
                         , lazy::apply<gen_one_defns<TYPE_LIST>, XLATE>
                         >>;
 };

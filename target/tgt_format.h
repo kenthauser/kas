@@ -26,6 +26,8 @@ struct tgt_format
     using mcode_size_t = typename MCODE_T::mcode_size_t;
     using arg_t        = typename MCODE_T::arg_t;
     using val_t        = typename MCODE_T::val_t;
+    using opcode_t     = typename MCODE_T::opcode_t;
+
     static_assert(FMT_MAX_ARGS >= MCODE_T::MAX_ARGS);
 
     // "instance" is just a virtual-pointer collection
@@ -103,14 +105,15 @@ struct tgt_format
     }
     
     // return "opcode derived type" for given fmt
-    virtual core::opcode& get_opc() const = 0;
+    virtual opcode_t& get_opc() const = 0;
 };
 
 // generic types to support `opc_general & `opc_list` opcodes
 template <typename MCODE_T>
 struct tgt_fmt_opc_gen : virtual MCODE_T::fmt_t
 {
-    virtual core::opcode& get_opc() const override 
+    using opcode_t = typename MCODE_T::opcode_t;
+    virtual opcode_t& get_opc() const override 
     {
         static tgt_opc_general<MCODE_T> opc; 
         return opc;
@@ -120,7 +123,8 @@ struct tgt_fmt_opc_gen : virtual MCODE_T::fmt_t
 template <typename MCODE_T>
 struct tgt_fmt_opc_list : virtual MCODE_T::fmt_t
 {
-    virtual core::opcode& get_opc() const override 
+    using opcode_t = typename MCODE_T::opcode_t;
+    virtual opcode_t& get_opc() const override 
     {
         static tgt_opc_list<MCODE_T> opc; 
         return opc;

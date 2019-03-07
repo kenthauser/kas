@@ -194,17 +194,16 @@ bool z80_arg_t::serialize(Inserter& inserter, bool& val_ok)
             {
                 auto r_class = reg.kind();
                 auto value   = reg.value();
-                inserter((r_class << 8) | value, 2);
+                inserter((r_class << 8) | value, 1);
                 break;
             }
 
         case MODE_DIRECT:
         case MODE_INDIRECT:
+            return save_expr(2);
         case MODE_REG_OFFSET_IX:
         case MODE_REG_OFFSET_IY:
-            if (val_ok)
-                break;
-            return save_expr(2);
+            return save_expr(1);
     }
 
     return false;   // no expression
@@ -221,15 +220,21 @@ void z80_arg_t::extract(Reader& reader, bool has_data, bool has_expr)
     }
     else if (has_data)
     {
-        auto value = reader.get_fixed(2);
         switch (mode())
         {
             default:
-                expr = value;
+                expr = reader.get_fixed(2);
                 break;
             case MODE_REG:
             case MODE_REG_INDIR:
+            {
+                auto value = reader.get_fixed(2);
                 reg = z80_reg_t(value >> 8, value & 0xff);
+                break;
+            }
+            case MODE_REG_OFFSET_IX:
+            case MODE_REG_OFFSET_IY:
+                expr = reader.get_fixed(1);
                 break;
         }
     }

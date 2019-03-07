@@ -3,7 +3,6 @@
 
 #include "tgt_opcode.h"
 
-
 namespace kas::tgt::opc
 {
 

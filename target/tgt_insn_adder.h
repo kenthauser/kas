@@ -46,14 +46,12 @@ struct tgt_insn_adder
 
         // Also store combo index in DEFN_T
         using kas::parser::detail::init_from_list;
-        defn_t::val_c_base = &init_from_list<const val_c_t, COMBO>::value;
+        defn_t::val_c_base = init_from_list<const val_c_t, COMBO>::value;
         
         // val list & names are stored in `combo` 
         using VAL_NAMES = transform<VALS, quote<front>>;
         val_c_t::vals_base  = at_c<types_defns, 2>::value;
         val_c_t::names_base = init_from_list<const char *, VAL_NAMES>::value;
-
-        //z80_validate_args::set_base(at_c<types_defns, 2>::value);
     }
 
     template <typename X3>
@@ -61,17 +59,15 @@ struct tgt_insn_adder
     {
         // initialize runtime objects from definitions
         //
-        // For each defintion, several size variants are created.
-        // Allocate 1 `z80_opcode_t` object for each size variant
+        // For each `defn_t` defintion, several size variants are created.
+        // Allocate 1 `mcode_t` object for each size variant
         //
-        // For each `z80_opcode_t` object, several "name" variants
+        // For each `mcode_t` object, several "name" variants
         // can be created. For each "name", use X3 parser to lookup
-        // (& allocate) `z80_insn_t` instance. Then add `z80_opcode_t`
-        // instance pointer to `z80_insn_t` instance.
+        // (& allocate) `insn_t` instance. Then add `mcode_t`
+        // instance pointer to `insn_t` instance.
 
-        //std::cout << "z80_insn_adder::add()" << std::endl;
-
-        // allocate run-time objects in deques
+        // allocate run-time objects in deques and reference as pointers
         auto insn_obstack   = new typename insn_t::obstack_t;
         insn_t::index_base  = insn_obstack;
 
@@ -81,6 +77,8 @@ struct tgt_insn_adder
         // store defns base in `mcode`
         mcode_t::defns_base = defns;
 
+        // NB: during `for` loop, invariant "p == &defns[n]" is true
+        // allowing current `defn` to be reverenced by index or value
         auto p = defns;
         for (int n = 0; n < count; ++p, ++n)
         {
@@ -90,31 +88,28 @@ struct tgt_insn_adder
             mcode_t *mcode_p {};
 
             // create the "mcode instance" 
-            // NB: use "size()" for instance index
+            // NB: use "deque::size()" for instance index
             mcode_p = &mcode_obstack->emplace_back(mcode_obstack->size(), n);
             auto&& name = p->name();
 
             // test for "list" opcode
             if (name[0] == '*')
             {
+                // save list opcode "mcode" as global in `insn_t`
                 insn_t::list_mcode_p = mcode_p;
                 continue;
             }
                 
-            // lookup name. Inserts empty if not found
+            // lookup name. creates new "lookup table" slot if not found
             auto& insn_p = x3.at(name);
 
-            // if new, allocate insn
+            // if new slot, allocate insn
             if (!insn_p)
                 insn_p = &insn_obstack->emplace_back(insn_obstack->size(), std::move(name));
 
             // add opcode to insn
-            insn_p->mcodes.push_back(mcode_p);
-            if (insn_p->mcodes.size() > insn_p->max_mcodes)
-                throw std::logic_error("too many machine codes for " + std::string(name));
+            insn_p->add_mcode(mcode_p);
         }
-
-        //std::cout << "z80_insn_adder::end" << std::endl;
     }
 
     defn_t const *defns;

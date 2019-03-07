@@ -7,6 +7,27 @@
 namespace kas::tgt
 {
 
+// add mcode to insn queue
+template <typename OPCODE_T, typename TST_T, unsigned MAX_MCODES, typename INDEX_T>
+void tgt_insn_t<OPCODE_T, TST_T, MAX_MCODES, INDEX_T>
+    ::add_mcode(mcode_t *mcode_p)
+{
+        mcodes.push_back(mcode_p);
+
+#if 0
+        // map mcode -> name
+        if (!mcode_p->canonical_insn)
+            mcode_p->canonical_insn = index + 1;
+#endif
+            
+        // limit mcodes per insn to bitset size
+        if (mcodes.size() > max_mcodes)
+            throw std::logic_error("too many machine codes for " + std::string(name));
+}
+
+
+
+//
 template <typename INSN_T, typename ARGS_T>
 parser::tagged_msg validate_arg_modes(
                         INSN_T const& insn
@@ -38,6 +59,7 @@ parser::tagged_msg validate_arg_modes(
     return {};
 }
 
+
 // templated definition to cut down on noise in `insn_t` defn
 template <typename OPCODE_T, typename TST_T, unsigned MAX_MCODES, typename INDEX_T>
 template <typename...Ts>
@@ -56,12 +78,13 @@ auto tgt_mcode_t<S, D, A, E>
         ::validate_args(ARGS_T& args, std::ostream *trace) const
      -> const char *
 {
+    print(std::cout);
+
     auto& val_c = vals();
     auto  val_p = val_c.begin();
     auto  cnt   = val_c.size();
 
     expr_fits fits;
-    
     for (auto& arg : args)
     {
         // if too many args
@@ -95,7 +118,7 @@ auto tgt_mcode_t<S, D, A, E>
     auto  val_p = val_c.begin();
 
     // size of base opcode
-    size = base_size();
+    size = derived().base_size();
 
     // here know val cnt matches
     auto result = fits.yes;
@@ -184,6 +207,19 @@ auto tgt_mcode_t<S, D, A, E>
     }
 
     return code_data;
+}
+
+template <typename S, typename D, typename A, typename E>
+void tgt_mcode_t<S, D, A, E>
+    ::print(std::ostream& os) const
+{
+#if 0
+    auto& d = defn();
+    os << "mcode_t:";
+    os << " name: " << name();
+    os << " fmt: " << fmt().name();
+    //os << " vals: << 
+#endif
 }
 
 }

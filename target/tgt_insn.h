@@ -36,6 +36,9 @@ struct tgt_insn_t
     // canonical name & insn_list is all stored in instance
     tgt_insn_t(index_t index, std::string name) : index(index), name(name) {}
 
+    // add `mcode` to list of insns
+    void add_mcode(mcode_t *);
+
     // stmt interface: NB: defer naming types
     //template <typename...Ts> core::opcode& gen_insn(Ts&&...) const;
     template <typename ARGS_T>

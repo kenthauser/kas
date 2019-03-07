@@ -98,7 +98,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode>
     // clear the "prefix"
     static void reset()
     { 
-        std::cout << "z80_arg_t::reset() called" << std::endl;
+        //std::cout << "z80_arg_t::reset() called" << std::endl;
         prefix = {};
     }
 

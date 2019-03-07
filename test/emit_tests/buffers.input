@@ -29,7 +29,7 @@ brwcnt		=	7
 	.globl	binit
 
 ; routines to initially link the buffers together
-
+    ld  a,b
     bit 6,(iy+4)
     
 binit:

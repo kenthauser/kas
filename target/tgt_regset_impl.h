@@ -15,7 +15,7 @@ namespace kas::tgt
 template <typename Derived, typename Reg_t, typename T, typename Loc>
 tgt_reg_set<Derived, Reg_t, T, Loc>::tgt_reg_set(Reg_t const& l, char op)
 {
-    std::cout << "tgt_reg_set::ctor: " << l << std::endl;
+    //std::cout << "tgt_reg_set::ctor: " << l << std::endl;
     ops.emplace_back(op, l);
 }
 

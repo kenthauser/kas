@@ -348,7 +348,7 @@ void x3_error_handler<Iterator>::operator()(std::ostream& err_out,
 template <typename Iter>
 kas_position_tagged_t<Iter>::operator kas_loc&() const
 {
-    if (!loc)
+    if (!loc && handler)
         loc = handler->get_loc(*this);
     return loc;
 }

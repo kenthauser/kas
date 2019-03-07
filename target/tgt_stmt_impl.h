@@ -66,6 +66,8 @@ core::opcode *tgt_stmt<INSN_T, ARG_T, NAME>
         *trace << std::endl;
     }
 
+    
+
     // validate arg & addressing mode for each arg
     // also note if all args are "const" (ie: just regs & literals)
     bool args_are_const = true;
@@ -88,7 +90,12 @@ core::opcode *tgt_stmt<INSN_T, ARG_T, NAME>
         auto diag = mcode_p->validate_args(args, trace);
         
         if (trace)
-            *trace << (diag ? diag : " = OK") << std::endl;
+        {
+            if (diag)
+                *trace << " -> " << diag << std::endl;
+            else
+                *trace << " = OK" << std::endl;
+        }
 
         if (!diag)
         {
@@ -162,8 +169,8 @@ core::opcode *tgt_stmt<INSN_T, ARG_T, NAME>
     if (!matching_mcode_p)
         matching_mcode_p = insn_t::list_mcode_p;
 
-#if 0
-    return matching_mcode_p->gen_insn(
+#if 1
+    return matching_mcode_p->fmt().get_opc().gen_insn(
                   insn
                 , ok
                 , matching_mcode_p
@@ -172,7 +179,6 @@ core::opcode *tgt_stmt<INSN_T, ARG_T, NAME>
                 // and opcode data
                 , data
                 );
-    return op;
 #else
     return nullptr;
 #endif

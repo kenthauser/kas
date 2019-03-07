@@ -30,27 +30,10 @@ struct stmt_t : detail::parser_variant
     using base_t::base_t;
     using base_t::operator=;
 
+    // XXX not sure why base_t::base_t is insufficient
     template <typename...Ts>
     stmt_t(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
-#if 0
-    // create trampoline to allow `base` methods to work on trampoline
-    const char *name() const
-    {
-        return "STMT"; //get_base().name();
-    }
-
-    void print_args(print_obj const& p_obj) const
-    {
-        //return get_base().print_args(p_obj);
-    }
-
-    kas_position_tagged const& loc() const
-    {
-        return apply_visitor(x3::make_lambda_visitor<kas_position_tagged const&>(
-            [](auto& node) { return node; }
-            ));
-    }
-#endif
+    
     std::string src() const
     {
         return apply_visitor(x3::make_lambda_visitor<std::string>(
@@ -75,17 +58,24 @@ struct stmt_t : detail::parser_variant
                 static core::opc::opc_error error;
 
                 core::core_insn insn{node};     // get loc
-                insn.opc_index = node.gen_insn(insn.data)->index();
+
+                // if valid insn, get opc_index
+                if (auto op_p = node.gen_insn(insn.data))
+                    insn.opc_index = op_p->index();
+
+                // if size flags error, clear idx
                 if (insn.data.size.is_error())
-                {
-                    insn.data.size = {};
                     insn.opc_index = {};
-                }
-                
+
+                // if no index, assume `fixed` holds diag
                 if (!insn.opc_index)
+                {
                     insn.opc_index = error.index();
+                    insn.data.size = {};
+                }
+
                 return insn;
-            }));
+                }));
     }
     
 

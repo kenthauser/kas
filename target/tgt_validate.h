@@ -140,17 +140,32 @@ public:
     auto begin() const { return iter(*this);            }
     auto end()   const { return iter(*this, arg_count); }
 
-    //static void set_base (z80_validate * const *base)  { vals_base = base;   }
-    //static void set_names(const char * const *names)   { names_base = names; }
+    void print(std::ostream&) const;
 
 //private:
+    // validate is abstract class. access via pointers to instances
     static inline const tgt_validate<MCODE_T> *const *vals_base;
-    static inline const char                  *const *names_base;
+    static inline const char *          const *names_base;
 
     std::array<val_idx_t, MAX_ARGS> arg_index;
     val_idx_t                       arg_count;
 
 };
+
+
+template <typename MCODE_T>
+void tgt_validate_args<MCODE_T>::print(std::ostream& os) const
+{
+    os << "tgt_validate_args: count = " << +arg_count << " indexs = [";
+    char delim{};
+    for (auto n : arg_index)
+    {
+        if (delim) os << delim;
+        os << +n;
+        delim = ',';
+    }
+    os << "]" << std::endl;
+}
 
 }
 #endif
