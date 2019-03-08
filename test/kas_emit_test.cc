@@ -69,17 +69,9 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
                 [&parse_out](auto& insn_iter, auto& dot)
                 {
                     kas::core::core_insn insn = *insn_iter;
-#if 0 
-                    // unpack location into file_num/first/last
-                    auto where = parser::error_handler<Iter>::where(loc);
-                    auto idx   = where.first;
-                    auto first = where.second.begin();
-                    auto last  = where.second.end();
-#endif
-                    //auto where = stmt_stream.where(stmt).second;
-                    auto& loc = insn.loc();
                     kas::parser::parser_src src;
-
+                    
+                    auto& loc = insn.loc();
                     parse_out << "loc : " << loc.get() << std::endl;
                     if (loc)
                     {
@@ -114,10 +106,10 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
             };
         };
 
-    kas::core::kas_assemble::INSNS::for_each(dump_raw);
+//    kas::core::kas_assemble::INSNS::for_each(dump_raw);
 //    kas::core::kas_assemble::INSNS::for_each(dump_container);
 
-#if 1    
+#if 0
     // dump tables
     kas::core::core_symbol::dump(out);
     kas::core::core_section::dump(out);
@@ -125,7 +117,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     kas::core::core_fragment::dump(out);
     kas::dwarf::dl_data::dump(out);
 #endif
-#if 0
+#if 1
     kas::core::emit_listing<iterator_type> listing(parse_out);
     obj.emit(listing);
 #endif

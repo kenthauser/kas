@@ -46,7 +46,8 @@ struct kas_assemble
         auto& obj = INSNS::add(text_seg, at_end);
         assemble_src(obj.inserter(), src, out);
         std::cout << "parse complete" << std::endl;
-#if 0
+#if 1
+        kas::core::core_symbol::dump(std::cout);
         kas::core::core_section::dump(std::cout);
         kas::core::core_segment::dump(std::cout);
         kas::core::core_fragment::dump(std::cout);
@@ -61,7 +62,8 @@ struct kas_assemble
         do_relax(obj, out);
         std::cout << "relax complete" << std::endl;
     #endif
-#if 0
+#if 1
+        kas::core::core_symbol::dump(std::cout);
         kas::core::core_section::dump(std::cout);
         kas::core::core_segment::dump(std::cout);
         kas::core::core_fragment::dump(std::cout);
@@ -205,11 +207,9 @@ private:
 #endif
                 }
             };
-            core::core_symbol::dump(std::cout);
-           
+            
             core_symbol::for_each(resolve_one_symbol);
             
-            core::core_symbol::dump(std::cout);
             
         };
     };

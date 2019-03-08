@@ -102,7 +102,8 @@ namespace kas::z80::parser
 
             using all_types_defns = typename z80_insn_sym_parser_t::all_types_defns;
             print_type_name{"all_types_defns"}.name<all_types_defns>();
-            std::cout << "\nall_types_defns[...]  size = " << meta::size<all_types_defns>() << std::endl;
+            std::cout << "\nall_types_defns[...]  size = ";
+            std::cout << meta::size<all_types_defns>() << std::endl;
             print_type_name{"elem 0"}.name<meta::at_c<all_types_defns, 0>>();
             print_type_name{"elem 1"}.name<meta::at_c<all_types_defns, 1>>();
             print_type_name{"elem 2"}.name<meta::at_c<all_types_defns, 2>>();
@@ -144,8 +145,8 @@ namespace kas::tgt
     template auto tgt_reg_set<reg_set_t, reg_t>::binop(const char, int)   -> derived_t&;
     
     // instantiate routines referenced from stmt parsers
-    // XXX don't put name in type
-    template core::opcode *tgt_stmt<insn_t, arg_t, KAS_STRING("Z80")>::do_gen_insn(core::opcode::data_t&);
+    template core::opcode *tgt_stmt<insn_t, arg_t>::gen_insn(core::opcode::data_t&);
+    template std::string   tgt_stmt<insn_t, arg_t>::name() const;
 
     // instantiate printers
     template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostream>(std::ostream&) const;

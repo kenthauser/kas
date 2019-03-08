@@ -164,9 +164,10 @@ template <typename L, typename R, typename RS = typename L::reg_set_t>
 inline auto operator- (L const& l, R const& r)
     -> decltype(std::declval<RS>().operator-(r))
 {
-    return RS::add(l).operator-(r);
+    // XXX the `+` here makes offset work, probably breaks "range"
+    return RS::add(l, '+').operator-(r);
 }
-template <typename L, typename R, typename RS = typename L::reg_set_t >
+template <typename L, typename R, typename RS = typename L::reg_set_t>
 inline auto operator/ (L const& l, R const& r)
     -> decltype(std::declval<RS>().operator/(r))
 {
@@ -174,14 +175,13 @@ inline auto operator/ (L const& l, R const& r)
 }
 
 // Declare operators to handle displacements (Reg +/- expr, expr + Reg)
-template <typename L, typename R, typename RS = typename L::reg_set_t
-      // ,  typename = std::enable_if_t<std::is_constructible_v<core::core_expr, R>>
-       >
+template <typename L, typename R, typename RS = typename L::reg_set_t>
 inline auto operator+ (L const& l, R const& r)
       -> decltype(std::declval<RS>().operator+(r))
 {
     return RS::add(l, '+').operator+(r);
 }
+
 #if 0
 template <typename L, typename R, typename RS = typename L::reg_set_t>
 inline auto operator- (L const& l, R const& r)

@@ -14,7 +14,6 @@
 #include "kas_core/opcode.h"
 #include "utility/align_as_t.h"
 
-
 namespace kas::tgt::opc::detail
 {
 
@@ -23,11 +22,11 @@ namespace kas::tgt::opc::detail
 // some of which indicate extension words follow.
 
 // arg_mode holds the `arg_t` mode enum
-// `has_*_expr` is true if argument is `expr_t`, false for fixed
+// `has_expr` is true if argument is `expr_t`, false for fixed
 struct arg_info_t
 {
     static constexpr std::size_t MODE_FIELD_SIZE = 6;
-    
+
     uint8_t arg_mode : MODE_FIELD_SIZE;
     uint8_t has_data : 1;       // additional data stored
     uint8_t has_expr : 1;       // data stored as expression
@@ -37,9 +36,9 @@ struct arg_info_t
 template <typename MCODE_T>
 struct tgt_arg_info : kas::detail::alignas_t<tgt_arg_info<MCODE_T>, typename MCODE_T::mcode_size_t>
 {
-    // XXX
-    //static_assert(MCODE_T::arg_t::NUM_ARG_MODES <= (1<< arg_info_t::MODE_FIELD_SIZE)
-    //            , "too many `arg_mode` enums");
+    // make sure `arg_mode_t` can fit in subfield
+    static_assert(MCODE_T::arg_t::arg_mode_t::NUM_ARG_MODES <= (1<< arg_info_t::MODE_FIELD_SIZE)
+                , "too many `arg_mode` enums");
 
     // public interface: where & how many
     constexpr static auto ARGS_PER_INFO = sizeof(typename MCODE_T::mcode_size_t)/sizeof(arg_info_t);
@@ -47,15 +46,13 @@ struct tgt_arg_info : kas::detail::alignas_t<tgt_arg_info<MCODE_T>, typename MCO
     {
         return std::begin(info);
     }
+
 private:
     // create "args_per_info" items 
     arg_info_t  info[ARGS_PER_INFO];
 };
 
-#define TRACE_ARG_SERIALIZE 1
-#ifndef TRACE_ARG_SERIALIZE
-#define TRACE_ARG_SERIALIZE 0
-#endif
+//#define TRACE_ARG_SERIALIZE
 
 template <typename MCODE_T, typename Inserter>
 void insert_one (Inserter& inserter
@@ -75,10 +72,10 @@ void insert_one (Inserter& inserter
     p->has_data = !result;
     p->arg_mode = arg.mode();
 
-#if TRACE_ARG_SERIALIZE
+#ifdef TRACE_ARG_SERIALIZE
     std::cout << "write_one: " << arg;
-    std::cout << ": mode = " << std::setw(2) << +p->arg_mode;
-    std::cout << " bits: " << +p->has_data << "/" << +p->has_expr;
+    std::cout << ": mode = "   << std::dec << std::setw(2) << +p->arg_mode;
+    std::cout << " bits: "     << +p->has_data << "/" << +p->has_expr;
     std::cout << std::endl;
 #endif
 }
@@ -95,20 +92,23 @@ void extract_one(Reader& reader
                     , typename MCODE_T::mcode_size_t   *code_p
                     )
 {
-#if TRACE_ARG_SERIALIZE
-    std::cout << "read_one:  mode = " << std::setw(2) << +p->arg_mode;
+#ifdef TRACE_ARG_SERIALIZE
+    std::cout << "read_one:  mode = " << std::dec << std::setw(2) << +p->arg_mode;
     std::cout << " bits: " << +p->has_data << "/" << +p->has_expr;
 #endif
 
     // extract arg from machine code (dependent on validator)
-    // XXX needed??
-    arg_p->set_mode(p->arg_mode);
+    // NB: extract may look at arg mode.
+    using tgt_mode_t = typename MCODE_T::arg_t::arg_mode_t;
+    arg_p->set_mode(static_cast<tgt_mode_t>(p->arg_mode));
     fmt.extract(n, code_p, arg_p, val_p);
-    arg_p->set_mode(p->arg_mode);           // restore known mode
+
+    // NB: don't allow extract to change mode
+    arg_p->set_mode(static_cast<tgt_mode_t>(p->arg_mode));
 
     // extract immediate arg as required
     arg_p->extract(reader, p->has_data, p->has_expr);
-#if TRACE_ARG_SERIALIZE
+#ifdef TRACE_ARG_SERIALIZE
     std::cout << " -> " << *arg_p << std::endl;
 #endif
 }

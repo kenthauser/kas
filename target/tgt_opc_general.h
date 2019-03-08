@@ -37,7 +37,8 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
 
     OPC_INDEX();
 
-    const char *name() const override { return "TGT_GEN"; }
+    using NAME = str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_GEN")>;
+    const char *name() const override { return NAME::value; }
    
     core::opcode *gen_insn(
                  // results of "validate" 

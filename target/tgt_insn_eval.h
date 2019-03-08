@@ -28,7 +28,8 @@ auto eval_insn_list
 
     if (trace)
     {
-        std::cout << "tgt_insn::eval: " << insn.name << " [" << insn.mcodes.size() << " mcodes]";
+        std::cout << "tgt_insn::eval: " << insn.name;
+        std::cout << std::dec << " [" << insn.mcodes.size() << " mcodes]";
         for (auto& arg : args)
             std::cout << ", " << arg;
         std::cout << std::endl;
@@ -46,7 +47,7 @@ auto eval_insn_list
 
         // size for this opcode
         if (trace)
-            *trace << std::setw(2) << index << ": ";
+            *trace << std::dec << std::setw(2) << index << ": ";
         
         op_size_t size;
         auto result = (*op_p)->size(args, size, fits, trace);
@@ -56,6 +57,15 @@ auto eval_insn_list
             ok.reset(index);
             continue;
         }
+
+        // Better match if new max better than current min
+        if (result == fits.yes && insn_size.min > size.max)
+        {
+            // clear old match
+            if (mcode_p)
+                ok.reset(match_index);
+            mcode_p = {};
+        }
         
         // first "match" is always "current best"
         if (!mcode_p)
@@ -64,30 +74,34 @@ auto eval_insn_list
             insn_size    = size;
             match_result = result;
             match_index  = index;
+            continue;
         } 
-        
+       
         // otherwise, see if this is better match
         // a "DOES" match is better than a "MIGHT" match
-        else if (result == fits.yes)
+        if (match_result == fits.yes)
         {
-            // if new max better than current min, replace old
-            if (size() < insn_size.min)
+            // see if new match is no better than old choices
+            if (size.max >= insn_size.max || size.min >= insn_size.min)
             {
-                ok.reset(match_index);
-                mcode_p      = *op_p;
-                insn_size    = size;
-                match_result = result;
-                match_index  = index;
-                continue;       // on to next mcode
+                // this match is no better than previous. Delete it.
+                ok.reset(index);
+                continue;
             }
-
-            // new `max` is this opcode
-            if (insn_size.max > size.max)
-                insn_size = size.max;
         }
 
-        // otherwise a "MIGHT" match. if previous is also "MIGHT" update MIGHT
-        else
+        // pick a smaller "does match"
+        if (result == fits.yes)
+        {
+            if (insn_size.max < size.max)
+                insn_size.max = size.max;
+
+            // possibly downgrade match based on current match
+            result = match_result;
+        }
+
+        // allow larger "might" match max 
+        if (match_result != fits.yes)
         {
             if (insn_size.max < size.max)
                 insn_size.max = size.max;
@@ -95,7 +109,10 @@ auto eval_insn_list
 
         // always take the smallest "min"
         if (insn_size.min > size.min)
+        {
             insn_size.min = size.min;
+            match_result = result;
+        }
     }
 
     // if no match, show error

@@ -11,7 +11,7 @@ namespace kas::bsd
 // declare the "token" types (parsed, but not evaluated)
 using kas::parser::kas_token;
 
-#undef TRACE_TOKEN
+//#define TRACE_TOKEN
 
 struct token_ident : kas_token
 {

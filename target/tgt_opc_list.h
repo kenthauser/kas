@@ -24,8 +24,10 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
     using Iter         = typename base_t::Iter;
 
     OPC_INDEX();
-    const char *name() const override { return "TGT_LIST"; }
-
+    
+    using NAME = str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_LIST")>;
+    const char *name() const override { return NAME::value; }
+   
     core::opcode *gen_insn(
                  // results of "validate" 
                    insn_t const&  insn

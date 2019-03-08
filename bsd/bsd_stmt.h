@@ -146,7 +146,9 @@ void bsd_stmt_pseudo::operator()(Context const& ctx)
 template <typename Context>
 void bsd_stmt_label::operator()(Context const& ctx)
 {
+    // set instruction "location" from parsed ident location
     ident = x3::_attr(ctx);
+    this->set_loc(ident.get_loc());
     x3::_val(ctx) = *this;
 }
 

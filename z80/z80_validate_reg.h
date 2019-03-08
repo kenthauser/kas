@@ -146,6 +146,7 @@ struct val_reg_gen: z80_mcode_t::val_t
                 
         case MODE_REG_INDIR:
             // allow (HL)
+            //std::cout << "val_reg_gen: reg (HL) = " << arg.reg << " pfx = " << +arg.prefix << std::endl;
             if (arg.reg.kind(RC_DBL) != RC_DBL)
                 break;
             if (arg.prefix)
@@ -383,8 +384,15 @@ struct val_range : z80_mcode_t::val_t
     fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
     {
         // range is only for direct args
-        if (arg.mode() == MODE_DIRECT)
+        switch (arg.mode())
+        {
+        case MODE_DIRECT:
+        case MODE_IMMEDIATE:
+        case MODE_IMMED_QUICK:
             return fits.fits(arg.expr, min, max);
+        default:
+            break;
+        }
     
         return fits.no;
     }
@@ -398,13 +406,18 @@ struct val_range : z80_mcode_t::val_t
     
     void set_arg(z80_arg_t& arg, unsigned value) const override
     {
-        //std::cout << "val_range::set_arg: value = " << value << std::endl;
-        arg.expr = value;
+        //qstd::cout << "val_range::set_arg: value = " << value << std::endl;
+        // only valid for IMMED_QUICK format
+        if (_size == 0)
+            arg.expr = value;
     }
 
     // immediates may be inserted in opcode, or added data
     fits_result size(z80_arg_t& arg, expr_fits const& fits, op_size_t& insn_size) const override
     {
+        // override `mode` as appropriate
+        arg.set_mode(_size ? MODE_IMMEDIATE : MODE_IMMED_QUICK);
+
         insn_size += _size;
         return ok(arg, fits);
     }
@@ -457,6 +470,9 @@ struct val_indir : z80_mcode_t::val_t
     {
         if (arg.mode() != MODE_INDIRECT)
             return fits.no;
+
+        if (_size >= 2)
+            return fits.yes;
 
         return fits.ufits_sz(arg.expr, _size); 
     }

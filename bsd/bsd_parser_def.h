@@ -119,9 +119,12 @@ BOOST_SPIRIT_DEFINE(dot_parser)
 // local labels restart each time standard label defined.
 auto set_last = [](auto& ctx) { bsd_local_ident::set_last(ctx); };
 
+// XXX probably an X3 bug, but fixes eval
+auto XXX_eval = [](auto& ctx) { x3::_val(ctx) = x3::_attr(ctx); };
+
 // label format: ident followed by ':'
 auto const ident_label   = (label   >> ':')[set_last];
-auto const local_label   = (l_ident >> ':');
+auto const local_label   = (l_ident >> ':')[XXX_eval];
 
 // for numeric: parse digit as token to get location tagging
 auto const numeric_label = (token<kas_token>[omit[digit]] >> ':')[bsd_numeric_ident()];

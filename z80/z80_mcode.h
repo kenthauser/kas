@@ -23,6 +23,8 @@ struct z80_mcode_size_t : tgt::tgt_mcode_size_t
 
 struct z80_mcode_t : tgt::tgt_mcode_t<z80_mcode_t, z80_stmt_t, error_msg, z80_mcode_size_t>
 {
+    using BASE_NAME = KAS_STRING("Z80");
+
     // use default ctors
     using base_t::base_t;
 

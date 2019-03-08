@@ -13,29 +13,18 @@
 namespace kas::tgt
 {
 
-template <typename INSN_T, typename ARG_T, typename NAME = KAS_STRING("TGT")>
+template <typename INSN_T, typename ARG_T>
 struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<INSN_T, ARG_T>>
 {
     using insn_t   = INSN_T;
     using arg_t    = ARG_T;
 
     // method used to assemble instruction
-    core::opcode *gen_insn(core::opcode::data_t& data) 
-    {
-        auto op_p = do_gen_insn(data);
-        arg_t::reset();     // clear any static variables
-        return op_p;
-    }
-    
-    // actual method to generate opcode;
-    core::opcode *do_gen_insn(core::opcode::data_t&);
+    // NB: if arg_t::reset() required, it must be in grammar
+    core::opcode *gen_insn(core::opcode::data_t&);
 
     // methods used by test fixtures
-    std::string name() const 
-    {
-        auto name_prefix = kas::str_cat<NAME, KAS_STRING(":")>::value;
-        return name_prefix + insn_p->name;
-    }
+    std::string name() const;
 
     void print_args(parser::print_obj const& p_obj) const
     {
@@ -65,6 +54,8 @@ struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<INSN_T, ARG_T>>
     insn_t const      *insn_p;
     std::vector<arg_t> args;
 };
+
+
 }
 
 #endif

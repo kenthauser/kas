@@ -64,6 +64,10 @@ struct kas_position_tagged_t
     // calculate & return `kas_loc`
     // NB: implementation at end of `error_reporting.h`
     operator kas_loc&() const;
+    void set_loc(kas_loc const& loc)
+    {
+        this->loc = loc;
+    }
 
     // access underlying string.
     auto  begin() const { return first; }

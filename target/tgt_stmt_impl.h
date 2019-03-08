@@ -16,9 +16,9 @@ namespace kas::tgt
 
 using namespace kas::core::opc;
 
-template <typename INSN_T, typename ARG_T, typename NAME>
-core::opcode *tgt_stmt<INSN_T, ARG_T, NAME>
-        ::do_gen_insn(core::opcode::data_t& data)
+template <typename INSN_T, typename ARG_T>
+core::opcode *tgt_stmt<INSN_T, ARG_T>
+        ::gen_insn(core::opcode::data_t& data)
 {
     // get support types from `mcode`
     using mcode_t   = typename insn_t::mcode_t;
@@ -31,13 +31,12 @@ core::opcode *tgt_stmt<INSN_T, ARG_T, NAME>
     // get kas types from opcode
     using core::opcode;
     auto trace  = opcode::trace;
+    trace = nullptr;
     
     // convenience references 
     auto& insn = *insn_p;
     auto& fixed = data.fixed;
 
-    // XXX ??? why
-    trace = &std::cout;
 
     // generate an "error" opcode if appropriate
     auto make_error = [&fixed=fixed, &trace]
@@ -182,6 +181,16 @@ core::opcode *tgt_stmt<INSN_T, ARG_T, NAME>
 #else
     return nullptr;
 #endif
+}
+
+// test fixure routine to display statement name
+template <typename INSN_T, typename ARG_T>
+std::string tgt_stmt<INSN_T, ARG_T>::name() const
+{
+    using BASE_NAME = typename INSN_T::mcode_t::BASE_NAME;
+    
+    auto name_prefix = kas::str_cat<BASE_NAME, KAS_STRING(":")>::value;
+    return name_prefix + insn_p->name;
 }
 }
 

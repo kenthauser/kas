@@ -29,18 +29,20 @@ struct tgt_arg_t : kas_token
 
 protected:
     // simplify derived class ctors
-    tgt_arg_t(uint8_t mode, expr_t e = {}) : _mode(mode), expr(e) {}
+    tgt_arg_t(arg_mode_t mode, expr_t e = {}) : _mode(mode), expr(e) {}
 
 public:
     // arg mode: default getter/setter
-    auto mode() const           { return _mode; }
-    void set_mode(uint8_t mode) { _mode = mode; }
+    auto mode() const              { return _mode; }
+    void set_mode(arg_mode_t mode) { _mode = mode; }
 
     // for validate_min_max: default implmentation
     bool is_missing() const { return _mode == derived_t::arg_mode_t::MODE_NONE; }
 
+    // helper method for evaluation of insn: default implementation
+    bool is_const () const  { return false; }
+    
     // validate methods: require derived implmentation
-    bool is_const () const;
     template <typename...Ts> const char *ok_for_target(Ts&&...) const;
     
     // emit methods: require derived implementation
@@ -49,7 +51,7 @@ public:
 
     // serialize methods
     template <typename Inserter>
-    bool serialize(Inserter& inserter, bool& val_ok);
+    bool serialize(Inserter& inserter, bool& completely_saved);
     
     template <typename Reader>
     void extract(Reader& reader, bool has_data, bool has_expr);
@@ -62,13 +64,13 @@ public:
     expr_t      expr {};
     const char *err  {};
     
-  protected:
+private:
     friend std::ostream& operator<<(std::ostream& os, tgt_arg_t const& arg)
     {
         static_cast<derived_t const&>(arg).print(os);
         return os;
     }
-    uint8_t    _mode {};
+    arg_mode_t _mode {};
 };
 
 }

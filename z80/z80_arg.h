@@ -22,18 +22,19 @@ enum z80_arg_mode : uint8_t
 // Directly supported modes
     , MODE_DIRECT           // 2 direct address (also accepted for immediate arg. sigh)
     , MODE_INDIRECT         // 3 indirect address
-    , MODE_IMMEDIATE        // 4 immediate arg parser format
-    , MODE_REG              // 5 register
-    , MODE_REG_INDIR        // 6 register indirect
+    , MODE_IMMEDIATE        // 4 immediate arg (signed byte/word)
+    , MODE_IMMED_QUICK      // 5 immediate arg (stored in opcode)
+    , MODE_REG              // 6 register
+    , MODE_REG_INDIR        // 7 register indirect
 
 // Add "modes" for IX/IY as many modes (64) available & only two Index registers
 // "Modes" are stored directly when args serialized. Allows prefix to be reconstructed
-    , MODE_REG_IX           // 7
-    , MODE_REG_IY           // 8
-    , MODE_REG_INDIR_IX     // 9
-    , MODE_REG_INDIR_IY     // 10
-    , MODE_REG_OFFSET_IX    // 11
-    , MODE_REG_OFFSET_IY    // 12
+    , MODE_REG_IX           // 8
+    , MODE_REG_IY           // 9
+    , MODE_REG_INDIR_IX     // 10
+    , MODE_REG_INDIR_IY     // 11
+    , MODE_REG_OFFSET_IX    // 12
+    , MODE_REG_OFFSET_IY    // 13
 
 // Required enumeration
     , NUM_ARG_MODES
@@ -50,36 +51,19 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode>
     static constexpr auto MODE_NONE = z80_arg_mode::MODE_NONE;
 
     // direct, indirect, and immediate ctor
-    z80_arg_t(std::pair<expr_t, int> const&);
+    z80_arg_t(std::pair<expr_t, z80_arg_mode> const&);
 
     op_size_t size(expression::expr_fits const& fits = {});
     void emit(core::emit_base& base, unsigned size) const;
 
     template <typename Inserter>
-    bool serialize(Inserter& inserter, bool& val_ok);
+    bool serialize(Inserter& inserter, bool& completely_saved);
     
     template <typename Reader>
     void extract(Reader& reader, bool has_data, bool has_expr);
 
-    // true if all are registers or constants 
-    bool is_const() const
-    {
-        switch (mode())
-        {
-            case MODE_REG:
-            case MODE_REG_IX:
-            case MODE_REG_IY:
-            case MODE_REG_INDIR:
-            case MODE_REG_INDIR_IX:
-            case MODE_REG_INDIR_IY:
-                return true;
-            default:
-                break;
-        }
-        return expr.get_fixed_p();
-    }
-
-    void set_mode(uint8_t mode);
+    bool is_const() const;
+    void set_mode(z80_arg_mode mode);
     void set_expr(expr_t& e);
 
     // validate if arg suitable for target
@@ -98,7 +82,6 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode>
     // clear the "prefix"
     static void reset()
     { 
-        //std::cout << "z80_arg_t::reset() called" << std::endl;
         prefix = {};
     }
 

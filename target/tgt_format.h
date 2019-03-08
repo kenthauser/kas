@@ -131,8 +131,10 @@ struct tgt_fmt_opc_list : virtual MCODE_T::fmt_t
     }
 };
 
+//
 // generic type to extract N bits OFFSET for WORD (0-baased)
 // always paired: insert & extract
+//
 
 // Insert/Extract N bits from machine code
 template <typename MCODE_T, unsigned SHIFT, unsigned BITS, unsigned WORD = 0>
@@ -172,27 +174,6 @@ struct tgt_fmt_generic
 // declare `mix-in` types
 //
 
-#if 0
-template <typename MCODE_T, unsigned, typename T> struct tgt_fmt_arg;
-
-#define DEFN_ARG(N)                                                             \
-template <typename T>                                                           \
-struct fmt_arg<N, T> : virtual T::fmt_t                                         \
-{                                                                               \
-    using mcode_size_t = typename T::mcode_size_t;                              \
-    using arg_t        = typename T::arg_t;                                     \
-    using val_t        = typename T::val_t;                                     \
-    bool insert_arg ## N (mcode_size_t* op, arg_t& arg, val_t const * val_p) const override         \
-        { return T::insert(op, arg, val_p);}                                           \
-    void extract_arg ## N (mcode_size_t const* op, arg_t* arg, val_t const * val_p) const override  \
-        { T::extract(op, arg, val_p); }                                                \
-};
-
-// declare `FMT_MAX_ARGS` times
-DEFN_ARG(1); DEFN_ARG(2); DEFN_ARG(3); DEFN_ARG(4); DEFN_ARG(5); DEFN_ARG(6)
-#undef DEFN_ARG
-#else
-
 // declare template for arg inserter
 template <typename MCODE_T, unsigned, typename T>
 struct tgt_fmt_arg;
@@ -220,7 +201,6 @@ DEFN_ARG(5)
 DEFN_ARG(6)
 #undef DEFN_ARG
 
-#endif
 }
 #endif
 

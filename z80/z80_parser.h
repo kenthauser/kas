@@ -27,12 +27,12 @@ namespace kas::z80::parser
     // Thus, parse args as "expr / mode" pair & pass that to `z80_arg_t` ctor
 
     // parse args into "value, mode" pair. 
-    using z80_parsed_arg_t = std::pair<expr_t, int>;
+    using z80_parsed_arg_t = std::pair<expr_t, z80_arg_mode>;
     x3::rule<class z80_p_arg,   z80_parsed_arg_t>  z80_parsed_arg = "z80_parsed_arg";
     
     auto const z80_parsed_arg_def =
               '(' > expr() > ')' > attr(MODE_INDIRECT) 
-            | '#' > expr() >       attr(MODE_DIRECT)
+            | '#' > expr() >       attr(MODE_IMMEDIATE)
             | expr()       >       attr(MODE_DIRECT)
             ;
 
@@ -58,16 +58,18 @@ namespace kas::z80::parser
 
     BOOST_SPIRIT_DEFINE(z80_args)
 
+    // clear the index reg prefix
+    auto reset_args = [](auto& ctx) { z80_arg_t::reset(); };
+
     // need two rules to get tagging 
     auto const raw_z80_stmt = rule<class _, z80_stmt_t> {} = 
-                        (z80_insn_x3() > z80_args)[z80_stmt_t()];
+                        (z80_insn_x3() > eps[reset_args] > z80_args)[z80_stmt_t()];
 
     // Parser interface
     z80_stmt_x3 z80_stmt {"z80_stmt"};
     auto const z80_stmt_def = raw_z80_stmt;
 
     BOOST_SPIRIT_DEFINE(z80_stmt)
-    
     
     // tag location for each argument
     struct z80_arg       : kas::parser::annotate_on_success {};

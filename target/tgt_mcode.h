@@ -1,6 +1,7 @@
 #ifndef KAS_TARGET_TGT_MCODE_H
 #define KAS_TARGET_TGT_MCODE_H
 
+#include "kas/kas_string.h"
 
 namespace kas::tgt::opc
 {
@@ -44,6 +45,8 @@ struct tgt_mcode_size_t
 template <typename MCODE_T, typename STMT_T, typename ERR_MSG_T, typename SIZE_T = tgt_mcode_size_t>
 struct tgt_mcode_t
 {
+    using BASE_NAME = KAS_STRING("TGT");
+    
     // CRTP types
     using base_t    = tgt_mcode_t;
     using derived_t = MCODE_T;
