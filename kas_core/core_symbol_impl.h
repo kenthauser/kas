@@ -52,16 +52,15 @@ const char *core_symbol::make_label(uint32_t binding)
         s_binding = binding;
     
     // test if converting common to Block-Starting-with-Symbol
-    if (s_type == STT_COMMON) {
+    if (s_type == STT_COMMON)
+    {
         s_type = STT_NOTYPE;
         s_addr_p = {};
     }
 
-    if (s_addr_p) {
-        std::cout << "while processing " << expr_t(*this) << std::endl;
+    if (s_addr_p)
         return "Symbol previously defined";
-    }
-    
+
     s_addr_p = &core_addr::get_dot();
     return nullptr;
 }
@@ -134,7 +133,7 @@ unsigned const core_symbol::size() const
     if (!e_size_p)
         return 0;
 
-    std::cout << "core_symbol::size(): " << name() << ": " << *e_size_p << std::endl;
+    //std::cout << "core_symbol::size(): " << name() << ": " << *e_size_p << std::endl;
     if (auto p = e_size_p->get_fixed_p()) {
         return *p;
     } else if (auto p = e_size_p->template get_p<core_expr>()) {

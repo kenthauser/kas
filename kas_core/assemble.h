@@ -46,7 +46,7 @@ struct kas_assemble
         auto& obj = INSNS::add(text_seg, at_end);
         assemble_src(obj.inserter(), src, out);
         std::cout << "parse complete" << std::endl;
-#if 1
+#if 0
         kas::core::core_symbol::dump(std::cout);
         kas::core::core_section::dump(std::cout);
         kas::core::core_segment::dump(std::cout);
@@ -62,7 +62,7 @@ struct kas_assemble
         do_relax(obj, out);
         std::cout << "relax complete" << std::endl;
     #endif
-#if 1
+#if 0
         kas::core::core_symbol::dump(std::cout);
         kas::core::core_section::dump(std::cout);
         kas::core::core_segment::dump(std::cout);
@@ -101,13 +101,12 @@ struct kas_assemble
 
     void emit(emit_base& e)
     {
-#ifdef XXX
         auto proc_container = [&e](auto& container)
             {
                 container.proc_all_frags(
-                    [&e](auto& insn_iter, core_expr_dot const& dot)
+                    [&e](auto& insn, core_expr_dot const& dot)
                     {
-                       e.emit(*insn_iter, &dot);
+                        e.emit(insn, &dot);
                     });
             };
 
@@ -117,7 +116,6 @@ struct kas_assemble
                     gen_dwarf();
                 proc_container(container);
             });
-#endif
     }
 
 private:
@@ -190,21 +188,19 @@ private:
                 // 3. convert local common to bss symbol
                 if (sym.binding() != STB_GLOBAL && sym.kind() == STT_COMMON)
                 {
-
-                // put commons in specified segment (do once)
+                    // put commons in specified segment (do once)
                     if (seg) {
                         *inserter++ = { opc::opc_section(), seg };
                         seg = {};
-                        std::cout << "opening local common segment" << std::endl;
                     }
+                    
                     // if common specified alignment, make it so
                     if (sym.align() > 1)
                         *inserter++ = { opc::opc_align(), sym.align() };
-#ifdef XXX
+                    
                     // common now Block-Starting-with-Symbol (bss)
-                    std::cout << "move to bss: " << sym.name() << std::endl;
-                    *inserter++ = opc::opc_label(sym.ref(), STB_LOCAL);   // picks up size from symbol 
-#endif
+                    // picks up size from symbol  
+                    *inserter++ = { opc::opc_label(), sym.ref(), STB_LOCAL };
                 }
             };
             

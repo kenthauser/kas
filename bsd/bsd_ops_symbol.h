@@ -72,7 +72,7 @@ struct bsd_sym_binding :  opc_sym_binding
         auto proc_fn = gen_proc_one(data, binding);
 
         for (auto& e : args) {
-            std::cout << "sym_binding: " << e << " -> " << binding << std::endl;
+            //std::cout << "sym_binding: " << e << " -> " << binding << std::endl;
             proc_fn(std::move(e), e);      // pass arg & loc
         }
     }

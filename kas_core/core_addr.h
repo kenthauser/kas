@@ -15,10 +15,14 @@ namespace kas::core
 // a location is identified as fragment + offset
 struct core_addr : kas_object<core_addr, addr_ref>
 {
+    using NAME = KAS_STRING("core_addr");
+
     enum { DOT_CUR, DOT_NEXT };
 
     // XXX for `expr_fits`
     using emits_value = std::true_type;
+
+    using base_t::dump;
 
     core_addr() = default;
     core_addr(core_fragment const *frag_p, addr_offset_t const *offset_p)
@@ -81,6 +85,11 @@ struct core_addr : kas_object<core_addr, addr_ref>
         return *this;
     }
 
+    friend std::ostream& operator<< (std::ostream& os, core_addr const& addr)
+    {
+        addr.print(os);
+        return os;
+    }
     template <typename OS> void print(OS& os) const;
     
     static void clear()
@@ -93,6 +102,8 @@ private:
     friend std::ostream& operator<< (std::ostream&, const core_addr&);
     static inline core_addr *current_dot;
     static inline core_addr *next_dot;
+
+    // XXX why no local clear calls dependent clear?
     static inline core::kas_clear _c{base_t::obj_clear};
 };
 

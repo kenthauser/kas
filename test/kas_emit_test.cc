@@ -60,7 +60,9 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     
     // create assembler object
     kas::core::kas_assemble obj;
-    obj.assemble(src, &parse_out);
+    //obj.assemble(src, &parse_out);
+    obj.assemble(src);
+    
 
     // dump raw
     auto dump_container = [&parse_out](auto& container)
@@ -121,7 +123,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     kas::core::emit_listing<iterator_type> listing(parse_out);
     obj.emit(listing);
 #endif
-#if 0
+#if 1
     kas::elf::elf_emit elf_obj(ELFCLASS32, ELFDATA2MSB, EM_68K); 
     obj.emit(elf_obj);
 

@@ -11,7 +11,7 @@ namespace kas::parser
 
 std::string kas_loc::where() const
 {
-    auto w = error_handler_type::where(loc);
+    auto w = error_handler_type::raw_where(loc);
     return { w.second.begin(), w.second.end() };
 }
 
@@ -57,6 +57,6 @@ struct _xxx
         print_type_name{"stmt_tuple_t"}.name<XXX_stmt_tuple_t>();
         print_type_name{"stmt_tuple"}(XXX_stmt_tuple);
     }
-} _x;
+};// _x;
 
 }

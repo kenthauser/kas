@@ -62,13 +62,6 @@ namespace kas::core
         os << name();
     }
 
-
-    std::ostream& operator<<(std::ostream& os, core_addr const& addr)
-    {
-        addr.print(os);
-        return os;
-    }
-
     // core_expr cooperates in emit
     template void core_expr::emit(emit_base&) const;
     template void core_expr::emit(emit_reloc_t&) const;

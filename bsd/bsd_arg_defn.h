@@ -18,9 +18,11 @@ struct token_ident : kas_token
     operator core::symbol_ref() const
     {
         auto ref   = bsd_ident::get(*this); 
+        ref.set_loc(*this);
 #ifdef TRACE_TOKEN
         std::cout << "token_ident: " << std::string(*this) << " -> ";
         ref.print(std::cout);
+        std::cout << " local_loc = " << static_cast<::kas::parser::kas_loc const&>(*this).get();
         std::cout << std::endl;
 #endif
         return ref;
@@ -33,9 +35,11 @@ struct token_local_ident : kas_token
     operator core::symbol_ref() const
     {
         auto ref = bsd_local_ident::get(*this, value);
+        ref.set_loc(*this);
 #ifdef TRACE_TOKEN
         std::cout << "token_local_ident: " << std::string(*this) << " -> ";
         ref.print(std::cout);
+        std::cout << " local_loc = " << static_cast<::kas::parser::kas_loc const&>(*this).get();
         std::cout << std::endl;
 #endif
         return ref;
@@ -50,6 +54,7 @@ struct token_numeric_ident : kas_token
         auto p = std::next(first);
         bool dir = (p != last) && (*p == 'f' || *p == 'F'); 
         auto ref = bsd_numeric_ident::get(*this, n, dir);
+        ref.set_loc(*this);
 #ifdef TRACE_TOKEN
         std::cout << "token_numeric_ident: " << std::string(*this) << " -> ";
         ref.print(std::cout);

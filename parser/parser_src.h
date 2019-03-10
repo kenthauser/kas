@@ -34,9 +34,9 @@ struct parser_src
             {
             }
 
-        auto where(kas_position_tagged loc) const
+        auto raw_where(kas_position_tagged loc) const
         {
-            return e_handler.where(loc);
+            return e_handler.raw_where(loc);
         }
         
         Iter iter;

@@ -62,9 +62,9 @@ namespace kas::core
         void set_visibility(int8_t value) { s_visibility = value; }
 
         // methods to convert symbol type (returning error string)
-        const char *make_label(uint32_t binding = STB_LOCAL);
+        const char *make_label (uint32_t binding = STB_LOCAL);
         const char *make_common(uint32_t comm_size, int8_t binding, uint16_t align = 0);
-        const char *make_error(const char *msg = "Invalid Symbol");
+        const char *make_error( const char *msg = "Invalid Symbol");
 
 #ifdef ENFORCE_FILE_FIRST_LOCAL
         // ELF requires `file` symbol to be first. Methods to enforce this...
@@ -145,10 +145,10 @@ namespace kas::core
         {
             // print symbol # in decimal, everything else in hex.
             os << std::dec;
-            os <<         std::right << std::setw(4)  << s.index() - 1;
+            os <<         std::right << std::setw(4)  << s.index();
             os << std::hex;
             os << ": " << std::left  << std::setw(20) << s.s_name;
-            os << "IUTLGW"[s.s_binding+3]  << " OFSfCTRS"[s.s_type] << ": ";
+            os << "IUXLGW"[s.s_binding+3]  << " OFSfCTRS"[s.s_type] << ": ";
             if (s.s_addr_p)
                 os << "addr = "  << *s.s_addr_p;
             else if (s.s_type == STT_FILE)
@@ -164,7 +164,7 @@ namespace kas::core
             if (s.e_size_p)
                 os << " e_size = "  << *s.e_size_p;
             if (s.s_align)
-                os << " align = "   <<  std::to_string(s.s_align);
+                os << " align = "   <<  +s.s_align;
             if (s.s_symnum)
                 os << " sym_num = " <<  s.s_symnum;
             os << std::endl;

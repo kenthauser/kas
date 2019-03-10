@@ -196,7 +196,7 @@ protected:
     template <typename OS>
     void dump_one(OS& os) const
     {
-        os << *this;
+        derived().print(os);
     }
 
 //protected:

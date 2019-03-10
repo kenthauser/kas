@@ -23,6 +23,12 @@ struct insn_container_data
     insn_container_data() = default;
     insn_container_data(core_insn const&);
 
+    // convert `insn` to new type (typically nop)
+    void set_opc_index(uint16_t index)
+    {
+        _opc_index = index;
+    }
+
     // manage global running counters
     static inline uint32_t _loc_base;
     

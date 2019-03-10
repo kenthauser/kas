@@ -100,6 +100,7 @@ private:
     std::array<std::vector<std::string>, NUM_EMIT_FMT> buffers;
     std::list<parser::kas_diag::index_t> diagnostics;
     std::map<size_t, Iter> current_pos;
+    parser::kas_loc::index_t prev_loc {};
     std::ostream& out;
 };
 
@@ -108,22 +109,32 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
 {
     // accumulate listing into `line`
     static listing_line<Iter> line(out, *this);
+    
+    //std::cout << "emit_listing: loc = " << loc.get() << std::endl;
 
     // don't generate listing for internally generated insns
     if (!loc)
         return;
 
-    //std::cout << "emit_listing: " << loc << std::endl;
+    if (loc.get() < prev_loc)
+        throw std::logic_error{"Backwards listing: src = \"" + std::string(loc.where()) + "\""};
+    prev_loc = loc.get();
 
     // unpack location into file_num/first/last
-    auto where = parser::error_handler<Iter>::where(loc);
+    auto where = parser::error_handler<Iter>::raw_where(loc);
     auto idx   = where.first;
     auto first = where.second.begin();
     auto last  = where.second.end();
 
+    //auto src = std::string(first,last);
+    //std::cout << "emit_listing: idx = " << idx << " src = [" << parser::parser_src::escaped_str(src) << "]" << std::endl;
+    
+    
     // get iter to where in the source file we left off
     auto& prev = prev_it(idx)->second;
 
+    //auto prev_src = std::string(prev, first);
+    //std:: cout << "emit_listing: prev = [" << parser::parser_src::escaped_str(prev_src) << "]" << std::endl;
     // emit all before this insn
     prev = line.emit_line(prev, first);
 

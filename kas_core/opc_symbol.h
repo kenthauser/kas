@@ -7,13 +7,8 @@
 
 namespace kas::core::opc
 {
-#ifdef XXX
-    using e_fixed_t  = typename expression::e_fixed_t;
-    using e_string_t = typename expression::e_string_t;
-#else
     using expression::e_fixed_t;
     using expression::e_string_t;
-#endif
 
     // label & equ opcodes defined here to solve include problem...
     struct opc_label : opcode
@@ -139,8 +134,8 @@ namespace kas::core::opc
                     
                     if (sym_ref_p) {
                         sym_ref_p->get().set_binding(binding);
-                        std::cout << "opc_sym_binding: " << *sym_ref_p;
-                        std::cout << ": " << sym_ref_p->get().name() << " -> " << binding << std::endl;
+                       // std::cout << "opc_sym_binding: " << *sym_ref_p;
+                       // std::cout << ": " << sym_ref_p->get().name() << " -> " << binding << std::endl;
                     }
                     else
                         *data.di() = kas_diag::error("Symbol argument required", loc);
@@ -213,7 +208,7 @@ namespace kas::core::opc
 
         void proc_args(data_t& data, core_symbol& sym, expr_t&& value, kas_loc const& loc)
         {
-            std::cout << "opc_sym_size: " << sym.name() << " -> " << value << std::endl;
+            //std::cout << "opc_sym_size: " << sym.name() << " -> " << value << std::endl;
 
             // copy expr to persistent memory
             auto& di = data.di();

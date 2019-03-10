@@ -34,7 +34,7 @@ brwcnt		=	7
 1:    
     jr  1b
     
-binit:
+binit: 
 ; link the buffers together
 	ld	a,#NUMBLK
 	ld	(blkcnt),a
@@ -543,3 +543,4 @@ bputw:
 	call	blkput
 	pop	bc		; restore data to write
 	jr	1$
+

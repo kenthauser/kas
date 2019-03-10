@@ -196,7 +196,7 @@ public:
 
     // retrieve boost::iter_range from appropriate error handler
     // return std::pair<file-index, boost::iter_range>
-    static auto where(kas_loc const& loc)
+    static auto raw_where(kas_loc const& loc)
     {
         auto loc_idx = loc.get();
         if (loc_idx == 0)
@@ -217,7 +217,7 @@ public:
     static auto err_message(std::ostream& err_out, kas_loc const& loc
                           , std::string const& message, bool print_line = false)
     {
-        auto w = where(loc);
+        auto w = raw_where(loc);
         auto handler = handlers()[w.first-1];
         return handler(err_out, w.second.begin(), w.second.end(), message, print_line);
     }
