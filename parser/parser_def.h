@@ -162,7 +162,7 @@ auto const junk_tuple   = make_value_tuple(parse_junk, stmt_parsers());
 
 #if 1
 auto const statement_def =
-#if 0
+#if 1
             reduce_tuple(std::bit_or<>{}, stmt_tuple)
 #else
             ( bsd::parser::stmt_comma_x3() > end_of_line )

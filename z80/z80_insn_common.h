@@ -59,10 +59,10 @@ template <typename=void> struct z80_insn_defn_list : meta::list<> {};
 
 ///////////////////////////////////////////////////////////////////////    
 //
-// NB: `insn` is a meta `trait` (which evaluates to a meta `list` of arguments) because
+// NB: `defn` is a meta `trait` (which evaluates to a meta `list` of arguments) because
 // the `defn_flatten` metafunction recurses through each list it finds looking for more
-// `insns`. This is useful because many metafunctions (eg: shift and floating point) generate
-// many closely related `insns`. Since `insn` is *not* a `meta::list`, it stops the recursion.
+// `defn`. This is useful because many metafunctions (eg: shift and floating point) generate
+// many closely related `defns`. Since `defn` is *not* a `meta::list`, it stops the recursion.
 //
 ///////////////////////////////////////////////////////////////////////    
 

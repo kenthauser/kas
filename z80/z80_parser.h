@@ -6,7 +6,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "z80.h"
-#include "z80_parser_defs.h"
+#include "z80_parser_types.h"
 
 #include "expr/expr.h"              // expression public interface
 #include "parser/annotate_on_success.hpp"

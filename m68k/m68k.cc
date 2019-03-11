@@ -1,5 +1,5 @@
 // instantiate m68k instruction parser.
-
+#if 0
 #include "m68k.h"
 #include "m68k_options.h"
 //#include "m68k_arg_size.h"
@@ -20,14 +20,18 @@
 #include "target/tgt_stmt_impl.h"
 #include "target/tgt_insn_impl.h"
 #include "target/tgt_insn_eval.h"
+#endif
 
+#if 0
 namespace kas::m68k::hw
 {
     cpu_defs_t cpu_defs;
 }
+#endif
 
 namespace kas::m68k
 {
+#if 0
     namespace parser
     {
         using kas::parser::iterator_type;
@@ -46,6 +50,7 @@ namespace kas::m68k
             return mit_arg_ostream(os, arg);
         return moto_arg_ostream(os, arg);
     }
+#endif
 }
 
 
@@ -67,9 +72,9 @@ namespace kas::m68k::opc
 }
 #endif
 
-#if 0
 namespace kas::m68k::opc::dev
 {
+#if 0
 
 // extend `meta::at`: if out-of-range, return void
 template <typename DEFN>
@@ -132,7 +137,7 @@ struct xlate_one_rule_impl
 
 
 template <typename DEFNS>
-struct xlate_one_rule
+struct xlate_one_rule:
 {
     template <typename RULE, typename TYPES>
     using invoke = apply<xlate_one_rule_impl<DEFNS, TYPES>, RULE>;
@@ -163,6 +168,6 @@ struct X_xlate_one_defn
     template <typename DEFN>
     using invoke = transform<X_LIST, X_TYPES, X_xlate_one_defn_impl<DEFN>>;
 };
-}
 #endif
+}
 

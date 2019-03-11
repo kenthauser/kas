@@ -1,5 +1,5 @@
-#ifndef KAS_Z80_ARG_DEFN_H
-#define KAS_Z80_ARG_DEFN_H
+#ifndef KAS_Z80_Z80_ARG_DEFN_H
+#define KAS_Z80_Z80_ARG_DEFN_H
 
 #include "z80_reg_types.h"
 #include "target/tgt_arg.h"
@@ -9,9 +9,6 @@
 
 namespace kas::z80
 {
-
-//using kas::parser::kas_token; 
-//struct token_missing  : kas_token {};
 
 // Declare argument "modes"
 enum z80_arg_mode : uint8_t
@@ -45,7 +42,6 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode>
 {
     // inherit default & error ctors
     using base_t::base_t;
-    //using arg_mode_t = z80_arg_mode;
     
     // defn needed by `base_t`
     static constexpr auto MODE_NONE = z80_arg_mode::MODE_NONE;
@@ -71,14 +67,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode>
     const char *ok_for_target(Ts&&...) const;
 
     void print(std::ostream&) const;
-
-    // XXX in base_t??
-    friend std::ostream& operator<<(std::ostream& os, z80_arg_t const& t)
-    {
-        t.print(os);
-        return os;
-    }
-
+    
     // clear the "prefix"
     static void reset()
     { 

@@ -1,8 +1,7 @@
 #ifndef KAS_TARGET_TGT_ARG_H
 #define KAS_TARGET_TGT_ARG_H
 
-//#include "kas_core/opcode.h"        // declares emit
-#include "parser/kas_position.h"
+#include "parser/token_parser.h"
 
 namespace kas::tgt
 {
@@ -20,11 +19,11 @@ struct tgt_arg_t : kas_token
     using op_size_t = core::opc::opcode::op_size_t;
 
     // x3 parser requires default constructable
-    tgt_arg_t() : _mode(derived_t::arg_mode_t::MODE_NONE) {}
+    tgt_arg_t() : _mode(arg_mode_t::MODE_NONE) {}
 
     // error
     tgt_arg_t(const char *err, expr_t e = {})
-            : _mode(derived_t::arg_mode_t::MODE_ERROR), err(err), expr(e)
+            : _mode(arg_mode_t::MODE_ERROR), err(err), expr(e)
             {}
 
 protected:
@@ -37,7 +36,7 @@ public:
     void set_mode(arg_mode_t mode) { _mode = mode; }
 
     // for validate_min_max: default implmentation
-    bool is_missing() const { return _mode == derived_t::arg_mode_t::MODE_NONE; }
+    bool is_missing() const { return _mode == arg_mode_t::MODE_NONE; }
 
     // helper method for evaluation of insn: default implementation
     bool is_const () const  { return false; }

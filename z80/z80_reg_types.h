@@ -29,8 +29,8 @@ struct z80_reg_t : tgt::tgt_reg<z80_reg_t>
     using hw_tst         = hw::hw_tst;
     using reg_defn_idx_t = uint8_t;
     using reg_set_t      = z80_reg_set;
-
-    using base_t::base_t;
+    
+    using base_t::base_t;       // use inherited ctors
 };
 
 // reg_set holds [register + offset] values

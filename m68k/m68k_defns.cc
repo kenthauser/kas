@@ -1,4 +1,4 @@
-
+#if 0
 #include "m68k.h"
 #include "m68k_stmt.h"
 #include "m68k_arg_size.h"
@@ -25,9 +25,10 @@
 
 // meta program to instantiate defns from type list
 #include "parser/sym_parser.h"
-
+#endif
 namespace kas::m68k::parser
 {
+#if 0
     namespace x3 = boost::spirit::x3;
     using namespace x3;
 
@@ -75,8 +76,9 @@ namespace kas::m68k::parser
         static m68k_insn_parser_type _p;
         return _p;
     }
+#endif
 }
-#if 1
+#if 0
 // instantiate printers
 namespace kas::tgt
 {

@@ -1,5 +1,5 @@
-#ifndef KAS_M68K_STMT_H
-#define KAS_M68K_STMT_H
+#ifndef KAS_M68K_M68K_STMT_H
+#define KAS_M68K_M68K_STMT_H
 
 // Boilerplate to allow `statement parser` to accept m68k insns
 //
@@ -11,41 +11,37 @@
 
 #include "m68k_arg_defn.h"
 
-// XXX clang problem
-#define TGT_STMT_NAME stmt_m68k
-#define TGT_INSN_T    m68k::m68k_insn_t
-#define TGT_ARG_T     m68k::m68k_arg_t
-
+#include "target/tgt_insn.h"
 #include "target/tgt_stmt.h"
-
-#include "kas_core/opcode.h"
-#include "parser/parser_stmt.h"
-#include "parser/annotate_on_success.hpp"
-
-#include <boost/fusion/include/adapt_struct.hpp>
-#include <list>
 
 namespace kas::m68k
 {
-#if 0
-    // crashes clang... KBH 2018/11/10
-    using stmt_m68k = tgt::tgt_stmt<m68k_insn_t, m68k_arg_t>;
-#else
-
-    using tgt::TGT_STMT_NAME;
-#endif
+    // declare result of parsing
+    // NB: there are  variants of `move.l`
+    using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t, hw::hw_tst, 16>;
+    using m68k_stmt_t = tgt::tgt_stmt<m68k_insn_t, m68k_arg_t>;
 }
 
-
-namespace kas::m68k::parser
+// XXX these defns could use better home
+namespace m68k::opc
 {
-    namespace x3 = boost::spirit::x3;
+    // declare opcode groups (ie: include files)
+    using m68k_insn_defn_groups = meta::list<
+          struct OP_M68K_GEN
+        , struct OP_M68K_020
+        , struct OP_M68K_040
+        , struct OP_M68K_060
+        , struct OP_M68K_CPU32
+        , struct OP_M68K_68881
+        , struct OP_M68K_68551
+        , struct OP_COLDFIRE
+        >;
 
-    // declare parser for M68K instructions
-    using m68k_insn_parser_type = x3::rule<struct _insn, m68k_insn_t const*>;
-    BOOST_SPIRIT_DECLARE(m68k_insn_parser_type)
+    template <typename=void> struct m68k_insn_defn_list : meta::list<> {};
 
-    m68k_insn_parser_type const& m68k_insn_parser();
+    // declare M68K INSN: 6 args, 32 opcodes with same name
+    using m68k_insn_t = tgt::tgt_insn_t<struct m68k_opcode_t, 6, 32>;
 }
+
 
 #endif
