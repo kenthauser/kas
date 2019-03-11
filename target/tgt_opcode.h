@@ -85,7 +85,7 @@ protected:
             }
             auto operator!=(iter const& other) const
             {
-                auto tst = obj.args[index].mode() == z80::MODE_NONE ? -1 : 0;
+                auto tst = obj.args[index].mode() == arg_t::MODE_NONE ? -1 : 0;
                 return tst != other.index;
             }
         

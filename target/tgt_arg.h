@@ -18,12 +18,16 @@ struct tgt_arg_t : kas_token
 
     using op_size_t = core::opc::opcode::op_size_t;
 
+    // expose required "MODES"
+    static constexpr auto MODE_NONE  = arg_mode_t::MODE_NONE;
+    static constexpr auto MODE_ERROR = arg_mode_t::MODE_ERROR;
+
     // x3 parser requires default constructable
-    tgt_arg_t() : _mode(arg_mode_t::MODE_NONE) {}
+    tgt_arg_t() : _mode(MODE_NONE) {}
 
     // error
     tgt_arg_t(const char *err, expr_t e = {})
-            : _mode(arg_mode_t::MODE_ERROR), err(err), expr(e)
+            : _mode(MODE_ERROR), err(err), expr(e)
             {}
 
 protected:
@@ -36,7 +40,7 @@ public:
     void set_mode(arg_mode_t mode) { _mode = mode; }
 
     // for validate_min_max: default implmentation
-    bool is_missing() const { return _mode == arg_mode_t::MODE_NONE; }
+    bool is_missing() const { return _mode == MODE_NONE; }
 
     // helper method for evaluation of insn: default implementation
     bool is_const () const  { return false; }

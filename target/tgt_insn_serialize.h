@@ -76,6 +76,7 @@ void tgt_insert_args(Inserter& inserter
                     , ARGS_T&& args
                     )
 {
+    using arg_t = typename MCODE_T::arg_t;
     using mcode_size_t = typename MCODE_T::mcode_size_t;
     constexpr auto ARGS_PER_INFO = detail::tgt_arg_info<MCODE_T>::ARGS_PER_INFO;
     
@@ -122,7 +123,7 @@ void tgt_insert_args(Inserter& inserter
     // if non-modulo number of args, flag end in `arg_info` area
     if (auto idx_n = n % ARGS_PER_INFO)
         //p[idx_n].arg_mode = MCODE_T::arg_t::MODE_NONE;
-        p[idx_n].arg_mode = z80::MODE_NONE;
+        p[idx_n].arg_mode = arg_t::MODE_NONE;
 }
 
 

@@ -9,8 +9,8 @@ namespace kas::tgt
 
 // add mcode to insn queue
 template <typename OPCODE_T, typename TST_T, unsigned MAX_MCODES, typename INDEX_T>
-void tgt_insn_t<OPCODE_T, TST_T, MAX_MCODES, INDEX_T>
-    ::add_mcode(mcode_t *mcode_p)
+void tgt_insn_t<OPCODE_T, TST_T, MAX_MCODES, INDEX_T>::
+        add_mcode(mcode_t *mcode_p)
 {
         mcodes.push_back(mcode_p);
 
@@ -59,26 +59,25 @@ parser::tagged_msg validate_arg_modes(
     return {};
 }
 
-
 // templated definition to cut down on noise in `insn_t` defn
-template <typename OPCODE_T, typename TST_T, unsigned MAX_MCODES, typename INDEX_T>
+template <typename MCODE, typename TST, unsigned MAX, typename IDX_T>
 template <typename...Ts>
-auto tgt_insn_t<OPCODE_T, TST_T, MAX_MCODES, INDEX_T>
-    ::validate_args(Ts&&...args) const
+auto tgt_insn_t<MCODE, TST, MAX, IDX_T>::
+    validate_args(Ts&&...args) const
     -> parser::tagged_msg 
 {
     return validate_arg_modes(*this, std::forward<Ts>(args)...);
 }
 
-
 // mcode_t base implementations
-template <typename S, typename D, typename A, typename E>
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
-auto tgt_mcode_t<S, D, A, E>
-        ::validate_args(ARGS_T& args, std::ostream *trace) const
+auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+        validate_args(ARGS_T& args, std::ostream *trace) const
      -> const char *
 {
-    print(std::cout);
+    if (trace)
+        print(*trace);
 
     auto& val_c = vals();
     auto  val_p = val_c.begin();
@@ -107,10 +106,10 @@ auto tgt_mcode_t<S, D, A, E>
 }
 
 // calculate size of `opcode` given a set of args        
-template <typename S, typename D, typename A, typename E>
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
-auto tgt_mcode_t<S, D, A, E>
-        ::size(ARGS_T& args, op_size_t& size, expr_fits const& fits, std::ostream *trace) const
+auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+        size(ARGS_T& args, opc::op_size_t& size, expr_fits const& fits, std::ostream *trace) const
     -> fits_result
 {
     // hook into validators
@@ -154,10 +153,11 @@ auto tgt_mcode_t<S, D, A, E>
     
     return result;
 }
-template <typename S, typename D, typename A, typename E>
+
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
-void tgt_mcode_t<S, D, A, E>
-        ::emit(core::emit_base& base
+void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+        emit(core::emit_base& base
             , mcode_size_t *op_p
             , ARGS_T&&   args
             , core::core_expr_dot const* dot_p
@@ -166,31 +166,36 @@ void tgt_mcode_t<S, D, A, E>
     
 }
 
-template <typename S, typename D, typename A, typename E>
-auto tgt_mcode_t<S, D, A, E>::defn()  const -> defn_t  const&
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
+auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+    defn()  const -> defn_t  const&
     { return defns_base[defn_index]; }
 
-template <typename S, typename D, typename A, typename E>
-auto tgt_mcode_t<S, D, A, E>::fmt()   const -> fmt_t   const&
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
+auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+    fmt()   const -> fmt_t   const&
     { return defn().fmt(); }
 
-template <typename S, typename D, typename A, typename E>
-auto tgt_mcode_t<S, D, A, E>::vals()  const -> val_c_t const&
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
+auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+    vals()  const -> val_c_t const&
     { return defn().vals(); }
 
-template <typename S, typename D, typename A, typename E>
-auto tgt_mcode_t<S, D, A, E>::name()  const -> std::string
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
+auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+    name()  const -> std::string
     { return defn().name(); }
 
-template <typename S, typename D, typename A, typename E>
-auto tgt_mcode_t<S, D, A, E>::code_size() const -> uint8_t
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
+auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+    code_size() const -> uint8_t
 {
     return defn().code_words * sizeof(mcode_size_t);
 }
     
-template <typename S, typename D, typename A, typename E>
-auto tgt_mcode_t<S, D, A, E>
-    ::code() const
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
+auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+    code() const
     -> std::array<mcode_size_t, MAX_MCODE_WORDS>
 {
     std::array<mcode_size_t, derived_t::MAX_MCODE_WORDS> code_data;
@@ -209,9 +214,9 @@ auto tgt_mcode_t<S, D, A, E>
     return code_data;
 }
 
-template <typename S, typename D, typename A, typename E>
-void tgt_mcode_t<S, D, A, E>
-    ::print(std::ostream& os) const
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
+void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+    print(std::ostream& os) const
 {
 #if 0
     auto& d = defn();
@@ -221,7 +226,6 @@ void tgt_mcode_t<S, D, A, E>
     //os << " vals: << 
 #endif
 }
-
 }
 
 #endif

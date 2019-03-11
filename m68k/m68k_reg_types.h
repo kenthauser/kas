@@ -41,6 +41,7 @@
 
 //#include "m68k_types.h"
 
+#include "m68k_hw_defns.h"
 #include "target/tgt_reg_type.h"
 #include "target/tgt_regset_type.h"
 
@@ -112,10 +113,12 @@ enum
 //
 ////////////////////////////////////////////////////////////////////////////
 
+// some assemblers require format such as `%d0`, some require `d0` some allow both
+// XXX the prefix is `%` & should be delcared here
 enum m68k_reg_prefix { PFX_NONE, PFX_ALLOW, PFX_REQUIRE };
 
 struct m68k_reg_set;
-struct m68k_reg : tgt::tgt_reg<m68k_reg>
+struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t>
 {
     using hw_tst         = hw::hw_tst;
     using reg_defn_idx_t = uint8_t;
@@ -140,11 +143,11 @@ struct m68k_reg : tgt::tgt_reg<m68k_reg>
 //
 ////////////////////////////////////////////////////////////////////////////
 
-struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set, m68k_reg, uint16_t>
+struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set, m68k_reg_t, uint16_t>
 {
     using base_t::base_t;
 
-    uint16_t reg_kind(m68k_reg const& r) const
+    uint16_t reg_kind(m68k_reg_t const& r) const
     {
         auto kind = r.kind();
         switch (kind)
@@ -162,7 +165,7 @@ struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set, m68k_reg, uint16_t>
     }
     
     // convert "register" to bit number in range [0-> (mask_bits - 1)]
-    uint8_t reg_bitnum(m68k_reg const& r) const
+    uint8_t reg_bitnum(m68k_reg_t const& r) const
     {
         switch (r.kind())
         {
@@ -203,15 +206,15 @@ struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set, m68k_reg, uint16_t>
 using m68k_rs_ref = typename m68k_reg_set::ref_loc_t;
 }
 
+
+// declare X3 parser for `reg_t`
 namespace kas::m68k::parser
 {
     namespace x3 = boost::spirit::x3;
-    using namespace x3;
-    using namespace kas::parser;
 
     // declare parser for M68K token
-    using m68k_reg_parser_p = x3::rule<struct X_reg, m68k_reg>;
-    BOOST_SPIRIT_DECLARE(m68k_reg_parser_p)
+    using m68k_reg_x3 = x3::rule<struct X_reg, m68k_reg_t>;
+    BOOST_SPIRIT_DECLARE(m68k_reg_x3)
 }
 
 

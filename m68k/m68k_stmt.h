@@ -40,7 +40,7 @@ namespace m68k::opc
     template <typename=void> struct m68k_insn_defn_list : meta::list<> {};
 
     // declare M68K INSN: 6 args, 32 opcodes with same name
-    using m68k_insn_t = tgt::tgt_insn_t<struct m68k_opcode_t, 6, 32>;
+    //using m68k_insn_t = tgt::tgt_insn_t<struct m68k_opcode_t, 6, 32>;
 }
 
 

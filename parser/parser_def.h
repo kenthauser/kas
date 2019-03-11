@@ -160,7 +160,6 @@ auto const stmt_tuple   = make_value_tuple(parse_eol , stmt_parsers());
 auto const junk_tuple   = make_value_tuple(parse_junk, stmt_parsers()); 
 #endif
 
-#if 1
 auto const statement_def =
 #if 1
             reduce_tuple(std::bit_or<>{}, stmt_tuple)
@@ -176,27 +175,7 @@ auto const statement_def =
          // | reduce_tuple(std::bit_or<>{}, junk_tuple)
           | junk
           ;
-#else
 
-//auto const stmt_list
-x3::rule<class _, stmt_t> stmt_list {}
-        = bsd::parser::stmt_comma_x3()
-		| bsd::parser::stmt_space_x3()
-		| bsd::parser::stmt_equ_x3()
-		| bsd::parser::stmt_org_x3()
-		| z80::parser::z80_stmt_x3()
-		;
-
-auto const statement_def =
-            (stmt_list >> stmt_eol)          
-          | reduce_tuple(std::bit_or<>{}, label_tuple)
-          | end_of_input
-    // parser error cases
-          | (stmt_list >> junk >> stmt_eol)
-          | junk
-          ;
-
-#endif
 
 x3::rule<class _stmt, stmt_t> const statement = "statement";
 stmt_x3 stmt { "stmt" };

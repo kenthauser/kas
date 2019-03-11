@@ -1,173 +1,155 @@
-// instantiate m68k instruction parser.
-#if 0
+#include "utility/print_type_name.h"
+
 #include "m68k.h"
-#include "m68k_options.h"
-//#include "m68k_arg_size.h"
-#include "mit_moto_parser_def.h"
+#include "m68k_mcode.h"
 
-#include "mit_moto_names.h"
-#include "mit_arg_ostream.h"
-#include "moto_arg_ostream.h"
+#include "m68k_reg_defn.h"
 
-#include "m68k_insn_impl.h"
-#include "m68k_insn_validate.h"
-#include "m68k_insn_types.h"
+//#include "m68k_reg_adder.h"
+//#include "m68k_insn_types.h"
 
+#include "target/tgt_insn_adder.h"
+#include "insns_m68k.h"
 #include "m68k_arg_impl.h"
+#include "m68k_opcode_emit.h"
 
-#include "m68k_stmt_opcode.h"
-//#include "m68k_stmt_impl.h"
+// parse m68k instruction + args
+#include "m68k_parser.h"
+
+
+// boilerplate: tgt_impl & sym_parser (for insn & reg names)
+#include "parser/sym_parser.h"
+#include "target/tgt_reg_impl.h"
+#include "target/tgt_regset_impl.h"
 #include "target/tgt_stmt_impl.h"
 #include "target/tgt_insn_impl.h"
 #include "target/tgt_insn_eval.h"
-#endif
+
+#include <typeinfo>
+#include <iostream>
+
+namespace kas::m68k::parser
+{
+    namespace x3 = boost::spirit::x3;
+    using namespace x3;
+    using namespace kas::parser;
+
+    //////////////////////////////////////////////////////////////////////////
+    // Register Parser Definition
+    //////////////////////////////////////////////////////////////////////////
+   
+    // generate symbol parser for register names
+    using reg_name_parser_t = sym_parser_t<
+                                  typename m68k_reg_t::defn_t
+                                , reg_l
+                                , tgt::tgt_reg_adder<m68k_reg_t, reg_aliases_l>
+                                >;
+
+    // define parser instance for register name parser
+    m68k_reg_x3 reg_parser {"m68k reg"};
+    auto reg_parser_def = reg_name_parser_t().x3_deref();
+    BOOST_SPIRIT_DEFINE(reg_parser)
+
+    // instantiate parser `type` for register name parser
+    BOOST_SPIRIT_INSTANTIATE(m68k_reg_x3 , iterator_type, context_type)
+
+    //////////////////////////////////////////////////////////////////////////
+    // Instruction Parser Definition
+    //////////////////////////////////////////////////////////////////////////
+   
+    // combine all `insn` defns into single list & create symbol parser 
+    using insns = all_defns_flatten<opc::m68k_insn_defn_list
+                                , opc::m68k_insn_defn_groups
+                                , meta::quote<meta::_t>>;
+
+    using m68k_insn_defn         = typename m68k_mcode_t::defn_t;
+    using m68k_insn_adder        = typename m68k_mcode_t::adder_t;
+    using m68k_insn_sym_parser_t = sym_parser_t<m68k_insn_defn, insns, m68k_insn_adder>;
 
 #if 0
-namespace kas::m68k::hw
-{
-    cpu_defs_t cpu_defs;
-}
-#endif
-
-namespace kas::m68k
-{
-#if 0
-    namespace parser
+    struct _xxx
     {
-        using kas::parser::iterator_type;
-        using kas::parser::context_type;
+        _xxx()
+        {
+            tgt::opc::tgt_opc_general<m68k_mcode_t> opc_gen;
+            tgt::opc::tgt_opc_list   <m68k_mcode_t> opc_list;
+            opc::FMT_LIST fmt_list;
+            opc::FMT_X    fmt_x;
+            
+            opc::REG_GEN  reg_gen;
 
-        BOOST_SPIRIT_INSTANTIATE(m68k_stmt_x3, iterator_type, context_type)
-    }
+            print_type_name{"insns"}.name<insns>();
+            print_type_name{"m68k_insn_defn"}.name<m68k_insn_defn>();
+            print_type_name{"m68k_insn_adder"}.name<m68k_insn_adder>();
+            print_type_name{"opc_gen"} (opc_gen);
+            print_type_name{"opc_list"}(opc_list);
+            print_type_name{"fmt_list"}(fmt_list);
+            print_type_name{"fmt_x"}(fmt_x);
+            print_type_name{"reg_gen"}(reg_gen);
+
+            print_type_name{"m68k_insn_sym_parser_t"}.name<m68k_insn_sym_parser_t>();
+
+            using xlate_list = typename m68k_insn_sym_parser_t::xlate_list;
+            print_type_name{"xlate_list"}.name<xlate_list>();
+
+            std::cout << "\nxlate_list[...] size = " << meta::size<xlate_list>() << std::endl;
+            print_type_name{"elem 0"}.name<meta::at_c<xlate_list, 0>>();
+            print_type_name{"elem 1"}.name<meta::at_c<xlate_list, 1>>();
+            print_type_name{"elem 2"}.name<meta::at_c<xlate_list, 2>>();
+            print_type_name{"elem 3"}.name<meta::at_c<xlate_list, 3>>();
+
+            std::cout << std::endl;
+
+            using all_types_defns = typename m68k_insn_sym_parser_t::all_types_defns;
+            print_type_name{"all_types_defns"}.name<all_types_defns>();
+            std::cout << "\nall_types_defns[...]  size = ";
+            std::cout << meta::size<all_types_defns>() << std::endl;
+            print_type_name{"elem 0"}.name<meta::at_c<all_types_defns, 0>>();
+            print_type_name{"elem 1"}.name<meta::at_c<all_types_defns, 1>>();
+            print_type_name{"elem 2"}.name<meta::at_c<all_types_defns, 2>>();
+            print_type_name{"elem 3"}.name<meta::at_c<all_types_defns, 3>>();
+        }
+    } ;//_xxx;
+#endif
+    // XXX shoud stop parsing on (PARSER_CHARS | '.')
+    m68k_insn_sym_parser_t insn_sym_parser;
+
+    // parser for opcode names
+    m68k_insn_x3 m68k_insn_parser {"m68k opcode"};
     
-    // print m68k_arg_t in canonical format (MIT or MOTOROLA)
-    std::ostream& operator<<(std::ostream& os, m68k_arg_t const& arg)
-    {
-        static bool is_mit_canonical = m68k_options.mit_canonical &&
-                                       m68k_options.gen_mit;
+    auto const m68k_insn_parser_def = insn_sym_parser.x3();
+    BOOST_SPIRIT_DEFINE(m68k_insn_parser);
 
-        if (is_mit_canonical)
-            return mit_arg_ostream(os, arg);
-        return moto_arg_ostream(os, arg);
-    }
-#endif
-}
-
-
-#if 0
-namespace kas::m68k::opc
-{
-    // static methods declared inside incomplete types
-    m68k_insn_t const& m68k_insn_t::get(uint16_t idx)
-    {
-        return (*index_base)[idx];
-    }
-
-    // static methods declared inside incomplete types
-    m68k_opcode_t const& m68k_opcode_t::get(uint16_t idx)
-    {
-        return (*index_base)[idx];
-    }
+    // instantiate parsers
+    BOOST_SPIRIT_INSTANTIATE(m68k_insn_x3, iterator_type, context_type)
+    BOOST_SPIRIT_INSTANTIATE(m68k_stmt_x3, iterator_type, context_type)
 
 }
-#endif
 
-namespace kas::m68k::opc::dev
+
+namespace kas::tgt
 {
-#if 0
+    // name types used to instantiate the CRTP templates: reg, reg_set, stmt
+    using reg_t     = m68k::m68k_reg_t;
+    using reg_set_t = m68k::m68k_reg_set;
+    using arg_t     = m68k::m68k_arg_t;
+    using insn_t    = m68k::m68k_insn_t;
+    
+    // instantiate reg routines referenced from expression parsers
+    template const char *tgt_reg<reg_t>::validate(int) const;
 
-// extend `meta::at`: if out-of-range, return void
-template <typename DEFN>
-struct get_one_type_index
-{
-    template <typename INDEX>
-    using invoke = _t<if_c<INDEX::value < DEFN::size()
-                         , lazy::at<DEFN, INDEX>
-                         , id<void>
-                         >>;
-};
+    // instantiate reg_set routines referenced from expression parsers
+    template      tgt_reg_set<reg_set_t, reg_t>::tgt_reg_set(reg_t const&, char);
+    template auto tgt_reg_set<reg_set_t, reg_t>::base_t::binop(const char, tgt_reg_set const&) -> derived_t&;
+    template auto tgt_reg_set<reg_set_t, reg_t>::binop(const char, core::core_expr const&)   -> derived_t&;
+    template auto tgt_reg_set<reg_set_t, reg_t>::binop(const char, int)   -> derived_t&;
+    
+    // instantiate routines referenced from stmt parsers
+    template core::opcode *tgt_stmt<insn_t, arg_t>::gen_insn(core::opcode::data_t&);
+    template std::string   tgt_stmt<insn_t, arg_t>::name() const;
 
-template <typename TYPE_LIST, typename DEFN>
-using get_type_list = filter<transform<TYPE_LIST, get_one_type_index<DEFN>>
-                           , not_fn<quote<std::is_void>>
-                           >;
-
-template <typename TYPE_LIST, typename FN>
-struct get_one_insn_types
-{
-    template <typename DEFN>
-    using invoke = _t<invoke<FN, get_type_list<TYPE_LIST, DEFN>>>;
-};
-
-
-template <typename DEFNS, typename TYPE_LIST, typename FN>
-using get_all_insn_types = invoke<quote<join>, transform<DEFNS, get_one_insn_types<TYPE_LIST, FN>>>;
-
-// callable to extract type list for one item
-template <typename DEFNS>
-struct get_types_one_item
-{
-
-    template <typename RT, typename TYPE_LIST, typename XTRA = list<>, typename FN = quote<id>>
-    using invoke = unique<concat<get_all_insn_types<DEFNS, TYPE_LIST, FN>, XTRA>>;
-};
-
-
-template <typename XLATE_LIST, typename DEFNS>
-using get_all_types = transform<XLATE_LIST, uncurry<get_types_one_item<DEFNS>>>;
-
-template <typename DEFNS, typename TYPES>
-struct xlate_one_rule_impl
-{
-    template <typename TYPE_LIST, typename FN>
-    struct xlate_one_defn
-    {
-        using xlate_types = bind_front<quote<find_index>, TYPES>;
-
-        template <typename DEFN>
-        using source_types = invoke<get_one_insn_types<TYPE_LIST, FN>, DEFN>;
-
-        template <typename DEFN>
-        using invoke = transform<source_types<DEFN>, xlate_types>;
-    };
-
-    template <typename RT, typename TYPE_LIST, typename XTRA = list<>, typename FN = quote<id>>
-    using invoke = transform<DEFNS, xlate_one_defn<TYPE_LIST, FN>>;
-};
-
-
-template <typename DEFNS>
-struct xlate_one_rule:
-{
-    template <typename RULE, typename TYPES>
-    using invoke = apply<xlate_one_rule_impl<DEFNS, TYPES>, RULE>;
-};
-
-/////////////////////////////////////
-
-
-template <typename DEFN, typename TYPE>
-struct X_xlate_one_rule
-{
-    template <typename RT, typename TYPE_LIST, typename XTRA = list<>, typename FN = quote<id>>
-    using invoke = transform<invoke<get_one_insn_types<TYPE_LIST, FN>, DEFN>
-                            , bind_front<quote<find_index>, TYPE>>;
-};
-
-template <typename DEFN>
-struct X_xlate_one_defn_impl
-{
-    template <typename RULE, typename TYPE>
-    using invoke = apply<X_xlate_one_rule<DEFN, TYPE>, RULE>;
-};
-
-
-template <typename X_LIST, typename X_TYPES>
-struct X_xlate_one_defn
-{
-    template <typename DEFN>
-    using invoke = transform<X_LIST, X_TYPES, X_xlate_one_defn_impl<DEFN>>;
-};
-#endif
+    // instantiate printers
+    template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostream>(std::ostream&) const;
+    template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostringstream>(std::ostringstream&) const;
 }
 

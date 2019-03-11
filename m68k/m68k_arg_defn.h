@@ -87,7 +87,7 @@ struct m68k_arg_t : kas_token {
     m68k_arg_t(m68k_arg_mode mode, expr_t e = {}, expr_t outer = {})
             : mode(mode), disp(e), outer(outer)
             {
-                if (auto p = e.get_p<m68k_reg>())
+                if (auto p = e.get_p<m68k_reg_t>())
                     std::cout << "m68k_arg_t: ctor: " << p->name() << std::endl;
             }
 
@@ -117,7 +117,7 @@ struct m68k_arg_t : kas_token {
         auto do_const = [](auto const& e) -> bool
             {
                 // `is_const` implies insn ready to emit.
-                if (e.template get_p<m68k_reg>())
+                if (e.template get_p<m68k_reg_t>())
                     return true;
                 if (e.template get_p<m68k_reg_set>())
                     return true;

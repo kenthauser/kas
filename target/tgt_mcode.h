@@ -1,6 +1,7 @@
 #ifndef KAS_TARGET_TGT_MCODE_H
 #define KAS_TARGET_TGT_MCODE_H
 
+#include "expr/expr.h"
 #include "kas/kas_string.h"
 
 namespace kas::tgt::opc
@@ -106,7 +107,7 @@ struct tgt_mcode_t
     // declare as template to defer definition of `ARGS_T`
     // validate arg count & arg_modes are supported on run-time target
     template <typename ARGS_T>
-    const char * validate_args (ARGS_T& args, std::ostream *trace = {}) const;
+    const char *validate_args (ARGS_T& args, std::ostream *trace = {}) const;
 
     template <typename ARGS_T>
     fits_result size(ARGS_T& args, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
