@@ -17,7 +17,7 @@ namespace kas::m68k
 // override defaults for various sizes
 struct m68k_mcode_size_t : tgt::tgt_mcode_size_t
 {
-    using mcode_size_t = uint8_t;
+    using mcode_size_t = uint16_t;
 };
 
 

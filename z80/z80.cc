@@ -5,9 +5,6 @@
 
 #include "z80_reg_defn.h"
 
-//#include "z80_reg_adder.h"
-//#include "z80_insn_types.h"
-
 #include "target/tgt_insn_adder.h"
 #include "insns_z80.h"
 #include "z80_arg_impl.h"

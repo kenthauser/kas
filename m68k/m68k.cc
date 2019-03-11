@@ -3,18 +3,15 @@
 #include "m68k.h"
 #include "m68k_mcode.h"
 
-#include "m68k_reg_defn.h"
-
-//#include "m68k_reg_adder.h"
-//#include "m68k_insn_types.h"
+#include "m68k_reg_defns.h"
 
 #include "target/tgt_insn_adder.h"
-#include "insns_m68k.h"
+//#include "insns_m68k.h"
 #include "m68k_arg_impl.h"
-#include "m68k_opcode_emit.h"
+//#include "m68k_opcode_emit.h"
 
 // parse m68k instruction + args
-#include "m68k_parser.h"
+#include "mit_moto_parser_def.h"
 
 
 // boilerplate: tgt_impl & sym_parser (for insn & reg names)
@@ -28,6 +25,11 @@
 #include <typeinfo>
 #include <iostream>
 
+namespace kas::m68k::hw
+{
+    cpu_defs_t cpu_defs;
+}
+
 namespace kas::m68k::parser
 {
     namespace x3 = boost::spirit::x3;
@@ -37,12 +39,12 @@ namespace kas::m68k::parser
     //////////////////////////////////////////////////////////////////////////
     // Register Parser Definition
     //////////////////////////////////////////////////////////////////////////
-   
+#if 1
     // generate symbol parser for register names
     using reg_name_parser_t = sym_parser_t<
                                   typename m68k_reg_t::defn_t
-                                , reg_l
-                                , tgt::tgt_reg_adder<m68k_reg_t, reg_aliases_l>
+                                , defn::m68k_all_reg_l
+                                , tgt::tgt_reg_adder<m68k_reg_t, defn::m68k_reg_aliases_l>
                                 >;
 
     // define parser instance for register name parser
@@ -52,11 +54,11 @@ namespace kas::m68k::parser
 
     // instantiate parser `type` for register name parser
     BOOST_SPIRIT_INSTANTIATE(m68k_reg_x3 , iterator_type, context_type)
-
+#endif
     //////////////////////////////////////////////////////////////////////////
     // Instruction Parser Definition
     //////////////////////////////////////////////////////////////////////////
-   
+#if 0
     // combine all `insn` defns into single list & create symbol parser 
     using insns = all_defns_flatten<opc::m68k_insn_defn_list
                                 , opc::m68k_insn_defn_groups
@@ -65,7 +67,7 @@ namespace kas::m68k::parser
     using m68k_insn_defn         = typename m68k_mcode_t::defn_t;
     using m68k_insn_adder        = typename m68k_mcode_t::adder_t;
     using m68k_insn_sym_parser_t = sym_parser_t<m68k_insn_defn, insns, m68k_insn_adder>;
-
+#endif
 #if 0
     struct _xxx
     {
@@ -111,6 +113,8 @@ namespace kas::m68k::parser
         }
     } ;//_xxx;
 #endif
+
+#if 0
     // XXX shoud stop parsing on (PARSER_CHARS | '.')
     m68k_insn_sym_parser_t insn_sym_parser;
 
@@ -123,7 +127,7 @@ namespace kas::m68k::parser
     // instantiate parsers
     BOOST_SPIRIT_INSTANTIATE(m68k_insn_x3, iterator_type, context_type)
     BOOST_SPIRIT_INSTANTIATE(m68k_stmt_x3, iterator_type, context_type)
-
+#endif
 }
 
 

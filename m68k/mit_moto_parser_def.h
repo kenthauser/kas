@@ -53,6 +53,7 @@
 #endif
 
 #include "m68k.h"
+#include "m68k_stmt.h"
 #include "m68k_parser_support.h"    // evaluate complex m68k args
 
 #include "expr/expr.h"              // expression public interface
@@ -300,7 +301,7 @@ namespace kas::m68k::parser
 
     BOOST_SPIRIT_DEFINE(m68k_args)
 
-    auto const m68k_stmt_def = (m68k_insn_parser() > m68k_args)[stmt_m68k()];
+    auto const m68k_stmt_def = (m68k_insn_x3() > m68k_args)[m68k_stmt_t()];
 
     // Parser interface
     m68k_stmt_x3 m68k_stmt {"m68k_stmt"};

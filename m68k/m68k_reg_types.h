@@ -39,7 +39,7 @@
 //            `m68k_regset` is an expression type
 //            `m68k_reg`    needs to export parser to `expr`
 
-//#include "m68k_types.h"
+#include "expr/expr_types.h"
 
 #include "m68k_hw_defns.h"
 #include "target/tgt_reg_type.h"
@@ -143,7 +143,7 @@ struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t>
 //
 ////////////////////////////////////////////////////////////////////////////
 
-struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set, m68k_reg_t, uint16_t>
+struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set, m68k_reg_t>
 {
     using base_t::base_t;
 

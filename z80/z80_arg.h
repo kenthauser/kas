@@ -3,9 +3,6 @@
 
 #include "z80_reg_types.h"
 #include "target/tgt_arg.h"
-//#include "kas_core/opcode.h"        // declares emit
-//#include "parser/kas_position.h"
-
 
 namespace kas::z80
 {
@@ -42,10 +39,13 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode>
 {
     // inherit default & error ctors
     using base_t::base_t;
-    
+
+#if 0
+    // XXX moved to `tgt_arg_t`
     // defn needed by `base_t`
     static constexpr auto MODE_NONE = z80_arg_mode::MODE_NONE;
-
+#endif
+    
     // direct, indirect, and immediate ctor
     z80_arg_t(std::pair<expr_t, z80_arg_mode> const&);
 

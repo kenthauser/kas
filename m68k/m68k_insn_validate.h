@@ -38,8 +38,8 @@
 
  *****************************************************************************/
 
-#include "m68k_types.h"
-#include "m68k_arg_defn.h"
+#include "m68k_expr_types.h"
+#include "m68k_arg.h"
 #include "m68k_error_messages.h"
 #include "expr/expr_fits.h"
 #include <array>

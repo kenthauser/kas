@@ -1,6 +1,9 @@
 #ifndef KAS_M68K_ARG_DEFN_H
 #define KAS_M68K_ARG_DEFN_H
 
+#include "m68k_reg_types.h"
+#include "target/tgt_arg.h"
+
 #include "m68k_size_defn.h"
 #include "m68k_extension_t.h"
 #include "kas_core/opcode.h"
@@ -10,7 +13,7 @@
 namespace kas::m68k
 {
 // Declare `stmt_m68k` parsed instruction argument
-enum m68k_arg_mode : uint16_t
+enum m68k_arg_mode : uint8_t
 {
 // Directly supported modes
 // NB: DATA_REG thru IMMED must have values match M68K machine code defn
@@ -56,7 +59,7 @@ enum m68k_arg_mode : uint16_t
 };
 
 // support for coldfire MAC. 
-enum m68k_arg_subword : uint16_t
+enum m68k_arg_subword : uint8_t
 {
       REG_SUBWORD_FULL  = 0
     , REG_SUBWORD_LOWER
@@ -66,15 +69,19 @@ enum m68k_arg_subword : uint16_t
 
 using kas::parser::kas_token;
 
-struct token_reg : kas_token
-{
-};
+struct token_reg : kas_token {};
 
 struct token_missing  : kas_token {};
 
-struct m68k_arg_t : kas_token {
-    using op_size_t = core::opc::opcode::op_size_t;
-
+struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
+{
+    // XXX pre-conversion
+    //using op_size_t = core::opc::opcode::op_size_t;
+    
+    // inherit basic ctors
+    using base_t::base_t;
+    
+#if 0
     // x3 parser requires default constructable
     m68k_arg_t() : mode(MODE_NONE) {}
 
@@ -82,34 +89,21 @@ struct m68k_arg_t : kas_token {
     m68k_arg_t(const char *err, expr_t e = {})
             : mode(MODE_ERROR), err(err), disp(e)
             {}
+#endif
 
     // direct, immediate, register pair, or bitfield
     m68k_arg_t(m68k_arg_mode mode, expr_t e = {}, expr_t outer = {})
-            : mode(mode), disp(e), outer(outer)
+            :  outer(outer), base_t(mode, std::move(e))
             {
                 if (auto p = e.get_p<m68k_reg_t>())
                     std::cout << "m68k_arg_t: ctor: " << p->name() << std::endl;
             }
 
-    // for validate_min_max
-    bool is_missing() const { return mode == MODE_NONE; }
-
-
+    // override `size`
     op_size_t size(expression::expr_fits const& fits = {});
 
+    // support for `access-mode` validation
     uint16_t am_bitset() const;
-
-    template <typename T>
-    T const* get_p() const
-    {
-        switch (mode)
-        {
-            case MODE_DIRECT:
-                return disp.get_p<T>();
-            default:
-                return nullptr;
-        }
-    }
 
     // true if all `disp` and `outer` are registers or constants 
     bool is_const () const
@@ -127,28 +121,37 @@ struct m68k_arg_t : kas_token {
                 //     return true;
                 return false;
             };
-        return do_const(disp) && do_const(outer);
+        return do_const(expr) && do_const(outer);
+    }
+
+    // don't let register appear as constants (? why needed ?)
+    // also seems to block IMMEDIATE
+    template <typename T>
+    T const* get_p() const
+    {
+        switch (mode())
+        {
+            case MODE_DIRECT:
+                return expr.get_p<T>();
+            default:
+                return nullptr;
+        }
     }
 
     // validate if arg suitable for target
     const char *ok_for_target(opc::m68k_size_t sz) const;
 
-    static void reset() {}
-
-    uint16_t mode {};
-    uint16_t reg_subword {};
-    m68k_extension_t ext{};
-    expr_t  disp;
-    expr_t  outer;
+    expr_t           outer;      // for '020 PRE/POST index addess modes
+    m68k_arg_subword reg_subword {};    // for coldfire H/L subword access
+    m68k_extension_t ext{};             // m68k extension word (index modes)
 
     // hardware formatted variables
-    short cpu_mode() const;
-    short cpu_reg()  const;
-    short reg_num  {};
+    uint8_t cpu_mode() const;           // machine code words
+    uint8_t cpu_reg()  const;
+    uint8_t reg_num  {};
     m68k_ext_size_t cpu_ext;
-    const char *err{};
-//    private:
-    short mode_normalize() const;
+
+    m68k_arg_mode mode_normalize() const;
     mutable uint16_t  _am_bitset{};
     mutable op_size_t _arg_size{-1};
 };
@@ -159,7 +162,7 @@ extern std::ostream& operator<<(std::ostream& os, m68k_arg_t const& arg);
 inline void ostream_m68k_args(std::ostream& os, m68k_arg_t const* arg_p)
 {
     auto delim = ": ";
-    while (arg_p->mode != MODE_NONE) {
+    while (arg_p->mode() != MODE_NONE) {
         os << delim << *arg_p++;
         delim = ",";
     }

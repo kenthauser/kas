@@ -47,12 +47,12 @@
 // In other words...complex.
 
 
-#include "m68k_arg_defn.h"
+#include "m68k_arg.h"
 
 #include "m68k_error_messages.h"
 #include <boost/fusion/include/adapt_struct.hpp>
 
-namespace kas { namespace m68k { namespace parser
+namespace kas::m68k::parser
 {
     //
     // Parser structures & values
@@ -130,11 +130,15 @@ namespace kas { namespace m68k { namespace parser
     private:
         void get_etype()
         {
-            if (auto ip = expr.get_fixed_p()) {
+            if (auto ip = expr.get_fixed_p())
+            {
                 e_type = E_INT;
                 _value = *ip;
-            } else if (auto *rp = expr.get_p<m68k_reg>()) {
-                switch (rp->kind()) {
+            }
+            else if (auto *rp = expr.get_p<m68k_reg_t>())
+            {
+                switch (rp->kind())
+                {
                 case RC_DATA:
                     e_type = E_DATA;
                     _value = rp->value();
@@ -159,17 +163,23 @@ namespace kas { namespace m68k { namespace parser
                     e_type = E_REG;
                     break;
                 }
-            } else if (auto *fp = expr.get_p<expression::e_float_t>()) {
+            }
+            else if (auto *fp = expr.get_p<expression::e_float_t>())
+            {
                 e_type = E_FLOAT;
-            } else if (auto *rs = expr.get_p<m68k_reg_set>()) {
+            } 
+            else if (auto *rs = expr.get_p<m68k_reg_set>())
+            {
                 e_type = E_REGSET;
-            } else {
+            } 
+            else
+            {
                 e_type = E_EXPR;
             }
         }
 
         expr_t const& expr;
-        int      _value;
+        int           _value;
         uint32_t      e_type {};
     };
 
@@ -188,7 +198,8 @@ namespace kas { namespace m68k { namespace parser
         std::cout << "m68k_parsed_arg_t: mode = " << mode.mode << std::endl;
         std::cout << "base: " << base;
         std::cout << "disp_lists: ";
-        for (auto& arg_list : mode.args) {
+        for (auto& arg_list : mode.args)
+        {
             for (auto& arg : arg_list)
                 std::cout << arg;
             std::cout << std::endl;
@@ -198,7 +209,8 @@ namespace kas { namespace m68k { namespace parser
 
         // BEGIN normalize to MIT format: ie: base is a register
         // MOTO may have base as Z_EXPR or constant. Modify as appropriate
-        if (base.scale == P_SCALE_Z) {
+        if (base.scale == P_SCALE_Z)
+        {
             std::cout << "m68k_parsed_arg_t: P_SCALE_Z" << std::endl;
             auto& inner_list = mode.args.front();
             base = std::move(inner_list.front());
@@ -210,7 +222,8 @@ namespace kas { namespace m68k { namespace parser
 #ifdef  TRACE_M68K_PARSE
         std::cout << "norm: " << base;
         std::cout << "disp_lists: ";
-        for (auto& arg_list : mode.args) {
+        for (auto& arg_list : mode.args)
+        {
             for (auto& arg : arg_list)
                 std::cout << arg;
             std::cout << std::endl;
@@ -220,7 +233,8 @@ namespace kas { namespace m68k { namespace parser
 
         // check for the PARSE_MASK & save in reg_subword field.
         auto sub_reg = REG_SUBWORD_FULL;
-        if (mode.mode & PARSE_MASK) {
+        if (mode.mode & PARSE_MASK)
+        {
             mode.mode &=~ PARSE_MASK;
             sub_reg = REG_SUBWORD_MASK;
         }
@@ -255,7 +269,8 @@ namespace kas { namespace m68k { namespace parser
             return r;
         };
 
-        switch (mode.mode) {
+        switch (mode.mode)
+        {
             default:
                 // enable this while debugging...
                 // throw std::runtime_error{"invalid mit::parse_mode"};
@@ -264,7 +279,8 @@ namespace kas { namespace m68k { namespace parser
             case PARSE_DIR:
             case PARSE_INDIR_W:       // XXX
             case PARSE_INDIR_L:
-                switch (kind) {
+                switch (kind)
+                {
                     case E_DATA:
                     {
                         m68k_arg_t r{ MODE_DATA_REG, base_value };
@@ -293,17 +309,18 @@ namespace kas { namespace m68k { namespace parser
                     {
                         // is register set well formed? (ie: kind() >= 0)
                         m68k_arg_t r{ MODE_REGSET, std::move(base_value) };
-                        if (auto rp = r.disp.get_p<m68k_reg_set>())
+                        if (auto rp = r.expr.get_p<m68k_reg_set>())
                             if (rp->kind() >= 0)
                                 return r;
-                        return { error_msg::ERR_regset, r.disp };
+                        return { error_msg::ERR_regset, r.expr };
                     }
                     default:
                         return { error_msg::ERR_direct, base_value };
                 }
 
             case PARSE_IMMED:
-                switch (kind) {
+                switch (kind)
+                {
                     case E_EXPR:
                     case E_INT:
                     case E_FLOAT:
@@ -313,7 +330,8 @@ namespace kas { namespace m68k { namespace parser
                 }
 
             case PARSE_INDIR:
-                switch (kind) {
+                switch (kind) 
+                {
                     case E_DATA:
                         // allow DATA as base if index_full provided
                         if (!hw::cpu_defs[hw::index_full{}]) {
@@ -354,7 +372,8 @@ namespace kas { namespace m68k { namespace parser
                         return { error_msg::ERR_bad_bitfield, base_value };
 
                     auto offset = classify.value();
-                    switch (kind) {
+                    switch (kind)
+                    {
                         case E_DATA:
                         case E_EXPR:
                             break;
@@ -371,7 +390,8 @@ namespace kas { namespace m68k { namespace parser
                     auto classify_width = m68k_classify_expr{second.value};
                     auto width = classify_width.value();
 
-                    switch (classify_width()) {
+                    switch (classify_width())
+                    {
                         case E_DATA:
                         case E_EXPR:
                             break;
@@ -388,7 +408,8 @@ namespace kas { namespace m68k { namespace parser
             // support motorola word/long expression specifier .w/.l
             // support coldfire upper/lower subregister mode. .u/.l
             case PARSE_SFX_W:
-                switch (kind) {
+                switch (kind)
+                {
                     case E_EXPR:
                     case E_INT:
                         // just absorb ".w"
@@ -398,7 +419,8 @@ namespace kas { namespace m68k { namespace parser
                 }
             case PARSE_SFX_L:
             case PARSE_SFX_U:
-                switch (kind) {
+                switch (kind)
+                {
                     case E_DATA:
                     {
                         m68k_arg_t r{ MODE_DATA_REG };
@@ -447,7 +469,8 @@ namespace kas { namespace m68k { namespace parser
     template <typename It, typename IndexArg_t>
     const char *classify_indirect_arg(It& it, IndexArg_t& idx, expr_t const * &error_p)
     {
-        for (auto& arg : it) {
+        for (auto& arg : it)
+        {
             auto classify = m68k_classify_expr{arg.value};
             auto kind = classify();
 
@@ -504,30 +527,31 @@ namespace kas { namespace m68k { namespace parser
 #endif
                 // FALLSTHRU
             case E_EXPR:
-                if (idx.disp_p)
+                if (idx.expr_p)
                     return error_msg::ERR_argument;
 
                 // don't allow scale except on registers
                 if (arg.scale != P_SCALE_AUTO)
                     return hw::index_scale::name();
 
-                idx.disp_p = &arg.value;
+                idx.expr_p = &arg.value;
 
                 // ignore size specifications on displacements: calculate instead
-                if (kind != E_INT) {
-                    idx.disp_size = M_SIZE_AUTO;
+                if (kind != E_INT)
+                {
+                    idx.expr_size = M_SIZE_AUTO;
                     break;
                 }
 
                 // check fixed value size
                 auto value = classify.value();
                 if (value == 0)
-                    idx.disp_size = M_SIZE_ZERO;
+                    idx.expr_size = M_SIZE_ZERO;
                 else if (std::numeric_limits<int16_t>::min() <= value &&
                          std::numeric_limits<int16_t>::max() >= value)
-                    idx.disp_size = M_SIZE_WORD;
+                    idx.expr_size = M_SIZE_WORD;
                 else
-                    idx.disp_size = M_SIZE_LONG;
+                    idx.expr_size = M_SIZE_LONG;
                 break;
             }
         }
@@ -560,7 +584,8 @@ namespace kas { namespace m68k { namespace parser
 #endif
         // NORMALIZE TO MIT
         // if !register base, swap for next in `inner` list
-        if (!base.value.get_p<m68k_reg>() && !mode.args.empty()) {
+        if (!base.value.get_p<m68k_reg_t>() && !mode.args.empty())
+        {
             auto& inner_list = mode.args.front();
             inner_list.push_back(std::move(base));
             base = std::move(inner_list.front());
@@ -569,14 +594,15 @@ namespace kas { namespace m68k { namespace parser
         // END NORMALIZE
 
         // parsed index arg data
-        struct index_arg {
+        struct index_arg
+        {
             // save pointer to expressions
             expr_t const *reg_p   {};
-            expr_t const *disp_p  {};
+            expr_t const *expr_p  {};
             int index_size  {};
             int index_scale {};
             int reg_num     {};
-            int disp_size = M_SIZE_NONE;
+            int expr_size = M_SIZE_NONE;
         };
 
         // accumulate data in result
@@ -590,12 +616,13 @@ namespace kas { namespace m68k { namespace parser
         // analyze base register
         auto classify = m68k_classify_expr{base_value};
         auto kind = classify();
-        switch (kind) {
+        switch (kind)
+        {
             case E_ADDR:
                 result.reg_num = classify.value();
                 break;
             case E_PC:
-                result.mode = MODE_PC_INDEX;
+                result.set_mode(MODE_PC_INDEX);
                 break;
 
             // data indirect mapped to index w/ base_value_reg suppressed
@@ -611,7 +638,7 @@ namespace kas { namespace m68k { namespace parser
 
                 result.ext.base_suppr = true;
                 if (kind == E_ZPC)
-                    result.mode = MODE_PC_INDEX;
+                    result.set_mode(MODE_PC_INDEX);
                 break;
             default:
                 return { error_msg::ERR_addr_mode, base_value };
@@ -639,28 +666,32 @@ namespace kas { namespace m68k { namespace parser
         // Here all arguments processed.
         // use `m68k_extension_t` instance to evaluate address mode.
         // first copy "expressions"
-        if (first_arg.disp_p) {
-            result.disp   = *first_arg.disp_p;
+        if (first_arg.expr_p)
+        {
+            result.expr   = *first_arg.expr_p;
             // suppress illegal value of M_SIZE_NONE for inner
-            if (first_arg.disp_size == M_SIZE_NONE)
+            if (first_arg.expr_size == M_SIZE_NONE)
                 result.ext.disp_size = M_SIZE_ZERO;
             else
-                result.ext.disp_size =  first_arg.disp_size;
+                result.ext.disp_size =  first_arg.expr_size;
         }
-        if (second_arg.disp_p) {
-            result.outer = *second_arg.disp_p;
-            result.ext.mem_mode =  second_arg.disp_size;
+        if (second_arg.expr_p)
+        {
+            result.outer = *second_arg.expr_p;
+            result.ext.mem_mode =  second_arg.expr_size;
         }
 
         // check if register in "inner"
-        if (first_arg.reg_p) {
+        if (first_arg.reg_p)
+        {
             result.ext.reg_num(first_arg.reg_num);
             result.ext.reg_long(first_arg.index_size);
             result.ext.reg_scale = first_arg.index_scale;
         }
 
         // check if register in "outer"
-        if (second_arg.reg_p) {
+        if (second_arg.reg_p)
+        {
             // Error check: only a single register allowed
             if (first_arg.reg_p)
                 return { error_msg::ERR_indirect, *second_arg.reg_p };
@@ -683,7 +714,8 @@ namespace kas { namespace m68k { namespace parser
             && result.ext.index_suppr()
             && result.ext.mem_mode == M_SIZE_NONE
             && result.ext.disp_size == M_SIZE_ZERO
-            ) {
+            )
+        {
             return { error_msg::ERR_addr_mode, *error_p };
         }
 
@@ -698,22 +730,25 @@ namespace kas { namespace m68k { namespace parser
         // 3) PC   with word offset --> mode 7-2
         // 4) Long or Auto offset handled by `MODE_INDEX`
 
-        if (result.mode == MODE_PC_INDEX) {
-            result.mode = MODE_PC_DISP;
-        } else switch (result.ext.disp_size) {
+        if (result.mode() == MODE_PC_INDEX)
+        {
+            result.set_mode(MODE_PC_DISP);
+        } 
+        else switch (result.ext.disp_size)
+        {
             case M_SIZE_NONE:
             case M_SIZE_ZERO:
-                result.mode = MODE_ADDR_INDIR;
+                result.set_mode(MODE_ADDR_INDIR);
                 break;
             default:
-                result.mode = MODE_ADDR_DISP;
+                result.set_mode(MODE_ADDR_DISP);
                 break;
         }
 
         return result;
     }
 
-}}}
+}
 
 BOOST_FUSION_ADAPT_STRUCT(
     kas::m68k::parser::m68k_parsed_arg_t,
