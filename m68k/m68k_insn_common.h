@@ -41,9 +41,9 @@
 
 #include "m68k_size_defn.h"         // types defining "size" list for opcodes
 #include "m68k_size_lwb.h"          // types to insert "size" into opcode
+#include "m68k_formats_defn.h"      // actual format types
 #include "m68k_validate_reg.h"      // actual validate types
 #include "m68k_validate_gen.h"      // actual validate types
-#include "m68k_formats_defn.h"      // actual format types
 
 #include "kas/kas_string.h"         // name as type
 

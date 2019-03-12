@@ -25,7 +25,7 @@ namespace kas::m68k
 }
 
 // XXX these defns could use better home
-namespace m68k::opc
+namespace kas::m68k::opc
 {
     // declare opcode groups (ie: include files)
     using m68k_insn_defn_groups = meta::list<

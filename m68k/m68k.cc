@@ -6,7 +6,16 @@
 #include "m68k_reg_defns.h"
 
 #include "target/tgt_insn_adder.h"
-//#include "insns_m68k.h"
+
+#include "m68k/insns_m68000.h"
+//#include "m68k/insns_m68020.h"
+//#include "m68k/insns_m68040.h"
+//#include "m68k/insns_m68000.h"
+//#include "m68k/insns_m68851.h"
+//#include "m68k/insns_m68881.h"
+//#include "m68k/insns_cpu32.h"
+//#include "m68k/insns_coldfire.h"
+
 #include "m68k_arg_impl.h"
 //#include "m68k_opcode_emit.h"
 
@@ -39,7 +48,7 @@ namespace kas::m68k::parser
     //////////////////////////////////////////////////////////////////////////
     // Register Parser Definition
     //////////////////////////////////////////////////////////////////////////
-#if 1
+
     // generate symbol parser for register names
     using reg_name_parser_t = sym_parser_t<
                                   typename m68k_reg_t::defn_t
@@ -54,16 +63,16 @@ namespace kas::m68k::parser
 
     // instantiate parser `type` for register name parser
     BOOST_SPIRIT_INSTANTIATE(m68k_reg_x3 , iterator_type, context_type)
-#endif
+
     //////////////////////////////////////////////////////////////////////////
     // Instruction Parser Definition
     //////////////////////////////////////////////////////////////////////////
-#if 0
+
     // combine all `insn` defns into single list & create symbol parser 
     using insns = all_defns_flatten<opc::m68k_insn_defn_list
                                 , opc::m68k_insn_defn_groups
                                 , meta::quote<meta::_t>>;
-
+#if 1
     using m68k_insn_defn         = typename m68k_mcode_t::defn_t;
     using m68k_insn_adder        = typename m68k_mcode_t::adder_t;
     using m68k_insn_sym_parser_t = sym_parser_t<m68k_insn_defn, insns, m68k_insn_adder>;

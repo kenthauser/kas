@@ -53,13 +53,13 @@ namespace
         fits_result ok(m68k_arg_t& arg, m68k_size_t, expr_fits const& fits) const override
         {
             // range is only for immediate args
-            switch (arg.mode)
+            switch (arg.mode()())
             {
                 case MODE_IMMED:
                 case MODE_IMMED_BYTE:
                 case MODE_IMMED_WORD:
                 case MODE_IMMED_LONG:
-                    return fits.fits(arg.disp, min, max);
+                    return fits.fits(arg.expr, min, max);
                 default:
                     return fits.no;
             }
@@ -72,16 +72,16 @@ namespace
     {
         fits_result ok(m68k_arg_t& arg, m68k_size_t, expr_fits const& fits) const override
         {
-            switch (arg.mode)
+            switch (arg.mode())
             {
                 case MODE_IMMED:
                 case MODE_IMMED_BYTE:
                 case MODE_IMMED_WORD:
                 case MODE_IMMED_LONG:
                     // disallow zero
-                    if (fits.zero(arg.disp))
+                    if (fits.zero(arg.expr))
                         return fits.no;
-                    return fits.fits(arg.disp, -1, 7);
+                    return fits.fits(arg.expr, -1, 7);
                 default:
                     return fits.no;
             }
@@ -93,10 +93,10 @@ namespace
         fits_result ok(m68k_arg_t& arg, m68k_size_t, expr_fits const& fits) const override
         {
             // allow addr_indir or addr_indr_displacement
-            if (arg.mode == MODE_DIRECT)
-                arg.mode = MODE_DIRECT_LONG;
+            if (arg.mode() == MODE_DIRECT)
+                arg.mode() = MODE_DIRECT_LONG;
 
-            if (arg.mode == MODE_DIRECT_LONG)
+            if (arg.mode() == MODE_DIRECT_LONG)
                 return fits.yes;
 
             return fits.no;
@@ -135,14 +135,14 @@ namespace
     {
         fits_result ok(m68k_arg_t& arg, m68k_size_t, expr_fits const& fits) const override
         {
-            switch (arg.mode)
+            switch (arg.mode())
             {
                 case MODE_ADDR_INDIR:
-                    arg.disp = {};
+                    arg.expr = {};
                     // FALLSTHRU
                 case MODE_ADDR_DISP:
                 case MODE_MOVEP:
-                    arg.mode = MODE_MOVEP;
+                    arg.mode() = MODE_MOVEP;
                     return fits.yes;
                 default:
                     return fits.no;
@@ -162,14 +162,14 @@ namespace
         fits_result ok(m68k_arg_t& arg, m68k_size_t, expr_fits const& fits) const override
         {
             // check for pair of DATA or GENERAL registers
-            if (arg.mode != MODE_PAIR)
+            if (arg.mode() != MODE_PAIR)
                 return fits.no;
 
             // NB: make use of the fact the RC_DATA == 0 & RC_ADDR == 1
             auto max_reg_class = RC_DATA + addr_ok;
 
             // check first of pair
-            auto rp = arg.disp.template get_p<m68k_reg>();
+            auto rp = arg.expr.template get_p<m68k_reg>();
             if (!rp || rp->kind() > max_reg_class)
                 return fits.no;
 
@@ -191,13 +191,13 @@ namespace
         
         fits_result ok(m68k_arg_t& arg, m68k_size_t, expr_fits const& fits) const override
         {
-            switch (arg.mode) {
+            switch (arg.mode()) {
                 case MODE_IMMED:
                 case MODE_IMMED_LONG:
                 case MODE_IMMED_WORD:
                     return fits.yes;
                 case MODE_REGSET:
-                    if (auto rs_p = arg.disp.template get_p<m68k_reg_set>())
+                    if (auto rs_p = arg.expr.template get_p<m68k_reg_set>())
                     {
                         if (!kind && rs_p->kind() <= RC_ADDR)
                             return fits.yes;
@@ -231,10 +231,10 @@ namespace
                     return fits.fits(e, 0, 31);
                 };
 
-            if (arg.mode != MODE_BITFIELD)
+            if (arg.mode() != MODE_BITFIELD)
                 return fits.no;
 
-            auto offset_fits = bf_fits(arg.disp);
+            auto offset_fits = bf_fits(arg.expr);
             auto width_fits  = bf_fits(arg.outer);
 
             // both must fit for a yes.
@@ -295,7 +295,7 @@ namespace
         fits_result ok (m68k_arg_t& arg, m68k_size_t, expr_fits const& fits) const override
         {
             // for coldfire BIT instructions on STATIC bit # cases.
-            auto mode_norm = arg.mode_normalize();
+            auto mode_norm = arg.mode()_normalize();
             switch (mode_norm) {
                 case MODE_ADDR_INDIR:
                 case MODE_POST_INCR:

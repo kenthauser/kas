@@ -1,16 +1,42 @@
 #ifndef M68K_M68K_FORMATS_IMPL_H
 #define M68K_M68K_FORMATS_IMPL_H
 
-// 1. Remove `index` infrastructure
-// 2. Split into virtual functions, "workers" and combiners
-// 3. Add in `opc&` stuff
 
-#include "m68k_formats_type.h"
+// processor specific types to insert/extract values
+// from machine code
+//
+// type interface: two static methods
+//
+// bool insert(mcode_size_t *op, arg_t& arg, val_t const *val_p)
+// void extract(mcode_size_t const *op, arg_t *arg, val_t *val_p)
+//
+// in the above:
+//  *op     points to first word of "machine code"
+//  arg     is current argument being processed. 
+//  *val_p  points to current argument validator
+//
+// insert returns `true` if argument completely stored in machine code
+
+
+#include "m68k_mcode.h"
+#include "target/tgt_format.h"
 
 namespace kas::m68k::opc
 {
 // tinker-toy functions to put args into various places...
 // always paired: insert & extract
+
+// use generic template to generate `mix-in` type
+template <unsigned N, typename T>
+using fmt_arg = tgt::opc::tgt_fmt_arg<m68k_mcode_t, N, T>;
+
+// use generic bit inserter/extractor
+template <unsigned...Ts>
+using fmt_generic = tgt::opc::tgt_fmt_generic<m68k_mcode_t, Ts...>;
+
+//
+// m68k specific formatters
+//
 
 // 3-bit register + 3-bit mode
 template <int SHIFT, unsigned WORD = 0, int MODE_OFFSET = 3>
@@ -36,7 +62,7 @@ struct reg_mode
         {
             arg->reg_num  = 7 & op[WORD] >> SHIFT;
             int cpu_mode  = 7 & op[WORD] >> (SHIFT + MODE_OFFSET);
-            arg->mode = cpu_mode != 7 ? cpu_mode : 7 + arg->reg_num;
+            arg->mode() = cpu_mode != 7 ? cpu_mode : 7 + arg->reg_num;
         }
 };
 

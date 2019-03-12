@@ -38,7 +38,7 @@
 
  *****************************************************************************/
 
-#include "m68k_arg_defn.h"
+#include "m68k_arg.h"
 #include "m68k_error_messages.h"
 #include "m68k_insn_validate.h"
 #include "expr/expr_fits.h"
@@ -75,7 +75,7 @@ enum {
 #define VAL_REG(N, ...)  using N = _val_reg<KAS_STRING(#N), __VA_ARGS__>
 
 // validate based on "access mode"
-struct val_am : m68k_validate
+struct val_am : m68k_mcode_t::val_t
 {
     constexpr val_am(uint16_t am) : match {am} {}
 
@@ -87,13 +87,13 @@ struct val_am : m68k_validate
             return fits.no;
 
         // translate immed arg to include `size`
-        if (arg.mode == MODE_IMMED)
-            arg.mode = MODE_IMMED_BASE + sz;
+        if (arg.mode() == MODE_IMMED)
+            arg.set_mode(static_cast<arg_mode_t>(MODE_IMMED_BASE + sz));
 
         // disallow PC-relative if arg is "ALTERABLE"
-        if (arg.mode == MODE_DIRECT)
+        if (arg.mode() == MODE_DIRECT)
             if (match & AM_ALTERABLE)
-                arg.mode = MODE_DIRECT_ALTER;
+                arg.set_mode(MODE_DIRECT_ALTER);
 
         // if expression doesn't fit, will error out later.
         // better matches show up in size
@@ -120,7 +120,7 @@ struct val_am : m68k_validate
 
         // infer "maybe": if `inner` or `outer` not resolved, it's a maybe.
         if (result == fits.yes)
-            if (fits.fits<int16_t>(arg.disp) == fits.maybe)
+            if (fits.fits<int16_t>(arg.expr) == fits.maybe)
                 result = fits.maybe;
         if (result == fits.yes)
             if (fits.fits<int16_t>(arg.outer) == fits.maybe)
@@ -134,7 +134,7 @@ struct val_am : m68k_validate
 };
 
 // validate based on "register class" or specific "register"
-struct val_reg : m68k_validate
+struct val_reg : m68k_mcode_t::val_t
 {
     constexpr val_reg(uint16_t r_class, uint16_t r_num = ~0) : r_class{r_class}, r_num(r_num) {}
 
@@ -142,18 +142,18 @@ struct val_reg : m68k_validate
     fits_result ok(m68k_arg_t& arg, m68k_size_t sz, expr_fits const& fits) const override
     {
         // must special case ADDR_REG & DATA_REG as these are
-        // stored as a "arg.mode": (magic number alert...).
+        // stored as a "arg.mode()": (magic number alert...).
         if (r_class <= RC_ADDR)
-            return (r_class == arg.mode) ? fits.yes : fits.no;
+            return (r_class == arg.mode()) ? fits.yes : fits.no;
 
         // Other register classes are coded as mode = MODE_REG
-        else if (arg.mode != MODE_REG)
+        else if (arg.mode() != MODE_REG)
             return fits.no;
 
         // here validating if MODE_REG arg matches. validate if REG class matches desired
         else
         {
-           auto reg_p = arg.disp.template get_p<m68k_reg>();
+           auto reg_p = arg.expr.template get_p<m68k_reg_t>();
            if (reg_p->kind() != r_class)
                 return fits.no;
         } 
@@ -164,7 +164,7 @@ struct val_reg : m68k_validate
             return fits.yes;
 
         // not default: look up actual rc_value
-        auto reg_p = arg.disp.template get_p<m68k_reg>();
+        auto reg_p = arg.expr.template get_p<m68k_reg_t>();
         if (reg_p->value() == r_num)
             return fits.yes;
 

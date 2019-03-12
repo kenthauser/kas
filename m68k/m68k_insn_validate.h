@@ -38,12 +38,19 @@
 
  *****************************************************************************/
 
+#if 0
 #include "m68k_expr_types.h"
 #include "m68k_arg.h"
 #include "m68k_error_messages.h"
 #include "expr/expr_fits.h"
 #include <array>
 
+#else
+
+#include "m68k_mcode.h"
+#include "target/tgt_validate.h"
+
+#endif
 
 namespace kas::m68k::opc
 {

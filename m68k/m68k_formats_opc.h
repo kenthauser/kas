@@ -1,10 +1,9 @@
 #ifndef KAS_M68K_M68K_FORMATS_OPC_H
 #define KAS_M68K_M68K_FORMATS_OPC_H
 
-#include "m68k_formats_type.h"
+#include "m68k_mcode.h"
+#include "target/tgt_format.h"
 
-#include "opc_general.h"
-#include "opc_list.h"
 #include "opc_branch.h"
 #include "opc_dbcc.h"
 #include "opc_cas2.h"
@@ -12,45 +11,32 @@
 #include "opc_cp_branch.h"
 #include "opc_cp_dbcc.h"
 
+
+
 namespace kas::m68k::opc
 {
 
-// general opcode format
-struct fmt_gen : virtual m68k_opcode_fmt
-{
-    static inline m68k_opc_general opc; 
-    virtual m68k_stmt_opcode& get_opc() const override 
-    {
-        return opc;
-    }
-};
+// get `opc` generic base classes
+using fmt_gen  = tgt::opc::tgt_fmt_opc_gen <m68k_mcode_t>;
+using fmt_list = tgt::opc::tgt_fmt_opc_list<m68k_mcode_t>;
 
-// list opcode format
-struct fmt_list : virtual m68k_opcode_fmt
-{
-    static inline m68k_opc_list opc; 
-    virtual m68k_stmt_opcode& get_opc() const override 
-    {
-        return opc;
-    }
-};
 
 // branch opcode format
-struct fmt_branch : virtual m68k_opcode_fmt
+struct fmt_branch : virtual m68k_mcode::fmt_t
 {
-    static inline m68k_opc_branch opc; 
-    virtual m68k_stmt_opcode& get_opc() const override 
+    virtual opcode_t& get_opc() const override 
     {
+        static m68k_opc_branch opc; 
         return opc;
     }
 };
 
 // dbcc opcode format
-struct fmt_dbcc : virtual m68k_opcode_fmt
+struct fmt_dbcc : virtual m68k_mcode::fmt_t
 {
-    static inline m68k_opc_general opc; 
-    virtual m68k_stmt_opcode& get_opc() const override 
+    virtual opcode_t& get_opc() const override 
     {
+        static m68k_opc_general opc; 
         return opc;
     }
 };
@@ -58,30 +44,30 @@ struct fmt_dbcc : virtual m68k_opcode_fmt
 // special for CAS2 
 struct fmt_cas2 : virtual fmt_gen
 {
-    static inline m68k_opc_cas2 opc; 
-    virtual m68k_stmt_opcode& get_opc() const override 
+    virtual opcode_t& get_opc() const override 
     {
+        static m68k_opc_cas2 opc; 
         return opc;
     }
 };
 
 // co-processor branch opcode format
-struct fmt_cp_branch : virtual m68k_opcode_fmt
+struct fmt_cp_branch : virtual m68k_mcode::fmt_t
 {
-    static inline m68k_opc_cp_branch opc; 
-    virtual m68k_stmt_opcode& get_opc() const override 
+    virtual opcode_t& get_opc() const override 
     {
+        static m68k_opc_cp_branch opc; 
         return opc;
     }
 };
 
 // co-processor dbcc opcode format
-struct fmt_cp_dbcc : virtual m68k_opcode_fmt
+struct fmt_cp_dbcc : virtual m68k_mcode::fmt_t
 {
-    static inline m68k_opc_cp_dbcc opc; 
 
-    virtual m68k_stmt_opcode& get_opc() const override 
+    virtual opcode_t& get_opc() const override 
     {
+        static m68k_opc_cp_dbcc opc; 
         return opc;
     }
 };
