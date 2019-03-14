@@ -187,7 +187,7 @@ namespace kas::m68k::opc
             }
             auto operator*() const
             { 
-                return sz;
+                return static_cast<m68k_size_t>(sz);
             }
             auto operator==(iter const& other) const
             { 

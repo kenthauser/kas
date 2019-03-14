@@ -5,6 +5,7 @@
 
 #include "m68k_reg_defns.h"
 
+#include "mit_moto_names.h"
 #include "target/tgt_insn_adder.h"
 
 #include "m68k/insns_m68000.h"
@@ -17,11 +18,16 @@
 //#include "m68k/insns_coldfire.h"
 
 #include "m68k_arg_impl.h"
+#include "m68k_arg_size.h"
+#include "m68k_arg_serialize.h"
 //#include "m68k_opcode_emit.h"
 
 // parse m68k instruction + args
 #include "mit_moto_parser_def.h"
 
+#include "mit_moto_names.h"
+#include "mit_arg_ostream.h"
+#include "moto_arg_ostream.h"
 
 // boilerplate: tgt_impl & sym_parser (for insn & reg names)
 #include "parser/sym_parser.h"
@@ -77,6 +83,58 @@ namespace kas::m68k::parser
     using m68k_insn_adder        = typename m68k_mcode_t::adder_t;
     using m68k_insn_sym_parser_t = sym_parser_t<m68k_insn_defn, insns, m68k_insn_adder>;
 #endif
+
+#if 1
+    // XXX shoud stop parsing on (PARSER_CHARS | '.')
+    m68k_insn_sym_parser_t insn_sym_parser;
+
+    // parser for opcode names
+    m68k_insn_x3 m68k_insn_parser {"m68k opcode"};
+    
+    auto const m68k_insn_parser_def = insn_sym_parser.x3();
+    BOOST_SPIRIT_DEFINE(m68k_insn_parser);
+
+    // instantiate parsers
+    BOOST_SPIRIT_INSTANTIATE(m68k_insn_x3, iterator_type, context_type)
+    BOOST_SPIRIT_INSTANTIATE(m68k_stmt_x3, iterator_type, context_type)
+#endif
+}
+
+namespace kas::m68k
+{
+    // use MIT ostream format
+    std::ostream& operator<<(std::ostream& os, m68k_arg_t const& arg)
+    {
+        return mit_arg_ostream(os, arg);
+    }
+}
+
+
+namespace kas::tgt
+{
+    // name types used to instantiate the CRTP templates: reg, reg_set, stmt
+    using reg_t     = m68k::m68k_reg_t;
+    using reg_set_t = m68k::m68k_reg_set;
+    using arg_t     = m68k::m68k_arg_t;
+    using insn_t    = m68k::m68k_insn_t;
+    
+    // instantiate reg routines referenced from expression parsers
+    template const char *tgt_reg<reg_t>::validate(int) const;
+
+    // instantiate reg_set routines referenced from expression parsers
+    template      tgt_reg_set<reg_set_t, reg_t>::tgt_reg_set(reg_t const&, char);
+    template auto tgt_reg_set<reg_set_t, reg_t>::base_t::binop(const char, tgt_reg_set const&) -> derived_t&;
+    template auto tgt_reg_set<reg_set_t, reg_t>::binop(const char, core::core_expr const&)   -> derived_t&;
+    template auto tgt_reg_set<reg_set_t, reg_t>::binop(const char, int)   -> derived_t&;
+    
+    // instantiate routines referenced from stmt parsers
+    template core::opcode *tgt_stmt<insn_t, arg_t>::gen_insn(core::opcode::data_t&);
+    template std::string   tgt_stmt<insn_t, arg_t>::name() const;
+
+    // instantiate printers
+    template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostream>(std::ostream&) const;
+    template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostringstream>(std::ostringstream&) const;
+}
 #if 0
     struct _xxx
     {
@@ -122,47 +180,4 @@ namespace kas::m68k::parser
         }
     } ;//_xxx;
 #endif
-
-#if 0
-    // XXX shoud stop parsing on (PARSER_CHARS | '.')
-    m68k_insn_sym_parser_t insn_sym_parser;
-
-    // parser for opcode names
-    m68k_insn_x3 m68k_insn_parser {"m68k opcode"};
-    
-    auto const m68k_insn_parser_def = insn_sym_parser.x3();
-    BOOST_SPIRIT_DEFINE(m68k_insn_parser);
-
-    // instantiate parsers
-    BOOST_SPIRIT_INSTANTIATE(m68k_insn_x3, iterator_type, context_type)
-    BOOST_SPIRIT_INSTANTIATE(m68k_stmt_x3, iterator_type, context_type)
-#endif
-}
-
-
-namespace kas::tgt
-{
-    // name types used to instantiate the CRTP templates: reg, reg_set, stmt
-    using reg_t     = m68k::m68k_reg_t;
-    using reg_set_t = m68k::m68k_reg_set;
-    using arg_t     = m68k::m68k_arg_t;
-    using insn_t    = m68k::m68k_insn_t;
-    
-    // instantiate reg routines referenced from expression parsers
-    template const char *tgt_reg<reg_t>::validate(int) const;
-
-    // instantiate reg_set routines referenced from expression parsers
-    template      tgt_reg_set<reg_set_t, reg_t>::tgt_reg_set(reg_t const&, char);
-    template auto tgt_reg_set<reg_set_t, reg_t>::base_t::binop(const char, tgt_reg_set const&) -> derived_t&;
-    template auto tgt_reg_set<reg_set_t, reg_t>::binop(const char, core::core_expr const&)   -> derived_t&;
-    template auto tgt_reg_set<reg_set_t, reg_t>::binop(const char, int)   -> derived_t&;
-    
-    // instantiate routines referenced from stmt parsers
-    template core::opcode *tgt_stmt<insn_t, arg_t>::gen_insn(core::opcode::data_t&);
-    template std::string   tgt_stmt<insn_t, arg_t>::name() const;
-
-    // instantiate printers
-    template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostream>(std::ostream&) const;
-    template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostringstream>(std::ostringstream&) const;
-}
 

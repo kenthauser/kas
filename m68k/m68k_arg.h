@@ -105,6 +105,12 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
     // support for `access-mode` validation
     uint16_t am_bitset() const;
 
+    template <typename Inserter>
+    bool serialize(Inserter& inserter, bool& completely_saved);
+    
+    template <typename Reader>
+    void extract(Reader& reader, bool has_data, bool has_expr);
+
     // true if all `disp` and `outer` are registers or constants 
     bool is_const () const
     {

@@ -5,37 +5,22 @@
  *
  * Instruction argument validation.
  *
- * There are four types of argument validation supported:
+ * Two types are defined. Both are templated with MCODE_T
  *
- * 1) access mode validation: These modes are described in the
- *    Z80 Programmers Reference Manual (eg: Table 2-4 in document
- *    M680000PM/AD) and used throughout opcode descriptions.
+ * `tgt_validate` is a virtual base class which tests arguments.
  *
- * 2) register class: based on class enum (eg: RC_DATA or RC_CTRL)
- *
- * 3) single register: base on class enum & value
- *    (eg: RC_CTRL:0x800 for `USP`)
- *
- * 4) arbitrary function: these can be used to, for example, validate
- *    the many constant ranges allowed by various instructions. Examples
- *    include `MOVEQ` (signed 8 bits), `ADDQ` (1-8 inclusive), etc.
- *    Function may also specify argument size calculation functions.
- *
- * For each type of validation, support three methods:
- *      - const char* name()                 : return name of validation
- *      - fits_result ok(arg&, info&, fits&) : test argument against validation
- *      - op_size_t   size(arg&, info&, fits&, size_p*) : bytes required by arg
+ * Two methods: `ok` & `size`, both return `expression::fits_result`
+ * `ok`   tests if arg passes validation test.
+ * `size` performs `ok` & then evaluates size of arg.
  *
  *
- *****************************************************************************
+ * The second type is `tgt_validate_args`
  *
- * Implementation
+ * This type is constructed with a `meta::list` of validators.
+ * This type can create iterator over validators. This iterator
+ * dereferences to the iterator & supports a `name` method which
+ * returns printable name.
  *
- * 
- *
- *
- *
-
  *****************************************************************************/
 
 #include "expr/expr_fits.h"
@@ -54,10 +39,12 @@ using op_size_t   = core::opcode::op_size_t;
 template <typename MCODE_T>
 struct tgt_validate
 {
-    using arg_t = typename MCODE_T::arg_t;
+    using arg_t      = typename MCODE_T::arg_t;
+    using tgt_size_t = typename MCODE_T::tgt_size_t;
 
+    // if arg invalid for particular `tgt_size_t`, error it out in `size` method
     virtual fits_result ok  (arg_t& arg, expr_fits const& fits) const = 0;
-    virtual fits_result size(arg_t& arg, expr_fits const& fits, op_size_t&) const
+    virtual fits_result size(arg_t& arg, tgt_size_t sz, expr_fits const& fits, op_size_t& op_size) const
     { 
         // default: return "fits", don't update size
         return ok(arg, fits);
@@ -145,7 +132,7 @@ public:
 //private:
     // validate is abstract class. access via pointers to instances
     static inline const tgt_validate<MCODE_T> *const *vals_base;
-    static inline const char *          const *names_base;
+    static inline const char *                 const *names_base;
 
     std::array<val_idx_t, MAX_ARGS> arg_index;
     val_idx_t                       arg_count;
@@ -156,7 +143,8 @@ public:
 template <typename MCODE_T>
 void tgt_validate_args<MCODE_T>::print(std::ostream& os) const
 {
-    os << "tgt_validate_args: count = " << +arg_count << " indexs = [";
+    os << MCODE_T::BASE_NAME::value << "::validate_args:";
+    os << " count = " << +arg_count << " indexs = [";
     char delim{};
     for (auto n : arg_index)
     {

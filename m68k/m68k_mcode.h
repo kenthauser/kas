@@ -2,6 +2,7 @@
 #define KAS_M68K_M68K_MCODE_H
 
 #include "m68k_stmt.h"
+#include "m68k_size_defn.h"
 #include "target/tgt_mcode.h"
 
 #include "kas_core/core_emit.h"
@@ -14,10 +15,14 @@
 namespace kas::m68k
 {
 
+
+struct m68k_mcode_t;
+
 // override defaults for various sizes
 struct m68k_mcode_size_t : tgt::tgt_mcode_size_t
 {
     using mcode_size_t = uint16_t;
+    using tgt_size_t   = m68k::opc::m68k_size_t;
 };
 
 

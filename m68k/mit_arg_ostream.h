@@ -4,7 +4,7 @@
 // instantiate m68k instruction parser.
 
 #include "m68k.h"
-#include "m68k_arg_defn.h"
+#include "m68k_arg.h"
 
 namespace kas::m68k
 {
@@ -36,7 +36,7 @@ namespace kas::m68k
                     default:
                         break;
                 }
-                return m68k::m68k_reg(reg_class, reg_num).name();
+                return m68k::m68k_reg_t(reg_class, reg_num).name();
             };
 
         auto index_reg_name = [&reg_name](m68k_extension_t const& ext) -> std::string
@@ -67,7 +67,7 @@ namespace kas::m68k
         // NB: MODE_INDEX_BRIEF requires twiddling index & base -- copy these.
         auto const& reg    = arg.reg_num;
         auto index         = arg.ext;
-        auto base          = arg.disp;
+        auto base          = arg.expr;
         auto const& outer  = arg.outer;
         
         // coldfire MAC subregisters. And MASK. sigh...
@@ -89,7 +89,7 @@ namespace kas::m68k
 
         bool pc_reg = false;
 
-        switch (arg.mode) {
+        switch (arg.mode()) {
         case MODE_ERROR:
             return os << "Err: " << base;
         case MODE_DATA_REG:
@@ -147,8 +147,8 @@ namespace kas::m68k
         case MODE_BITFIELD:
             return os << "{" << base << "," << outer << "}";
         default:
-            return os << "XXX MODE: " + std::to_string(arg.mode);
-            throw std::runtime_error("print_arg: unknown mode: " + std::to_string(arg.mode));
+            return os << "XXX MODE: " + std::to_string(arg.mode());
+            throw std::runtime_error("print_arg: unknown mode: " + std::to_string(arg.mode()));
         }
 
         // here for index modes...

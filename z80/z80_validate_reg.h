@@ -8,7 +8,7 @@
  * There are four types of argument validation supported:
  *
  * 1) access.mode() validation: These.mode()s are described in the
- *    Z80 Programmers Reference Manual (eg: Table 2-4 in document
+ *    M68K Programmers Reference Manual (eg: Table 2-4 in document
  *    M680000PM/AD) and used throughout opcode descriptions.
  *
  * 2) register class: based on class enum (eg: RC_DATA or RC_CTRL)
@@ -21,21 +21,10 @@
  *    include `MOVEQ` (signed 8 bits), `ADDQ` (1-8 inclusive), etc.
  *    Function may also specify argument size calculation functions.
  *
- * For each type of validation, support three methods:
- *      - const char* name()                 : return name of validation
+ * For each type of validation, support two methods:
  *      - fits_result ok(arg&, info&, fits&) : test argument against validation
  *      - op_size_t   size(arg&, info&, fits&, size_p*) : bytes required by arg
  *
- *
- *****************************************************************************
- *
- * Implementation
- *
- * 
- *
- *
- *
-
  *****************************************************************************/
 
 #include "z80_mcode.h"

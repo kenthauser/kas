@@ -34,10 +34,18 @@ namespace opc
         insn_fixed_t(fixed_t fixed = {}) : fixed(fixed) {};
 
         template <typename T>
-        auto begin() const { return static_cast<T *>(data); }
+        auto begin() const
+        { 
+            void *v = data;
+            return static_cast<T *>(v);
+        }
         
         template <typename T>
-        auto begin()       { return static_cast<T *>(data); }
+        auto begin()       
+        { 
+            void *v = data;
+            return static_cast<T *>(v);
+        }
 
         template <typename T>
         constexpr auto size() const  { return sizeof(data)/sizeof(T); }

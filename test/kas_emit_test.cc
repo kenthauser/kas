@@ -60,8 +60,8 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     
     // create assembler object
     kas::core::kas_assemble obj;
-    //obj.assemble(src, &parse_out);
-    obj.assemble(src);
+    obj.assemble(src, &parse_out);
+    //obj.assemble(src);
     
 
     // dump raw

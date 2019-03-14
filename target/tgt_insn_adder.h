@@ -33,11 +33,12 @@ struct tgt_insn_adder
         // get types from sym_parser
         using types_defns = typename PARSER::all_types_defns; 
         defn_t::names_base = at_c<types_defns, 0>::value;
-        defn_t::fmts_base  = at_c<types_defns, 1>::value;
+        defn_t::sizes_base = at_c<types_defns, 1>::value;
+        defn_t::fmts_base  = at_c<types_defns, 2>::value;
 
         // xlate VAL_C types as index into VAL array
-        using VALS  = at_c<typename PARSER::all_types, 2>;
-        using VAL_C = at_c<typename PARSER::all_types, 3>;
+        using VALS  = at_c<typename PARSER::all_types, 3>;
+        using VAL_C = at_c<typename PARSER::all_types, 4>;
         using COMBO = transform<VAL_C
                               , bind_back<quote<transform>
                                         , bind_front<quote<find_index>, VALS>
@@ -50,7 +51,7 @@ struct tgt_insn_adder
         
         // val list & names are stored in `combo` 
         using VAL_NAMES = transform<VALS, quote<front>>;
-        val_c_t::vals_base  = at_c<types_defns, 2>::value;
+        val_c_t::vals_base  = at_c<types_defns, 3>::value;
         val_c_t::names_base = init_from_list<const char *, VAL_NAMES>::value;
     }
 
@@ -83,32 +84,40 @@ struct tgt_insn_adder
         for (int n = 0; n < count; ++p, ++n)
         {
             //std::cout << n << " base: " << p->name() << std::endl;
-
-            // XXX don't worry about hw validators: allocate all
-            mcode_t *mcode_p {};
-
-            // create the "mcode instance" 
-            // NB: use "deque::size()" for instance index
-            mcode_p = &mcode_obstack->emplace_back(mcode_obstack->size(), n);
-            auto&& name = p->name();
-
-            // test for "list" opcode
-            if (name[0] == '*')
+#if 1
+            auto& sz_obj = p->sizes_base[p->sz_index - 1];
+            for (auto sz : sz_obj)
             {
-                // save list opcode "mcode" as global in `insn_t`
-                insn_t::list_mcode_p = mcode_p;
-                continue;
-            }
+                // XXX don't worry about hw validators: allocate all
+                mcode_t *mcode_p {};
+
+                // create the "mcode instance" 
+                // NB: use "deque::size()" for instance index
+                mcode_p = &mcode_obstack->emplace_back(mcode_obstack->size(), n, sz);
+                auto name = p->name();
+
+                // test for "list" opcode
+                if (name[0] == '*')
+                {
+                    // save list opcode "mcode" as global in `insn_t`
+                    insn_t::list_mcode_p = mcode_p;
+                    continue;
+                }
                 
-            // lookup name. creates new "lookup table" slot if not found
-            auto& insn_p = x3.at(name);
+                for (auto&& name : m68k::opc::mit_moto_names(p->name(), sz_obj.suffixes(sz)))
+                {
+                    // lookup name. creates new "lookup table" slot if not found
+                    auto& insn_p = x3.at(name);
 
-            // if new slot, allocate insn
-            if (!insn_p)
-                insn_p = &insn_obstack->emplace_back(insn_obstack->size(), std::move(name));
+                    // if new slot, allocate insn
+                    if (!insn_p)
+                        insn_p = &insn_obstack->emplace_back(insn_obstack->size(), std::move(name));
 
-            // add opcode to insn
-            insn_p->add_mcode(mcode_p);
+                    // add opcode to insn
+                    insn_p->add_mcode(mcode_p);
+                }
+            }
+#endif
         }
     }
 

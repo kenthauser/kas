@@ -13,6 +13,7 @@ template <typename MCODE_T> struct tgt_validate_args;
 template <typename MCODE_T> struct tgt_insn_defn;
 template <typename MCODE_T> struct tgt_insn_adder;
 template <typename MCODE_T> struct tgt_opcode;
+template <typename MCODE_T> struct tgt_size;
 
 }
 // instruction per-size run-time object
@@ -40,14 +41,17 @@ struct tgt_mcode_size_t
     using fmt_idx_t    = uint8_t;
     using val_idx_t    = uint8_t;
     using val_c_idx_t  = uint8_t;
+    using tgt_size_t   = uint8_t;
 };
+
+template <typename MCODE_T> struct tgt_size { };
 
 
 template <typename MCODE_T, typename STMT_T, typename ERR_MSG_T, typename SIZE_T = tgt_mcode_size_t>
 struct tgt_mcode_t
 {
     using BASE_NAME = KAS_STRING("TGT");
-    
+
     // CRTP types
     using base_t    = tgt_mcode_t;
     using derived_t = MCODE_T;
@@ -69,12 +73,12 @@ struct tgt_mcode_t
     using op_size_t    = typename core::opcode::op_size_t;
 
     // supporting types
-    using fmt_t     = opc::tgt_format       <MCODE_T>;
-    using val_t     = opc::tgt_validate     <MCODE_T>;
-    using val_c_t   = opc::tgt_validate_args<MCODE_T>;
-    using defn_t    = opc::tgt_insn_defn    <MCODE_T>;
-    using adder_t   = opc::tgt_insn_adder   <MCODE_T>;
-    using opcode_t  = opc::tgt_opcode       <MCODE_T>;
+    using fmt_t      = opc::tgt_format       <MCODE_T>;
+    using val_t      = opc::tgt_validate     <MCODE_T>;
+    using val_c_t    = opc::tgt_validate_args<MCODE_T>;
+    using defn_t     = opc::tgt_insn_defn    <MCODE_T>;
+    using adder_t    = opc::tgt_insn_adder   <MCODE_T>;
+    using opcode_t   = opc::tgt_opcode       <MCODE_T>;
 
     // override sizes in `SIZE_T` if required
     using mcode_size_t = typename SIZE_T::mcode_size_t;
@@ -84,6 +88,7 @@ struct tgt_mcode_t
     using fmt_idx_t    = typename SIZE_T::fmt_idx_t;
     using val_idx_t    = typename SIZE_T::val_idx_t;
     using val_c_idx_t  = typename SIZE_T::val_c_idx_t;
+    using tgt_size_t   = typename SIZE_T::tgt_size_t;
     
     static constexpr auto MAX_ARGS        = SIZE_T::MAX_ARGS;
     static constexpr auto MAX_MCODE_WORDS = SIZE_T::MAX_MCODE_WORDS;
@@ -100,8 +105,8 @@ struct tgt_mcode_t
         { return *static_cast<derived_t*>(this); }
 
     // constructor: just save indexes
-    tgt_mcode_t(mcode_idx_t index, defn_idx_t defn_index)
-        : index(index), defn_index(defn_index)
+    tgt_mcode_t(mcode_idx_t index, defn_idx_t defn_index, tgt_size_t sz)
+        : index(index), defn_index(defn_index), _sz(sz)
         {}
 
     // declare as template to defer definition of `ARGS_T`
@@ -119,11 +124,11 @@ struct tgt_mcode_t
     static auto& get(uint16_t idx) { return (*index_base)[idx]; }
 
     // retrieve support types
-    defn_t  const& defn()  const;
-    fmt_t   const& fmt()   const;
-    val_c_t const& vals()  const;
-    auto  sz()    const { return 0; }
-    std::string name() const;
+    defn_t     const& defn() const;
+    fmt_t      const& fmt()  const;
+    val_c_t    const& vals() const;
+    tgt_size_t const  sz()   const { return _sz; }
+    std::string       name() const;
 
     // machine code size in bytes (for format & serialize)
     uint8_t code_size() const;
@@ -141,6 +146,8 @@ struct tgt_mcode_t
 
     mcode_idx_t index;         // -> access this instance (zero-based)
     defn_idx_t  defn_index;    // -> access associated defn for name, fmt, validator (zero-based)
+    tgt_size_t  _sz;
+
 };
 
 }

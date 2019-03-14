@@ -31,7 +31,7 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
     // get kas types from opcode
     using core::opcode;
     auto trace  = opcode::trace;
-    trace = nullptr;
+    //trace = nullptr;
     
     // convenience references 
     auto& insn = *insn_p;

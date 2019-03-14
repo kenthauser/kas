@@ -14,7 +14,7 @@
     move.l  d2, a2@(a2:w)
     move.l  d3, a3@(d3:4)
     move.l  d4, a4@(d4:l:8)
-    move.l  d5, a6@(d5:8:l)
+    ;move.l  d5, a6@(d5:8:l)
     move.l  d6, a6@(d4, 123:4)
     move.l  za0, d0
     move.l  za0@, d2
@@ -26,8 +26,8 @@
     move.l  a0, a1@(123, d1)@(234)
     move.l  a1, a2@(d1)@(321)
     move.l  a7, a2@(d1)@(0)
-    move.l  a5, a2@()
-    move.l  a6, a2@(d1)@()
+    ;move.l  a5, a2@()
+    ;move.l  a6, a2@(d1)@()
     move.l  a6, a2@(0)@(d1)
     move.l  a2, a3@(123)@(234)
     move.l  a3, a4@(123)@(d3)

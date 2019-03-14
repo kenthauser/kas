@@ -19,7 +19,7 @@ ALL_TESTS = test_expr test_parse test_emit
 TESTS = $(ALL_TESTS)
 TESTS = test_expr
 TESTS = test_parse
-#TESTS = test_emit
+TESTS = test_emit
 # TESTS = vtable-test
 # TESTS = str
 #TESTS = as
@@ -41,7 +41,7 @@ VPATH = parser:expr:kas_core:bsd:m68k:test:kas_exec:z80
 
 OBJS =  kas_core.o expr.o parser.o
 OBJS += bsd.o
-OBJS += m68k.o m68k_defns.o
+OBJS += m68k.o
 #OBJS += z80.o
 
 LIBS = -lboost_regex -lboost_filesystem -lboost_system

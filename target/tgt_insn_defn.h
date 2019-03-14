@@ -81,15 +81,25 @@ struct tgt_insn_defn
     using val_c_idx_t  = typename mcode_t::val_c_idx_t;
     static constexpr auto MAX_ARGS = mcode_t::MAX_ARGS;
 
-    // indexes into `defn` type list
-    static constexpr auto VALIDATOR_BASE = 3;
-    using VAL_SEQ   = std::make_index_sequence<VALIDATOR_BASE + MAX_ARGS>;
+    // NAME the `defn` INDEXES
+    // NB: this is only for reference. The list
+    // is passed as a whole to the ctor, so any changes
+    // in defn must also be reflected there.
+    static constexpr auto DEFN_IDX_SZ   = 0;
+    static constexpr auto DEFN_IDX_NAME = 1;
+    static constexpr auto DEFN_IDX_INFO = 2;
+    static constexpr auto DEFN_IDX_FMT  = 3;
+    static constexpr auto DEFN_IDX_VAL  = 4;
+    
+    using VAL_SEQ   = std::make_index_sequence<DEFN_IDX_VAL + MAX_ARGS>;
 
-    using NAME_LIST = list<int_<0>>;
-    using FMT_LIST  = list<int_<2>>;
-    using VAL_LIST  = drop_c<IS_as_list<VAL_SEQ>, VALIDATOR_BASE>;
+    using NAME_LIST = list<int_<DEFN_IDX_NAME>>;
+    using SIZE_LIST = list<int_<DEFN_IDX_SZ>>;
+    using FMT_LIST  = list<int_<DEFN_IDX_FMT>>;
+    using VAL_LIST  = drop_c<IS_as_list<VAL_SEQ>, DEFN_IDX_VAL>;
 
     using XLATE_LIST = list<list<const char * , NAME_LIST>
+                          , list<const m68k::opc::m68k_insn_size, SIZE_LIST>
                           , list<const fmt_t *, FMT_LIST, quote<VT_CTOR>>
                           , list<const val_t *, VAL_LIST, quote<VT_CTOR>>
 
@@ -99,21 +109,23 @@ struct tgt_insn_defn
 
     using ADDER  = adder_t;
 
-    template <typename NAME, typename FMT, typename...VALs, typename VAL_C,
-              typename N, typename OP, typename...D>
-    constexpr tgt_insn_defn(list<list<list<NAME>, list<FMT>
+    template <typename NAME, typename SZ, typename FMT, typename...VALs, typename VAL_C,
+              typename S, typename N, typename OP, typename...X>
+    constexpr tgt_insn_defn(list<list<list<NAME>, list<SZ>, list<FMT>
                                      , list<VALs...>, list<VAL_C>>
-                                , list<N, OP, D...>>)
+                                , list<S, N, OP, X...>>)
             : name_index  { NAME::value  + 1   }
+            , sz_index    { SZ::value    + 1   }
             , fmt_index   { FMT::value   + 1   }
             , val_c_index { VAL_C::value + 1   }
-            , code        { OP::value  }
-            , code_words  { code_to_words<mcode_size_t>(OP::value) }
+            , code        { OP::opcode::value  }
+            , code_words  { code_to_words<mcode_size_t>(OP::opcode::value) }
             //, tst         { OP::tst::value     }
             {}
             
     // `fmt_t` is abstract class. access via pminters to instances
     static inline const char * const *names_base;
+    static inline const m68k::opc::m68k_insn_size *sizes_base;
     static inline const fmt_t *const *fmts_base;
     static inline val_c_t      const *val_c_base;
 
@@ -140,7 +152,8 @@ struct tgt_insn_defn
     auto& fmt()  const  { return *fmts_base [fmt_index   - 1]; }
     auto& vals() const  { return  val_c_base[val_c_index - 1]; }
 
-    uint16_t code;          // actual binary code
+    // XXX
+    uint32_t code;          // actual binary code
     uint16_t tst {};           // hw test
     uint8_t  code_words;    // zero-based
 
@@ -148,6 +161,7 @@ struct tgt_insn_defn
     name_idx_t  name_index;    //  ? bits
     val_c_idx_t val_c_index;   //  ? bits
     fmt_idx_t   fmt_index;     //  ? bits
+    uint8_t     sz_index;
 };
 
 }

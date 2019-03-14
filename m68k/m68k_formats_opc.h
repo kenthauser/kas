@@ -4,13 +4,14 @@
 #include "m68k_mcode.h"
 #include "target/tgt_format.h"
 
+#if 0
 #include "opc_branch.h"
 #include "opc_dbcc.h"
 #include "opc_cas2.h"
 
 #include "opc_cp_branch.h"
 #include "opc_cp_dbcc.h"
-
+#endif
 
 
 namespace kas::m68k::opc
@@ -20,6 +21,15 @@ namespace kas::m68k::opc
 using fmt_gen  = tgt::opc::tgt_fmt_opc_gen <m68k_mcode_t>;
 using fmt_list = tgt::opc::tgt_fmt_opc_list<m68k_mcode_t>;
 
+#if 1
+
+using fmt_branch    = fmt_gen;
+using fmt_dbcc      = fmt_gen;
+using fmt_cas2      = fmt_gen;
+using fmt_cp_branch = fmt_gen;
+using fmt_cp_dbcc   = fmt_gen;
+
+#else
 
 // branch opcode format
 struct fmt_branch : virtual m68k_mcode::fmt_t
@@ -71,6 +81,7 @@ struct fmt_cp_dbcc : virtual m68k_mcode::fmt_t
         return opc;
     }
 };
+#endif
 }
 
 #endif

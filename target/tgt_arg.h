@@ -37,7 +37,7 @@ protected:
 public:
     // arg mode: default getter/setter
     auto mode() const              { return _mode; }
-    void set_mode(arg_mode_t mode) { _mode = mode; }
+    void set_mode(unsigned mode) { _mode = static_cast<arg_mode_t>(mode); }
 
     // for validate_min_max: default implmentation
     bool is_missing() const { return _mode == MODE_NONE; }

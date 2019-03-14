@@ -161,14 +161,14 @@ auto const junk_tuple   = make_value_tuple(parse_junk, stmt_parsers());
 #endif
 
 auto const statement_def =
-#if 1
+#if 0
             reduce_tuple(std::bit_or<>{}, stmt_tuple)
 #else
             ( bsd::parser::stmt_comma_x3() > end_of_line )
           | ( bsd::parser::stmt_space_x3() > end_of_line )
           | ( bsd::parser::stmt_equ_x3  () > end_of_line )
           | ( bsd::parser::stmt_org_x3  () > end_of_line )
-          | ( z80::parser::z80_stmt_x3  () > end_of_line )
+          | ( m68k::parser::m68k_stmt_x3  () > end_of_line )
 #endif
           | reduce_tuple(std::bit_or<>{}, label_tuple)
           | end_of_input

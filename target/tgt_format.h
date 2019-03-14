@@ -148,26 +148,28 @@ struct tgt_fmt_generic
     
     static constexpr auto MASK = (1 << BITS) - 1;
     static bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p)
-        {
-            kas::expression::expr_fits fits;
-            auto result = val_p->ok(arg, fits);
+    {
+        kas::expression::expr_fits fits;
+        
+        // NB: logic error if val_p == nullptr 
+        auto result = val_p->ok(arg, fits);
 
-            if (result != fits.yes)
-                return false;
+        if (result != fits.yes)
+            return false;
 
-            auto value = val_p->get_value(arg);       // NB: logic error if val_p == nullptr
-            
-            auto old_word = op[WORD];
-            op[WORD] &= ~(MASK << SHIFT);
-            op[WORD] |= value << SHIFT;         // NB: logic error if (VALUE &~ MASK)
-            return true;
-        }
+        auto value = val_p->get_value(arg);
+        
+        auto old_word = op[WORD];
+        op[WORD] &= ~(MASK << SHIFT);
+        op[WORD] |= value << SHIFT;         // NB: logic error if (VALUE &~ MASK)
+        return true;
+    }
 
     static void extract(mcode_size_t const* op, arg_t* arg, val_t const *val_p)
-        {
-            auto value = MASK & op[WORD] >> SHIFT;
-            val_p->set_arg(*arg, value);
-        }
+    {
+        auto value = MASK & op[WORD] >> SHIFT;
+        val_p->set_arg(*arg, value);
+    }
 };
 
 //

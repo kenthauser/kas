@@ -293,7 +293,7 @@ namespace kas::m68k::parser
     // bitfield breaks regularity. Allow bitfield to follow arg w/o comma
     // no arguments indicated by location tagged `m68k_arg` with type MODE_NONE
     
-    rule<class _m68k_args, std::list<m68k_arg_t>> const m68k_args = "m68k_args";
+    rule<class _m68k_args, std::vector<m68k_arg_t>> const m68k_args = "m68k_args";
     auto const m68k_args_def
            = (m68k_arg >> *((',' > m68k_arg) | m68k_bf_arg))
            | repeat(1)[m68k_missing]        // MODE_NONE, but location tagged
@@ -301,12 +301,16 @@ namespace kas::m68k::parser
 
     BOOST_SPIRIT_DEFINE(m68k_args)
 
-    auto const m68k_stmt_def = (m68k_insn_x3() > m68k_args)[m68k_stmt_t()];
+    auto const raw_m68k_stmt = rule<class _, m68k_stmt_t> {} =
+                        (m68k_insn_x3() > m68k_args)[m68k_stmt_t()]; 
 
     // Parser interface
     m68k_stmt_x3 m68k_stmt {"m68k_stmt"};
+    auto const m68k_stmt_def = raw_m68k_stmt;
     
     BOOST_SPIRIT_DEFINE(m68k_stmt)
+
+    struct _tag_m68k_stmt : kas::parser::annotate_on_success {};
 }
 
 #endif

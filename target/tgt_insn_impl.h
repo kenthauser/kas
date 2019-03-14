@@ -91,7 +91,8 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
             return err_msg_t::ERR_invalid;
         if (trace)
             *trace << " " << val_p.name() << " ";
-        
+       
+        // if invalid for sz(), pick up in size() method
         auto result = val_p->ok(arg, fits);
 
         if (result == expression::NO_FIT)
@@ -128,7 +129,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         if (trace)
             *trace << " " << val_p.name() << " ";
 
-        auto r = val_p->size(arg, fits, size);
+        auto r = val_p->size(arg, sz(), fits, size);
         
         if (trace)
             *trace << +r << " ";

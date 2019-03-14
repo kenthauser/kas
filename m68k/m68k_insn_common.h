@@ -51,6 +51,20 @@
 
 namespace kas::m68k::opc
 {
+// declare opcode groups (ie: include files)
+using m68k_insn_defn_groups = meta::list<
+      struct OP_M68K_GEN
+    , struct OP_M68K_020
+    , struct OP_M68K_040
+    , struct OP_M68K_060
+    , struct OP_M68K_CPU32
+    , struct OP_M68K_68881
+    , struct OP_M68K_68551
+    , struct OP_COLDFIRE
+    >;
+
+template <typename=void> struct m68k_insn_defn_list : meta::list<> {};
+
 ///////////////////////////////////////////////////////////////////////    
 //
 // NB: `insn` is a meta `trait` (which evaluates to a meta `list` of arguments) because

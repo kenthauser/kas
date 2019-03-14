@@ -38,34 +38,50 @@ using fmt_generic = tgt::opc::tgt_fmt_generic<m68k_mcode_t, Ts...>;
 // m68k specific formatters
 //
 
-// 3-bit register + 3-bit mode
+// For `reg_mode` & `fmt_reg`, the validator passes 6-bit mode+reg
+// to be inserted/retrieved. `reg_mode` inserts 6 bits. Both
+// `reg_mode` & `fmt_reg` retrieve 6 bits. For `fmt_reg`, the 
+// 3 msbs (mode) of the retrived value must be ignored
+
+// These formatters are designed to work with the M68K register validators
+// reg-mode sets 6-bits.
 template <int SHIFT, unsigned WORD = 0, int MODE_OFFSET = 3>
 struct reg_mode
 {
+    using val_t = m68k_mcode_t::val_t;
     static constexpr auto MASK = (7 << SHIFT) | (7 << (SHIFT+MODE_OFFSET));
-    static bool insert(uint16_t* op, m68k_arg_t& arg)
-        {
-            auto cpu_mode = arg.cpu_mode();
-            if (cpu_mode < 0) {
-                // flag insertion unsuccessful
-                return false;
-            }
+    static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
+    {
+        kas::expression::expr_fits fits;
 
-            auto v = arg.cpu_reg() << SHIFT;
-            v     |= cpu_mode << (SHIFT + MODE_OFFSET);
-            op[WORD] &= ~MASK;
-            op[WORD] |= v;
-            return true;
-        }
+        // validator return 6 bits: mode + reg
+        auto value = val_p->get_value(arg);
+        auto cpu_reg  = value & (7 << 0);
+        auto cpu_mode = value & (7 << 3);
 
-    static void extract(uint16_t const* op, m68k_arg_t* arg)
-        {
-            arg->reg_num  = 7 & op[WORD] >> SHIFT;
-            int cpu_mode  = 7 & op[WORD] >> (SHIFT + MODE_OFFSET);
-            arg->mode() = cpu_mode != 7 ? cpu_mode : 7 + arg->reg_num;
-        }
+        value  = cpu_reg  << SHIFT;
+        value |= cpu_mode << (SHIFT+MODE_OFFSET-3);
+        
+        op[WORD]  &= ~MASK;
+        op[WORD]  |= value;
+        return true;
+    }
+    
+    static void extract(uint16_t const* op, m68k_arg_t* arg, val_t const *val_p)
+    {
+        auto value = op[WORD];
+        auto reg_num  = (7 << 0) & (value >> SHIFT);
+        auto cpu_mode = (7 << 3) & (value >> (SHIFT+MODE_OFFSET-3));
+        
+        val_p->set_arg(*arg, reg_num | cpu_mode);
+    }
 };
 
+// if MODE_OFFSET is three, just generic with six bits
+template <unsigned SHIFT, unsigned WORD>
+struct reg_mode<SHIFT, WORD, 3> : fmt_generic<SHIFT, 6, WORD> {};
+
+#if 0
 // 3-bit register only
 // for extract, specify "cpu_mode" (or 0x100 for RC_FLOAT, etc)
 template <int SHIFT, unsigned MODE, unsigned WORD = 0, unsigned BITS = 3>
@@ -73,35 +89,53 @@ struct fmt_reg
 {
     static constexpr auto MASK = (1 << BITS) - 1;
     static bool insert(uint16_t* op, m68k_arg_t& arg)
+    {
+        kas::expression::expr_fits fits;
+
+        // validator return 6 bits: mode + reg
+        auto value = val_p->get_value(arg);
+        auto cpu_reg  = value & (7 << 0);
+        auto cpu_mode = value & (7 << 3);
+
+        auto reg = arg.cpu_reg();
+        if (MODE & 0x100)
         {
-            auto reg = arg.cpu_reg();
-            if (MODE & 0x100) {
-                // floating point register
-                reg = arg.disp.get_p<m68k_reg>()->value();
-            }
-            auto old_word = op[WORD];
-            op[WORD] &= ~(MASK << SHIFT);
-            op[WORD] |= reg << SHIFT;
-            // std::cout << std::hex;
-            // std::cout << "fmt_reg: " << old_word << " -> " << op[WORD];
-            // std::cout << " mask = " << MASK  << " shift = " << SHIFT << std::endl;
-            return true;
+            // floating point register
+            reg = arg.expr.get_p<m68k_reg_t>()->value();
         }
+        auto old_word = op[WORD];
+        op[WORD] &= ~(MASK << SHIFT);
+        op[WORD] |= reg << SHIFT;
+        // std::cout << std::hex;
+        // std::cout << "fmt_reg: " << old_word << " -> " << op[WORD];
+        // std::cout << " mask = " << MASK  << " shift = " << SHIFT << std::endl;
+        return true;
+    }
 
     static void extract(uint16_t const* op, m68k_arg_t* arg)
+    {
+        auto value = op[WORD];
+        auto reg_num  = (7 << 0) & (value >> SHIFT);
+        auto cpu_mode = (7 << 3) & (value >> (SHIFT+MODE_OFFSET-3));
+        
+        val_p->set_arg(*arg, reg_num | cpu_mode);
+        
+        
+        arg->reg_num = MASK & op[WORD] >> SHIFT;
+
+        if (MODE & 0x100)
         {
-            arg->reg_num = MASK & op[WORD] >> SHIFT;
-
-            if (MODE & 0x100) {
-                // floating point register
-                arg->disp = m68k_reg(MODE & 0xff, arg->reg_num);
-                arg->mode = MODE_REG;
-            } else {
-                arg->mode = MODE;
-            }
+            // floating point register
+            arg->expr = m68k_reg_t(MODE & 0xff, arg->reg_num);
+            arg->set_mode(MODE_REG);
         }
+        else 
+            arg->set_mode(MODE);
+        
+    }
 };
-
+#endif
+#if 0
 // registers which don't insert value. primarily for disassembler
 template <unsigned REG_NUM, unsigned REG_CLASS = RC_CPU>
 struct fmt_reg_direct
@@ -511,6 +545,7 @@ struct q_mov3q : q_math
     // map zero to -1
     operator T() const { return value == 0 ? -1 : value; }
 };
+#endif
 
 }
 #endif

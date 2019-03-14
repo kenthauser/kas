@@ -1,7 +1,7 @@
 #ifndef KAS_M68K_ARG_SIZE_H
 #define KAS_M68K_ARG_SIZE_H
 
-#include "m68k_arg_defn.h"
+#include "m68k_arg.h"
 #include "m68k_hw_defns.h"
 #include "m68k_size_defn.h"
 #include "expr/expr_fits.h"
@@ -77,7 +77,7 @@ namespace kas { namespace m68k
         short min;
         op_size_t result;
 
-        switch (mode) {
+        switch (mode()) {
             case MODE_IMMED_LONG:       // FLT FMT 0
             case MODE_IMMED_SINGLE:     // FLT FMT 1
             case MODE_IMMED_XTND:       // FLT FMT 2
@@ -86,13 +86,13 @@ namespace kas { namespace m68k
             case MODE_IMMED_DOUBLE:     // FLT FMT 5
             case MODE_IMMED_BYTE:       // FLT FMT 6
             case MODE_IMMED_VOID:       // FLT FMT 7
-                return opc::m68k_size_immed[mode - MODE_IMMED_BASE];
+                return opc::m68k_size_immed[mode() - MODE_IMMED_BASE];
 
             // can modify DISP to indirect or index
             case MODE_ADDR_DISP:
-                switch (fits.zero(disp)) {
+                switch (fits.zero(expr)) {
                     case DOES_FIT:
-                        mode = MODE_ADDR_INDIR;
+                        set_mode(MODE_ADDR_INDIR);
                         return 0;
                     case NO_FIT:
                         min = 2;
@@ -107,11 +107,11 @@ namespace kas { namespace m68k
                 if (!hw::cpu_defs[hw::index_full{}])
                     return { min, 2 };
 
-                switch (fits.fits<int16_t>(disp)) {
+                switch (fits.fits<int16_t>(expr)) {
                     case DOES_FIT:
                         return { min, 2 };
                     case NO_FIT:
-                        mode = MODE_INDEX;
+                        set_mode(MODE_INDEX);
                         return { 6, 6 };
                     default:
                         return { min, 6 };
@@ -125,11 +125,11 @@ namespace kas { namespace m68k
 
                     return { 2, 2 };
 
-                switch (fits.fits<int16_t>(disp)) {
+                switch (fits.fits<int16_t>(expr)) {
                     case DOES_FIT:
                         return { 2, 2 };
                     case NO_FIT:
-                        mode = MODE_PC_INDEX;
+                        set_mode(MODE_PC_INDEX);
                         return { 6, 6 };
                     default:
                         return { 2, 6 };
@@ -142,7 +142,7 @@ namespace kas { namespace m68k
                 //std::cout << " mem_mode: " << ext.mem_mode << " outer: " << outer;
                 //std::cout << std::endl;
                 result = 2;
-                result += size_for_index(ext.brief_ok(), ext.disp_size, disp);
+                result += size_for_index(ext.brief_ok(), ext.disp_size, expr);
                 result += size_for_index(false, ext.mem_mode, outer);
                 return result;
 
@@ -150,9 +150,9 @@ namespace kas { namespace m68k
                 // see if PC-relative mode OK.
                 // always the first arg, so offset is always 2
                 //std::cout << "m68k_arg_size: MODE_DIRECT" << std::endl;
-                switch (fits.disp<int16_t>(disp, 2)) {
+                switch (fits.disp<int16_t>(expr, 2)) {
                     case NO_FIT:
-                        mode = MODE_DIRECT_ALTER;
+                        set_mode(MODE_DIRECT_ALTER);
                         break;
                     case DOES_FIT:
                         return 2;
@@ -163,14 +163,14 @@ namespace kas { namespace m68k
                 // FALLSTHRU
             case MODE_DIRECT_ALTER:
                 //std::cout << "m68k_arg_size: MODE_DIRECT_ALTER" << " disp = " << disp;
-                switch (fits.fits<int16_t>(disp)) {
+                switch (fits.fits<int16_t>(expr)) {
                     case DOES_FIT:
                         //std::cout << " -> DIRECT_SHORT" << std::endl;
-                        mode = MODE_DIRECT_SHORT;
+                        set_mode(MODE_DIRECT_SHORT);
                         return 2;
                     case NO_FIT:
                         //std::cout << " -> DIRECT_LONG" << std::endl;
-                        mode = MODE_DIRECT_LONG;
+                        set_mode(MODE_DIRECT_LONG);
                         return 4;
                     default:
                         //std::cout << " (maybe) " << std::endl;
@@ -207,12 +207,12 @@ namespace kas { namespace m68k
         }
     }
 
-    short inline m68k_arg_t::mode_normalize() const
+    m68k_arg_mode inline m68k_arg_t::mode_normalize() const
     {
         // "normalize" some modes for output in opcode
-        switch (mode) {
+        switch (mode()) {
         default:
-            return mode;
+            return mode();
         case MODE_INDEX_BRIEF:
             return MODE_INDEX;
         case MODE_MOVEP:
@@ -231,10 +231,10 @@ namespace kas { namespace m68k
         }
     }
 
-    short inline m68k_arg_t::cpu_mode() const
+    uint8_t inline m68k_arg_t::cpu_mode() const
     {
         // store MODE_DIRECT as PC_DISP
-        if (mode == MODE_DIRECT)
+        if (mode() == MODE_DIRECT)
             return 7;
 
         auto normalized = mode_normalize();
@@ -245,10 +245,10 @@ namespace kas { namespace m68k
         return -1;
     }
 
-    short inline m68k_arg_t::cpu_reg() const
+    uint8_t inline m68k_arg_t::cpu_reg() const
     {
         // store MODE_DIRECT as PC_DISP
-        if (mode == MODE_DIRECT)
+        if (mode() == MODE_DIRECT)
             return 2;
 
         auto normalized = mode_normalize();

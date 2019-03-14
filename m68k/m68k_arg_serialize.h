@@ -9,116 +9,119 @@
 // If needed, save extra data.
 // Data can be stored as "fixed" constant, or "expression" 
 
-#include "m68k_arg_defn.h"
-#include "m68k_formats_type.h"
-#include "m68k_data_inserter.h"
+#include "m68k_arg.h"
+//#include "m68k_formats_type.h"
+//#include "m68k_data_inserter.h"
 #include "kas_core/opcode.h"
 
-#include "expr/expr_fits.h"     // for INDEX_BRIEF
+//#include "expr/expr_fits.h"     // for INDEX_BRIEF
 
 
-namespace kas::m68k::opc
+namespace kas::m68k
 {
-    namespace detail {
-        using m68k_op_size_t = m68k_ext_size_t;
-        using fixed_t = typename core::opcode::fixed_t;
+#if 0
+namespace detail {
+    using m68k_op_size_t = m68k_ext_size_t;
+    using fixed_t = typename core::opcode::fixed_t;
 
-        // Special (word aligned) type to hold info about an m68k argument
-        // in the insn_data deque(). The info for each "arg" is 8-bits
-        // some of which indicate extension words follow.
+    // Special (word aligned) type to hold info about an m68k argument
+    // in the insn_data deque(). The info for each "arg" is 8-bits
+    // some of which indicate extension words follow.
 
-        // arg_mode holds the `m68k_arg_mode_enum`
-        // `has_*_expr` is true if argument is `expr_t`, false for fixed
-        struct arg_info_t {
-            static constexpr std::size_t MODE_FIELD_SIZE = 6;
-            static_assert(NUM_ARG_MODES <= (1<< MODE_FIELD_SIZE)
-                        , "too many `m68k_arg_mode` enums");
+    // arg_mode holds the `m68k_arg_mode_enum`
+    // `has_*_expr` is true if argument is `expr_t`, false for fixed
+    struct arg_info_t {
+        static constexpr std::size_t MODE_FIELD_SIZE = 6;
+        static_assert(NUM_ARG_MODES <= (1<< MODE_FIELD_SIZE)
+                    , "too many `m68k_arg_mode` enums");
 
-            uint8_t arg_mode : MODE_FIELD_SIZE;
-            uint8_t has_data : 1;       // additional data stored
-            uint8_t has_expr : 1;       // data stored as expression
-        };
+        uint8_t arg_mode : MODE_FIELD_SIZE;
+        uint8_t has_data : 1;       // additional data stored
+        uint8_t has_expr : 1;       // data stored as expression
+    };
 
-        // store info in pairs
-        struct m68k_arg_info : kas::detail::alignas_t<m68k_arg_info, m68k_ext_size_t>
+    // store info in pairs
+    struct m68k_arg_info : kas::detail::alignas_t<m68k_arg_info, m68k_ext_size_t>
+    {
+        constexpr static auto ARGS_PER_INFO = sizeof(m68k_ext_size_t)/sizeof(arg_info_t);
+        // room for fist two arguments in "extension" word
+        arg_info_t  info[ARGS_PER_INFO];
+    };
+    static_assert (sizeof(m68k_arg_info) <= sizeof (m68k_ext_size_t));
+
+
+    // what additional data to store for each arg "MODE"
+    inline auto m68k_arg_data_size(int mode)
+    {
+        switch (mode)
         {
-            constexpr static auto ARGS_PER_INFO = sizeof(m68k_ext_size_t)/sizeof(arg_info_t);
-            // room for fist two arguments in "extension" word
-            arg_info_t  info[ARGS_PER_INFO];
-        };
-        static_assert (sizeof(m68k_arg_info) <= sizeof (m68k_ext_size_t));
+            default:
+                return M_SIZE_NONE;
 
+            case MODE_INDEX:
+            case MODE_PC_INDEX:
+                return M_SIZE_INDEX;
 
-        // what additional data to store for each arg "MODE"
-        inline auto m68k_arg_data_size(int mode)
-        {
-            switch (mode)
-            {
-                default:
-                    return M_SIZE_NONE;
+            case MODE_INDEX_BRIEF:
+            case MODE_BITFIELD:
+                return M_SIZE_UWORD;
 
-                case MODE_INDEX:
-                case MODE_PC_INDEX:
-                    return M_SIZE_INDEX;
+            case MODE_DIRECT:
+            case MODE_DIRECT_ALTER:
+            case MODE_DIRECT_LONG:
+                return M_SIZE_LONG;
 
-                case MODE_INDEX_BRIEF:
-                case MODE_BITFIELD:
-                    return M_SIZE_UWORD;
+            case MODE_ADDR_DISP:
+            case MODE_DIRECT_SHORT:
+            case MODE_PC_DISP:
+            case MODE_MOVEP:
+                return M_SIZE_SWORD;
 
-                case MODE_DIRECT:
-                case MODE_DIRECT_ALTER:
-                case MODE_DIRECT_LONG:
-                    return M_SIZE_LONG;
+            // case MODE_REG:
+            case MODE_REGSET:
+            case MODE_PAIR:
+                return M_SIZE_AUTO;
 
-                case MODE_ADDR_DISP:
-                case MODE_DIRECT_SHORT:
-                case MODE_PC_DISP:
-                case MODE_MOVEP:
-                    return M_SIZE_SWORD;
+            case MODE_IMMED_LONG:       // 0
+                return M_SIZE_LONG;
 
-                // case MODE_REG:
-                case MODE_REGSET:
-                case MODE_PAIR:
-                    return M_SIZE_AUTO;
+            case MODE_IMMED_WORD:       // 4
+            case MODE_IMMED_BYTE:       // 6
+                return M_SIZE_SWORD;
 
-                case MODE_IMMED_LONG:       // 0
-                    return M_SIZE_LONG;
+            case MODE_IMMED_SINGLE:     // 1
+            case MODE_IMMED_XTND:       // 2
+            case MODE_IMMED_PACKED:     // 3
+            case MODE_IMMED_DOUBLE:     // 5
+               return M_SIZE_AUTO;
 
-                case MODE_IMMED_WORD:       // 4
-                case MODE_IMMED_BYTE:       // 6
-                    return M_SIZE_SWORD;
-
-                case MODE_IMMED_SINGLE:     // 1
-                case MODE_IMMED_XTND:       // 2
-                case MODE_IMMED_PACKED:     // 3
-                case MODE_IMMED_DOUBLE:     // 5
-                   return M_SIZE_AUTO;
-
-                case MODE_IMMED:
-                    throw std::logic_error("m68k_arg_data_size::mode");
-            }
+            case MODE_IMMED:
+                throw std::logic_error("m68k_arg_data_size::mode");
         }
     }
+}
+#endif
 
-template <typename M68K_Inserter>
-void m68k_insert_one (M68K_Inserter& inserter
-                    , unsigned n
-                    , m68k_arg_t& arg
-                    , detail::arg_info_t *p
-                    , m68k_opcode_fmt const& fmt
-                    , detail::m68k_op_size_t *opcode_p
-                    )
+template <typename Inserter>
+bool m68k_arg_t::serialize (Inserter& inserter, bool& completely_saved)
 {
-    using expression::expr_fits;
-    using expression::fits_result;
+    auto save_expr = [&](auto size) -> bool
+        {
+            // suppress writes of zero
+            auto p = expr.get_fixed_p();
+            if (p && !*p)
+            {
+                completely_saved = true;    // validator saved all data.
+                return false;               // and no expression.
+            }
+            completely_saved = false;
+            return !inserter(std::move(expr), size);
+        };
+    
+    //using expression::expr_fits;
+    //using expression::fits_result;
 
-    // write arg data into opcode in appropriate location
-    auto result = fmt.insert(n, opcode_p, arg);
-
-    if (!result) {
-        // couldn't store arg in opcode -- save as data
-        p->has_data = true;
-    }
+#if 0
 
     p->arg_mode = arg.mode;
     auto ext_mode = detail::m68k_arg_data_size(arg.mode);
@@ -186,19 +189,17 @@ void m68k_insert_one (M68K_Inserter& inserter
     // std::cout << "write_one: mode = " << std::setw(2) << (int)p->arg_mode;
     // std::cout << " bits: " << (int)p->has_data << "/" << (int)p->has_expr;
     // std::cout << " -> ";
+#endif
+    completely_saved = true;
+    return false;
 }
 
 
 // deserialize m68k_arguments: for format, see above
-template <typename M68K_Iter>
-void m68k_extract_one(M68K_Iter& reader
-                    , unsigned n
-                    , m68k_arg_t *arg_p
-                    , detail::arg_info_t *p
-                    , m68k_opcode_fmt const& fmt
-                    , detail::m68k_op_size_t *opcode_p
-                    )
+template <typename Reader>
+void m68k_arg_t::extract(Reader& reader, bool has_data, bool has_expr)
 {
+#if 0
     // std::cout << "read_one:  mode = " << std::setw(2) << (int)p->arg_mode;
     // std::cout << " bits: " << (int)p->has_data << "/" << (int)p->has_expr;
     // std::cout << " -> ";
@@ -258,6 +259,7 @@ void m68k_extract_one(M68K_Iter& reader
             }
             break;
     }
+#endif
 }
 
 }
