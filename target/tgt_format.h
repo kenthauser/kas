@@ -149,6 +149,7 @@ struct tgt_fmt_generic
     static constexpr auto MASK = (1 << BITS) - 1;
     static bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p)
     {
+#if 0
         kas::expression::expr_fits fits;
         
         // NB: logic error if val_p == nullptr 
@@ -156,7 +157,7 @@ struct tgt_fmt_generic
 
         if (result != fits.yes)
             return false;
-
+#endif
         auto value = val_p->get_value(arg);
         
         auto old_word = op[WORD];

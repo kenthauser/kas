@@ -7,7 +7,7 @@
 
 namespace kas::parser
 {
-    BOOST_SPIRIT_INSTANTIATE(stmt_x3, iterator_type, context_type)
+    BOOST_SPIRIT_INSTANTIATE(stmt_x3, iterator_type, stmt_context_type)
 
 std::string kas_loc::where() const
 {

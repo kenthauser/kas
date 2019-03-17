@@ -5,10 +5,29 @@
 #include "kas_position.h"
 #include "kas_core/ref_loc_t.h"
 
+#include <boost/spirit/home/x3.hpp>
+
 namespace kas::parser
 {
+namespace x3 = boost::spirit::x3;
+
+
+// KAS ITERATOR Type
+using iterator_type = std::string::const_iterator;
+using char_type     = typename std::iterator_traits<iterator_type>::value_type;
+
+// blank_type matches spaces or tabs, but not newlines
+using skipper_t = x3::ascii::blank_type;
+
+// Declare our Error Handlers  (see "parser/error_handler.h")
+
+// KAS extension for multiple files
+template <typename Iter> struct error_handler;
+
+// KAS ERROR type
 using kas_error_t = core::ref_loc_t<struct kas_diag>;
 
+using kas_position_tagged = kas_position_tagged_t<iterator_type>;
 
 struct kas_token : kas_position_tagged
 {

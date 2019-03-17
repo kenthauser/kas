@@ -68,7 +68,7 @@ namespace kas::m68k::parser
     BOOST_SPIRIT_DEFINE(reg_parser)
 
     // instantiate parser `type` for register name parser
-    BOOST_SPIRIT_INSTANTIATE(m68k_reg_x3 , iterator_type, context_type)
+    BOOST_SPIRIT_INSTANTIATE(m68k_reg_x3 , iterator_type, expr_context_type)
 
     //////////////////////////////////////////////////////////////////////////
     // Instruction Parser Definition
@@ -95,8 +95,8 @@ namespace kas::m68k::parser
     BOOST_SPIRIT_DEFINE(m68k_insn_parser);
 
     // instantiate parsers
-    BOOST_SPIRIT_INSTANTIATE(m68k_insn_x3, iterator_type, context_type)
-    BOOST_SPIRIT_INSTANTIATE(m68k_stmt_x3, iterator_type, context_type)
+    BOOST_SPIRIT_INSTANTIATE(m68k_insn_x3, iterator_type, stmt_context_type)
+    BOOST_SPIRIT_INSTANTIATE(m68k_stmt_x3, iterator_type, stmt_context_type)
 #endif
 }
 

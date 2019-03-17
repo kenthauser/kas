@@ -106,7 +106,7 @@ struct tgt_mcode_t
 
     // constructor: just save indexes
     tgt_mcode_t(mcode_idx_t index, defn_idx_t defn_index, tgt_size_t sz)
-        : index(index), defn_index(defn_index), _sz(sz)
+        : index{index}, defn_index{defn_index}, _sz{sz}
         {}
 
     // declare as template to defer definition of `ARGS_T`
@@ -116,10 +116,10 @@ struct tgt_mcode_t
 
     template <typename ARGS_T>
     fits_result size(ARGS_T& args, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
-#if 1
+
     template <typename ARGS_T>
     void emit(core::emit_base&, mcode_size_t*, ARGS_T&&, core::core_expr_dot const * = {}) const;
-#endif
+
     // retrieve instance from index
     static auto& get(uint16_t idx) { return (*index_base)[idx]; }
 

@@ -17,7 +17,7 @@
 
 #include "expr/expr_types.h"
 #include "parser/kas_position.h"
-#include "parser/parser_config.h"
+//#include "parser/parser_config.h"
 
 #include <meta/meta.hpp>
 #include <boost/type_index.hpp>

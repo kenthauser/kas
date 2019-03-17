@@ -68,6 +68,8 @@ error_handler_base::on_error(
 
     std::string message = "Expecting: " + which;
     auto& error_handler = x3::get<error_handler_tag>(context).get();
+    auto& diag          = x3::get<error_diag_tag   >(context).get();
+
     // XXX where is Iterator (x3/directive/expect.hpp)
     // error_handler(x.where(), message);
     kas_position_tagged loc;
@@ -84,12 +86,12 @@ error_handler_base::on_error(
                 break;
     }
 
-
     std::cout << "on_error: first, exc : " << std::string(err_first, err_last) << std::endl;
     std::cout << "on_error: msg = " << message << std::endl;
 
     error_handler.tag(loc, err_first, err_last);
-    auto& diag = parser::kas_diag::error(message, loc);
+    diag = parser::kas_diag::error(message, loc).ref();
+
     //std::cout << "on_error: diag = " << diag.message << std::endl;
     return x3::error_handler_result::fail;
 }

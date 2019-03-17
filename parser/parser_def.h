@@ -12,6 +12,8 @@
 
 //#include "machine_parsers.h"
 //#include "utility/make_type_over.h"
+#include "parser_src.h"
+
 
 #include <boost/spirit/home/x3.hpp>
 #include <utility>
@@ -201,6 +203,10 @@ struct resync_base
     auto on_error(Iterator& first , Iterator const& last
                 , Exception const& exc, Context const& context)
     {
+        std::cout << "resync_base:: src = \"";
+        std::cout << parser_src::escaped_str(std::string{first, last}.substr(0, 60));
+        std::cout << "\"..." << std::endl;
+        
         // generate & record error message
         base.on_error(first, last, exc, context);
 
@@ -222,11 +228,11 @@ struct resync_base
             first = last;
         }
 
-    auto message = "\"" + std::string(first_unparsed, first) + "\"";
-    std::cout << "unparsed: " << message << std::endl;
+        auto message = std::string("\"") + parser_src::escaped_str(std::string{first_unparsed, first}) + "\"";
+        std::cout << "unparsed: " << message << std::endl;
 
-        // return error from parser
-        return x3::error_handler_result::fail;
+        // signal parser to carry on with new "first"
+        return x3::error_handler_result::accept;
     }
 
 private:

@@ -92,6 +92,8 @@ namespace kas::m68k
         switch (arg.mode()) {
         case MODE_ERROR:
             return os << "Err: " << base;
+        case MODE_NONE:
+            return os << "*NONE*";
         case MODE_DATA_REG:
             return os << reg_name(RC_DATA, reg) << suffix;
         case MODE_ADDR_REG:
@@ -128,6 +130,7 @@ namespace kas::m68k
         case MODE_IMMED_BYTE:       // 6
             return os << "#" << base;
         case MODE_INDEX_BRIEF:
+        case MODE_PC_INDEX_BRIEF:
             {
                 // expand brief word to full index
                 auto brief_word = *base.get_fixed_p();

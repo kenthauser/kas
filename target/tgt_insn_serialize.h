@@ -84,6 +84,7 @@ void tgt_insert_args(Inserter& inserter
     auto code_p = inserter(m_code.code().data(), m_code.code_size());
 
     auto& fmt         = m_code.fmt();
+    auto  sz          = m_code.sz();
     auto& vals        = m_code.vals();
     auto val_iter     = vals.begin();
     auto val_iter_end = vals.end();
@@ -109,9 +110,9 @@ void tgt_insert_args(Inserter& inserter
 
         // do work: pass validator if present
         if (val_iter != val_iter_end)
-            detail::insert_one<MCODE_T>(inserter, n, p, arg, fmt, &*val_iter++, code_p);
+            detail::insert_one<MCODE_T>(inserter, n, p, arg, sz, fmt, &*val_iter++, code_p);
         else
-            detail::insert_one<MCODE_T>(inserter, n, p, arg, fmt, nullptr, code_p);
+            detail::insert_one<MCODE_T>(inserter, n, p, arg, sz, fmt, nullptr, code_p);
 
         ++n;
         // std::cout << std::hex;
@@ -157,6 +158,7 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
 
     // read & decode arguments until empty
     auto& fmt         = m_code.fmt();
+    auto  sz          = m_code.sz();
     auto& vals        = m_code.vals();
     auto val_iter     = vals.begin();
     auto val_iter_end = vals.end();
@@ -190,9 +192,9 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
 
         // do the work
         if (val_iter != val_iter_end)
-            detail::extract_one<MCODE_T>(reader, n, p, arg_p, fmt, &*val_iter++, code_p);
+            detail::extract_one<MCODE_T>(reader, n, p, arg_p, sz, fmt, &*val_iter++, code_p);
         else
-            detail::extract_one<MCODE_T>(reader, n, p, arg_p, fmt, nullptr, code_p);
+            detail::extract_one<MCODE_T>(reader, n, p, arg_p, sz, fmt, nullptr, code_p);
 
         // std::cout << std::hex;
         // std::cout << "read_arg  : mode = " << (int)p->arg_mode << " p_mode = " << arg_p->mode;

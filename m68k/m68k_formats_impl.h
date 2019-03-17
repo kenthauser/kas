@@ -50,10 +50,9 @@ struct reg_mode
 {
     using val_t = m68k_mcode_t::val_t;
     static constexpr auto MASK = (7 << SHIFT) | (7 << (SHIFT+MODE_OFFSET));
+
     static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
     {
-        kas::expression::expr_fits fits;
-
         // validator return 6 bits: mode + reg
         auto value = val_p->get_value(arg);
         auto cpu_reg  = value & (7 << 0);
@@ -64,6 +63,7 @@ struct reg_mode
         
         op[WORD]  &= ~MASK;
         op[WORD]  |= value;
+
         return true;
     }
     

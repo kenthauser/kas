@@ -37,7 +37,10 @@ protected:
 public:
     // arg mode: default getter/setter
     auto mode() const              { return _mode; }
-    void set_mode(unsigned mode) { _mode = static_cast<arg_mode_t>(mode); }
+    void set_mode(unsigned mode)
+    { 
+        _mode = static_cast<arg_mode_t>(mode);
+    }
 
     // for validate_min_max: default implmentation
     bool is_missing() const { return _mode == MODE_NONE; }
@@ -45,12 +48,21 @@ public:
     // helper method for evaluation of insn: default implementation
     bool is_const () const  { return false; }
     
-    // validate methods: require derived implmentation
-    template <typename...Ts> const char *ok_for_target(Ts&&...) const;
+    // validate methods
+    template <typename...Ts> const char *ok_for_target(Ts&&...) const
+    {
+        return nullptr;
+    }
     
     // emit methods: require derived implementation
     op_size_t size(expression::expr_fits const& fits = {});
-    void emit(core::emit_base& base, unsigned size) const;
+
+    template <typename MCODE_T>
+    void emit(MCODE_T const& mcode, core::emit_base& base, unsigned size) const
+    {
+        if (size)
+            base << core::set_size(size) << expr;
+    }
 
     // serialize methods
     template <typename Inserter>
@@ -70,9 +82,10 @@ public:
 private:
     friend std::ostream& operator<<(std::ostream& os, tgt_arg_t const& arg)
     {
-        static_cast<derived_t const&>(arg).print(os);
+        arg.derived().print(os);
         return os;
     }
+
     arg_mode_t _mode {};
 };
 

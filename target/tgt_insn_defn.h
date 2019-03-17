@@ -139,6 +139,8 @@ struct tgt_insn_defn
         os << " code = " << +code;
         os << std::dec;
         os << std::endl;
+        os << " -> name = \"" << name();
+        os << "\" vals: " << vals();
     }
     
     // alt gives alternate suffix, if available.

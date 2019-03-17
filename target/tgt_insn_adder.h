@@ -83,8 +83,12 @@ struct tgt_insn_adder
         auto p = defns;
         for (int n = 0; n < count; ++p, ++n)
         {
-            //std::cout << n << " base: " << p->name() << std::endl;
-#if 1
+//#define TRACE_INSN_ADD
+#ifdef TRACE_INSN_ADD
+            std::cout << "adding: " << +n << " ";
+            p->print(std::cout);
+            std::cout << std::endl;
+#endif
             auto& sz_obj = p->sizes_base[p->sz_index - 1];
             for (auto sz : sz_obj)
             {
@@ -117,11 +121,14 @@ struct tgt_insn_adder
                     insn_p->add_mcode(mcode_p);
                 }
             }
-#endif
         }
+        if (!insn_t::list_mcode_p)
+            throw std::logic_error{"insn_adder: no LIST instruction"};
     }
 
     defn_t const *defns;
+
+#undef TRACE_INSN_ADD
 };
 }
 #endif

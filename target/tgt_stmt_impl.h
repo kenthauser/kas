@@ -31,7 +31,7 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
     // get kas types from opcode
     using core::opcode;
     auto trace  = opcode::trace;
-    //trace = nullptr;
+    trace = nullptr;
     
     // convenience references 
     auto& insn = *insn_p;
@@ -83,6 +83,17 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
     int i = 0; 
     for (auto mcode_p : insn.mcodes)
     {
+//#define TRACE_STMT_MCODE
+#ifdef TRACE_STMT_MCODE
+        if (trace)
+        {
+            *trace << std::dec << std::endl;;
+            *trace << "mcode: " << +mcode_p->index      << " ";
+            *trace << "defn: "  << +mcode_p->defn_index << " ";
+            mcode_p->defn().print(*trace);
+        }
+#endif
+#undef TRACE_STMT_MCODE
         if (trace)
             *trace << "validating: " << +i << ": ";
 

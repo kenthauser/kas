@@ -22,19 +22,35 @@ namespace kas { namespace m68k
         auto size_for_index = [&](bool brief_ok, auto const& size, auto& expr) -> op_size_t
             {
                // int min, max;
-                //std::cout << "m68k_arg_t::size size_for_index: " << expr << " size = " << size << std::endl;
+                //std::cout << "m68k_arg_t::size size_for_index: " << expr << " size = " << size;
+                //std::cout << " ok = " << brief_ok << std::endl;
+                auto make_quick = [&]()
+                {
+                    //std::cout << "size_for_index::make_quick: arg = " << *this << std::endl;
+                    if (auto p = expr.get_fixed_p())
+                    {
+                        expr = ext.brief_value(*p);
+                        set_mode(mode() == MODE_INDEX ? MODE_INDEX_BRIEF : MODE_PC_INDEX_BRIEF);
+                    }
+                };
 
-                switch (size &~ M_SIZE_POST_INDEX) {
+                switch (size &~ M_SIZE_POST_INDEX)
+                {
                     default:
                     case M_SIZE_ZERO:
+                        if (brief_ok)
+                            make_quick();
                         return 0;
                     case M_SIZE_BYTE:
                     case M_SIZE_WORD:
-                        if (brief_ok) {
-                            switch (fits.fits<int8_t>(expr)) {
+                        if (brief_ok)
+                        {
+                            switch (fits.fits<int8_t>(expr))
+                            {
                                 case NO_FIT:
                                     break;
                                 case DOES_FIT:
+                                    make_quick();
                                     return 0;
                                 default:
                                     return {0, 2};
@@ -56,17 +72,21 @@ namespace kas { namespace m68k
                         short max = (f == DOES_FIT) ? 2 : 4;
 
                         // test byte if brief mode allowed
-                        if (brief_ok) {
+                        if (brief_ok)
+                        {
                             f = fits.fits<int8_t>(expr);
                             if (f == DOES_FIT)
+                            {
+                                make_quick();
                                 return 0;
+                            }
                         }
 
-                        // test zero
+                        // test zero: (expression suppressed, not quick)
                         f = fits.zero(expr);
                         if (f == DOES_FIT)
                             return 0;
-
+                        
                         // min is zero unless zero doesn't fit
                         short min = (f != NO_FIT) ? 0 : 2;
                         return { min, max };
@@ -146,6 +166,10 @@ namespace kas { namespace m68k
                 result += size_for_index(false, ext.mem_mode, outer);
                 return result;
 
+            case MODE_INDEX_BRIEF:
+            case MODE_PC_INDEX_BRIEF:
+                return 2;
+
             case MODE_DIRECT:
                 // see if PC-relative mode OK.
                 // always the first arg, so offset is always 2
@@ -189,7 +213,6 @@ namespace kas { namespace m68k
             // modes with single extension word
             case MODE_DIRECT_SHORT:
             case MODE_REGSET:
-            case MODE_INDEX_BRIEF:
             case MODE_MOVEP:
                 return 2;
 
@@ -228,6 +251,8 @@ namespace kas { namespace m68k
         case MODE_IMMED_DOUBLE:     // 5
         case MODE_IMMED_BYTE:       // 6
             return MODE_IMMED;
+        case MODE_PC_INDEX_BRIEF:
+            return MODE_PC_INDEX;
         }
     }
 

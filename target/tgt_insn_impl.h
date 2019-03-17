@@ -83,6 +83,9 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     auto  val_p = val_c.begin();
     auto  cnt   = val_c.size();
 
+    if (trace)
+        *trace << " cnt = " << +cnt;
+
     expr_fits fits;
     for (auto& arg : args)
     {
@@ -164,7 +167,32 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
             , core::core_expr_dot const* dot_p
             ) const
 {
+    // 1. emit base code
+   
+    auto n = code_size()/sizeof(mcode_size_t);
+    while (n--)
+        base << *op_p++;
+
+    // 2. emit args
     
+    // hook into validators
+    auto& val_c = defn().vals();
+    auto  val_p = val_c.begin();
+    auto  fits = core::core_fits(dot_p);
+
+    for (auto& arg : args)
+    {
+        op_size_t size;
+
+        // arg needs "size" to emit properly
+        val_p->size(arg, sz(), fits, size);
+
+        // arg_t not templated by MCODE_T, so pass as arg
+        arg.emit(*this, base, size());
+
+        // next validator
+        ++val_p; 
+    }
 }
 
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>

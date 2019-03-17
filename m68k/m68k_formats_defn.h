@@ -58,6 +58,7 @@ using arg2_1w12 = fmt_arg<2, ext_reg_mode>;
 
 using arg3_0rm  = fmt_arg<3, gen_reg_mode>;
 using arg3_1w12 = fmt_arg<3, ext_reg_mode>;
+using arg3_12rm = fmt_arg<3, reg_mode<12>>;     // save general reg# for list
 
 // special 6-bit reg/mode for `move` dest
 using arg2_6rm  = fmt_arg<2, mov_reg_mode>;
@@ -155,7 +156,7 @@ using arg1_zero   = fmt_arg<1, fmt_zero>;
 
 
 // used by OPC_LIST instructions
-struct FMT_LIST     : fmt_list, arg1_0rm, arg2_6rm {};
+struct FMT_LIST     : fmt_list, arg1_0rm, arg2_6rm, arg3_12rm {};
 
 
 // branch formats have implied argument format

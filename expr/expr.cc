@@ -9,11 +9,11 @@
 namespace kas::expression::parser
 {
     using kas::parser::iterator_type;
-    using kas::parser::context_type;
+    using kas::parser::expr_context_type;
 
     // instantiate expr parser with standard context
     BOOST_SPIRIT_INSTANTIATE(
-        expr_type, iterator_type, context_type)
+        expr_type, iterator_type, expr_context_type)
 
 }
 

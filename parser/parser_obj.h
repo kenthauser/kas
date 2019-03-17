@@ -34,7 +34,7 @@ private:
     struct iter_t : std::iterator<std::input_iterator_tag, value_type>
     {
         // NB: iter is `at eof` or not. 
-        iter_t(parser_src *src_p = {}) : src_p(src_p) {}
+        iter_t(kas_parser *obj_p = {}) : obj_p(obj_p) {}
 
         // money function
         value_type operator*();
@@ -46,7 +46,7 @@ private:
         // comparison is really testing for end-of-input
         bool operator!=(iter_t const& other) const
         {
-            auto& src = *src_p;
+            auto& src = obj_p->src;
             while (src)
             {
                 // if current file not at end, more to parse
@@ -61,53 +61,92 @@ private:
         }
 
     private:
-        parser_src *src_p;
+        kas_parser *obj_p;
     };
 
 public:
     // ctor
-    kas_parser(PARSER const&, parser_src& src) : src(src) {}
+    kas_parser(PARSER const&, parser_src& src) : src(src)
+    {
+#if 0
+        auto const skipper = as_parser(skipper_t{});
+        auto e_handler_ref = std::ref(src.e_handler());
+        auto skipper_ctx   = x3::make_context<x3::skipper_tag>(skipper);
+        //auto diag_ctx      = x3::make_context<error_diag_tag>(diag
+        ctx = x3::make_context<kas::parser::error_handler_tag>(e_handler_ref, skipper_ctx);
+#endif
+    }
 
-    auto begin()        { return iter_t{&src}; }
+
+    auto begin()        { return iter_t{this}; }
     auto end()   const  { return iter_t{};     }
 
+    static auto& skipper_ctx()
+    {
+        static auto const skipper = as_parser(skipper_t{});
+        static auto const ctx = x3::make_context<x3::skipper_tag>(skipper);
+        return ctx;
+    }
+
 private:
-    parser_src&          src;
+    parser_src&         src;
+    error_diag_type     diag;
+
+    // NB: c++ constructs items in order declared;
+    // x3::make_context requires l-values;
+    std::reference_wrapper<error_handler_type> err_ref  {src.e_handler()};
+    std::reference_wrapper<kas_error_t>        diag_ref {diag};
+    diag_context_type   diag_ctx = x3::make_context<error_diag_tag>(diag_ref, skipper_ctx());
+    error_context_type  context  = x3::make_context<error_handler_tag>(err_ref, diag_ctx); 
 };
 
 // extract statement from current input.
 template <typename PARSER>
 auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
 {
-    auto& src = *src_p;
-
+    auto& src = obj_p->src;
+#if 0
+    // XXX context should be a static. No need to construct each time.
+    // XXX need "diag" context  tag for errors.
     auto const skipper = as_parser(skipper_t{});
     auto e_handler_ref = std::ref(src.e_handler());
     auto skipper_ctx   = x3::make_context<x3::skipper_tag>(skipper);
+    //auto diag_ctx      = x3::make_context<error_diag_tag>(diag
+#if 0
     auto context = x3::make_context<kas::parser::error_handler_tag>(e_handler_ref, skipper_ctx);
+#else
 
+    error_context_type context = x3::make_context<error_handler_tag>(e_handler_ref, obj_p->skipper_ctx());
+#endif
+#endif
     // save `iter` before parssing to check for error
     auto before = src.iter();
     
     value_type ast;
+    obj_p->diag = {};
     bool success{};
     try
     {
-        success = PARSER{}.parse(src.iter(), src.last(), context, skipper_t{}, ast);
+        std::cout << "kas_parser: ";
+        //success = PARSER{}.parse(src.iter(), src.last(), context, skipper_t{}, ast);
+        success = PARSER{}.parse(src.iter(), src.last(), obj_p->context, skipper_t{}, ast);
+        std::cout << " -> " << std::boolalpha << success << std::endl;
     }
     catch (std::exception const& e)
     {
+        std::cout << " -> exception" << std::endl;
         auto exec_name = typeid(e).name();
         std::ostream& diag = std::cout;
         diag << "\nInternal error: " << exec_name << ": " << e.what() << std::endl;
     }
 
-    if (src.iter() == before) {
+    if (src.iter() == before)
+    {
         // need "can't parse anything" diag
         src.iter() = src.last();
         success = false;
     }
-    
+#if 0  
     if (!success)
     {
         // create an error insn
@@ -115,9 +154,15 @@ auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
         src.e_handler().tag(err, before, src.iter());
         return err;
     }
-    
+#endif
+#if 1
+    if (obj_p->diag)
+    {
+        std::cout << "kas_parser: diag = " << obj_p->diag << std::endl;
+        ast = stmt_error(obj_p->diag);
+    }
+#endif
     return ast;
-
 }
 
 

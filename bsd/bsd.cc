@@ -9,17 +9,17 @@ namespace kas::bsd
     {
         using namespace x3;
         using kas::parser::iterator_type;
-        using kas::parser::context_type;
+        using kas::parser::stmt_context_type;
         // expression parsers
-        BOOST_SPIRIT_INSTANTIATE(dot_parser_x3, iterator_type, context_type)
-        BOOST_SPIRIT_INSTANTIATE(sym_parser_x3, iterator_type, context_type)
+        BOOST_SPIRIT_INSTANTIATE(dot_parser_x3, iterator_type, expr_context_type)
+        BOOST_SPIRIT_INSTANTIATE(sym_parser_x3, iterator_type, expr_context_type)
 
         // stmt parsers
-        BOOST_SPIRIT_INSTANTIATE(stmt_comma_x3, iterator_type, context_type)
-        BOOST_SPIRIT_INSTANTIATE(stmt_space_x3, iterator_type, context_type)
-        BOOST_SPIRIT_INSTANTIATE(stmt_equ_x3  , iterator_type, context_type)
-        BOOST_SPIRIT_INSTANTIATE(stmt_org_x3  , iterator_type, context_type)
-        BOOST_SPIRIT_INSTANTIATE(stmt_label_x3, iterator_type, context_type)
+        BOOST_SPIRIT_INSTANTIATE(stmt_comma_x3, iterator_type, stmt_context_type)
+        BOOST_SPIRIT_INSTANTIATE(stmt_space_x3, iterator_type, stmt_context_type)
+        BOOST_SPIRIT_INSTANTIATE(stmt_equ_x3  , iterator_type, stmt_context_type)
+        BOOST_SPIRIT_INSTANTIATE(stmt_org_x3  , iterator_type, stmt_context_type)
+        BOOST_SPIRIT_INSTANTIATE(stmt_label_x3, iterator_type, stmt_context_type)
     }
 
     // define bsd_arg printer

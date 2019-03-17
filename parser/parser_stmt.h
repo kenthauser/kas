@@ -93,11 +93,8 @@ struct parser_stmt : kas_position_tagged
         // no args
     }
 
-    // XXX change to unimp?
-    opcode *gen_insn(opcode::data_t& data)
-    {
-        return derived().gen_insn(data);
-    }
+    // NB: must be implemented in `Derived`
+    opcode *gen_insn(opcode::data_t& data);
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -112,21 +109,25 @@ namespace detail
     struct stmt_diag : parser_stmt<stmt_diag<OPC>>
     {
         using base_t = typename parser_stmt<stmt_diag<OPC>>::base_t;
+        
         // w/o braces, clang drops core on name(). 2019/02/15 KBH
         static inline OPC opc{};
 
+        // inherit default ctor
         using base_t::base_t;
 
-        stmt_diag(kas_diag const& diag)
-            : diag(diag.ref()), base_t(diag.loc())
+        stmt_diag(kas_error_t diag)
+            : diag(diag), base_t(diag.get_loc())
             {}
+        
+        stmt_diag(kas_diag const& diag) : stmt_diag(diag.ref()) {}
 
         const char *name() const
         {
             return opc.name();    // clang drops core w/o opc braces
         }
 
-        void print_args(print_obj const& p_obj) const
+        void print_args(typename base_t::print_obj const& p_obj) const
         {
             if (diag)
                 p_obj(diag);

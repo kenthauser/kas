@@ -123,7 +123,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     kas::core::emit_listing<iterator_type> listing(parse_out);
     obj.emit(listing);
 #endif
-#if 1
+#if 0
     kas::elf::elf_emit elf_obj(ELFCLASS32, ELFDATA2MSB, EM_68K); 
     obj.emit(elf_obj);
 

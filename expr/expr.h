@@ -7,7 +7,7 @@
 // Declare the interface to the expression parser
 
 #include "expr_variant.h"
-#include <boost/spirit/home/x3.hpp>
+#include "parser/parser_config.h"
 
 
 namespace kas
@@ -37,13 +37,15 @@ namespace expression::parser
         {
             expr_t e;
             
-            // need a standardized context
-            // XXX add paraser/parser_types.h support
+            // need a standardized context for multi-file Instantiation
             auto& skipper  = x3::get<x3::skipper_tag>(context);
             auto& ehandler = x3::get<kas::parser::error_handler_tag>(context);
+            auto& diag     = x3::get<kas::parser::error_diag_tag>(context);
             
+            // rebuild
             auto skipper_ctx = x3::make_context<x3::skipper_tag>(skipper);
-            auto ctx = x3::make_context<kas::parser::error_handler_tag>(ehandler, skipper_ctx);
+            auto diag_ctx    = x3::make_context<error_diag_tag>(diag, skipper_ctx);
+            expr_context_type ctx = x3::make_context<error_handler_tag>(ehandler, diag_ctx);
             
             bool result = as_parser(expr_type()).parse(first, last, ctx, unused, e);
             

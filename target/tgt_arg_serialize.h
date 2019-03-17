@@ -59,17 +59,26 @@ void insert_one (Inserter& inserter
                     , unsigned n
                     , detail::arg_info_t *p
                     , typename MCODE_T::arg_t& arg
+                    , typename MCODE_T::tgt_size_t sz
                     , typename MCODE_T::fmt_t const& fmt
                     , typename MCODE_T::val_t const *val_p
                     , typename MCODE_T::mcode_size_t   *code_p
                     )
 {
     // write arg data into machine code if possible (dependent on validator)
-    auto result = fmt.insert(n, code_p, arg, val_p);
+    bool completely_saved = val_p;
+
+    // XXX remove test in fmt.insert
+    if (completely_saved)
+        completely_saved = fmt.insert(n, code_p, arg, val_p);
+
+#ifdef TRACE_ARG_SERIALIZE
+    std::cout << "write_one: " << arg << ": insert = " << std::boolalpha << completely_saved << std::endl;
+#endif
 
     // write arg data as immediate as required (NB: result is a mutable arg)
-    p->has_expr = arg.serialize(inserter, result);
-    p->has_data = !result;
+    p->has_expr = arg.serialize(inserter, sz, completely_saved);
+    p->has_data = !completely_saved;
     p->arg_mode = arg.mode();
 
 #ifdef TRACE_ARG_SERIALIZE
@@ -87,29 +96,33 @@ void extract_one(Reader& reader
                     , unsigned n
                     , detail::arg_info_t *p
                     , typename MCODE_T::arg_t *arg_p
+                    , typename MCODE_T::tgt_size_t sz
                     , typename MCODE_T::fmt_t const& fmt
                     , typename MCODE_T::val_t const *val_p
                     , typename MCODE_T::mcode_size_t   *code_p
                     )
 {
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << "read_one:  mode = " << std::dec << std::setw(2) << +p->arg_mode;
+    std::cout << "\n[read_one:  mode = " << std::dec << std::setw(2) << +p->arg_mode;
     std::cout << " bits: " << +p->has_data << "/" << +p->has_expr;
 #endif
 
     // extract arg from machine code (dependent on validator)
     // NB: extract may look at arg mode.
-    using tgt_mode_t = typename MCODE_T::arg_t::arg_mode_t;
-    arg_p->set_mode(static_cast<tgt_mode_t>(p->arg_mode));
-    fmt.extract(n, code_p, arg_p, val_p);
+    arg_p->set_mode(p->arg_mode);
 
-    // NB: don't allow extract to change mode
-    arg_p->set_mode(static_cast<tgt_mode_t>(p->arg_mode));
+    if (val_p)
+    {
+        fmt.extract(n, code_p, arg_p, val_p);
+
+        // NB: don't allow extract to change mode
+        arg_p->set_mode(p->arg_mode);
+    }
 
     // extract immediate arg as required
-    arg_p->extract(reader, p->has_data, p->has_expr);
+    arg_p->extract(reader, sz, p->has_data, p->has_expr);
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << " -> " << *arg_p << std::endl;
+    std::cout << " -> " << *arg_p << "] ";;
 #endif
 }
 

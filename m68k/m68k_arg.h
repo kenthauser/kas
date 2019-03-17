@@ -37,9 +37,10 @@ enum m68k_arg_mode : uint8_t
     , MODE_PAIR             // 16: register pair (multiply/divide/cas2)
     , MODE_BITFIELD         // 17: bitfield instructions
     , MODE_INDEX_BRIEF      // 18: brief mode index (word)
-    , MODE_IMMED_QUICK      // 19: immed arg stored in opcode
-    , MODE_REG_QUICK        // 20: movec: mode_reg stored in opcode
-    , MODE_MOVEP            // 21: special for MOVEP insn
+    , MODE_PC_INDEX_BRIEF   // 19: brief PC + index (word)
+    , MODE_IMMED_QUICK      // 20: immed arg stored in opcode
+    , MODE_REG_QUICK        // 21: movec: mode_reg stored in opcode
+    , MODE_MOVEP            // 22: special for MOVEP insn
 
 // Declare Immediate argument types: in `m68k_size_t` order
     , MODE_IMMED_BASE       // First of MODE_IMMED_*
@@ -75,29 +76,13 @@ struct token_missing  : kas_token {};
 
 struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
 {
-    // XXX pre-conversion
-    //using op_size_t = core::opc::opcode::op_size_t;
-    
     // inherit basic ctors
     using base_t::base_t;
     
-#if 0
-    // x3 parser requires default constructable
-    m68k_arg_t() : mode(MODE_NONE) {}
-
-    // error
-    m68k_arg_t(const char *err, expr_t e = {})
-            : mode(MODE_ERROR), err(err), disp(e)
-            {}
-#endif
-
     // direct, immediate, register pair, or bitfield
     m68k_arg_t(m68k_arg_mode mode, expr_t e = {}, expr_t outer = {})
             :  outer(outer), base_t(mode, std::move(e))
-            {
-                if (auto p = e.get_p<m68k_reg_t>())
-                    std::cout << "m68k_arg_t: ctor: " << p->name() << std::endl;
-            }
+            {}
 
     // override `size`
     op_size_t size(expression::expr_fits const& fits = {});
@@ -106,10 +91,10 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
     uint16_t am_bitset() const;
 
     template <typename Inserter>
-    bool serialize(Inserter& inserter, bool& completely_saved);
+    bool serialize(Inserter& inserter, opc::m68k_size_t, bool& completely_saved);
     
     template <typename Reader>
-    void extract(Reader& reader, bool has_data, bool has_expr);
+    void extract(Reader& reader, opc::m68k_size_t, bool has_data, bool has_expr);
 
     // true if all `disp` and `outer` are registers or constants 
     bool is_const () const
@@ -147,7 +132,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
     // validate if arg suitable for target
     const char *ok_for_target(opc::m68k_size_t sz) const;
 
-    expr_t           outer;      // for '020 PRE/POST index addess modes
+    expr_t           outer;             // for '020 PRE/POST index addess modes
     m68k_arg_subword reg_subword {};    // for coldfire H/L subword access
     m68k_extension_t ext{};             // m68k extension word (index modes)
 
@@ -162,18 +147,10 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
     mutable op_size_t _arg_size{-1};
 };
 
+#if 1
 // implementation in m68k.cc for debugging parser
 extern std::ostream& operator<<(std::ostream& os, m68k_arg_t const& arg);
-
-inline void ostream_m68k_args(std::ostream& os, m68k_arg_t const* arg_p)
-{
-    auto delim = ": ";
-    while (arg_p->mode() != MODE_NONE) {
-        os << delim << *arg_p++;
-        delim = ",";
-    }
-}
-
+#endif
 }
 
 #endif

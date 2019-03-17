@@ -19,13 +19,18 @@
 // `kas_position_tagged` replaces the `x3` class and holds a `kas_loc`.
 // allows `annotate_on_success` to properly record location.
 
-#include "parser_config.h"
+//#include "parser_config.h"
 #include <string>
 
 #include <iostream>
 
 namespace kas::parser
 {
+
+// forward declare error handler
+// KAS extension for multiple files
+template <typename Iter> struct error_handler;
+
 
 struct kas_loc
 {

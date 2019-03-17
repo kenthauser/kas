@@ -130,6 +130,12 @@ public:
     void print(std::ostream&) const;
 
 //private:
+    friend std::ostream& operator<<(std::ostream& os, tgt_validate_args const& vals)
+    {
+        vals.print(os);
+        return os;
+    }
+
     // validate is abstract class. access via pointers to instances
     static inline const tgt_validate<MCODE_T> *const *vals_base;
     static inline const char *                 const *names_base;
@@ -146,10 +152,18 @@ void tgt_validate_args<MCODE_T>::print(std::ostream& os) const
     os << MCODE_T::BASE_NAME::value << "::validate_args:";
     os << " count = " << +arg_count << " indexs = [";
     char delim{};
-    for (auto n : arg_index)
+    for (auto n = 0; n < arg_count; ++n)
     {
         if (delim) os << delim;
-        os << +n;
+        os << +arg_index[n];
+        delim = ',';
+    }
+    os << "] vals = [";
+    delim = {};
+    for (auto n = 0; n < arg_count; ++n)
+    {
+        if (delim) os << delim;
+        os << names_base[arg_index[n]-1];
         delim = ',';
     }
     os << "]" << std::endl;

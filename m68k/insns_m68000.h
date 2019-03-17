@@ -39,7 +39,7 @@ namespace kas::m68k::opc::gen
 
 using m68k_move_v = list<list<>
 // Define mcode used to process list insns
-, insn<sz_v, STR("*LIST*"), OP<0>, FMT_LIST, GEN, GEN>
+, insn<sz_v, STR("*LIST*"), OP<0>, FMT_LIST, GEN, GEN, GEN>
 
 
 // general moves

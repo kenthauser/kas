@@ -1,4 +1,5 @@
     move.l  #3,d2
+    move.w  #3,d2
     nop
     move.l  d0, a1
     move.w  d0, a1
@@ -23,7 +24,7 @@
     move.l  zpc@(0), d2
     move.l  pc@(10), d1
     move.l  zpc@(10), d2
-    move.l  a0, a1@(123, d1)@(234)
+    move.l  a0, a1@(123, d1)@(-234)
     move.l  a1, a2@(d1)@(321)
     move.l  a7, a2@(d1)@(0)
     move.l  a5, a2@()
@@ -67,11 +68,11 @@ m_first:
     move.w  #3,d2
     move.b  #3,d2
 m_second:
-    move.l  #.-m_second, d4
-    move.w  #.-m_second, d4
-    move.b  #.-m_second, d4
+    ;move.l  #.-m_second, d4
+    ;move.w  #.-m_second, d4
+    ;move.b  #.-m_second, d4
     .skip   8
-    move.l  #m_last-m_first, d3
+    ;move.l  #m_last-m_first, d3
 m_third:
     divs.l  a2@(d0),d1
     divs.l  a2@(d0),d1:d1
