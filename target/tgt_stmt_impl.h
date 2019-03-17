@@ -36,26 +36,8 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
     // convenience references 
     auto& insn = *insn_p;
     auto& fixed = data.fixed;
-
-
-    // generate an "error" opcode if appropriate
-    auto make_error = [&fixed=fixed, &trace]
-            (parser::tagged_msg const& msg) -> opcode *
-        {
-            if (trace)
-                *trace << "ERR: " << msg.msg << std::endl;
-            
-            fixed.diag = kas::parser::kas_diag::error(msg).ref();
-            return {};
-        };
-
-    // copy "opcode" position from first (possibly dummy arg)
-    parser::kas_position_tagged opc_pos = args.front();
     
-    // if first is dummy, clear args
-    if (args.front().is_missing())
-        args.clear();
-
+    
     // print name/args
     if (trace)
     {
@@ -65,19 +47,22 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
         *trace << std::endl;
     }
 
-    
 
-    // validate arg & addressing mode for each arg
+    // validate args as appropriate for target
     // also note if all args are "const" (ie: just regs & literals)
     bool args_are_const = true;
-    if (auto diag = insn.validate_args(opc_pos, args, args_are_const, trace))
-        return make_error(diag);
+    if (auto diag = insn.validate_args(args, args_are_const, trace))
+    {
+        data.fixed.diag = diag;
+        return {};
+    }
 
-    // select opcode matching args (normally only 1)
+    // select mcode matching args (normally only a single mcode))
     bitset_t ok;
     mcode_t const* matching_mcode_p {};
     bool multiple_matches = false;
-    const char *first_msg{};
+    const char *err_msg{};
+    int         err_index;
 
     // loop thru mcodes, recording first error & recording all matches
     int i = 0; 
@@ -97,7 +82,8 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
         if (trace)
             *trace << "validating: " << +i << ": ";
 
-        auto diag = mcode_p->validate_args(args, trace);
+        auto result = mcode_p->validate_args(args, trace);
+        auto diag = result.first;
         
         if (trace)
         {
@@ -118,9 +104,12 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
                 multiple_matches = true;
         }
         
-        // diag: record first to match
-        else if (!first_msg)
-            first_msg = diag;
+        // diag: record best error message
+        else if (!err_msg || result.second > err_index)
+        {
+            err_msg   = diag;
+            err_index = result.second;
+        }
         
         ++i;        // next
     }
@@ -128,13 +117,23 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
     if (trace)
         *trace << "result: " << ok.count() << " OK" << std::endl;
 
-    // no match: Invalid arguments
+    // no match: generate message
     if (!matching_mcode_p)
-        return make_error({err_msg_t::ERR_invalid, opc_pos});
+    {
+        if (err_index >= args.size())
+            err_index  = args.size() - 1;
+        data.fixed.diag = parser::kas_diag::error(err_msg, args[err_index]).ref();
+        return {};
+    }
 
     // multiple matches means no match
     if (multiple_matches)
         matching_mcode_p = {};
+
+    // no longer need dummy "arg" for error messages.
+    if (args.front().is_missing())
+        args.clear();
+
 
 #if 0
     // logic: here at least one arg matches. 

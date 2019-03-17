@@ -30,9 +30,12 @@ struct stmt_t : detail::parser_variant
     using base_t::base_t;
     using base_t::operator=;
 
-    // XXX not sure why base_t::base_t is insufficient
+    // not sure why base_t::base_t is insufficient
     template <typename...Ts>
     stmt_t(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
+
+    // instantiate `stmt_t` from error
+    stmt_t(kas_error_t err) : stmt_t{stmt_error(err)} {}
     
     std::string src() const
     {

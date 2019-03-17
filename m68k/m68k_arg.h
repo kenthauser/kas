@@ -130,7 +130,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
     }
 
     // validate if arg suitable for target
-    const char *ok_for_target(opc::m68k_size_t sz) const;
+    kas::parser::kas_error_t ok_for_target(opc::m68k_size_t sz);
 
     expr_t           outer;             // for '020 PRE/POST index addess modes
     m68k_arg_subword reg_subword {};    // for coldfire H/L subword access

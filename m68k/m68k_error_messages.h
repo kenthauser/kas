@@ -8,7 +8,9 @@ struct error_msg
 {
     static constexpr auto ERR_invalid       = "invalid arguments";
     static constexpr auto ERR_argument      = "invalid argument";
-    static constexpr auto ERR_missing       = "missing argument";
+    static constexpr auto ERR_missing       = "requires argument(s)";
+    static constexpr auto ERR_too_few       = "too few arguments";
+    static constexpr auto ERR_too_many      = "too many arguments";
     static constexpr auto ERR_addr_mode     = "invalid addr_mode";
     static constexpr auto ERR_addr_reg_byte = "byte operation on address register";
     static constexpr auto ERR_m68020_addr   = "m68020 addr";

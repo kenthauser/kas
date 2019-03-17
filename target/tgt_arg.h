@@ -25,10 +25,17 @@ struct tgt_arg_t : kas_token
     // x3 parser requires default constructable
     tgt_arg_t() : _mode(MODE_NONE) {}
 
-    // error
+    // error from const char *msg
     tgt_arg_t(const char *err, expr_t e = {})
-            : _mode(MODE_ERROR), err(err), expr(e)
-            {}
+            : _mode(MODE_ERROR), expr(e)
+    {
+        // create a `diag` instance
+        auto& diag = parser::kas_diag::error(err, *this);
+        this->err  = diag.ref();
+    }
+    
+    // error from `kas_error_t`
+    tgt_arg_t(parser::kas_error_t err) : _mode(MODE_ERROR), err(err) {}
 
 protected:
     // simplify derived class ctors
@@ -49,7 +56,7 @@ public:
     bool is_const () const  { return false; }
     
     // validate methods
-    template <typename...Ts> const char *ok_for_target(Ts&&...) const
+    template <typename...Ts> const char *ok_for_target(Ts&&...) 
     {
         return nullptr;
     }
@@ -77,7 +84,7 @@ public:
     
     // common member variables
     expr_t      expr {};
-    const char *err  {};
+    parser::kas_error_t err; 
     
 private:
     friend std::ostream& operator<<(std::ostream& os, tgt_arg_t const& arg)

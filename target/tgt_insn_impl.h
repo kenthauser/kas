@@ -27,30 +27,33 @@ void tgt_insn_t<OPCODE_T, TST_T, MAX_MCODES, INDEX_T>::
 
 
 
-//
-template <typename INSN_T, typename ARGS_T>
-parser::tagged_msg validate_arg_modes(
-                        INSN_T const& insn
-                      , parser::kas_position_tagged const& pos
-                      , ARGS_T const& args
-                      , bool& args_are_const
-                      , std::ostream *trace = {}
-                      )
+template <typename OPCODE_T, typename TST_T, unsigned MAX_MCODES, typename INDEX_T>
+template <typename ARGS_T, typename TRACE_T>
+auto  tgt_insn_t<OPCODE_T, TST_T, MAX_MCODES, INDEX_T>::
+        validate_args(ARGS_T& args
+                    , bool& args_are_const
+                    , TRACE_T *trace
+                    ) const -> kas_error_t
 {
 #if 0
     // if no opcodes, then result is HW_TST
-    if (insn.opcodes.empty())
-        return { tst.name(), pos };
+    if (mcodes.empty())
+        return { tst.name(), args.front() };
 #endif
 
-    // assume same "size" for all opcodes for same name
-//    auto sz = insn.opcodes.front()->sz();
-    
-    // check all args are OK
+    // if first is dummy, no args to check
+    if (args.front().is_missing())
+        return {};
+
+    // NB: pickup size from first mcode of insn
+    auto sz = mcodes.front()->sz();
     for (auto& arg : args)
     {
-  //      if (auto msg = arg.ok_for_target(sz))
-  //          return { msg, arg };
+        // if not supported, return error
+        if (auto diag = arg.ok_for_target(sz))
+            return diag;
+
+        // test if constant    
         if (args_are_const)
             if (!arg.is_const())
                 args_are_const = false;
@@ -59,22 +62,13 @@ parser::tagged_msg validate_arg_modes(
     return {};
 }
 
-// templated definition to cut down on noise in `insn_t` defn
-template <typename MCODE, typename TST, unsigned MAX, typename IDX_T>
-template <typename...Ts>
-auto tgt_insn_t<MCODE, TST, MAX, IDX_T>::
-    validate_args(Ts&&...args) const
-    -> parser::tagged_msg 
-{
-    return validate_arg_modes(*this, std::forward<Ts>(args)...);
-}
 
 // mcode_t base implementations
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         validate_args(ARGS_T& args, std::ostream *trace) const
-     -> const char *
+     -> std::pair<const char *, int>
 {
     if (trace)
         print(*trace);
@@ -82,16 +76,29 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     auto& val_c = vals();
     auto  val_p = val_c.begin();
     auto  cnt   = val_c.size();
+    auto  msg   = err_msg_t::ERR_invalid;   // "invalid arguments"
+
+    if (cnt == 1)
+        msg = err_msg_t::ERR_argument;
 
     if (trace)
         *trace << " cnt = " << +cnt;
 
     expr_fits fits;
+
+    // NB: here `args` still holds `MISSING` as first for no args
+    if (args.front().is_missing())
+    {
+        msg = cnt ? err_msg_t::ERR_missing : nullptr;
+        return { msg, 0 };
+    }
+   
+    int n = 0;      // doesn't conflict with missing
     for (auto& arg : args)
     {
         // if too many args
         if (!cnt--)
-            return err_msg_t::ERR_invalid;
+            return { err_msg_t::ERR_too_many, n };
         if (trace)
             *trace << " " << val_p.name() << " ";
        
@@ -99,13 +106,17 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         auto result = val_p->ok(arg, fits);
 
         if (result == expression::NO_FIT)
-            return err_msg_t::ERR_argument;
+            return { msg, n };
+
+        // not that 1 matched, change msg
+        msg = err_msg_t::ERR_argument;
         ++val_p;
+        ++n;
     }
 
     // error if not enough args
     if (cnt)
-        return err_msg_t::ERR_invalid;
+        return { err_msg_t::ERR_too_few, n };
     return {};
 }
 

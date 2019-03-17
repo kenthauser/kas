@@ -23,6 +23,7 @@ struct tgt_insn_t
     using index_t   = INDEX_T;
 
     using opcode    = core::opcode;
+    using kas_error_t = parser::kas_error_t;
 
     // used by "adder"
     using obstack_t = std::deque<tgt_insn_t>;
@@ -44,13 +45,12 @@ struct tgt_insn_t
     template <typename ARGS_T>
     core::opcode *gen_insn(core::opcode::data_t&, ARGS_T&&) const;
 
+    template <typename ARGS_T, typename TRACE_T>
+    kas_error_t validate_args(ARGS_T& args, bool& args_arg_const, TRACE_T *trace = {}) const;
+
     // methods are variadic templated to eliminate need for args to be forward declared
     template <typename...Ts>
     mcode_t const *eval(bitset_t&, Ts&&...) const;
-
-    // test if args suitable for INSN (eg: count) & processor flags
-    template <typename...Ts>
-    parser::tagged_msg validate_args(Ts&&...) const;
 
     // XXX move to impl
     template <typename OS>
