@@ -68,6 +68,11 @@ namespace kas::m68k::opc
     // declare object code sizes of each size immed arg (bytes): (void -> 0)
     static constexpr uint8_t m68k_size_immed[] = { 4, 4, 12, 12, 2, 8, 2, 0 };
 
+    // declare floating point format of each size immed arg (bits): (fixed -> 0)
+    static constexpr auto M68K_XTND   = 96;
+    static constexpr auto M68K_PACKED = M68K_XTND + 1;
+    static constexpr uint8_t m68k_size_float[] = { 0, 32, M68K_XTND, M68K_PACKED, 0, 64, 0, 0 };
+
     // instructions for instruction suffix handling:
     // eg: instructions such as `moveq.l` can also be spelled `moveq`
     // SFX_* types say how to handle "blank" suffix

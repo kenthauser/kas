@@ -43,13 +43,8 @@
 // is done in `m68k_arg_validate.h`
 
 
-#include "m68k_opcode_formats.h"
-#include "m68k_arg_validate.h"
-#include "m68k_size_defn.h"
-//#include "m68k_insn_select.h"
-#include "defns_mmu.h"
+#include "m68k_insn_common.h"
 
-#include "kas/kas_string.h"
 
 namespace kas::m68k::opc::mmu
 {

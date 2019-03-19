@@ -13,6 +13,13 @@
 // define error_message type
 #include "m68k_error_messages.h"
 
+// declare `m68k_mcode_t` which is used to derive all `target` types
+namespace kas::m68k
+{
+    // forward declare type
+    struct m68k_mcode_t;
+}
+
 namespace kas::expression
 {
     // M68K is baased on 16-bit instructions & 32-bit addresses

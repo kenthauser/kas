@@ -9,18 +9,19 @@
 #include "target/tgt_insn_adder.h"
 
 #include "m68k/insns_m68000.h"
-//#include "m68k/insns_m68020.h"
-//#include "m68k/insns_m68040.h"
-//#include "m68k/insns_m68000.h"
+#if 0
+#include "m68k/insns_m68020.h"
+#include "m68k/insns_m68040.h"
 //#include "m68k/insns_m68851.h"
-//#include "m68k/insns_m68881.h"
-//#include "m68k/insns_cpu32.h"
-//#include "m68k/insns_coldfire.h"
+#include "m68k/insns_m68881.h"
+#include "m68k/insns_cpu32.h"
+#include "m68k/insns_coldfire.h"
+#endif
 
 #include "m68k_arg_impl.h"
+#include "m68k_arg_emit.h"
 #include "m68k_arg_size.h"
 #include "m68k_arg_serialize.h"
-//#include "m68k_opcode_emit.h"
 
 // parse m68k instruction + args
 #include "mit_moto_parser_def.h"

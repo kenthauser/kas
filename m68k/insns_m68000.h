@@ -91,10 +91,10 @@ using m68k_move_v = list<list<>
 , insn<sz_lw, STR("movep"), OP<0x0108, movep, INFO_SIZE_WL>, FMT_0_9, MOVEP, DATA_REG>
 
 // privileged moves
-, insn<sz_lwb, STR("moves"), OP<0x0e00'0000, m68010>, FMT_12RM_0RM, GEN_REG, MEM_ALTER>
-, insn<sz_lwb, STR("moves"), OP<0x0e00'0800, m68010>, FMT_0RM_12RM, MEM_ALTER, GEN_REG>
-, insn<sz_vl , STR("movec"), OP<0x4e7a'0000, m68010>, FMT_I12_12RM, CTRL_REG, GEN_REG>
-, insn<sz_vl , STR("movec"), OP<0x4e7b'0000, m68010>, FMT_12RM_I12, GEN_REG, CTRL_REG>
+, insn<sz_lwb, STR("moves"), OP<0x0e00'0000, m68010>, FMT_28RM_0RM, GEN_REG, MEM_ALTER>
+, insn<sz_lwb, STR("moves"), OP<0x0e00'0800, m68010>, FMT_0RM_28RM, MEM_ALTER, GEN_REG>
+, insn<sz_vl , STR("movec"), OP<0x4e7a'0000, m68010>, FMT_I12_28RM, CTRL_REG, GEN_REG>
+, insn<sz_vl , STR("movec"), OP<0x4e7b'0000, m68010>, FMT_28RM_I12, GEN_REG, CTRL_REG>
 
 // exchange (not on coldfire)
 , insn<sz_v  , STR("exg"),  OP<0xc140, m68k>, FMT_9_0, DATA_REG, DATA_REG>

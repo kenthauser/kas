@@ -45,14 +45,105 @@ using fmt_generic = tgt::opc::tgt_fmt_generic<m68k_mcode_t, Ts...>;
 
 // These formatters are designed to work with the M68K register validators
 // reg-mode sets 6-bits.
-template <int SHIFT, unsigned WORD = 0, int MODE_OFFSET = 3>
-struct reg_mode
+// NB: MODE_BITS can be set to 1 to allow only general register extract
+template <int SHIFT, unsigned WORD = 0, int MODE_OFFSET = 3, unsigned MODE_BITS = 3>
+struct fmt_reg_mode
 {
     using val_t = m68k_mcode_t::val_t;
-    static constexpr auto MASK = (7 << SHIFT) | (7 << (SHIFT+MODE_OFFSET));
+    // actual word mask
+    static constexpr auto MASK      = (7 << SHIFT) | (7 << (SHIFT+MODE_OFFSET));
+
+    // shifted word mask
+    static constexpr auto MODE_MASK = ((1 << MODE_BITS) - 1) << 3;
 
     static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
     {
+        kas::expression::expr_fits fits;
+        
+        // validator return 6 bits: mode + reg
+        auto value = val_p->get_value(arg);
+        auto cpu_reg  = value & 7;
+        auto cpu_mode = arg.mode_normalize() & MODE_MASK;
+
+        value  = cpu_reg  <<  SHIFT;
+        value |= cpu_mode << (SHIFT+MODE_OFFSET-3);
+        
+        op[WORD]  &= ~MASK;
+        op[WORD]  |= value;
+
+        return fits.zero(arg.expr) == fits.yes;
+    }
+    
+    static void extract(uint16_t const* op, m68k_arg_t* arg, val_t const *val_p)
+    {
+        auto value     = op[WORD];
+        auto reg_num   = (value >>  SHIFT)                & 7;
+        auto cpu_mode  = (value >> (SHIFT+MODE_OFFSET-3)) & MODE_MASK; 
+        val_p->set_arg(*arg, reg_num | cpu_mode);
+    }
+};
+
+// if MODE_OFFSET is three, just generic with N bits
+template <unsigned SHIFT, unsigned WORD, unsigned BITS>
+struct fmt_reg_mode<SHIFT, WORD, 3, BITS> : fmt_generic<SHIFT, 3 + BITS, WORD> {};
+
+// Format PAIRs: Must specify offsets. Default is 3-bits in WORD1
+// Interface with validator: 4 LSBs are first general register; second general register is << 4
+template <unsigned SHIFT_0, unsigned SHIFT_1, unsigned BITS = 3, unsigned WORD_0 = 1, unsigned WORD_1 = WORD_0>
+struct fmt_reg_pair
+{
+    // assert anticipated cases
+    static_assert(BITS == 3 || BITS == 4);
+    
+    using val_t = m68k_mcode_t::val_t;
+    static constexpr auto BITS_MASK = (1 << BITS) - 1;
+    static constexpr auto MASK_0 = (BITS_MASK << SHIFT_0);
+    static constexpr auto MASK_1 = (BITS_MASK << SHIFT_1);
+
+    static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
+    {
+        auto get_reg = [](auto& e)
+            {
+                auto rp = e.template get_p<m68k_reg_t>();
+                auto n = rp->value();
+                if constexpr (BITS > 3)
+                    if (rp->kind() == RC_ADDR)
+                        n += 8;
+                return n;
+            };
+        
+        if constexpr (WORD_0 != WORD_1)
+        {
+            auto code  = op[WORD_0] &= ~MASK_0;
+            op[WORD_0] = code | (get_reg(arg.expr)  << SHIFT_0);
+                 code  = op[WORD_1] &= ~MASK_1;
+            op[WORD_1] = code | (get_reg(arg.outer) << SHIFT_1);
+        }
+        else
+        {
+            auto code  = op[WORD_0] &= ~(MASK_0 | MASK_1);
+                 code |= (get_reg(arg.expr) ) << SHIFT_0;
+                 code |= (get_reg(arg.outer)) << SHIFT_1;
+            op[WORD_0] = code;
+        }
+        
+        return true;
+    }
+    
+    static void extract(uint16_t const* op, m68k_arg_t* arg, val_t const *val_p)
+    {
+    }
+};
+
+// bitfields are completely regular: bottom 12-bits of word 1 in fixed format
+struct fmt_bitfield
+{
+    using val_t = m68k_mcode_t::val_t;
+    //static constexpr auto MASK = (7 << SHIFT) | (7 << (SHIFT+MODE_OFFSET));
+
+    static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
+    {
+#if 0
         // validator return 6 bits: mode + reg
         auto value = val_p->get_value(arg);
         auto cpu_reg  = value & (7 << 0);
@@ -63,23 +154,98 @@ struct reg_mode
         
         op[WORD]  &= ~MASK;
         op[WORD]  |= value;
-
+#endif
         return true;
     }
     
     static void extract(uint16_t const* op, m68k_arg_t* arg, val_t const *val_p)
     {
+#if 0
         auto value = op[WORD];
         auto reg_num  = (7 << 0) & (value >> SHIFT);
         auto cpu_mode = (7 << 3) & (value >> (SHIFT+MODE_OFFSET-3));
         
         val_p->set_arg(*arg, reg_num | cpu_mode);
+#endif
     }
 };
 
-// if MODE_OFFSET is three, just generic with six bits
-template <unsigned SHIFT, unsigned WORD>
-struct reg_mode<SHIFT, WORD, 3> : fmt_generic<SHIFT, 6, WORD> {};
+// coldfire MAC throws bits all over the place
+// Three register bits are shifted by shift and inserted.
+// The fourth general register bit (data/addr) is shifted by SHIFT+OFFSET & inserted.
+// The "subword" bit is shifted by by SUB_BIT & inserted in SUB_WORD
+
+// data format from validator: 4 LSBs: general register #, SUB_BIT << 4
+template <unsigned SHIFT, int B4_OFFSET, unsigned SUB_BIT, unsigned WORD = 0, unsigned SUB_WORD = 1>
+struct fmt_subreg
+{
+    using val_t = m68k_mcode_t::val_t;
+
+    static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
+    {
+#if 0
+        // validator return 6 bits: mode + reg
+        auto value = val_p->get_value(arg);
+        auto cpu_reg  = value & (7 << 0);
+        auto cpu_mode = value & (7 << 3);
+
+        value  = cpu_reg  << SHIFT;
+        value |= cpu_mode << (SHIFT+MODE_OFFSET-3);
+        
+        op[WORD]  &= ~MASK;
+        op[WORD]  |= value;
+#endif
+        return true;
+    }
+    
+    static void extract(uint16_t const* op, m68k_arg_t* arg, val_t const *val_p)
+    {
+#if 0
+        auto value = op[WORD];
+        auto reg_num  = (7 << 0) & (value >> SHIFT);
+        auto cpu_mode = (7 << 3) & (value >> (SHIFT+MODE_OFFSET-3));
+        
+        val_p->set_arg(*arg, reg_num | cpu_mode);
+#endif
+    }
+
+};
+
+// emac accN stored: complement of LSB in word 0, bit 7; MSB in word 1, bit 5
+template <bool INVERT_LSB = false>
+struct fmt_emac_an
+{
+    using val_t = m68k_mcode_t::val_t;
+    //static constexpr auto MASK = (7 << SHIFT) | (7 << (SHIFT+MODE_OFFSET));
+
+    static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
+    {
+#if 0
+        // validator return 6 bits: mode + reg
+        auto value = val_p->get_value(arg);
+        auto cpu_reg  = value & (7 << 0);
+        auto cpu_mode = value & (7 << 3);
+
+        value  = cpu_reg  << SHIFT;
+        value |= cpu_mode << (SHIFT+MODE_OFFSET-3);
+        
+        op[WORD]  &= ~MASK;
+        op[WORD]  |= value;
+#endif
+        return true;
+    }
+    
+    static void extract(uint16_t const* op, m68k_arg_t* arg, val_t const *val_p)
+    {
+#if 0
+        auto value = op[WORD];
+        auto reg_num  = (7 << 0) & (value >> SHIFT);
+        auto cpu_mode = (7 << 3) & (value >> (SHIFT+MODE_OFFSET-3));
+        
+        val_p->set_arg(*arg, reg_num | cpu_mode);
+#endif
+    }
+};
 
 #if 0
 // 3-bit register only
@@ -131,7 +297,6 @@ struct fmt_reg
         }
         else 
             arg->set_mode(MODE);
-        
     }
 };
 #endif

@@ -25,16 +25,16 @@ using cf_mac_moves_v = list<list<>
 , insn<sz_l, STR("move"), OP<0xa100, mac>, FMT_0RM,   IMMED, ACC>
     
 // emac access ACC_N
-// acc = w0b9
-, insn<sz_l, STR("move"), OP<0xa180, emac>, FMT_9AN_0RM, ACC_N, GEN_REG>
-, insn<sz_l, STR("move"), OP<0xa100, emac>, FMT_0RM_9AN, GEN_REG, ACC_N>
-, insn<sz_l, STR("move"), OP<0xa100, emac>, FMT_0RM_9AN, IMMED, ACC_N>
+// acc = 2 bit field, shifted 9 in first word
+, insn<sz_l, STR("move"), OP<0xa180, emac>, FMT_9B2_0RM, ACC_N, GEN_REG>
+, insn<sz_l, STR("move"), OP<0xa100, emac>, FMT_0RM_9B2, GEN_REG, ACC_N>
+, insn<sz_l, STR("move"), OP<0xa100, emac>, FMT_0RM_9B2, IMMED, ACC_N>
 
 // src = w0b0, dst = w0b9
-, insn<sz_l, STR("move"), OP<0xa110, emac>, FMT_0AN_9AN, ACC_N, ACC_N>
+, insn<sz_l, STR("move"), OP<0xa110, emac>, FMT_0B2_9B2, ACC_N, ACC_N>
 
 // acc = w0b9
-, insn<sz_l, STR("movclr"), OP<0xa1c0, emac>, FMT_9AN_0RM, ACC_N, GEN_REG>
+, insn<sz_l, STR("movclr"), OP<0xa1c0, emac>, FMT_9B2_0RM, ACC_N, GEN_REG>
     
 // emac access ACC_EXT..
 , insn<sz_l, STR("move"), OP<0xab80, emac>, FMT_X_0RM, ACC_EXT01, GEN_REG>
@@ -47,7 +47,6 @@ using cf_mac_moves_v = list<list<>
 
 // the MAC (and eMAC) have many odd syntax quarks (eg optional << or >>)
 // Also optional `&` after indirect arg to indicate MASK in use
-
 // CAN do wl with INFO_SIZE_MAC
 using cf_mac_v = list<list<>
 // original mac
@@ -128,123 +127,123 @@ using cf_mac_v = list<list<>
 
 using cf_emac_v = list<list<>
 // extended mac
-, insn<sz_w, STR("mac"),  OP<0xa000'0000, emac>, FMT_0UL_9UL_7AN,   REG_UL, REG_UL, ACC_N>
-, insn<sz_w, STR("mac"),  OP<0xa000'0200, emac>, FMT_0UL_9UL_X_7AN, REG_UL, REG_UL, SF_LEFT, ACC_N>
-, insn<sz_w, STR("mac"),  OP<0xa000'0600, emac>, FMT_0UL_9UL_X_7AN, REG_UL, REG_UL, SF_RIGHT, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0800, emac>, FMT_0UL_9UL_7AN,   GEN_REG, GEN_REG, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0a00, emac>, FMT_0UL_9UL_X_7AN, GEN_REG, GEN_REG, SF_LEFT, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0e00, emac>, FMT_0UL_9UL_X_7AN, GEN_REG, GEN_REG, SF_RIGHT, ACC_N>
+, insn<sz_w, STR("mac"),  OP<0xa000'0000, emac>, FMT_0UL_9UL_ANI,   REG_UL, REG_UL, ACC_N>
+, insn<sz_w, STR("mac"),  OP<0xa000'0200, emac>, FMT_0UL_9UL_X_ANI, REG_UL, REG_UL, SF_LEFT, ACC_N>
+, insn<sz_w, STR("mac"),  OP<0xa000'0600, emac>, FMT_0UL_9UL_X_ANI, REG_UL, REG_UL, SF_RIGHT, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0800, emac>, FMT_0UL_9UL_ANI,   GEN_REG, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0a00, emac>, FMT_0UL_9UL_X_ANI, GEN_REG, GEN_REG, SF_LEFT, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0e00, emac>, FMT_0UL_9UL_X_ANI, GEN_REG, GEN_REG, SF_RIGHT, ACC_N>
 
-, insn<sz_w, STR("msac"),  OP<0xa000'0100, emac>, FMT_0UL_9UL_7AN,   REG_UL, REG_UL, ACC_N>
-, insn<sz_w, STR("msac"),  OP<0xa000'0300, emac>, FMT_0UL_9UL_X_7AN, REG_UL, REG_UL, SF_LEFT, ACC_N>
-, insn<sz_w, STR("msac"),  OP<0xa000'0700, emac>, FMT_0UL_9UL_X_7AN, REG_UL, REG_UL, SF_RIGHT, ACC_N>
-, insn<sz_l, STR("msac"),  OP<0xa000'0900, emac>, FMT_0UL_9UL_7AN,   GEN_REG, GEN_REG, ACC_N>
-, insn<sz_l, STR("msac"),  OP<0xa000'0b00, emac>, FMT_0UL_9UL_X_7AN, GEN_REG, GEN_REG, SF_LEFT, ACC_N>
-, insn<sz_l, STR("msac"),  OP<0xa000'0f00, emac>, FMT_0UL_9UL_X_7AN, GEN_REG, GEN_REG, SF_RIGHT, ACC_N>
+, insn<sz_w, STR("msac"),  OP<0xa000'0100, emac>, FMT_0UL_9UL_AN,   REG_UL, REG_UL, ACC_N>
+, insn<sz_w, STR("msac"),  OP<0xa000'0300, emac>, FMT_0UL_9UL_X_AN, REG_UL, REG_UL, SF_LEFT, ACC_N>
+, insn<sz_w, STR("msac"),  OP<0xa000'0700, emac>, FMT_0UL_9UL_X_AN, REG_UL, REG_UL, SF_RIGHT, ACC_N>
+, insn<sz_l, STR("msac"),  OP<0xa000'0900, emac>, FMT_0UL_9UL_AN,   GEN_REG, GEN_REG, ACC_N>
+, insn<sz_l, STR("msac"),  OP<0xa000'0b00, emac>, FMT_0UL_9UL_X_AN, GEN_REG, GEN_REG, SF_LEFT, ACC_N>
+, insn<sz_l, STR("msac"),  OP<0xa000'0f00, emac>, FMT_0UL_9UL_X_AN, GEN_REG, GEN_REG, SF_RIGHT, ACC_N>
    
 // Multiply & load
 // accumulator_N LSB is inverted! Wow!
-, insn<sz_w, STR("macl"),  OP<0xa000'0000, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_w, STR("macl"),  OP<0xa000'0020, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_w, STR("macl"),  OP<0xa000'0200, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
-, insn<sz_w, STR("macl"),  OP<0xa000'0220, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_w, STR("macl"),  OP<0xa000'0600, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_w, STR("macl"),  OP<0xa000'0620, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_w, STR("macl"),  OP<0xa000'0000, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_w, STR("macl"),  OP<0xa000'0020, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_w, STR("macl"),  OP<0xa000'0200, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
+, insn<sz_w, STR("macl"),  OP<0xa000'0220, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_w, STR("macl"),  OP<0xa000'0600, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_w, STR("macl"),  OP<0xa000'0620, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
 
-, insn<sz_l, STR("macl"),  OP<0xa000'0800, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_l, STR("macl"),  OP<0xa000'0820, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_l, STR("macl"),  OP<0xa000'0a00, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
-, insn<sz_l, STR("macl"),  OP<0xa000'0a20, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_l, STR("macl"),  OP<0xa000'0e00, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_l, STR("macl"),  OP<0xa000'0e20, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_l, STR("macl"),  OP<0xa000'0800, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_l, STR("macl"),  OP<0xa000'0820, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_l, STR("macl"),  OP<0xa000'0a00, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
+, insn<sz_l, STR("macl"),  OP<0xa000'0a20, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_l, STR("macl"),  OP<0xa000'0e00, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_l, STR("macl"),  OP<0xa000'0e20, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
 
-, insn<sz_w, STR("msacl"),  OP<0xa000'0100, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_w, STR("msacl"),  OP<0xa000'0120, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_w, STR("msacl"),  OP<0xa000'0300, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
-, insn<sz_w, STR("msacl"),  OP<0xa000'0320, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_w, STR("msacl"),  OP<0xa000'0700, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_w, STR("msacl"),  OP<0xa000'0720, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_w, STR("msacl"),  OP<0xa000'0100, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_w, STR("msacl"),  OP<0xa000'0120, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_w, STR("msacl"),  OP<0xa000'0300, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
+, insn<sz_w, STR("msacl"),  OP<0xa000'0320, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_w, STR("msacl"),  OP<0xa000'0700, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_w, STR("msacl"),  OP<0xa000'0720, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
 
-, insn<sz_l, STR("msacl"),  OP<0xa000'0900, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_l, STR("msacl"),  OP<0xa000'0920, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_l, STR("msacl"),  OP<0xa000'0b00, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
-, insn<sz_l, STR("msacl"),  OP<0xa000'0b20, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_l, STR("msacl"),  OP<0xa000'0f00, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_l, STR("msacl"),  OP<0xa000'0f20, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_l, STR("msacl"),  OP<0xa000'0900, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_l, STR("msacl"),  OP<0xa000'0920, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_l, STR("msacl"),  OP<0xa000'0b00, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
+, insn<sz_l, STR("msacl"),  OP<0xa000'0b20, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_l, STR("msacl"),  OP<0xa000'0f00, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_l, STR("msacl"),  OP<0xa000'0f20, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
 
 // nxp app notes show `l`, but programmers reference doesn't... duplicate entries
-, insn<sz_w, STR("mac"),  OP<0xa000'0000, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_w, STR("mac"),  OP<0xa000'0020, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_w, STR("mac"),  OP<0xa000'0200, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
-, insn<sz_w, STR("mac"),  OP<0xa000'0220, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_w, STR("mac"),  OP<0xa000'0600, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_w, STR("mac"),  OP<0xa000'0620, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_w, STR("mac"),  OP<0xa000'0000, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_w, STR("mac"),  OP<0xa000'0020, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_w, STR("mac"),  OP<0xa000'0200, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
+, insn<sz_w, STR("mac"),  OP<0xa000'0220, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_w, STR("mac"),  OP<0xa000'0600, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_w, STR("mac"),  OP<0xa000'0620, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
 
-, insn<sz_l, STR("mac"),  OP<0xa000'0800, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0820, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0a00, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0a20, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0e00, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0e20, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0800, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0820, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0a00, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0a20, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0e00, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0e20, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
 
-, insn<sz_w, STR("msac"),  OP<0xa000'0100, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_w, STR("msac"),  OP<0xa000'0120, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_w, STR("msac"),  OP<0xa000'0300, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
-, insn<sz_w, STR("msac"),  OP<0xa000'0320, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_w, STR("msac"),  OP<0xa000'0700, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_w, STR("msac"),  OP<0xa000'0720, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_w, STR("msac"),  OP<0xa000'0100, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_w, STR("msac"),  OP<0xa000'0120, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_w, STR("msac"),  OP<0xa000'0300, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
+, insn<sz_w, STR("msac"),  OP<0xa000'0320, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_w, STR("msac"),  OP<0xa000'0700, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_w, STR("msac"),  OP<0xa000'0720, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
 
-, insn<sz_l, STR("mac"),  OP<0xa000'0900, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0920, emac>, FMT_UL0_UL12_0RM_9UL_I7AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0b00, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0b20, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0f00, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
-, insn<sz_l, STR("mac"),  OP<0xa000'0f20, emac>, FMT_UL0_UL12_X_0RM_9UL_I7AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0900, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0920, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0b00, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0b20, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0f00, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
+, insn<sz_l, STR("mac"),  OP<0xa000'0f20, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
 >;
 
 using cf_emac_b_v = list<list<>
-, insn<sz_w, STR("maaac"),  OP<0xa000'0001, emac_b>, FMT_0UL_9UL_7AN_AN2,   REG_UL, REG_UL, ACC_N, ACC_N>
-, insn<sz_w, STR("maaac"),  OP<0xa000'0201, emac_b>, FMT_0UL_9UL_X_7AN_AN2, REG_UL, REG_UL, SF_LEFT, ACC_N, ACC_N>
-, insn<sz_w, STR("maaac"),  OP<0xa000'0601, emac_b>, FMT_0UL_9UL_X_7AN_AN2, REG_UL, REG_UL, SF_RIGHT, ACC_N, ACC_N>
-, insn<sz_l, STR("maaac"),  OP<0xa000'0801, emac_b>, FMT_0UL_9UL_7AN_AN2,   GEN_REG, GEN_REG, ACC_N, ACC_N>
-, insn<sz_l, STR("maaac"),  OP<0xa000'0a01, emac_b>, FMT_0UL_9UL_X_7AN_AN2, GEN_REG, GEN_REG, SF_LEFT, ACC_N, ACC_N>
-, insn<sz_l, STR("maaac"),  OP<0xa000'0e01, emac_b>, FMT_0UL_9UL_X_7AN_AN2, GEN_REG, GEN_REG, SF_RIGHT, ACC_N, ACC_N>
+, insn<sz_w, STR("maaac"),  OP<0xa000'0001, emac_b>, FMT_0UL_9UL_AN_AN2,   REG_UL, REG_UL, ACC_N, ACC_N>
+, insn<sz_w, STR("maaac"),  OP<0xa000'0201, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_LEFT, ACC_N, ACC_N>
+, insn<sz_w, STR("maaac"),  OP<0xa000'0601, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_RIGHT, ACC_N, ACC_N>
+, insn<sz_l, STR("maaac"),  OP<0xa000'0801, emac_b>, FMT_0UL_9UL_AN_AN2,   GEN_REG, GEN_REG, ACC_N, ACC_N>
+, insn<sz_l, STR("maaac"),  OP<0xa000'0a01, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_LEFT, ACC_N, ACC_N>
+, insn<sz_l, STR("maaac"),  OP<0xa000'0e01, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_RIGHT, ACC_N, ACC_N>
     
-, insn<sz_w, STR("masac"),  OP<0xa000'0003, emac_b>, FMT_0UL_9UL_7AN_AN2,   REG_UL, REG_UL, ACC_N, ACC_N>
-, insn<sz_w, STR("masac"),  OP<0xa000'0203, emac_b>, FMT_0UL_9UL_X_7AN_AN2, REG_UL, REG_UL, SF_LEFT, ACC_N, ACC_N>
-, insn<sz_w, STR("masac"),  OP<0xa000'0603, emac_b>, FMT_0UL_9UL_X_7AN_AN2, REG_UL, REG_UL, SF_RIGHT, ACC_N, ACC_N>
-, insn<sz_l, STR("masac"),  OP<0xa000'0803, emac_b>, FMT_0UL_9UL_7AN_AN2,   GEN_REG, GEN_REG, ACC_N, ACC_N>
-, insn<sz_l, STR("masac"),  OP<0xa000'0a03, emac_b>, FMT_0UL_9UL_X_7AN_AN2, GEN_REG, GEN_REG, SF_LEFT, ACC_N, ACC_N>
-, insn<sz_l, STR("masac"),  OP<0xa000'0e03, emac_b>, FMT_0UL_9UL_X_7AN_AN2, GEN_REG, GEN_REG, SF_RIGHT, ACC_N, ACC_N>
+, insn<sz_w, STR("masac"),  OP<0xa000'0003, emac_b>, FMT_0UL_9UL_AN_AN2,   REG_UL, REG_UL, ACC_N, ACC_N>
+, insn<sz_w, STR("masac"),  OP<0xa000'0203, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_LEFT, ACC_N, ACC_N>
+, insn<sz_w, STR("masac"),  OP<0xa000'0603, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_RIGHT, ACC_N, ACC_N>
+, insn<sz_l, STR("masac"),  OP<0xa000'0803, emac_b>, FMT_0UL_9UL_AN_AN2,   GEN_REG, GEN_REG, ACC_N, ACC_N>
+, insn<sz_l, STR("masac"),  OP<0xa000'0a03, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_LEFT, ACC_N, ACC_N>
+, insn<sz_l, STR("masac"),  OP<0xa000'0e03, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_RIGHT, ACC_N, ACC_N>
     
-, insn<sz_w, STR("msaac"),  OP<0xa000'0101, emac_b>, FMT_0UL_9UL_7AN_AN2,   REG_UL, REG_UL, ACC_N, ACC_N>
-, insn<sz_w, STR("msaac"),  OP<0xa000'0301, emac_b>, FMT_0UL_9UL_X_7AN_AN2, REG_UL, REG_UL, SF_LEFT, ACC_N, ACC_N>
-, insn<sz_w, STR("msaac"),  OP<0xa000'0701, emac_b>, FMT_0UL_9UL_X_7AN_AN2, REG_UL, REG_UL, SF_RIGHT, ACC_N, ACC_N>
-, insn<sz_l, STR("msaac"),  OP<0xa000'0901, emac_b>, FMT_0UL_9UL_7AN_AN2,   GEN_REG, GEN_REG, ACC_N, ACC_N>
-, insn<sz_l, STR("msaac"),  OP<0xa000'0b01, emac_b>, FMT_0UL_9UL_X_7AN_AN2, GEN_REG, GEN_REG, SF_LEFT, ACC_N, ACC_N>
-, insn<sz_l, STR("msaac"),  OP<0xa000'0f01, emac_b>, FMT_0UL_9UL_X_7AN_AN2, GEN_REG, GEN_REG, SF_RIGHT, ACC_N, ACC_N>
+, insn<sz_w, STR("msaac"),  OP<0xa000'0101, emac_b>, FMT_0UL_9UL_AN_AN2,   REG_UL, REG_UL, ACC_N, ACC_N>
+, insn<sz_w, STR("msaac"),  OP<0xa000'0301, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_LEFT, ACC_N, ACC_N>
+, insn<sz_w, STR("msaac"),  OP<0xa000'0701, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_RIGHT, ACC_N, ACC_N>
+, insn<sz_l, STR("msaac"),  OP<0xa000'0901, emac_b>, FMT_0UL_9UL_AN_AN2,   GEN_REG, GEN_REG, ACC_N, ACC_N>
+, insn<sz_l, STR("msaac"),  OP<0xa000'0b01, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_LEFT, ACC_N, ACC_N>
+, insn<sz_l, STR("msaac"),  OP<0xa000'0f01, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_RIGHT, ACC_N, ACC_N>
     
-, insn<sz_w, STR("mssac"),  OP<0xa000'0101, emac_b>, FMT_0UL_9UL_7AN_AN2,   REG_UL, REG_UL, ACC_N, ACC_N>
-, insn<sz_w, STR("mssac"),  OP<0xa000'0301, emac_b>, FMT_0UL_9UL_X_7AN_AN2, REG_UL, REG_UL, SF_LEFT, ACC_N, ACC_N>
-, insn<sz_w, STR("mssac"),  OP<0xa000'0701, emac_b>, FMT_0UL_9UL_X_7AN_AN2, REG_UL, REG_UL, SF_RIGHT, ACC_N, ACC_N>
-, insn<sz_l, STR("mssac"),  OP<0xa000'0901, emac_b>, FMT_0UL_9UL_7AN_AN2,   GEN_REG, GEN_REG, ACC_N, ACC_N>
-, insn<sz_l, STR("mssac"),  OP<0xa000'0b01, emac_b>, FMT_0UL_9UL_X_7AN_AN2, GEN_REG, GEN_REG, SF_LEFT, ACC_N, ACC_N>
-, insn<sz_l, STR("mssac"),  OP<0xa000'0f01, emac_b>, FMT_0UL_9UL_X_7AN_AN2, GEN_REG, GEN_REG, SF_RIGHT, ACC_N, ACC_N>
+, insn<sz_w, STR("mssac"),  OP<0xa000'0101, emac_b>, FMT_0UL_9UL_AN_AN2,   REG_UL, REG_UL, ACC_N, ACC_N>
+, insn<sz_w, STR("mssac"),  OP<0xa000'0301, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_LEFT, ACC_N, ACC_N>
+, insn<sz_w, STR("mssac"),  OP<0xa000'0701, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_RIGHT, ACC_N, ACC_N>
+, insn<sz_l, STR("mssac"),  OP<0xa000'0901, emac_b>, FMT_0UL_9UL_AN_AN2,   GEN_REG, GEN_REG, ACC_N, ACC_N>
+, insn<sz_l, STR("mssac"),  OP<0xa000'0b01, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_LEFT, ACC_N, ACC_N>
+, insn<sz_l, STR("mssac"),  OP<0xa000'0f01, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_RIGHT, ACC_N, ACC_N>
 >;
 
 using cf_supv_v = list<list<>
 // re-add core insns otherwise excluded
 , insn<sz_vb, STR("tas"),  OP<0x4ac0, isa_c>, FMT_0RM, DATA_ALTER>
-, insn<sz_vl, STR("extb"), OP<0x49c0, coldfire>, FMT_0D, DATA_REG>
+, insn<sz_vl, STR("extb"), OP<0x49c0, coldfire>, FMT_0, DATA_REG>
 
-, insn<sz_l, STR("byterev"), OP<0x2c0, isa_c>, FMT_0D, DATA_REG>
+, insn<sz_l, STR("byterev"), OP<0x2c0, isa_c>, FMT_0, DATA_REG>
 
-, insn<sz_l, STR("mov3q"),  OP<0xa140, isa_b>, FMT_9QM_0RM, Q_MOV3Q, ALTERABLE>
-, insn<sz_w, STR("mvs"),    OP<0x7140, isa_b>, FMT_0RM_9D, GEN, DATA_REG>
-, insn<sz_b, STR("mvs"),    OP<0x7100, isa_b>, FMT_0RM_9D, GEN, DATA_REG>
-, insn<sz_w, STR("mvz"),    OP<0x71c0, isa_b>, FMT_0RM_9D, GEN, DATA_REG>
-, insn<sz_b, STR("mvz"),    OP<0x7180, isa_b>, FMT_0RM_9D, GEN, DATA_REG>
-, insn<sz_l, STR("sats"),   OP<0x4c80, isa_b>, FMT_0D, DATA_REG>
+, insn<sz_l, STR("mov3q"),  OP<0xa140, isa_b>, FMT_9_0RM, Q_MOV3Q, ALTERABLE>
+, insn<sz_w, STR("mvs"),    OP<0x7140, isa_b>, FMT_0RM_9, GEN, DATA_REG>
+, insn<sz_b, STR("mvs"),    OP<0x7100, isa_b>, FMT_0RM_9, GEN, DATA_REG>
+, insn<sz_w, STR("mvz"),    OP<0x71c0, isa_b>, FMT_0RM_9, GEN, DATA_REG>
+, insn<sz_b, STR("mvz"),    OP<0x7180, isa_b>, FMT_0RM_9, GEN, DATA_REG>
+, insn<sz_l, STR("sats"),   OP<0x4c80, isa_b>, FMT_0, DATA_REG>
 , insn<sz_w, STR("tpf"),    OP<0x51fa, coldfire>, void, IMMED> 
 , insn<sz_l, STR("tpf"),    OP<0x51fb, coldfire>, void, IMMED> 
 , insn<sz_v, STR("tpf"),    OP<0x51fc, coldfire>>
@@ -253,16 +252,16 @@ using cf_supv_v = list<list<>
 
 // XXX REMS/REMU not supported by MCF5202/5204/5206
 , insn<sz_l, STR("rems"),    OP<0x4c40'0800, isa_a>, FMT_0RM_PAIR, DATA_REG, PAIR>
-, insn<sz_l, STR("rems"),    OP<0x4c40'0800, isa_a>, FMT_0RM_PAIR, ADDR_INDIR, PAIR> 
+, insn<sz_l, STR("rems"),    OP<0x4c40'0800, isa_a>, FMT_0RM_PAIR, INDIRECT, PAIR> 
 , insn<sz_l, STR("remu"),    OP<0x4c40'0000, isa_a>, FMT_0RM_PAIR, DATA_REG, PAIR>
-, insn<sz_l, STR("remu"),    OP<0x4c40'0000, isa_a>, FMT_0RM_PAIR, ADDR_INDIR, PAIR> 
+, insn<sz_l, STR("remu"),    OP<0x4c40'0000, isa_a>, FMT_0RM_PAIR, INDIRECT, PAIR> 
 
-, insn<sz_v, STR("intouch"), OP<0xf428,      isa_b>, FMT_0S, ADDR_INDIR>
+, insn<sz_v, STR("intouch"), OP<0xf428,      isa_b>, FMT_0, ADDR_INDIR>
 , insn<sz_w, STR("strldsr"), OP<0x40e7'46fc, isa_c>, void,  IMMED>     // immed word
 
 // DEBUG cp
-, insn<sz_l, STR("wdebug"),  OP<0xfbc0'0003, isa_a>, FMT_0S, ADDR_INDIR>
-, insn<sz_l, STR("wdebug"),  OP<0xfbc0'0003, isa_a>, FMT_0A, ADDR_DISP> 
+, insn<sz_l, STR("wdebug"),  OP<0xfbc0'0003, isa_a>, FMT_0RM, ADDR_INDIR>
+, insn<sz_l, STR("wdebug"),  OP<0xfbc0'0003, isa_a>, FMT_0RM, ADDR_DISP> 
 , insn<sz_lwb, STR("wddata"), OP<0xfb00, isa_a>, FMT_0RM, MEM_ALTER>
     
 >; 

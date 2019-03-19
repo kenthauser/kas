@@ -31,7 +31,7 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
     // get kas types from opcode
     using core::opcode;
     auto trace  = opcode::trace;
-    trace = nullptr;
+    //trace = nullptr;
     
     // convenience references 
     auto& insn = *insn_p;
@@ -46,7 +46,6 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
             *trace << ", " << arg;
         *trace << std::endl;
     }
-
 
     // validate args as appropriate for target
     // also note if all args are "const" (ie: just regs & literals)
@@ -74,6 +73,7 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
         {
             *trace << std::dec << std::endl;;
             *trace << "mcode: " << +mcode_p->index      << " ";
+            *trace << "sz: "    << +mcode_p->sz()       << " ";
             *trace << "defn: "  << +mcode_p->defn_index << " ";
             mcode_p->defn().print(*trace);
         }

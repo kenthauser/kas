@@ -58,7 +58,7 @@ namespace kas::m68k
 
 // declare the classes of registers (data, address, fp, etc.)
 // NB: RC_DATA & RC_ADDR must stay 0 & 1 (they nominate "general registers")
-enum
+enum : std::uint8_t
 {
       RC_DATA = 0
     , RC_ADDR = 1
@@ -126,6 +126,12 @@ struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t>
 
     using base_t::base_t;
     
+    m68k_reg_t(reg_defn_idx_t reg_class, unsigned value)
+                : base_t(reg_class, static_cast<uint16_t>(value))
+        {
+            // add warning message here if casting is a problem...
+        }
+
     // MIT syntax only for now
     static const char *format_name(const char *n, unsigned i = 0)
     {

@@ -99,14 +99,14 @@ namespace detail {
 
     template <int N, typename TST, typename NAME>
     using fp_two = list<list<>
-        , fpgen_op_all <(N &~ 0x80), TST, NAME, FMT_0RM_7FP, DATA, FP_REG>
-        , fpgen_op_x   <(N &~ 0x80), TST, NAME, FMT_10FP_7FP, FP_REG, FP_REG>
+        , fpgen_op_all <(N &~ 0x80), TST, NAME, FMT_0RM_23, DATA, FP_REG>
+        , fpgen_op_x   <(N &~ 0x80), TST, NAME, FMT_26_23, FP_REG, FP_REG>
         >;
 
     template <int N, typename TST, typename NAME>
     using fp_one = list<list<>
         , fp_two <(N &~ 0x80), TST, NAME>
-        , fpgen_op_x<(N &~ 0x80), TST, NAME, FMT_DUPL_FP, FP_REG>
+        , fpgen_op_x<(N &~ 0x80), TST, NAME, FMT_DUPL_26_23, FP_REG>
         >;
 }
 
@@ -143,7 +143,7 @@ using fp_one = list<list<>
 template <int N, typename TST, typename NAME>
 using fp_tst = list<list<>
         , detail::fpgen_op_all<(N &~ 0x80), TST, NAME, FMT_0RM, DATA>
-        , detail::fpgen_op_x  <(N &~ 0x80), TST, NAME, FMT_10FP, FP_REG>
+        , detail::fpgen_op_x  <(N &~ 0x80), TST, NAME, FMT_26, FP_REG>
         >;
 
 // for `monadic` & `dyadic` instructions (*only* fp_one & fp_two):
@@ -195,24 +195,24 @@ using fp_gen_ops = list<list<>
     
 // sincos is special (three arguments)
 , fp_insn <sz_all, 0x30 | fp_insn_reg_mem, fpu_trig
-                , STR("sincos"), FMT_0RM_0FP_7FP, DATA, FP_REG, FP_REG>
+                , STR("sincos"), FMT_0RM_16_23, DATA, FP_REG, FP_REG>
 , fp_insn <sz_x,   0x30, fpu_trig
-                , STR("sincos"), FMT_10FP_0FP_7FP, FP_REG, FP_REG, FP_REG>
+                , STR("sincos"), FMT_26_16_23, FP_REG, FP_REG, FP_REG>
 
 // fmove special instructions:: kfactor & constant ROM
 , fp_insn <sz_x, 0x5c00, fpu_trig
-                , STR("movecr"), FMT_CR0_7FP, Q_7BITS, FP_REG>
+                , STR("movecr"), FMT_I7_23, Q_7BITS, FP_REG>
     // XXX don't know assembler format of "fortran" insns
     // , fpgen_p  <0x00, STR("move"), FP_REG, DATA, KF_DYNAMIC>
     // , fpgen_p  <0x00, STR("move"), FP_REG, DATA, KF_STATIC>
 
 // fmove: fp control registers
-, fp_insn <sz_l, 0x8000, fpu_basic, STR("move"), FMT_0RM_10FC, DATA, FCTRL_REG>
-, fp_insn <sz_l, 0xa000, fpu_basic, STR("move"), FMT_10FC_0RM, FCTRL_REG, DATA_ALTER>
+, fp_insn <sz_l, 0x8000, fpu_basic, STR("move"), FMT_0RM_26, DATA, FCTRL_REG>
+, fp_insn <sz_l, 0xa000, fpu_basic, STR("move"), FMT_26_0RM, FCTRL_REG, DATA_ALTER>
 
 // fmove: FPIAR can also use address registers
-, fp_insn <sz_l, 0x8000, fpu_basic, STR("move"), FMT_0RM_10FC, ADDR_REG, FPIAR>
-, fp_insn <sz_l, 0xa000, fpu_basic, STR("move"), FMT_10FC_0RM, FPIAR, ADDR_REG>
+, fp_insn <sz_l, 0x8000, fpu_basic, STR("move"), FMT_0RM_26, ADDR_REG, FPIAR>
+, fp_insn <sz_l, 0xa000, fpu_basic, STR("move"), FMT_26_0RM, FPIAR, ADDR_REG>
 
 // fsave/frestore
 , fp_insn <sz_v, 0x100 | fp_insn_use_short, fpu_basic
@@ -229,20 +229,20 @@ using fp_gen_ops = list<list<>
 , fp_insn <sz_x, 0xe000, fpu_m68k, STR("movem"), FMT_I8R_0RM, FP_REGSET, PRE_DECR>
 , fp_insn <sz_x, 0xd000, fpu_m68k, STR("movem"), FMT_0RM_I8, CONTROL, FP_REGSET>
 , fp_insn <sz_x, 0xd000, fpu_m68k, STR("movem"), FMT_0RM_I8, POST_INCR, FP_REGSET>
-, fp_insn <sz_x, 0xf800, fpu_m68k, STR("movem"), FMT_D4_0RM, DATA_REG, CONTROL_ALTER>
-, fp_insn <sz_x, 0xe800, fpu_m68k, STR("movem"), FMT_D4_0RM, DATA_REG, PRE_DECR>
-, fp_insn <sz_x, 0xd800, fpu_m68k, STR("movem"), FMT_0RM_D4, CONTROL, DATA_REG>
-, fp_insn <sz_x, 0xd800, fpu_m68k, STR("movem"), FMT_0RM_D4, POST_INCR, DATA_REG>
+, fp_insn <sz_x, 0xf800, fpu_m68k, STR("movem"), FMT_20_0RM, DATA_REG, CONTROL_ALTER>
+, fp_insn <sz_x, 0xe800, fpu_m68k, STR("movem"), FMT_20_0RM, DATA_REG, PRE_DECR>
+, fp_insn <sz_x, 0xd800, fpu_m68k, STR("movem"), FMT_0RM_20, CONTROL, DATA_REG>
+, fp_insn <sz_x, 0xd800, fpu_m68k, STR("movem"), FMT_0RM_20, POST_INCR, DATA_REG>
 
 // fmovem: fp control registers
-, fp_insn <sz_l, 0xa000, fpu_m68k, STR("movem"), FMT_I13_0RM, FC_REGSET, MEM_ALTER>
-, fp_insn <sz_l, 0x8000, fpu_m68k, STR("movem"), FMT_0RM_I13, MEM, FC_REGSET>
+, fp_insn <sz_l, 0xa000, fpu_m68k, STR("movem"), FMT_26_0RM, FC_REGSET, MEM_ALTER>
+, fp_insn <sz_l, 0x8000, fpu_m68k, STR("movem"), FMT_0RM_26, MEM, FC_REGSET>
 
 // fmovem: fp control registers: single register formats
-, fp_insn <sz_l, 0xa000, fpu_m68k, STR("movem"), FMT_I13_0RM, FCTRL_REG, DATA_REG>
-, fp_insn <sz_l, 0x8000, fpu_m68k, STR("movem"), FMT_0RM_I13, DATA_REG, FCTRL_REG>
-, fp_insn <sz_l, 0xa000, fpu_m68k, STR("movem"), FMT_I13_0RM, FPIAR, ADDR_REG>
-, fp_insn <sz_l, 0x8000, fpu_m68k, STR("movem"), FMT_0RM_I13, ADDR_REG, FPIAR>
+, fp_insn <sz_l, 0xa000, fpu_m68k, STR("movem"), FMT_26_0RM, FCTRL_REG, DATA_REG>
+, fp_insn <sz_l, 0x8000, fpu_m68k, STR("movem"), FMT_0RM_26, DATA_REG, FCTRL_REG>
+, fp_insn <sz_l, 0xa000, fpu_m68k, STR("movem"), FMT_26_0RM, FPIAR, ADDR_REG>
+, fp_insn <sz_l, 0x8000, fpu_m68k, STR("movem"), FMT_0RM_26, ADDR_REG, FPIAR>
 >;
 
 // store floating point condition code names & values in a type
@@ -323,7 +323,7 @@ using fp_ops_v = list<fp_gen_ops, fp_cc_ops>;
 }
 
 namespace kas::m68k::opc
-{
+{ 
     template <> struct m68k_insn_defn_list<OP_M68K_68881> : fp::fp_ops_v {};
 }
 

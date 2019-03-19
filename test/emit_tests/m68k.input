@@ -46,6 +46,8 @@
     movep.l d3,a4@(123)
     movep.w a2@,d6
     add.l   #4, d4
+    add.l   #8, d4
+    add.l   #0, d4
     add.w   a2@, d1
     add.l   #4, a2
     adda.w  #4, a2
