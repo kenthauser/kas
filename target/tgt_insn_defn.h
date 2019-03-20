@@ -12,6 +12,8 @@
 #include "target/tgt_validate.h"
 #include "target/tgt_format.h"
 
+#include "m68k/m68k_size_lwb.h"
+
 namespace kas::tgt::opc
 {
 using namespace meta;
@@ -120,6 +122,7 @@ struct tgt_insn_defn
             , val_c_index { VAL_C::value + 1   }
             , code        { OP::opcode::value  }
             , code_words  { code_to_words<mcode_size_t>(OP::opcode::value) }
+            , size_fn     { typename OP::size_fn{} }
             //, tst         { OP::tst::value     }
             {}
             
@@ -158,6 +161,7 @@ struct tgt_insn_defn
     uint32_t code;          // actual binary code
     uint16_t tst {};           // hw test
     uint8_t  code_words;    // zero-based
+    m68k::opc::insn_lwb size_fn;
 
     // override sizes in `MCODE_T`
     name_idx_t  name_index;    //  ? bits

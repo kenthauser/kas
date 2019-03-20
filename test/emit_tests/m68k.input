@@ -66,9 +66,9 @@ m_first:
     neg.l   a3@(d0)
     neg.l   a4@(10)
 
-    move.l  #3,d2
-    move.w  #3,d2
-    move.b  #3,d2
+    move.l  #-3,d2
+    move.w  #-3,d2
+    move.b  #-3,d2
 m_second:
     ;move.l  #.-m_second, d4
     ;move.w  #.-m_second, d4

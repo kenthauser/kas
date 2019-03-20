@@ -1,0 +1,82 @@
+1. Fix kas_object ref() to require mutable object. 
+   Since ref_loc_t::get() returns mutable, must require mutable to create.
+  
+2. Error to org backwards.
+
+3. Error to skip backwards.
+
+4. Org displays new addr w/o data. Make "skip" do same. 
+
+5. refactor ref_loc_t / kas_object to parser
+
+6. require kas_loc for kas_object. Change `add` methods to take loc as first arg.
+
+7. convert m68k_arg to tagged with "is_missing" method.
+
+8. x3/string/tst.hpp: allocs a node for a pointer type.
+     XXX need data_t in x3/string/detail/tst.hpp
+
+
+*********************************
+
+
+Generic TGT types:
+
+1. stmt
+
+2. insn
+
+3. "ARG" class requirements (empty, validate*, size*, ok_for_target)
+
+4. fmt_*: templated with ARG_CNT & opc_*
+
+5. reg_definitions (?). Include "ALIAS" inserter (?)
+
+6. `opc_list`, `opc_resolved` (?)
+
+7. insn_serialize
+
+*********************************
+
+*1. Why is opcode::trace not picked up in tgt_stmt::gen_insn
+
+*2. z80:bit number serialized as immed data 
+
+*3. local labels untagged
+
+*4. Z80:ld (blkcnt),a -> chunk reader error.
+
+*5. Z80: ex de,hl -> serialized incorrectly
+
+*6. Z80: no args decoded {** INVALID **}
+
+*7. Z80: ld hl,(blockfree) -> best not selected.
+
+*8. Z80: ld hl,(blockfree) -> chunk reader error
+
+*9. Z80: ld (blockfree),hl -> chunk reader error
+
+*10. Z80: handle negative immed values (8-bit math, ix/iy offset)
+
+*11. Z80:ld e,(hl) -> not matched
+
+12. tgt process args: convert to begin/end. Thus vector & array are identical.
+        also eliminates need to clear "de-serialize" arg vector.
+
+*13. DATA_LEN = BLOCK_LEN - 2;  -> Needs to be evaluated as constant, not expression.
+
+***********************************
+
+1. M68k. refactor `m68k_size_defn` to make suitable for `target`
+
+2. Add `INFO` to code
+
+*3. Complete `serialize` methods
+
+4. Implement default `emit`. Implement `arg` emit
+
+5. Throw at end of adder if no `list`
+
+6. mcode OPCODE size type calculated
+
+7. 

@@ -251,6 +251,16 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         value >>= 8 * sizeof(mcode_size_t);
     }
 
+    auto& sz_obj = d.sizes_base[d.sz_index - 1];
+    if (!sz_obj.single_size)
+    {
+        auto& size_fn = d.size_fn;
+        auto sz_code = size_fn.lwb_code(sz());
+        std::cout << "adding code: " << std::hex << sz_code << " sz = " << sz() << std::endl;
+        code_data[size_fn.sz_word] |= sz_code;
+    }
+    
+
     return code_data;
 }
 

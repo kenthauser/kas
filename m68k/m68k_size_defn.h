@@ -194,13 +194,15 @@ namespace kas::m68k::opc
             { 
                 return static_cast<m68k_size_t>(sz);
             }
+        #if 0
             auto operator==(iter const& other) const
             { 
                 return other.sz == sz;
             }
+        #endif
             auto operator!=(iter const& other) const
             {
-                return !(*this == other);
+                return sz != other.sz;
             }
         
         private:
