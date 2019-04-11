@@ -21,11 +21,11 @@ namespace kas::m68k::opc::gen_040
 
 using m68k_move16_v = list<list<>
 // move16
-, insn<sz_v, STR("move16"), OP<0xf620'8000, m68040>, FMT_0_28, POST_INCR, POST_INCR>
-, insn<sz_v, STR("move16"), OP<0xf620,      m68040>, FMT_0,    POST_INCR, DIR_LONG>
-, insn<sz_v, STR("move16"), OP<0xf630,      m68040>, FMT_0,    ADDR_INDIR, DIR_LONG>
-, insn<sz_v, STR("move16"), OP<0xf628,      m68040>, FMT_X_0,  DIR_LONG, POST_INCR>
-, insn<sz_v, STR("move16"), OP<0xf638,      m68040>, FMT_X_0,  DIR_LONG, ADDR_INDIR>
+, defn<sz_v, STR("move16"), OP<0xf620'8000, m68040>, FMT_0_28, POST_INCR, POST_INCR>
+, defn<sz_v, STR("move16"), OP<0xf620,      m68040>, FMT_0,    POST_INCR, DIR_LONG>
+, defn<sz_v, STR("move16"), OP<0xf630,      m68040>, FMT_0,    ADDR_INDIR, DIR_LONG>
+, defn<sz_v, STR("move16"), OP<0xf628,      m68040>, FMT_X_0,  DIR_LONG, POST_INCR>
+, defn<sz_v, STR("move16"), OP<0xf638,      m68040>, FMT_X_0,  DIR_LONG, ADDR_INDIR>
     >;
 
 
@@ -38,7 +38,7 @@ using m68k_gen_v = list<list<>
 
 namespace kas::m68k::opc
 {
-    template <> struct m68k_insn_defn_list<OP_M68K_040> : gen_040::m68k_gen_v {};
+    template <> struct m68k_defn_list<OP_M68K_040> : gen_040::m68k_gen_v {};
 }
 
 #endif

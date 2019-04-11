@@ -99,7 +99,7 @@ struct val_dir_long : m68k_validate
         return fits.no;
     }
 
-    fits_result size(m68k_arg_t& arg, m68k_size_t sz, expr_fits const& fits
+    fits_result size(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits
                                                     , op_size_t& op_size) const override
     {
         op_size += 4;
@@ -122,7 +122,7 @@ struct val_direct_del : m68k_validate
     }
 
     // NB: this validator is reason we need size_p: whole insn can be deleted
-    fits_result size(m68k_arg_t& arg, m68k_size_t sz, expr_fits const& fits
+    fits_result size(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits
                                                     , op_size_t& op_size) const override
     {
         // set total size min to zero to flag branch can delete instruction
@@ -148,7 +148,7 @@ struct val_movep : m68k_validate
                 return fits.no;
         }
     }
-    fits_result size(m68k_arg_t& arg, m68k_size_t sz, expr_fits const& fits
+    fits_result size(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits
                                                     , op_size_t& op_size) const override
     {
         op_size += 2;               // word displacement always present
@@ -438,7 +438,7 @@ struct val_cf_bit_static : m68k_validate
 }   // unnamed namespace
 
 
-#define VAL_GEN(N, ...) using N = _val_gen<KAS_STRING(#N), __VA_ARGS__>;
+#define VAL_GEN(NAME, ...) using NAME = _val_gen<KAS_STRING(#NAME), __VA_ARGS__>;
 
 template <typename N, typename T, int...Ts>
 using _val_gen = list<N, T, int_<Ts>...>;

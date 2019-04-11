@@ -39,12 +39,12 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-#include "m68k_size_defn.h"         // types defining "size" list for opcodes
 #include "m68k_size_lwb.h"          // types to insert "size" into opcode
 #include "m68k_formats_defn.h"      // actual format types
 #include "m68k_validate_reg.h"      // actual validate types
 #include "m68k_validate_gen.h"      // actual validate types
 
+#include "target/tgt_defn_trait.h"  // decalare "trait" for definition
 #include "kas/kas_string.h"         // name as type
 
 #include <meta/meta.hpp>            // MPL library
@@ -52,7 +52,7 @@
 namespace kas::m68k::opc
 {
 // declare opcode groups (ie: include files)
-using m68k_insn_defn_groups = meta::list<
+using m68k_defn_groups = meta::list<
       struct OP_M68K_GEN
     , struct OP_M68K_020
     , struct OP_M68K_040
@@ -63,37 +63,45 @@ using m68k_insn_defn_groups = meta::list<
     , struct OP_COLDFIRE
     >;
 
-template <typename=void> struct m68k_insn_defn_list : meta::list<> {};
+template <typename=void> struct m68k_defn_list : meta::list<> {};
 
-///////////////////////////////////////////////////////////////////////    
 //
-// NB: `insn` is a meta `trait` (which evaluates to a meta `list` of arguments) because
-// the `defn_flatten` metafunction recurses through each list it finds looking for more
-// `insns`. This is useful because many metafunctions (eg: shift and floating point) generate
-// many closely related `insns`. Since `insn` is *not* a `meta::list`, it stops the recursion.
+// declare "size traits" for use in instruction definintion
 //
-///////////////////////////////////////////////////////////////////////    
 
-// default fmt: no args (and thus no inserter)
+using namespace tgt::opc::traits;
+using tgt::opc::define_sz;
+using tgt::opc::sz_void;
 
-template <typename SZ, typename NAME, typename INFO, typename FMT = void, typename...Ts>
-struct insn
-{
-    // if no formatter specified, use "general" format w/o args
-    using fmt  = meta::if_<std::is_void<FMT>, fmt_gen, FMT>;
-    using type = meta::list<SZ, NAME, INFO, fmt, Ts...>;
-};
+// multiple sizes: generate `list` directly`
+using sz_lwb  = meta::list<meta::int_<(1 << OP_SIZE_LONG) | (1 << OP_SIZE_WORD) | (1 << OP_SIZE_BYTE)>>;
+using sz_lw   = meta::list<meta::int_<(1 << OP_SIZE_LONG) | (1 << OP_SIZE_WORD)>>;
+using sz_wb   = meta::list<meta::int_<(1 << OP_SIZE_WORD) | (1 << OP_SIZE_BYTE)>>;
+using sz_all  = meta::list<meta::int_<0x7f>>;
 
-// The `OP` alias is used for `INFO` to allow defaults for the TST & SIZE_FN arguments.
-template <uint32_t OPCODE, typename TST = void, typename SIZE_FN = INFO_SIZE_NORM>
-struct OP
-{
-    using type    = OP;
+// single-sizes
+using sz_b    = define_sz<OP_SIZE_BYTE>;
+using sz_w    = define_sz<OP_SIZE_WORD>;
+using sz_l    = define_sz<OP_SIZE_LONG>;
+using sz_s    = define_sz<OP_SIZE_SINGLE>;
+using sz_d    = define_sz<OP_SIZE_DOUBLE>;
+using sz_x    = define_sz<OP_SIZE_XTND>;
+using sz_p    = define_sz<OP_SIZE_PACKED>;
 
-    using opcode  = std::integral_constant<uint32_t, OPCODE>;
-    using tst     = meta::if_<std::is_void<TST>, hw::hw_void, TST>;
-    using size_fn = meta::_t<SIZE_FN>;
-};
+// void never has suffix (also: always single size)
+using sz_v    = sz_void;
+
+// only difference between v% & %v: first name is canonical.
+using sz_wv   = define_sz<OP_SIZE_WORD, tgt::opc::SFX_OPTIONAL>;
+using sz_vw   = define_sz<OP_SIZE_WORD, tgt::opc::SFX_CANONICAL_NONE>;
+using sz_lv   = define_sz<OP_SIZE_LONG, tgt::opc::SFX_OPTIONAL>;
+using sz_vl   = define_sz<OP_SIZE_LONG, tgt::opc::SFX_CANONICAL_NONE>;
+using sz_bv   = define_sz<OP_SIZE_BYTE, tgt::opc::SFX_OPTIONAL>;
+using sz_vb   = define_sz<OP_SIZE_BYTE, tgt::opc::SFX_CANONICAL_NONE>;
+
+// set size field, but no suffix (capital W/L). not common.
+using sz_W    = define_sz<OP_SIZE_WORD, tgt::opc::SFX_NONE>;
+using sz_L    = define_sz<OP_SIZE_LONG, tgt::opc::SFX_NONE>;
 
 }
 

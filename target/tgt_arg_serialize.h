@@ -59,7 +59,7 @@ void insert_one (Inserter& inserter
                     , unsigned n
                     , detail::arg_info_t *p
                     , typename MCODE_T::arg_t& arg
-                    , typename MCODE_T::tgt_size_t sz
+                    , uint8_t sz
                     , typename MCODE_T::fmt_t const& fmt
                     , typename MCODE_T::val_t const *val_p
                     , typename MCODE_T::mcode_size_t   *code_p
@@ -96,7 +96,7 @@ void extract_one(Reader& reader
                     , unsigned n
                     , detail::arg_info_t *p
                     , typename MCODE_T::arg_t *arg_p
-                    , typename MCODE_T::tgt_size_t sz
+                    , uint8_t sz
                     , typename MCODE_T::fmt_t const& fmt
                     , typename MCODE_T::val_t const *val_p
                     , typename MCODE_T::mcode_size_t   *code_p

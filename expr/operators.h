@@ -84,21 +84,21 @@ using pfx_types = gen_types<pfx_ops_v, int_<1>, int_<PRI_PFX>, bool_<false>>;
 using sfx_types = gen_types<sfx_ops_v, int_<1>, int_<PRI_SFX>, bool_<false>>;
 
 // since bin_type/pfx_type/sfx_types share same type, need to share NAMES
-// use `op_parser` meta_functions to retrieve needed types
+// use `sym_parser_t` meta_functions to retrieve needed types
 namespace
 {
     // perform calculations in temporary namespace
-    using namespace kas::parser::detail;
+    using kas::parser::detail::get_types_one_item;
 
-    template <typename DEFNS, typename NAME_LIST, typename XTRA = list<>>
-    using get_all_names = _t<apply<get_types_one_item<DEFNS>
-                                 , list<void, NAME_LIST, void, XTRA>>>;
-    
     using NAME_LIST = typename expr_op_defn::NAME_LIST;
 
-    using NAMES     = list<get_all_names<sfx_types, NAME_LIST,
-                              get_all_names<pfx_types, NAME_LIST,
-                                 get_all_names<bin_types, NAME_LIST>>>>;
+    template <typename DEFNS, typename XTRA = list<>>
+    using get_expr_op_names = _t<apply<get_types_one_item<DEFNS>
+                                     , list<void, NAME_LIST, void, XTRA>>>;
+    
+    using NAMES     = list<get_expr_op_names<sfx_types,
+                              get_expr_op_names<pfx_types,
+                                 get_expr_op_names<bin_types>>>>;
 }
 
 // create parsers from lists

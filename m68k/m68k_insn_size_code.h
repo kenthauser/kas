@@ -1,15 +1,13 @@
-#ifndef KAS_M68K_M68K_SIZE_LWB_H
-#define KAS_M68K_M68K_SIZE_LWB_H
+#ifndef KAS_M68K_M68K_INSN_SIZE_CODE_H
+#define KAS_M68K_M68K_INSN_SIZE_CODE_H
 
-#include "m68k_mcode.h"         // need op-size defns
+#include "m68k_mcode.h"
 
 namespace kas::m68k::opc
 {
-using namespace meta;
-using namespace hw;
 
 ///////////////////////////////////////////////////////////////////////    
-// until a better home is found
+
 enum m68k_cpid : int8_t
 {
       M68K_CPID_MMU         // 0 = Memory management unit
@@ -19,7 +17,8 @@ enum m68k_cpid : int8_t
     , M68K_CPID_TABLE       // 4 = CPU_32/Coldfire table instructions
     , M68K_CPID_DEBUG = 15  // 15 = Debug instructions
 };
-
+    
+    
 /////////////////////////////////////////////////////////////////////////
 //
 //  for insertion of `op_size` into base opcode
@@ -29,7 +28,10 @@ enum m68k_cpid : int8_t
 /////////////////////////////////////////////////////////////////////////
 
 template <int WORD, int BIT, int SEQ>
-using insn_add_size = meta::list<meta::int_<WORD>, meta::int_<BIT>, meta::int_<SEQ>>;
+struct insn_add_size
+{
+    using type = meta::list<meta::int_<WORD>, meta::int_<BIT>, meta::int_<SEQ>>;
+};
 
 // sequences (BWL) are surprisingly aribrary
 enum { SEQ_BWL_012, SEQ_BWL_132, SEQ_BWL_123, SEQ_WL_01, SEQ_WL_23, SEQ_FLT, SEQ_VOID, NUM_SEQ };
@@ -41,7 +43,7 @@ using INFO_SIZE_BWL9  = insn_add_size<0,  9, SEQ_BWL_123>;
 using INFO_SIZE_WL    = insn_add_size<0,  6, SEQ_WL_01>;
 using INFO_SIZE_WL0   = insn_add_size<0,  0, SEQ_WL_01>;
 using INFO_SIZE_WL9   = insn_add_size<0,  9, SEQ_WL_01>;
-using INFO_SIZE_FLT   = insn_add_size<1, 10, SEQ_FLT>;
+using INFO_SIZE_FLT   = insn_add_size<1, 10, SEQ_FLT>;          // OP_SIZE is float "code"
 using INFO_SIZE_NORM1 = insn_add_size<1,  6, SEQ_BWL_012>;
 using INFO_SIZE_MAC   = insn_add_size<1, 11, SEQ_WL_01>;
 using INFO_SIZE_VOID  = insn_add_size<0,  0, SEQ_VOID>;
@@ -53,17 +55,13 @@ using INFO_SIZE_VOID  = insn_add_size<0,  0, SEQ_VOID>;
 //
 ///////////////////////////////////////////////////////////////////////    
 
-struct m68k_insn_lwb 
+struct insn_lwb
 {
-    using value_t = uint8_t;            // size of constexpr defn
-    using default_t = INFO_SIZE_NORM;   // default size fn 
+    using defn_size_t = uint8_t;
 
     template <typename W, typename B, typename S>
-    constexpr m68k_insn_lwb(meta::list<W, B, S>)
+    constexpr insn_lwb(meta::list<W, B, S>)
         : sz_seq{S::value}, sz_word{W::value}, sz_bit{B::value} {}
-
-    // need default ctor
-    constexpr m68k_insn_lwb() : m68k_insn_lwb( default_t() ) {};
 
 private:
     static constexpr int get_code(int seq, uint8_t sz)
@@ -111,19 +109,17 @@ private:
         return -1;
     }
 public:
-    uint16_t operator()(uint8_t sz) const
+    uint16_t lwb_code(uint8_t sz) const
     {
         auto code = get_code(sz_seq, sz);
         if (code < 0)
             throw std::runtime_error{"Invalid insn_lwb code"};
         return code << sz_bit;
     }
-    
-    static_assert(NUM_SEQ <= 8);    // must fit in the allocated 3 bits
-
-    value_t sz_seq  : 3;
-    value_t sz_word : 1;
-    value_t sz_bit  : 4;
+        
+    defn_size_t sz_seq  : 3;
+    defn_size_t sz_word : 1;
+    defn_size_t sz_bit  : 4;
 };
 
 

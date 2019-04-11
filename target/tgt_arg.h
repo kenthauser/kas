@@ -8,6 +8,15 @@ namespace kas::tgt
 
 using kas::parser::kas_token; 
 struct token_missing  : kas_token {};
+    
+// declare immediate information type
+struct tgt_immed_info
+{
+    uint8_t sz_bytes{};
+    uint8_t flt_fmt {};
+    uint8_t mask    {};
+};
+
 
 template <typename Derived, typename Mode_t>
 struct tgt_arg_t : kas_token
@@ -41,6 +50,12 @@ protected:
     // simplify derived class ctors
     tgt_arg_t(arg_mode_t mode, expr_t e = {}) : _mode(mode), expr(e) {}
 
+    // CRTP casts
+    auto constexpr& derived() const
+        { return *static_cast<derived_t const*>(this); }
+    auto constexpr& derived()
+        { return *static_cast<derived_t*>(this); }
+
 public:
     // arg mode: default getter/setter
     auto mode() const              { return _mode; }
@@ -63,6 +78,17 @@ public:
     
     // emit methods: require derived implementation
     op_size_t size(expression::expr_fits const& fits = {});
+
+    // information about argument sizes
+    // default:: single size immed arg, size = data_size, not float
+    static constexpr tgt_immed_info sz_info[] = { sizeof(expression::e_data_t<>) };
+
+    auto& immed_info(uint8_t sz) const
+    {
+        if (sz >= std::extent<decltype(derived().sz_info)>::value)
+            throw std::runtime_error{"immed_info::invalid sz"};
+        return derived().sz_info[sz];
+    }
 
     template <typename MCODE_T>
     void emit(MCODE_T const& mcode, core::emit_base& base, unsigned size) const

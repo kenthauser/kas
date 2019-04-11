@@ -10,7 +10,7 @@
 // Data can be stored as "fixed" constant, or "expression" 
 
 #include "m68k_arg.h"
-#include "m68k_size_defn.h"
+//#include "m68k_size_defn.h"
 
 //#include "expr/expr_fits.h"     // for INDEX_BRIEF
 
@@ -19,7 +19,7 @@ namespace kas::m68k
 {
 
 template <typename Inserter>
-bool m68k_arg_t::serialize (Inserter& inserter, opc::m68k_size_t sz, bool& completely_saved)
+bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, bool& completely_saved)
 {
     auto save_expr = [&](auto size) -> bool
         {
@@ -83,7 +83,7 @@ bool m68k_arg_t::serialize (Inserter& inserter, opc::m68k_size_t sz, bool& compl
         case MODE_IMMED_WORD:
         case MODE_IMMED_DOUBLE:
         case MODE_IMMED_BYTE:
-            size = opc::m68k_size_immed[sz];
+            size = immed_info(sz).sz_bytes;
             if (size > 4)
                 size = 0;       // longer than LONG, save as expr
             else
@@ -155,7 +155,7 @@ bool m68k_arg_t::serialize (Inserter& inserter, opc::m68k_size_t sz, bool& compl
 
 // deserialize m68k_ments: for format, see above
 template <typename Reader>
-void m68k_arg_t::extract(Reader& reader, opc::m68k_size_t sz, bool has_data, bool has_expr)
+void m68k_arg_t::extract(Reader& reader, uint8_t sz, bool has_data, bool has_expr)
 {
     // need to special case INDEX to match code above
     if (mode() == MODE_INDEX || mode() == MODE_PC_INDEX)
@@ -263,7 +263,7 @@ void m68k_arg_t::extract(Reader& reader, opc::m68k_size_t sz, bool has_data, boo
             case MODE_IMMED_WORD:
             case MODE_IMMED_DOUBLE:
             case MODE_IMMED_BYTE:
-                size = opc::m68k_size_immed[sz];
+                size = immed_info(sz).sz_bytes;
                 if (size > 4)
                     size = 0;       // longer than LONG, save as expr
                 else

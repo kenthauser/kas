@@ -24,7 +24,8 @@ namespace kas::expression
 {
     // M68K is baased on 16-bit instructions & 32-bit addresses
     using m68k_base_t = std::uint16_t;
-    template <> struct e_addr_t <void> { using type = std::uint16_t;   };
+    template <> struct e_data_t <void> { using type = std::uint16_t;   };
+    template <> struct e_addr_t <void> { using type = std::uint32_t;   };
     template <> struct err_msg_t<void> { using type = m68k::error_msg; };
 }
 

@@ -13,6 +13,7 @@ template <typename MCODE_T> struct tgt_validate_args;
 template <typename MCODE_T> struct tgt_insn_defn;
 template <typename MCODE_T> struct tgt_insn_adder;
 template <typename MCODE_T> struct tgt_opcode;
+template <typename MOCDE_T> struct tgt_defn_sizes;
 template <typename MCODE_T> struct tgt_size;
 
 }
@@ -34,18 +35,16 @@ struct tgt_mcode_size_t
     static constexpr auto MAX_MCODE_WORDS = 2;
 
     //using mcode_size_t = void;          // must specify machine code size
-    using mcode_size_t = uint8_t;
-    using mcode_idx_t  = uint8_t;
-    using defn_idx_t   = uint8_t;
-    using name_idx_t   = uint8_t;
-    using fmt_idx_t    = uint8_t;
-    using val_idx_t    = uint8_t;
-    using val_c_idx_t  = uint8_t;
-    using tgt_size_t   = uint8_t;
+    using mcode_size_t  = uint8_t;
+    using mcode_idx_t   = uint8_t;
+    using defn_idx_t    = uint8_t;
+    using name_idx_t    = uint8_t;
+    using fmt_idx_t     = uint8_t;
+    using val_idx_t     = uint8_t;
+    using val_c_idx_t   = uint8_t;
 };
 
 template <typename MCODE_T> struct tgt_size { };
-
 
 template <typename MCODE_T, typename STMT_T, typename ERR_MSG_T, typename SIZE_T = tgt_mcode_size_t>
 struct tgt_mcode_t
@@ -73,22 +72,25 @@ struct tgt_mcode_t
     using op_size_t    = typename core::opcode::op_size_t;
 
     // supporting types
-    using fmt_t      = opc::tgt_format       <MCODE_T>;
-    using val_t      = opc::tgt_validate     <MCODE_T>;
-    using val_c_t    = opc::tgt_validate_args<MCODE_T>;
-    using defn_t     = opc::tgt_insn_defn    <MCODE_T>;
-    using adder_t    = opc::tgt_insn_adder   <MCODE_T>;
-    using opcode_t   = opc::tgt_opcode       <MCODE_T>;
+    using fmt_t        = opc::tgt_format       <MCODE_T>;
+    using val_t        = opc::tgt_validate     <MCODE_T>;
+    using val_c_t      = opc::tgt_validate_args<MCODE_T>;
+    using defn_t       = opc::tgt_insn_defn    <MCODE_T>;
+    using adder_t      = opc::tgt_insn_adder   <MCODE_T>;
+    using opcode_t     = opc::tgt_opcode       <MCODE_T>;
+    using defn_sizes_t = opc::tgt_defn_sizes   <MCODE_T>;
+
+    // declare "default" fomatter
+    using fmt_default  = void;      // must be specified per-arch
 
     // override sizes in `SIZE_T` if required
-    using mcode_size_t = typename SIZE_T::mcode_size_t;
-    using mcode_idx_t  = typename SIZE_T::mcode_idx_t;
-    using defn_idx_t   = typename SIZE_T::defn_idx_t;
-    using name_idx_t   = typename SIZE_T::name_idx_t;
-    using fmt_idx_t    = typename SIZE_T::fmt_idx_t;
-    using val_idx_t    = typename SIZE_T::val_idx_t;
-    using val_c_idx_t  = typename SIZE_T::val_c_idx_t;
-    using tgt_size_t   = typename SIZE_T::tgt_size_t;
+    using mcode_size_t  = typename SIZE_T::mcode_size_t;
+    using mcode_idx_t   = typename SIZE_T::mcode_idx_t;
+    using defn_idx_t    = typename SIZE_T::defn_idx_t;
+    using name_idx_t    = typename SIZE_T::name_idx_t;
+    using fmt_idx_t     = typename SIZE_T::fmt_idx_t;
+    using val_idx_t     = typename SIZE_T::val_idx_t;
+    using val_c_idx_t   = typename SIZE_T::val_c_idx_t;
     
     static constexpr auto MAX_ARGS        = SIZE_T::MAX_ARGS;
     static constexpr auto MAX_MCODE_WORDS = SIZE_T::MAX_MCODE_WORDS;
@@ -105,7 +107,7 @@ struct tgt_mcode_t
         { return *static_cast<derived_t*>(this); }
 
     // constructor: just save indexes
-    tgt_mcode_t(mcode_idx_t index, defn_idx_t defn_index, tgt_size_t sz)
+    tgt_mcode_t(mcode_idx_t index, defn_idx_t defn_index, uint8_t sz)
         : index{index}, defn_index{defn_index}, _sz{sz}
         {}
 
@@ -127,7 +129,7 @@ struct tgt_mcode_t
     defn_t     const& defn() const;
     fmt_t      const& fmt()  const;
     val_c_t    const& vals() const;
-    tgt_size_t const  sz()   const { return _sz; }
+    uint8_t    const  sz()   const { return _sz; }
     std::string       name() const;
 
     // machine code size in bytes (for format & serialize)
@@ -146,7 +148,7 @@ struct tgt_mcode_t
 
     mcode_idx_t index;         // -> access this instance (zero-based)
     defn_idx_t  defn_index;    // -> access associated defn for name, fmt, validator (zero-based)
-    tgt_size_t  _sz;
+    uint8_t     _sz;
 
 };
 

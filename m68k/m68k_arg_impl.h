@@ -8,7 +8,7 @@
 namespace kas::m68k
 {
 
-auto m68k_arg_t::ok_for_target(opc::m68k_size_t sz) -> kas::parser::kas_error_t
+auto m68k_arg_t::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
 {
     auto error = [this](const char *msg)
         {
@@ -29,7 +29,7 @@ auto m68k_arg_t::ok_for_target(opc::m68k_size_t sz) -> kas::parser::kas_error_t
 
     // perform checks 
     // 1. can't access address register as byte
-    if (mode() == MODE_ADDR_REG && sz == opc::OP_SIZE_BYTE)
+    if (mode() == MODE_ADDR_REG && sz == OP_SIZE_BYTE)
        return error(error_msg::ERR_addr_reg_byte);
 
     // 2. if register, make sure register supported on CPU
@@ -39,15 +39,15 @@ auto m68k_arg_t::ok_for_target(opc::m68k_size_t sz) -> kas::parser::kas_error_t
 
     // 3. floating point: allow register direct for 32-bit & under `source size`
     if (mode() <= MODE_ADDR_REG)
-        if (opc::m68k_size_immed[sz] > 4)
+        if (immed_info(sz).sz_bytes > 4)
             return error(error_msg::ERR_direct);
 
     // 4. disable several addressing modes on coldfire FPUs
-    if (sz == opc::OP_SIZE_XTND)
+    if (sz == OP_SIZE_XTND)
         if (auto msg = hw::cpu_defs[hw::fpu_x_addr()])
             return error(msg);
 
-    if (sz == opc::OP_SIZE_PACKED)
+    if (sz == OP_SIZE_PACKED)
         if (auto msg = hw::cpu_defs[hw::fpu_p_addr()])
             return error(msg);
 #if 0

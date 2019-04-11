@@ -4,7 +4,7 @@
 #include "m68k_reg_types.h"
 #include "target/tgt_arg.h"
 
-#include "m68k_size_defn.h"
+//#include "m68k_size_defn.h"
 #include "m68k_extension_t.h"
 #include "kas_core/opcode.h"
 #include "parser/kas_position.h"
@@ -90,13 +90,27 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
     // support for `access-mode` validation
     uint16_t am_bitset() const;
 
+    // declare size of immed args
+    // NB: names of arg modes (OP_SIZE_*) is in `m68k_mcode.h`
+    static constexpr tgt::tgt_immed_info sz_info [] =
+        {
+              {  4 }        // 0: LONG
+            , {  4, 2 }     // 1: SINGLE
+            , { 12, 6 }     // 2: XTND
+            , { 12, 7 }     // 3: PACKED
+            , {  2 }        // 4: WORD
+            , {  8, 4 }     // 5: DOUBLE
+            , {  2, {}, 1 } // 6: BYTE
+            , {  0 }        // 7: VOID
+        };
+
     template <typename Inserter>
-    bool serialize(Inserter& inserter, opc::m68k_size_t, bool& completely_saved);
+    bool serialize(Inserter& inserter, uint8_t sz, bool& completely_saved);
     
     template <typename Reader>
-    void extract(Reader& reader, opc::m68k_size_t, bool has_data, bool has_expr);
+    void extract(Reader& reader, uint8_t sz, bool has_data, bool has_expr);
 
-    void emit(m68k_mcode_t const&, core::emit_base& base, unsigned size) const;
+    void emit(m68k_mcode_t const&, core::emit_base& base, unsigned bytes) const;
 
     // true if all `disp` and `outer` are registers or constants 
     bool is_const () const
@@ -132,7 +146,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
     }
 
     // validate if arg suitable for target
-    kas::parser::kas_error_t ok_for_target(opc::m68k_size_t sz);
+    kas::parser::kas_error_t ok_for_target(uint8_t sz);
 
     expr_t           outer;             // for '020 PRE/POST index addess modes
     m68k_arg_subword reg_subword {};    // for coldfire H/L subword access

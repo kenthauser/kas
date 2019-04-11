@@ -9,7 +9,7 @@
 #include "bsd_ops_dwarf.h"
 #include "bsd_ops_cfi.h"
 
-#include "parser/op_parser.h"
+#include "parser/sym_parser.h"
 
 #include "kas/defn_utils.h"
 #include "kas/kas_string.h"
@@ -224,8 +224,8 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
     using comma_defs = all_defns<comma_ops_v, bsd_pseudo_tags>;
     using space_defs = all_defns<space_ops_v, bsd_pseudo_tags>;
 
-    static const auto comma_ops = parser::op_parser_t<pseudo_op_t, comma_defs>();
-    static const auto space_ops = parser::op_parser_t<pseudo_op_t, space_defs>();
+    static const auto comma_ops = parser::sym_parser_t<pseudo_op_t, comma_defs>();
+    static const auto space_ops = parser::sym_parser_t<pseudo_op_t, space_defs>();
 }
 
 auto const comma_op_x3 = x3::no_case[x3::lexeme['.' >> detail::comma_ops.x3()]];

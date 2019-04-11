@@ -9,7 +9,7 @@
 #include "target/make_reg_seq.h"
 #include "kas/kas_string.h"
 
-namespace kas::m68k::defn
+namespace kas::m68k::reg_defn
 {
 using namespace meta;
 

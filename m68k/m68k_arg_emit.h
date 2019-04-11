@@ -3,7 +3,7 @@
 
 #include "m68k_arg.h"
 #include "m68k_mcode.h"
-#include "m68k_size_defn.h"
+//#include "m68k_size_defn.h"
 #include "kas_core/core_emit.h"
 
 namespace kas::m68k
@@ -50,12 +50,8 @@ void m68k_arg_t::emit(m68k_mcode_t const& mcode, core::emit_base& base, unsigned
         case MODE_IMMED_WORD:
         case MODE_IMMED_DOUBLE:
         case MODE_IMMED_BYTE:
-            size     = opc::m68k_size_immed[mcode.sz()];
-            flt_size = opc::m68k_size_float[mcode.sz()];
-
-            // special case SZ_BYTE
-            if (mcode.sz() == opc::OP_SIZE_BYTE)
-                size = 1;
+            size     = immed_info(mcode.sz()).sz_bytes;
+            flt_size = immed_info(mcode.sz()).flt_fmt;    // XXX?
             break;
 
         case MODE_INDEX:

@@ -1,5 +1,5 @@
-#ifndef KAS_Z80_Z80_INSN_ADDER_H
-#define KAS_Z80_Z80_INSN_ADDER_H
+#ifndef KAS_TARGET_TGT_INSN_ADDER_H
+#define KAS_TARGET_TGT_INSN_ADDER_H
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -26,33 +26,47 @@ struct tgt_insn_adder
     using XLATE_LIST = typename defn_t::XLATE_LIST;
 
 
-
+    // execute at runtime when `x3` parser referenced
+    // but note all calculations are constexpr & performed at compile.
     template <typename PARSER>
     tgt_insn_adder(PARSER) : defns {PARSER::sym_defns}
     {
-        // get types from sym_parser
-        using types_defns = typename PARSER::all_types_defns; 
-        defn_t::names_base = at_c<types_defns, 0>::value;
-        defn_t::sizes_base = at_c<types_defns, 1>::value;
-        defn_t::fmts_base  = at_c<types_defns, 2>::value;
+        // expose types & defns from sym_parser
+        using all_types       = typename PARSER::all_types; 
+        using all_types_defns = typename PARSER::all_types_defns; 
 
-        // xlate VAL_C types as index into VAL array
-        using VALS  = at_c<typename PARSER::all_types, 3>;
-        using VAL_C = at_c<typename PARSER::all_types, 4>;
+        // store pointers to arrays of instances in `defn_t`
+        defn_t::names_base = at_c<all_types_defns, defn_t::XLT_IDX_NAME>::value;
+        defn_t::sizes_base = at_c<all_types_defns, defn_t::XLT_IDX_SIZE>::value;
+        defn_t::fmts_base  = at_c<all_types_defns, defn_t::XLT_IDX_FMT>::value;
+
+        // Generate the `val_combo` definitions and instances
+        // xlate VAL_C types as indexes into VAL array
+        
+        using VALS  = at_c<all_types, defn_t::XLT_IDX_VAL>;
+        using VAL_C = at_c<all_types, defn_t::XLT_IDX_VALC>;
+
+        // NB: each "val" definition is `meta::list<NAME_T, FN_T, args...>`
+        // `VALS` is of format `meta::list<list<NAME1, FN1, arg1>, list<NAME2, FN2, arg2>...>
+        // `VAL_C` is of format: `meta::list<list<list<VAL1>, list<VAL2>>, list<list<VAL1>>, ...>
+        // `COMBO` is of format `meta::list<list<int_<0>, int_<1>>, list<int_<1>>, ...>
+        // ie `COMBO` is `VAL_C` with `VAL` types xlated as indexes
+        // two `transforms` because xlating a list of lists.
         using COMBO = transform<VAL_C
                               , bind_back<quote<transform>
                                         , bind_front<quote<find_index>, VALS>
                                         >
                               >;
 
-        // Also store combo index in DEFN_T
-        using kas::parser::detail::init_from_list;
-        defn_t::val_c_base = init_from_list<const val_c_t, COMBO>::value;
+        // store pointer to array of `val_c_t` instances in `defn_t`
+        defn_t::val_c_base = parser::init_from_list<const val_c_t, COMBO>::value;
         
         // val list & names are stored in `combo` 
-        using VAL_NAMES = transform<VALS, quote<front>>;
-        val_c_t::vals_base  = at_c<types_defns, 3>::value;
-        val_c_t::names_base = init_from_list<const char *, VAL_NAMES>::value;
+        // the `VT` ctor takes care of the `FN_T, args...` part of `VALS` instantiation
+        // extract "NAMEs" to separate list.
+        using VAL_NAMES     = transform<VALS, quote<front>>;
+        val_c_t::names_base = parser::init_from_list<const char *, VAL_NAMES>::value;
+        val_c_t::vals_base  = at_c<all_types_defns, defn_t::XLT_IDX_VAL>::value;
     }
 
     template <typename X3>
@@ -89,7 +103,7 @@ struct tgt_insn_adder
             p->print(std::cout);
             std::cout << std::endl;
 #endif
-            auto& sz_obj = p->sizes_base[p->sz_index - 1];
+            auto& sz_obj = p->sizes_base[p->sz_index];
             for (auto sz : sz_obj)
             {
                 // XXX don't worry about hw validators: allocate all
@@ -105,11 +119,15 @@ struct tgt_insn_adder
                 {
                     // save list opcode "mcode" as global in `insn_t`
                     insn_t::list_mcode_p = mcode_p;
-                    continue;
+                    break;      // get next defn
                 }
-                
-                for (auto&& name : m68k::opc::mit_moto_names(p->name(), sz_obj.suffixes(sz)))
+               
+                // each size may generate several names. first is canonical for disassembler
+                for (auto&& name : sz_obj(p->name(), sz))
                 {
+#ifdef TRACE_INSN_ADD
+                    std::cout << "insn name: " << name << ", size = " << +sz << std::endl;
+#endif
                     // lookup name. creates new "lookup table" slot if not found
                     auto& insn_p = x3.at(name);
 

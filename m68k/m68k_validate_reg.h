@@ -102,7 +102,7 @@ struct val_am : m68k_mcode_t::val_t
     }
 
     // bytes required by arg: registers never require extra space, but "extensions" may..
-    fits_result size(m68k_arg_t& arg, m68k_size_t sz, expr_fits const& fits, op_size_t& op_size) const override
+    fits_result size(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t& op_size) const override
     {
         // regset baked into base size
         if (match == AM_REGSET)

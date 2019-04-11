@@ -18,27 +18,15 @@
 #include "kas/kas_string.h"
 
 #include "m68k_options.h"
-#include "m68k_size_defn.h"
+#include "target/tgt_defn_sizes.h"
 
 namespace kas::m68k::opc
 {
-namespace mpl = boost::mpl;
-
-#if 0
-// configuration constants:
-constexpr static bool gen_moto      = true;
-constexpr static bool gen_mit       = true;
-// constexpr static bool mit_canonical = false;
-constexpr static bool mit_canonical = true;
-
-#endif
-
 struct mit_moto_names
 {
-    // pick up "VOID" suffix tag
-    static constexpr auto SFX_VOID = m68k_insn_size::suffix_void;
-
-    mit_moto_names(const char *base, std::pair<char, char> sfxs)
+    mit_moto_names() = default;
+    
+    mit_moto_names(const char *base, std::pair<const char *, const char *> sfxs)
         : base(base), sfx1(sfxs.first), sfx2(sfxs.second)
     {
         // if neither MIT nor MOTO set, generate MOTO)
@@ -53,28 +41,31 @@ struct mit_moto_names
         gen_mit = gen_moto = true;
         mit_canonical = true;
         mit_canonical = false;
+#if 0
+        std::cout << "mit_moto_names: base = " << base;
+        std::cout << " sfx1 = \"" << (sfx1 ? sfx1 : "none") << "\"";
+        std::cout << " sfx2 = \"" << (sfx2 ? sfx2 : "none") << "\"";
+        std::cout << std::endl;
+#endif
     }
 
 
-    std::string gen_name(bool is_canon, char sfx) const
+    std::string gen_name(bool is_canon, const char *sfx) const
     {
         // SFX_VOID same for both
-        if (sfx == SFX_VOID)
+        if (!*sfx)
             return base;
-
-        // create zero terminated char array
-        char sfx_str[3] = { '.', sfx };
 
         // mit omits '.'
         bool is_mit = is_canon == mit_canonical;
-        return base + std::string(sfx_str + is_mit);
+        return base + std::string(sfx + is_mit);
     }
 
 
     // use iterator to allow easy access to list
     struct iter
     {
-        // generate in following oreder: canonical, moto, mit
+        // generate in following order: canonical, moto, mit
         enum { CANON, NON_CANON, DONE };
 
         iter(mit_moto_names const& obj, bool is_begin = {}) : obj(obj)
@@ -93,7 +84,7 @@ struct mit_moto_names
             // only do "void" sfx for canonical (moto & mit are identical)
             if (!do_sfx_2) 
                 if (auto sfx2 = obj.sfx2)
-                    if (state == CANON || sfx2 != SFX_VOID)
+                    if (state == CANON || sfx2)
                     {
                         do_sfx_2 = true;
                         return *this;
@@ -109,7 +100,7 @@ struct mit_moto_names
 
             // since SFX_VOID identical for MIT/MOTO
             // if sfx1 was "void", skip to sfx2
-            if (obj.sfx1 == SFX_VOID)
+            if (!*obj.sfx1)
             {
                 if (obj.sfx2)
                     do_sfx_2 = true;
@@ -125,7 +116,7 @@ struct mit_moto_names
         }
 
         uint8_t state;
-        uint8_t do_sfx_2{};
+        bool    do_sfx_2{};
         mit_moto_names const& obj;
 
     };
@@ -134,7 +125,8 @@ struct mit_moto_names
     iter end()   const { return iter(*this);       }
 
     const char *base;
-    char sfx1, sfx2;
+    const char *sfx1;
+    const char *sfx2;
     bool gen_moto;
     bool gen_mit;
     bool mit_canonical;
@@ -142,5 +134,26 @@ struct mit_moto_names
 
 }
 
+namespace kas::tgt::opc
+{
+template <>
+auto tgt_defn_sizes<m68k::m68k_mcode_t>::operator()(const char *base_name, uint8_t sz) const
+{
+    // list of suffixes by size (motorola syntax)
+    static constexpr const char *m68k_size_suffixes[] = 
+        { 
+            ".l",   // 0 LONG
+            ".s",   // 1 SINGLE
+            ".x",   // 2 XTENDED
+            ".p",   // 3 PACKED
+            ".w",   // 4 WORD
+            ".d",   // 5 DOUBLE
+            ".b"    // 6 BYTE
+        };
+
+    auto sfx = m68k_size_suffixes[sz];
+    return m68k::opc::mit_moto_names(base_name, suffixes(sfx));
+}
+}
 #endif
 

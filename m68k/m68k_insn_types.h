@@ -87,7 +87,7 @@ struct m68k_insn_defn
                                      , list<VALs...>, list<VAL_C>>
                                 , list<S, N, OP, D...>>)
             : name_index  { NAME::value  + 1   }
-            , sz_index    { SZ::value    + 1   }
+            , sz_index    { SZ::value          }
             , fmt_index   { FMT::value   + 1   }
             , val_c_index { VAL_C::value + 1   }
             , opcode      { OP::opcode::value  }

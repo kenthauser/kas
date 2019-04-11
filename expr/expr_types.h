@@ -41,6 +41,8 @@ template<typename = void> struct e_fixed   { using type = int32_t;  };
 template<typename = void> struct e_float   { using type = void;     };
 template<typename = void> struct e_string  { using type = void;     };
 
+// declare info about processor targeted by assembler
+template<typename = void> struct e_data_t  { using type = uint32_t; };
 template<typename = void> struct e_addr_t  { using type = uint32_t; };
 template<typename = void> struct err_msg_t { using type = void;     };
 

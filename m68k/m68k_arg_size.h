@@ -3,7 +3,7 @@
 
 #include "m68k_arg.h"
 #include "m68k_hw_defns.h"
-#include "m68k_size_defn.h"
+//#include "m68k_size_defn.h"
 #include "expr/expr_fits.h"
 
 
@@ -106,7 +106,7 @@ namespace kas { namespace m68k
             case MODE_IMMED_DOUBLE:     // FLT FMT 5
             case MODE_IMMED_BYTE:       // FLT FMT 6
             case MODE_IMMED_VOID:       // FLT FMT 7
-                return opc::m68k_size_immed[mode() - MODE_IMMED_BASE];
+                return immed_info(mode() - MODE_IMMED_BASE).sz_bytes;
 
             // can modify DISP to indirect or index
             case MODE_ADDR_DISP:

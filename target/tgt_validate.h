@@ -40,11 +40,10 @@ template <typename MCODE_T>
 struct tgt_validate
 {
     using arg_t      = typename MCODE_T::arg_t;
-    using tgt_size_t = typename MCODE_T::tgt_size_t;
 
-    // if arg invalid for particular `tgt_size_t`, error it out in `size` method
+    // if arg invalid for particular "size", error it out in `size` method
     virtual fits_result ok  (arg_t& arg, expr_fits const& fits) const = 0;
-    virtual fits_result size(arg_t& arg, tgt_size_t sz, expr_fits const& fits, op_size_t& op_size) const
+    virtual fits_result size(arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t& op_size) const
     { 
         // default: return "fits", don't update size
         return ok(arg, fits);

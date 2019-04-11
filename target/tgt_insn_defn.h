@@ -1,5 +1,5 @@
-#ifndef KAS_Z80_Z80_INSN_TYPES_H
-#define KAS_Z80_Z80_INSN_TYPES_H
+#ifndef KAS_TARGET_TGT_DEFN_H
+#define KAS_TARGET_TGT_DEFN_H
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //
@@ -7,11 +7,11 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////////
 
-//#include "z80_insn_validate.h"
-//#include "z80_formats_type.h"
-#include "target/tgt_validate.h"
-#include "target/tgt_format.h"
+#include "tgt_defn_trait.h"
+#include "tgt_validate.h"
+#include "tgt_format.h"
 
+#include "parser/init_from_list.h"  // get VT_CTOR
 #include "m68k/m68k_size_lwb.h"
 
 namespace kas::tgt::opc
@@ -35,28 +35,24 @@ namespace detail
 template <typename Seq>
 using IS_as_list  = meta::_t<detail::IS_as_list_impl<Seq>>;
 
-// Special CTOR for virtual types: return pointer to instance
-template <typename T, typename = void>
-struct vt_ctor_impl : vt_ctor_impl<list<void, T>> {};
-
-template <typename NAME, typename T, typename...Ts>
-struct vt_ctor_impl<list<NAME, T, Ts...>, void>
-{
-    using type = vt_ctor_impl;
-    static const inline T data{Ts::value...};
-    static constexpr auto value = &data;
-};
-
-template <typename...>
-struct VT_CTOR
-{
-    using type = VT_CTOR;
-
-    template <typename DEFN>
-    using invoke = _t<vt_ctor_impl<DEFN>>;
-};
-
-////
+// Special constructor for virtual types (virtual members or virtual bases)
+//
+// Since C++ doesn't allow a virtual base-type to hold a derived type, 
+// construct the derived type as a static, and use a pointer to this
+// static instance as `defn` value
+//
+// Two types of "virtual" types are instantiated:
+//  - validators
+//  - formatters
+//
+// The validators are passed as a `meta::list` of two or more items:
+//      the first type is the "NAME" of the validator (for debugging)
+//      the second type is base class of the validator
+//      subsequent arguments are `std::integral_constant` wrapped values for base class
+//
+// The formatters are identified by a single `type` to be instantiated.
+//      However, if the `type` is `void`, the `default` formatter type
+//      is retrieved from the `base-type` & used.
 
 template <typename T>
 uint8_t constexpr code_to_words(std::size_t value, uint8_t N = 1)
@@ -67,7 +63,6 @@ uint8_t constexpr code_to_words(std::size_t value, uint8_t N = 1)
     return N;
 }
 
-// XXX per-instruction constexpr definition
 template <typename MCODE_T>
 struct tgt_insn_defn
 {
@@ -78,98 +73,104 @@ struct tgt_insn_defn
     using val_t        = typename mcode_t::val_t;
     using val_c_t      = typename mcode_t::val_c_t;
     using adder_t      = typename mcode_t::adder_t;
+    using defn_sizes_t = typename mcode_t::defn_sizes_t;
+
+    using fmt_default  = typename mcode_t::fmt_default;     // default type (or void)
+
+    // import size definitions from MCODE_T
     using name_idx_t   = typename mcode_t::name_idx_t;
     using fmt_idx_t    = typename mcode_t::fmt_idx_t;
     using val_c_idx_t  = typename mcode_t::val_c_idx_t;
     static constexpr auto MAX_ARGS = mcode_t::MAX_ARGS;
 
-    // NAME the `defn` INDEXES
-    // NB: this is only for reference. The list
-    // is passed as a whole to the ctor, so any changes
-    // in defn must also be reflected there.
-    static constexpr auto DEFN_IDX_SZ   = 0;
-    static constexpr auto DEFN_IDX_NAME = 1;
-    static constexpr auto DEFN_IDX_INFO = 2;
-    static constexpr auto DEFN_IDX_FMT  = 3;
-    static constexpr auto DEFN_IDX_VAL  = 4;
+    // define LISTS for `adder::XLATE_LIST`
+    using NAME_LIST = list<int_<traits::DEFN_IDX_NAME>>;
+    using SIZE_LIST = list<int_<traits::DEFN_IDX_SZ>, int_<traits::DEFN_IDX_INFO>>;  
+    using FMT_LIST  = list<int_<traits::DEFN_IDX_FMT>>;
     
-    using VAL_SEQ   = std::make_index_sequence<DEFN_IDX_VAL + MAX_ARGS>;
+    // create list with integer sequence <IDX_VAL...(IDX_VAL+MAX_ARGS)>
+    using VAL_LIST  = drop_c<IS_as_list<std::make_index_sequence<traits::DEFN_IDX_VAL + MAX_ARGS>>
+                           , traits::DEFN_IDX_VAL
+                           >;
 
-    using NAME_LIST = list<int_<DEFN_IDX_NAME>>;
-    using SIZE_LIST = list<int_<DEFN_IDX_SZ>>;
-    using FMT_LIST  = list<int_<DEFN_IDX_FMT>>;
-    using VAL_LIST  = drop_c<IS_as_list<VAL_SEQ>, DEFN_IDX_VAL>;
+    // wrap `fmt_default` in `meta::list` if specified
+    using fmt_dflt_list = if_<std::is_void<fmt_default>, list<>, list<fmt_default>>;
 
-    using XLATE_LIST = list<list<const char * , NAME_LIST>
-                          , list<const m68k::opc::m68k_insn_size, SIZE_LIST>
-                          , list<const fmt_t *, FMT_LIST, quote<VT_CTOR>>
-                          , list<const val_t *, VAL_LIST, quote<VT_CTOR>>
+    // `ADDER` & `XLATE_LIST` are picked up by `sym_parser_t`
+    using ADDER      = adder_t;
+    using XLATE_LIST = list<list<const char *      , NAME_LIST>
+                          , list<const defn_sizes_t, SIZE_LIST, void, list<>, quote<list>>
+                          , list<const fmt_t *     , FMT_LIST, parser::VT_CTOR, fmt_dflt_list>
+                          , list<const val_t *     , VAL_LIST, parser::VT_CTOR>
 
-                          // val_combos: don't have the `sym_parser` init combo
-                          , list<void, VAL_LIST, void, list<>, quote<list>>
+                          // val_combos: don't have the `sym_parser` generate defn
+                          , list<void              , VAL_LIST, void, list<>, quote<list>>
                           >;
 
-    using ADDER  = adder_t;
+    // declare indexes into XLATE list (used by `adder`)
+    static constexpr auto XLT_IDX_NAME = 0;
+    static constexpr auto XLT_IDX_SIZE = 1;
+    static constexpr auto XLT_IDX_FMT  = 2;
+    static constexpr auto XLT_IDX_VAL  = 3;
+    static constexpr auto XLT_IDX_VALC = 4;
 
+    // CTOR: passed list<defn_list, xlt_list>
     template <typename NAME, typename SZ, typename FMT, typename...VALs, typename VAL_C,
-              typename S, typename N, typename OP, typename...X>
+              typename S, typename N, typename CODE, typename TST, typename...X>
     constexpr tgt_insn_defn(list<list<list<NAME>, list<SZ>, list<FMT>
                                      , list<VALs...>, list<VAL_C>>
-                                , list<S, N, OP, X...>>)
+                                , list<S, N, CODE, TST, X...>>)
             : name_index  { NAME::value  + 1   }
-            , sz_index    { SZ::value    + 1   }
+            , sz_index    { SZ::value          }
             , fmt_index   { FMT::value   + 1   }
             , val_c_index { VAL_C::value + 1   }
-            , code        { OP::opcode::value  }
-            , code_words  { code_to_words<mcode_size_t>(OP::opcode::value) }
-            , size_fn     { typename OP::size_fn{} }
-            //, tst         { OP::tst::value     }
+            , code        { CODE::value        }
+            , code_words  { code_to_words<mcode_size_t>(CODE::value) }
+            //, size_fn     { typename ::size_fn{} }
+            //, tst         { TST::value     }
             {}
             
-    // `fmt_t` is abstract class. access via pminters to instances
     static inline const char * const *names_base;
-    static inline const m68k::opc::m68k_insn_size *sizes_base;
+    static inline const defn_sizes_t *sizes_base;
     static inline const fmt_t *const *fmts_base;
     static inline val_c_t      const *val_c_base;
 
-    void print(std::ostream& os) const
-    {
-        os << std::dec;
-        os << "tgt_insn_defn: name_idx = " << +name_index;
-        os << " val_c_index = " << +val_c_index;
-        os << " fmt_index = " << +fmt_index;
-        os << std::hex;
-        os << " code = " << +code;
-        os << std::dec;
-        os << std::endl;
-        os << " -> name = \"" << name();
-        os << "\" vals: " << vals();
-    }
+    auto  name() const { return  names_base[name_index - 1];  }
+    auto& fmt()  const { return *fmts_base [fmt_index   - 1]; }
+    auto& vals() const { return  val_c_base[val_c_index - 1]; }
+
+    // don't inline diag function
+    void print(std::ostream& os) const;
     
-    // alt gives alternate suffix, if available.
-    // arch gives mit/moto alternate, if runtime configured
-    // `name(sz)` gives canonical name
-    auto name() const
-    {
-        return names_base[name_index - 1];
-    }
-
-    auto& fmt()  const  { return *fmts_base [fmt_index   - 1]; }
-    auto& vals() const  { return  val_c_base[val_c_index - 1]; }
-
-    // XXX
-    uint32_t code;          // actual binary code
-    uint16_t tst {};           // hw test
-    uint8_t  code_words;    // zero-based
-    m68k::opc::insn_lwb size_fn;
+    // (contexpr) instance data 
+    uint32_t code;          // actual binary code (base value)
+    uint16_t tst {};        // hw test
+    m68k::opc::m68k_insn_lwb size_fn;
 
     // override sizes in `MCODE_T`
-    name_idx_t  name_index;    //  ? bits
-    val_c_idx_t val_c_index;   //  ? bits
-    fmt_idx_t   fmt_index;     //  ? bits
-    uint8_t     sz_index;
+    name_idx_t  name_index;    
+    val_c_idx_t val_c_index;   
+    fmt_idx_t   fmt_index;    
+    uint8_t     sz_index;       
+    uint8_t     code_words;     // zero-based count of words
 };
 
+// don't inline support routines
+template <typename MCODE_T>
+void tgt_insn_defn<MCODE_T>::print(std::ostream& os) const
+{
+    os << std::dec;
+    os << "tgt_insn_defn: name_idx = " << +name_index;
+    os << " val_c_index = " << +val_c_index;
+    os << " fmt_index = " << +fmt_index;
+    os << std::hex;
+    os << " code = " << +code;
+    os << std::dec;
+    os << std::endl;
+    os << " -> name = \"" << name();
+    os << "\" vals: " << vals();
+}
+    
 }
 #endif
 

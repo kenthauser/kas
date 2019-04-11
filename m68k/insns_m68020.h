@@ -21,23 +21,23 @@ namespace kas::m68k::opc::gen_020
 
 using m68k_math_v = list<list<>
 // multiply & divide (68020 & cpu32 forms)
-, insn<sz_vl, STR("muls"), OP<0x4c00'0800, mult64>, FMT_0RM_28RM, DATA, DATA_REG> 
-, insn<sz_vl, STR("muls"), OP<0x4c00'0c00, mult64>, FMT_0RM_PAIR, DATA, PAIR>     
-, insn<sz_vl, STR("mulu"), OP<0x4c00'0000, mult64>, FMT_0RM_28RM, DATA, DATA_REG> 
-, insn<sz_vl, STR("mulu"), OP<0x4c00'0c00, mult64>, FMT_0RM_PAIR, DATA, PAIR>     
+, defn<sz_vl, STR("muls"), OP<0x4c00'0800, mult64>, FMT_0RM_28RM, DATA, DATA_REG> 
+, defn<sz_vl, STR("muls"), OP<0x4c00'0c00, mult64>, FMT_0RM_PAIR, DATA, PAIR>     
+, defn<sz_vl, STR("mulu"), OP<0x4c00'0000, mult64>, FMT_0RM_28RM, DATA, DATA_REG> 
+, defn<sz_vl, STR("mulu"), OP<0x4c00'0c00, mult64>, FMT_0RM_PAIR, DATA, PAIR>     
 
-, insn<sz_vl, STR("divs"),  OP<0x4c40'0800, mult64>, FMT_0RM_PAIR, DATA, DATA_REG> 
-, insn<sz_vl, STR("divs"),  OP<0x4c40'0c00, mult64>, FMT_0RM_PAIR, DATA, PAIR>     
-, insn<sz_vl, STR("divsl"), OP<0x4c40'0800, mult64>, FMT_0RM_PAIR, DATA, PAIR>     
-, insn<sz_vl, STR("divu"),  OP<0x4c40'0000, mult64>, FMT_0RM_PAIR, DATA, DATA_REG>  
-, insn<sz_vl, STR("divu"),  OP<0x4c40'0400, mult64>, FMT_0RM_PAIR, DATA, PAIR>     
-, insn<sz_vl, STR("divul"), OP<0x4c40'0000, mult64>, FMT_0RM_PAIR, DATA, PAIR>     
+, defn<sz_vl, STR("divs"),  OP<0x4c40'0800, mult64>, FMT_0RM_PAIR, DATA, DATA_REG> 
+, defn<sz_vl, STR("divs"),  OP<0x4c40'0c00, mult64>, FMT_0RM_PAIR, DATA, PAIR>     
+, defn<sz_vl, STR("divsl"), OP<0x4c40'0800, mult64>, FMT_0RM_PAIR, DATA, PAIR>     
+, defn<sz_vl, STR("divu"),  OP<0x4c40'0000, mult64>, FMT_0RM_PAIR, DATA, DATA_REG>  
+, defn<sz_vl, STR("divu"),  OP<0x4c40'0400, mult64>, FMT_0RM_PAIR, DATA, PAIR>     
+, defn<sz_vl, STR("divul"), OP<0x4c40'0000, mult64>, FMT_0RM_PAIR, DATA, PAIR>     
 
 // misc alu math instructions
-, insn<sz_v,  STR("pack"), OP<0x8148, m68020>, FMT_0_9, PRE_DECR, PRE_DECR, IMMED>
-, insn<sz_v,  STR("pack"), OP<0x8140, m68020>, FMT_0_9, DATA_REG, DATA_REG, IMMED>
-, insn<sz_v,  STR("unpk"), OP<0x8188, m68020>, FMT_0_9, PRE_DECR, PRE_DECR, IMMED>
-, insn<sz_v,  STR("unpk"), OP<0x8180, m68020>, FMT_0_9, DATA_REG, DATA_REG, IMMED>
+, defn<sz_v,  STR("pack"), OP<0x8148, m68020>, FMT_0_9, PRE_DECR, PRE_DECR, IMMED>
+, defn<sz_v,  STR("pack"), OP<0x8140, m68020>, FMT_0_9, DATA_REG, DATA_REG, IMMED>
+, defn<sz_v,  STR("unpk"), OP<0x8188, m68020>, FMT_0_9, PRE_DECR, PRE_DECR, IMMED>
+, defn<sz_v,  STR("unpk"), OP<0x8180, m68020>, FMT_0_9, DATA_REG, DATA_REG, IMMED>
 >;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -56,25 +56,25 @@ using m68k_branch_cc_v = list<list<>
 , cc_sz<0x50fa, sz_lw, INFO_SIZE_WL0, all_cc_names, STR("trap"), m68020, void, IMMED>
 
 // other branch/returns
-, insn<sz_v, STR("callm"), OP<0x06c0'0000, callm>, FMT_I8_0RM, Q_8BITS, CONTROL>
-, insn<sz_v, STR("rtm"), OP<0x06c0, callm>, FMT_0RM, GEN_REG>
+, defn<sz_v, STR("callm"), OP<0x06c0'0000, callm>, FMT_I8_0RM, Q_8BITS, CONTROL>
+, defn<sz_v, STR("rtm"), OP<0x06c0, callm>, FMT_0RM, GEN_REG>
 >;
 
 // bitfields are very regular
 template <typename NAME, uint32_t N, typename...Args>
-using bf = insn<sz_v, string::str_cat<STR("bf"), NAME>
+using bf = defn<sz_v, string::str_cat<STR("bf"), NAME>
                 , OP<(0xe8c0 + (N << 8)) << 16, m68020>
                 , Args...
                 >;
 
 using m68k_misc_v = list<list<>
-, insn<sz_lwb, STR("cmp2"), OP<0x00c0'0000, m68020>, FMT_0RM_28RM, CONTROL, GEN_REG> 
-, insn<sz_lwb, STR("chk2"), OP<0x00c0'0800, m68020>, FMT_0RM_28RM, ALTERABLE, GEN_REG> 
-, insn<sz_vl,  STR("extb"), OP<0x49c0, m68020>, FMT_0, DATA_REG>
-, insn<sz_l,   STR("link"), OP<0x4808, m68020>, FMT_0, ADDR_REG, IMMED>
+, defn<sz_lwb, STR("cmp2"), OP<0x00c0'0000, m68020>, FMT_0RM_28RM, CONTROL, GEN_REG> 
+, defn<sz_lwb, STR("chk2"), OP<0x00c0'0800, m68020>, FMT_0RM_28RM, ALTERABLE, GEN_REG> 
+, defn<sz_vl,  STR("extb"), OP<0x49c0, m68020>, FMT_0, DATA_REG>
+, defn<sz_l,   STR("link"), OP<0x4808, m68020>, FMT_0, ADDR_REG, IMMED>
 
-, insn<sz_lwb, STR("cas"),  OP<0x0860'0000, m68020, INFO_SIZE_BWL9>, FMT_16_22_0RM, DATA_REG, DATA_REG, MEM_ALTER>
-, insn<sz_lw,  STR("cas2"), OP<0x0cfc     , m68020, INFO_SIZE_WL9> , FMT_CAS2, PAIR, PAIR, GEN_PAIR>
+, defn<sz_lwb, STR("cas"),  OP<0x0860'0000, m68020, INFO_SIZE_BWL9>, FMT_16_22_0RM, DATA_REG, DATA_REG, MEM_ALTER>
+, defn<sz_lw,  STR("cas2"), OP<0x0cfc     , m68020, INFO_SIZE_WL9> , FMT_CAS2, PAIR, PAIR, GEN_PAIR>
 
 
 // bitfield instructions are regular.
@@ -115,7 +115,7 @@ using m68k_gen_v = list<list<>
 
 namespace kas::m68k::opc
 {
-    template <> struct m68k_insn_defn_list<OP_M68K_020> : gen_020::m68k_gen_v {};
+    template <> struct m68k_defn_list<OP_M68K_020> : gen_020::m68k_gen_v {};
 }
 
 #endif

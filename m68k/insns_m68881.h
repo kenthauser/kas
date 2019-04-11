@@ -54,32 +54,32 @@ using namespace hw;
 // all coprocessor instructions are F-line instructions
 // 040 & ColdFire support requires math coprocessor ID be set to `1`
 static constexpr uint32_t fp_cpid   = M68K_CPID_FPU;
-static constexpr uint32_t fp_insn_w = 0xf000 + (fp_cpid << 9);
-static constexpr uint32_t fp_insn_l = fp_insn_w << 16;
-static constexpr uint32_t fp_insn_reg_mem   = 1 << 14;
+static constexpr uint32_t fp_defn_w = 0xf000 + (fp_cpid << 9);
+static constexpr uint32_t fp_defn_l = fp_defn_w << 16;
+static constexpr uint32_t fp_defn_reg_mem   = 1 << 14;
 
 // Since coprocessor instructions use `F-line` opcodes & fixed coprocessor id
 // bits 31-25 are immutable. These 7 bits can be used as flags
 // to op-code generation metafunctions, masked away before combined
 // with the fixed lsbs.
 
-static constexpr uint32_t fp_insn_use_short = 1 << 31;
-static constexpr uint32_t fp_insn_rounding  = 1 << 30;
+static constexpr uint32_t fp_defn_use_short = 1 << 31;
+static constexpr uint32_t fp_defn_rounding  = 1 << 30;
 
 // mask out 7 bits of flags
-static constexpr uint32_t fp_insn_mask      = ((1<<7)-1) << (9 + 16);
+static constexpr uint32_t fp_defn_mask      = ((1<<7)-1) << (9 + 16);
 
 // create a cousin of `M68K_OPCODE` to handle opcode value manipulation
 template <uint32_t OPCODE, typename TST = hw::fpu_base>
-using FOP = OP<!(OPCODE & fp_insn_use_short) ?  (fp_insn_l | (OPCODE &~ fp_insn_mask))
-                                             :  (fp_insn_w | (OPCODE &  0xffff))
+using FOP = OP<!(OPCODE & fp_defn_use_short) ?  (fp_defn_l | (OPCODE &~ fp_defn_mask))
+                                             :  (fp_defn_w | (OPCODE &  0xffff))
                , TST
                , INFO_SIZE_FLT
                >;
 
 // create a cousin if `insn` to prepend `f` & simplify creation
 template <typename SZ_LIST, uint32_t OP, typename TST, typename NAME, typename...Args>
-using fp_insn = insn<SZ_LIST
+using fp_defn = defn<SZ_LIST
                            , string::str_cat<STR("f"), NAME>
                            , FOP<OP, TST>
                            , Args...>;
@@ -89,12 +89,12 @@ using fp_insn = insn<SZ_LIST
 // This separation is required to support generation of "040 rounding" instructions
 namespace detail {
     template <int Op, typename TST, typename NAME, typename...Args>
-    using fpgen_op_all = fp_insn <sz_all, Op | fp_insn_reg_mem, TST, NAME, Args...>;
+    using fpgen_op_all = fp_defn <sz_all, Op | fp_defn_reg_mem, TST, NAME, Args...>;
 
     template <int Op, typename TST, typename NAME, typename...Args>
     using fpgen_op_x   = list<list<>
-                , fp_insn <sz_x, Op, TST, NAME, Args...>
-                , fp_insn <sz_d, Op, TST, NAME, Args...>
+                , fp_defn <sz_x, Op, TST, NAME, Args...>
+                , fp_defn <sz_d, Op, TST, NAME, Args...>
                 >;
 
     template <int N, typename TST, typename NAME>
@@ -117,9 +117,9 @@ using fp_two = list<list<>
         , if_c<!(N & 0x80), list<>,
                 // add in rounding formats
                 list<list<>
-                    , detail::fp_two<((N &~ 0x80) | 0x40 | fp_insn_rounding)
+                    , detail::fp_two<((N &~ 0x80) | 0x40 | fp_defn_rounding)
                                     , TST, string::str_cat<STR("s"), NAME>>
-                    , detail::fp_two<((N &~ 0x80) | 0x44 | fp_insn_rounding)
+                    , detail::fp_two<((N &~ 0x80) | 0x44 | fp_defn_rounding)
                                     , TST, string::str_cat<STR("d"), NAME>>
                 >
             >
@@ -131,9 +131,9 @@ using fp_one = list<list<>
         , if_c<!(N & 0x80), list<>,
                 // add in rounding formats
                 list<list<>
-                    , detail::fp_one<((N &~ 0x80) | 0x40 | fp_insn_rounding)
+                    , detail::fp_one<((N &~ 0x80) | 0x40 | fp_defn_rounding)
                                     , TST, string::str_cat<STR("s"), NAME>>
-                    , detail::fp_one<((N &~ 0x80) | 0x44 | fp_insn_rounding)
+                    , detail::fp_one<((N &~ 0x80) | 0x44 | fp_defn_rounding)
                                     , TST, string::str_cat<STR("d"), NAME>>
                 >
             >
@@ -194,55 +194,55 @@ using fp_gen_ops = list<list<>
     , fp_tst<0x3a, fpu_m68k,  STR("tst")>
     
 // sincos is special (three arguments)
-, fp_insn <sz_all, 0x30 | fp_insn_reg_mem, fpu_trig
+, fp_defn <sz_all, 0x30 | fp_defn_reg_mem, fpu_trig
                 , STR("sincos"), FMT_0RM_16_23, DATA, FP_REG, FP_REG>
-, fp_insn <sz_x,   0x30, fpu_trig
+, fp_defn <sz_x,   0x30, fpu_trig
                 , STR("sincos"), FMT_26_16_23, FP_REG, FP_REG, FP_REG>
 
 // fmove special instructions:: kfactor & constant ROM
-, fp_insn <sz_x, 0x5c00, fpu_trig
+, fp_defn <sz_x, 0x5c00, fpu_trig
                 , STR("movecr"), FMT_I7_23, Q_7BITS, FP_REG>
     // XXX don't know assembler format of "fortran" insns
     // , fpgen_p  <0x00, STR("move"), FP_REG, DATA, KF_DYNAMIC>
     // , fpgen_p  <0x00, STR("move"), FP_REG, DATA, KF_STATIC>
 
 // fmove: fp control registers
-, fp_insn <sz_l, 0x8000, fpu_basic, STR("move"), FMT_0RM_26, DATA, FCTRL_REG>
-, fp_insn <sz_l, 0xa000, fpu_basic, STR("move"), FMT_26_0RM, FCTRL_REG, DATA_ALTER>
+, fp_defn <sz_l, 0x8000, fpu_basic, STR("move"), FMT_0RM_26, DATA, FCTRL_REG>
+, fp_defn <sz_l, 0xa000, fpu_basic, STR("move"), FMT_26_0RM, FCTRL_REG, DATA_ALTER>
 
 // fmove: FPIAR can also use address registers
-, fp_insn <sz_l, 0x8000, fpu_basic, STR("move"), FMT_0RM_26, ADDR_REG, FPIAR>
-, fp_insn <sz_l, 0xa000, fpu_basic, STR("move"), FMT_26_0RM, FPIAR, ADDR_REG>
+, fp_defn <sz_l, 0x8000, fpu_basic, STR("move"), FMT_0RM_26, ADDR_REG, FPIAR>
+, fp_defn <sz_l, 0xa000, fpu_basic, STR("move"), FMT_26_0RM, FPIAR, ADDR_REG>
 
 // fsave/frestore
-, fp_insn <sz_v, 0x100 | fp_insn_use_short, fpu_basic
+, fp_defn <sz_v, 0x100 | fp_defn_use_short, fpu_basic
                 , STR("save"), FMT_0RM, CONTROL_ALTER>
-, fp_insn <sz_v, 0x100 | fp_insn_use_short, fpu_m68k
+, fp_defn <sz_v, 0x100 | fp_defn_use_short, fpu_m68k
                 , STR("save"), FMT_0RM, PRE_DECR>
-, fp_insn <sz_v, 0x140 | fp_insn_use_short, fpu_m68k
+, fp_defn <sz_v, 0x140 | fp_defn_use_short, fpu_m68k
                 , STR("restore"), FMT_0RM, CONTROL>
-, fp_insn <sz_v, 0x140 | fp_insn_use_short, fpu_m68k
+, fp_defn <sz_v, 0x140 | fp_defn_use_short, fpu_m68k
                 , STR("restore"), FMT_0RM, POST_INCR>
 
 // fmovem: fp registers: static list & dynamic (via DATA REGISTER) versions
-, fp_insn <sz_x, 0xf000, fpu_m68k, STR("movem"), FMT_I8_0RM, FP_REGSET, CONTROL_ALTER>
-, fp_insn <sz_x, 0xe000, fpu_m68k, STR("movem"), FMT_I8R_0RM, FP_REGSET, PRE_DECR>
-, fp_insn <sz_x, 0xd000, fpu_m68k, STR("movem"), FMT_0RM_I8, CONTROL, FP_REGSET>
-, fp_insn <sz_x, 0xd000, fpu_m68k, STR("movem"), FMT_0RM_I8, POST_INCR, FP_REGSET>
-, fp_insn <sz_x, 0xf800, fpu_m68k, STR("movem"), FMT_20_0RM, DATA_REG, CONTROL_ALTER>
-, fp_insn <sz_x, 0xe800, fpu_m68k, STR("movem"), FMT_20_0RM, DATA_REG, PRE_DECR>
-, fp_insn <sz_x, 0xd800, fpu_m68k, STR("movem"), FMT_0RM_20, CONTROL, DATA_REG>
-, fp_insn <sz_x, 0xd800, fpu_m68k, STR("movem"), FMT_0RM_20, POST_INCR, DATA_REG>
+, fp_defn <sz_x, 0xf000, fpu_m68k, STR("movem"), FMT_I8_0RM, FP_REGSET, CONTROL_ALTER>
+, fp_defn <sz_x, 0xe000, fpu_m68k, STR("movem"), FMT_I8R_0RM, FP_REGSET, PRE_DECR>
+, fp_defn <sz_x, 0xd000, fpu_m68k, STR("movem"), FMT_0RM_I8, CONTROL, FP_REGSET>
+, fp_defn <sz_x, 0xd000, fpu_m68k, STR("movem"), FMT_0RM_I8, POST_INCR, FP_REGSET>
+, fp_defn <sz_x, 0xf800, fpu_m68k, STR("movem"), FMT_20_0RM, DATA_REG, CONTROL_ALTER>
+, fp_defn <sz_x, 0xe800, fpu_m68k, STR("movem"), FMT_20_0RM, DATA_REG, PRE_DECR>
+, fp_defn <sz_x, 0xd800, fpu_m68k, STR("movem"), FMT_0RM_20, CONTROL, DATA_REG>
+, fp_defn <sz_x, 0xd800, fpu_m68k, STR("movem"), FMT_0RM_20, POST_INCR, DATA_REG>
 
 // fmovem: fp control registers
-, fp_insn <sz_l, 0xa000, fpu_m68k, STR("movem"), FMT_26_0RM, FC_REGSET, MEM_ALTER>
-, fp_insn <sz_l, 0x8000, fpu_m68k, STR("movem"), FMT_0RM_26, MEM, FC_REGSET>
+, fp_defn <sz_l, 0xa000, fpu_m68k, STR("movem"), FMT_26_0RM, FC_REGSET, MEM_ALTER>
+, fp_defn <sz_l, 0x8000, fpu_m68k, STR("movem"), FMT_0RM_26, MEM, FC_REGSET>
 
 // fmovem: fp control registers: single register formats
-, fp_insn <sz_l, 0xa000, fpu_m68k, STR("movem"), FMT_26_0RM, FCTRL_REG, DATA_REG>
-, fp_insn <sz_l, 0x8000, fpu_m68k, STR("movem"), FMT_0RM_26, DATA_REG, FCTRL_REG>
-, fp_insn <sz_l, 0xa000, fpu_m68k, STR("movem"), FMT_26_0RM, FPIAR, ADDR_REG>
-, fp_insn <sz_l, 0x8000, fpu_m68k, STR("movem"), FMT_0RM_26, ADDR_REG, FPIAR>
+, fp_defn <sz_l, 0xa000, fpu_m68k, STR("movem"), FMT_26_0RM, FCTRL_REG, DATA_REG>
+, fp_defn <sz_l, 0x8000, fpu_m68k, STR("movem"), FMT_0RM_26, DATA_REG, FCTRL_REG>
+, fp_defn <sz_l, 0xa000, fpu_m68k, STR("movem"), FMT_26_0RM, FPIAR, ADDR_REG>
+, fp_defn <sz_l, 0x8000, fpu_m68k, STR("movem"), FMT_0RM_26, ADDR_REG, FPIAR>
 >;
 
 // store floating point condition code names & values in a type
@@ -295,7 +295,7 @@ namespace detail {
     struct apply_fpcc
     {
         template <typename CC>
-        using invoke = fp_insn<
+        using invoke = fp_defn<
                           SZ_LIST
                         , OpCode + CC::code::value
                         , fpu_m68k          // same TST for all
@@ -314,8 +314,8 @@ using fp_cc_ops = list<list<>
             , fpcc<0x7b << 16, STR("trap"), sz_l, void, IMMED>
             , fpcc<0x40 << 16, STR("s"),    sz_bv, FMT_0RM, DATA_ALTER>
             , fpcc<0x48 << 16, STR("db"),   sz_void, FMT_CP_DBCC, DATA_REG, DIRECT>
-            , fpcc<0x80 | fp_insn_w, STR("b"), sz_void, FMT_CP_BRANCH, DIRECT>
-            , fpcc<0x80 | fp_insn_w, STR("j"), sz_void, FMT_CP_BRANCH, DIRECT>
+            , fpcc<0x80 | fp_defn_w, STR("b"), sz_void, FMT_CP_BRANCH, DIRECT>
+            , fpcc<0x80 | fp_defn_w, STR("j"), sz_void, FMT_CP_BRANCH, DIRECT>
       >;
 #undef STR
 
@@ -324,7 +324,7 @@ using fp_ops_v = list<fp_gen_ops, fp_cc_ops>;
 
 namespace kas::m68k::opc
 { 
-    template <> struct m68k_insn_defn_list<OP_M68K_68881> : fp::fp_ops_v {};
+    template <> struct m68k_defn_list<OP_M68K_68881> : fp::fp_ops_v {};
 }
 
 #endif

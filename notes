@@ -69,14 +69,20 @@ Generic TGT types:
 
 1. M68k. refactor `m68k_size_defn` to make suitable for `target`
 
-2. Add `INFO` to code
+*2. Add `INFO` to code
 
 *3. Complete `serialize` methods
 
-4. Implement default `emit`. Implement `arg` emit
+*4. Implement default `emit`. Implement `arg` emit
 
 5. Throw at end of adder if no `list`
 
 6. mcode OPCODE size type calculated
 
-7. 
+7. refactor INFO to target. 
+
+8. refactor CC to be in common: cc<cc_names, defn<{defn args...}> >
+
+9. back-port Z80
+
+

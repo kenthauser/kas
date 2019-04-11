@@ -128,7 +128,6 @@ struct tgt_reg_adder
     template <typename PARSER>
     tgt_reg_adder(PARSER) : defns(PARSER::sym_defns)
     {
-        using kas::parser::detail::init_from_list;
         OBJECT_T::set_insns(PARSER::sym_defns, PARSER::sym_defns_cnt);
         DEFN_T::names_base = meta::front<typename PARSER::all_types_defns>::value;
 #if 0

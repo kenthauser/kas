@@ -22,7 +22,7 @@ namespace detail
     // the expression operator definition
     // holds declared values & all derived implementation data
 
-    // forward declare `op_parser_t` helper function
+    // forward declare `sym_parser_t` helper function
     struct expr_op_adder;
 
     struct expr_op_defn
@@ -32,9 +32,11 @@ namespace detail
         using op_map    = std::unordered_map<HASH_T, EVAL>;
         using op_data_t = std::pair<HASH_T, EVAL>;
         
-        // for `op_parser_t`: ALIAS adder
+        // for `sym_parser_t`: ALIAS adder
         using ADDER     = expr_op_adder;
-        using NAME_LIST = list<int_<3>, int_<5>, int_<6>>;
+
+        // allow 1 alias
+        using NAME_LIST = list<int_<3>, int_<5>>;
         
         // need default ctor because no sfx operators declared.
         expr_op_defn() = default;
@@ -58,19 +60,13 @@ namespace detail
                 , name_index { (NAME_INDEX::value + 1)... }
                 {}
       
-        static constexpr auto MAX_NAMES = 2;
+        // allow max 1 alias per `expr_op`
+        static constexpr auto MAX_NAMES = NAME_LIST::size();
         static inline const char * const * op_names;
 
+        // default: return first name (which is, by defintion, canonical)
         const char *name(unsigned n = 0) const noexcept
         {
-#if 0
-            if (n == 0) {
-                std::cout << "expr_op_defn: names: ";
-                std::cout <<         +name_index[0];
-                std::cout << ", " << +name_index[1];
-                std::cout << std::endl;
-            }  
-#endif
             if (n < MAX_NAMES)
                 if (auto idx = name_index[n])
                     return op_names[idx-1];
