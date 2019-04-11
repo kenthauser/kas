@@ -80,14 +80,16 @@ public:
     op_size_t size(expression::expr_fits const& fits = {});
 
     // information about argument sizes
-    // default:: single size immed arg, size = data_size, not float
+    // default:: single size immed arg, size = data_size, no float
     static constexpr tgt_immed_info sz_info[] = { sizeof(expression::e_data_t<>) };
 
     auto& immed_info(uint8_t sz) const
     {
-        if (sz >= std::extent<decltype(derived().sz_info)>::value)
-            throw std::runtime_error{"immed_info::invalid sz"};
-        return derived().sz_info[sz];
+        static constexpr auto sz_max = std::extent<decltype(derived_t::sz_info)>::value;
+
+        if (sz >= sz_max)
+            throw std::runtime_error{"immed_info::invalid sz: " + std::to_string(sz)};
+        return derived_t::sz_info[sz];
     }
 
     template <typename MCODE_T>

@@ -11,23 +11,23 @@
 // The addressing modes have different formats, but that is handled
 // in {mit,moto}_parser_def.h
 //
-// bool's gen_mit, gen_moto, mit_canonical control names generated.
+// command-line `options` gen_mit, gen_moto, mit_canonical control names generated.
 
 
 #include "kas/defn_utils.h"
 #include "kas/kas_string.h"
 
 #include "m68k_options.h"
+
+#include "m68k_size_lwb.h"      // code size fn
 #include "target/tgt_defn_sizes.h"
 
 namespace kas::m68k::opc
 {
 struct mit_moto_names
 {
-    mit_moto_names() = default;
-    
-    mit_moto_names(const char *base, std::pair<const char *, const char *> sfxs)
-        : base(base), sfx1(sfxs.first), sfx2(sfxs.second)
+    // default: rationalize command-line options
+    mit_moto_names()
     {
         // if neither MIT nor MOTO set, generate MOTO)
         gen_mit       = m68k_options.gen_mit;
@@ -41,6 +41,16 @@ struct mit_moto_names
         gen_mit = gen_moto = true;
         mit_canonical = true;
         mit_canonical = false;
+    }
+   
+    // ctor to generate `insn` names
+    mit_moto_names(const char *base, std::pair<const char *, const char *> sfxs)
+        :  mit_moto_names()
+    {
+        // initialize in body so can also delegate thru default ctor
+        this->base = base;
+        this->sfx1 = sfxs.first;
+        this->sfx2 = sfxs.second;
 #if 0
         std::cout << "mit_moto_names: base = " << base;
         std::cout << " sfx1 = \"" << (sfx1 ? sfx1 : "none") << "\"";

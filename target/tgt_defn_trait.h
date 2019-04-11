@@ -1,7 +1,7 @@
 #ifndef KAS_TARGET_TGT_DEFN_TRAIT_H
 #define KAS_TARGET_TGT_DEFN_TRAIT_H
 
-// m68k instruction definion patterns
+// Instruction definion patterns
 //
 // The m68k instructions are defined as a sequence of types.
 //
@@ -78,13 +78,13 @@ static constexpr auto DEFN_IDX_SZ   = 0;
 static constexpr auto DEFN_IDX_NAME = 1;
 static constexpr auto DEFN_IDX_CODE = 2;
 static constexpr auto DEFN_IDX_TST  = 3;
-static constexpr auto DEFN_IDX_INFO = 4;        // code size function
+static constexpr auto DEFN_IDX_INFO = 4;    // code size function
 static constexpr auto DEFN_IDX_FMT  = 5;
 static constexpr auto DEFN_IDX_VAL  = 6;
 
 // general definition: SZ list, NAME type, OP type, optional FMT & VALIDATORS
 template <typename SZ, typename NAME, typename OP_INFO, typename FMT = void, typename...Ts>
-struct defn
+struct insn_defn
 {
     // six fixed types, plus additional `VALIDATORs`
     using type = meta::list<SZ
@@ -98,13 +98,23 @@ struct defn
 };
 
 #if 0
+// define specializations to default TGT & SIZE_FN: CODE holds BINARY code
+template <typename SZ, typename NAME, std::size_t CODE, typename...Ts>
+struct defn : insn_defn<SZ, NAME, OP<CODE>, Ts...> {};
+
+template <typename SZ, typename NAME, typename CODE, typename...Ts>
+struct defn<SZ, NAME, CODE::code, Ts...> : insn_defn<SZ, NAME, CODE, Ts...> {};
+#else
+
+template<typename...Ts>
+using defn = insn_defn<Ts...>;
+
+#endif
+#if 0
+
 // define alias which omits size (default as `sz_void`)
 template <typename...Ts> 
 struct v_defn : defn<sz_void, Ts...> {};
-
-// define specializations to default TGT & SIZE_FN: CODE holds BINARY code
-template <typename SZ, typename NAME, std::size_t CODE, typename...Ts>
-struct defn<SZ, NAME, CODE, Ts...> : defn<SZ, NAME, OP<CODE>, Ts...> {};
 
 //template <typename NAME, std::size_t CODE, typename...Ts>
 //struct v_defn<NAME, meta::size_t<CODE>, Ts...> : v_defn<NAME, OP<CODE>, Ts...> {};

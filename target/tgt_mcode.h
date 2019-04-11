@@ -82,15 +82,18 @@ struct tgt_mcode_t
 
     // declare "default" fomatter
     using fmt_default  = void;      // must be specified per-arch
+    
+    // declare "default" code size_fn
+    using code_size_t  = void;      // specified in `MCODE_T` if needed
 
     // override sizes in `SIZE_T` if required
-    using mcode_size_t  = typename SIZE_T::mcode_size_t;
-    using mcode_idx_t   = typename SIZE_T::mcode_idx_t;
-    using defn_idx_t    = typename SIZE_T::defn_idx_t;
-    using name_idx_t    = typename SIZE_T::name_idx_t;
-    using fmt_idx_t     = typename SIZE_T::fmt_idx_t;
-    using val_idx_t     = typename SIZE_T::val_idx_t;
-    using val_c_idx_t   = typename SIZE_T::val_c_idx_t;
+    using mcode_size_t = typename SIZE_T::mcode_size_t;
+    using mcode_idx_t  = typename SIZE_T::mcode_idx_t;
+    using defn_idx_t   = typename SIZE_T::defn_idx_t;
+    using name_idx_t   = typename SIZE_T::name_idx_t;
+    using fmt_idx_t    = typename SIZE_T::fmt_idx_t;
+    using val_idx_t    = typename SIZE_T::val_idx_t;
+    using val_c_idx_t  = typename SIZE_T::val_c_idx_t;
     
     static constexpr auto MAX_ARGS        = SIZE_T::MAX_ARGS;
     static constexpr auto MAX_MCODE_WORDS = SIZE_T::MAX_MCODE_WORDS;

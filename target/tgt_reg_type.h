@@ -84,7 +84,7 @@ public:
     // NB: used primarily for disassembly
     tgt_reg(reg_defn_idx_t reg_class, uint16_t value);
 
-    // used to initialize `m68k_reg` structures
+    // used to initialize `tgt_reg` structures
     template <typename T> void add(T const& d, reg_defn_idx_t n);
     
     // methods to examine register

@@ -257,7 +257,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         auto& size_fn = sz_obj.size_fn;
         auto sz_code = size_fn(sz());
         std::cout << "adding code: " << std::hex << +sz_code << " sz = " << +sz() << std::endl;
-        code_data[size_fn.sz_word] |= sz_code;
+        code_data[size_fn.word()] |= sz_code;
     }
     
 

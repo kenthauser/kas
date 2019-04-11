@@ -10,7 +10,7 @@
 //  1)  if opcode has no arguments (eg "nop"), a single "MODE_NONE"
 //      is created for op-code level error messages
 //  2)  bitfield arguments (the offset, width portion) are not separated
-//      by commas, but are a separate "m68k_arg_t" instance.
+//      by commas, but are a separate "tgt_arg_t" instance.
 namespace kas::tgt
 {
 

@@ -1,43 +1,6 @@
 #ifndef KAS_TARGET_TGT_REGSET_TYPE_H
 #define KAS_TARGET_TGT_REGSET_TYPE_H
 
-//
-// m68k register patterns:
-//
-// Each "register value" (as used in m68k.c) consists of a
-// three-item tuple < reg_class(ex RX_DATA), reg_num(eg 0), tst(eg: hw::index_full)
-// 1) reg_class    ranges from 0..9. `reg_arg_validate` has a hardwired limit of 12.
-// 2) The reg_num  ranges from 0..7 for eg data register; has 12-bit value for move.c
-// 3) tst          16-bit hw_tst constexpr value
-//
-// Each register also has a name. Based on command line options, a leading `%` may
-// be permitted or requied
-//
-// A few registers have aliases. Currently the only aliases are fp->a6 & sp->a7
-//
-// A few registers can have multiple definitions:
-// Example: USP can be a `RC_CPU` register when determining if (eg.) move.l a0,usp is allowed
-//          USP can also be used as a `RC_CTRL` register in (eg.)   move.c a0, usp
-// The two USPs have different `tst` conditions.
-//
-// Register `PC` is also overloaded.
-
-// Observations:
-// - Only a single alias is permitted.
-// - No more hand two register definitions can have the same name
-// - The "second" register definition index cannot be zero (because defition
-//   zero is processed first, it will always be a "first" definition). Thus
-//   a index of zero can be used to tell second definition is not present.
-// - KAS_STRING register name definitions should always prepend '%'. A simple +1
-//   can be used to remove it.
-// currently, for M68K there are ~100-120 register definitions
-
-// RC_PC & RC_ZPC both have a single member. Can be merged into RC_CPU
-
-// Also note: `reg_t`    is an expression type
-//            `reg_tset` is an expression type
-//            `reg_t`    needs to export parser to `expr`
-
 #include "kas_core/kas_object.h"
 
 namespace kas::tgt

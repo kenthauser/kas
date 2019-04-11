@@ -51,7 +51,6 @@ void m68k_arg_t::emit(m68k_mcode_t const& mcode, core::emit_base& base, unsigned
         case MODE_IMMED_DOUBLE:
         case MODE_IMMED_BYTE:
             size     = immed_info(mcode.sz()).sz_bytes;
-            flt_size = immed_info(mcode.sz()).flt_fmt;    // XXX?
             break;
 
         case MODE_INDEX:

@@ -44,11 +44,13 @@ using m68k_move_v = list<list<>
 
 // general moves
 // NB: M68K moves are very regular. But the coldfire arch disallows several moves.
-// Examples: 1) to memory direct from immed, offset, or index arg
-//   2) source & dest are index format, 3) when opcode would exceed 3 words.
+// Examples:
+//   1) to memory direct from immed, offset, or index arg
+//   2) source & dest are index format,
+//   3) when opcode would exceed 3 words.
 //   ISA_B allows byte/word immed moves to addr offset, but not index.
 //
-// Instead of declaring *many* `insns` to handle all cases, the insn is `error`ed out
+// Instead of declaring *many* `insns` to handle all cases, the insn is `error`d out
 // by a validator in the formatter. This is a difficult insn.
 , defn<sz_lwb, STR("move"),  OP<0x0000, void, INFO_SIZE_MOVE>, FMT_0RM_6RM, GEN, ALTERABLE>
 , defn<sz_lw , STR("movea"), OP<0x0000, void, INFO_SIZE_MOVE>, FMT_0RM_6RM, GEN, ADDR_REG>
@@ -343,25 +345,24 @@ using m68k_branch_cc_v = list<list<>
 , cc<0x6000, cc_names, STR("j"), void, FMT_BRANCH, DIRECT_DEL>
 
 // Scc (coldfire: data register only)
-, cc<0x50c0, all_cc_names, STR("s"), void, FMT_0RM, DATA_REG>
-, cc<0x50c0, all_cc_names, STR("s"), m68k, FMT_0RM, MEM_ALTER>
+, cc<0x50c0, all_cc_names, STR("s"), m68k    , FMT_0RM, MEM_ALTER>
+, cc<0x50c0, all_cc_names, STR("s"), coldfire, FMT_0RM, DATA_REG>
 
 // trapcc
 , defn<sz_v, STR("trap"), OP<0x4e40>, FMT_4I, Q_4BITS>
 , defn<sz_v, STR("trapv"), OP<0x4e76, m68k>>
 
 // other branch/returns
-, defn<sz_v, STR("rts"), OP<0x4e75>>
-, defn<sz_v, STR("rte"), OP<0x4e73>>
-, defn<sz_v, STR("rtr"), OP<0x4e77>>
-, defn<sz_v, STR("rtd"), OP<0x4e74, m68010>, void, IMMED>
-, defn<sz_v, STR("bkpt"), OP<0x4848, m68010>, FMT_3I, Q_IMMED>
+, defn<sz_v, STR("rts")    , OP<0x4e75>>
+, defn<sz_v, STR("rte")    , OP<0x4e73>>
+, defn<sz_v, STR("rtr")    , OP<0x4e77>>
+, defn<sz_v, STR("rtd")    , OP<0x4e74, m68010>, void, IMMED>
+, defn<sz_v, STR("bkpt")   , OP<0x4848, m68010>, FMT_3I, Q_IMMED>
 , defn<sz_v, STR("illegal"), OP<0x4afc>>
 >;
 
 using m68k_misc_v = list<list<>
 , defn<sz_vl, STR("lea"),  OP<0x41c0>, FMT_0RM_9, CONTROL, ADDR_REG>
-#if 1
 , defn<sz_vw, STR("swap"), OP<0x4840>, FMT_0, DATA_REG>
 , defn<sz_v , STR("pea"),  OP<0x4840>, FMT_0RM, CONTROL>
 , defn<sz_lw, STR("ext"),  OP<0x4880, void, INFO_SIZE_WL>, FMT_0, DATA_REG>
@@ -374,7 +375,6 @@ using m68k_misc_v = list<list<>
 , defn<sz_v , STR("reset"), OP<0x4e70, m68k>>
 , defn<sz_v , STR("nop"),  OP<0x4e71>>
 , defn<sz_W , STR("stop"), OP<0x4e72'0000>, FMT_I16, IMMED>
-#endif
 >;
 
 #undef STR

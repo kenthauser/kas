@@ -118,9 +118,12 @@ public:
             throw std::runtime_error{"Invalid insn_lwb code"};
         return code << sz_bit;
     }
+   
+    uint8_t word() const { return sz_word; }
     
     static_assert(NUM_SEQ <= 8);    // must fit in the allocated 3 bits
 
+private:
     value_t sz_seq  : 3;
     value_t sz_word : 1;
     value_t sz_bit  : 4;

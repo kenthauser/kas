@@ -43,10 +43,12 @@ struct m68k_mcode_size_t : tgt::tgt_mcode_size_t
     using defn_idx_t   = uint16_t;
 };
 
-// forward declare default mcode arg formatter
+// forward declare m68k default mcode arg formatter
+// forward declare m68k code size_fn
 namespace opc
 {
     struct FMT_X;
+    struct m68k_insn_lwb;
 }
 
 struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t, m68k_stmt_t, error_msg, m68k_mcode_size_t>
@@ -54,6 +56,7 @@ struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t, m68k_stmt_t, error_msg, m68
     using BASE_NAME = KAS_STRING("M68K");
 
     using fmt_default = opc::FMT_X;
+    using code_size_t = opc::m68k_insn_lwb;
 
     // use default ctors
     using base_t::base_t;

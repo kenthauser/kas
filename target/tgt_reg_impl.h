@@ -96,13 +96,13 @@ template <typename Derived>
 template <typename T>
 void tgt_reg<Derived>::add(T const& d, reg_defn_idx_t n)
 {
-    //std::cout << "m68k_reg: adding: " << d;
+    //std::cout << "tgt_reg: adding: " << d;
     if (!reg_0_index) 
     {
         reg_0_index = n + 1;
         //reg_0_ok    = !hw::cpu_defs[d.reg_tst]; 
     } else {
-        //std::cout << "m68k_reg: second entry" << std::endl;
+        //std::cout << "tgt_reg: second entry" << std::endl;
         reg_1_index = n + 1;
         //reg_1_ok    = !hw::cpu_defs[d.reg_tst]; 
     }

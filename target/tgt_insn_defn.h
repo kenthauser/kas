@@ -12,7 +12,6 @@
 #include "tgt_format.h"
 
 #include "parser/init_from_list.h"  // get VT_CTOR
-#include "m68k/m68k_size_lwb.h"
 
 namespace kas::tgt::opc
 {
@@ -126,7 +125,6 @@ struct tgt_insn_defn
             , val_c_index { VAL_C::value + 1   }
             , code        { CODE::value        }
             , code_words  { code_to_words<mcode_size_t>(CODE::value) }
-            //, size_fn     { typename ::size_fn{} }
             //, tst         { TST::value     }
             {}
             
@@ -145,7 +143,6 @@ struct tgt_insn_defn
     // (contexpr) instance data 
     uint32_t code;          // actual binary code (base value)
     uint16_t tst {};        // hw test
-    m68k::opc::m68k_insn_lwb size_fn;
 
     // override sizes in `MCODE_T`
     name_idx_t  name_index;    

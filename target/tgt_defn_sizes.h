@@ -1,7 +1,6 @@
 #ifndef KAS_TARGET_TGT_DEFN_SIZES_H
 #define KAS_TARGET_TGT_DEFN_SIZES_H
 
-#include "m68k/m68k_size_lwb.h"
 
 #include <meta/meta.hpp>
 #include <type_traits>
@@ -42,10 +41,37 @@ using define_sz = meta::list<meta::int_<1 << OP_SIZE>, SFX>;
 // `void` size is always single size, no suffix
 using sz_void = define_sz<0, SFX_NONE>;
 
+namespace detail
+{
+    template <typename T = void>
+    struct code_size_t : meta::id<T> {};
+
+    template <>
+    struct code_size_t<void>
+    {
+        using type = code_size_t;
+        using default_t = int;
+
+        // XXX temp
+        template <typename T>
+        constexpr code_size_t(T) {}
+
+        constexpr code_size_t(int = {}) {}
+
+        uint16_t operator()(uint8_t sz) const
+        {
+            return 0;
+        }
+
+        uint8_t word() const { return 0; }
+    };
+}
+
 template <typename MCODE_T>
 struct tgt_defn_sizes
 {
-    using size_fn_t =  m68k::opc::m68k_insn_lwb;
+    
+    using size_fn_t = meta::_t<detail::code_size_t<typename MCODE_T::code_size_t>>;
 
     template <typename MASK, typename SFX, typename SZ_FN>
     constexpr tgt_defn_sizes(meta::list<meta::list<MASK, SFX>, SZ_FN>)
@@ -54,7 +80,7 @@ struct tgt_defn_sizes
         , opt_no_suffix       { SFX::optional  }
         , no_suffix_canonical { SFX::canonical }
         , only_no_suffix      { SFX::only_none }
-        , size_fn             { SZ_FN()         }
+        , size_fn             { SZ_FN()        }
         {}
     
     // if no SZ_FN specified, get from `size_fn_t`
