@@ -1,0 +1,90 @@
+README.op_parser_t
+
+NB: to be renamed sym_parser_t
+
+List uses before "refactor"
+
+1)
+bsd/pseudo_ops_def.h:
+
+as: op_parse_t<pseudo_op_t, ps_defs>; (2x)
+
+NB: should use `name_index`, but defined before available
+
+2)
+expr/expr_op_types.h (type definition)
+expr/operators.h     (parser declaration)
+
+as: op_parser_t<expr_op_defn, xxx_types, ADDER, NAMES>;
+
+NB: ADDER deals with "aliases". NAMES are extra names from ALISES
+XXX: incorrect: ALIASES should be picked up from NAME_LIST
+
+adder ctor inits: "T::insn_names = PRASER::names"
+
+
+3)
+m68k/X_m68k_reg_type.h:
+
+NAME_LIST = int_<0>
+
+adder not named. has custom invocation
+
+adder: templated on `ALIASES`
+invoked: op_parser_t<m68k_reg_defn
+                  , defn::all_reg_l
+                  , adder<aliases_l>
+                  , typename adder<alias_l>::XTRA_NAMES::type
+                  >
+
+ADDER defines OBJECT_T as `m68k_reg`
+ADDER defines VALUE_T  as `OBJECT_T *`
+
+
+adder ctor inits: ADDER::insns = PARSER::insns
+                  OBJECT_T::set_insns (PARSER::insns, PARSER::insns_cnt)
+                  DEFN_T::insn_names = PARSER::names
+
+ADDER allocates OBJECT_T in <deque>, XXX know max count from ctor
+ADDER () 
+    - allocates OBJECT_T as required
+    - adds canonical names (from `m68k_reg_defn` method name())
+    - adds aliases
+    - adds alternate names (mit & moto) as appropriate
+    - adds "defn" to run-time instance
+
+4)
+
+m68k/m68k_insn_def
+
+NAME_LIST = int_<1>
+
+Other INDEXS =
+
+sz_index    = int_<0>
+info_index  = int_<2>
+fmt_index   = int_<3>
+val_index   = list<4...10>
+val_c_index = bind_front<quote<get_names>, val_index>>
+
+ADDER defines OBJECT_T as `m68k_op_t`
+ADDER defines VALUE_T  as `OBJECT_T *`
+
+
+adder ctor inits: ADDER::insns = PARSER::insns
+                  OBJECT_T::insns = PARSER::insns
+
+                  DEFN_T::names = PARSER::names
+                  DEFN_T::sz    = PRASER::???::sz
+                  DEFN_T::info  = PARSER::???::info
+                  DEFN_T::fmt   = PARSER::???::fmt
+                  DEFN_T::val_combo = PARSER::???::val_combo
+
+                  VAL_COMBO::val = ???::???
+
+
+ADDER allocates OBJECT_T in <deque>. Number of instances unknown.
+ADDER creates "val_combo" list
+                
+
+

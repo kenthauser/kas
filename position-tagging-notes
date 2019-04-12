@@ -1,0 +1,57 @@
+KAS position tagging notes.
+
+
+1) Standard X3 position tagging (per examples)
+
+The rule type is subclassed from `x3::annotate_on_success`, which defines
+a `on_success` method which calls `error_handler.tag(ast, first, last)`.
+`error_handler` is extratacted from `context` using `error_handler_tag`
+
+defined in "support/utility/annotate_on_success.hpp"
+
+`error_handler_tag` defined in "support/utility/error_reporting.hpp"
+
+2) x3::parser calls `on_success` or `on_error` as appropriate on all 
+objects. The `error_handler` is passed in `context` (along with `skipper`). This is
+in user code.
+
+3) The `x3::error_handler` performs the `tag` function. The `x3` tag function 
+causes `rules` which have a `position_tagged` base class to have that base class
+object be updated with indexes which allow the parsers `first` & `last` iterators to be
+recovered. `position_tagged` holds two `int` objects. Rules w/o a `position_tagged` base
+class are ignored.
+
+`x3::error_handler` also generates error messages, including generating line numbers,
+retrieving the parsed text, formatting the message, & generating indicators.
+
+
+`error_handler` defined in "support/utility/error_reporting.hpp"
+the `position_cache` (including `annotate` method and the `position_tagged` class)
+    is defined in "support/ast/position_tagged.hpp"
+
+
+FWIW: some grep results:
+
+`position_tagged` only referenced in "error_reporting.hpp"
+`error_handler_tag` only referenced in "annonate_on_success.hpp"
+    :(without namespace qualifier)
+
+
+4) actual position tagging done by `position_cache`. Method `annotate` stores interators
+for classes which in `position_tagged`. Retrieves `boost::iterator_range` (ie first,last)
+from `position_tagged` type. No `x3` references.
+
+******************
+
+Kas error handling extensions:
+
+1) handle multiple source files. Allocate a different error handler for each file.
+
+2) handle "include" (ie push_parser)
+
+3) handle "parse_phrase" (for macros)
+
+
+
+
+

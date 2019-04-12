@@ -1,0 +1,195 @@
+M68k Instruction Construction
+Sept 2018 refactor
+
+1. Run-time type stored in op-parser:
+
+m68k_op_t:  (defined in m68k_types.h)
+
+instance variables:
+
+canonical name
+std::vector of `m68k_insn_t const` reference_wrappers
+
+m68k_op_t const * returned by `m68k_opcode_parser_type`
+
+currently 430 defined
+
+
+2. m68k_insn_t (defined in m68k_insn_defn.h)
+
+static variable:
+
+std::deque() to allocate instances (via construct)
+
+instance variables:
+
+m68k_op_t *canonical (for disassembler ???)
+uint16_t   _info -> cast to &op_m68k_info_t
+
+static constexpr MAX_INSN = 2
+static constexpr MAX_ARGS = 6 (coldfire eMAC)
+
+uint16_t fmt_idx                         (currently 85 FMT_xxx defined)
+std::array<uint16_t, MAX_INSN> opcode
+std::array<uint16_t, MAX_ARGS> arg_fmt_v 
+
+NB: easy to reduce defn data to 7 16_bit words. (one more for `sz` ?)
+
+3. op_m68k_info_t (defined in m68k_insn_info.h)
+
+size: uint16_t
+
+m68k_sel: reduces 16-bit hw::hw_tst to 8-bits   : part of validator  // evaluate at compile time?
+
+insn_sz : 3 bits        // corresponds to immediate sizes (7 defined) // known by validator?
+arg_c   : 3 bits        // arg count: can be deduced from count of validators
+opc_cnt : 2 bits (# of opcode words  ? XXX why not 1 bit?) // known to formatter ?
+
+
+4. fmt_idx: (access to m68k_opcode_fmt instance)
+
+allocated at runtime. currently 85 defined (83 referenced)
+
+possible solution:
+
+collect in list<>
+
+static constexpr meta::apply<list, std::tuple> instances;
+
+ptrs = { &std::get<Is...>(instances) };
+
+5. arg_fmt_v 
+
+currently uint16_t: with complicated encoding
+validates single argument. 
+currently 55 alocated
+
+Currently encoded as complicated 16-bit value
+
+Currently 167 distict combinations defined
+
+
+///////////
+
+utility types used to help instantiate run-time instances from `m68k_insn_defn`
+
+M68K_OPCODE  (defined in m68k_insn_ctor.h)
+
+using OP = apply<M68K_OPCODE, list<<uint_32<opcode>, TST = void, SIZE_FN = INFO_SIZE_NORM>
+
+result for move (opcode base value is 0)
+kas::m68k::opc::M68K_OPCODE<std::__1::integral_constant<unsigned int, 0u>
+                          , void
+                          , kas::m68k::opc::insn_add_size<0, 12, std::integer_sequence<unsigned long, 6, 4, 0>
+                                                        , std::__1::integer_sequence<int, 1, 3, 2>
+                                                        >
+                           >
+opc_base is 32-bits
+tst      is 16-bits (can be indexed)
+add_size is ...
+        bool word
+        shift 4-bits
+        <byte,word,long ???>  from? (3-bits)
+        <byte,word,long ???>  to?   (3-bits) (? 2-bits)
+        
+
+
+
+////                           
+
+sz_lwb: alias of find_sz (defined in m68k_size_defn.h)
+
+
+result for move (`sz_lwb`)
+list<list<std::__1::integral_constant<kas::m68k::opc::m68k_size_t
+                                    , (kas::m68k::opc::m68k_size_t)0
+                                    >           // opc::OP_SIZE_LONG (range 0-7)
+        , kas::string::kas_string<char, (char)108>  // 'l'
+        >
+   , list<std::__1::integral_constant<kas::m68k::opc::m68k_size_t
+                                    , (kas::m68k::opc::m68k_size_t)4
+                                    >           // opc::OP_SIZE_WORD
+        , kas::string::kas_string<char, (char)119>  // 'w'
+        >
+   , list<std::__1::integral_constant<kas::m68k::opc::m68k_size_t
+                                    , (kas::m68k::opc::m68k_size_t)6
+                                    >           // opc::OP_SIZE_BYTE
+        , kas::string::kas_string<char, (char)98>   // 'b'
+        >
+   >
+// can be reduced to 8 bits:
+if void_bit is set: lsbs = word#, bit = void_canonical
+if void_bit is clr: 7 lsbs: set if type present
+
+-> better: set to 16-bits & use "index" to select
+
+///////////
+
+m68k_insn_defn:
+
+( 3 16-bit words )
+uint16_t :11 name         : index of base name              (currently 430)
+uint16_t :5  sz_index     : index of sz_lwb, sz_lw, ...     (currently 16)
+uint16_t     info         : index of (includes base opcode) (currently 706)
+uint8_t   fmt_index       : index of fmts[]                 (currently 83)
+uint8_t   validators      : index of validator_combo[]      (currently 55)
+
+need name method: name(sz, alt) -> std::string
+
+NB: op_size (16/32)  available from formatter
+NB: insn_size (byte/word/long/float/etc) saved in validator instance
+
+m68k_insn_t  (runtime variable)
+
+(not allocated if info->hw_tst fails)
+(XXX set opcode_type to npos if hw_tst fails)
+
+( 4 16-bit words )
+uint16_t    defn_index     -> access to name, fmt, validator (currently 1051)
+uint16_t[]  opcode         -> opcode w/o args, but with `sz` encoded
+uint8_t     insn_sz        -> 3 bits (displacement size) (NB: passed to validate)
+                           -> also passed to defn_t.print()
+
+uint8_t     opcode_type    -> branch, norm, djnz, etc    (possibly encoded in FMT)
+
+NB: info consumed by `m68k_op_t` ctor. used by `sz`
+NB: name(), fmt(), & validate() saved as index
+
+m68k_op_t (runtime variable; in variant)
+
+vector() of m68k_insn_t instances
+possibly an "error" message.
+
+
+
+
+///////////
+
+
+Path forward:
+
+
+Rename X_op_parser_t -> sym_parser_t
+
+Mitgrate to `XLATE_LIST` interface
+
+m68k_insns to use new interface
+
+CTOR for `m68k_insn` support types
+
+Update m68k_reg_parser to use new interface
+
+Update legacy parsers to use new interface
+
+*****
+
+Update parser/eval/impl/list/etc/etc/ to use new m68k defns
+
+
+
+
+
+
+
+
+

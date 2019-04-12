@@ -1,0 +1,38 @@
+STMT / INSN / OPCODE refactor
+
+1. Each parsed item is a "STMT". STMT types & STMT parsers are added to 
+    `parser::parser_type_l`, `parser::parser_stmt_l`, `parser::parser_label_l`
+
+XXX2. Each parser type has `gen_insn` method which returns `core::core_insn` type.
+
+2. Each parser type has a `gen_insn` method which returns `core::opcode` type.
+    Sig is opcode& gen_insn(insn_data&, Inserter&)
+    INSN is `opcode& + insn_data`. kas_loc for `insn` is inited from `stmt` which is tagged
+    First & CNT (as well as Inserter&) managed by `stmt_t` (ie variant)
+
+3. Core_insn refactor to include following tuple:
+
+struct core_insn
+{
+    core::opcode&           opc;
+    core::insn_data         data;
+    parser::position_tagged pos;
+};
+
+// XXX should pos be put in `core_insn`: probably yes
+
+4. Need gen_insn method.
+
+- parser::stmt_t::gen_insn is method which gens {opcode,insn_data} tuple
+- gen_insn method needs to add `pos` to insn_data, & calculate `cnt` in insn_data
+
+--> should be in parser::stmt_t type
+    --> should manage `back_inserter` && count
+    --> init kas_pos
+
+
+
+
+
+
+

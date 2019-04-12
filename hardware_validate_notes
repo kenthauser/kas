@@ -1,0 +1,160 @@
+OPCODE Selection notes 
+
+Special notes for coprocessor & "virtual coprocessor" types.
+
+2018/04/11
+
+Notes on hardware flags
+
+These notes are based on Motorola 680x0 / Coldfire Processor assembler.
+Probably the most convoluted, so a good place to analyze.
+
+NB. Start assuming use of metafunction: `kas::core::hardware::hardware_features`
+`hardware_features` allows accumulated traits to be represented as a `uint16_t`.
+TMP type also allows `std::is_base_of` to determines `is_a` relationship.
+
+This metafunction allows easy represention of processor families, such as the 680x0,
+
+Example code should clarify the context:
+
+***********************************
+
+// create alias for cpu feature definitons
+template <typename...Args>
+using cpu_defn = hw_features<cpu_feature_types, Args...>;
+
+// base instructions & address modes supported by m68000 & coldfire ISA_A
+// `limit_3w` limits instructions to three words total (coldfire)
+using m68kcf = cpu_defn<list<>,   STR("base"), limit_3w>;
+
+// enable m68k address modes not supported by coldfire
+using m68k   = cpu_defn<m68kcf,   STR("m68k")
+                    , list<index_word, movep>   // added features
+                    , list<limit_3w>            // deleted features
+                    >;
+
+// declare processor hierarchy: features typically inhierited after introduction
+using m68000 = cpu_defn<m68k,     STR("m68000")>;
+using m68010 = cpu_defn<m68000,   STR("m68010"), read_ccr>;
+
+using m68020 = cpu_defn<m68010,   STR("m68020")
+                    // '020 added lots of features
+                    , branch_long
+                    , callm                     // 68020 only
+                    , mult64
+                    , index_full
+                    , index_scale
+                    , index_scale_8
+                    >;
+
+using m68030 = cpu_defn<m68020, STR("m68030")
+                    , list<mmu>                 // added features
+                    , list<callm>               // deleted features
+                    >;
+
+using m68040 = cpu_defn<m68030, STR("m68040"), fpu>;
+using m68060 = cpu_defn<m68040, STR("m68060")
+                    , list<>
+                    , list<movep>               // deleted feature
+                    >;
+
+// add reduced feature set types
+using m68ec000 = cpu_defn<m68000,   STR("m68EC000"), read_ccr>;
+
+using m68lc040 = cpu_defn<m68040,   STR("m68LC040"), list<>, list<fpu>>;
+using m68ec040 = cpu_defn<m68lc040, STR("m68EC040"), list<>, list<mmu>>;
+
+using m68lc060 = cpu_defn<m68060,   STR("m68LC060"), list<>, list<fpu>>;
+using m68ec060 = cpu_defn<m68lc060, STR("m68EC060"), list<>, list<mmu>>;
+
+// cpu32 derived from EC000, not 68000
+using cpu32    = cpu_defn<m68ec000, STR("cpu32"), table>;
+
+// coldfire supports index scaled address mode and an multiplying accumulator
+using coldfire = cpu_defn<m68kcf,  STR("coldfire")
+                    , read_ccr
+                    , index_scale
+                    , mult64
+                    , mac
+                    , fpu
+                    , table
+                    , mmu
+                    >;
+                    
+
+***********************************
+
+The `hardware_function` (invoked by `cpu_defn`) metafunction allows features 
+to be added and deleted and then inherited by subsequent definitions.
+The `hardware_function` can be represented by a `uint16_t` value. For storage
+in insn defn, etc. It also supports `std::is_base_of` to support `isa` relationships.
+
+Thus, the `cpu_defn` function works perfectly for the managed `cpu_feature_types`.
+
+However, selecting eg. (`MMU` or `FPU` or `ISA`) based on processor is not supported.
+This is also required.
+
+***********************************
+
+Let's start with some simple cases to analyze: MPU & FPU for the 68020/68030/68040 cpus
+
+The 020 doesn't have built-in coprocessors.
+The external coprocessors would be FPU=68881 (common) and MPU=68551/none (uncommon)
+
+The 030 has built-in FPU, but no MMU co-processor. FPU=68030, MMU=68551/none (uncommon)
+
+The 040 has built-in FPU/MMU. FPU=68040, MMU=68040
+
+Note that the EC & LP have *different* FPU and/or MMU.
+
+***********************************
+
+Examining the code above for 68040/680LC040/68EC040 processors, this code is *very* nice.
+Features such as `FPU` and `MMU` are added and deleted, ignoring the fact that the particular
+`FPU` and the version of `MMU` may be altered based on the changed processor. 
+
+In particular, the FPU for `040` changes from `68881` to `040` w/o effort.
+In particular, the MMU for `040` `LC040` & `EC040` are all different.
+Also notice that the FPU/MMU changed from `030` to `040` w/o explicit code in defn.
+
+It is desirable that this *change* of related types takes place automatically.
+
+***********************************
+
+To facilitate this, partially specialize templates which select FPU/MMU. Eg:
+
+template <typename CPU> struct fpu_defn : fpu_none {};
+
+template <> struct fpu_defn<m68020> : fpu_68881 {};
+template <> struct fpu_defn<m68030> : fpu_68030 {};
+template <> struct fpu_defn<m68040> : fpu_68040 {};
+template <> struct fpu_defn<coldfire> : fpu_coldfire {};
+
+Note: that the FPU *type* is selected by partial spectialization. FPU can be disabled
+entirely by using the FPU bit in CPU word.
+
+***********************************
+
+When initializing CPU, also initialize "subtype" definitions.
+
+Define "subytypes" as a type-list list. eg:
+
+cpu_subtypes = meta::list<
+                      meta::list<fpu,  fpu_defns>
+                    , meta::list<mmu,  mmu_defns>
+                    , meta::list<mac,  mac_defns>
+                    , meta::list<math, math_defns>    // can't disable "math"
+                    >;
+
+Thus, for each "cpu_defn" define:
+
+uint16_t cpu_init = [ cpu_defn, fpu_defn, mmu_defn, mac_defn, math_defn ];
+
+Precalculate `cpu_init` for each `cpu`. 
+
+***********************************
+
+
+
+
+

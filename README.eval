@@ -1,0 +1,41 @@
+10/11/ Eval instructions:
+
+1. FMT structure returns m68k_opcode&
+
+2. opcode Eval:
+    - define `m68k_opcode_size()` to get size of opcode
+    -> takes m68k_opcode_t&, ARGS_T&, fits(). 
+    -> takes op_size& inited with prev
+    -> Returns fits_result(), sets op_size calculated (possibly illegal)
+
+3. insn Eval:
+
+    Test: each opcode returns size {min,max} and confidence {OK, maybe}
+
+    consider the following:
+    1. OK    {4 ,4}
+    2. MAYBE {2, 6}
+    3. MAYBE {2, 2}
+    4. MAYBE {4, 6}
+    5. OK    {4, 4}
+    
+    -> Always remove option 4 (never better than 1)
+    -> Always remove option 5 (never better than 1)
+    -> return bitset 1/2/3 irregardless of order. Any could be best
+        (select first of identical OKs)
+    -> Return { 2, 4 } as we have a "MAYBE 2" and a "HARD 4"
+
+    -> return opcode* 1 as it represents OK worst-case.
+
+    - takes `insn_t`, ok_bitset, ARG_T&, fits()
+
+4. Emit as "opcode" or "insn". 
+
+5. Create a "const" emit_base which accepts "constants" & emits
+    - to get "identical" listing, may need "word/long/xxx" mask for each word
+    - XXX above could be for "long" words special caseing 1 & 2 word situations
+
+6. Fixup headers: determine minimum needed for `m68k_defns.o` 
+    - remove "inline" from inappropriate method definitions
+
+7. 

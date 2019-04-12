@@ -1,0 +1,16 @@
+ELF Notes
+
+1. Generalize relocations
+
+2. Generalize rel/rela opertaions
+
+3. Generalize initialization data
+
+4. Support `a.out`, COFF, etc, interface
+
+5. Support `mach-o` interface
+
+6. .rodata alignment 1 in gas
+
+7. COMMON symbol type NO_TYPE in gas
+

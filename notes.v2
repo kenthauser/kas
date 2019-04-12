@@ -1,0 +1,11 @@
+1. Refactor out ELF arch dependencies
+
+2. Debug token location tagging
+
+3. Refactor out `generic target` code
+
+4. Input reader: utf8 conversion. source container. pthread support.
+
+5. Split header/impl everythere. Start with `expr`.
+
+

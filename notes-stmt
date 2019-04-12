@@ -1,0 +1,119 @@
+8/10/18
+
+describing CRTP parser_stmt
+
+Methods:
+
+1. CRTP derived
+
+2. get_args: used for gen_insn & print
+
+3. get_opcode: returns static of opcode_type
+
+4. gen_insn: money function: use static opcode & get_args() with std::apply
+
+5. name(): opc_name
+
+6. print(OS&): name + print_args
+
+
+
+
+Consider:
+
+stmt with virtual methods:
+
+currently gen_insn returns opcode&. No change required for virutal
+
+currently name() return const char *.
+
+currently get_opcode()& used internally.
+
+current print passed name() & get_args()
+
+ALTERNATE:
+
+stmt with `operator stmt_exec const&`() type:
+    methods for each fn
+
+GOOD FIRST REFACTOR
+
+Wrong. Parser must parse a "type".
+
+Not wrong. Each parser can generate different type. `operator` generates interface.
+
+Still wrong. x3 parser must generate "type". Including args.
+
+SECOND REFACTOR:
+
+insn generates entry in `insn_container`. Returns functor, which accepts proc_args.
+
+
+struct X_insn_stmt
+{
+    // override to customize
+    using opcode_t = opc_nop;
+    auto get_args() { return std::tuple<>{}; }
+    
+    // parser interface
+    virtual opcode& get_opcode()       = 0;
+    virtual const char *name() const   = 0;
+    virtual void print_args(print_fn&) = 0;
+
+    virtual ~X_insn_stmt();
+    
+    // default implementations
+    template <typename T>
+    opcode& do_opcode()
+    {
+        std::apply(opcode_t::proc_args, T::get_args());
+    }
+
+    template <typename T>
+    void do_print(print_functor& fn)
+    {
+        std::apply(fn, T::get_args());
+    }
+
+    template <typename T>
+    const char *do_name() const
+    {
+        return T::opcode_t::name();
+    }
+
+};
+
+*************
+
+*1. Works with save/restore of vtable in CRTP base.
+
+*2. Move "args()" method into base.
+
+*3. Mark base virtual methods "final" & change derived methods to "do_XXX"
+
+4. Remove AST. Change includes.
+
+5. Continue printout of "ctor". Fix parser to not instantiate more than one "stmt" object
+
+6. Document parser interface including any "instantiate" requirements.
+
+7. Document stmt object: detail slicing & vtable 
+
+
+**************
+
+
+Stream to Insn: 
+
+put_uint: widths supported: 1, 2, 4, 8
+put_data: widths supported: 1, 2, 4, 8, count supported: indefinite
+put_diag: supported
+
+// throw error
+put_XXX_reloc
+put_str
+set_section
+
+Do like "arg" inserter: fixed width header, repeats when full
+
+

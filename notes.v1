@@ -1,0 +1,247 @@
++1. regset: block invalid regs
+
++2. regset: generate masks
+
++3. movem: handle single register
+
++3. m68k_regs: add aliases (eg: sp, fp)
+
++4. core: implement core_dot{}
+
++5. core: implement core_dot.delta_min
+
+6. core: verify fuzz
+
++7. m68k: test/verify direct modes (short/long)
+
+8. m68k: analyze pc@() offset conversion
+
+9. m68k: jmp/branch processing
+
++10. m68k: select "opc_format" from `OK` return code
+
++11. m68k: formats: clean up virtual base classes
+
++12. meta expr
+
++13. fold expr
+
++14. meta [ongoing]
+
+15. listing emit
+
++16. uplus link error
+
++17. refactor expr_t visitor/get
+
++18. `raw` parser for strings, %-parsers
+
++19. error handler for parse errors
+
++20. error handler refactor (file/pos deque)
+
+21. core_fits: branch
+
+22. expr_t: fowarded_ast allocation error
+
++23. expr_t: visitor refactor
+
+24. source reader
+
++25. core_symbol refactor
+
+26. parser interface refactor:
++	- create object with fs::path, source(begin,end)
++	- create iter obj with begin/end (compatible with range-based for)
++	- create "kas::loc" object unique across files/error_handlers.
++	- verbose flag to tag loc on all insns
++	- error insn for parse errors
+
++27. add "terminal" defn category & distribute parsers to modules.
+
++28. replace `core_symbol` with `sym_ref` in `expr_t`
+
++29. add CRTP class to allocate `sym` and other indexed classes.
+
+30. refactor `error_reporting.hpp` to allow `fmt_error` class to be
+    provided with access to underlying source. Need clang, gcc
+
++31. Retrieving EQU values at parse means EQU's can't be GLOBL ?!?
+
++32. Can EQU's have a `dot` expression: eg FOO = . + 2
+
++33. register pairs parsed multiple times (eg 5x) in "m68k-moves.input"
+
++34. trapCC.w, trapCC.l is wrong.
+
+35. register names can match partial label names.
+    Still w/ "lexeme[ xxx > !(x3::alnum|x3::lit('_'))]"
+
+36. fmove.p fortran, etc, formats ? (don't know syntax)
+
+37. hardware_features.h needs to be implented as singleton. ? XXX why?
+
+38. hardware_features.h need option name strings. refactor name as
+    static constexpr member of type
+
++39. missing_arg needs to be tagged.
+
++40. need to configure "address" size (default 32-bit)
+
+41. need to avoid "static init order fiasco" ref sehe
+http://stackoverflow.com/questions/41770375/strange-semantic-behaviour-of-boost-spirit-x3-after-splitting/41785268#41785268
+
+42. become "master" of tagging semantics
+
++43. understand "raw" parser
+
++44. remove std::string from expr_t (fix error message methods)
+
++45. fix conflict with operator<< & ostream
+
++46. get m68k_reg to use op_parser_t
+
+47. get operators to use op_parser_t
+
+48. get pseudo+ops to use op_parser_t
+
+49. fixup sting utilites for IS<>
+
+50. make includes work for no bsd/m68k
+
+51. refactor opc_data
+
+52. refactor parser
+
+53. remove CRTP from parser_stmt<>
+
+54. refactor gen_insn:
+    now: insn = stmt(&parse.out);
+
+    new: insn = core_insn::gen_insn(stmt, &parse_out);
+
++55. M_SIZE_WORD should be signed. Add M_SIZE_UWORD
+
+56. most DWARF data passed as binary. Must generate data for (in example)
+    .debug_line (empty)
+    .debug_frame (mentioned in `cfi_sections`)
+    .comment (from `ident`)
+
+
+57. add `.ident`. Add `core_emit` manipulator to allow temporary emit to section
+
+58. add `#` (ignored). 
+
+59. add `# line "file"` for preprocessed assmebler source
+
+60. Flesh out `cfi` opcodes.
+
++ 61. Fix no arg m68k opcodes
+
+62. Fix m68k branch instructions
+
++ 63. Fix / refactor opc_fixed data.
+
+64. Remove space before continuation `...` in listing
+
++65. Move section suffix to emit_string.h
+
++66. BOOST Preprocessor repeat macro for kas_string.h
+
++67. Limit signed data size in formatted output.
+
+68. `strerror:` not parsed correctly if `insn` parser before `label` parser ???
+Some local labels are OK, but som are not with expectation error:
+
+% c++filt N5boost6spirit2x313not_predicateINS1_11alternativeINS1_10char_classINS0_13char_encoding8standardENS1_9alnum_tagEEENS1_12literal_charIS6_cEEEEEE
+boost::spirit::x3::not_predicate<boost::spirit::x3::alternative<boost::spirit::x3::char_class<boost::spirit::char_encoding::standard, boost::spirit::x3::alnum_tag>, boost::spirit::x3::literal_char<boost::spirit::char_encoding::standard, char> > >
+
+Investigate if partially matching `st` register from M68K
+
+
++69. Move `alignment` into core_fragment. create `frag_align()` method. create `is_relaxed()` method. 
+    add private `current_align` member. Clear `alignment` when aligned. `align` & `seg` get size from fragment.
+    Both save non-zero pattern as expression. Create `emit_filler` method in core_fragment to push bytes.
+    signature `emit_align(Inserter&, pattern = 0, size = 0)` so skip can use as well.
+
++71. core_fragment::is_relaxed looks at prev_pointer & align.
+
+70. Add `alignment` variable to `insn_inserter`. Track `align` & `segment` opcodes. When `align` insn
+    if alignment OK, nop-it. Add `alignment` method to opcodes to allow (for instance) cpu insns to specify
+    alignment they will enforce. Query when non-relaxed insn is inserted.
+
++71. Refactor `opc_leb` to create leb classes which do work. Use in dl_data.h to store/retrieve instance data.
+
++72. Rename "core_dot" -> "core_expr_dot". Change methods: ctor(frag), core_addr&& get_dot(), get_offset()
+
+73. Refactor core_segment::for_frags to return value. Refactor gen_addr(frag_p, offset) to use new method.
+    Eliminate core_segment::initial(), & core_fragment::next_p().
+
+74. m68k float parser must handler: 731.W & .L (no_case). Should return ints, not floats.
+
+75. m68k_branch: use dot.seen_this_pass() to elminiate `zero` branches. Pay particular attention
+    to branches with zero min size: backwards +2, forwards -2 as compared with zero test.
+
+76. m68k_djnz: condition code reverse + djz
+
++77. create "DIRECT_DEL" which allows deleted branch. Refactor op_size to pass arg# & reference to accumulated size
+    to allow DIRECT_DEL to zero size.
+
++78. merge "FMT_RAW" into opc_common "save" & "load".
+
+79. allow register to have multiple defns with different hw_tst & reg_class.
+    some coldfire names clash with m68k names (mainly movec stuff)
+
+80. fix "validate" to look thru reg defns to see if OK.
+
+81. some code uses "size" on branches: eg "bcs.b next_bf"
+
+82. make insn_bitset() just match hw:ok (& arg#? ok) variables. "move" has excessive versions.
+    XXX how to calculate "hard no" instances to exclude.
+
++83. define reg "upper/lower". 
+
++84. replace m68k_insn_select::cpid with M68K_OPC_CP_GEN. ie replace member with enum value.
+    Reduce `m68k_insn_select` to 16-bits from 32-bits.
+
+85. Fix kas_map_object: 
+        1) add backing vector for actual data.
+        2) return index + insert flag (allow application to decide if duplicate is error)
+        3) replace `for_each` with `key_for_each` & `add_for_each` which iterates in    
+            `key` or ordered `added`. Must also pass `index` as arg to for_each fn.
+
++86. Add `hw::hw_tst` alias for `m68k_hw_defns`. Current name unwieldy.
+
++87. Create solution for following problem: FP insns don't allow INDEX or PC_INDEX.
+    currently uses cp_id == FPU_CP_ID. Need `test insn`. Possibly allow `cp` type & 
+    somehow do a `cp_defns.is_a(&). Another possiblity is add all cp-id `isa-a` into
+    CPU type & expand `hw_cpu` features.
+
+    However, this doesn't identify `this a FP insn.` Can do `if hw_tst == FP_INSN{}`
+    
+    Unfortunately, this doesn't work. Need an `is_a` relationship. Still not sure.
+
+88. fpu4cpu doesn't handle partial specializations as expected.
+
++89. handle expanding sz_list in `m68k_trait2insn::operator()`. 
+
++90. fix m68k_info. 
+
++91. retire m68k_select.
+
++92. alignas_t can't instantiate a constexpr. ??
+
++93. Refactor hw_tst to use metafunction to calculate cpu/feature. Allows constexpr.
+
+94. Retrieve all the coldfire user manuals/product briefs for gas enumerated processors.
+
++95. Fix dwarf.
+
+96. Coldfire `move` insn opcode.
+
+97. Revisit `kas_loc`. Need to save begin/end pointers. Generate a `loc` table entry 
+    for symbols & errors.
+
++98. duplicate c++020 `endian`. Use in `elf`.
+
+99. move kas_diag to parser. require kas_loc. make `add` return `ref_loc` aka `kas_error_t`.

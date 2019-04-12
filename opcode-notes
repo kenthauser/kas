@@ -1,0 +1,21 @@
+Opcode Notes: 1/23/2017
+
+
+1. Consider keeping (pointer to) 1 instance of each opcode type map.
+
+2. Use this instance to evaluate during relax/emit phases.
+
+3. Use copy ctor during parse. (name construct? or can you take address
+   of std copy ctor?)
+
+4. During parse: can get bsd_opcode ".text" which translates to
+   core_opcode "SEG". During parse, need "get_opcode" to return
+   bsd_opcode (which .text populated). During relax/emit, only need
+   base opcode (SEG) instance.
+
+5. create an "opcode" inserter:
+        - dereference yields reference to back()
+        - if (is_error()), doesn't insert. XXX observe use cases.
+
+6. refactor chunk_inserter/iterator to init from inserter/iterator
+

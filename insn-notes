@@ -1,0 +1,66 @@
+INSN refactor
+
+Hierarchy:
+
+ast_parser:
+    position_tagged for insn
+
+    per-parse-type into variant
+    - types are CRTP of parser::parser_insn
+    - have method: `core::core_insn gen_insn(std::ostream& trace={});`
+    - BOOST_FUSION_ADAPT_STRUCT (from parser)
+
+    - specialize parser::detail::insn_v<defn_*> with a
+        meta list holding type(s)
+
+    - declare method returning a `parser`
+
+Requirements of parser::parser_insn
+
+    - three methods declared:
+        get_args()  -- a tuple holding args (for print)
+        name() const -- const char * `insn_name` (for print)
+        gen_insn(std::ostream* trace)
+
+
+1. insns hold
+    - kas_loc
+    - opcode&
+    - expr data (begin, count)
+
+2. opcodes hold:
+    - base_opcode
+    - fixed_arg
+
+
+
+////////////////////////////
+
+Currently:
+
+1. bsd opcodes use `parser_insn::gen_insn` -> Opcode(get_args())
+   to pass `insn` args to opcode -- which returns core_insn.
+
+2. m68k insns define `gen_insn` which programatically determines
+   `core_insn`
+
+3. should errors "throw"? Would simplify many things.
+
+current "opc opcodes"
+
+opc_fixed
+opc_string
+opc_skip
+opc_org
+opc_align
+opc_section
+opc_sym_binding
+opc_common
+opc_label
+opc_equ
+opc_float
+opc_nop
+opc_error
+opc_resolved
+opc_dbra
+opc_branch

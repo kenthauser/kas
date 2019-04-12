@@ -164,13 +164,13 @@ namespace kas::expression::parser
     x3::rule<class p_expr, expr_t>          p_expr = "p_expr";
     x3::rule<class bin_op, op_expr_pair_t>  bin_op = "bin_op";
     x3::rule<class pfx_op, op_expr_pair_t>  pfx_op = "pfx_op";
-    x3::rule<class sfx_op, sfx_expr_pair_t> sfx_op = "sfx_op";
+    //x3::rule<class sfx_op, sfx_expr_pair_t> sfx_op = "sfx_op";
 
     // Declare primary/unary/binary subpressions
     auto const p_expr_def = term_op_p();
     auto const bin_op_def = bin_op_x3 >> term;
     auto const pfx_op_def = pfx_op_x3 >  term;
-    auto const sfx_op_def = term > sfx_op_x3;
+    //auto const sfx_op_def = term > sfx_op_x3;
 
     // Combine above subexpressions into full expression parsing
     // NB: enabling sfx_op screws up "MISSING" parsing.
@@ -179,7 +179,8 @@ namespace kas::expression::parser
     auto const expr_def = inner;
 
     BOOST_SPIRIT_DEFINE(expr, inner, term)
-    BOOST_SPIRIT_DEFINE(p_expr, bin_op, pfx_op, sfx_op)
+    //BOOST_SPIRIT_DEFINE(p_expr, bin_op, pfx_op, sfx_op)
+    BOOST_SPIRIT_DEFINE(p_expr, bin_op, pfx_op)
 
     ///////////////////////////////////////////////////////////////////////////
     // Annotation and Error handling
@@ -188,7 +189,7 @@ namespace kas::expression::parser
     // annonate only operator locations
     struct bin_op : kas::parser::annotate_on_success {};
     struct pfx_op : kas::parser::annotate_on_success {};
-    struct sfx_op : kas::parser::annotate_on_success {};
+    //struct sfx_op : kas::parser::annotate_on_success {};
 
     // error handling only for outermost expression
     struct tag_expr : kas::parser::error_handler_base {};
