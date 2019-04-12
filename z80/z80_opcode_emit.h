@@ -87,7 +87,7 @@ void z80_mcode_t::emit(
         op_size_t size;
 
         // arg needs "size" to emit properly
-        val_p->size(arg, fits, size);
+        val_p->size(arg, sz(), fits, size);
         if (size())
             arg.emit(base, size());
 

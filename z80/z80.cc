@@ -7,6 +7,7 @@
 
 #include "target/tgt_insn_adder.h"
 #include "insns_z80.h"
+
 #include "z80_arg_impl.h"
 #include "z80_opcode_emit.h"
 
@@ -48,7 +49,7 @@ namespace kas::z80::parser
     BOOST_SPIRIT_DEFINE(reg_parser)
 
     // instantiate parser `type` for register name parser
-    BOOST_SPIRIT_INSTANTIATE(z80_reg_x3 , iterator_type, context_type)
+    BOOST_SPIRIT_INSTANTIATE(z80_reg_x3 , iterator_type, expr_context_type)
 
     //////////////////////////////////////////////////////////////////////////
     // Instruction Parser Definition
@@ -64,50 +65,6 @@ namespace kas::z80::parser
     using z80_insn_sym_parser_t = sym_parser_t<z80_insn_defn, insns, z80_insn_adder>;
 
 
-    struct _xxx
-    {
-        _xxx()
-        {
-            tgt::opc::tgt_opc_general<z80_mcode_t> opc_gen;
-            tgt::opc::tgt_opc_list   <z80_mcode_t> opc_list;
-            opc::FMT_LIST fmt_list;
-            opc::FMT_X    fmt_x;
-            
-            opc::REG_GEN  reg_gen;
-
-            print_type_name{"insns"}.name<insns>();
-            print_type_name{"z80_insn_defn"}.name<z80_insn_defn>();
-            print_type_name{"z80_insn_adder"}.name<z80_insn_adder>();
-            print_type_name{"opc_gen"} (opc_gen);
-            print_type_name{"opc_list"}(opc_list);
-            print_type_name{"fmt_list"}(fmt_list);
-            print_type_name{"fmt_x"}(fmt_x);
-            print_type_name{"reg_gen"}(reg_gen);
-
-            print_type_name{"z80_insn_sym_parser_t"}.name<z80_insn_sym_parser_t>();
-
-            using xlate_list = typename z80_insn_sym_parser_t::xlate_list;
-            print_type_name{"xlate_list"}.name<xlate_list>();
-
-            std::cout << "\nxlate_list[...] size = " << meta::size<xlate_list>() << std::endl;
-            print_type_name{"elem 0"}.name<meta::at_c<xlate_list, 0>>();
-            print_type_name{"elem 1"}.name<meta::at_c<xlate_list, 1>>();
-            print_type_name{"elem 2"}.name<meta::at_c<xlate_list, 2>>();
-            print_type_name{"elem 3"}.name<meta::at_c<xlate_list, 3>>();
-
-            std::cout << std::endl;
-
-            using all_types_defns = typename z80_insn_sym_parser_t::all_types_defns;
-            print_type_name{"all_types_defns"}.name<all_types_defns>();
-            std::cout << "\nall_types_defns[...]  size = ";
-            std::cout << meta::size<all_types_defns>() << std::endl;
-            print_type_name{"elem 0"}.name<meta::at_c<all_types_defns, 0>>();
-            print_type_name{"elem 1"}.name<meta::at_c<all_types_defns, 1>>();
-            print_type_name{"elem 2"}.name<meta::at_c<all_types_defns, 2>>();
-            print_type_name{"elem 3"}.name<meta::at_c<all_types_defns, 3>>();
-        }
-    } ;//_xxx;
-
     // XXX shoud stop parsing on (PARSER_CHARS | '.')
     z80_insn_sym_parser_t insn_sym_parser;
 
@@ -118,8 +75,8 @@ namespace kas::z80::parser
     BOOST_SPIRIT_DEFINE(z80_insn_parser);
 
     // instantiate parsers
-    BOOST_SPIRIT_INSTANTIATE(z80_insn_x3, iterator_type, context_type)
-    BOOST_SPIRIT_INSTANTIATE(z80_stmt_x3, iterator_type, context_type)
+    BOOST_SPIRIT_INSTANTIATE(z80_insn_x3, iterator_type, stmt_context_type)
+    BOOST_SPIRIT_INSTANTIATE(z80_stmt_x3, iterator_type, stmt_context_type)
 
 }
 

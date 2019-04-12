@@ -71,9 +71,27 @@ public:
     bool is_const () const  { return false; }
     
     // validate methods
-    template <typename...Ts> const char *ok_for_target(Ts&&...) 
+    template <typename...Ts>
+    kas::parser::kas_error_t ok_for_target(Ts&&...) 
     {
-        return nullptr;
+        auto error = [this](const char *msg)
+            {
+                set_mode(MODE_ERROR);
+                return err = kas::parser::kas_diag::error(msg, *this).ref();
+            };
+
+        // 0. if parsed as error, propogate
+        if (mode() == MODE_ERROR)
+        {
+            // if not location-tagged, use arg location
+            // ie. create new "reference" from diag using `this` as loc
+            if (!err.get_loc())
+                err = err.get().ref(*this);
+            
+            return err;
+        }
+
+        return {};
     }
     
     // emit methods: require derived implementation

@@ -39,9 +39,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-#include "z80_validate_reg.h"      // actual validate types
 #include "z80_formats_defn.h"      // actual format types
+#include "z80_validate_reg.h"      // actual validate types
 
+#include "target/tgt_defn_trait.h"  // declare "trait" for definition
 #include "kas/kas_string.h"         // name as type
 
 #include <meta/meta.hpp>            // MPL library
@@ -56,25 +57,15 @@ using z80_insn_defn_groups = meta::list<
 
 template <typename=void> struct z80_insn_defn_list : meta::list<> {};
 
+using namespace tgt::opc::traits;
+using tgt::opc::define_sz;
+using tgt::opc::sz_void;
 
-///////////////////////////////////////////////////////////////////////    
-//
-// NB: `defn` is a meta `trait` (which evaluates to a meta `list` of arguments) because
-// the `defn_flatten` metafunction recurses through each list it finds looking for more
-// `defn`. This is useful because many metafunctions (eg: shift and floating point) generate
-// many closely related `defns`. Since `defn` is *not* a `meta::list`, it stops the recursion.
-//
-///////////////////////////////////////////////////////////////////////    
 
 // default fmt: no args (and thus no inserter)
-
-template <typename NAME, std::size_t CODE, typename FMT = void, typename...Ts>
-struct defn
-{
-    // if no formatter specified, use "general" format w/o args
-    using fmt  = meta::if_<std::is_void<FMT>, fmt_gen, FMT>;
-    using type = meta::list<NAME, std::integral_constant<std::size_t, CODE>, fmt, Ts...>;
-};
+using sz_v    = sz_void;
+using sz_b    = define_sz<OP_SIZE_BYTE>;
+using sz_w    = define_sz<OP_SIZE_WORD>;
 
 }
 

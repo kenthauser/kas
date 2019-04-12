@@ -148,7 +148,7 @@ struct val_reg_gen: z80_mcode_t::val_t
     }
     
     // registers by themselves have no size. But IX/IY offsets do
-    fits_result size(z80_arg_t& arg, expr_fits const& fits, op_size_t& insn_size) const override
+    fits_result size(z80_arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t& insn_size) const override
     {
         switch (arg.mode())
         {
@@ -402,7 +402,7 @@ struct val_range : z80_mcode_t::val_t
     }
 
     // immediates may be inserted in opcode, or added data
-    fits_result size(z80_arg_t& arg, expr_fits const& fits, op_size_t& insn_size) const override
+    fits_result size(z80_arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t& insn_size) const override
     {
         // override `mode` as appropriate
         arg.set_mode(_size ? MODE_IMMEDIATE : MODE_IMMED_QUICK);
@@ -467,7 +467,7 @@ struct val_indir : z80_mcode_t::val_t
     }
 
     // immediates may be inserted in opcode, or added data
-    fits_result size(z80_arg_t& arg, expr_fits const& fits, op_size_t& insn_size) const override
+    fits_result size(z80_arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t& insn_size) const override
     {
         insn_size += _size;
         return ok(arg, fits);

@@ -4,6 +4,10 @@
 #include "expr/expr.h"
 #include "kas/kas_string.h"
 
+#include "kas_core/core_emit.h"
+#include "kas_core/core_fits.h"
+
+
 namespace kas::tgt::opc
 {
 // forward declare templates

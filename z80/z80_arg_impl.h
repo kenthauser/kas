@@ -11,6 +11,8 @@ namespace kas::z80
 
 z80_arg_t::z80_arg_t(std::pair<expr_t, z80_arg_mode> const& parsed) : base_t(parsed.second, parsed.first)
 {
+    const char *msg {};
+
     auto set_prefix = [&](z80_arg_mode base_mode)
     {
         prefix = reg.value();
@@ -23,8 +25,7 @@ z80_arg_t::z80_arg_t(std::pair<expr_t, z80_arg_mode> const& parsed) : base_t(par
                 base_mode = static_cast<z80_arg_mode>(base_mode + 1);
                 break;
             default:
-                base_mode = MODE_ERROR;
-                err = error_msg::ERR_argument;
+                msg = error_msg::ERR_argument;
                 break;
         }
         set_mode(base_mode);
@@ -55,8 +56,7 @@ z80_arg_t::z80_arg_t(std::pair<expr_t, z80_arg_mode> const& parsed) : base_t(par
 
             case MODE_IMMEDIATE:
             default:
-                set_mode(MODE_ERROR);
-                err   = error_msg::ERR_argument;
+                msg = error_msg::ERR_argument;
                 break;
 
         }
@@ -67,8 +67,7 @@ z80_arg_t::z80_arg_t(std::pair<expr_t, z80_arg_mode> const& parsed) : base_t(par
     {
         if (mode() != MODE_INDIRECT || p->kind() != -z80_reg_set::RS_OFFSET)
         {
-            set_mode(MODE_ERROR);
-            err   = error_msg::ERR_argument;
+            msg  = error_msg::ERR_argument;
         }
         else
         {
@@ -78,6 +77,11 @@ z80_arg_t::z80_arg_t(std::pair<expr_t, z80_arg_mode> const& parsed) : base_t(par
         }
     }
 
+    if (msg)
+    {
+        err = kas::parser::kas_diag::error(msg, *this).ref();
+        set_mode(MODE_ERROR);
+    }
     //std::cout << "z80_arg_t ctor: expr = " << expr << " mode = " << _mode << " pfx = " << +prefix << std::endl;
 }
 
@@ -99,7 +103,7 @@ bool z80_arg_t::is_const() const
     return expr.get_fixed_p();
 }
 
-void z80_arg_t::set_mode(z80_arg_mode mode)
+void z80_arg_t::set_mode(unsigned mode)
 {
     base_t::set_mode(mode);
     switch (mode)
@@ -127,16 +131,14 @@ void z80_arg_t::set_expr(expr_t& e)
         expr = e;
 }
 
+#if 0
 template <typename...Ts>
 const char * z80_arg_t::ok_for_target(Ts&&...args) const
 {
-    // 0. if parsed as error, propogate
-    if (mode() == MODE_ERROR)
-        return err ? err : error_msg::ERR_argument;
-
     // OK
     return {};
 }
+#endif
 
 void z80_arg_t::print(std::ostream& os) const
 {
@@ -196,7 +198,7 @@ auto z80_arg_t::size(expression::expr_fits const& fits) -> op_size_t
 
 // optimally save all z80 arguments
 template <typename Inserter>
-bool z80_arg_t::serialize(Inserter& inserter, bool& completely_saved)
+bool z80_arg_t::serialize(Inserter& inserter, uint8_t sz, bool& completely_saved)
 {
     auto save_expr = [&](auto size) -> bool
         {
@@ -245,7 +247,7 @@ bool z80_arg_t::serialize(Inserter& inserter, bool& completely_saved)
 
 // handle all cases serialized above
 template <typename Reader>
-void z80_arg_t::extract(Reader& reader, bool has_data, bool has_expr)
+void z80_arg_t::extract(Reader& reader, uint8_t sz, bool has_data, bool has_expr)
 {
     if (has_expr)
     {

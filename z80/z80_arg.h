@@ -40,31 +40,29 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode>
     // inherit default & error ctors
     using base_t::base_t;
 
-#if 0
-    // XXX moved to `tgt_arg_t`
-    // defn needed by `base_t`
-    static constexpr auto MODE_NONE = z80_arg_mode::MODE_NONE;
-#endif
-    
     // direct, indirect, and immediate ctor
     z80_arg_t(std::pair<expr_t, z80_arg_mode> const&);
+
+    // declare size of immed args
+    // NB: names of arg modes (OP_SIZE_*) is in `z80_mcode.h`
+    static constexpr tgt::tgt_immed_info sz_info [] =
+        {
+              {  1 }        // 0: BYTE
+            , {  2 }        // 1: WORD
+        };
 
     op_size_t size(expression::expr_fits const& fits = {});
     void emit(core::emit_base& base, unsigned size) const;
 
     template <typename Inserter>
-    bool serialize(Inserter& inserter, bool& completely_saved);
+    bool serialize(Inserter& inserter, uint8_t sz, bool& completely_saved);
     
     template <typename Reader>
-    void extract(Reader& reader, bool has_data, bool has_expr);
+    void extract(Reader& reader, uint8_t sz, bool has_data, bool has_expr);
 
     bool is_const() const;
-    void set_mode(z80_arg_mode mode);
+    void set_mode(unsigned mode);
     void set_expr(expr_t& e);
-
-    // validate if arg suitable for target
-    template <typename...Ts>
-    const char *ok_for_target(Ts&&...) const;
 
     void print(std::ostream&) const;
     

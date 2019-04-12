@@ -4,21 +4,29 @@
 #include "z80_stmt.h"
 #include "target/tgt_mcode.h"
 
-#include "kas_core/core_emit.h"
-#include "kas_core/core_fits.h"
-
-// instruction per-size run-time object
-// NB: not allocated if info->hw_tst fails, unless no
-// other insn with name allocated...
-
 namespace kas::z80
 {
+
+// all z80 instructions have a specified "size" of operand
+enum m68k_op_size_t
+{
+      OP_SIZE_BYTE
+    , OP_SIZE_WORD
+    , NUM_OP_SIZE
+};
+
 
 // override defaults for various sizes
 struct z80_mcode_size_t : tgt::tgt_mcode_size_t
 {
     using mcode_size_t = uint8_t;
 };
+
+// forward declare z80 default mcode arg formatter
+namespace opc
+{
+    struct FMT_X;
+}
 
 
 struct z80_mcode_t : tgt::tgt_mcode_t<z80_mcode_t, z80_stmt_t, error_msg, z80_mcode_size_t>
@@ -28,6 +36,17 @@ struct z80_mcode_t : tgt::tgt_mcode_t<z80_mcode_t, z80_stmt_t, error_msg, z80_mc
     // use default ctors
     using base_t::base_t;
 
+    //
+    // override default types
+    //
+
+    using fmt_default = opc::FMT_X;
+
+    
+    //
+    // override default methods
+    //
+    
     // prefix is part of `base` machine code size calculation
     // not part of `arg` size calculation
     auto base_size() const

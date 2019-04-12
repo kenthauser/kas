@@ -4,11 +4,9 @@
 #include "m68k_reg_types.h"
 #include "target/tgt_arg.h"
 
-//#include "m68k_size_defn.h"
 #include "m68k_extension_t.h"
 #include "kas_core/opcode.h"
 #include "parser/kas_position.h"
-//#include "m68k_insn_info.h"
 
 namespace kas::m68k
 {
@@ -131,7 +129,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
         return do_const(expr) && do_const(outer);
     }
 
-    // don't let register appear as constants (? why needed ?)
+    // XXX don't let register appear as constants (? why needed ?)
     // also seems to block IMMEDIATE
     template <typename T>
     T const* get_p() const
@@ -163,10 +161,8 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
     mutable op_size_t _arg_size{-1};
 };
 
-#if 1
 // implementation in m68k.cc for debugging parser
 extern std::ostream& operator<<(std::ostream& os, m68k_arg_t const& arg);
-#endif
 }
 
 #endif

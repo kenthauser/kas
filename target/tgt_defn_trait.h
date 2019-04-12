@@ -106,8 +106,11 @@ template <typename SZ, typename NAME, typename CODE, typename...Ts>
 struct defn<SZ, NAME, CODE::code, Ts...> : insn_defn<SZ, NAME, CODE, Ts...> {};
 #else
 
-template<typename...Ts>
-using defn = insn_defn<Ts...>;
+template <typename...Ts>
+using defn   = insn_defn<Ts...>;
+
+template <typename...Ts>
+using x_defn = insn_defn<sz_void, Ts...>;
 
 #endif
 #if 0

@@ -2,11 +2,7 @@
 #define KAS_M68K_M68K_MCODE_H
 
 #include "m68k_stmt.h"
-//#include "m68k_size_defn.h"
 #include "target/tgt_mcode.h"
-
-#include "kas_core/core_emit.h"
-#include "kas_core/core_fits.h"
 
 // instruction per-size run-time object
 // NB: not allocated if info->hw_tst fails, unless no
@@ -55,11 +51,12 @@ struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t, m68k_stmt_t, error_msg, m68
 {
     using BASE_NAME = KAS_STRING("M68K");
 
-    using fmt_default = opc::FMT_X;
-    using code_size_t = opc::m68k_insn_lwb;
-
     // use default ctors
     using base_t::base_t;
+
+    // override default types
+    using fmt_default = opc::FMT_X;
+    using code_size_t = opc::m68k_insn_lwb;
 
 };
 

@@ -5,9 +5,8 @@
 // 2. Split into virtual functions, "workers" and combiners
 // 3. Add in `opc&` stuff
 
-//#include "z80_formats_impl.h"
+#include "z80_mcode.h"
 #include "target/tgt_format.h"
-//#include "z80_formats_opc.h"
 
 namespace kas::z80::opc
 {
