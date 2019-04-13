@@ -111,19 +111,37 @@ struct fmt_reg_pair
                         n += 8;
                 return n;
             };
-        
+
+        // extract "pair" into two ints
+        unsigned reg1, reg2;
+
+        if (arg.mode() == MODE_PAIR)
+        {
+            reg1 = get_reg(arg.expr);
+            reg2 = get_reg(arg.outer);
+        }
+        else
+        {
+            // assume General Register
+            reg1 = arg.reg_num & 7;
+            if constexpr (BITS > 3)
+                if (arg.mode() == MODE_ADDR_REG)
+                    reg1 += 8;
+            reg2 = reg1;
+        }
+       
         if constexpr (WORD_0 != WORD_1)
         {
             auto code  = op[WORD_0] &= ~MASK_0;
-            op[WORD_0] = code | (get_reg(arg.expr)  << SHIFT_0);
+            op[WORD_0] = code | (reg1  << SHIFT_0);
                  code  = op[WORD_1] &= ~MASK_1;
-            op[WORD_1] = code | (get_reg(arg.outer) << SHIFT_1);
+            op[WORD_1] = code | (reg2 << SHIFT_1);
         }
         else
         {
             auto code  = op[WORD_0] &= ~(MASK_0 | MASK_1);
-                 code |= (get_reg(arg.expr) ) << SHIFT_0;
-                 code |= (get_reg(arg.outer)) << SHIFT_1;
+                 code |= reg1 << SHIFT_0;
+                 code |= reg2 << SHIFT_1;
             op[WORD_0] = code;
         }
         
@@ -132,6 +150,23 @@ struct fmt_reg_pair
     
     static void extract(uint16_t const* op, m68k_arg_t* arg, val_t const *val_p)
     {
+        auto gen_reg = [](unsigned n)
+            {
+                auto mode = (n & 8) ? MODE_ADDR_REG : MODE_DATA_REG;
+                return m68k_reg_t{ mode, n & 7 };
+            };
+        auto reg1 = (op[WORD_0] & MASK_0) >> SHIFT_0;
+        auto reg2 = (op[WORD_1] & MASK_1) >> SHIFT_1;
+        
+        // if part of `deserializer`, mode may be overwritten to DATA_REG or ADDR_REG
+        // set `reg_num` for these cases. No-op for MODE_PAIR
+        arg->reg_num = reg1 & 7;
+        
+        // generate `MODE_PAIR` arg
+        arg->expr  = gen_reg(reg1);
+        arg->outer = gen_reg(reg2);
+        arg->set_mode(MODE_PAIR);
+
     }
 };
 

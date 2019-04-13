@@ -2,6 +2,8 @@
 #define KAS_Z80_Z80_REG_DEFN_H
 
 #include "z80_reg_types.h"
+
+#include "target/tgt_reg_defn.h"
 #include "kas/kas_string.h"
 
 namespace kas::z80

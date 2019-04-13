@@ -5,7 +5,6 @@
 // Parse Z80 instruction using Zilog syntax
 //////////////////////////////////////////////////////////////////////////
 
-#include "z80.h"
 #include "z80_parser_types.h"
 
 #include "expr/expr.h"              // expression public interface
@@ -58,12 +57,9 @@ namespace kas::z80::parser
 
     BOOST_SPIRIT_DEFINE(z80_args)
 
-    // clear the index reg prefix
-    auto reset_args = [](auto& ctx) { z80_arg_t::reset(); };
-
     // need two rules to get tagging 
     auto const raw_z80_stmt = rule<class _, z80_stmt_t> {} = 
-                        (z80_insn_x3() > eps[reset_args] > z80_args)[z80_stmt_t()];
+                        (z80_insn_x3() > z80_args)[z80_stmt_t()];
 
     // Parser interface
     z80_stmt_x3 z80_stmt {"z80_stmt"};

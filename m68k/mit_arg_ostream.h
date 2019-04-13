@@ -121,13 +121,6 @@ namespace kas::m68k
             break;      // pc + index
         case MODE_IMMED:
         case MODE_IMMED_QUICK:
-        case MODE_IMMED_LONG:       // 0
-        case MODE_IMMED_SINGLE:     // 1
-        case MODE_IMMED_XTND:       // 2
-        case MODE_IMMED_PACKED:     // 3
-        case MODE_IMMED_WORD:       // 4
-        case MODE_IMMED_DOUBLE:     // 5
-        case MODE_IMMED_BYTE:       // 6
             return os << "#" << base;
         case MODE_INDEX_BRIEF:
         case MODE_PC_INDEX_BRIEF:

@@ -46,11 +46,11 @@ struct tgt_opc_list : tgt_opcode<MCODE_T>
         // serialize format (for unresolved instructions)
         // 0) fixed area: OK bitset in host order
         // 1) insn index
-        // 2) dummy zero base opcode (word)
+        // 2) dummy zero base opcode (e_data_t<>)
         // 3) serialized args
 
-        auto& di    = data.di();
-        auto& fixed = data.fixed;
+        auto& di      = data.di();
+        auto& fixed   = data.fixed;
         auto inserter = base_t::tgt_data_inserter(data);
         inserter.reserve(-1);       // skip fixed area
         

@@ -1,6 +1,8 @@
 #ifndef KAS_TARGET_TGT_REG_DEFN_H
 #define KAS_TARGET_TGT_REG_DEFN_H
 
+#include "tgt_reg_defn.h"
+
 #include "kas_core/kas_object.h"
 #include "parser/sym_parser.h"
 

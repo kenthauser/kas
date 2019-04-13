@@ -50,9 +50,6 @@ struct val_range : m68k_validate
         switch (arg.mode())
         {
             case MODE_IMMED:
-            case MODE_IMMED_BYTE:
-            case MODE_IMMED_WORD:
-            case MODE_IMMED_LONG:
                 if (auto p = arg.expr.get_fixed_p())
                 {
                     // if zero is mapped, block it.
@@ -229,8 +226,6 @@ struct val_regset : m68k_validate
     {
         switch (arg.mode()) {
             case MODE_IMMED:
-            case MODE_IMMED_LONG:
-            case MODE_IMMED_WORD:
                 return fits.yes;
             case MODE_REGSET:
                 if (auto rs_p = arg.expr.template get_p<m68k_reg_set>())

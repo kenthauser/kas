@@ -1,6 +1,8 @@
 #ifndef KAS_Z80_Z80_ARG_DEFN_H
 #define KAS_Z80_Z80_ARG_DEFN_H
 
+// Declare z80 argument & arg MODES
+
 #include "z80_reg_types.h"
 #include "target/tgt_arg.h"
 
@@ -35,7 +37,8 @@ enum z80_arg_mode : uint8_t
 };
 
 
-struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode>
+// `REG_T` & `REGSET_T` args allow `MCODE_T` to lookup types
+struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, z80_reg_t, z80_reg_set>
 {
     // inherit default & error ctors
     using base_t::base_t;
@@ -44,21 +47,20 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode>
     z80_arg_t(std::pair<expr_t, z80_arg_mode> const&);
 
     // declare size of immed args
-    // NB: names of arg modes (OP_SIZE_*) is in `z80_mcode.h`
     static constexpr tgt::tgt_immed_info sz_info [] =
         {
               {  1 }        // 0: BYTE
             , {  2 }        // 1: WORD
         };
 
-    op_size_t size(expression::expr_fits const& fits = {});
+    op_size_t size(uint8_t sz, expression::expr_fits const& fits = {});
     void emit(core::emit_base& base, unsigned size) const;
 
-    template <typename Inserter>
-    bool serialize(Inserter& inserter, uint8_t sz, bool& completely_saved);
+    template <typename Inserter, typename ARG_INFO>
+    bool serialize(Inserter& inserter, uint8_t sz, ARG_INFO *);
     
-    template <typename Reader>
-    void extract(Reader& reader, uint8_t sz, bool has_data, bool has_expr);
+    template <typename Reader, typename ARG_INFO>
+    void extract(Reader& reader, uint8_t sz, ARG_INFO const *);
 
     bool is_const() const;
     void set_mode(unsigned mode);

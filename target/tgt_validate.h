@@ -43,7 +43,7 @@ struct tgt_validate
 
     // if arg invalid for particular "size", error it out in `size` method
     virtual fits_result ok  (arg_t& arg, expr_fits const& fits) const = 0;
-    virtual fits_result size(arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t& op_size) const
+    virtual fits_result size(arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t&) const
     { 
         // default: return "fits", don't update size
         return ok(arg, fits);
@@ -52,6 +52,14 @@ struct tgt_validate
     // insert & extract values from opcode
     virtual unsigned get_value(arg_t& arg)           const { return {}; }
     virtual void     set_arg  (arg_t& arg, unsigned) const {}
+
+    // `not_saved` only called on args that are `OK`
+    // no validator returning `not_saved::true` are in "*LIST*" serialize validators
+    virtual bool     all_saved(arg_t& arg) const
+    { 
+        expr_fits fits;
+        return fits.zero(arg.expr) == fits.yes;
+    }
 
     // NB: literal types can't define dtors
     // virtual ~tgt_validate() = default;

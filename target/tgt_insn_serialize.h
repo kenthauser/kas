@@ -1,7 +1,7 @@
 #ifndef KAS_TARGET_TGT_INSN_SERIALIZE_H
 #define KAS_TARGET_TGT_INSN_SERIALIZE_H
 
-// Serialize the `z80_insn` and `z80_args`
+// Serialize the `insn` and `args`
 //
 // Method: store arguments *in* opcode fields (ie mode/register), followed
 // by `extension` word, followed by expressions. The `prefix` of actual
@@ -62,9 +62,8 @@
 ///////////////////////////////////////////////////////////////////
 
 
-//#include "tgt_arg_defn.h"
 #include "tgt_data_inserter.h"
-#include "tgt_arg_serialize.h"
+#include "tgt_arg_inserter.h"
 #include "kas_core/opcode.h"
 
 
@@ -79,8 +78,8 @@ void tgt_insert_args(Inserter& inserter
     using arg_t = typename MCODE_T::arg_t;
     using mcode_size_t = typename MCODE_T::mcode_size_t;
     constexpr auto ARGS_PER_INFO = detail::tgt_arg_info<MCODE_T>::ARGS_PER_INFO;
-    
-    // XXX need to add pointer overload
+   
+    // insert base "code" (a appropriately sized zero) & use pointer for arg inserter
     auto code_p = inserter(m_code.code().data(), m_code.code_size());
 
     auto& fmt         = m_code.fmt();
@@ -95,7 +94,10 @@ void tgt_insert_args(Inserter& inserter
     // save arg_mode & info about extensions (constants or expressions)
     for (auto& arg : args)
     {
+        typename MCODE_T::val_t const *val_p;
+
         // need `arg_info` scrach area. create one for modulo numbered args
+        // (creates one for first argument)
         if (auto idx_n = n % ARGS_PER_INFO) 
         {
             // not modulo -- just increment
@@ -109,21 +111,24 @@ void tgt_insert_args(Inserter& inserter
         }
 
         // do work: pass validator if present
+        // NB: may be more args than validators. LIST format only saves a few args in `code`
         if (val_iter != val_iter_end)
-            detail::insert_one<MCODE_T>(inserter, n, p, arg, sz, fmt, &*val_iter++, code_p);
-        else
-            detail::insert_one<MCODE_T>(inserter, n, p, arg, sz, fmt, nullptr, code_p);
+            val_p = &*val_iter++;
 
+        // if validator present, be sure it can hold type
+        if (val_p)
+        {
+            expr_fits fits{};
+            if (val_p->ok(arg, fits) != fits.yes)
+                val_p = nullptr;
+        }
+        std::cout << "tgt_insert_args: " << +n << " arg = " << arg << std::endl;
+        detail::insert_one<MCODE_T>(inserter, n, p, arg, sz, fmt, val_p, code_p);
         ++n;
-        // std::cout << std::hex;
-        // std::cout << "write_arg :            mode = " << (int)arg.mode;
-        // std::cout << " reg_num = " << arg.reg_num;
-        // std::cout << " arg = " << arg << std::endl;
     }
 
     // if non-modulo number of args, flag end in `arg_info` area
     if (auto idx_n = n % ARGS_PER_INFO)
-        //p[idx_n].arg_mode = MCODE_T::arg_t::MODE_NONE;
         p[idx_n].arg_mode = arg_t::MODE_NONE;
 }
 
@@ -139,8 +144,7 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
     // of common read/write routines (eg: `eval_list`)
     constexpr auto ARGS_PER_INFO = detail::tgt_arg_info<MCODE_T>::ARGS_PER_INFO;
     using  mcode_size_t = typename MCODE_T::mcode_size_t;
-    using  arg_t        = typename MCODE_T::arg_t;
-    using  arg_info     = detail::tgt_arg_info<MCODE_T>; 
+    using  arg_t        = typename MCODE_T::arg_t; using  arg_info     = detail::tgt_arg_info<MCODE_T>; 
 
     static arg_t     static_args[MCODE_T::MAX_ARGS+1];
     static arg_info *static_info[MCODE_T::MAX_ARGS/ARGS_PER_INFO+1];

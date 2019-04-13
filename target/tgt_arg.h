@@ -18,12 +18,17 @@ struct tgt_immed_info
 };
 
 
-template <typename Derived, typename Mode_t>
+// NB: the `REG_T` & `REGSET_T` are just to allow lookup of type names
+template <typename Derived, typename Mode_t, typename REG_T, typename REGSET_T = void>
 struct tgt_arg_t : kas_token
 {
     using base_t     = tgt_arg_t;
     using derived_t  = Derived;
     using arg_mode_t = Mode_t;
+
+    // allow lookup of `reg_t` & `regset_t`
+    using reg_t    = REG_T;
+    using regset_t = REGSET_T;
 
     using op_size_t = core::opc::opcode::op_size_t;
 
@@ -59,9 +64,12 @@ protected:
 public:
     // arg mode: default getter/setter
     auto mode() const              { return _mode; }
-    void set_mode(unsigned mode)
+
+    // error message for invalid `mode`. msg used by ctor only.
+    const char *set_mode(unsigned mode)
     { 
         _mode = static_cast<arg_mode_t>(mode);
+        return {};
     }
 
     // for validate_min_max: default implmentation
@@ -95,7 +103,7 @@ public:
     }
     
     // emit methods: require derived implementation
-    op_size_t size(expression::expr_fits const& fits = {});
+    op_size_t size(int8_t sz, expression::expr_fits const& fits = {});
 
     // information about argument sizes
     // default:: single size immed arg, size = data_size, no float

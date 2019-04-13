@@ -1,44 +1,40 @@
+// Arch definitions for M68K & Coldfire processors
+
+#include "expr/expr.h"
+#include "parser/parser.h"
+#include "parser/sym_parser.h"
+#include "target/tgt_insn_defn.h"   // declare `tgt_insn_defn` template
+#include "target/tgt_reg_defn.h"
+
 #include "utility/print_type_name.h"
 
-#include "m68k.h"
+// per-arch includes
 #include "m68k_mcode.h"
+#include "m68k_reg_defn.h"
 
-#include "m68k_reg_defns.h"
-
-#include "mit_moto_names.h"
-#include "target/tgt_insn_adder.h"
-
-#include "m68k/insns_m68000.h"
-#if 0
-#include "m68k/insns_m68020.h"
-#include "m68k/insns_m68040.h"
-//#include "m68k/insns_m68851.h"
-#include "m68k/insns_m68881.h"
-#include "m68k/insns_cpu32.h"
-#include "m68k/insns_coldfire.h"
+// instruction definitions
+#include "insns_m68000.h"
+#if 1
+#include "insns_m68020.h"
+#include "insns_m68040.h"
+//#include "insns_m68851.h"
+#include "insns_m68881.h"
+#include "insns_cpu32.h"
+#include "insns_coldfire.h"
 #endif
 
+// parse instruction + args
+#include "mit_moto_parser_def.h"
+
+// arch impl files
+#include "mit_moto_names.h"
 #include "m68k_arg_impl.h"
 #include "m68k_arg_emit.h"
 #include "m68k_arg_size.h"
 #include "m68k_arg_serialize.h"
 
-// parse m68k instruction + args
-#include "mit_moto_parser_def.h"
-
 #include "mit_arg_ostream.h"
 #include "moto_arg_ostream.h"
-
-// boilerplate: tgt_impl & sym_parser (for insn & reg names)
-#include "parser/sym_parser.h"
-#include "target/tgt_reg_impl.h"
-#include "target/tgt_regset_impl.h"
-#include "target/tgt_stmt_impl.h"
-#include "target/tgt_insn_impl.h"
-#include "target/tgt_insn_eval.h"
-
-#include <typeinfo>
-#include <iostream>
 
 namespace kas::m68k::hw
 {
@@ -108,29 +104,9 @@ namespace kas::m68k
     }
 }
 
-
 namespace kas::tgt
 {
-    // name types used to instantiate the CRTP templates: reg, reg_set, stmt
-    using reg_t     = m68k::m68k_reg_t;
-    using reg_set_t = m68k::m68k_reg_set;
-    using arg_t     = m68k::m68k_arg_t;
-    using insn_t    = m68k::m68k_insn_t;
-    
-    // instantiate reg routines referenced from expression parsers
-    template const char *tgt_reg<reg_t>::validate(int) const;
-
-    // instantiate reg_set routines referenced from expression parsers
-    template      tgt_reg_set<reg_set_t, reg_t>::tgt_reg_set(reg_t const&, char);
-    template auto tgt_reg_set<reg_set_t, reg_t>::base_t::binop(const char, tgt_reg_set const&) -> derived_t&;
-    template auto tgt_reg_set<reg_set_t, reg_t>::binop(const char, core::core_expr const&)   -> derived_t&;
-    template auto tgt_reg_set<reg_set_t, reg_t>::binop(const char, int)   -> derived_t&;
-    
-    // instantiate routines referenced from stmt parsers
-    template core::opcode *tgt_stmt<insn_t, arg_t>::gen_insn(core::opcode::data_t&);
-    template std::string   tgt_stmt<insn_t, arg_t>::name() const;
-
-    // instantiate printers
-    template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostream>(std::ostream&) const;
-    template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostringstream>(std::ostringstream&) const;
+    using ARCH_MCODE = m68k::m68k_mcode_t;
 }
+
+#include "target/tgt_impl.h"

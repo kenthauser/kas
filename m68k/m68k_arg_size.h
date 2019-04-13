@@ -10,7 +10,7 @@
 namespace kas { namespace m68k
 {
 
-    inline auto m68k_arg_t::size(expression::expr_fits const& fits)
+    inline auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const& fits)
          -> op_size_t
     {
         // copy result code enum to namespace
@@ -98,15 +98,8 @@ namespace kas { namespace m68k
         op_size_t result;
 
         switch (mode()) {
-            case MODE_IMMED_LONG:       // FLT FMT 0
-            case MODE_IMMED_SINGLE:     // FLT FMT 1
-            case MODE_IMMED_XTND:       // FLT FMT 2
-            case MODE_IMMED_PACKED:     // FLT FMT 3
-            case MODE_IMMED_WORD:       // FLT FMT 4
-            case MODE_IMMED_DOUBLE:     // FLT FMT 5
-            case MODE_IMMED_BYTE:       // FLT FMT 6
-            case MODE_IMMED_VOID:       // FLT FMT 7
-                return immed_info(mode() - MODE_IMMED_BASE).sz_bytes;
+            case MODE_IMMED:
+                return immed_info(sz).sz_bytes;
 
             // can modify DISP to indirect or index
             case MODE_ADDR_DISP:
@@ -243,14 +236,6 @@ namespace kas { namespace m68k
         case MODE_DIRECT:
         case MODE_DIRECT_ALTER:
             return MODE_DIRECT_SHORT;
-        case MODE_IMMED_LONG:       // 0
-        case MODE_IMMED_SINGLE:     // 1
-        case MODE_IMMED_XTND:       // 2
-        case MODE_IMMED_PACKED:     // 3
-        case MODE_IMMED_WORD:       // 4
-        case MODE_IMMED_DOUBLE:     // 5
-        case MODE_IMMED_BYTE:       // 6
-            return MODE_IMMED;
         case MODE_PC_INDEX_BRIEF:
             return MODE_PC_INDEX;
         }

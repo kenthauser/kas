@@ -191,14 +191,14 @@ void z80_arg_t::print(std::ostream& os) const
     }
 }
 
-auto z80_arg_t::size(expression::expr_fits const& fits) -> op_size_t
+auto z80_arg_t::size(uint8_t sz, expression::expr_fits const& fits) -> op_size_t
 {
     return 0;
 }
 
 // optimally save all z80 arguments
-template <typename Inserter>
-bool z80_arg_t::serialize(Inserter& inserter, uint8_t sz, bool& completely_saved)
+template <typename Inserter, typename ARG_INFO>
+bool z80_arg_t::serialize(Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
 {
     auto save_expr = [&](auto size) -> bool
         {
@@ -206,10 +206,10 @@ bool z80_arg_t::serialize(Inserter& inserter, uint8_t sz, bool& completely_saved
             auto p = expr.get_fixed_p();
             if (p && !*p)
             {
-                completely_saved = true;    // validator saved all data.
+                info_p->has_data = false;    
                 return false;               // and no expression.
             }
-            completely_saved = false;
+            info_p->has_data = true;    
             return !inserter(std::move(expr), size);
         };
     
@@ -218,13 +218,13 @@ bool z80_arg_t::serialize(Inserter& inserter, uint8_t sz, bool& completely_saved
         case MODE_IMMED_QUICK:
         default:
             // nothing to save. Mode says it all.
-            completely_saved = true;
+            info_p->has_data = false;
             break;
 
         case MODE_REG:
         case MODE_REG_INDIR:
             // if saved as GEN register
-            if (!completely_saved)
+            if (info_p->has_data)
             {
                 auto r_class = reg.kind();
                 auto value   = reg.value();
@@ -246,16 +246,16 @@ bool z80_arg_t::serialize(Inserter& inserter, uint8_t sz, bool& completely_saved
 }
 
 // handle all cases serialized above
-template <typename Reader>
-void z80_arg_t::extract(Reader& reader, uint8_t sz, bool has_data, bool has_expr)
+template <typename Reader, typename ARG_INFO>
+void z80_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
 {
-    if (has_expr)
+    if (info_p->has_expr)
     {
         expr = reader.get_expr();
         if (auto p = expr.template get_p<z80_reg_t>())
             reg = *p;
     }
-    else if (has_data)
+    else if (info_p->has_data)
     {
         auto size = 2;  // bytes to read
         switch (mode())

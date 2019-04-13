@@ -108,12 +108,7 @@ struct val_am : m68k_mcode_t::val_t
         if (match == AM_REGSET)
             return fits.yes;
 
-        // translate immed arg to include `size`
-        // NB: sz not available in OK
-        if (arg.mode() == MODE_IMMED)
-            arg.set_mode(MODE_IMMED_BASE + sz);
-
-        auto arg_size = arg.size(fits);
+        auto arg_size = arg.size(sz, fits);
         if (arg_size.is_error())
             return fits.no;
 
@@ -158,6 +153,23 @@ struct val_am : m68k_mcode_t::val_t
 
         arg.set_mode(mode);
     }
+    
+    virtual bool all_saved(arg_t& arg) const override
+    { 
+        expr_fits fits;
+        switch (arg.mode())
+        {
+            case MODE_INDEX:
+            case MODE_PC_INDEX:
+            case MODE_INDEX_BRIEF:
+                std::cout << "val_am::all_saved = false " << std::endl;
+                return false;
+            default:
+                break;
+        }
+        return fits.zero(arg.expr) == fits.yes;
+    }
+
 
     uint16_t match;
     int8_t   _mode;
@@ -249,7 +261,7 @@ VAL(CONTROL,        AM_CTRL);
 VAL(CONTROL_ALTER,  AM_CTRL | AM_ALTERABLE);
 VAL(MEM,            AM_MEMORY);
 VAL(MEM_ALTER,      AM_MEMORY | AM_ALTERABLE);
-VAL(IMMED,          AM_IMMED, MODE_IMMED_BASE); // mode == 7-4
+VAL(IMMED,          AM_IMMED, MODE_IMMED);      // mode == 7-4
 VAL(POST_INCR,      AM_PINC,  MODE_POST_INCR);  // mode == 3
 VAL(PRE_DECR,       AM_PDEC,  MODE_PRE_DECR);   // mode == 4
 VAL(DIRECT,         AM_DIRECT);             // mode == 7-0 & 7-1

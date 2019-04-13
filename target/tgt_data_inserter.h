@@ -248,14 +248,15 @@ struct tgt_data_reader_t
     // get *mutable* pointer to chunk data
     // used to get pointer to stored machine-code.
     // NB: assume size is positive multiple of sizeof(value_type)
-    value_type* get_fixed_p(int size)
+    value_type* get_fixed_p(int size = 0)
     {
-        auto chunks = size/sizeof(value_type);
-        
-        reserve(chunks);
+        // get pointer to first word.
+        reserve(size);
         auto p = next_word_p();
 
         // read & discard additional words
+        auto chunks = size/sizeof(value_type);
+        
         while(--chunks)
             next_word_p();
 

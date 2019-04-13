@@ -1,20 +1,14 @@
 #ifndef KAS_Z80_M68000_DEFNS_H
 #define KAS_Z80_M68000_DEFNS_H
-
-// While the tables look cryptic, the MPL fields are generally as follows:
 //
-// 1. opcode name. 
+// Define the Z80 instructions. 
 //
-// 2. base machine code. 8-bit or 16-bit value
-//
-// 3. opcode formater: how to insert args into machine code
-//
-// 4+ validator(s) for z80 arguments, if any. Maximum 2.
+// For information in the table format, see `target/tgt_defn_trait.h`
 //
 // The format names (and naming convention) are in `z80_opcode_formats.h`
-// The argument validators are in `z80_arg_validate.h`
-
- 
+//
+// The argument validators are in `z80_arg_validate_arg.h`
+ //
 // The common validors with ambiguous names are:
 //
 // REG          : allow 8-bit registers: A, B, C, D, E, H, L

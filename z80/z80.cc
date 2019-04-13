@@ -1,30 +1,27 @@
+// Arch definitions for Z80 processor
+
+#include "expr/expr.h"
+#include "parser/parser.h"
+#include "parser/sym_parser.h"
+#include "target/tgt_insn_defn.h"   // declare `tgt_insn_defn` template
+
 #include "utility/print_type_name.h"
 
-#include "z80.h"
+// per-arch customizations 
 #include "z80_mcode.h"
 
+// register definitions
 #include "z80_reg_defn.h"
 
-#include "target/tgt_insn_adder.h"
+// instruction definitions
 #include "insns_z80.h"
 
-#include "z80_arg_impl.h"
-#include "z80_opcode_emit.h"
-
-// parse z80 instruction + args
+// parse instruction + args
 #include "z80_parser.h"
 
-
-// boilerplate: tgt_impl & sym_parser (for insn & reg names)
-#include "parser/sym_parser.h"
-#include "target/tgt_reg_impl.h"
-#include "target/tgt_regset_impl.h"
-#include "target/tgt_stmt_impl.h"
-#include "target/tgt_insn_impl.h"
-#include "target/tgt_insn_eval.h"
-
-#include <typeinfo>
-#include <iostream>
+// arch impl files
+#include "z80_arg_impl.h"
+#include "z80_opcode_emit.h"
 
 namespace kas::z80::parser
 {
@@ -57,16 +54,15 @@ namespace kas::z80::parser
    
     // combine all `insn` defns into single list & create symbol parser 
     using insns = all_defns_flatten<opc::z80_insn_defn_list
-                                , opc::z80_insn_defn_groups
-                                , meta::quote<meta::_t>>;
+                                  , opc::z80_insn_defn_groups
+                                  , meta::quote<meta::_t>
+                                  >;
 
-    using z80_insn_defn         = typename z80_mcode_t::defn_t;
-    using z80_insn_adder        = typename z80_mcode_t::adder_t;
-    using z80_insn_sym_parser_t = sym_parser_t<z80_insn_defn, insns, z80_insn_adder>;
+    using z80_insn_parser_t = sym_parser_t<typename z80_mcode_t::defn_t, insns>;
 
 
     // XXX shoud stop parsing on (PARSER_CHARS | '.')
-    z80_insn_sym_parser_t insn_sym_parser;
+    z80_insn_parser_t insn_sym_parser;
 
     // parser for opcode names
     z80_insn_x3 z80_insn_parser {"z80 opcode"};
@@ -77,33 +73,15 @@ namespace kas::z80::parser
     // instantiate parsers
     BOOST_SPIRIT_INSTANTIATE(z80_insn_x3, iterator_type, stmt_context_type)
     BOOST_SPIRIT_INSTANTIATE(z80_stmt_x3, iterator_type, stmt_context_type)
-
 }
 
+// before including `tgt_impl`, define `ARCH_MCODE` in namespace `kas::tgt`
+// This instantiates all CRTP templated methods in `tgt` types
 
 namespace kas::tgt
 {
-    // name types used to instantiate the CRTP templates: reg, reg_set, stmt
-    using reg_t     = z80::z80_reg_t;
-    using reg_set_t = z80::z80_reg_set;
-    using arg_t     = z80::z80_arg_t;
-    using insn_t    = z80::z80_insn_t;
-    
-    // instantiate reg routines referenced from expression parsers
-    template const char *tgt_reg<reg_t>::validate(int) const;
-
-    // instantiate reg_set routines referenced from expression parsers
-    template      tgt_reg_set<reg_set_t, reg_t>::tgt_reg_set(reg_t const&, char);
-    template auto tgt_reg_set<reg_set_t, reg_t>::base_t::binop(const char, tgt_reg_set const&) -> derived_t&;
-    template auto tgt_reg_set<reg_set_t, reg_t>::binop(const char, core::core_expr const&)   -> derived_t&;
-    template auto tgt_reg_set<reg_set_t, reg_t>::binop(const char, int)   -> derived_t&;
-    
-    // instantiate routines referenced from stmt parsers
-    template core::opcode *tgt_stmt<insn_t, arg_t>::gen_insn(core::opcode::data_t&);
-    template std::string   tgt_stmt<insn_t, arg_t>::name() const;
-
-    // instantiate printers
-    template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostream>(std::ostream&) const;
-    template void tgt_reg_set<reg_set_t, reg_t>::print<std::ostringstream>(std::ostringstream&) const;
+    using ARCH_MCODE = z80::z80_mcode_t;
 }
+
+#include "target/tgt_impl.h"
 

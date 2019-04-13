@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////
 
 #include "tgt_defn_trait.h"
+#include "tgt_insn_adder.h"
 #include "tgt_validate.h"
 #include "tgt_format.h"
 

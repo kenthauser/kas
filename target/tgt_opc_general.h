@@ -2,18 +2,12 @@
 #define KAS_Z80_OPC_GENERAL_H
 
 
-//#include "z80/z80_stmt_opcode.h"
-//#include "z80_opcode_emit.h"
-//#include "target/tgt_insn_serialize.h"
-
 #include "tgt_opcode.h"
 
 namespace kas::tgt::opc
 {
 using namespace kas::core::opc;
-//using namespace kas::tgt::opc;
 
-//using args_t = decltype(stmt_z80::args);
 using op_size_t = kas::core::opcode::op_size_t;
 
 template <typename MCODE_T>
@@ -31,7 +25,6 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
     using mcode_size_t = typename base_t::mcode_size_t;
     using op_size_t    = typename base_t::op_size_t;
 
-    // XXX also need to expose `opcode` inherited types
     using data_t       = typename base_t::data_t;
     using Iter         = typename base_t::Iter;
 
@@ -87,27 +80,7 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
         //  1) opcode index
         //  2) opcode binary code (word or long)
         //  3) serialized args
-#if 0
-        auto  reader = z80_data_reader(it, *fixed_p, cnt);
-        auto& opcode = z80_opcode_t::get(reader.get_fixed(M_SIZE_WORD));
-        auto  args   = serial_args(reader, opcode);
-        // print "name" & "size"...
-        os << opcode.defn().name();
         
-        // ...print opcode...
-        os << std::hex << " " << std::setw(2) << *args.data_p++;
-        if (opcode.opc_long)
-            os << "'" << std::setw(2) << *args.data_p;
-
-        // ...and args
-        auto delim = " : ";
-        for (auto& arg : args)
-        {
-            os << delim << arg;
-            delim = ",";
-        }
-#else
-
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
         
@@ -137,8 +110,6 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
             os << delim << arg;
             delim = ",";
         }
-
-#endif
     }
 
     op_size_t calc_size(data_t& data, core::core_fits const& fits) const override
@@ -148,25 +119,6 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
         //  1) opcode index
         //  2) opcode binary code (word or long)
         //  3) serialized args
-#if 0
-        auto  reader = z80_data_reader(it, *fixed_p, cnt);
-        auto& opcode = z80_opcode_t::get(reader.get_fixed(M_SIZE_WORD));
-        //auto  op_p   = reader.get_fixed_p(opcode.opc_long ? M_SIZE_LONG : M_SIZE_WORD);
-        auto  args   = serial_args{reader, opcode};
-
-        // base instruction size
-        op_size_t new_size = sizeof(uint16_t) * (1 + opcode.opc_long);
-       
-        // evaluate args with new `fits`
-        for (auto& arg : args)
-        {
-            auto old_mode = arg.mode();
-            new_size += arg.size(fits);
-            if (arg.mode() != old_mode)
-                args.update_mode(arg);      // XXX fold into TGT method...Not called for Z80...
-        }
-#else
-        //using MCODE_T = z80_opcode_t;
 
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
@@ -180,11 +132,11 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
         for (auto& arg : args)
         {
             auto old_mode = arg.mode();
-            new_size += arg.size(fits);
+            new_size += arg.size(mcode.sz(), fits);
             //if (arg.mode() != old_mode)
             //    args.update_mode(arg);      // XXX fold into TGT method...Not called for Z80...
         }
-#endif
+        
         return new_size;
     }
 

@@ -40,17 +40,6 @@ enum m68k_arg_mode : uint8_t
     , MODE_REG_QUICK        // 21: movec: mode_reg stored in opcode
     , MODE_MOVEP            // 22: special for MOVEP insn
 
-// Declare Immediate argument types: in `m68k_size_t` order
-    , MODE_IMMED_BASE       // First of MODE_IMMED_*
-    , MODE_IMMED_LONG = MODE_IMMED_BASE
-    , MODE_IMMED_SINGLE
-    , MODE_IMMED_XTND
-    , MODE_IMMED_PACKED
-    , MODE_IMMED_WORD
-    , MODE_IMMED_DOUBLE
-    , MODE_IMMED_BYTE
-    , MODE_IMMED_VOID
-
 // Support "modes"
     , MODE_ERROR            // set error message
     , MODE_NONE             // when parsed: indicates missing
@@ -72,7 +61,8 @@ struct token_reg : kas_token {};
 
 struct token_missing  : kas_token {};
 
-struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
+// `REG_T` & `REGSET_T` args allow `MCODE_T` to lookup types
+struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_reg_set>
 {
     // inherit basic ctors
     using base_t::base_t;
@@ -83,7 +73,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
             {}
 
     // override `size`
-    op_size_t size(expression::expr_fits const& fits = {});
+    op_size_t size(uint8_t sz, expression::expr_fits const& fits = {});
 
     // support for `access-mode` validation
     uint16_t am_bitset() const;
@@ -102,11 +92,11 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode>
             , {  0 }        // 7: VOID
         };
 
-    template <typename Inserter>
-    bool serialize(Inserter& inserter, uint8_t sz, bool& completely_saved);
+    template <typename Inserter, typename ARG_INFO>
+    bool serialize(Inserter& inserter, uint8_t sz, ARG_INFO *);
     
-    template <typename Reader>
-    void extract(Reader& reader, uint8_t sz, bool has_data, bool has_expr);
+    template <typename Reader, typename ARG_INFO>
+    void extract(Reader& reader, uint8_t sz, ARG_INFO const*);
 
     void emit(m68k_mcode_t const&, core::emit_base& base, unsigned bytes) const;
 

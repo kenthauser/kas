@@ -39,7 +39,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-#include "tgt_defn_sizes.h"         // `need sz_void`
+#include "tgt_defn_sizes.h"         // need `sz_void`
 
 #include <meta/meta.hpp>            // MPL library
 

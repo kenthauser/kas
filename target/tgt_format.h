@@ -41,21 +41,19 @@ struct tgt_format
     // format first, compress rest
     virtual bool insert_arg1(mcode_size_t* op, arg_t& arg, val_t const *val_p) const 
     { 
-        // prototype `arg1`
-        if (val_p)
-            val_p->get_value(arg); 
+        // prototype `arg1`: not completely saved
         return false;
     }
     virtual bool insert_arg2(mcode_size_t* op, arg_t& arg, val_t const *val_p) const
-        { if (val_p) val_p->get_value(arg); return false; }
+        { return false; }
     virtual bool insert_arg3(mcode_size_t* op, arg_t& arg, val_t const *val_p) const
-        { if (val_p) val_p->get_value(arg); return false; }
+        { return false; }
     virtual bool insert_arg4(mcode_size_t* op, arg_t& arg, val_t const *val_p) const
-        { if (val_p) val_p->get_value(arg); return false; }
+        { return false; }
     virtual bool insert_arg5(mcode_size_t* op, arg_t& arg, val_t const *val_p) const
-        { if (val_p) val_p->get_value(arg); return false; }
+        { return false; }
     virtual bool insert_arg6(mcode_size_t* op, arg_t& arg, val_t const *val_p) const
-        { if (val_p) val_p->get_value(arg); return false; }
+        { return false; }
 
     // format first, compress rest
     virtual void extract_arg1(mcode_size_t const* op, arg_t *arg, val_t const *val_p) const
@@ -152,12 +150,15 @@ struct tgt_fmt_generic
     {
         kas::expression::expr_fits fits;
         
+        // if no validator, not  completely stored
+        if (!val_p) return false;
+
         auto value = val_p->get_value(arg);
         auto code  = op[WORD]; 
              code &= ~(MASK << SHIFT);
              code |= (value & MASK) << SHIFT;
         op[WORD]   = code;
-        return fits.zero(arg.expr) == fits.yes;
+        return val_p->all_saved(arg);
     }
 
     static void extract(mcode_size_t const* op, arg_t* arg, val_t const *val_p)

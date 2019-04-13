@@ -39,13 +39,12 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-#include "z80_formats_defn.h"      // actual format types
-#include "z80_validate_reg.h"      // actual validate types
+#include "z80_formats_defn.h"       // actual format types
+#include "z80_validate_arg.h"       // actual validate types
 
+#include "target/tgt_insn_defn.h"   // declare constexpr defn
 #include "target/tgt_defn_trait.h"  // declare "trait" for definition
 #include "kas/kas_string.h"         // name as type
-
-#include <meta/meta.hpp>            // MPL library
 
 namespace kas::z80::opc
 {
@@ -61,8 +60,6 @@ using namespace tgt::opc::traits;
 using tgt::opc::define_sz;
 using tgt::opc::sz_void;
 
-
-// default fmt: no args (and thus no inserter)
 using sz_v    = sz_void;
 using sz_b    = define_sz<OP_SIZE_BYTE>;
 using sz_w    = define_sz<OP_SIZE_WORD>;

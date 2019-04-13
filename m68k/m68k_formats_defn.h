@@ -88,9 +88,6 @@ template <int N, int W = 0, bool REVRSE = false>
 using arg2_i   = fmt_arg<2, fmt_generic<0, N, W>>;
 
 
-// formats which store reg_pair
-using arg2_1w00_12_3 = fmt_reg_pair<0, 12, 3>;
-
 // bitfields are completely regular. Third arg for insert
 using arg2_bf  = fmt_arg<2, fmt_bitfield>;
 using arg3_bf  = fmt_arg<3, fmt_bitfield>;
@@ -182,7 +179,7 @@ struct FMT_I16R_0RM : fmt_gen, arg1_i<16, 1, true>, arg2_0rm {};
 struct FMT_I16      : fmt_gen, arg1_i<16, 1> {};
 
 // multiply/divide data-reg pair
-struct FMT_0RM_PAIR : fmt_gen, arg1_0rm, arg2_1w00_12_3 {};
+struct FMT_0RM_PAIR : fmt_gen, arg1_0rm, fmt_arg<2, fmt_reg_pair<0, 12, 3>> {};
 
 // 020 bitfield instructions
 struct FMT_0RM_BF       : fmt_gen, arg1_0rm, arg2_bf {};

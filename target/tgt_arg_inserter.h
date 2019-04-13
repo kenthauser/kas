@@ -1,5 +1,5 @@
-#ifndef KAS_TARGET_TGT_ARG_SERIALIZE_H
-#define KAS_TARGET_TGT_ARG_SERIALIZE_H
+#ifndef KAS_TARGET_TGT_ARG_INSERTER_H
+#define KAS_TARGET_TGT_ARG_INSERTER_H
 
 // serialize a single argument
 //
@@ -9,8 +9,6 @@
 // If needed, save extra data.
 // Data can be stored as "fixed" constant, or "expression" 
 
-//#include "z80/z80_arg.h"
-//#include "z80/z80_formats_type.h"
 #include "kas_core/opcode.h"
 #include "utility/align_as_t.h"
 
@@ -66,19 +64,17 @@ void insert_one (Inserter& inserter
                     )
 {
     // write arg data into machine code if possible (dependent on validator)
-    bool completely_saved = val_p;
+    // returns false if no validator
+    bool completely_saved = fmt.insert(n, code_p, arg, val_p);
 
-    // XXX remove test in fmt.insert
-    if (completely_saved)
-        completely_saved = fmt.insert(n, code_p, arg, val_p);
-
+//#define TRACE_ARG_SERIALIZE
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "write_one: " << arg << ": insert = " << std::boolalpha << completely_saved << std::endl;
 #endif
 
     // write arg data as immediate as required (NB: result is a mutable arg)
-    p->has_expr = arg.serialize(inserter, sz, completely_saved);
     p->has_data = !completely_saved;
+    p->has_expr = arg.serialize(inserter, sz, p);
     p->arg_mode = arg.mode();
 
 #ifdef TRACE_ARG_SERIALIZE
@@ -119,8 +115,8 @@ void extract_one(Reader& reader
         arg_p->set_mode(p->arg_mode);
     }
 
-    // extract immediate arg as required
-    arg_p->extract(reader, sz, p->has_data, p->has_expr);
+    // extract additional info as required
+    arg_p->extract(reader, sz, p);
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << " -> " << *arg_p << "] ";;
 #endif

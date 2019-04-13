@@ -43,13 +43,6 @@ void m68k_arg_t::emit(m68k_mcode_t const& mcode, core::emit_base& base, unsigned
 
         // immediate: store fixed & float formats
         case MODE_IMMED:
-        case MODE_IMMED_LONG:
-        case MODE_IMMED_SINGLE:
-        case MODE_IMMED_XTND:
-        case MODE_IMMED_PACKED:
-        case MODE_IMMED_WORD:
-        case MODE_IMMED_DOUBLE:
-        case MODE_IMMED_BYTE:
             size     = immed_info(mcode.sz()).sz_bytes;
             break;
 
