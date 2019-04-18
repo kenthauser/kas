@@ -73,7 +73,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
             {}
 
     // override `size`
-    op_size_t size(uint8_t sz, expression::expr_fits const& fits = {});
+    op_size_t size(uint8_t sz, expression::expr_fits const *fits_p = {}, bool *is_signed = {});
 
     // support for `access-mode` validation
     uint16_t am_bitset() const;

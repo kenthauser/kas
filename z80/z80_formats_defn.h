@@ -67,18 +67,21 @@ using arg2_1w4b2  = fmt_arg<2, gen_1w4b2>;
 using fmt_gen  = tgt::opc::tgt_fmt_opc_gen <z80_mcode_t>;
 using fmt_list = tgt::opc::tgt_fmt_opc_list<z80_mcode_t>;
 
-// used by OPC_LIST instructions
+// conventional name for format used by `OPC_LIST`
+// NB: same as `ld GEN, GEN`
 struct FMT_LIST     : fmt_list, arg1_3b3, arg2_0b3 {};
 
-// general registers are 3-bits shifted 0 or 3 bits
+// conventional name for `no-args` formatter
 struct FMT_X       : fmt_gen {};
+
+// general registers are 3-bits shifted 0 or 3 bits
 struct FMT_0       : fmt_gen, arg1_0b3 {};
 struct FMT_X_0     : fmt_gen, arg2_0b3 {};
 struct FMT_3_0     : fmt_gen, arg1_3b3, arg2_0b3 {};
 struct FMT_3       : fmt_gen, arg1_3b3 {};
 struct FMT_X_3     : fmt_gen, arg2_3b3 {};
 
-// IM: 2 bits modified & shifed 3 bits
+// IM: 2 bits modified & shifed 3 bits in second word
 struct FMT_1W3B2   : fmt_gen, arg1_1w3b2 {};
 
 // DBL registers are two bits shifted 4
@@ -91,7 +94,7 @@ struct FMT_X_4B1   : fmt_gen, arg2_4b1 {};
 
 // JR uses special OPCODE to generate machine code
 struct FMT_JR      : fmt_gen {};
-struct FMT_JR_3    : fmt_gen, arg1_3b2 {};
+struct FMT_JRCC    : fmt_gen, arg1_3b2 {};
 struct FMT_DJNZ    : fmt_gen {};
 
 // CB instructions

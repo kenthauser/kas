@@ -1,15 +1,15 @@
 #ifndef KAS_TARGET_TGT_OPC_LIST_H
 #define KAS_TARGET_TGT_OPC_LIST_H
 
-#include "tgt_opcode.h"
+#include "tgt_opc_base.h"
 
 namespace kas::tgt::opc
 {
 
 template <typename MCODE_T>
-struct tgt_opc_list : tgt_opcode<MCODE_T>
+struct tgt_opc_list : tgt_opc_base<MCODE_T>
 {
-    using base_t  = tgt_opcode<MCODE_T>;
+    using base_t  = tgt_opc_base<MCODE_T>;
     using mcode_t = MCODE_T;
 
     using base_t::serial_args;

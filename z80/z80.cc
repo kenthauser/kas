@@ -3,7 +3,7 @@
 #include "expr/expr.h"
 #include "parser/parser.h"
 #include "parser/sym_parser.h"
-#include "target/tgt_insn_defn.h"   // declare `tgt_insn_defn` template
+#include "target/tgt_mcode_defn.h"
 
 #include "utility/print_type_name.h"
 
@@ -21,7 +21,7 @@
 
 // arch impl files
 #include "z80_arg_impl.h"
-#include "z80_opcode_emit.h"
+#include "z80_mcode_impl.h"
 
 namespace kas::z80::parser
 {

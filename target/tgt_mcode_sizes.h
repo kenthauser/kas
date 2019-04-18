@@ -1,5 +1,5 @@
-#ifndef KAS_TARGET_TGT_DEFN_SIZES_H
-#define KAS_TARGET_TGT_DEFN_SIZES_H
+#ifndef KAS_TARGET_TGT_MCODE_DEFN_SIZES_H
+#define KAS_TARGET_TGT_MCODE_DEFN_SIZES_H
 
 
 #include <meta/meta.hpp>
@@ -68,13 +68,13 @@ namespace detail
 }
 
 template <typename MCODE_T>
-struct tgt_defn_sizes
+struct tgt_mcode_sizes
 {
     
     using size_fn_t = meta::_t<detail::code_size_t<typename MCODE_T::code_size_t>>;
 
     template <typename MASK, typename SFX, typename SZ_FN>
-    constexpr tgt_defn_sizes(meta::list<meta::list<MASK, SFX>, SZ_FN>)
+    constexpr tgt_mcode_sizes(meta::list<meta::list<MASK, SFX>, SZ_FN>)
         : size_mask           { MASK::value    }
         , single_size         { !(MASK::value & (MASK::value - 1)) }
         , opt_no_suffix       { SFX::optional  }
@@ -85,20 +85,20 @@ struct tgt_defn_sizes
     
     // if no SZ_FN specified, get from `size_fn_t`
     template <typename MASK, typename SFX>
-    constexpr tgt_defn_sizes(meta::list<meta::list<MASK, SFX>, void>)
-            : tgt_defn_sizes(meta::list<meta::list<MASK, SFX>
+    constexpr tgt_mcode_sizes(meta::list<meta::list<MASK, SFX>, void>)
+            : tgt_mcode_sizes(meta::list<meta::list<MASK, SFX>
                                      , typename size_fn_t::default_t>()) {}
     
     // if no SFX rule specified, default to SFX_NORMAL
     template <typename MASK, typename SZ_FN>
-    constexpr tgt_defn_sizes(meta::list<meta::list<MASK>, SZ_FN>)
-            : tgt_defn_sizes(meta::list<meta::list<MASK, SFX_NORMAL>, SZ_FN>()) {}
+    constexpr tgt_mcode_sizes(meta::list<meta::list<MASK>, SZ_FN>)
+            : tgt_mcode_sizes(meta::list<meta::list<MASK, SFX_NORMAL>, SZ_FN>()) {}
 
     // create an `iterator` to allow range-for to process sizes
     struct iter
     {
         static constexpr auto ITER_END = -1;
-        iter(tgt_defn_sizes const& obj, bool is_begin_iter = {}) : obj(obj)
+        iter(tgt_mcode_sizes const& obj, bool is_begin_iter = {}) : obj(obj)
         {
             if (is_begin_iter)
             {
@@ -138,7 +138,7 @@ struct tgt_defn_sizes
         }
     
     private:
-        tgt_defn_sizes const& obj;
+        tgt_mcode_sizes const& obj;
         int8_t                sz{ITER_END};    // -1 is end flag
     };
 
@@ -159,7 +159,7 @@ struct tgt_defn_sizes
         // NB: all 4 combinations are represented
         static constexpr auto suffix_void = "";
 #if 0
-        std::cout << "tgt_defn_size:" << std::boolalpha;
+        std::cout << "tgt_mcode_size:" << std::boolalpha;
         std::cout << " only_no_suffix:"  << bool(only_no_suffix);
         std::cout << ", no_suffix_canon:" << bool(no_suffix_canonical);
         std::cout << ", opt_no_suffix:"   << bool(opt_no_suffix);

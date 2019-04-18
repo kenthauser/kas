@@ -10,21 +10,24 @@
 #include "target/tgt_stmt_impl.h"
 #include "target/tgt_insn_impl.h"
 #include "target/tgt_insn_eval.h"
+#include "target/tgt_arg_impl.h"
+#include "target/tgt_mcode_impl.h"
 
 #include <iostream>
 
 namespace kas::tgt
 {
     // name types used to instantiate the CRTP templates: reg, reg_set, stmt
-    using insn_t   = typename ARCH_MCODE::insn_t;
-    using arg_t    = typename ARCH_MCODE::arg_t;
-    using reg_t    = typename arg_t::reg_t;
-    using regset_t = typename arg_t::regset_t;
+    using insn_t     = typename ARCH_MCODE::insn_t;
+    using arg_t      = typename ARCH_MCODE::arg_t;
+    using reg_t      = typename arg_t::reg_t;
+    using regset_t   = typename arg_t::regset_t;
     
     // instantiate reg routines referenced from expression parsers
     template const char *tgt_reg<reg_t>::validate(int) const;
 
     // instantiate reg_set routines referenced from expression parsers
+    // NB: error if `regset_t` is `void`
     template      tgt_reg_set<regset_t, reg_t>::tgt_reg_set(reg_t const&, char);
     template auto tgt_reg_set<regset_t, reg_t>::base_t::binop(const char, tgt_reg_set const&) -> derived_t&;
     template auto tgt_reg_set<regset_t, reg_t>::binop(const char, core::core_expr const&)   -> derived_t&;

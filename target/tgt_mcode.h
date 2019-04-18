@@ -14,10 +14,10 @@ namespace kas::tgt::opc
 template <typename MCODE_T> struct tgt_validate;
 template <typename MCODE_T> struct tgt_format;
 template <typename MCODE_T> struct tgt_validate_args;
-template <typename MCODE_T> struct tgt_insn_defn;
-template <typename MCODE_T> struct tgt_insn_adder;
-template <typename MCODE_T> struct tgt_opcode;
-template <typename MOCDE_T> struct tgt_defn_sizes;
+template <typename MCODE_T> struct tgt_defn;
+template <typename MCODE_T> struct tgt_defn_adder;
+template <typename MCODE_T> struct tgt_opc_base;
+template <typename MOCDE_T> struct tgt_mcode_sizes;
 template <typename MCODE_T> struct tgt_size;
 
 }
@@ -73,16 +73,16 @@ struct tgt_mcode_t
     static_assert(std::is_same_v<derived_t, typename insn_t::mcode_t>);
 
     // convenience type references
-    using op_size_t    = typename core::opcode::op_size_t;
+    using op_size_t     = typename core::opcode::op_size_t;
 
     // supporting types
-    using fmt_t        = opc::tgt_format       <MCODE_T>;
-    using val_t        = opc::tgt_validate     <MCODE_T>;
-    using val_c_t      = opc::tgt_validate_args<MCODE_T>;
-    using defn_t       = opc::tgt_insn_defn    <MCODE_T>;
-    using adder_t      = opc::tgt_insn_adder   <MCODE_T>;
-    using opcode_t     = opc::tgt_opcode       <MCODE_T>;
-    using defn_sizes_t = opc::tgt_defn_sizes   <MCODE_T>;
+    using fmt_t         = opc::tgt_format       <MCODE_T>;
+    using val_t         = opc::tgt_validate     <MCODE_T>;
+    using val_c_t       = opc::tgt_validate_args<MCODE_T>;
+    using defn_t        = opc::tgt_mcode_defn   <MCODE_T>;
+    using adder_t       = opc::tgt_defn_adder   <MCODE_T>;
+    using opcode_t      = opc::tgt_opc_base     <MCODE_T>;
+    using mcode_sizes_t = opc::tgt_mcode_sizes  <MCODE_T>;
 
     // declare "default" fomatter
     using fmt_default  = void;      // must be specified per-arch

@@ -86,6 +86,9 @@ public:
 
     // used to initialize `tgt_reg` structures
     template <typename T> void add(T const& d, reg_defn_idx_t n);
+
+    // used to verify instance is a register
+    bool valid() const { return reg_0_index; }
     
     // methods to examine register
     uint16_t const  kind(int reg_class = -1)  const;

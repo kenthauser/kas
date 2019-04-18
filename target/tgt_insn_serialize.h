@@ -116,13 +116,17 @@ void tgt_insert_args(Inserter& inserter
             val_p = &*val_iter++;
 
         // if validator present, be sure it can hold type
+        // XXX only required for "LIST" format.
         if (val_p)
         {
             expr_fits fits{};
             if (val_p->ok(arg, fits) != fits.yes)
                 val_p = nullptr;
         }
-        std::cout << "tgt_insert_args: " << +n << " arg = " << arg << std::endl;
+        std::cout << "tgt_insert_args: " << +n 
+                  << " mode = " << +arg.mode() 
+                  << " arg = " << arg 
+                  << std::endl;
         detail::insert_one<MCODE_T>(inserter, n, p, arg, sz, fmt, val_p, code_p);
         ++n;
     }

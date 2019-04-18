@@ -18,13 +18,14 @@ struct tgt_immed_info
 };
 
 
-// NB: the `REG_T` & `REGSET_T` are just to allow lookup of type names
-template <typename Derived, typename Mode_t, typename REG_T, typename REGSET_T = void>
+// NB: the `REG_T` & `REGSET_T` also to allow lookup of type names
+template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T = void>
 struct tgt_arg_t : kas_token
 {
     using base_t     = tgt_arg_t;
     using derived_t  = Derived;
-    using arg_mode_t = Mode_t;
+    using arg_mode_t = MODE_T;
+    using error_msg  = typename expression::err_msg_t<>::type;
 
     // allow lookup of `reg_t` & `regset_t`
     using reg_t    = REG_T;
@@ -47,9 +48,11 @@ struct tgt_arg_t : kas_token
         auto& diag = parser::kas_diag::error(err, *this);
         this->err  = diag.ref();
     }
-    
     // error from `kas_error_t`
     tgt_arg_t(parser::kas_error_t err) : _mode(MODE_ERROR), err(err) {}
+
+    // ctor from default parser
+    tgt_arg_t(std::pair<expr_t, MODE_T> const&);
 
 protected:
     // simplify derived class ctors
@@ -63,7 +66,7 @@ protected:
 
 public:
     // arg mode: default getter/setter
-    auto mode() const              { return _mode; }
+    auto mode() const { return _mode; }
 
     // error message for invalid `mode`. msg used by ctor only.
     const char *set_mode(unsigned mode)
@@ -76,8 +79,11 @@ public:
     bool is_missing() const { return _mode == MODE_NONE; }
 
     // helper method for evaluation of insn: default implementation
-    bool is_const () const  { return false; }
-    
+    bool is_const () const
+    {
+        return expr.get_fixed_p();
+    }
+
     // validate methods
     template <typename...Ts>
     kas::parser::kas_error_t ok_for_target(Ts&&...) 
@@ -102,8 +108,8 @@ public:
         return {};
     }
     
-    // emit methods: require derived implementation
-    op_size_t size(int8_t sz, expression::expr_fits const& fits = {});
+    // calculate size of extension data for argument (based on MODE & reg/expr values)
+    int size(uint8_t sz, expression::expr_fits const *fits_p = {}, bool *is_signed = {}) const;
 
     // information about argument sizes
     // default:: single size immed arg, size = data_size, no float
@@ -118,28 +124,29 @@ public:
         return derived_t::sz_info[sz];
     }
 
-    template <typename MCODE_T>
-    void emit(MCODE_T const& mcode, core::emit_base& base, unsigned size) const
-    {
-        if (size)
-            base << core::set_size(size) << expr;
-    }
-
     // serialize methods
-    template <typename Inserter>
-    bool serialize(Inserter& inserter, bool& completely_saved);
+    template <typename Inserter, typename ARG_INFO>
+    bool serialize(Inserter& inserter, uint8_t sz, ARG_INFO *info_p);
     
-    template <typename Reader>
-    void extract(Reader& reader, bool has_data, bool has_expr);
+    template <typename Reader, typename ARG_INFO>
+    void extract(Reader& reader, uint8_t sz, ARG_INFO const *);
+
+    // size calculated by validator
+    void emit(core::emit_base& base, uint8_t sz, unsigned bytes) const;
 
     // support methods
-    void print(std::ostream&) const;
+    template <typename OS>
+    void print(OS&) const;
+   
+    // reset static variables for each insn.
+    // sometimes ARGs depend on other ARGs. `static`s can be used to communicate
     static void reset()  {}
     
     // common member variables
     expr_t      expr {};
+    reg_t       reg  {}; 
     parser::kas_error_t err; 
-    
+
 private:
     friend std::ostream& operator<<(std::ostream& os, tgt_arg_t const& arg)
     {

@@ -44,8 +44,8 @@
 #include "m68k_validate_reg.h"      // actual validate types
 #include "m68k_validate_gen.h"      // actual validate types
 
-#include "target/tgt_insn_defn.h"   // declare constexpr defn
-#include "target/tgt_defn_trait.h"  // decalare "trait" for definition
+#include "target/tgt_mcode_defn.h"   // declare constexpr defn
+#include "target/tgt_mcode_defn_trait.h"  // decalare "trait" for definition
 #include "kas/kas_string.h"         // name as type
 
 namespace kas::m68k::opc

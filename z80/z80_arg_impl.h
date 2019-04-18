@@ -1,7 +1,6 @@
 #ifndef KAS_Z80_Z80_ARG_IMPL_H
 #define KAS_Z80_Z80_ARG_IMPL_H
 
-
 #include "z80_arg.h"
 #include "z80_error_messages.h"
 #include "kas_core/core_emit.h"
@@ -9,104 +8,50 @@
 namespace kas::z80
 {
 
-z80_arg_t::z80_arg_t(std::pair<expr_t, z80_arg_mode> const& parsed) : base_t(parsed.second, parsed.first)
+// update `prefix` based on MODE.
+const char *z80_arg_t::set_mode(unsigned mode)
 {
-    const char *msg {};
-
-    auto set_prefix = [&](z80_arg_mode base_mode)
-    {
-        prefix = reg.value();
-        switch (prefix)
+    // here translate generic to z80 IX/IY Modes
+    auto xlate_mode = [](auto mode, auto prefix) -> unsigned
         {
-            case 0xdd:
-                break;
-            case 0xfd:
-                // IY prefix one above IX
-                base_mode = static_cast<z80_arg_mode>(base_mode + 1);
-                break;
-            default:
-                msg = error_msg::ERR_argument;
-                break;
-        }
-        set_mode(base_mode);
-    };
+            auto is_iy = prefix == 0xfd;
+
+            if (mode == MODE_REG)
+                return MODE_REG_IX + is_iy;
+            if (mode == MODE_REG_INDIR)
+                return MODE_REG_INDIR_IX + is_iy;
+            if (mode == MODE_REG_OFFSET)
+                return MODE_REG_OFFSET_IX + is_iy;
+            return mode;
+        };
     
-    // big switch to decode arg
-    // default: MODE_DIRECT or MODE_INDIRECT, with expr as value
-    if (auto p = expr.template get_p<z80_reg_t>())
+    bool    is_prefix {};
+    uint8_t new_prefix{};
+
+    // check for prefix based on `reg`
+    // NB: prefix for HL is zero
+    if (reg.kind(RC_IDX) == RC_IDX)
+        is_prefix = true;
+    if (is_prefix)
+        new_prefix = reg.value(RC_IDX);
+  
+    // insns with multiple index registers must all be same
+    if (is_prefix && has_prefix && new_prefix != prefix)
+        return error_msg::ERR_invalid_idx;
+
+    // if first prefix, save in static
+    if (is_prefix && !has_prefix)
     {
-        reg = *p;
-        expr = {};
-
-        switch (mode())
-        {
-            case MODE_DIRECT:
-                if (reg.kind(RC_IDX) == RC_IDX)
-                    set_prefix(MODE_REG_IX);
-                else
-                    set_mode(MODE_REG);
-                break;
-
-            case MODE_INDIRECT:
-                if (reg.kind(RC_IDX) == RC_IDX)
-                    set_prefix(MODE_REG_INDIR_IX);
-                else
-                    set_mode(MODE_REG_INDIR);
-                break;
-
-            case MODE_IMMEDIATE:
-            default:
-                msg = error_msg::ERR_argument;
-                break;
-
-        }
+        has_prefix = true;
+        prefix     = new_prefix;
     }
+   
+    // xlate IX/IY into new "modes"
+    if (new_prefix)
+        mode = xlate_mode(mode, new_prefix);
 
-    // regset interface is obscure, needs work
-    else if (auto p = expr.template get_p<z80_reg_set>())
-    {
-        if (mode() != MODE_INDIRECT || p->kind() != -z80_reg_set::RS_OFFSET)
-        {
-            msg  = error_msg::ERR_argument;
-        }
-        else
-        {
-            reg  = p->reg();
-            expr = p->offset();
-            set_prefix(MODE_REG_OFFSET_IX);    
-        }
-    }
-
-    if (msg)
-    {
-        err = kas::parser::kas_diag::error(msg, *this).ref();
-        set_mode(MODE_ERROR);
-    }
-    //std::cout << "z80_arg_t ctor: expr = " << expr << " mode = " << _mode << " pfx = " << +prefix << std::endl;
-}
-
-// constant if register or constant expression
-bool z80_arg_t::is_const() const
-{
-    switch (mode())
-    {
-        case MODE_REG:
-        case MODE_REG_IX:
-        case MODE_REG_IY:
-        case MODE_REG_INDIR:
-        case MODE_REG_INDIR_IX:
-        case MODE_REG_INDIR_IY:
-            return true;
-        default:
-            break;
-    }
-    return expr.get_fixed_p();
-}
-
-void z80_arg_t::set_mode(unsigned mode)
-{
-    base_t::set_mode(mode);
-    switch (mode)
+    // deserialize case: set prefix based on mode
+    else switch (mode)
     {
         case MODE_REG_IX:
         case MODE_REG_INDIR_IX:
@@ -121,26 +66,32 @@ void z80_arg_t::set_mode(unsigned mode)
         default:
             break;
     }
+    
+    base_t::set_mode(mode);
+    return {};
 }
 
-void z80_arg_t::set_expr(expr_t& e)
+// size is from validator
+void z80_arg_t::emit(core::emit_base& base, uint8_t sz, unsigned bytes) const
 {
-    if (auto p = e.template get_p<z80_reg_t>())
-        reg = *p;
-    else
-        expr = e;
+    // IX/IY offsets are emitted by base code. don't double emit
+    switch (mode())
+    {
+        default:
+            break;
+        
+        case MODE_REG_INDIR_IX:
+        case MODE_REG_INDIR_IY:
+        case MODE_REG_OFFSET_IX:
+        case MODE_REG_OFFSET_IY:
+            return;
+    }
+    base_t::emit(base, sz, bytes);
 }
 
 #if 0
-template <typename...Ts>
-const char * z80_arg_t::ok_for_target(Ts&&...args) const
-{
-    // OK
-    return {};
-}
-#endif
-
-void z80_arg_t::print(std::ostream& os) const
+template <typename OS>
+void z80_arg_t::print(OS& os) const
 {
     switch (mode())
     {
@@ -190,116 +141,7 @@ void z80_arg_t::print(std::ostream& os) const
             break;
     }
 }
-
-auto z80_arg_t::size(uint8_t sz, expression::expr_fits const& fits) -> op_size_t
-{
-    return 0;
-}
-
-// optimally save all z80 arguments
-template <typename Inserter, typename ARG_INFO>
-bool z80_arg_t::serialize(Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
-{
-    auto save_expr = [&](auto size) -> bool
-        {
-            // suppress writes of zero
-            auto p = expr.get_fixed_p();
-            if (p && !*p)
-            {
-                info_p->has_data = false;    
-                return false;               // and no expression.
-            }
-            info_p->has_data = true;    
-            return !inserter(std::move(expr), size);
-        };
-    
-    switch(mode())
-    {
-        case MODE_IMMED_QUICK:
-        default:
-            // nothing to save. Mode says it all.
-            info_p->has_data = false;
-            break;
-
-        case MODE_REG:
-        case MODE_REG_INDIR:
-            // if saved as GEN register
-            if (info_p->has_data)
-            {
-                auto r_class = reg.kind();
-                auto value   = reg.value();
-                inserter((r_class << 8) | value, 2);
-            }
-            break; 
-
-        case MODE_DIRECT:
-        case MODE_INDIRECT:
-        case MODE_IMMEDIATE:
-            return save_expr(2);
-
-        case MODE_REG_OFFSET_IX:
-        case MODE_REG_OFFSET_IY:
-            return save_expr(1);
-    }
-
-    return false;   // no expression
-}
-
-// handle all cases serialized above
-template <typename Reader, typename ARG_INFO>
-void z80_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
-{
-    if (info_p->has_expr)
-    {
-        expr = reader.get_expr();
-        if (auto p = expr.template get_p<z80_reg_t>())
-            reg = *p;
-    }
-    else if (info_p->has_data)
-    {
-        auto size = 2;  // bytes to read
-        switch (mode())
-        {
-            default:
-                break;
-            case MODE_IMMEDIATE:
-                size = -2;      // signed word
-                break;
-            case MODE_REG_OFFSET_IX:
-            case MODE_REG_OFFSET_IY:
-                size = -1;      // signed byte
-                break;
-            case MODE_REG:
-            case MODE_REG_INDIR:
-            {
-                auto value = reader.get_fixed(2);
-                reg = z80_reg_t(value >> 8, value & 0xff);
-                return;         // done
-            }
-        }
-
-        expr = reader.get_fixed(size);
-    }
-}
-
-// size is from validator
-void z80_arg_t::emit(core::emit_base& base, unsigned size) const
-{
-    // IX/IY offsets are emitted by base code. don't double emit
-    switch (mode())
-    {
-        case MODE_REG_INDIR_IX:
-        case MODE_REG_INDIR_IY:
-        case MODE_REG_OFFSET_IX:
-        case MODE_REG_OFFSET_IY:
-            break;
-
-        default:
-            base << core::set_size(size) << expr; 
-            break;
-    }
-}
-    
+#endif
 }
 
 #endif

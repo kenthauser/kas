@@ -20,7 +20,7 @@
 #include "m68k_options.h"
 
 #include "m68k_size_lwb.h"      // code size fn
-#include "target/tgt_defn_sizes.h"
+#include "target/tgt_mcode_sizes.h"
 
 namespace kas::m68k::opc
 {
@@ -147,7 +147,7 @@ struct mit_moto_names
 namespace kas::tgt::opc
 {
 template <>
-auto tgt_defn_sizes<m68k::m68k_mcode_t>::operator()(const char *base_name, uint8_t sz) const
+auto tgt_mcode_sizes<m68k::m68k_mcode_t>::operator()(const char *base_name, uint8_t sz) const
 {
     // list of suffixes by size (motorola syntax)
     static constexpr const char *m68k_size_suffixes[] = 

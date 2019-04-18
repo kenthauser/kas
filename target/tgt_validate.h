@@ -13,6 +13,9 @@
  * `ok`   tests if arg passes validation test.
  * `size` performs `ok` & then evaluates size of arg.
  *
+ * A third virtual method `all_saved` is signal to serializer that 
+ * `tgt_validate` has successfully stored complete arg in machine code.
+ *
  *
  * The second type is `tgt_validate_args`
  *
@@ -20,6 +23,22 @@
  * This type can create iterator over validators. This iterator
  * dereferences to the iterator & supports a `name` method which
  * returns printable name.
+ *
+ *****************************************************************************
+ *
+ * `tgt_validate` description
+ *
+ * Each validator has 5 virtual methods. 
+ *
+ * ok        (arg, fits)            : returns `fits_result`
+ * size      (arg, sz, fits, size&) : updates `size` if `ok`. returns `ok`
+ * get_value (arg)                  : get unsigned value for formatter insertion
+ * set_arg   (arg, value)           : generate `arg` with formatter extracted `value`
+ *                                    NB: `set_mode(mode)` executed after value extracted
+ * all_saved (arg)                  : if `false` must also save expression
+ *                                    NB: default: return true iff `expr` is zero
+ *
+ * NB: `ok` validator presumed to store register values
  *
  *****************************************************************************/
 

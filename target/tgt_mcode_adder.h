@@ -1,9 +1,9 @@
-#ifndef KAS_TARGET_TGT_INSN_ADDER_H
-#define KAS_TARGET_TGT_INSN_ADDER_H
+#ifndef KAS_TARGET_TGT_MCODE_ADDER_H
+#define KAS_TARGET_TGT_MCODE_ADDER_H
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-#include "tgt_insn_defn.h"
+#include "tgt_mcode_defn.h"
 #include "parser/sym_parser.h"
 
 namespace kas::tgt::opc
@@ -12,7 +12,7 @@ using namespace meta;
 //using namespace hw;
 
 template <typename MCODE_T>
-struct tgt_insn_adder
+struct tgt_defn_adder
 {
     using mcode_t    = MCODE_T;
     
@@ -29,7 +29,7 @@ struct tgt_insn_adder
     // execute at runtime when `x3` parser referenced
     // but note all calculations are constexpr & performed at compile.
     template <typename PARSER>
-    tgt_insn_adder(PARSER) : defns {PARSER::sym_defns}
+    tgt_defn_adder(PARSER) : defns {PARSER::sym_defns}
     {
         // expose types & defns from sym_parser
         using all_types       = typename PARSER::all_types; 

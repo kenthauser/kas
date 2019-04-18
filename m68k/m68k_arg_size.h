@@ -10,7 +10,7 @@
 namespace kas { namespace m68k
 {
 
-    inline auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const& fits)
+    inline auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_signed)
          -> op_size_t
     {
         // copy result code enum to namespace
@@ -45,7 +45,7 @@ namespace kas { namespace m68k
                     case M_SIZE_WORD:
                         if (brief_ok)
                         {
-                            switch (fits.fits<int8_t>(expr))
+                            switch (fits_p->fits<int8_t>(expr))
                             {
                                 case NO_FIT:
                                     break;
@@ -63,7 +63,7 @@ namespace kas { namespace m68k
                     case M_SIZE_AUTO:
                     {
                         // test if word displacement OK
-                        auto f = fits.fits<int16_t>(expr);
+                        auto f = fits_p->fits<int16_t>(expr);
                         //std::cout << " NO_FIT = " << std::boolalpha << (f == NO_FIT) << std::endl;
                         if (f == NO_FIT)
                             return 4;
@@ -74,7 +74,7 @@ namespace kas { namespace m68k
                         // test byte if brief mode allowed
                         if (brief_ok)
                         {
-                            f = fits.fits<int8_t>(expr);
+                            f = fits_p->fits<int8_t>(expr);
                             if (f == DOES_FIT)
                             {
                                 make_quick();
@@ -83,7 +83,7 @@ namespace kas { namespace m68k
                         }
 
                         // test zero: (expression suppressed, not quick)
-                        f = fits.zero(expr);
+                        f = fits_p->zero(expr);
                         if (f == DOES_FIT)
                             return 0;
                         
@@ -103,7 +103,7 @@ namespace kas { namespace m68k
 
             // can modify DISP to indirect or index
             case MODE_ADDR_DISP:
-                switch (fits.zero(expr)) {
+                switch (fits_p->zero(expr)) {
                     case DOES_FIT:
                         set_mode(MODE_ADDR_INDIR);
                         return 0;
@@ -120,7 +120,7 @@ namespace kas { namespace m68k
                 if (!hw::cpu_defs[hw::index_full{}])
                     return { min, 2 };
 
-                switch (fits.fits<int16_t>(expr)) {
+                switch (fits_p->fits<int16_t>(expr)) {
                     case DOES_FIT:
                         return { min, 2 };
                     case NO_FIT:
@@ -138,7 +138,7 @@ namespace kas { namespace m68k
 
                     return { 2, 2 };
 
-                switch (fits.fits<int16_t>(expr)) {
+                switch (fits_p->fits<int16_t>(expr)) {
                     case DOES_FIT:
                         return { 2, 2 };
                     case NO_FIT:
@@ -167,7 +167,7 @@ namespace kas { namespace m68k
                 // see if PC-relative mode OK.
                 // always the first arg, so offset is always 2
                 //std::cout << "m68k_arg_size: MODE_DIRECT" << std::endl;
-                switch (fits.disp<int16_t>(expr, 2)) {
+                switch (fits_p->disp<int16_t>(expr, 2)) {
                     case NO_FIT:
                         set_mode(MODE_DIRECT_ALTER);
                         break;
@@ -180,7 +180,7 @@ namespace kas { namespace m68k
                 // FALLSTHRU
             case MODE_DIRECT_ALTER:
                 //std::cout << "m68k_arg_size: MODE_DIRECT_ALTER" << " disp = " << disp;
-                switch (fits.fits<int16_t>(expr)) {
+                switch (fits_p->fits<int16_t>(expr)) {
                     case DOES_FIT:
                         //std::cout << " -> DIRECT_SHORT" << std::endl;
                         set_mode(MODE_DIRECT_SHORT);

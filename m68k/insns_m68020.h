@@ -45,7 +45,7 @@ using m68k_math_v = list<list<>
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// pull in condition-code support for `gen` (aka 68000) namespace
+// pull in condition-code support from `gen` (aka 68000) namespace
 using gen::cc;
 using gen::cc_sz;
 using gen::all_cc_names;
@@ -79,6 +79,7 @@ using m68k_misc_v = list<list<>
 
 // bitfield instructions are regular.
 // all have DATA_REG & CONTROL(,_ALTER} forms...
+// NB: the BITFIELD is treated as separate argument
 , bf<STR("tst"),  0, FMT_0RM_BF,      DATA_REG, BITFIELD>
 , bf<STR("tst"),  0, FMT_0RM_BF,      CONTROL,  BITFIELD>
 

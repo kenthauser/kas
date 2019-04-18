@@ -1,5 +1,5 @@
-#ifndef KAS_Z80_Z80_OPCODE_EMIT_H
-#define KAS_Z80_Z80_OPCODE_EMIT_H
+#ifndef KAS_Z80_Z80_MCODE_IMPL_H
+#define KAS_Z80_Z80_MCODE_IMPL_H
 
 //
 // Z80 opcode emit rules:
@@ -20,6 +20,7 @@
 //#include "z80_size_defn.h"
 //#include "z80_format_float.h"
 
+#include "target/tgt_mcode_defn.h"
 #include "kas_core/core_emit.h"
 #include "expr/expr_fits.h"
 
@@ -44,8 +45,8 @@ void z80_mcode_t::emit(
 {
     using expression::expr_fits;
    
-    // prefix first...
-    uint8_t pfx = z80_arg_t::prefix;
+    // prefix (if defined) emitted first
+    uint8_t pfx = z80_arg_t::has_prefix ? z80_arg_t::prefix : 0;
     if (pfx)
         base << pfx;
 
@@ -61,6 +62,10 @@ void z80_mcode_t::emit(
             {
                 default:
                     continue;
+                case MODE_REG_INDIR_IX:
+                case MODE_REG_INDIR_IY:
+                    base << core::set_size(1) << 0;
+                    break;
                 case MODE_REG_OFFSET_IX:
                 case MODE_REG_OFFSET_IY:
                     base << core::set_size(1) << arg.expr;
@@ -89,7 +94,7 @@ void z80_mcode_t::emit(
         // arg needs "size" to emit properly
         val_p->size(arg, sz(), fits, size);
         if (size())
-            arg.emit(base, size());
+            arg.emit(base, sz(), size());
 
         // next validator
         ++val_p; 

@@ -75,8 +75,8 @@ enum {
 
 
 // use preprocessor to define string names used in definitions & debugging...
-#define VAL(N, ...)      using N = _val_am <KAS_STRING(#N), __VA_ARGS__>
-#define VAL_REG(N, ...)  using N = _val_reg<KAS_STRING(#N), __VA_ARGS__>
+#define VAL(NAME, ...)      using NAME = _val_am <KAS_STRING(#NAME), __VA_ARGS__>
+#define VAL_REG(NAME, ...)  using NAME = _val_reg<KAS_STRING(#NAME), __VA_ARGS__>
 
 // validate based on "access mode"
 struct val_am : m68k_mcode_t::val_t
@@ -108,7 +108,7 @@ struct val_am : m68k_mcode_t::val_t
         if (match == AM_REGSET)
             return fits.yes;
 
-        auto arg_size = arg.size(sz, fits);
+        auto arg_size = arg.size(sz, &fits);
         if (arg_size.is_error())
             return fits.no;
 

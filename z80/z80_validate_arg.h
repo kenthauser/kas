@@ -40,10 +40,6 @@ using expr_fits   = expression::expr_fits;
 using fits_result = expression::fits_result;
 using op_size_t   = core::opcode::op_size_t;
 
-// use preprocessor to define string names used in definitions & debugging...
-#define VAL_REG(N, ...) using N = _val_reg<KAS_STRING(#N), __VA_ARGS__>
-#define VAL_GEN(N, ...) using N = _val_gen<KAS_STRING(#N), __VA_ARGS__>
-
 // validate based on "register class" or specific "register"
 struct val_reg : z80_mcode_t::val_t
 {
@@ -267,7 +263,7 @@ struct val_reg_idx: z80_mcode_t::val_t
     int16_t r_class;
 };
 
-// Allow (HL), (IX), (IY): Indirect jmps
+// Indirect jmps: Allow (HL), (IX), (IY)
 struct val_indir_idx: z80_mcode_t::val_t
 {
     constexpr val_indir_idx() {}
@@ -395,7 +391,7 @@ struct val_range : z80_mcode_t::val_t
     
     void set_arg(z80_arg_t& arg, unsigned value) const override
     {
-        //qstd::cout << "val_range::set_arg: value = " << value << std::endl;
+        //std::cout << "val_range::set_arg: value = " << value << std::endl;
         // only valid for IMMED_QUICK format
         if (_size == 0)
             arg.expr = value;
@@ -410,11 +406,17 @@ struct val_range : z80_mcode_t::val_t
         insn_size += _size;
         return ok(arg, fits);
     }
+    
+    bool all_saved(z80_arg_t& arg) const override
+    {
+        return true;
+    }
 
     uint16_t _size;
     int32_t min, max;
 };
 
+// validate RST instruction: require multiple of 8, rante 0..0x38
 struct val_restart : z80_mcode_t::val_t
 {
     constexpr val_restart() {}
@@ -430,7 +432,7 @@ struct val_restart : z80_mcode_t::val_t
         // require fixed argument
         if (!p)
             return fits.no;
-
+        
         // require multiple of 8, range 0..0x38
         if (~(7 << 3) & *p)
             return fits.no;
@@ -449,8 +451,14 @@ struct val_restart : z80_mcode_t::val_t
     {
         arg.expr = value << 3;
     }
+    
+    bool all_saved(z80_arg_t& arg) const override
+    {
+        return true;
+    }
 };
 
+// 16-bit indirect (memory) or 8-bit indirect (I/O)
 struct val_indir : z80_mcode_t::val_t
 {
     constexpr val_indir(uint16_t size) : _size(size) {}
@@ -476,11 +484,16 @@ struct val_indir : z80_mcode_t::val_t
     uint16_t _size;
 };
 
-template <typename N, int...Ts>
-using _val_reg = meta::list<N, val_reg, meta::int_<Ts>...>;
+// use preprocessor to define string names used in definitions & debugging...
+#define VAL_REG(NAME, ...) using NAME = _val_reg<KAS_STRING(#NAME), __VA_ARGS__>
+#define VAL_GEN(NAME, ...) using NAME = _val_gen<KAS_STRING(#NAME), __VA_ARGS__>
 
-template <typename N, typename T, int...Ts>
-using _val_gen = list<N, T, int_<Ts>...>;
+template <typename NAME, typename T, int...Ts>
+using _val_gen = meta::list<NAME, T, meta::int_<Ts>...>;
+
+template <typename NAME, int...Ts>
+using _val_reg = _val_gen<NAME, val_reg, Ts...>;
+
 
 // register-class and register-specific validations
 VAL_REG(REG         , RC_GEN);

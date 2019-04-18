@@ -88,7 +88,7 @@ using z80_insn_ld_l = list<list<>
 , defn<sz_w, STR("ld"), OP<0xed43>, FMT_X_1W4, INDIR, REG_DBL_SP>
 
 // load SP from HL, IX, IY
-, defn<sz_w, STR("ld"), OP<0xf9>, FMT_X, REG_SP, REG_IDX>
+, defn<sz_w, STR("ld"), OP<0xf9>  , FMT_X, REG_SP, REG_IDX>
 
 // push/pop BC, DE, HL, AF, IX, IY
 , defn<sz_w, STR("push"), OP<0xc5>, FMT_4, REG_DBL_AF>
@@ -212,7 +212,7 @@ using z80_insn_jmp_l = list<list<>
 , defn<sz_v, STR("jp")  , OP<0xc2>, FMT_3   , CC, DIRECT>
 , defn<sz_v, STR("jp")  , OP<0xe9>, FMT_X   , INDIR_IDX>
 , defn<sz_v, STR("jr")  , OP<0x18>, FMT_JR  , DIRECT>
-, defn<sz_v, STR("jr")  , OP<0x20>, FMT_JR_3, JR_CC, DIRECT>
+, defn<sz_v, STR("jr")  , OP<0x20>, FMT_JRCC, JR_CC, DIRECT>
 , defn<sz_v, STR("djnz"), OP<0x10>, FMT_DJNZ, DIRECT>
 
 //
@@ -267,3 +267,4 @@ namespace kas::z80::opc
 #undef STR
 
 #endif
+

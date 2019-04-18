@@ -78,6 +78,9 @@ struct val_range : m68k_validate
         arg.set_mode(MODE_IMMED);
     }
     
+    // consumes arg
+    virtual bool all_saved(arg_t&) const override { return true; }
+
     int32_t min, max;
     int8_t  zero;
 };
@@ -213,6 +216,9 @@ struct val_pair : m68k_validate
         arg.set_mode(MODE_PAIR);
     }
     
+    // consumes arg
+    virtual bool all_saved(arg_t&) const override { return true; }
+
     const bool addr_ok{};
 };
 
@@ -271,13 +277,18 @@ struct val_regset : m68k_validate
 
 struct val_bitfield : m68k_validate
 {
+    // `is_register` is MSB of both offset & width fields
+    static constexpr auto BF_FIELD_SIZE = 6;
+    static constexpr auto BF_REG_BIT    = (1 << (BF_FIELD_SIZE - 1));
+    static constexpr auto BF_MASK       = BF_REG_BIT - 1;
+
     fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         auto bf_fits = [&](auto& e) -> fits_result
             {
                 if (auto rp = e.template get_p<m68k_reg_t>())
                     return rp->kind() == RC_DATA ? fits.yes : fits.no;
-                return fits.fits(e, 0, 31);
+                return fits.fits(e, 0, BF_MASK);
             };
 
         if (arg.mode() != MODE_BITFIELD)
@@ -293,21 +304,25 @@ struct val_bitfield : m68k_validate
         // both either yes or maybe
         return offset_fits != fits.yes ? offset_fits : width_fits;
     }
+
     unsigned get_value(m68k_arg_t& arg) const override
     {
         // calclulate value to insert in machine code
         auto calc = [](auto& e) -> uint16_t
             {
                 if (auto rp = e.template get_p<m68k_reg_t>())
-                    return rp->value();
+                    return rp->value() | BF_REG_BIT;
                 if (auto p = e.get_fixed_p())
-                    return *p & 0x1f;
+                    return *p & BF_MASK;
+
+                // XXX needs to `throw` if not fixed. no relocation available.
+                // XXX possibly require constant expression in `OK`
                 return 0;
             };
 
         auto offset = calc(arg.expr);
         auto width  = calc(arg.outer);
-        return (offset << 6) | width;
+        return (offset << BF_FIELD_SIZE) | width;
     }
 
     void set_arg(m68k_arg_t& arg, unsigned value) const override
@@ -315,15 +330,18 @@ struct val_bitfield : m68k_validate
         // calculate expression value from machine code
         auto get_expr = [](auto value) -> expr_t
             {
-                if (value & 0x20)
+                if (value & BF_REG_BIT)
                     return m68k_reg_t{ RC_DATA, value & 7 };
-                return value & 0x1f;
+                return value & BF_MASK;
             };
 
         arg.outer = get_expr(value);
-        arg.expr  = get_expr(value >> 6);
+        arg.expr  = get_expr(value >> BF_FIELD_SIZE);
         arg.set_mode(MODE_BITFIELD);
     }
+    
+    // consumes arg
+    virtual bool all_saved(arg_t&) const override { return true; }
 };
 
 struct val_subreg : m68k_validate

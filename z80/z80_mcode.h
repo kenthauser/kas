@@ -10,8 +10,8 @@ namespace kas::z80
 // all z80 instructions have a specified "size" of operand
 enum m68k_op_size_t
 {
-      OP_SIZE_BYTE
-    , OP_SIZE_WORD
+      OP_SIZE_WORD
+    , OP_SIZE_BYTE
     , NUM_OP_SIZE
 };
 
@@ -52,7 +52,7 @@ struct z80_mcode_t : tgt::tgt_mcode_t<z80_mcode_t, z80_stmt_t, error_msg, z80_mc
     auto base_size() const
     {
         // NB: sizeof(mcode_size_t) == 1
-        return code_size() + (arg_t::prefix != 0);
+        return code_size() + (arg_t::has_prefix && arg_t::prefix != 0);
     }
 
     // z80: base code & displacement interspersed in output

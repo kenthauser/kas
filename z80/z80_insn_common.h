@@ -42,8 +42,8 @@
 #include "z80_formats_defn.h"       // actual format types
 #include "z80_validate_arg.h"       // actual validate types
 
-#include "target/tgt_insn_defn.h"   // declare constexpr defn
-#include "target/tgt_defn_trait.h"  // declare "trait" for definition
+#include "target/tgt_mcode_defn.h"        // declare constexpr defn
+#include "target/tgt_mcode_defn_trait.h"  // declare "trait" for definition
 #include "kas/kas_string.h"         // name as type
 
 namespace kas::z80::opc

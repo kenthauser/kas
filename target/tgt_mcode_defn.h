@@ -1,5 +1,5 @@
-#ifndef KAS_TARGET_TGT_DEFN_H
-#define KAS_TARGET_TGT_DEFN_H
+#ifndef KAS_TARGET_TGT_MCODE_DEFN_H
+#define KAS_TARGET_TGT_MCODE_DEFN_H
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //
@@ -7,8 +7,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////////
 
-#include "tgt_defn_trait.h"
-#include "tgt_insn_adder.h"
+#include "tgt_mcode_defn_trait.h"
+#include "tgt_mcode_adder.h"
 #include "tgt_validate.h"
 #include "tgt_format.h"
 
@@ -64,23 +64,23 @@ uint8_t constexpr code_to_words(std::size_t value, uint8_t N = 1)
 }
 
 template <typename MCODE_T>
-struct tgt_insn_defn
+struct tgt_mcode_defn
 {
     // import definitions from MCODE_T
-    using mcode_t      = MCODE_T;
-    using mcode_size_t = typename mcode_t::mcode_size_t;
-    using fmt_t        = typename mcode_t::fmt_t;
-    using val_t        = typename mcode_t::val_t;
-    using val_c_t      = typename mcode_t::val_c_t;
-    using adder_t      = typename mcode_t::adder_t;
-    using defn_sizes_t = typename mcode_t::defn_sizes_t;
+    using mcode_t       = MCODE_T;
+    using mcode_size_t  = typename mcode_t::mcode_size_t;
+    using fmt_t         = typename mcode_t::fmt_t;
+    using val_t         = typename mcode_t::val_t;
+    using val_c_t       = typename mcode_t::val_c_t;
+    using adder_t       = typename mcode_t::adder_t;
+    using mcode_sizes_t = typename mcode_t::mcode_sizes_t;
 
-    using fmt_default  = typename mcode_t::fmt_default;     // default type (or void)
+    using fmt_default   = typename mcode_t::fmt_default;     // default type (or void)
 
     // import size definitions from MCODE_T
-    using name_idx_t   = typename mcode_t::name_idx_t;
-    using fmt_idx_t    = typename mcode_t::fmt_idx_t;
-    using val_c_idx_t  = typename mcode_t::val_c_idx_t;
+    using name_idx_t    = typename mcode_t::name_idx_t;
+    using fmt_idx_t     = typename mcode_t::fmt_idx_t;
+    using val_c_idx_t   = typename mcode_t::val_c_idx_t;
     static constexpr auto MAX_ARGS = mcode_t::MAX_ARGS;
 
     // define LISTS for `adder::XLATE_LIST`
@@ -98,13 +98,13 @@ struct tgt_insn_defn
 
     // `ADDER` & `XLATE_LIST` are picked up by `sym_parser_t`
     using ADDER      = adder_t;
-    using XLATE_LIST = list<list<const char *      , NAME_LIST>
-                          , list<const defn_sizes_t, SIZE_LIST, void, list<>, quote<list>>
-                          , list<const fmt_t *     , FMT_LIST, parser::VT_CTOR, fmt_dflt_list>
-                          , list<const val_t *     , VAL_LIST, parser::VT_CTOR>
+    using XLATE_LIST = list<list<const char *       , NAME_LIST>
+                          , list<const mcode_sizes_t, SIZE_LIST, void, list<>, quote<list>>
+                          , list<const fmt_t *      , FMT_LIST, parser::VT_CTOR, fmt_dflt_list>
+                          , list<const val_t *      , VAL_LIST, parser::VT_CTOR>
 
                           // val_combos: don't have the `sym_parser` generate defn
-                          , list<void              , VAL_LIST, void, list<>, quote<list>>
+                          , list<void               , VAL_LIST, void, list<>, quote<list>>
                           >;
 
     // declare indexes into XLATE list (used by `adder`)
@@ -117,7 +117,7 @@ struct tgt_insn_defn
     // CTOR: passed list<defn_list, xlt_list>
     template <typename NAME, typename SZ, typename FMT, typename...VALs, typename VAL_C,
               typename S, typename N, typename CODE, typename TST, typename...X>
-    constexpr tgt_insn_defn(list<list<list<NAME>, list<SZ>, list<FMT>
+    constexpr tgt_mcode_defn(list<list<list<NAME>, list<SZ>, list<FMT>
                                      , list<VALs...>, list<VAL_C>>
                                 , list<S, N, CODE, TST, X...>>)
             : name_index  { NAME::value  + 1   }
@@ -129,8 +129,8 @@ struct tgt_insn_defn
             //, tst         { TST::value     }
             {}
             
-    static inline const char * const *names_base;
-    static inline const defn_sizes_t *sizes_base;
+    static inline const char * const  *names_base;
+    static inline const mcode_sizes_t *sizes_base;
     static inline const fmt_t *const *fmts_base;
     static inline val_c_t      const *val_c_base;
 
@@ -155,10 +155,10 @@ struct tgt_insn_defn
 
 // don't inline support routines
 template <typename MCODE_T>
-void tgt_insn_defn<MCODE_T>::print(std::ostream& os) const
+void tgt_mcode_defn<MCODE_T>::print(std::ostream& os) const
 {
     os << std::dec;
-    os << "tgt_insn_defn: name_idx = " << +name_index;
+    os << "tgt_mcode_defn: name_idx = " << +name_index;
     os << " val_c_index = " << +val_c_index;
     os << " fmt_index = " << +fmt_index;
     os << std::hex;

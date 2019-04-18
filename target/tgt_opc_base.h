@@ -1,5 +1,5 @@
-#ifndef KAS_TARGET_TGT_OPCODE_H
-#define KAS_TARGET_TGT_OPCODE_H
+#ifndef KAS_TARGET_TGT_OPC_BASE_H
+#define KAS_TARGET_TGT_OPC_BASE_H
 
 
 #include "tgt_insn_serialize.h"
@@ -11,9 +11,9 @@ namespace kas::tgt::opc
 {
 
 template <typename MCODE_T>
-struct tgt_opcode : core::opc::opcode
+struct tgt_opc_base : core::opc::opcode
 {
-    using base_t       = tgt_opcode;
+    using base_t       = tgt_opc_base;
     using mcode_t      = MCODE_T;
     
     using insn_t       = typename mcode_t::insn_t;

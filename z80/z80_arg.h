@@ -12,70 +12,61 @@ namespace kas::z80
 // Declare argument "modes"
 enum z80_arg_mode : uint8_t
 {
+// Standard Modes
       MODE_NONE             // 0 when parsed: indicates missing: always zero
     , MODE_ERROR            // 1 set error message
-
-// Directly supported modes
     , MODE_DIRECT           // 2 direct address (also accepted for immediate arg. sigh)
     , MODE_INDIRECT         // 3 indirect address
     , MODE_IMMEDIATE        // 4 immediate arg (signed byte/word)
     , MODE_IMMED_QUICK      // 5 immediate arg (stored in opcode)
     , MODE_REG              // 6 register
     , MODE_REG_INDIR        // 7 register indirect
+    , MODE_REG_OFFSET       // 8 register + offset (indirect)
+    , MODE_REGSET           // 9 register-set 
 
-// Add "modes" for IX/IY as many modes (64) available & only two Index registers
+// Add "modes" for IX/IY as many modes (32) available & only two Index registers
 // "Modes" are stored directly when args serialized. Allows prefix to be reconstructed
-    , MODE_REG_IX           // 8
-    , MODE_REG_IY           // 9
-    , MODE_REG_INDIR_IX     // 10
-    , MODE_REG_INDIR_IY     // 11
-    , MODE_REG_OFFSET_IX    // 12
-    , MODE_REG_OFFSET_IY    // 13
+    , MODE_REG_IX = 16      // 16
+    , MODE_REG_IY           // 17
+    , MODE_REG_INDIR_IX     // 18
+    , MODE_REG_INDIR_IY     // 19
+    , MODE_REG_OFFSET_IX    // 20
+    , MODE_REG_OFFSET_IY    // 21
 
 // Required enumeration
     , NUM_ARG_MODES
 };
 
 
-// `REG_T` & `REGSET_T` args allow `MCODE_T` to lookup types
+// `REG_T` & `REGSET_T` args also allow `MCODE_T` to lookup types
 struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, z80_reg_t, z80_reg_set>
 {
     // inherit default & error ctors
     using base_t::base_t;
-
-    // direct, indirect, and immediate ctor
-    z80_arg_t(std::pair<expr_t, z80_arg_mode> const&);
+    using error_msg = typename base_t::error_msg;
 
     // declare size of immed args
     static constexpr tgt::tgt_immed_info sz_info [] =
         {
-              {  1 }        // 0: BYTE
-            , {  2 }        // 1: WORD
+              {  2 }        // 0: WORD
+            , {  1 }        // 1: BYTE
         };
 
-    op_size_t size(uint8_t sz, expression::expr_fits const& fits = {});
-    void emit(core::emit_base& base, unsigned size) const;
+    // special processing for `IX`, `IY`
+    void emit(core::emit_base& base, uint8_t sz, unsigned bytes) const;
+    const char *set_mode(unsigned mode);
 
-    template <typename Inserter, typename ARG_INFO>
-    bool serialize(Inserter& inserter, uint8_t sz, ARG_INFO *);
+    //template <typename OS> void print(OS&) const;
     
-    template <typename Reader, typename ARG_INFO>
-    void extract(Reader& reader, uint8_t sz, ARG_INFO const *);
-
-    bool is_const() const;
-    void set_mode(unsigned mode);
-    void set_expr(expr_t& e);
-
-    void print(std::ostream&) const;
-    
-    // clear the "prefix"
+    // manage the "prefix"
     static void reset()
     { 
-        prefix = {};
+        prefix     = {};
+        has_prefix = {};
     }
 
     static inline uint8_t prefix;
-    z80_reg_t   reg  {};
+    static inline bool has_prefix;
 };
 
 }

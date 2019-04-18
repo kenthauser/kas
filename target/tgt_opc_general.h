@@ -2,7 +2,7 @@
 #define KAS_Z80_OPC_GENERAL_H
 
 
-#include "tgt_opcode.h"
+#include "tgt_opc_base.h"
 
 namespace kas::tgt::opc
 {
@@ -11,9 +11,9 @@ using namespace kas::core::opc;
 using op_size_t = kas::core::opcode::op_size_t;
 
 template <typename MCODE_T>
-struct tgt_opc_general : tgt_opcode<MCODE_T>
+struct tgt_opc_general : tgt_opc_base<MCODE_T>
 {
-    using base_t  = tgt_opcode<MCODE_T>;
+    using base_t  = tgt_opc_base<MCODE_T>;
     using mcode_t = MCODE_T;
    
     // XXX don't know why base_t types aren't found.
@@ -132,7 +132,7 @@ struct tgt_opc_general : tgt_opcode<MCODE_T>
         for (auto& arg : args)
         {
             auto old_mode = arg.mode();
-            new_size += arg.size(mcode.sz(), fits);
+            new_size += arg.size(mcode.sz(), &fits);
             //if (arg.mode() != old_mode)
             //    args.update_mode(arg);      // XXX fold into TGT method...Not called for Z80...
         }

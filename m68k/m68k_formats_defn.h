@@ -87,10 +87,9 @@ using arg1_i   = fmt_arg<1, fmt_generic<0, N, W>>;
 template <int N, int W = 0, bool REVRSE = false>
 using arg2_i   = fmt_arg<2, fmt_generic<0, N, W>>;
 
-
-// bitfields are completely regular. Third arg for insert
-using arg2_bf  = fmt_arg<2, fmt_bitfield>;
-using arg3_bf  = fmt_arg<3, fmt_bitfield>;
+// bitfields are completely regular. 12 lsbs in second word
+using arg2_bf  = fmt_arg<2, fmt_generic<0, 12, 1>>;
+using arg3_bf  = fmt_arg<3, fmt_generic<0, 12, 1>>;
 
 // coldfire: emac ACCn is 2 bits shifted N, first word
 using arg1_0b2 = fmt_arg<1, fmt_generic<0, 2>>;

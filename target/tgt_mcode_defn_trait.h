@@ -1,5 +1,5 @@
-#ifndef KAS_TARGET_TGT_DEFN_TRAIT_H
-#define KAS_TARGET_TGT_DEFN_TRAIT_H
+#ifndef KAS_TARGET_TGT_MCODE_DEFN_TRAIT_H
+#define KAS_TARGET_TGT_MCODE_DEFN_TRAIT_H
 
 // Instruction definion patterns
 //
@@ -39,7 +39,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-#include "tgt_defn_sizes.h"         // need `sz_void`
+#include "tgt_mcode_sizes.h"         // need `sz_void`
 
 #include <meta/meta.hpp>            // MPL library
 

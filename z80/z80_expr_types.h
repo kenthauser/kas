@@ -17,8 +17,9 @@ namespace kas::expression
 {
     // override default `kas` types in `expr_types.h`
     // undefined addresses are 16-bits
-    template<> struct e_addr_t <void> { using type = std::uint16_t;  };
-    template<> struct err_msg_t<void> { using type = z80::error_msg; };
+    template <> struct e_data_t <void> { using type = std::uint8_t;   };
+    template <> struct e_addr_t <void> { using type = std::uint16_t;  };
+    template <> struct err_msg_t<void> { using type = z80::error_msg; };
 }
 
 // expose terminals to expression subsystem
