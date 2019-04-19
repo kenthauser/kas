@@ -48,8 +48,8 @@ struct tgt_reg
     using reg_defn_idx_t   = uint8_t;
     using reg_name_idx_t   = uint8_t;
 
-    using reg_defn_class_t = int8_t;
-    using reg_defn_value_t = uint16_t;
+    using reg_class_t      = int8_t;
+    using reg_value_t      = uint16_t;
     using hw_tst           = uint16_t;
 
     static constexpr auto MAX_REG_ALIASES = 1;

@@ -11,7 +11,7 @@ namespace kas::z80
 // update `prefix` based on MODE.
 const char *z80_arg_t::set_mode(unsigned mode)
 {
-    // here translate generic to z80 IX/IY Modes
+    // here translate generic mode to z80 IX/IY Modes
     auto xlate_mode = [](auto mode, auto prefix) -> unsigned
         {
             auto is_iy = prefix == 0xfd;
@@ -89,7 +89,6 @@ void z80_arg_t::emit(core::emit_base& base, uint8_t sz, unsigned bytes) const
     base_t::emit(base, sz, bytes);
 }
 
-#if 0
 template <typename OS>
 void z80_arg_t::print(OS& os) const
 {
@@ -141,7 +140,6 @@ void z80_arg_t::print(OS& os) const
             break;
     }
 }
-#endif
 }
 
 #endif

@@ -274,10 +274,10 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>::print(OS& os) const
             os << reg;
             break;
         case MODE_T::MODE_REG_INDIR:
-            os << "(" << reg << ")@";
+            os << reg << "@";
             break;
         case MODE_T::MODE_REG_OFFSET:
-            os << "(" << reg << ")@(" << expr << ")";
+            os << reg << "@(" << expr << ")";
             break;
         case MODE_T::MODE_ERROR:
             if (err)

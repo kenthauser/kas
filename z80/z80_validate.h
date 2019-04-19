@@ -1,29 +1,11 @@
-#ifndef KAS_Z80_VALIDATE_REG_H
-#define KAS_Z80_VALIDATE_REG_H
+#ifndef KAS_Z80_VALIDATE_H
+#define KAS_Z80_VALIDATE_H
 
 /******************************************************************************
  *
  * Instruction argument validation.
  *
- * There are four types of argument validation supported:
- *
- * 1) access.mode() validation: These.mode()s are described in the
- *    M68K Programmers Reference Manual (eg: Table 2-4 in document
- *    M680000PM/AD) and used throughout opcode descriptions.
- *
- * 2) register class: based on class enum (eg: RC_DATA or RC_CTRL)
- *
- * 3) single register: base on class enum & value
- *    (eg: RC_CTRL:0x800 for `USP`)
- *
- * 4) arbitrary function: these can be used to, for example, validate
- *    the many constant ranges allowed by various instructions. Examples
- *    include `MOVEQ` (signed 8 bits), `ADDQ` (1-8 inclusive), etc.
- *    Function may also specify argument size calculation functions.
- *
- * For each type of validation, support two methods:
- *      - fits_result ok(arg&, info&, fits&) : test argument against validation
- *      - op_size_t   size(arg&, info&, fits&, size_p*) : bytes required by arg
+ * See `target/tgt_validate.h` for information on virtual base class
  *
  *****************************************************************************/
 
@@ -33,72 +15,22 @@
 
 namespace kas::z80::opc
 {
-using namespace meta;
-
-// validate function signature: pointer to function returning `op_size_t`
 using expr_fits   = expression::expr_fits;
 using fits_result = expression::fits_result;
 using op_size_t   = core::opcode::op_size_t;
 
-// validate based on "register class" or specific "register"
-struct val_reg : z80_mcode_t::val_t
+// Derive common validators from generic templates
+
+struct val_reg : tgt::opc::tgt_val_reg<val_reg, z80_mcode_t>
 {
-    constexpr val_reg(uint16_t r_class, uint16_t r_num = ~0, uint16_t mode = MODE_REG)
-                        : r_class{r_class}, r_num(r_num), r_mode(mode) {}
-
-    // test if reg or reg_class
-    constexpr bool is_single_register() const { return r_num != static_cast<decltype(r_num)>(~0); } 
-    
-    // test argument against validation
-    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
-    {
-        if (arg.mode() != r_mode)
-            return fits.no;
-        
-        // here validating if mode of arg matches. validate if REG class matches desired
-       if (arg.reg.kind(r_class) != r_class)
-            return fits.no;
-
-        // here reg-class matches. Test reg-num if specified
-        // test if testing for rc_class only (ie. rc_value == ~0)
-        if (!is_single_register())
-            return fits.yes;
-
-        // not default: look up actual rc_value
-        if (arg.reg.value(r_class) == r_num)
-            return fits.yes;
-
-        return fits.no;
-    }
-
-    unsigned get_value(z80_arg_t& arg) const override
-    {
-        return arg.reg.value(r_class);
-    }
-    
-    void set_arg(z80_arg_t& arg, unsigned value) const override
-    {
-        if (!is_single_register())
-            arg.reg = z80_reg_t(r_class, value);
-        else
-            arg.reg = z80_reg_t(r_class, r_num);
-       
-#if 0
-        std::cout << "val_reg::set: r_class = " << +r_class;
-        if (!is_single_register())
-            std::cout << " value = " << std::hex << value;
-        else
-            std::cout << " num = " << std::hex << r_num;
-
-        std::cout << " -> reg = " << arg.reg << std::endl;
-#endif
-    }
-    
-    // registers by themselves have no size. Don't override default size() method 
-
-    uint16_t r_class, r_num, r_mode;
+    using base_t::base_t;
 };
-    
+
+struct val_range : tgt::opc::tgt_val_range<val_range, z80_mcode_t>
+{
+    using base_t::base_t;
+};
+
 
 // validate (HL), (IX+n), (IY+n), and optionally 8-bit general registers
 struct val_reg_gen: z80_mcode_t::val_t
@@ -360,62 +292,6 @@ struct val_jrcc : val_reg
         return fits.yes;
     }
 };
-
-// the "range" validators all resolve to zero size
-struct val_range : z80_mcode_t::val_t
-{
-    constexpr val_range(uint16_t size, int32_t min, int32_t max) : _size(size), min(min), max(max) {}
-
-    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
-    {
-        // range is only for direct args
-        switch (arg.mode())
-        {
-        case MODE_DIRECT:
-        case MODE_IMMEDIATE:
-        case MODE_IMMED_QUICK:
-            return fits.fits(arg.expr, min, max);
-        default:
-            break;
-        }
-    
-        return fits.no;
-    }
-    
-    unsigned get_value(z80_arg_t& arg) const override
-    {
-        if (auto p = arg.expr.get_fixed_p())
-            return *p;
-        return 0;
-    }
-    
-    void set_arg(z80_arg_t& arg, unsigned value) const override
-    {
-        //std::cout << "val_range::set_arg: value = " << value << std::endl;
-        // only valid for IMMED_QUICK format
-        if (_size == 0)
-            arg.expr = value;
-    }
-
-    // immediates may be inserted in opcode, or added data
-    fits_result size(z80_arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t& insn_size) const override
-    {
-        // override `mode` as appropriate
-        arg.set_mode(_size ? MODE_IMMEDIATE : MODE_IMMED_QUICK);
-
-        insn_size += _size;
-        return ok(arg, fits);
-    }
-    
-    bool all_saved(z80_arg_t& arg) const override
-    {
-        return true;
-    }
-
-    uint16_t _size;
-    int32_t min, max;
-};
-
 // validate RST instruction: require multiple of 8, rante 0..0x38
 struct val_restart : z80_mcode_t::val_t
 {

@@ -15,7 +15,7 @@ enum z80_arg_mode : uint8_t
 // Standard Modes
       MODE_NONE             // 0 when parsed: indicates missing: always zero
     , MODE_ERROR            // 1 set error message
-    , MODE_DIRECT           // 2 direct address (also accepted for immediate arg. sigh)
+    , MODE_DIRECT           // 2 direct address (Z80: also accepted for immediate arg. sigh)
     , MODE_INDIRECT         // 3 indirect address
     , MODE_IMMEDIATE        // 4 immediate arg (signed byte/word)
     , MODE_IMMED_QUICK      // 5 immediate arg (stored in opcode)
@@ -56,7 +56,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, z80_reg_t, z80_reg_se
     void emit(core::emit_base& base, uint8_t sz, unsigned bytes) const;
     const char *set_mode(unsigned mode);
 
-    //template <typename OS> void print(OS&) const;
+    template <typename OS> void print(OS&) const;
     
     // manage the "prefix"
     static void reset()
@@ -65,6 +65,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, z80_reg_t, z80_reg_se
         has_prefix = {};
     }
 
+    // these are static because only 1 prefix allowed per instruction
     static inline uint8_t prefix;
     static inline bool has_prefix;
 };

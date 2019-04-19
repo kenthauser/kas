@@ -68,6 +68,10 @@ struct tgt_mcode_t
     using insn_t       = typename stmt_t::insn_t;
     using arg_t        = typename stmt_t::arg_t;
     using stmt_args_t  = decltype(stmt_t::args);
+
+    using arg_mode_t   = typename arg_t::arg_mode_t;
+    using reg_t        = typename arg_t::reg_t;
+    using regset_t     = typename arg_t::regset_t;
     
     using bitset_t     = typename insn_t::bitset_t;
     static_assert(std::is_same_v<derived_t, typename insn_t::mcode_t>);

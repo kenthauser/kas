@@ -20,10 +20,10 @@ template <typename Reg_t>
 struct tgt_reg_defn
 {
     // pick up definition types from `Reg_t`
-    using reg_name_idx_t   = typename Reg_t::reg_name_idx_t;
-    using reg_defn_class_t = typename Reg_t::reg_defn_class_t;
-    using reg_defn_value_t = typename Reg_t::reg_defn_value_t;
-    using hw_tst           = typename Reg_t::hw_tst;
+    using reg_name_idx_t = typename Reg_t::reg_name_idx_t;
+    using reg_class_t    = typename Reg_t::reg_class_t;
+    using reg_value_t    = typename Reg_t::reg_value_t;
+    using hw_tst         = typename Reg_t::hw_tst;
 
     static constexpr auto MAX_REG_NAMES = Reg_t::MAX_REG_ALIASES + 1;
 
@@ -53,10 +53,10 @@ struct tgt_reg_defn
     }
 
     // each defn is 4 16-bit words (ie 64-bits) iff IDX_T is 8-bits & MAX_NAMES = 2
-    reg_name_idx_t   names[MAX_REG_NAMES];
-    reg_defn_class_t reg_class;              
-    reg_defn_value_t reg_num;
-    hw_tst           reg_tst;
+    reg_name_idx_t  names[MAX_REG_NAMES];
+    reg_class_t     reg_class;              
+    reg_value_t     reg_num;
+    hw_tst          reg_tst;
   
     template <typename OS>
     friend OS& operator<<(OS& os, tgt_reg_defn const& d)

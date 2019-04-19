@@ -19,6 +19,7 @@ using reg = meta::list<NAME
 #define REG_STR KAS_STRING
 
 using reg_l = meta::list<
+    // 8-bit general registers
       reg<REG_STR("a"), RC_GEN, 7>
     , reg<REG_STR("b"), RC_GEN, 0>
     , reg<REG_STR("c"), RC_GEN, 1>
@@ -37,9 +38,12 @@ using reg_l = meta::list<
     , reg<REG_STR("sp"), RC_SP, 3>
     , reg<REG_STR("af"), RC_AF, 3>
 
+    // HL is also an index register
+    //, reg<REG_STR("ix"), RC_IDX, 0>
     , reg<REG_STR("ix"), RC_IDX, 0xdd>
     , reg<REG_STR("iy"), RC_IDX, 0xfd>
 
+    // interrupt vector & refesh registers
     , reg<REG_STR("i") , RC_I>
     , reg<REG_STR("r") , RC_R>
 

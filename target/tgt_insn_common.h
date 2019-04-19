@@ -1,5 +1,5 @@
-#ifndef KAS_TARGET_TGT_MCODE_DEFN_TRAIT_H
-#define KAS_TARGET_TGT_MCODE_DEFN_TRAIT_H
+#ifndef KAS_TARGET_TGT_INSN_COMMON_H
+#define KAS_TARGET_TGT_INSN_COMMON_H
 
 // Instruction definion patterns
 //
@@ -32,14 +32,16 @@
 //
 // The `insn` definition six constexpr arrays linked by indexes. 
 //
-// The definition instances are in an array of `m68k_insn_defn` which holds indexs 
-// into `name`, `sz`, `info`, `format` and `validator_combo` constexpr arrays.
+// The definition instances are in an array of `tgt_mcode_defn_defn` which holds indexs 
+// into constexpr arrays as well as integral defns.
 // 
 // These `constexpr arrays` are created by`parser::sym_parser_t`
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-#include "tgt_mcode_sizes.h"         // need `sz_void`
+#include "tgt_mcode_sizes.h"        // need `sz_void`
+#include "tgt_mcode_defn.h"         // declare constexpr defn
+#include "kas/kas_string.h"         // name as type
 
 #include <meta/meta.hpp>            // MPL library
 

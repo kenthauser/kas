@@ -7,7 +7,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////////////
 
-#include "tgt_mcode_defn_trait.h"
+#include "tgt_insn_common.h"        // get DEFN_IDX_*
 #include "tgt_mcode_adder.h"
 #include "tgt_validate.h"
 #include "tgt_format.h"

@@ -12,6 +12,7 @@
 #include "target/tgt_insn_eval.h"
 #include "target/tgt_arg_impl.h"
 #include "target/tgt_mcode_impl.h"
+#include "target/tgt_validate_impl.h"
 
 #include <iostream>
 

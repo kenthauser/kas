@@ -1,15 +1,15 @@
-#ifndef KAS_Z80_M68000_DEFNS_H
-#define KAS_Z80_M68000_DEFNS_H
+#ifndef KAS_Z80_INSNS_Z80_H
+#define KAS_Z80_INSNS_Z80_H
 //
 // Define the Z80 instructions. 
 //
-// For information in the table format, see `target/tgt_defn_trait.h`
+// For information in the table format, see `target/tgt_mcode_defn_trait.h`
 //
-// The format names (and naming convention) are in `z80_opcode_formats.h`
+// The format names (and naming convention) are in `z80_format_defn.h`
 //
-// The argument validators are in `z80_arg_validate_arg.h`
+// The argument validators are in `z80_validate.h`
  //
-// The common validors with ambiguous names are:
+// The common validators with ambiguous names are:
 //
 // REG          : allow 8-bit registers: A, B, C, D, E, H, L
 // REG_GEN      : allow REG and (HL), (IX+n), (IY+n)
@@ -19,8 +19,8 @@
 // REG_DBL_AF   : allow BC, DE, HL, AF, IX, IY
 // REG_IDX      : allow HL, IX, IY
 
-// IMMED_8      :  8-bit immed arg
-// IMMED_16     : 16-bit immed arg
+// IMMED_8      :  8-bit immed arg (direct or immediate arg syntax)
+// IMMED_16     : 16-bit immed arg (direct or immediate arg syntax)
 
 // INDIR        : indirect memory address
 // INDIR_8      : indirect I/O address (8-bits)
@@ -41,7 +41,7 @@
 
 namespace kas::z80::opc::gen
 {
-//using namespace common;
+using namespace meta;
 
 #define STR KAS_STRING
 
@@ -207,7 +207,7 @@ using z80_insn_jmp_l = list<list<>
 //
 // Jump group
 //
-#
+
 , defn<sz_v, STR("jp")  , OP<0xc3>, FMT_X   , DIRECT>
 , defn<sz_v, STR("jp")  , OP<0xc2>, FMT_3   , CC, DIRECT>
 , defn<sz_v, STR("jp")  , OP<0xe9>, FMT_X   , INDIR_IDX>

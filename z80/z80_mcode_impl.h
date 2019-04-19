@@ -4,21 +4,16 @@
 //
 // Z80 opcode emit rules:
 //
-// 1. Search args for prefix. If found, emit (byte)
+// 1. If arg prefix set, emit prefix (byte)
 //
-// 2. If prefix, emit first word of opcode
+// 2. Emit first byte of opcode
 //
-// 3. If prefix, emit displacement (if any)
+// 3. If prefix, emit displacement byte (if offset format)
 //
 // 4. If remaining byte of opcode, emit.
 //
 // 5. Emit byte or word arg expr
 //
-
-
-//#include "z80_insn_types.h"
-//#include "z80_size_defn.h"
-//#include "z80_format_float.h"
 
 #include "target/tgt_mcode_defn.h"
 #include "kas_core/core_emit.h"
@@ -32,7 +27,6 @@ namespace kas::z80
 //
 /////////////////////////////////////////////////////////////////////////
 
-using z80_word_size_t = uint16_t;
 using expression::e_fixed_t;
 
 
@@ -46,22 +40,27 @@ void z80_mcode_t::emit(
     using expression::expr_fits;
    
     // prefix (if defined) emitted first
-    uint8_t pfx = z80_arg_t::has_prefix ? z80_arg_t::prefix : 0;
+    uint8_t pfx = z80_arg_t::prefix;
     if (pfx)
         base << pfx;
 
     // then first word of opcode
-    base << core::set_size(1) << *op_p;
+    base << *op_p;
 
     // if prefix, must emit offset before anything else
     if (pfx)
     {
-        for (auto& arg : args)
+        // look for IX/IY arg
+        for (auto const& arg : args)
         {
             switch (arg.mode())
             {
                 default:
                     continue;
+                case MODE_REG_IX:
+                case MODE_REG_IY:
+                    // IX/IY w/o offset
+                    break;      
                 case MODE_REG_INDIR_IX:
                 case MODE_REG_INDIR_IY:
                     base << core::set_size(1) << 0;
@@ -77,16 +76,16 @@ void z80_mcode_t::emit(
 
     // now rest of opcode
     if (code_size() > 1)
-        base << core::set_size(1) << *++op_p;
+        base << *++op_p;
 
-    // for `size` call
-    auto fits = core::core_fits(dot_p);
-    
+    // emit additional arg data
     // hook into validators
     auto& val_c = defn().vals();
     auto  val_p = val_c.begin();
 
-    // emit additional arg data
+    // for `size` call
+    auto fits = core::core_fits(dot_p);
+    
     for (auto& arg : args)
     {
         op_size_t size;
