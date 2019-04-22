@@ -2,22 +2,6 @@
 #define M68K_M68K_FORMATS_IMPL_H
 
 
-// processor specific types to insert/extract values
-// from machine code
-//
-// type interface: two static methods
-//
-// bool insert(mcode_size_t *op, arg_t& arg, val_t const *val_p)
-// void extract(mcode_size_t const *op, arg_t *arg, val_t *val_p)
-//
-// in the above:
-//  *op     points to first word of "machine code"
-//  arg     is current argument being processed. 
-//  *val_p  points to current argument validator
-//
-// insert returns `true` if argument completely stored in machine code
-
-
 #include "m68k_mcode.h"
 #include "target/tgt_format.h"
 
@@ -53,7 +37,7 @@ struct fmt_reg_mode
     // actual word mask
     static constexpr auto MASK      = (7 << SHIFT) | (7 << (SHIFT+MODE_OFFSET));
 
-    // shifted word mask
+    // shifted word mask (operates on 6-bit value)
     static constexpr auto MODE_MASK = ((1 << MODE_BITS) - 1) << 3;
 
     static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
@@ -61,7 +45,7 @@ struct fmt_reg_mode
         kas::expression::expr_fits fits;
         
         // validator return 6 bits: mode + reg
-        auto value = val_p->get_value(arg);
+        auto value    = val_p->get_value(arg);
         auto cpu_reg  = value & 7;
         auto cpu_mode = arg.mode_normalize() & MODE_MASK;
 
@@ -74,12 +58,12 @@ struct fmt_reg_mode
         return fits.zero(arg.expr) == fits.yes;
     }
     
-    static void extract(uint16_t const* op, m68k_arg_t* arg, val_t const *val_p)
+    static void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p)
     {
         auto value     = op[WORD];
         auto reg_num   = (value >>  SHIFT)                & 7;
         auto cpu_mode  = (value >> (SHIFT+MODE_OFFSET-3)) & MODE_MASK; 
-        val_p->set_arg(*arg, reg_num | cpu_mode);
+        val_p->set_arg(arg, reg_num | cpu_mode);
     }
 };
 
@@ -148,7 +132,7 @@ struct fmt_reg_pair
         return true;
     }
     
-    static void extract(uint16_t const* op, m68k_arg_t* arg, val_t const *val_p)
+    static void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p)
     {
         // XXX if pair is resolved to same reg twice, should disassembler report
         // XXX `REG` or `REG:REG`. I belive all insns assemble the same with
@@ -164,12 +148,12 @@ struct fmt_reg_pair
         
         // `deserializer` overrides mode. may be overwritten to DATA_REG or ADDR_REG
         // set `reg_num` for these cases. No-op for MODE_PAIR
-        arg->reg_num = reg1 & 7;
+        arg.reg_num = reg1 & 7;
         
         // generate `MODE_PAIR` arg
-        arg->expr  = gen_reg(reg1);
-        arg->outer = gen_reg(reg2);
-        arg->set_mode(MODE_PAIR);
+        arg.expr  = gen_reg(reg1);
+        arg.outer = gen_reg(reg2);
+        arg.set_mode(MODE_PAIR);
     }
 };
 
@@ -201,7 +185,7 @@ struct fmt_subreg
         return true;
     }
     
-    static void extract(uint16_t const* op, m68k_arg_t* arg, val_t const *val_p)
+    static void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p)
     {
 #if 0
         auto value = op[WORD];
@@ -238,7 +222,7 @@ struct fmt_emac_an
         return true;
     }
     
-    static void extract(uint16_t const* op, m68k_arg_t* arg, val_t const *val_p)
+    static void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p)
     {
 #if 0
         auto value = op[WORD];

@@ -6,7 +6,6 @@
 #include "m68k_reg_types.h"
 #include "m68k_hw_defns.h"
 
-#include "target/make_reg_seq.h"
 #include "kas/kas_string.h"
 
 namespace kas::m68k::reg_defn
@@ -35,10 +34,10 @@ struct reg_seq
 
 
 // declare general and floating point registers
-using data_reg_l  = make_reg_seq<reg_seq<RC_DATA>, REG_STR("d"), 8>;
-using addr_reg_l  = make_reg_seq<reg_seq<RC_ADDR>, REG_STR("a"), 8>;
-using fp_reg_l    = make_reg_seq<reg_seq<RC_FLOAT, hw::fpu>,        REG_STR("fp"), 8>;
-using zaddr_reg_l = make_reg_seq<reg_seq<RC_ZADDR, hw::index_full>, REG_STR("za"), 8>;
+using data_reg_l  = tgt::make_reg_seq<reg_seq<RC_DATA>, REG_STR("d"), 8>;
+using addr_reg_l  = tgt::make_reg_seq<reg_seq<RC_ADDR>, REG_STR("a"), 8>;
+using fp_reg_l    = tgt::make_reg_seq<reg_seq<RC_FLOAT, hw::fpu>,        REG_STR("fp"), 8>;
+using zaddr_reg_l = tgt::make_reg_seq<reg_seq<RC_ZADDR, hw::index_full>, REG_STR("za"), 8>;
 
 // floating point user registers
 using fctrl_reg_l = list<

@@ -120,7 +120,7 @@ void tgt_insert_args(Inserter& inserter
         if (val_p)
         {
             expr_fits fits{};
-            if (val_p->ok(arg, fits) != fits.yes)
+            if (val_p->ok(arg, sz, fits) != fits.yes)
                 val_p = nullptr;
         }
         std::cout << "tgt_insert_args: " << +n 

@@ -45,7 +45,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
             *trace << " " << val_p.name() << " ";
        
         // if invalid for sz(), pick up in size() method
-        auto result = val_p->ok(arg, fits);
+        auto result = val_p->ok(arg, sz(), fits);
 
         if (result == expression::NO_FIT)
             return { msg, n };

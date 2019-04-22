@@ -170,8 +170,8 @@ auto const statement_def =
           | ( bsd::parser::stmt_space_x3() > end_of_line )
           | ( bsd::parser::stmt_equ_x3  () > end_of_line )
           | ( bsd::parser::stmt_org_x3  () > end_of_line )
-          //| ( m68k::parser::m68k_stmt_x3  () > end_of_line )
-          | ( z80::parser::z80_stmt_x3  () > end_of_line )
+          | ( m68k::parser::m68k_stmt_x3  () > end_of_line )
+          //| ( z80::parser::z80_stmt_x3  () > end_of_line )
 #endif
           | reduce_tuple(std::bit_or<>{}, label_tuple)
           | end_of_input

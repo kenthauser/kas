@@ -1,12 +1,17 @@
 #ifndef KAS_TARGET_TGT_FORMAT_H
 #define KAS_TARGET_TGT_FORMAT_H
 
-// 1. Remove `index` infrastructure
-// 2. Split into virtual functions, "workers" and combiners
-// 3. Add in `opc&` stuff
-
-//#include "z80_types.h"
-//#include "z80_stmt.h"
+// type interface: two static methods
+//
+// bool insert (mcode_size_t const *op, arg_t& arg, val_t const *val_p)
+// void extract(mcode_size_t const *op, arg_t *arg, val_t *constval_p)
+//
+// in the above:
+//  *op     points to first word of "machine code"
+//  arg     is current argument being processed. 
+//  *val_p  points to current argument validator
+//
+// insert returns `true` if argument completely stored in machine code
 
 #include "kas_core/opcode.h"
 #include "tgt_opc_general.h"
@@ -33,12 +38,15 @@ struct tgt_format
     // "instance" is just a virtual-pointer collection
     // NB: requires `constexpr` ctor to be used as constexpr
     constexpr tgt_format() {};
-    
+
+private: 
+    // NB: these methods are private. Must be accessed via `insert`, `extract` methods
+
     // Implement `FMT_MAX_ARGS` inserters & extractors
     // default to no-ops for inserters/extractors instead of ABC
     // NB: missing validators occur during serialize/deserialize
     
-    // format first, compress rest
+    // format first method, compress rest of methods
     virtual bool insert_arg1(mcode_size_t* op, arg_t& arg, val_t const *val_p) const 
     { 
         // prototype `arg1`: not completely saved
@@ -55,52 +63,56 @@ struct tgt_format
     virtual bool insert_arg6(mcode_size_t* op, arg_t& arg, val_t const *val_p) const
         { return false; }
 
-    // format first, compress rest
-    virtual void extract_arg1(mcode_size_t const* op, arg_t *arg, val_t const *val_p) const
+    // format first method, compress rest of methods
+    virtual void extract_arg1(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
     {
         // prototype `arg1`
-        if (val_p)
-            val_p->set_arg(*arg, 0);
+        val_p->set_arg(arg, 0);
     }
-    virtual void extract_arg2(mcode_size_t const* op, arg_t *arg, val_t const *val_p) const
-        { if (val_p) val_p->set_arg(*arg, 0); }
-    virtual void extract_arg3(mcode_size_t const* op, arg_t *arg, val_t const *val_p) const
-        { if (val_p) val_p->set_arg(*arg, 0); }
-    virtual void extract_arg4(mcode_size_t const* op, arg_t *arg, val_t const *val_p) const
-        { if (val_p) val_p->set_arg(*arg, 0); }
-    virtual void extract_arg5(mcode_size_t const* op, arg_t *arg, val_t const *val_p) const
-        { if (val_p) val_p->set_arg(*arg, 0); }
-    virtual void extract_arg6(mcode_size_t const* op, arg_t *arg, val_t const *val_p) const
-        { if (val_p) val_p->set_arg(*arg, 0); }
+    virtual void extract_arg2(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
+        { val_p->set_arg(arg, 0); }
+    virtual void extract_arg3(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
+        { val_p->set_arg(arg, 0); }
+    virtual void extract_arg4(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
+        { val_p->set_arg(arg, 0); }
+    virtual void extract_arg5(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
+        { val_p->set_arg(arg, 0); }
+    virtual void extract_arg6(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
+        { val_p->set_arg(arg, 0); }
 
+public:
+    // access inserters/extractors via public interface
     auto insert(unsigned n, mcode_size_t* op, arg_t& arg, val_t const *val_p) const
     {
-        switch (n)
-        {
-            case 0: return insert_arg1(op, arg, val_p);
-            case 1: return insert_arg2(op, arg, val_p);
-            case 2: return insert_arg3(op, arg, val_p);
-            case 3: return insert_arg4(op, arg, val_p);
-            case 4: return insert_arg5(op, arg, val_p);
-            case 5: return insert_arg6(op, arg, val_p);
-            default:
-                throw std::runtime_error("insert: bad index");
-        }
+        if (val_p)
+            switch (n)
+            {
+                case 0: return insert_arg1(op, arg, val_p);
+                case 1: return insert_arg2(op, arg, val_p);
+                case 2: return insert_arg3(op, arg, val_p);
+                case 3: return insert_arg4(op, arg, val_p);
+                case 4: return insert_arg5(op, arg, val_p);
+                case 5: return insert_arg6(op, arg, val_p);
+                default:
+                    throw std::runtime_error("insert: bad index");
+            }
+        return false;   // false == "not completely saved"
     }
 
-    void extract(int n, mcode_size_t const* op, arg_t *arg, val_t const *val_p) const
+    void extract(int n, mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
     {
-        switch (n)
-        {
-            case 0: return extract_arg1(op, arg, val_p);
-            case 1: return extract_arg2(op, arg, val_p);
-            case 2: return extract_arg3(op, arg, val_p);
-            case 3: return extract_arg4(op, arg, val_p);
-            case 4: return extract_arg5(op, arg, val_p);
-            case 5: return extract_arg6(op, arg, val_p);
-            default:
-                throw std::runtime_error("extract: bad index");
-        }
+        if (val_p)
+            switch (n)
+            {
+                case 0: return extract_arg1(op, arg, val_p);
+                case 1: return extract_arg2(op, arg, val_p);
+                case 2: return extract_arg3(op, arg, val_p);
+                case 3: return extract_arg4(op, arg, val_p);
+                case 4: return extract_arg5(op, arg, val_p);
+                case 5: return extract_arg6(op, arg, val_p);
+                default:
+                    throw std::runtime_error("extract: bad index");
+            }
     }
     
     // return "opcode derived type" for given fmt
@@ -150,9 +162,6 @@ struct tgt_fmt_generic
     {
         kas::expression::expr_fits fits;
         
-        // if no validator, not  completely stored
-        if (!val_p) return false;
-
         auto value = val_p->get_value(arg);
         auto code  = op[WORD]; 
              code &= ~(MASK << SHIFT);
@@ -161,10 +170,10 @@ struct tgt_fmt_generic
         return val_p->all_saved(arg);
     }
 
-    static void extract(mcode_size_t const* op, arg_t* arg, val_t const *val_p)
+    static void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p)
     {
         auto value = MASK & (op[WORD] >> SHIFT);
-        val_p->set_arg(*arg, value);
+        val_p->set_arg(arg, value);
     }
 };
 
@@ -186,7 +195,7 @@ struct tgt_fmt_arg<MCODE_T, N, T> : virtual MCODE_T::fmt_t                      
     using val_t        = typename MCODE_T::val_t;                                                   \
     bool insert_arg ## N (mcode_size_t* op, arg_t& arg, val_t const * val_p) const override         \
         { return T::insert(op, arg, val_p);}                                                        \
-    void extract_arg ## N (mcode_size_t const* op, arg_t* arg, val_t const * val_p) const override  \
+    void extract_arg ## N (mcode_size_t const* op, arg_t& arg, val_t const * val_p) const override  \
         { T::extract(op, arg, val_p); }                                                             \
 };
 

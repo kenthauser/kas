@@ -44,6 +44,14 @@ enum m68k_arg_mode : uint8_t
     , MODE_ERROR            // set error message
     , MODE_NONE             // when parsed: indicates missing
     , NUM_ARG_MODES
+
+// MODES which must be defined for compatibilty with `tgt_arg` ctor
+// never allocated. Do not need to include in `NUM_ARG_MODES`
+// XXX should probably define simplified CTOR for derived types
+    , MODE_INDIRECT
+    , MODE_IMMEDIATE 
+    , MODE_REG_INDIR 
+    , MODE_REG_OFFSET 
 };
 
 // support for coldfire MAC. 
@@ -69,8 +77,11 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
     
     // direct, immediate, register pair, or bitfield
     m68k_arg_t(m68k_arg_mode mode, expr_t e = {}, expr_t outer = {})
-            :  outer(outer), base_t(mode, std::move(e))
+            :  outer(std::move(outer)), base_t(mode, std::move(e))
             {}
+
+    // indirect & index values are constructed in `m68k_parser_support.h`
+    // and inited via copy elision
 
     // override `size`
     op_size_t size(uint8_t sz, expression::expr_fits const *fits_p = {}, bool *is_signed = {});
@@ -82,11 +93,11 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
     // NB: names of arg modes (OP_SIZE_*) is in `m68k_mcode.h`
     static constexpr tgt::tgt_immed_info sz_info [] =
         {
-              {  4 }        // 0: LONG
+              {  4    }     // 0: LONG
             , {  4, 2 }     // 1: SINGLE
             , { 12, 6 }     // 2: XTND
             , { 12, 7 }     // 3: PACKED
-            , {  2 }        // 4: WORD
+            , {  2    }     // 4: WORD
             , {  8, 4 }     // 5: DOUBLE
             , {  2, {}, 1 } // 6: BYTE
             , {  0 }        // 7: VOID
@@ -100,24 +111,8 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
 
     void emit(m68k_mcode_t const&, core::emit_base& base, unsigned bytes) const;
 
-    // true if all `disp` and `outer` are registers or constants 
-    bool is_const () const
-    {
-        auto do_const = [](auto const& e) -> bool
-            {
-                // `is_const` implies insn ready to emit.
-                if (e.template get_p<m68k_reg_t>())
-                    return true;
-                if (e.template get_p<m68k_reg_set>())
-                    return true;
-                if (e.get_fixed_p())
-                    return true;
-                // if (e.template get_p<e_float_t>())
-                //     return true;
-                return false;
-            };
-        return do_const(expr) && do_const(outer);
-    }
+    // true if all `expr` and `outer` are registers or constants 
+    bool is_const () const;
 
     // XXX don't let register appear as constants (? why needed ?)
     // also seems to block IMMEDIATE
@@ -139,16 +134,18 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
     expr_t           outer;             // for '020 PRE/POST index addess modes
     m68k_arg_subword reg_subword {};    // for coldfire H/L subword access
     m68k_extension_t ext{};             // m68k extension word (index modes)
-
+#if 1
     // hardware formatted variables
     uint8_t cpu_mode() const;           // machine code words
     uint8_t cpu_reg()  const;
     uint8_t reg_num  {};
     m68k_ext_size_t cpu_ext;
-
+#endif
     m68k_arg_mode mode_normalize() const;
     mutable uint16_t  _am_bitset{};
+#if 1
     mutable op_size_t _arg_size{-1};
+#endif
 };
 
 // implementation in m68k.cc for debugging parser

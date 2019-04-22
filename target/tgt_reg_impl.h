@@ -11,14 +11,14 @@ namespace kas::tgt
 // implementation of register methods
 ////////////////////////////////////////////////////////////////////////////
 
-template <typename Derived>
-auto tgt_reg<Derived>::get_defn(reg_defn_idx_t n) -> defn_t const&
+template <typename Derived, typename B, unsigned C, unsigned V>
+auto tgt_reg<Derived, B, C, V>::get_defn(reg_defn_idx_t n) -> defn_t const&
 {
     return insns[n-1];
 }
 
-template <typename Derived>
-auto tgt_reg<Derived>::select_defn(int reg_class) const -> defn_t const&
+template <typename Derived, typename B, unsigned C, unsigned V>
+auto tgt_reg<Derived, B, C, V>::select_defn(int reg_class) const -> defn_t const&
 {
     auto& defn = get_defn(reg_0_index);
 
@@ -38,8 +38,8 @@ auto tgt_reg<Derived>::select_defn(int reg_class) const -> defn_t const&
 // The class/value ctor is non-trival. It is designed
 // for use in the disassembler only
 //
-template <typename Derived>
-tgt_reg<Derived>::tgt_reg(reg_defn_idx_t reg_class, uint16_t value)
+template <typename Derived, typename B, unsigned C, unsigned V>
+tgt_reg<Derived, B, C, V>::tgt_reg(reg_defn_idx_t reg_class, uint16_t value)
 {
 #if 0
     // cache common registers
@@ -81,8 +81,8 @@ tgt_reg<Derived>::tgt_reg(reg_defn_idx_t reg_class, uint16_t value)
 #endif
 }
 
-template <typename Derived>
-auto tgt_reg<Derived>::find_data(reg_defn_idx_t rc, uint16_t rv) -> reg_defn_idx_t
+template <typename Derived, typename B, unsigned C, unsigned V>
+auto tgt_reg<Derived, B, C, V>::find_data(reg_defn_idx_t rc, uint16_t rv) -> reg_defn_idx_t
 {
     // brute force search thru data
     auto p = insns;
@@ -92,9 +92,9 @@ auto tgt_reg<Derived>::find_data(reg_defn_idx_t rc, uint16_t rv) -> reg_defn_idx
     return 0;
 }
 
-template <typename Derived>
+template <typename Derived, typename B, unsigned C, unsigned V>
 template <typename T>
-void tgt_reg<Derived>::add(T const& d, reg_defn_idx_t n)
+void tgt_reg<Derived, B, C, V>::add(T const& d, reg_defn_idx_t n)
 {
     //std::cout << "tgt_reg: adding: " << d;
     if (!reg_0_index) 
@@ -108,26 +108,26 @@ void tgt_reg<Derived>::add(T const& d, reg_defn_idx_t n)
     }
 }
 
-template <typename Derived>
-const char *tgt_reg<Derived>::name() const
+template <typename Derived, typename B, unsigned C, unsigned V>
+const char *tgt_reg<Derived, B, C, V>::name() const
 {
     return derived_t::format_name(select_defn().name());
 }
 
-template <typename Derived>
-uint16_t const tgt_reg<Derived>::kind(int reg_class) const
+template <typename Derived, typename B, unsigned C, unsigned V>
+uint16_t const tgt_reg<Derived, B, C, V>::kind(int reg_class) const
 {
     return select_defn(reg_class).reg_class;
 }
 
-template <typename Derived>
-uint16_t const tgt_reg<Derived>::value(int reg_class) const
+template <typename Derived, typename B, unsigned C, unsigned V>
+uint16_t const tgt_reg<Derived, B, C, V>::value(int reg_class) const
 {
     return select_defn(reg_class).reg_num;
 }
 
-template <typename Derived>
-const char *tgt_reg<Derived>::validate(int reg_class) const
+template <typename Derived, typename B, unsigned C, unsigned V>
+const char *tgt_reg<Derived, B, C, V>::validate(int reg_class) const
 {
     return {};
     //return hw::cpu_defs[get_defn(reg_0_index).reg_tst];

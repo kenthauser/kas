@@ -14,8 +14,6 @@
 // and `register offset`. More of a placeholder until arch-specific replacement
 // developed.
 
-
-
 #include "tgt_arg.h"
 
 namespace kas::tgt
@@ -154,13 +152,6 @@ template <typename Inserter, typename ARG_INFO>
 bool tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
             ::serialize(Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
 {
-    auto save_reg  = [&]
-        {
-            auto r_class = reg.kind();
-            auto value   = reg.value();
-            inserter((r_class << 8) | value, 2);
-        };
-    
     auto save_expr = [&](auto size) -> bool
         {
             // suppress writes of zero size or zero value
@@ -180,7 +171,7 @@ bool tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
     if (!reg.valid())
         info_p->has_reg = false;
     if (info_p->has_reg)
-        save_reg();
+        inserter(std::move(reg));
     
     // get size of expression
     if (info_p->has_data)
@@ -199,9 +190,12 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
 {
     if (info_p->has_reg)
     {
-        auto value = reader.get_fixed(2);
-        reg = REG_T(value >> 8, value & 0xff);
-    }
+        // register stored as expression
+        auto p = reader.get_expr().template get_p<REG_T>();
+        if (!p)
+            throw std::logic_error{"tgt_arg_t::extract: has_reg"};
+        reg = *p;
+    } 
     
     // read expression. Check for register
     if (info_p->has_expr)

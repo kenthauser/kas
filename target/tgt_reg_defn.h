@@ -1,19 +1,31 @@
 #ifndef KAS_TARGET_TGT_REG_DEFN_H
 #define KAS_TARGET_TGT_REG_DEFN_H
 
-#include "tgt_reg_defn.h"
-
-#include "kas_core/kas_object.h"
-#include "parser/sym_parser.h"
-
-namespace kas::tgt
-{
-
 ////////////////////////////////////////////////////////////////////////////
 //
 // constexpr definition of target register
 //
 ////////////////////////////////////////////////////////////////////////////
+//
+// Also define a MPL function to create a sequence of registers (eg: a0->a15)
+//
+// called: make_reg_seq<CALLABLE, NAME_BASE, REG_COUNT, BASE_COUNT = 0>
+//
+// CALLABLE invoked for each register with list<NAME_N, N>
+//
+// return list<> of CALLABLEs
+//
+////////////////////////////////////////////////////////////////////////////
+
+#include "tgt_reg_defn.h"
+
+#include "kas_core/kas_object.h"
+#include "parser/sym_parser.h"
+#include "utility/string_mpl.h"
+
+namespace kas::tgt
+{
+
 
 // declare constexpr definition of register generated at compile-time
 template <typename Reg_t>
@@ -190,6 +202,38 @@ struct tgt_reg_adder
     DEFN_T const * const defns;
 };
 
+// implement `maek_reg_seq`
+namespace detail
+{
+    using namespace meta;
+
+    template <typename NAME>
+    struct reg_n
+    {
+        // returns meta::list<IS<nameN>, N>
+        template <typename N>
+        using invoke = list<i2list<N::value, NAME>, N>;
+    };
+
+    // called: `...<reg_seq<RC_DATA>, IS<'d'>, 8>`
+    template <typename FN, typename NAME, unsigned COUNT, unsigned BASE>
+    struct make_reg_seq : transform<
+                  transform<
+                        as_list<integer_range<unsigned, BASE, BASE+COUNT>>
+                      , reg_n<NAME>
+                      >
+                , uncurry<FN>
+                > {};
+
+}
+
+// generate a sequence of register names from base class, base name, and count
+template <typename FN
+        , typename NAME
+        , unsigned COUNT
+        , unsigned BASE = 0
+        >
+using make_reg_seq = meta::_t<detail::make_reg_seq<FN, NAME, COUNT, BASE>>;
 }
 
 

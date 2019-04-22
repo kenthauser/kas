@@ -38,7 +38,7 @@ struct val_reg_gen: z80_mcode_t::val_t
     constexpr val_reg_gen() {}
 
     // test argument against validation
-    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -130,7 +130,7 @@ struct val_reg_idx: z80_mcode_t::val_t
 {
     constexpr val_reg_idx(int16_t r_class = -1) : r_class(r_class) {}
 
-    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -200,7 +200,7 @@ struct val_indir_idx: z80_mcode_t::val_t
 {
     constexpr val_indir_idx() {}
 
-    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -251,7 +251,7 @@ struct val_indir_bc_de : val_reg
     constexpr val_indir_bc_de() : val_reg(RC_DBL) {}
 
     // test argument against validation
-    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         if (arg.mode() != MODE_REG_INDIR)
             return fits.no;
@@ -281,7 +281,7 @@ struct val_jrcc : val_reg
     constexpr val_jrcc() : val_reg(RC_CC) {}
 
     // test argument against validation
-    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         if (arg.mode() != MODE_REG)
             return fits.no;
@@ -297,7 +297,7 @@ struct val_restart : z80_mcode_t::val_t
 {
     constexpr val_restart() {}
 
-    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // range is only for direct args
         if (arg.mode() != MODE_DIRECT)
@@ -339,7 +339,7 @@ struct val_indir : z80_mcode_t::val_t
 {
     constexpr val_indir(uint16_t size) : _size(size) {}
 
-    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         if (arg.mode() != MODE_INDIRECT)
             return fits.no;
@@ -354,7 +354,7 @@ struct val_indir : z80_mcode_t::val_t
     fits_result size(z80_arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t& insn_size) const override
     {
         insn_size += _size;
-        return ok(arg, fits);
+        return ok(arg, sz, fits);
     }
 
     uint16_t _size;

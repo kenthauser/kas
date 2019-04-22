@@ -86,7 +86,7 @@ namespace kas::m68k::parser
 
         friend std::ostream& operator<<(std::ostream& os, expr_size_scale const& e)
         {
-            return os << e.value << "/" << e.size << "/" << e.scale << " ";
+            return os << e.value << ", size=" << e.size << ", scale=" << e.scale << " ";
         }
     };
 
@@ -179,7 +179,7 @@ namespace kas::m68k::parser
         }
 
         expr_t const& expr;
-        int           _value;
+        int           _value {};
         uint32_t      e_type {};
     };
 
@@ -194,8 +194,19 @@ namespace kas::m68k::parser
 
 //#define TRACE_M68K_PARSE
 #ifdef  TRACE_M68K_PARSE
+        static const char * const parse_names[] = 
+            { "MISSING", "DIR", "IMMED", "INDIR", "INCR", "DECR", "PAIR", "BITFIELD"
+            , "MOTO_INDEX", "MOTO_MEM", "INDIR_W", "INDIR_L"
+            , "SFX_W", "SFX_L", "SFX_U"
+            };
+        
         // print arg
-        std::cout << "m68k_parsed_arg_t: mode = " << mode.mode << std::endl;
+        std::cout << "m68k_parsed_arg_t: mode = ";
+        if (mode.mode < std::extent<decltype(parse_names)>::value)
+            std::cout << parse_names[mode.mode] << std::endl;
+        else
+            std::cout << +mode.mode << std::endl;
+
         std::cout << "base: " << base;
         std::cout << "disp_lists: ";
         for (auto& arg_list : mode.args)
@@ -236,7 +247,7 @@ namespace kas::m68k::parser
         if (mode.mode & PARSE_MASK)
         {
             mode.mode &=~ PARSE_MASK;
-            sub_reg = REG_SUBWORD_MASK;
+            sub_reg    = REG_SUBWORD_MASK;
         }
 
         // use "indirect" method to process arguments with displacements
@@ -256,15 +267,16 @@ namespace kas::m68k::parser
         auto classify = m68k_classify_expr{base_value};
         auto kind = classify();
 
-        // std::cout << "m68k_parsed_arg_t::m68k_arg_t: " << base << " = " << kind <<std::endl;
-
+#ifdef TRACE_M68K_PARSE
+        std::cout << "m68k_parsed_arg_t::m68k_arg_t: " << base << " = " << kind <<std::endl;
+#endif
         // support routine to require addr register
         auto addr_only = [&](auto mode) -> m68k_arg_t
         {
             if (kind != E_ADDR)
                 return { error_msg::ERR_no_addr_reg, base_value };
-            m68k_arg_t r{ mode, base_value };
-            r.reg_num = classify.value();
+            m68k_arg_t r { mode, base_value };
+            r.reg_num     = classify.value();
             r.reg_subword = sub_reg;
             return r;
         };

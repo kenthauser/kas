@@ -84,7 +84,7 @@ void insert_one (Inserter& inserter
     bool completely_saved = fmt.insert(n, code_p, arg, val_p);
 
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << "write_one: " << arg << ": insert = " << std::boolalpha << completely_saved << std::endl;
+    std::cout << "write_one: " << arg << ": completely_saved = " << std::boolalpha << completely_saved << std::endl;
 #endif
 
     // write arg data
@@ -97,7 +97,7 @@ void insert_one (Inserter& inserter
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "write_one: " << arg;
     std::cout << ": mode = "   << std::dec << std::setw(2) << +p->arg_mode;
-    std::cout << " bits: "     << +p->has_reg "/" << +p->has_data << "/" << +p->has_expr;
+    std::cout << " bits: "     << +p->has_reg << "/" << +p->has_data << "/" << +p->has_expr;
     std::cout << std::endl;
 #endif
 }
@@ -121,14 +121,13 @@ void extract_one(Reader& reader
 #endif
 
     // extract arg from machine code (dependent on validator)
-    // NB: extract may look at arg mode.
-    arg_p->set_mode(p->arg_mode);
-
     // extract info from `opcode`
     if (val_p)
-        fmt.extract(n, code_p, arg_p, val_p);
+        fmt.extract(n, code_p, *arg_p, val_p);
 
     // extract additional info as required
+    // NB: extract may look at arg mode.
+    arg_p->set_mode(p->arg_mode);
     arg_p->extract(reader, sz, p);
     
     // NB: don't allow extract to change mode

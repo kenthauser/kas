@@ -56,7 +56,8 @@ struct tgt_arg_t : kas_token
 
 protected:
     // simplify derived class ctors
-    tgt_arg_t(arg_mode_t mode, expr_t e = {}) : _mode(mode), expr(e) {}
+    tgt_arg_t(arg_mode_t mode, expr_t e = {}) : tgt_arg_t({e, mode})
+            {}
 
     // CRTP casts
     auto constexpr& derived() const

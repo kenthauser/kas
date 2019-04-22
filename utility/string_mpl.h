@@ -23,13 +23,12 @@ namespace kas
 
     template <unsigned N>
     using i2s = meta::_t<detail::i2s_impl<N>>;
-#if 1
+
     template <unsigned N
             , typename PFX = string::kas_string<>
             , typename SFX = string::kas_string<>
             >
     using i2list = string::str_cat<PFX, i2s<N>, SFX>;
-#endif
 }
 
 #endif

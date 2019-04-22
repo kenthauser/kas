@@ -134,15 +134,16 @@ m68k_extension_t::m68k_extension_t(U hw, U& inner, bool& is_brief) : m68k_extens
     is_brief = !(hw & 0x100);
     if (is_brief)
     {
-        inner = static_cast<int8_t>(hw);
-        disp_size = inner ? M_SIZE_WORD : M_SIZE_ZERO;
+        auto disp = static_cast<int8_t>(hw);
+        disp_size = inner ? M_SIZE_BYTE: M_SIZE_ZERO;
+        inner = disp;
     } 
     else
     {
         base_suppr  = !!(hw & (1 << 7));
         _reg_inited = !(hw & (1<< 6));
-        disp_size = (hw >> 4) & 3;
-        mem_mode  = hw & 7;
+        disp_size   = (hw >> 4) & 3;
+        mem_mode    = hw & 7;
     }
 }
 

@@ -10,9 +10,6 @@
 // Data can be stored as "fixed" constant, or "expression" 
 
 #include "m68k_arg.h"
-//#include "m68k_size_defn.h"
-
-//#include "expr/expr_fits.h"     // for INDEX_BRIEF
 
 
 namespace kas::m68k
@@ -21,8 +18,12 @@ namespace kas::m68k
 template <typename Inserter, typename ARG_INFO>
 bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
 {
-    auto save_expr = [&](auto size) -> bool
+    auto save_expr = [&](auto expr, auto size) -> bool
         {
+            // if longer that LONG, save as expr
+            if (size > 4)
+                size = 0;
+
             // suppress writes of zero
             auto p = expr.get_fixed_p();
             if (p && !*p)
@@ -34,62 +35,29 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
             return !inserter(std::move(expr), size);
         };
     
-    // XXX args w/o validators (list format) enter !completely_saved
-    // XXX, even for base modes. May need to save reg #
-    // XXX arg3 stores general reg # only (D0-A7)
-    
-    //info_p->has_data = false;
-    auto size = 0;
+    // here the `has_reg` bit may be set spuriously
+    // (happens when no appropriate validator present)
+    // don't save if no register present
+    if (!reg.valid())
+        info_p->has_reg = false;
+    if (info_p->has_reg)
+        inserter(std::move(reg));
     
     switch (mode())
     {
-        case MODE_IMMED_QUICK:
-        case MODE_REG_QUICK:
         default:
-            break; 
-
-        // signed
-        case MODE_ADDR_DISP:
-        case MODE_PC_DISP:
-        case MODE_MOVEP:
-            size = -2;
-            break;
-
-        // unsigned
-        case MODE_REGSET:
-        case MODE_DIRECT_SHORT:
-        case MODE_INDEX_BRIEF:
-        case MODE_PC_INDEX_BRIEF:
-            size = 2;
-            break;
-
-        // unsigned
-        case MODE_DIRECT_LONG:
-            size = 4;
-            break;
-
-        case MODE_REG:
-        case MODE_PAIR:
-        case MODE_BITFIELD:
-            // save as expression
-            break;
-
-        case MODE_IMMED:
-            size = immed_info(sz).sz_bytes;
-            if (size > 4)
-                size = 0;       // longer than LONG, save as expr
-            else
-                size = -size;   // actually signed
             break;
 
         case MODE_INDEX:
         case MODE_PC_INDEX:
             // special case INDEX
             {
+                int size;
+
                 // 1) always save "extension" word
                 inserter(ext.value(), 2);
 
-                // 2) use "has expression" bit for inner word
+                // 2) use "has_expr" bit as inner_has_expression
                 switch (ext.disp_size)
                 {
                     case M_SIZE_ZERO:
@@ -99,46 +67,47 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
                         size = 0;       // AUTO
                         break;
                     case M_SIZE_WORD:
-                        size = -2;
+                        size = 2;
                         break;
                     case M_SIZE_LONG:
                         size = 4;
                         break;
                 }
-                bool inner_expr = false;
-                
+               
                 // handle "ZERO"
                 if (size != 1)
-                    inner_expr = save_expr(size);
+                    info_p->has_expr = save_expr(expr, size);
                 
-                // 3) re-use "has data" bit as outer_has_expression
-                info_p->has_data = false;
-                if (!ext.outer())
-                    return inner_expr;
-
-                switch (ext.outer_size())
+                // 3) use "has_data" bit as outer_has_expression
+                info_p->has_data = false;   // could have been set by `save_expr`
+                if (ext.outer())
                 {
-                    case M_SIZE_ZERO:
-                    // Inner Zero -- just return
-                        return inner_expr;
-                    case M_SIZE_NONE:
-                        size = 0;
-                        break;
-                    case M_SIZE_WORD:
-                        size = -2;
-                        break;
-                    case M_SIZE_LONG:
-                        size = 4;
-                        break;
+                    switch (ext.outer_size())
+                    {
+                        case M_SIZE_ZERO:
+                        // Inner Zero -- just return
+                            size = 1;       // FLAG
+                            break;
+                        case M_SIZE_NONE:
+                            size = 0;
+                            break;
+                        case M_SIZE_WORD:
+                            size = 2;
+                            break;
+                        case M_SIZE_LONG:
+                            size = 4;
+                            break;
+                    }
+                    if (size != 1)
+                        info_p->has_data = save_expr(outer, size);
                 }
-                info_p->has_data = !inserter(std::move(outer), size);
-                return inner_expr;
+                return info_p->has_expr;
             }                
             break;
     }
 
     if (info_p->has_data)
-        return save_expr(size);
+        return save_expr(expr, size(sz).max);
 
     // didn't save expression
     return false;
@@ -149,6 +118,15 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
 template <typename Reader, typename ARG_INFO>
 void m68k_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
 {
+    if (info_p->has_reg)
+    {
+        // register stored as expression
+        auto p = reader.get_expr().template get_p<m68k_reg_t>();
+        if (!p)
+            throw std::logic_error{"m68k_arg_t::extract: has_reg"};
+        reg = *p;
+    } 
+    
     // need to special case INDEX to match code above
     if (mode() == MODE_INDEX || mode() == MODE_PC_INDEX)
     {
@@ -158,49 +136,51 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
         ext = reader.get_fixed(2);
 
         // get inner expression if stored
-        if (info_p->has_expr)
+        if (info_p->has_expr)       // `has_expr` mapped to `inner_has_expr`
             expr = reader.get_expr();
         else
         {
             switch (ext.disp_size)
             {
                 case M_SIZE_ZERO:
-                    size = 0;       // Flag is ZERO FOR extract
+                    size = 0;       // Flag ZERO for extract
                     break;
                 case M_SIZE_NONE:
                     size = 0;       // AUTO stored as expr, retrieved above
                     break;
                 case M_SIZE_WORD:
-                    size = -2;
+                    size = -2;      // signed
                     break;
                 case M_SIZE_LONG:
                     size = 4;
                     break;
             }
+            
             if (size)
                 expr = reader.get_fixed(size);
         }
 
         // get outer expression if stored
-        if (info_p->has_data)
+        if (info_p->has_data)       // `has_data` mapped to `outer_has_expr`
             outer = reader.get_expr();
         else if (ext.outer())
         {
             switch (ext.outer_size())
             {
                 case M_SIZE_ZERO:
-                    size = 0;       // Flag is ZERO for extract
+                    size = 0;       // Flag ZERO for extract
                     break;
                 case M_SIZE_NONE:
                     size = 0;       // AUTO stored as expr, retrieved above
                     break;
                 case M_SIZE_WORD:
-                    size = -2;
+                    size = -2;      // signed
                     break;
                 case M_SIZE_LONG:
                     size = 4;
                     break;
             }
+            
             if (size)
                 outer = reader.get_fixed(size);
         }
@@ -213,49 +193,29 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
     else if (info_p->has_data)
     {
         // get size of fixed data to read
-        auto size = 0;
+        // NB: can't use generic `size()` because `expr` is zero
+        // and `m68k_arg_t::size` converts modes freely.
+
+        int bytes = 2;          // most are 2 bytes, unsigned
         switch (mode())
         {
-            case MODE_IMMED_QUICK:
-            case MODE_REG_QUICK:
-            default:
-                break; 
-
-            // signed
+            // declare the modes with word offsets
             case MODE_ADDR_DISP:
             case MODE_PC_DISP:
             case MODE_MOVEP:
-                size = -2;
+                bytes = -2;
                 break;
-
-            // unsigned
-            case MODE_REGSET:
-            case MODE_DIRECT_SHORT:
-            case MODE_INDEX_BRIEF:
-            case MODE_PC_INDEX_BRIEF:
-                size = 2;
-                break;
-
-            // unsigned
-            case MODE_DIRECT_LONG:
-                size = 4;
-                break;
-
-            case MODE_REG:
-            case MODE_PAIR:
-            case MODE_BITFIELD:
-                // save as expression
-                break;
-
             case MODE_IMMED:
-                size = immed_info(sz).sz_bytes;
-                if (size > 4)
-                    size = 0;       // longer than LONG, save as expr
-                else
-                    size = -size;   // signed
+                // immed is signed
+                bytes = -immed_info(sz).sz_bytes;
+                break;
+            case MODE_DIRECT_LONG:
+                bytes = 4;
+                break;
+            default:
                 break;
         }
-        expr = reader.get_fixed(size);
+        expr = reader.get_fixed(bytes);
     }
 }
 

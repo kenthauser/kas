@@ -7,7 +7,7 @@
 //
 // Each "register value" (as used in m68k.c) consists of a
 // three-item tuple < reg_class(ex RX_DATA), reg_num(eg 0), tst(eg: hw::index_full)
-// 1) reg_class    ranges from 0..9. `reg_arg_validate` has a hardwired limit of 12.
+// 1) reg_class    ranges from 0..9. `reg_arg_validate`
 // 2) The reg_num  ranges from 0..7 for eg data register; has 12-bit value for move.c
 // 3) tst          16-bit hw_tst constexpr value
 //
@@ -118,7 +118,9 @@ enum
 enum m68k_reg_prefix { PFX_NONE, PFX_ALLOW, PFX_REQUIRE };
 
 struct m68k_reg_set;
-struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t>
+
+// 4-bit class, 12-bit value
+struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t, uint16_t, 4, 12>
 {
     using hw_tst         = hw::hw_tst;
     using reg_defn_idx_t = uint8_t;

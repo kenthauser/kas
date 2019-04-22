@@ -44,7 +44,7 @@ struct val_range : m68k_validate
     constexpr val_range(int32_t min, int32_t max, int8_t zero = 0)
                 : min(min), max(max), zero(zero) {}
 
-    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // range is only for immediate args
         switch (arg.mode())
@@ -87,7 +87,7 @@ struct val_range : m68k_validate
 
 struct val_dir_long : m68k_validate
 {
-    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // allow addr_indir or addr_indr_displacement
         if (arg.mode() == MODE_DIRECT)
@@ -111,7 +111,7 @@ struct val_dir_long : m68k_validate
 struct val_direct_del : m68k_validate
 {
     // special for branch to flag deletable branch
-    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // allow direct mode 
         static constexpr auto am = AM_DIRECT;
@@ -133,7 +133,7 @@ struct val_direct_del : m68k_validate
 
 struct val_movep : m68k_validate
 {
-    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -160,7 +160,7 @@ struct val_pair : m68k_validate
 {
     constexpr val_pair(bool addr_ok) : addr_ok(addr_ok) {}
 
-    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // check for pair of DATA or GENERAL registers
         if (arg.mode() != MODE_PAIR)
@@ -228,7 +228,7 @@ struct val_regset : m68k_validate
     constexpr val_regset(uint8_t kind = {}, bool rev = false)
                 : kind{kind}, rev(rev) {}
     
-    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         switch (arg.mode()) {
             case MODE_IMMED:
@@ -282,7 +282,7 @@ struct val_bitfield : m68k_validate
     static constexpr auto BF_REG_BIT    = (1 << (BF_FIELD_SIZE - 1));
     static constexpr auto BF_MASK       = BF_REG_BIT - 1;
 
-    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         auto bf_fits = [&](auto& e) -> fits_result
             {
@@ -346,7 +346,7 @@ struct val_bitfield : m68k_validate
 
 struct val_subreg : m68k_validate
 {
-    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // check for ... MAC registers
         if (arg.mode() > MODE_ADDR_REG)
@@ -380,7 +380,7 @@ struct val_subreg : m68k_validate
 
 struct val_acc : m68k_validate
 {
-    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         auto rp = arg.expr.template get_p<m68k_reg_t>();
         if (!rp || rp->kind() != RC_CPU)
@@ -415,7 +415,7 @@ struct val_acc : m68k_validate
 // Check that CF may disallow anyway, via 3-word limit
 struct val_cf_bit_tst : m68k_validate
 {
-    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // use AM bits: test is MEMORY w/o IMMED
         if (arg.am_bitset() & AM_IMMED)
@@ -431,7 +431,7 @@ struct val_cf_bit_tst : m68k_validate
 // Check that CF may disallow anyway, via 3-word limit
 struct val_cf_bit_static : m68k_validate
 {
-    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // for coldfire BIT instructions on STATIC bit # cases.
         auto mode_norm = arg.mode_normalize();

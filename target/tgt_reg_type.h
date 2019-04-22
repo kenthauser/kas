@@ -35,7 +35,10 @@ struct tgt_reg_defn;
 // Store up to two "defn" indexes with "hw_tst" in 64-bit value
 //
 
-template <typename Derived> 
+template <typename Derived
+        , typename BASE_T = uint16_t
+        , unsigned REG_C_BITS = 8
+        , unsigned VALUE_BITS = std::numeric_limits<BASE_T>::digits - REG_C_BITS> 
 struct tgt_reg
 {
     using base_t      = tgt_reg;
@@ -48,8 +51,10 @@ struct tgt_reg
     using reg_defn_idx_t   = uint8_t;
     using reg_name_idx_t   = uint8_t;
 
-    using reg_class_t      = int8_t;
-    using reg_value_t      = uint16_t;
+// should calculate `T` from `BITS`
+
+    using reg_class_t      = BASE_T;
+    using reg_value_t      = BASE_T;
     using hw_tst           = uint16_t;
 
     static constexpr auto MAX_REG_ALIASES = 1;
@@ -73,7 +78,7 @@ private:
 public:
     static void set_insns(decltype(insns) _insns, unsigned _cnt)
     {
-        insns = _insns;
+        insns     = _insns;
         insns_cnt = _cnt;
     }
 

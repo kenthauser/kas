@@ -86,11 +86,11 @@ struct tgt_validate
     using arg_t      = typename MCODE_T::arg_t;
 
     // if arg invalid for particular "size", error it out in `size` method
-    virtual fits_result ok  (arg_t& arg, expr_fits const& fits) const = 0;
+    virtual fits_result ok  (arg_t& arg, uint8_t sz, expr_fits const& fits) const = 0;
     virtual fits_result size(arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t&) const
     { 
         // default: return "fits", don't update size
-        return ok(arg, fits);
+        return ok(arg, sz, fits);
     }
 
     // insert & extract values from opcode
@@ -247,7 +247,7 @@ struct tgt_val_reg : MCODE_T::val_t
     constexpr bool is_single_register() const { return r_num != static_cast<reg_value_t>(~0); } 
    
     // test argument against validation
-    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         if (!derived().is_mode_ok(arg))
             return fits.no;
@@ -329,7 +329,7 @@ struct tgt_val_range : MCODE_T::val_t
         }
     }
 
-    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // range is only for direct args
         if (derived().is_mode_ok(arg))
@@ -358,7 +358,7 @@ struct tgt_val_range : MCODE_T::val_t
                     , op_size_t& insn_size) const override
     {
         insn_size += _size;
-        return ok(arg, fits);
+        return ok(arg, sz, fits);
     }
     
     uint16_t _size;
