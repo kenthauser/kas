@@ -29,7 +29,10 @@ auto parse = [](std::string const& source, fs::path input_path)-> std::string
     using boost::spirit::x3::with;
     using kas::parser::error_handler_type;
     using kas::parser::error_handler_tag;
+    using kas::parser::error_diag_tag;
+    using kas::parser::kas_error_t;
     error_handler_type error_handler(iter, end, input_path.c_str());
+    kas_error_t diag;
 
     // Our parser
     auto const parser =
@@ -37,7 +40,10 @@ auto parse = [](std::string const& source, fs::path input_path)-> std::string
         // it later on in our on_error and on_sucess handlers
         with<error_handler_tag>(std::ref(error_handler))
         [
-            kas::expr()
+            with<error_diag_tag>(std::ref(diag))
+            [
+                kas::expr()
+            ]
         ];
 
     // Go forth and parse!

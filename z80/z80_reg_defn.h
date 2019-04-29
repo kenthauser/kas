@@ -2,19 +2,11 @@
 #define KAS_Z80_Z80_REG_DEFN_H
 
 #include "z80_reg_types.h"
+#include "target/tgt_reg_trait.h"
 
-#include "target/tgt_reg_defn.h"
-#include "kas/kas_string.h"
-
-namespace kas::z80
+namespace kas::z80::reg_defn
 {
-
-template <typename NAME, unsigned REG, unsigned NUM = 0, typename TST = void>
-using reg = meta::list<NAME
-               , std::integral_constant<unsigned, REG>
-               , std::integral_constant<unsigned, NUM>
-               , std::conditional_t<std::is_void_v<TST>, hw::hw_void, TST>
-               >;
+using namespace tgt::reg_defn;
 
 #define REG_STR KAS_STRING
 
@@ -57,11 +49,11 @@ using reg_l = meta::list<
     , reg<REG_STR("p") , RC_CC, 6>
     , reg<REG_STR("m") , RC_CC, 7>
     >;
-}
 
 using reg_aliases_l = meta::list<
       meta::list<REG_STR("af"), REG_STR("af'")>
     >;
+}
 
 #undef REG_STR
 

@@ -1,43 +1,23 @@
-#ifndef KAS_M68K_M68K_REG_DEFNS_H
-#define KAS_M68K_M68K_REG_DEFNS_H
+#ifndef KAS_M68K_M68K_REG_DEFN_H
+#define KAS_M68K_M68K_REG_DEFN_H
 
 // Define each m68k register as a "NAME/CLASS/VALUE/TST" type list
 
 #include "m68k_reg_types.h"
-#include "m68k_hw_defns.h"
-
-#include "kas/kas_string.h"
+#include "target/tgt_reg_trait.h"
 
 namespace kas::m68k::reg_defn
 {
-using namespace meta;
-
-// cut down on syntax noise
-template <typename NAME, unsigned REG, unsigned NUM = 0, typename TST = void>
-using reg = list<NAME
-               , std::integral_constant<unsigned, REG>
-               , std::integral_constant<unsigned, NUM>
-               , std::conditional_t<std::is_void_v<TST>, hw::hw_void, TST>
-               >;
-
-// meta callable used by `make_reg_seq` to generate a `reg` 
-// invoked with types "STR(nameN), N"
-template <int KIND, typename TST = void>
-struct reg_seq
-{
-    template <typename NAME, typename NUM>
-    using invoke = reg<NAME, KIND, NUM::value, TST>;
-};
+using namespace tgt::reg_defn;
 
 // prepend "%" to all register names
 #define REG_STR(x) KAS_STRING("%" x)
 
-
 // declare general and floating point registers
-using data_reg_l  = tgt::make_reg_seq<reg_seq<RC_DATA>, REG_STR("d"), 8>;
-using addr_reg_l  = tgt::make_reg_seq<reg_seq<RC_ADDR>, REG_STR("a"), 8>;
-using fp_reg_l    = tgt::make_reg_seq<reg_seq<RC_FLOAT, hw::fpu>,        REG_STR("fp"), 8>;
-using zaddr_reg_l = tgt::make_reg_seq<reg_seq<RC_ZADDR, hw::index_full>, REG_STR("za"), 8>;
+using data_reg_l  = make_reg_seq<reg_seq<RC_DATA>, REG_STR("d"), 8>;
+using addr_reg_l  = make_reg_seq<reg_seq<RC_ADDR>, REG_STR("a"), 8>;
+using fp_reg_l    = make_reg_seq<reg_seq<RC_FLOAT, hw::fpu>,        REG_STR("fp"), 8>;
+using zaddr_reg_l = make_reg_seq<reg_seq<RC_ZADDR, hw::index_full>, REG_STR("za"), 8>;
 
 // floating point user registers
 using fctrl_reg_l = list<

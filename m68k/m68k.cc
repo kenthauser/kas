@@ -3,7 +3,7 @@
 #include "expr/expr.h"
 #include "parser/parser.h"
 #include "parser/sym_parser.h"
-#include "target/tgt_mcode_defn.h"   // declare `tgt_mcode_defn` template
+#include "target/tgt_mcode_defn.h"
 #include "target/tgt_reg_defn.h"
 
 #include "utility/print_type_name.h"

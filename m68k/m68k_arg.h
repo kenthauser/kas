@@ -109,7 +109,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
     template <typename Reader, typename ARG_INFO>
     void extract(Reader& reader, uint8_t sz, ARG_INFO const*);
 
-    void emit(m68k_mcode_t const&, core::emit_base& base, unsigned bytes) const;
+    void emit(core::emit_base& base, uint8_t sz, unsigned bytes) const;
 
     // true if all `expr` and `outer` are registers or constants 
     bool is_const () const;

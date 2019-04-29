@@ -9,7 +9,7 @@
 namespace kas::m68k
 {
 // size is from validator which finializes `modes` for arguments
-void m68k_arg_t::emit(m68k_mcode_t const& mcode, core::emit_base& base, unsigned size) const
+void m68k_arg_t::emit(core::emit_base& base, uint8_t sz, unsigned size) const
 {
     if (size == 0)
         return;             // nothing to emit
@@ -43,7 +43,7 @@ void m68k_arg_t::emit(m68k_mcode_t const& mcode, core::emit_base& base, unsigned
 
         // immediate: store fixed & float formats
         case MODE_IMMED:
-            size     = immed_info(mcode.sz()).sz_bytes;
+            size     = immed_info(sz).sz_bytes;
             break;
 
         case MODE_INDEX:

@@ -141,7 +141,7 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         val_p->size(arg, sz(), fits, size);
 
         // arg_t not templated by MCODE_T, so pass as arg
-        arg.emit(derived(), base, size());
+        arg.emit(base, sz(), size());
 
         // next validator
         ++val_p; 
