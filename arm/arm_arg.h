@@ -25,7 +25,16 @@ enum arm_arg_mode : uint8_t
     , MODE_REGSET           // 9 register-set 
 
 // Required enumeration
+    , MODE_PRE_INDEXED
+    , MODE_POST_INDEXED
     , NUM_ARG_MODES
+
+// Parsed modes which are never "saved"
+    , MODE_SHIFT_LSL
+    , MODE_SHIFT_LSR
+    , MODE_SHIFT_ASR
+    , MODE_SHIFT_ROR
+    , MODE_SHIFT_RRX
 };
 
 

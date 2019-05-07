@@ -28,6 +28,10 @@ namespace kas::arm::parser
 // NB: insn_t parser used to parse statements in `arm_parser_def.h`
 namespace kas::parser::detail
 {
+    // ARM comment and separator characters
+    template<> struct fmt_separator_str<void> : boost::mpl::string<';'> {};
+    template<> struct fmt_comment_str  <void> : boost::mpl::string<'@'> {};
+
     // target types for stmt variant
     template <> struct parser_type_l<defn_cpu> :
         meta::list<

@@ -6,11 +6,7 @@
 #include "bsd_stmt.h"
 #include <boost/spirit/home/x3.hpp>
 
-namespace kas
-{
-namespace x3 = boost::spirit::x3;
-
-namespace bsd::parser
+namespace kas::bsd::parser
 {
     using namespace kas::parser;
 
@@ -32,12 +28,8 @@ namespace bsd::parser
 }
 
 // parser public interface
-namespace parser::detail
+namespace kas::parser::detail
 {
-    // declare default BSD comment & separator values
-    template<typename = void> struct fmt_separator_str : string<'!'> {};
-    template<typename = void> struct fmt_comment_str   : string<';'> {};
-
     // use BSD comment & separator values as system values
     // XXX need some `meta` defer mechanism...
     template<> struct stmt_separator_str<void> : fmt_separator_str<> {};
@@ -66,6 +58,6 @@ namespace parser::detail
           bsd::parser::stmt_label_x3
     > {};
 }
-}
+
 
 #endif

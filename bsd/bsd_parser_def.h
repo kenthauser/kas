@@ -44,7 +44,8 @@
 //
 /////////////////////////////////////////////////////////////
 
-#include "bsd_parser_types.h"
+// include `parser.h`, not `bsd_parser_types.h`
+#include "parser/parser.h"
 #include "bsd_elf_defns.h"
 #include "bsd_symbol.h"
 #include "pseudo_ops_def.h"

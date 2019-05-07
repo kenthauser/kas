@@ -40,6 +40,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 #include "tgt_mcode_sizes.h"        // need `sz_void`
+#include "tgt_mcode_cond.h"         // declare condition-code based sizes
 #include "tgt_mcode_defn.h"         // declare constexpr defn
 #include "kas/kas_string.h"         // name as type
 
@@ -124,6 +125,21 @@ struct v_defn : defn<sz_void, Ts...> {};
 //template <typename NAME, std::size_t CODE, typename...Ts>
 //struct v_defn<NAME, meta::size_t<CODE>, Ts...> : v_defn<NAME, OP<CODE>, Ts...> {};
 #endif
+
+
+// a `callable` to create `insn` for each condition code
+template <unsigned SHIFT, typename SZ, typename NAME, typename...Args>
+struct cc_gen_defn
+{
+    template <typename CC>
+    using invoke = defn<SZ
+                      , string::str_cat<NAME, typename CC::name>
+                      , Args...
+                      >;
+};
+
+
+
 }
 
 

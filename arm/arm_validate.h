@@ -47,10 +47,32 @@ VAL_REG(REG         , RC_GEN);
 VAL_REG(FLT_SGL     , RC_FLT_SGL);
 VAL_REG(FLT_DBL     , RC_FLT_DBL);
 
+VAL_REG(APSR        , RC_GEN);
+VAL_REG(CPSR        , RC_GEN);
+VAL_REG(SPSR        , RC_GEN);
+
 // Named Registers
 VAL_REG(SP          , RC_GEN, 13);
 VAL_REG(LR          , RC_GEN, 14);
 VAL_REG(PC          , RC_GEN, 15);
+
+VAL_GEN(IMM24       , val_range, 0, 0, (1<<12) - 1);
+VAL_GEN(IMM16       , val_range, 0, 0, (1<<12) - 1);
+VAL_GEN(IMM12       , val_range, 0, 0, (1<<12) - 1);
+VAL_GEN(IMM5        , val_range, 0, 0, (1<<5 ) - 1);
+VAL_GEN(IMM4        , val_range, 0, 0, (1<<5 ) - 1);
+
+VAL_GEN(ZERO        , val_range, 0, 0, 0);
+VAL_GEN(LABEL       , val_range, 0, 0, (1<<12) - 1);
+VAL_GEN(SHIFT       , val_range, 0, 0, 0);
+VAL_GEN(SHIFT_Z     , val_range, 0, 0, 0);
+VAL_GEN(SHIFT_NZ    , val_range, 0, 0, 0);
+VAL_GEN(REG_INDIR   , val_range, 0, 0, 0);
+VAL_GEN(REGSET      , val_range, 0, 0, 0);
+VAL_GEN(REG_OFFSET  , val_range, 0, 0, 0);
+VAL_GEN(REG_UPDATE  , val_range, 0, 0, 0);
+VAL_GEN(SP_UPDATE   , val_range, 0, 0, 0);
+
 
 }
 

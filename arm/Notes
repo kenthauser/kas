@@ -1,0 +1,11 @@
+ARM Notes
+
+1. Add "No-skip" to TOKEN
+
+2. STREXD: register restrictions: pair(t/t+1) & even(r)
+
+3. PC/NO-PC in regset.
+
+4. Count in regset (==1 or >1)
+
+

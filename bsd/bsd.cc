@@ -1,6 +1,5 @@
 // bsd/bsd.cc: instantiate parser elements
 
-#include "bsd_parser_types.h"
 #include "bsd_parser_def.h"
 
 namespace kas::bsd

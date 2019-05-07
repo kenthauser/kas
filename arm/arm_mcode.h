@@ -46,6 +46,8 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t, arm_stmt_t, error_msg, arm_mc
     //
     // override default methods
     //
+
+   uint8_t const sz() const { return _sz & 7; } 
 #if 0    
     // arm: base code & displacement interspersed in output
     template <typename ARGS_T> 

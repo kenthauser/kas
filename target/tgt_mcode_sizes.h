@@ -1,5 +1,14 @@
-#ifndef KAS_TARGET_TGT_MCODE_DEFN_SIZES_H
-#define KAS_TARGET_TGT_MCODE_DEFN_SIZES_H
+#ifndef KAS_TARGET_TGT_MCODE_SIZES_H
+#define KAS_TARGET_TGT_MCODE_SIZES_H
+
+//
+// The `tgt_mcode_sizes` is a support class for the `tgt_mcode_adder` class.
+//
+// This class is designed to help sort out the many ways "argument size" is encoded
+// into the machine code, and the many ways insn-name suffixes are used.
+//
+// To solve inserting the correct code in the correctd place, a "size_fn" class can be specified.
+// This SIZE_FN modifies the base `machine code`
 
 
 #include <meta/meta.hpp>

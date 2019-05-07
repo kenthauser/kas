@@ -80,6 +80,7 @@ public:
     bool is_missing() const { return _mode == MODE_NONE; }
 
     // helper method for evaluation of insn: default implementation
+    // XXX should also allow `reg_t`
     bool is_const () const
     {
         return expr.get_fixed_p();

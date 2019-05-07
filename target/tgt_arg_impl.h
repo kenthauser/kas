@@ -23,6 +23,9 @@ template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T>
 tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
         ::tgt_arg_t(std::pair<expr_t, MODE_T> const& parsed) : expr (parsed.first)
 {
+    std::cout << "arg_t::ctor mode = " << +parsed.second << " expr = " << expr;
+    std::cout << " *this::loc = " << static_cast<parser::kas_loc>(*this) << std::endl;
+    
     // accumulate error
     auto  mode = parsed.second;
     const char *msg   {};
@@ -40,6 +43,9 @@ tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
     if constexpr (!std::is_void<REGSET_T>::value)
         rs_p = expr.template get_p<REGSET_T>();
 
+    if (rs_p)
+        std::cout << "tgt_arg::ctor: regset loc = " << rs_p->loc() << std::endl;
+
     // big switch to evaluate DIRECT/INDIRECT/IMMEDIATE
     switch (mode)
     {
@@ -54,6 +60,28 @@ tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
         // immediate must be non-register expression
         if (reg_p || rs_p)
             msg = error_msg::ERR_argument;
+        break;
+
+    case MODE_T::MODE_REGSET:
+        if constexpr (!std::is_void<REGSET_T>::value)
+        {
+            if (rs_p && rs_p->kind() != -REGSET_T::RS_OFFSET)
+                break;
+        }
+        msg = error_msg::ERR_argument;
+        break;
+
+    case MODE_T::MODE_REG_OFFSET:
+        if constexpr (!std::is_void<REGSET_T>::value)
+        {
+            if (rs_p && rs_p->kind() == -REGSET_T::RS_OFFSET)
+            {
+                reg = rs_p->reg();
+                expr = rs_p->offset();
+                break;
+            }
+        }
+        msg = error_msg::ERR_argument;
         break;
 
     case MODE_T::MODE_INDIRECT:

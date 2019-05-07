@@ -90,11 +90,12 @@ using token_types = meta::list<
             , token_at_num
             , token_missing
             >;
-        
+
+// XXX use `NAME` member-types & write some MPL for this       
 static constexpr const char *bsd_token_names[] =
             { "IDENT", "DOT", "@IDENT", "@NUM", "MISSING" };
 
-// write some MPL for this
+// XXX write some MPL for this
 static constexpr bool token_has_value[] =
             { false, false, false, true, false };
 

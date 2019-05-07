@@ -166,7 +166,7 @@ void tgt_mcode_defn<MCODE_T>::print(std::ostream& os) const
     os << std::dec;
     os << std::endl;
     os << " -> name = \"" << name();
-    os << "\" vals: " << vals();
+    os << "\", " << vals();
 }
     
 }

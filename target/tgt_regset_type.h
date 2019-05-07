@@ -96,10 +96,11 @@ public:
 
     template <typename OS> void print(OS&) const;
     
-private:
+    // expose binop to facilitate manual regset manipulation
     derived_t& binop(const char op, tgt_reg_set const& r);
     derived_t& binop(const char op, core::core_expr const& r);
     derived_t& binop(const char op, int r);
+private:
 
     // state is list of reg-set ops
     using reg_set_op = std::pair<char, reg_t>;

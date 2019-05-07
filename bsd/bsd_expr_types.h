@@ -5,6 +5,8 @@
 #include "kas_core/core_types.h"
 #include "expr/literal_types.h"
 
+#include <boost/mpl/string.hpp>
+
 #include <boost/spirit/home/x3.hpp>
 
 namespace kas::bsd
@@ -22,6 +24,14 @@ namespace parser
     BOOST_SPIRIT_DECLARE(sym_parser_x3)
 }
 }
+
+namespace kas::parser::detail
+{
+    // declare default BSD comment & separator values
+    template<typename = void> struct fmt_separator_str : boost::mpl::string<'!'> {};
+    template<typename = void> struct fmt_comment_str   : boost::mpl::string<';'> {};
+}
+
 
 
 // BSD doesn't define new types to add, just parsers

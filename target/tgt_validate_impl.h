@@ -23,7 +23,7 @@ void tgt_validate_args<MCODE_T>::print(std::ostream& os) const
     for (auto n = 0; n < arg_count; ++n)
     {
         if (delim) os << delim;
-        os << names_base[arg_index[n]-1];
+        os << names_base[arg_index[n]];
         delim = ',';
     }
     os << "]" << std::endl;
