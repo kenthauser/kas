@@ -73,7 +73,11 @@ VAL_GEN(REG_OFFSET  , val_range, 0, 0, 0);
 VAL_GEN(REG_UPDATE  , val_range, 0, 0, 0);
 VAL_GEN(SP_UPDATE   , val_range, 0, 0, 0);
 
-
+VAL_GEN(IFLAGS      , val_range, 0, 0, 0);
+VAL_GEN(ENDIAN      , val_range, 0, 0, 0);
+VAL_GEN(ONES        , val_range, 0, 0, 0);
+VAL_GEN(DMB_OPTION  , val_range, 0, 0, 0);
+VAL_GEN(ISB_OPTION  , val_range, 0, 0, 0);
 }
 
 #undef VAL_REG

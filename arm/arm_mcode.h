@@ -7,11 +7,17 @@
 namespace kas::arm
 {
 
-// all arm instructions have a specified "size" of operand
-enum m68k_op_size_t
+// all instructions have a specified "size" of operand
+// these are the bits in `SZ`
+static constexpr auto SZ_SZ_COND_MASK = 0x0f;
+static constexpr auto SZ_SZ_S_FLAG    = 0x10;
+static constexpr auto SZ_SZ_N_FLAG    = 0x20;
+static constexpr auto SZ_SZ_W_FLAG    = 0x40;
+
+// single arm insn size XXX none?
+enum arm_op_size_t
 {
       OP_SIZE_WORD
-    , OP_SIZE_BYTE
     , NUM_OP_SIZE
 };
 
@@ -47,7 +53,7 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t, arm_stmt_t, error_msg, arm_mc
     // override default methods
     //
 
-   uint8_t const sz() const { return _sz & 7; } 
+   uint8_t const sz() const { return _sz & 0; } 
 #if 0    
     // arm: base code & displacement interspersed in output
     template <typename ARGS_T> 

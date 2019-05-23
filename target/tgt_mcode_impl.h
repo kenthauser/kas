@@ -194,6 +194,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     }
 
     auto& sz_obj = d.sizes_base[d.sz_index];
+#ifdef XXX
     if (!sz_obj.single_size)
     {
         auto& size_fn = sz_obj.size_fn;
@@ -201,7 +202,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         std::cout << "adding code: " << std::hex << +sz_code << " sz = " << +sz() << std::endl;
         code_data[size_fn.word()] |= sz_code;
     }
-    
+#endif
 
     return code_data;
 }

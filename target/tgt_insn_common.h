@@ -40,7 +40,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 #include "tgt_mcode_sizes.h"        // need `sz_void`
-#include "tgt_mcode_cond.h"         // declare condition-code based sizes
+//#include "tgt_mcode_cond.h"         // declare condition-code based sizes
 #include "tgt_mcode_defn.h"         // declare constexpr defn
 #include "kas/kas_string.h"         // name as type
 
@@ -89,8 +89,11 @@ static constexpr auto DEFN_IDX_VAL  = 6;
 template <typename SZ, typename NAME, typename OP_INFO, typename FMT = void, typename...Ts>
 struct insn_defn
 {
+    // default "size" is `list<>`
+    using DEFN_SZ = meta::if_<std::is_same<void, SZ>, meta::list<>, SZ>;
+
     // six fixed types, plus additional `VALIDATORs`
-    using type = meta::list<SZ
+    using type = meta::list<DEFN_SZ
                           , NAME
                           , typename OP_INFO::code
                           , typename OP_INFO::tst

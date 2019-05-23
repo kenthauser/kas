@@ -1,0 +1,131 @@
+5/18/2019
+
+ARM argument syntax: refer to ARM V7: A8.x Instruction Descriptions
+
+
+
+// 1. register direct
+REG
+
+// 2. register update (register value is updated after access)
+//      may be valid for SP only...
+REG !
+
+// 3. offset addressing:
+//      address = REG + offset
+[REG, offset]
+
+// 4. pre-indexed addressing:
+//      REG += offset; address = REG
+[REG, offset]!
+
+// 5. post-index addressing: 
+//      address = REG; REG += offset
+[REG], offset
+
+// 6. Register sets:
+{ Rx-Ry, Rz... }
+
+// **** SHIFTS ****
+
+Constant Shifts applied to Register
+
+(omitted)   // type = 0b00, immed = 0
+
+LSL #n      // 1 <= n <= 31, type = 0b00
+
+LSR #n      // 0 <= n <= 32, type = 0b01
+
+ASR #n      // 0 <= n <= 32, type = 0b10
+
+ROR #n      // 1 <= n <= 31, type = 0b11
+
+RRX         // type = 0b11, immed = 0 
+
+// NB: for LSL, LSR, ASR, ROR: if immed == 0, type = 0b00
+
+Register Controlled Shifts:
+// above, but REGs instead of #n. Thus no RRX
+
+// 7. Shift constant
+{shft} #n   // no consant if RRX
+
+// 8. Shift register
+{shft} Rs   // RRX not allowed
+
+
+// **** Memory Access ****
+// See A8.8.67 LDR
+
+// Formats:
+// NB: this is always last ARG
+[Rn, +/- Rm  {, SHIFT }]    // offset  P = 1, W = 0
+[Rn, +/- Rm  {, SHIFT }]!   // pre-indexed, P = 1, W = 1
+
+// XXX See STRT
+[Rn], +/- Rm {, SHIFT}      // post-indexed: NB: two args follow indir arg, P = 0, W = 1
+
+
+// 9. ENDIAN
+
+BE -> 1, LE -> 0
+
+// 10. Data Synchronization Barrier
+
+SY      -> L
+ST      -> 0b1110
+ISH     -> 0b1011
+ISHST   -> 0b1010
+NSH     -> 0b0111
+NSHST   -> 0b0110
+OSH     -> 0b0011
+OSHST   -> 0b0010
+
+SH:     alias for ISH
+SHST:   alias for ISHST
+UN:     alias for NSH
+UNST:   alias for NSHST
+
+
+
+///  Parse token: REG, SHIFT, INDIRECT, {ENDIAN,DSB, etc}
+
+SHIFT: 16-bit type: 5-bit shift, 2-bit type, 4-bit register, 1-bit "is_register": -> 12-bits
+
+REG PLUS/MINUS: 6-bits: 00 -> no reg, 01 -> +reg, 11 -> -reg; -> 6 bits
+
+Base : 4-bits: reg#, 1-bit write-back: -> 5 bits
+
+**********************
+
+Parsed Arguments:
+
+1) Direct: expr (handles LABEL, reg, regset)
+
+2) SHIFT: stand alone arg, or as part of INDIRECT. Evaluates to uint16_t, default value of zero.
+
+3) ENDIAN & DSB: TBD.
+
+4) Indirect:
+
+General format: [ Rbase, {+/- Offset} ]
+
+Formats:
+1) [Rn]                     # indirect
+2) [Rn, #+/- imm12]         # offset (NB +0 != -0)
+3) [Rn, +/- Rm]             # offset
+4) [Rn, +/- Rm, LSR #nn]    # offset
+5) [Rn, +/- Rm, LSR Rs]     # offset
+(1-5) repeated with trailing `!` for preindex (write-back = true)
+
+11) [Rn], #+/- imm12        # post-index (write-back = true)
+12) [Rn], +/- Rm       
+13) [Rn], +/- Rm, LSR #nn
+14) [Rn], +/- Rm, LSR Rs
+
+1) # Int
+2) +/- Roffset
+3) +/- Roffset, SHIFT
+
+
+NB: Direct and Indirect can have `!` suffix to indicate "writeback update"

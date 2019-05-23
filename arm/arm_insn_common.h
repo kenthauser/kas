@@ -8,8 +8,9 @@
 
 #include "arm_format.h"             // actual format types
 #include "arm_validate.h"           // actual validate types
+#include "arm_mcode_sizes.h"        // define ARM insn variants
 
-#include "target/tgt_insn_common.h"  // declare "trait" for definition
+#include "target/tgt_insn_common.h" // declare "trait" for definition
 
 namespace kas::arm::opc
 {
@@ -21,15 +22,24 @@ using arm_insn_defn_groups = meta::list<
 
 template <typename=void> struct arm_insn_defn_list : meta::list<> {};
 
+using namespace tgt::opc;
 using namespace tgt::opc::traits;
-using tgt::opc::define_sz;
-using tgt::opc::sz_void;
 
-using sz_v    = sz_void;
-using sz_b    = define_sz<OP_SIZE_BYTE>;
-using sz_w    = define_sz<OP_SIZE_WORD>;
+using sz_v    = void;
+using sz_w    = meta::int_<0>;
 
-// 
+using a7_u    = arm_sz<SZ_ARCH_ARM>;
+using a7_c    = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND>;
+using a7_cq   = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_NW_FLAG>;
+using a7_cqs  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_NW_FLAG, SZ_DEFN_S_FLAG>;
+using a7_nq   = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_NW_FLAG, SZ_DEFN_NO_AL>;
+using a7_nqs  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_NW_FLAG, SZ_DEFN_S_FLAG, SZ_DEFN_NO_AL>;
+using a7_q    = arm_sz<SZ_ARCH_ARM, SZ_DEFN_NW_FLAG>;
+
+// support for `cond` : add condition field 
+// support for `no-al`: don't add `al` case
+// support for `S`: update sign
+// add support for `.n` & `.w` (narrow or wide)
 
 }
 

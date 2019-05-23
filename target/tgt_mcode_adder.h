@@ -104,7 +104,7 @@ struct tgt_defn_adder
             std::cout << std::endl;
 #endif
             auto& sz_obj = p->sizes_base[p->sz_index];
-            for (auto sz : sz_obj)
+            for (auto&& sz : sz_obj)
             {
                 // XXX don't worry about hw validators: allocate all
                 mcode_t *mcode_p {};
@@ -112,10 +112,10 @@ struct tgt_defn_adder
                 // create the "mcode instance" 
                 // NB: use "deque::size()" for instance index
                 mcode_p = &mcode_obstack->emplace_back(mcode_obstack->size(), n, sz);
-                auto name = p->name();
+                auto base_name = p->name();
 
                 // test for "list" opcode
-                if (name[0] == '*')
+                if (base_name[0] == '*')
                 {
                     // save list opcode "mcode" as global in `insn_t`
                     insn_t::list_mcode_p = mcode_p;
@@ -123,7 +123,7 @@ struct tgt_defn_adder
                 }
                
                 // each size may generate several names. first is canonical for disassembler
-                for (auto&& name : sz_obj(p->name(), sz))
+                for (auto&& name : sz_obj(base_name, sz))
                 {
 #ifdef TRACE_INSN_ADD
                     std::cout << "insn name: " << name << ", size = " << +sz << std::endl;

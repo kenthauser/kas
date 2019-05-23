@@ -43,26 +43,6 @@ struct cc_trait
 };
 #endif
 
-using cc_names = list<
-          cc_trait< 0, STR("eq")>
-        , cc_trait< 1, STR("ne")>
-        , cc_trait< 2, STR("cs")>
-        , cc_trait< 2, STR("hs")>
-        , cc_trait< 3, STR("cc")> 
-        , cc_trait< 3, STR("lo")>
-        , cc_trait< 4, STR("mi")>
-        , cc_trait< 5, STR("pl")>
-        , cc_trait< 6, STR("vs")>
-        , cc_trait< 7, STR("vc")>
-        , cc_trait< 8, STR("hi")>
-        , cc_trait< 9, STR("ls")>
-        , cc_trait<10, STR("ge")>
-        , cc_trait<11, STR("lt")>
-        , cc_trait<12, STR("lt")>
-        , cc_trait<13, STR("le")>
-        , cc_trait<14, STR("")>
-        , cc_trait<14, STR("al")>
-        >;
 #if 0
 // a `callable` to create `insn` for each condition code
 template <unsigned shift, typename SZ, typename NAME, typename...Args>
@@ -85,9 +65,12 @@ template <typename...Ts>
 using cond = defn<Ts...>;
 #endif
 
+#if 0
 template <typename...Ts>
 using Xcond = transform<cc_names, cc_gen_defn<32-4, Ts...>>;
-
+#else
+#define Xcond cond
+#endif
 
 using arm_insn_common_l = list<list<>
 
@@ -100,9 +83,15 @@ using arm_insn_common_l = list<list<>
 // XXX SUB/ADD with PC: form PC-relative address
 
 // assemble `stm sp!, ...` as push
-, cond<sz_w, STR("stm") , OP<0x92d'0000>, FMT_X, SP_UPDATE, REGSET>
+, defn<a7_cqs, STR("stm") , OP<0x92d'0000>, FMT_X, SP_UPDATE, REGSET>
 // assemble `ldm sp!, ...` as pop
-, cond<sz_w, STR("ldm") , OP<0x8ad'0000>, FMT_X, SP_UPDATE, REGSET>
+, defn<a7_cqs, STR("ldm") , OP<0x8ad'0000>, FMT_X, SP_UPDATE, REGSET>
+
+// XXX temp
+, defn<a7_cqs, STR("b")  , OP<0xa00'0000>, FMT_X, LABEL>
+, defn<sz_w, STR("mov")   , OP<0x8000>, FMT_X   , REG, REG>
+, defn<sz_w, STR("push")  , OP<0x8001>, FMT_X   , REG>
+
 
 >;
 
@@ -129,8 +118,8 @@ using data_processing = list<list<>
 template <typename NAME, unsigned ARM_OP>
 using saturating_math = list<list<>
 // register, (2 formats)
-, cond<sz_w, NAME, OP<0x100'0050 | (ARM_OP << 21), void>, FMT_X, REG, REG, REG>
-, cond<sz_w, NAME, OP<0x100'0050 | (ARM_OP << 21), void>, FMT_X, REG, REG>
+, defn<a7_cqs, NAME, OP<0x100'0050 | (ARM_OP << 21), void>, FMT_X, REG, REG, REG>
+, defn<a7_cqs, NAME, OP<0x100'0050 | (ARM_OP << 21), void>, FMT_X, REG, REG>
 >;
 
 // Data Processing: ARM-7 A+R section 5.2, pg A5-195
@@ -168,9 +157,9 @@ using arm_insn_data_l       = list<list<>
 , cond<sz_s, STR("mul")  , OP<0x000'0090>      , FMT_X, REG, REG, REG>
 , cond<sz_s, STR("mul")  , OP<0x000'0090>      , FMT_X, REG, REG>
 , cond<sz_s, STR("mla")  , OP<0x020'0090>      , FMT_X, REG, REG, REG, REG>
-, cond<sz_w, STR("umaal"), OP<0x040'0090, void>, FMT_X, REG, REG, REG, REG>
-, cond<sz_w, STR("mls")  , OP<0x060'0090, void>, FMT_X, REG, REG, REG, REG>
-, cond<sz_w, STR("mls")  , OP<0x060'0090, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("umaal"), OP<0x040'0090, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("mls")  , OP<0x060'0090, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("mls")  , OP<0x060'0090, void>, FMT_X, REG, REG, REG, REG>
 , cond<sz_s, STR("umull"), OP<0x080'0090>      , FMT_X, REG, REG, REG, REG>
 , cond<sz_s, STR("umlal"), OP<0x0a0'0090>      , FMT_X, REG, REG, REG, REG>
 , cond<sz_s, STR("smull"), OP<0x0c0'0090>      , FMT_X, REG, REG, REG, REG>
@@ -183,85 +172,86 @@ using arm_insn_data_l       = list<list<>
 , saturating_math<STR("qdsub"), 3>
 
 // A5.6.7 Halfword multiply and multiply accumulate
-, cond<sz_w, STR("smlabb"), OP<0x100'0080, void>, FMT_X, REG, REG, REG, REG>
-, cond<sz_w, STR("smlabt"), OP<0x100'00a0, void>, FMT_X, REG, REG, REG, REG>
-, cond<sz_w, STR("smlatb"), OP<0x100'00c0, void>, FMT_X, REG, REG, REG, REG>
-, cond<sz_w, STR("smlatt"), OP<0x100'00e0, void>, FMT_X, REG, REG, REG, REG>
+// XXX candidate for MLP
+, defn<a7_cqs, STR("smlabb"), OP<0x100'0080, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("smlabt"), OP<0x100'00a0, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("smlatb"), OP<0x100'00c0, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("smlatt"), OP<0x100'00e0, void>, FMT_X, REG, REG, REG, REG>
 
-, cond<sz_w, STR("smlawb"), OP<0x120'0080, void>, FMT_X, REG, REG, REG, REG>
-, cond<sz_w, STR("smlawt"), OP<0x120'00c0, void>, FMT_X, REG, REG, REG, REG>
-, cond<sz_w, STR("smulwb"), OP<0x120'00a0, void>, FMT_X, REG, REG, REG>
-, cond<sz_w, STR("smulwb"), OP<0x120'00a0, void>, FMT_X, REG, REG, REG, REG>
-, cond<sz_w, STR("smulwt"), OP<0x120'00e0, void>, FMT_X, REG, REG, REG>
-, cond<sz_w, STR("smulwt"), OP<0x120'00e0, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("smlawb"), OP<0x120'0080, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("smlawt"), OP<0x120'00c0, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("smulwb"), OP<0x120'00a0, void>, FMT_X, REG, REG, REG>
+, defn<a7_cqs, STR("smulwb"), OP<0x120'00a0, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("smulwt"), OP<0x120'00e0, void>, FMT_X, REG, REG, REG>
+, defn<a7_cqs, STR("smulwt"), OP<0x120'00e0, void>, FMT_X, REG, REG, REG, REG>
 
-, cond<sz_w, STR("smlalbb"), OP<0x140'0080, void>, FMT_X, REG, REG, REG, REG>
-, cond<sz_w, STR("smlalbt"), OP<0x140'00a0, void>, FMT_X, REG, REG, REG, REG>
-, cond<sz_w, STR("smlaltb"), OP<0x140'00c0, void>, FMT_X, REG, REG, REG, REG>
-, cond<sz_w, STR("smlaltt"), OP<0x140'00e0, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("smlalbb"), OP<0x140'0080, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("smlalbt"), OP<0x140'00a0, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("smlaltb"), OP<0x140'00c0, void>, FMT_X, REG, REG, REG, REG>
+, defn<a7_cqs, STR("smlaltt"), OP<0x140'00e0, void>, FMT_X, REG, REG, REG, REG>
 
-, cond<sz_w, STR("smulbb"), OP<0x160'0080, void>, FMT_X, REG, REG, REG>
-, cond<sz_w, STR("smulbb"), OP<0x160'0080, void>, FMT_X, REG, REG>
-, cond<sz_w, STR("smulbt"), OP<0x160'00a0, void>, FMT_X, REG, REG, REG>
-, cond<sz_w, STR("smulbt"), OP<0x160'00a0, void>, FMT_X, REG, REG>
-, cond<sz_w, STR("smultb"), OP<0x160'00c0, void>, FMT_X, REG, REG, REG>
-, cond<sz_w, STR("smultb"), OP<0x160'00c0, void>, FMT_X, REG, REG>
-, cond<sz_w, STR("smultt"), OP<0x160'00e0, void>, FMT_X, REG, REG, REG>
-, cond<sz_w, STR("smultt"), OP<0x160'00e0, void>, FMT_X, REG, REG>
+, defn<a7_cqs, STR("smulbb"), OP<0x160'0080, void>, FMT_X, REG, REG, REG>
+, defn<a7_cqs, STR("smulbb"), OP<0x160'0080, void>, FMT_X, REG, REG>
+, defn<a7_cqs, STR("smulbt"), OP<0x160'00a0, void>, FMT_X, REG, REG, REG>
+, defn<a7_cqs, STR("smulbt"), OP<0x160'00a0, void>, FMT_X, REG, REG>
+, defn<a7_cqs, STR("smultb"), OP<0x160'00c0, void>, FMT_X, REG, REG, REG>
+, defn<a7_cqs, STR("smultb"), OP<0x160'00c0, void>, FMT_X, REG, REG>
+, defn<a7_cqs, STR("smultt"), OP<0x160'00e0, void>, FMT_X, REG, REG, REG>
+, defn<a7_cqs, STR("smultt"), OP<0x160'00e0, void>, FMT_X, REG, REG>
 
 // A5.2.8 Extra Load/store instructions
 // XXX
 // A5.2.9 Extra Load/store instructions, unprivileged
 // XXX
 // A5.2.10 Sychronization primitives
-,cond<sz_w, STR("swp")   , OP<0x100'0090>      , FMT_X, REG, REG, REG_INDIR>
-,cond<sz_w, STR("swpb")  , OP<0x140'0090>      , FMT_X, REG, REG, REG_INDIR>
-,cond<sz_w, STR("strex") , OP<0x180'0090, void>, FMT_X, REG, REG, REG_OFFSET>
-,cond<sz_w, STR("ldrex") , OP<0x190'0f9f, void>, FMT_X, REG, REG_OFFSET>
-,cond<sz_w, STR("strexd"), OP<0x1a0'0f90, void>, FMT_X, REG, REG, REG, REG_INDIR>
-,cond<sz_w, STR("ldrexd"), OP<0x1b0'0f9f, void>, FMT_X, REG, REG, REG_INDIR>
-,cond<sz_w, STR("strexb"), OP<0x1c0'0f90, void>, FMT_X, REG, REG, REG_INDIR>
-,cond<sz_w, STR("ldrexb"), OP<0x1d0'0f9f, void>, FMT_X, REG, REG_INDIR>
-,cond<sz_w, STR("strexh"), OP<0x1c0'0f90, void>, FMT_X, REG, REG, REG_INDIR>
-,cond<sz_w, STR("ldrexh"), OP<0x1d0'0f9f, void>, FMT_X, REG, REG_INDIR>
+,defn<a7_cqs, STR("swp")   , OP<0x100'0090>      , FMT_X, REG, REG, REG_INDIR>
+,defn<a7_cqs, STR("swpb")  , OP<0x140'0090>      , FMT_X, REG, REG, REG_INDIR>
+,defn<a7_cqs, STR("strex") , OP<0x180'0090, void>, FMT_X, REG, REG, REG_OFFSET>
+,defn<a7_cqs, STR("ldrex") , OP<0x190'0f9f, void>, FMT_X, REG, REG_OFFSET>
+,defn<a7_cqs, STR("strexd"), OP<0x1a0'0f90, void>, FMT_X, REG, REG, REG, REG_INDIR>
+,defn<a7_cqs, STR("ldrexd"), OP<0x1b0'0f9f, void>, FMT_X, REG, REG, REG_INDIR>
+,defn<a7_cqs, STR("strexb"), OP<0x1c0'0f90, void>, FMT_X, REG, REG, REG_INDIR>
+,defn<a7_cqs, STR("ldrexb"), OP<0x1d0'0f9f, void>, FMT_X, REG, REG_INDIR>
+,defn<a7_cqs, STR("strexh"), OP<0x1c0'0f90, void>, FMT_X, REG, REG, REG_INDIR>
+,defn<a7_cqs, STR("ldrexh"), OP<0x1d0'0f9f, void>, FMT_X, REG, REG_INDIR>
 
 // A5.2.11 MSR (immediate), and hints
-,cond<sz_w, STR("nop")   , OP<0x320'f000, void>, FMT_X>
-,cond<sz_w, STR("yield") , OP<0x320'f001, void>, FMT_X>
-,cond<sz_w, STR("wfe")   , OP<0x320'f002, void>, FMT_X>
-,cond<sz_w, STR("wfi")   , OP<0x320'f003, void>, FMT_X>
-,cond<sz_w, STR("sev")   , OP<0x320'f004, void>, FMT_X>
-,cond<sz_w, STR("csdb")  , OP<0x320'f014, void>, FMT_X>
-,cond<sz_w, STR("dbg")   , OP<0x320'f0f0, void>, FMT_X, IMM4>
+,defn<a7_cqs, STR("nop")   , OP<0x320'f000, void>, FMT_X>
+,defn<a7_cqs, STR("yield") , OP<0x320'f001, void>, FMT_X>
+,defn<a7_cqs, STR("wfe")   , OP<0x320'f002, void>, FMT_X>
+,defn<a7_cqs, STR("wfi")   , OP<0x320'f003, void>, FMT_X>
+,defn<a7_cqs, STR("sev")   , OP<0x320'f004, void>, FMT_X>
+,defn<a7_cqs, STR("csdb")  , OP<0x320'f014, void>, FMT_X>
+,defn<a7_cqs, STR("dbg")   , OP<0x320'f0f0, void>, FMT_X, IMM4>
 
 // XXX need work on inserters
-,cond<sz_w, STR("msr")   , OP<0x324'f000>      , FMT_X, APSR, IMM12>
-,cond<sz_w, STR("msr")   , OP<0x328'f000>      , FMT_X, CPSR, IMM12>
+,defn<a7_cqs, STR("msr")   , OP<0x324'f000>      , FMT_X, APSR, IMM12>
+,defn<a7_cqs, STR("msr")   , OP<0x328'f000>      , FMT_X, CPSR, IMM12>
 
-,cond<sz_w, STR("msr")   , OP<0x320'f000>      , FMT_X, APSR, IMM12>
-,cond<sz_w, STR("msr")   , OP<0x320'f000>      , FMT_X, CPSR, IMM12>
-,cond<sz_w, STR("msr")   , OP<0x320'f000>      , FMT_X, SPSR, IMM12>
+,defn<a7_cqs, STR("msr")   , OP<0x320'f000>      , FMT_X, APSR, IMM12>
+,defn<a7_cqs, STR("msr")   , OP<0x320'f000>      , FMT_X, CPSR, IMM12>
+,defn<a7_cqs, STR("msr")   , OP<0x320'f000>      , FMT_X, SPSR, IMM12>
 
-,cond<sz_w, STR("msr")   , OP<0x360'f000>      , FMT_X, APSR, IMM12>
-,cond<sz_w, STR("msr")   , OP<0x360'f000>      , FMT_X, CPSR, IMM12>
-,cond<sz_w, STR("msr")   , OP<0x360'f000>      , FMT_X, SPSR, IMM12>
+,defn<a7_cqs, STR("msr")   , OP<0x360'f000>      , FMT_X, APSR, IMM12>
+,defn<a7_cqs, STR("msr")   , OP<0x360'f000>      , FMT_X, CPSR, IMM12>
+,defn<a7_cqs, STR("msr")   , OP<0x360'f000>      , FMT_X, SPSR, IMM12>
 
 
 // A5.2.12 Miscellaneous instructions
 // XXX code for MRS/MSR incomplete
-, cond<sz_w, STR("mrs") , OP<0x100'0200, void>, FMT_X, REG, REG>
-, cond<sz_w, STR("msr") , OP<0x102'0200, void>, FMT_X, REG, REG>
+, defn<a7_cqs, STR("mrs") , OP<0x100'0200, void>, FMT_X, REG, REG>
+, defn<a7_cqs, STR("msr") , OP<0x102'0200, void>, FMT_X, REG, REG>
 
-, cond<sz_w, STR("bx")  , OP<0x12f'ff10, void>, FMT_X, REG>
-, cond<sz_w, STR("clz") , OP<0x16f'0f10, void>, FMT_X, REG, REG>
-, cond<sz_w, STR("bxj") , OP<0x12f'ff20, void>, FMT_X, REG>
-, cond<sz_w, STR("blx") , OP<0x12f'ff30, void>, FMT_X, REG>
-, cond<sz_w, STR("eret"), OP<0x160'006e, void>>
-, cond<sz_w, STR("bkpt"), OP<0x120'0070, void>, FMT_X, IMM16>
-, cond<sz_w, STR("hpc") , OP<0x140'0070, void>, FMT_X, IMM16>
-, cond<sz_w, STR("smc") , OP<0x160'0070, void>, FMT_X, IMM4>
+, defn<a7_cqs, STR("bx")  , OP<0x12f'ff10, void>, FMT_X, REG>
+, defn<a7_cqs, STR("clz") , OP<0x16f'0f10, void>, FMT_X, REG, REG>
+, defn<a7_cqs, STR("bxj") , OP<0x12f'ff20, void>, FMT_X, REG>
+, defn<a7_cqs, STR("blx") , OP<0x12f'ff30, void>, FMT_X, REG>
+, defn<a7_cqs, STR("eret"), OP<0x160'006e, void>>
+, defn<a7_cqs, STR("bkpt"), OP<0x120'0070, void>, FMT_X, IMM16>
+, defn<a7_cqs, STR("hpc") , OP<0x140'0070, void>, FMT_X, IMM16>
+, defn<a7_cqs, STR("smc") , OP<0x160'0070, void>, FMT_X, IMM4>
 // NB: alias for SMC
-, cond<sz_w, STR("smi") , OP<0x160'0070, void>, FMT_X, IMM4>
+, defn<a7_cqs, STR("smi") , OP<0x160'0070, void>, FMT_X, IMM4>
 
 >;
 
@@ -274,36 +264,36 @@ using arm_insn_media_l      = list<list<>
 
 // `branch_l` metafunctions
 template <unsigned PU, typename NAME, typename...SYNs>
-using stm = cond<sz_w, NAME, OP<0x150'0000 | (PU << 23)>, FMT_X, REGSET>;
+using stm = defn<a7_cqs, NAME, OP<0x150'0000 | (PU << 23)>, FMT_X, REGSET>;
 
 template <unsigned PU, typename NAME, typename...SYNs>
-using ldm = cond<sz_w, NAME, OP<0x150'0000 | (PU << 23)>, FMT_X, REGSET>;
+using ldm = defn<a7_cqs, NAME, OP<0x150'0000 | (PU << 23)>, FMT_X, REGSET>;
 
 using arm_insn_branch_l     = list<list<>
 // A5.5 Branch, Branch with Link, block transfer
-, cond<sz_w, STR("stmda"), OP<0x800'0000>, FMT_X, REG       , REGSET>
-, cond<sz_w, STR("stmda"), OP<0x820'0000>, FMT_X, REG_UPDATE, REGSET>
+, defn<a7_cqs, STR("stmda"), OP<0x800'0000>, FMT_X, REG       , REGSET>
+, defn<a7_cqs, STR("stmda"), OP<0x820'0000>, FMT_X, REG_UPDATE, REGSET>
 
-, cond<sz_w, STR("ldmda"), OP<0x810'0000>, FMT_X, REG       , REGSET>
-, cond<sz_w, STR("ldmda"), OP<0x830'0000>, FMT_X, REG_UPDATE, REGSET>
+, defn<a7_cqs, STR("ldmda"), OP<0x810'0000>, FMT_X, REG       , REGSET>
+, defn<a7_cqs, STR("ldmda"), OP<0x830'0000>, FMT_X, REG_UPDATE, REGSET>
 
-, cond<sz_w, STR("stm")  , OP<0x880'0000>, FMT_X, REG       , REGSET>
-, cond<sz_w, STR("stm")  , OP<0x8a0'0000>, FMT_X, REG_UPDATE, REGSET>
+, defn<a7_cqs, STR("stm")  , OP<0x880'0000>, FMT_X, REG       , REGSET>
+, defn<a7_cqs, STR("stm")  , OP<0x8a0'0000>, FMT_X, REG_UPDATE, REGSET>
 
-, cond<sz_w, STR("ldm")  , OP<0x880'0000>, FMT_X, REG       , REGSET>
-, cond<sz_w, STR("ldm")  , OP<0x8a0'0000>, FMT_X, REG_UPDATE, REGSET>
+, defn<a7_cqs, STR("ldm")  , OP<0x880'0000>, FMT_X, REG       , REGSET>
+, defn<a7_cqs, STR("ldm")  , OP<0x8a0'0000>, FMT_X, REG_UPDATE, REGSET>
 
-, cond<sz_w, STR("stmdb"), OP<0x920'0000>, FMT_X, REG       , REGSET>
-, cond<sz_w, STR("stmdb"), OP<0x920'0000>, FMT_X, REG_UPDATE, REGSET>
+, defn<a7_cqs, STR("stmdb"), OP<0x920'0000>, FMT_X, REG       , REGSET>
+, defn<a7_cqs, STR("stmdb"), OP<0x920'0000>, FMT_X, REG_UPDATE, REGSET>
 
-, cond<sz_w, STR("ldmdb"), OP<0x910'0000>, FMT_X, REG       , REGSET>
-, cond<sz_w, STR("ldmdb"), OP<0x930'0000>, FMT_X, REG_UPDATE, REGSET>
+, defn<a7_cqs, STR("ldmdb"), OP<0x910'0000>, FMT_X, REG       , REGSET>
+, defn<a7_cqs, STR("ldmdb"), OP<0x930'0000>, FMT_X, REG_UPDATE, REGSET>
 
-, cond<sz_w, STR("stmib"), OP<0x980'0000>, FMT_X, REG       , REGSET>
-, cond<sz_w, STR("stmib"), OP<0x9a0'0000>, FMT_X, REG_UPDATE, REGSET>
+, defn<a7_cqs, STR("stmib"), OP<0x980'0000>, FMT_X, REG       , REGSET>
+, defn<a7_cqs, STR("stmib"), OP<0x9a0'0000>, FMT_X, REG_UPDATE, REGSET>
 
-, cond<sz_w, STR("ldmib"), OP<0x990'0000>, FMT_X, REG       , REGSET>
-, cond<sz_w, STR("ldmib"), OP<0x9b0'0000>, FMT_X, REG_UPDATE, REGSET>
+, defn<a7_cqs, STR("ldmib"), OP<0x990'0000>, FMT_X, REG       , REGSET>
+, defn<a7_cqs, STR("ldmib"), OP<0x9b0'0000>, FMT_X, REG_UPDATE, REGSET>
 
 , stm<0, STR("da"), STR("ed")>  // decrement after,  empty descending
 , stm<2, STR("db"), STR("fd")>  // decrement before, full descending
@@ -321,34 +311,82 @@ using arm_insn_branch_l     = list<list<>
 //, ldm<1, STR("ia"), STR("fd")>  // increment after,  full descending 
 //, ldm<3, STR("ib"), STR("ed")>  // increment before, empty descending
 
-, Xcond<sz_w, STR("b")  , OP<(0xa  << 24)>, FMT_X, IMM24>
-, Xcond<sz_w, STR("bl") , OP<(0xb  << 24)>, FMT_X, IMM24>
-// XXX don't understand `H` bit in `blx`
+, defn<a7_cqs, STR("b")  , OP<(0xa  << 24)>, FMT_X, IMM24>
+, defn<a7_cqs, STR("bl") , OP<(0xb  << 24)>, FMT_X, IMM24>
+// XXX don't understand `H` bit in `blx` (half-word)
 , defn<sz_w, STR("blx"), OP<(0xfau << 24)>, FMT_X, IMM24>
 
 
 
 // STMED is pseudonym for STMDA
 // LDMFA is pseudonym for LDMDA
+// LDMEA is pseudonym for LDMDB
 // STMIA, STMEA are pseudonyms for STM
 // LDMIA, LDMEA are pseudonyms for LDM
-// LDMIA, LDMEA are pseudonyms for LDM
-// LDMEA psudonym for LDMDB
-
-
 >;
+
 using arm_insn_cp_supv_l    = list<list<>
 // A5.6 Coprocessor instructions, and supervisor call
 >;
+
 using arm_insn_uncond_l     = list<list<>
 // A5.7 Unconditional Instructions
+// XXX aliases da, db, ia, ib
+, defn<a7_q, STR("srsda")  , OP<0xf84d'0500>, FMT_X, SP, IMM5>
+, defn<a7_q, STR("srsda")  , OP<0xf86d'0500>, FMT_X, SP_UPDATE, IMM5>
+
+, defn<a7_q, STR("srsdb")  , OP<0xf84d'0500>, FMT_X, SP, IMM5>
+, defn<a7_q, STR("srsdb")  , OP<0xf86d'0500>, FMT_X, SP_UPDATE, IMM5>
+
+, defn<a7_q, STR("srsia")  , OP<0xf84d'0500>, FMT_X, SP, IMM5>
+, defn<a7_q, STR("srsia")  , OP<0xf86d'0500>, FMT_X, SP_UPDATE, IMM5>
+
+, defn<a7_q, STR("srsib")  , OP<0xf8cd'0500>, FMT_X, SP, IMM5>
+, defn<a7_q, STR("srsib")  , OP<0xf8ed'0500>, FMT_X, SP_UPDATE, IMM5>
+
+// XXX aliases da, db, ia, ib
+, defn<a7_q, STR("rfeda")  , OP<0xf84d'0500>, FMT_X, REG>
+, defn<a7_q, STR("rfeda")  , OP<0xf86d'0500>, FMT_X, REG_UPDATE>
+
+, defn<a7_q, STR("rfedb")  , OP<0xf84d'0500>, FMT_X, REG>
+, defn<a7_q, STR("rfedb")  , OP<0xf86d'0500>, FMT_X, REG_UPDATE>
+
+, defn<a7_q, STR("rfeia")  , OP<0xf84d'0500>, FMT_X, REG>
+, defn<a7_q, STR("rfeia")  , OP<0xf86d'0500>, FMT_X, REG_UPDATE>
+
+, defn<a7_q, STR("rfeib")  , OP<0xf8cd'0500>, FMT_X, REG>
+, defn<a7_q, STR("rfeib")  , OP<0xf8ed'0500>, FMT_X, REG_UPDATE>
+
+, defn<a7_cq, STR("bl")    , OP<0x0b00'0000>, FMT_X, LABEL>
+, defn<a7_q , STR("blx")   , OP<0xfa00'0000>, FMT_X, LABEL>
+
+// XXX Co-processor instructions
+//, defn<a7_cq, STR("stc")   , OP<0x0c00'0000>, FMT_X, COPROC, CP_REG, REG_INDIR>
+//, defn<a7_cq, STR("stc")   , OP<0x0c00'0000>, FMT_X, COPROC, CP_REG, REG_UPDATE>
 
 
-// XXX temp
-, cond<sz_w, STR("b")  , OP<0xa00'0000>, FMT_X, LABEL>
-, defn<sz_w, STR("mov")   , OP<0x8000>, FMT_X   , REG, REG>
-, defn<sz_w, STR("push")  , OP<0x8001>, FMT_X   , REG>
+// A5.7.1 Memory hints, and miscellaneous
+, defn<a7_q, STR("cpsie"), OP<0xf>, FMT_X, IFLAGS>
+, defn<a7_q, STR("cpsie"), OP<0xf>, FMT_X, IFLAGS, IMM4>
+, defn<a7_q, STR("cpsid"), OP<0xf>, FMT_X, IFLAGS>
+, defn<a7_q, STR("cpsid"), OP<0xf>, FMT_X, IFLAGS, IMM4>
+, defn<a7_q, STR("cps")  , OP<0xf>, FMT_X, IMM4>
 
+, defn<a7_q, STR("setend"), OP<0xf101'0000>, FMT_X, ENDIAN>
+, defn<a7_q, STR("pli")   , OP<0xf450'f000>, FMT_X, REG , IMM12>    // Indirect
+, defn<a7_q, STR("pli")   , OP<0xf450'f000>, FMT_X, LABEL>
+, defn<a7_q, STR("pli")   , OP<0xf450'f000>, FMT_X, PC, ONES>       // Indirect
+, defn<a7_q, STR("pld")   , OP<0xf550'f000>, FMT_X, REG, IMM12>     // Indirect
+, defn<a7_q, STR("pldw")  , OP<0xf510'f000>, FMT_X, REG, IMM12>     // Indirect, write-back
+, defn<a7_q, STR("pld")   , OP<0xf55f'f000>, FMT_X, LABEL>          // Indirect
+, defn<a7_q, STR("pldw")  , OP<0xf55f'f000>, FMT_X, PC, ONES>       // Indirect
+, defn<a7_q, STR("clrex") , OP<0xf57f'f01f>>
+, defn<a7_q, STR("dsb")   , OP<0xf57f'f040>, FMT_X, DMB_OPTION>
+, defn<a7_q, STR("dmb")   , OP<0xf57f'f050>, FMT_X, DMB_OPTION>
+, defn<a7_q, STR("isb")   , OP<0xf57f'f060>, FMT_X, ISB_OPTION>
+, defn<a7_q, STR("pli")   , OP<0xf650'f000>, FMT_X, REG_INDIR>
+, defn<a7_q, STR("pld")   , OP<0xf750'f000>, FMT_X, REG_INDIR>
+, defn<a7_q, STR("pldw")  , OP<0xf710'f000>, FMT_X, REG_INDIR>
 >;
 
 

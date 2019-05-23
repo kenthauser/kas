@@ -92,9 +92,9 @@ auto const dot_ident = token<token_dot>['.' >> !bsd_charset];
 auto const missing = token<token_missing>[eps];
 
 // parser @ "tokens" (used by ELF)
-auto const at_token_init = omit[char_("@%#")];
-auto const at_ident = token<token_at_ident>[(at_token_init >> !digit) > +bsd_charset];
-auto const at_num   = token<token_at_num>  [ at_token_init >   uint_  > !bsd_charset];
+auto const at_token_initial = omit[char_("@%#")];
+auto const at_ident = token<token_at_ident>[(at_token_initial >> !digit) > +bsd_charset];
+auto const at_num   = token<token_at_num>  [ at_token_initial >   uint_  > !bsd_charset];
 
 // 
 // expose dot and idents to `expr` parsers
@@ -189,9 +189,9 @@ auto const stmt_org_def   = raw_stmt_org;
 
 // interface to top-level parser
 stmt_comma_x3  stmt_comma   {"bsd_comma"};
-stmt_space_x3  stmt_space   {"bsd_space" };
-stmt_equ_x3    stmt_equ     {"bsd_equ"   };
-stmt_org_x3    stmt_org     {"bsd_org"   };
+stmt_space_x3  stmt_space   {"bsd_space"};
+stmt_equ_x3    stmt_equ     {"bsd_equ"  };
+stmt_org_x3    stmt_org     {"bsd_org"  };
 
 BOOST_SPIRIT_DEFINE(stmt_comma, stmt_space, stmt_equ, stmt_org)
 
