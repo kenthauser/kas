@@ -1,11 +1,14 @@
 ARM Notes
 
 1. Add "No-skip" to TOKEN
+    - alt: make `expr` ignore skip
 
 2. STREXD: register restrictions: pair(t/t+1) & even(r)
 
-3. PC/NO-PC in regset.
+3. PC/NO-PC in regset. (XXX what insn)
 
 4. Count in regset (==1 or >1)
+
+
 
 

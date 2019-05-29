@@ -7,7 +7,7 @@
 __Z5hellov:
 @ %bb.0:
 	mov	r7, sp
-	push	{r7,lr}
+	push	{r7, lr}
 	sub	sp, sp, #4
 	ldr	r1, LCPI0_0
 LPC0_0:

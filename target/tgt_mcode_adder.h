@@ -97,7 +97,7 @@ struct tgt_defn_adder
         auto p = defns;
         for (int n = 0; n < count; ++p, ++n)
         {
-#define TRACE_INSN_ADD
+//#define TRACE_INSN_ADD
 #ifdef TRACE_INSN_ADD
             std::cout << "adding: " << +n << " ";
             p->print(std::cout);

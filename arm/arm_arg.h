@@ -38,23 +38,8 @@ enum arm_arg_mode : uint8_t
 
 };
 
-// support types: help parsing `indirect` and `shift`
-
-// parsed SHIFT formats
-enum arm_shift_parsed
-{
-      ARM_SHIFT_NONE
-    , ARM_SHIFT_LSL
-    , ARM_SHIFT_LSL_REG
-    , ARM_SHIFT_LSR
-    , ARM_SHIFT_LSR_REG
-    , ARM_SHIFT_ASR
-    , ARM_SHIFT_ASR_REG
-    , ARM_SHIFT_ROR
-    , ARM_SHIFT_ROR_REG
-    , ARM_SHIFT_RRX
-    , NUM_ARM_SHIFT
-};
+// forward declare for print methods
+struct arm_arg_t;
 
 // allow `arm_shift` to be initialized & treaded as `uint16_t`
 struct arm_shift : detail::alignas_t<arm_shift, uint16_t>
@@ -62,7 +47,13 @@ struct arm_shift : detail::alignas_t<arm_shift, uint16_t>
     using base_t::base_t;
 
     template <typename OS>
-    void print(OS& os) const;
+    void print(OS& os, arm_arg_t const&) const;
+
+    // true if arg is shifted
+    operator bool() const
+    {
+        return value() != 0;
+    }
 
     uint16_t    ext    : 8;
     uint16_t    reg    : 4;
@@ -70,58 +61,22 @@ struct arm_shift : detail::alignas_t<arm_shift, uint16_t>
     uint16_t    is_reg : 1;
 };
 
-enum arm_indir_t : uint8_t
+// allow `arm_indirect` to be initialized & treaded as `uint16_t`
+struct arm_indirect: detail::alignas_t<arm_indirect, uint16_t>
 {
-      ARM_INDIR_NONE        //  0
-    , ARM_INDIR_REG         //  1
-    , ARM_INDIR_REG_WB      //  2
-    , ARM_PRE_INDEX_IMM     //  3
-    , ARM_PRE_INDEX_IMM_WB  //  4
-    , ARM_PRE_INDEX_REG     //  5
-    , ARM_PRE_INDEX_REG_WB  //  6
-    // NB: all post-index are WB. add dummy's to make even values
-    , _ARM_POST_INDEX_IMM_X //  7 dummy placeholder
-    , ARM_POST_INDEX_IMM    //  8 has writeback
-    , _ARM_POST_INDEX_REG_X //  9 dummy
-    , ARM_POST_INDEX_REG    // 10 has writeback
-    , NUM_ARM_INDIRECT 
-};
-
-// support types to facilitate parsing
-struct arm_indirect
-{
-    arm_indirect(arm_indir_t indir = {}) : indir(indir) {}
-
-    // constructor
-    template <typename Context>
-    void operator()(Context const& ctx);
+    // ARM7 flags (all shifted 20 bits)
+    static constexpr auto S_FLAG = 0x01;    // 1 = status update XXX doesn't belong
+    static constexpr auto W_FLAG = 0x02;    // 1 = write-back
+    static constexpr auto U_FLAG = 0x08;    // 1 = up (ie add) 
+    static constexpr auto P_FLAG = 0x10;    // 1 = pre-index
+    static constexpr auto R_FLAG = 0x80;    // 1 = use REG (XXX not std)
 
     template <typename OS>
-    void print(OS& os) const;
+    void print(OS& os, arm_arg_t const&) const;
     
-    arm_reg_t   base_reg;
-    arm_reg_t   offset_reg;
-    expr_t      offset;
-    arm_shift   shift;
-    arm_indir_t indir;
-    bool        sign {};
+    uint16_t    flags : 8;
+    uint16_t    reg   : 8;
 };
-
-struct arm_shift_arg
-{
-    arm_shift_arg(int shift_op = {}) : shift_op(shift_op) {}
-
-    // constructor
-    template <typename Context>
-    void operator()(Context const& ctx);
-
-    uint8_t      shift_op;
-    arm_arg_mode mode {MODE_SHIFT};
-    expr_t       expr;      // for error
-    arm_shift    shift;
-};
-
-
 
 
 // `REG_T` & `REGSET_T` args also allow `MCODE_T` to lookup types
@@ -131,25 +86,14 @@ struct arm_arg_t : tgt::tgt_arg_t<arm_arg_t, arm_arg_mode, arm_reg_t, arm_reg_se
     using base_t::base_t;
     using error_msg = typename base_t::error_msg;
 
-    // ARM7 flags
-    static constexpr auto S_FLAG = 0x01;    // 1 = update status
-    static constexpr auto W_FLAG = 0x02;    // 1 = write-back
-    static constexpr auto U_FLAG = 0x08;    // 1 = add
-    static constexpr auto P_FLAG = 0x10;    // 1 = pre-index
-
-    // default CTOR is std::pair<expr_t, MODE_T>
-    // add ARM specific ctors
-    arm_arg_t(arm_shift_arg const&);
-    arm_arg_t(arm_indirect  const&);
-
     // declare size of immed args
     static constexpr tgt::tgt_immed_info sz_info [] =
         {
               { 4 }         // 0: WORD // XXX delete completely??
         };
 
-    arm_shift    shift;
-    arm_indirect indir;      // indirect types
+    arm_shift    shift;      // support shifts
+    arm_indirect indir;      // support indir
 };
 
 }
