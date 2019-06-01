@@ -1,41 +1,30 @@
-	.section	__TEXT,__text,regular,pure_instructions
-	.macosx_version_min 10, 13
-	.syntax unified
-	.globl	__Z5hellov              @ -- Begin function _Z5hellov
-	.p2align	2
-	.code	32                      @ @_Z5hellov
-__Z5hellov:
-@ %bb.0:
 	mov	r7, sp
-	push	{r7, lr}
-	sub	sp, sp, #4
-	ldr	r1, LCPI0_0
-LPC0_0:
-	add	r1, pc, r1
+    mov r6, #12
+    mov r5, #50000
+    mov r1, r2, LSR #5
+    mov r8, r9, ror #0
+    mov r3, r4, asr r5
 	mov	r0, sp
-	bl	__ZN3ioslsEPKc
-	ldr	r1, LCPI0_1
-LPC0_1:
-	add	r1, pc, r1
-	bl	__ZN3ioslsEPKc
-	mov	sp, r7
-	pop	{r7, lr}
-	bx	lr
-	.p2align	2
-@ %bb.1:
-	.data_region
-LCPI0_0:
-	.long	L_.str-(LPC0_0+8)
-LCPI0_1:
-	.long	L_.str.1-(LPC0_1+8)
-	.end_data_region
-                                        @ -- End function
-	.section	__TEXT,__cstring,cstring_literals
-L_.str:                                 @ @.str
-	.asciz	"hello, arm"
 
-L_.str.1:                               @ @.str.1
-	.asciz	"\n"
+    ldr r1, [r2]
+    ldr r1, [r3, #+0]
+    ldr r1, [r2, #-0]
+    ldr r2, [r3, #-4]
+    ldr r3, [r4, #5]!
+    ldr r6, [r7], #-8
+
+    ldr r7, l_label
+    ldr r8, g_label
+
+    ldr r0, [r1, -r2, asr #4]
+    ldr r2, [r3, +r4, rrx]!
+    ldr r3, [r4], r5, ror #0
 
 
-.subsections_via_symbols
+
+
+l_label:
+    .long   1234
+
+    .globl  g_label
+

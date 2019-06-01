@@ -68,7 +68,7 @@ struct arm_indirect_arg
     bool          sign {};
     bool          write_back {};
     bool          is_reg {};
-    arm_arg_mode  mode {MODE_REG_OFFSET};
+    arm_arg_mode  mode {MODE_REG_INDIR};
     uint8_t       op;
 };
 
@@ -154,7 +154,7 @@ void arm_indirect_arg::operator()(Context const& ctx)
     // 2. sign, reg_tok, optional(shift_arg), write_back
     auto& args = x3::_attr(ctx);
 
-    auto sign = boost::fusion::at_c<0>(args);
+         sign = boost::fusion::at_c<0>(args);
     auto& arg = boost::fusion::at_c<1>(args);
 
     // test if arg is `reg_t`
@@ -190,17 +190,17 @@ void arm_indirect_arg::operator()(Context const& ctx)
 // constuct `arm_arg` from parsed indirectd args
 arm_indirect_arg::operator arm_arg_t() 
 {
-    arm_indirect  indir;    // FLAGS, REG, W, P, U, R 
+    arm_indirect  indir;    // FLAGS, REG, M, W, P, R 
     
     switch (op)
     {
         default:
             // should throw...
         case ARM_INDIR_REG:
-            mode = MODE_INDIRECT;
+            indir.flags = arm_indirect::P_FLAG;
             break;
         case ARM_INDIR_REG_WB:
-            mode  = MODE_REG_UPDATE;
+            indir.flags = arm_indirect::P_FLAG;
             indir.flags = arm_indirect::W_FLAG;
             break;
         case ARM_PRE_INDEX:
@@ -214,7 +214,7 @@ arm_indirect_arg::operator arm_arg_t()
     if (write_back)
         indir.flags |= arm_indirect::W_FLAG;
     if (sign)
-        indir.flags |= arm_indirect::U_FLAG;
+        indir.flags |= arm_indirect::M_FLAG;
     if (is_reg)
     {
         indir.flags |= arm_indirect::R_FLAG;

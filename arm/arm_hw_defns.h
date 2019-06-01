@@ -17,6 +17,8 @@ using namespace meta;
 //   - member of `Feature Type List`
 
 #define CPU_FEATURE(_name) struct _name { using name = KAS_STRING(#_name); }; 
+#define THB_FEATURE  CPU_FEATURE
+#define FPU_FEATURE  CPU_FEATURE
 #include "arm_features.inc"
 
 using cpu_feature_types = pop_front<list<void
@@ -24,10 +26,26 @@ using cpu_feature_types = pop_front<list<void
 #include "arm_features.inc"
     >>;
 
+using thb_feature_types = pop_front<list<void
+#define THB_FEATURE(name) ,name
+#include "arm_features.inc"
+    >>;
+
+using fpu_feature_types = pop_front<list<void
+#define FPU_FEATURE(name) ,name
+#include "arm_features.inc"
+    >>;
+
 
 // create alias for feature definitons (set `Feature Type List`)
 template <typename...Args>
 using cpu_defn = hw_features<cpu_feature_types, Args...>;
+
+template <typename...Args>
+using thb_defn = hw_features<thb_feature_types, Args...>;
+
+template <typename...Args>
+using fpu_defn = hw_features<fpu_feature_types, Args...>;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -49,7 +67,22 @@ using cpu_defn = hw_features<cpu_feature_types, Args...>;
 using arm_base   = cpu_defn<STR("arm_base"), list<>
                     >;
 
-using arm        = cpu_defn<STR("arm"), arm_base>;
+using arm_v4     = cpu_defn<STR("arm_v4"), arm_base>;
+using arm_v4t    = cpu_defn<STR("arm_v4t"), arm_v4>;
+
+using arm_v5     = cpu_defn<STR("arm_v5"), arm_v4t>;
+using arm_v5t    = cpu_defn<STR("arm_v5t"), arm_v5>;
+using arm_v5te   = cpu_defn<STR("arm_v5te"), arm_v5t>;
+using arm_v5tej  = cpu_defn<STR("arm_v5tej"), arm_v5te>;
+
+using arm_v6     = cpu_defn<STR("arm_v6"), arm_v5tej>;
+using arm_v6k    = cpu_defn<STR("arm_v6k"), arm_v6>;
+using arm_v6t2   = cpu_defn<STR("arm_v6t2"), arm_v6>;
+
+using arm_v7     = cpu_defn<STR("arm_v7"), arm_v6t2>;
+using arm_v7a    = cpu_defn<STR("arm_v7a"), arm_v7>;
+using arm_v7r    = cpu_defn<STR("arm_v7r"), arm_v7>;
+using arm_v7m    = cpu_defn<STR("arm_v7m"), arm_v7>;
 
 //
 // These types can be used in opcode selection tests
@@ -57,8 +90,20 @@ using arm        = cpu_defn<STR("arm"), arm_base>;
 
 // first is default. all listed are available on command line
 using cpu_is_list = list<
-              arm       // default
-            , arm
+              arm_v7    // default
+            , arm_v4
+            , arm_v4t
+            , arm_v5
+            , arm_v5t
+            , arm_v5te
+            , arm_v5tej
+            , arm_v6
+            , arm_v6k
+            , arm_v6t2
+            , arm_v7
+            , arm_v7a
+            , arm_v7r
+            , arm_v7m
             >;
 
 

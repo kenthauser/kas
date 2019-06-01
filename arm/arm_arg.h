@@ -27,11 +27,6 @@ enum arm_arg_mode : uint8_t
 // Processor required modes
     , MODE_REG_UPDATE       // 10 update register after use (maybe only SP)
     , MODE_SHIFT            // 11 shift instruction
-#if 0
-    , MODE_PRE_INDEXED
-    , MODE_PRE_INDEXED_WB
-    , MODE_POST_INDEXED_WB
-#endif
 
 // Required enumeration
     , NUM_ARG_MODES
@@ -46,6 +41,7 @@ struct arm_shift : detail::alignas_t<arm_shift, uint16_t>
 {
     using base_t::base_t;
 
+    // immed stored in `arg_t`
     template <typename OS>
     void print(OS& os, arm_arg_t const&) const;
 
@@ -65,12 +61,13 @@ struct arm_shift : detail::alignas_t<arm_shift, uint16_t>
 struct arm_indirect: detail::alignas_t<arm_indirect, uint16_t>
 {
     // ARM7 flags (all shifted 20 bits)
-    static constexpr auto S_FLAG = 0x01;    // 1 = status update XXX doesn't belong
     static constexpr auto W_FLAG = 0x02;    // 1 = write-back
-    static constexpr auto U_FLAG = 0x08;    // 1 = up (ie add) 
+    static constexpr auto U_FLAG = 0x08;    // 1 = up (ie add) NB: calcualted
     static constexpr auto P_FLAG = 0x10;    // 1 = pre-index
-    static constexpr auto R_FLAG = 0x80;    // 1 = use REG (XXX not std)
+    static constexpr auto M_FLAG = 0x40;    // 1 = minus (inverse of U_FLAG)
+    static constexpr auto R_FLAG = 0x80;    // 1 = use REG
 
+    // shift & immed stored in `arg_t`
     template <typename OS>
     void print(OS& os, arm_arg_t const&) const;
     
@@ -92,6 +89,9 @@ struct arm_arg_t : tgt::tgt_arg_t<arm_arg_t, arm_arg_mode, arm_reg_t, arm_reg_se
               { 4 }         // 0: WORD // XXX delete completely??
         };
 
+    // override default print
+    template <typename OS> void print(OS&) const;
+    
     arm_shift    shift;      // support shifts
     arm_indirect indir;      // support indir
 };

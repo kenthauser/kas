@@ -93,15 +93,15 @@ struct _tag_expr : kas::parser::annotate_on_success {};
 
 // SHIFT: slightly complicated parser to prevent back-tracking
 auto const parse_shift = rule<class _, arm_shift_arg> {"parse_shift"}
-        = lit("lsl") > (('#' > expr_tok) [arm_shift_arg(ARM_SHIFT_LSL)]
+        = no_case["lsl"] > (('#' > expr_tok) [arm_shift_arg(ARM_SHIFT_LSL)]
                         | reg_tok        [arm_shift_arg(ARM_SHIFT_LSL)])
-        | lit("lsr") > (('#' > expr_tok) [arm_shift_arg(ARM_SHIFT_LSR)]
+        | no_case["lsr"] > (('#' > expr_tok) [arm_shift_arg(ARM_SHIFT_LSR)]
                         | reg_tok        [arm_shift_arg(ARM_SHIFT_LSR)])
-        | lit("asr") > (('#' > expr_tok) [arm_shift_arg(ARM_SHIFT_ASR)]
+        | no_case["asr"] > (('#' > expr_tok) [arm_shift_arg(ARM_SHIFT_ASR)]
                         | reg_tok        [arm_shift_arg(ARM_SHIFT_ASR)])
-        | lit("ror") > (('#' > expr_tok) [arm_shift_arg(ARM_SHIFT_ROR)]
+        | no_case["ror"] > (('#' > expr_tok) [arm_shift_arg(ARM_SHIFT_ROR)]
                         | reg_tok        [arm_shift_arg(ARM_SHIFT_ROR)])
-        | lit("rrx") >  attr(token_expr()) [arm_shift_arg(ARM_SHIFT_RRX)]
+        | no_case["rrx"] >  attr(token_expr()) [arm_shift_arg(ARM_SHIFT_RRX)]
         ;
 
 //
@@ -125,7 +125,7 @@ auto const parse_indir_terms = rule<class _, arm_indirect_arg> {"indir_terms"}
         // post-indexed
         = (']' >> (',' > (('#' > get_sign > expr_tok > attr(1))
                                             [arm_indirect_arg(ARM_POST_INDEX)]
-                          |(get_sign > reg_tok > -(lit(','), parse_shift) > attr(1))
+                          |(get_sign > reg_tok > -(lit(',') > parse_shift) > attr(1))
                                             [arm_indirect_arg(ARM_POST_INDEX)]
                           )))
 
@@ -140,7 +140,7 @@ auto const parse_indir_terms = rule<class _, arm_indirect_arg> {"indir_terms"}
                     [arm_indirect_arg(ARM_PRE_INDEX)]
 
         // pre-indexed, reg
-        | (',' >> (get_sign > reg_tok > -(lit(','), parse_shift) > ']' > get_write_back))
+        | (',' >> (get_sign > reg_tok > -(lit(',') > parse_shift) > ']' > get_write_back))
                     [arm_indirect_arg(ARM_PRE_INDEX)]
         ;
        
@@ -205,9 +205,9 @@ auto const simple_parsed_arg = rule<class _, arm_parsed_arg_t> {"arm_parsed_arg"
 // include more complex parsed args 
 //
 auto const raw_parsed_arg = rule<class _, arm_arg_t> { "raw_parsed_arg" }
-       = simple_parsed_arg
-       | '[' > parse_indir
+       = '[' > parse_indir
        | parse_shift
+       | simple_parsed_arg
        ;
 
 // convert "parsed pair" into arg via `tgt_arg_t` ctor

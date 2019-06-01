@@ -92,6 +92,7 @@ using arm_insn_common_l = list<list<>
 , defn<sz_w, STR("mov")   , OP<0x8000>, FMT_X   , REG, REG>
 , defn<sz_w, STR("push")  , OP<0x8001>, FMT_X   , REG>
 , defn<sz_w, STR("pop")  , OP<0x8001>, FMT_X   , REG>
+, defn<sz_w, STR("ldr")  , OP<0x8001>, FMT_X   , REG, REG>
 
 
 >;
