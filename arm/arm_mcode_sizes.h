@@ -49,8 +49,12 @@ static constexpr auto SZ_DEFN_NW_FLAG = 0x40;
 static constexpr auto SZ_DEFN_NO_AL   = 0x80;
 
 // only single-sizes have non-standard suffix treatment
+#if 1
+template <int...> using arm_sz = meta::int_<0>;
+#else
 template <int OP_ARCH, int...OP_FLAGS>
 using arm_sz = meta::int_<(OP_ARCH | ... | OP_FLAGS)>;
+#endif
 
 template <>
 struct tgt_mcode_sizes<arm::arm_mcode_t>

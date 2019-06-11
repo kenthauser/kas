@@ -118,6 +118,9 @@ struct tgt_validate_args
     using val_t     = typename MCODE_T::val_t;
     using adder_t   = typename MCODE_T::adder_t;
 
+    
+    // XXX 2019/06/01 KHB: std::array<> initializer should catch MAX_ARGs exceeded
+    // XXX apple clang doesn't
     template <typename...Ts>
     constexpr tgt_validate_args(list<Ts...>)
         : arg_index { Ts::value...  }

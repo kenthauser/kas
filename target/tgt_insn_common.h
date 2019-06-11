@@ -61,12 +61,13 @@ namespace kas::tgt::opc::traits
 // The `OP` alias is used for to allow specification of the TST & SIZE_FN arguments.
 // NB: default SIZE_FN passed as void, as `tgt_defn_sizes` is needed for access
 // to target `mcode_t`. Correct in `defn`
-template <std::size_t OPCODE, typename TST = void, typename SIZE_FN = void>
+template <std::size_t OPCODE, typename TST = void, typename SIZE_FN = void, std::size_t MASK = 0>
 struct OP
 {
     using type    = OP;
 
     using code    = std::integral_constant<std::size_t, OPCODE>;
+    using mask    = std::integral_constant<std::size_t, MASK>;
     using size_fn = SIZE_FN;
     
     // default tst "value" is always zero. Approximate

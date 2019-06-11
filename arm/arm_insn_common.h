@@ -20,6 +20,11 @@ using arm_insn_defn_groups = meta::list<
       struct OP_ARM_GEN
     >;
 
+#if 0
+template <std::size_t CODE, typename TST = void, typename MASK = 0>
+using OP = tgt::opc::traits::OP<CODE, TST, void, MASK>;
+#endif
+
 template <typename=void> struct arm_insn_defn_list : meta::list<> {};
 
 using namespace tgt::opc;

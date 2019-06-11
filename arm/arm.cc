@@ -22,6 +22,7 @@
 
 // arch impl files
 #include "arm_arg_impl.h"
+#include "arm_arg_serialize.h"
 #include "arm_mcode_impl.h"
 
 namespace kas::arm::parser

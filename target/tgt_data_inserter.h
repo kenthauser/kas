@@ -313,7 +313,11 @@ expression::e_fixed_t tgt_data_reader_t<MCODE_T>::get_fixed(int size)
     // extend with rest of chunks    
     while(--chunks)
     {
-        value <<= sizeof(value_type) * 8;
+        // XXX this is probably wrong.
+        if constexpr ((sizeof(value_type) * 8) >= sizeof (value))
+            value = 0;
+        else
+            value <<= sizeof(value_type) * 8;
         value  |= *next_word_p();       // don't sign-extend extension words
     }
 

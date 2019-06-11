@@ -64,7 +64,7 @@ struct arm_indirect_arg
     arm_reg_t     base_reg;
     arm_reg_t     offset_reg;
     expr_t        offset;
-    arm_shift_arg shift_arg;
+    arm_shift     shift;
     bool          sign {};
     bool          write_back {};
     bool          is_reg {};
@@ -157,7 +157,7 @@ void arm_indirect_arg::operator()(Context const& ctx)
          sign = boost::fusion::at_c<0>(args);
     auto& arg = boost::fusion::at_c<1>(args);
 
-    // test if arg is `reg_t`
+    // test if base arg is `reg_t`
     constexpr auto is_reg_arg = std::is_assignable_v<arm_reg_t, decltype(arg)>;
 
     if constexpr (is_reg_arg) 
@@ -174,7 +174,21 @@ void arm_indirect_arg::operator()(Context const& ctx)
 
         auto& opt_shift = boost::fusion::at_c<2>(args);
         if (opt_shift)
-            shift_arg = *opt_shift;
+        {
+            // propogate shift error & exclude `register` shift count
+            auto& shift_arg = *opt_shift;
+            if (shift_arg.mode == MODE_ERROR)
+            {
+                mode   = MODE_ERROR;
+                offset = shift_arg.expr;
+            }
+            else
+            {
+                shift = shift_arg.shift;
+                if (shift.is_reg)
+                    make_error("register shift not allowed for memory access", arg);
+            }
+        }
         write_back = boost::fusion::at_c<3>(args);
     }
 
@@ -211,27 +225,30 @@ arm_indirect_arg::operator arm_arg_t()
             break;
     }
 
+    // handle `[r2, +--+-+6]`
+    auto p = offset.get_fixed_p();
+    if (p && *p < 0)
+    {
+        offset = -*p;
+        sign = !sign;
+    }
+
     if (write_back)
         indir.flags |= arm_indirect::W_FLAG;
-    if (sign)
-        indir.flags |= arm_indirect::M_FLAG;
+    if (!sign)
+        indir.flags |= arm_indirect::U_FLAG;
     if (is_reg)
     {
         indir.flags |= arm_indirect::R_FLAG;
         indir.reg    = offset_reg.value(RC_GEN);
     }
+    if (shift)
+        indir.flags |= arm_indirect::S_FLAG;
 
-    // propogate `shift_arg` error
-    if (mode != MODE_ERROR && shift_arg.mode == MODE_ERROR)
-    {
-        offset = shift_arg.expr;
-        mode   = MODE_ERROR;
-    }
-    
     // values sorted, so construct arg
     arm_arg_t arg({offset, mode});
     arg.reg   = base_reg;
-    arg.shift = shift_arg.shift;
+    arg.shift = shift;
     arg.indir = indir;
     return arg;
 }

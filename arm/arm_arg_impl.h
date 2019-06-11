@@ -8,6 +8,54 @@
 namespace kas::arm
 {
 
+const char *arm_arg_t::set_mode(unsigned mode)
+{
+    // implement non-generic modes
+    switch (mode)
+    {
+        case MODE_REG_UPDATE:
+            {
+                reg_t *reg_p = expr.template get_p<reg_t>();
+                if (reg_p && reg_p->kind(RC_GEN) == RC_GEN)
+                {
+                    reg = *reg_p;
+                    expr = {};
+                }
+                else
+                    return "general register required";
+            }
+            break;
+        
+        default:
+            break;
+            
+    }
+    
+    base_t::set_mode(mode);
+    return {};
+}
+
+bool arm_arg_t::is_immed() const
+{
+    {
+        switch (mode())
+        {
+            case MODE_IMMEDIATE:
+            case MODE_IMMED_QUICK:
+            case MODE_IMMED_LOWER:     // :lower:
+            case MODE_IMMED_UPPER:     // :upper:
+            case MODE_IMMED_BYTE_0:    // :lower0_7:#
+            case MODE_IMMED_BYTE_1:    // :lower8_15:#
+            case MODE_IMMED_BYTE_2:    // :upper0_7:#
+            case MODE_IMMED_BYTE_3:    // :upper8_15:#
+                return true;
+            default:
+                return false;
+        }
+    }
+}
+
+
 template <typename OS>
 void arm_arg_t::print(OS& os) const
 {
@@ -20,6 +68,21 @@ void arm_arg_t::print(OS& os) const
         case MODE_IMMEDIATE:
             os << "#" << expr;
             break;
+
+        // parts of immed
+        case MODE_IMMED_LOWER:
+            os << "#:lower:" << expr; break;
+        case MODE_IMMED_UPPER:
+            os << "#:upper:" << expr; break;
+        case MODE_IMMED_BYTE_0:
+            os << "#:lower0_7:#" << expr; break;
+        case MODE_IMMED_BYTE_1:
+            os << "#:lower8_15:#" << expr; break;
+        case MODE_IMMED_BYTE_2:
+            os << "#:upper0_7:#" << expr; break;
+        case MODE_IMMED_BYTE_3:
+            os << "#:upper8_15:#" << expr; break;
+        
         case MODE_REG:
             os << reg;
             break;
@@ -75,7 +138,7 @@ void arm_indirect::print(OS& os, arm_arg_t const& arg) const
 {
     auto get_sign = [this](bool invert = false) -> const char *
         {
-            bool minus = !!(flags & M_FLAG) ^ invert;
+            bool minus = !(flags & S_FLAG) ^ invert;
             return minus ? "-" : "+";
         };
 
@@ -107,7 +170,7 @@ void arm_indirect::print(OS& os, arm_arg_t const& arg) const
             value = *p;
 
         // if constant zero, suppress `#+0`
-        if (!p || value || (flags & M_FLAG))
+        if (!p || value || !(flags & U_FLAG))
         {
             if (value < 0)
             {

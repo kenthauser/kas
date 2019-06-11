@@ -190,7 +190,10 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     while(n--)
     {
         *--p = value;
-        value >>= 8 * sizeof(mcode_size_t);
+        if constexpr ((8 * sizeof(mcode_size_t)) <= sizeof (value))
+            value >>= 8 * sizeof(mcode_size_t);
+        else
+            value = 0;
     }
 
     auto& sz_obj = d.sizes_base[d.sz_index];

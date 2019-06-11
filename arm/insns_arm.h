@@ -75,7 +75,8 @@ using Xcond = transform<cc_names, cc_gen_defn<32-4, Ts...>>;
 using arm_insn_common_l = list<list<>
 
 // Dummy machine-code for "list" opcode
-, defn<sz_w, STR("*LIST*"), OP<0>, FMT_LIST, REG, REG>
+//, defn<sz_w, STR("*LIST*"), OP<0>, FMT_LIST, REG, REG>
+, defn<sz_w, STR("*LIST*"), OP<0>, FMT_LIST>
 
 // "override" special cases to prefer different encodings
 // classic case is "ld reg, #0" -> mapped to "clr <reg>"
@@ -89,10 +90,21 @@ using arm_insn_common_l = list<list<>
 
 // XXX temp
 , defn<a7_cqs, STR("b")  , OP<0xa00'0000>, FMT_X, LABEL>
-, defn<sz_w, STR("mov")   , OP<0x8000>, FMT_X   , REG, REG>
-, defn<sz_w, STR("push")  , OP<0x8001>, FMT_X   , REG>
+, defn<sz_w, STR("push") , OP<0x8001>, FMT_X   , REG>
 , defn<sz_w, STR("pop")  , OP<0x8001>, FMT_X   , REG>
 , defn<sz_w, STR("ldr")  , OP<0x8001>, FMT_X   , REG, REG>
+
+, defn<a7_cqs, STR("mov") , OP<0x1a0'0000, void, void, 0xf000 >, FMT_12_0   , REG, REG> 
+, defn<a7_cqs, STR("mov") , OP<0x3a0'0000, void, void, 0xf000 >, FMT_12_F   , REG, U12> 
+, defn<a7_cq , STR("movw"), OP<0x300'0000, hw::v6t2           >, FMT_12_MOVW, REG, U16>
+, defn<a7_cq , STR("mov") , OP<0x300'0000, hw::v6t2           >, FMT_12_MOVW, REG, U16>
+// disassembles as LSR, ASR, etc.
+, defn<a7_cq , STR("mov") , OP<0xF00'0000                     >, FMT_12_0_F, REG, REG, SHIFT>
+
+, defn<a7_cqs, STR("ldr"), OP<0x410'0000>, FMT_12_F, REG, INDIR>
+, defn<a7_cqs, STR("ldr"), OP<0x41f'0000>, FMT_12_F, REG, LABEL>
+, defn<a7_cqs, STR("str"), OP<0x400'0000>, FMT_12_F, REG, INDIR>
+, defn<a7_cqs, STR("str"), OP<0x40f'0000>, FMT_12_F, REG, LABEL>
 
 
 >;
@@ -145,7 +157,7 @@ using arm_insn_data_l       = list<list<>
 , data_processing<sz_w, STR("cmp"), 21>
 , data_processing<sz_w, STR("cmn"), 23>
 , data_processing<sz_s, STR("orr"), 24>
-, data_processing<sz_s, STR("mov"), 26, 0, SHIFT_Z>
+// XXX, data_processing<sz_s, STR("mov"), 26, 0, SHIFT_Z>
 // XXX No IMMED for LSL, etc...
 , data_processing<sz_s, STR("lsl"), 26, 0, SHIFT_NZ>
 , data_processing<sz_s, STR("lsr"), 26, 1>

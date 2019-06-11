@@ -95,6 +95,7 @@ void tgt_insert_args(Inserter& inserter
     for (auto& arg : args)
     {
         typename MCODE_T::val_t const *val_p;
+        const char *val_name;
 
         // need `arg_info` scrach area. create one for modulo numbered args
         // (creates one for first argument)
@@ -113,7 +114,12 @@ void tgt_insert_args(Inserter& inserter
         // do work: pass validator if present
         // NB: may be more args than validators. LIST format only saves a few args in `code`
         if (val_iter != val_iter_end)
+        {
+            val_name = val_iter.name();
             val_p = &*val_iter++;
+        }
+        else
+            val_p = {};
 
         // if validator present, be sure it can hold type
         // XXX only required for "LIST" format.
@@ -123,9 +129,14 @@ void tgt_insert_args(Inserter& inserter
             if (val_p->ok(arg, sz, fits) != fits.yes)
                 val_p = nullptr;
         }
+
+        if (!val_p)
+            val_name = "*NONE*";
+        
         std::cout << "tgt_insert_args: " << +n 
                   << " mode = " << +arg.mode() 
                   << " arg = " << arg 
+                  << " val = " << val_name
                   << std::endl;
         detail::insert_one<MCODE_T>(inserter, n, p, arg, sz, fmt, val_p, code_p);
         ++n;

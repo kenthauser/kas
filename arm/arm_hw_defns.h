@@ -67,22 +67,22 @@ using fpu_defn = hw_features<fpu_feature_types, Args...>;
 using arm_base   = cpu_defn<STR("arm_base"), list<>
                     >;
 
-using arm_v4     = cpu_defn<STR("arm_v4"), arm_base>;
-using arm_v4t    = cpu_defn<STR("arm_v4t"), arm_v4>;
+using v4     = cpu_defn<STR("arm_v4"), arm_base>;
+using v4t    = cpu_defn<STR("arm_v4t"), v4>;
 
-using arm_v5     = cpu_defn<STR("arm_v5"), arm_v4t>;
-using arm_v5t    = cpu_defn<STR("arm_v5t"), arm_v5>;
-using arm_v5te   = cpu_defn<STR("arm_v5te"), arm_v5t>;
-using arm_v5tej  = cpu_defn<STR("arm_v5tej"), arm_v5te>;
+using v5     = cpu_defn<STR("arm_v5"), v4t>;
+using v5t    = cpu_defn<STR("arm_v5t"), v5>;
+using v5te   = cpu_defn<STR("arm_v5te"), v5t>;
+using v5tej  = cpu_defn<STR("arm_v5tej"), v5te>;
 
-using arm_v6     = cpu_defn<STR("arm_v6"), arm_v5tej>;
-using arm_v6k    = cpu_defn<STR("arm_v6k"), arm_v6>;
-using arm_v6t2   = cpu_defn<STR("arm_v6t2"), arm_v6>;
+using v6     = cpu_defn<STR("arm_v6"), v5tej>;
+using v6k    = cpu_defn<STR("arm_v6k"), v6>;
+using v6t2   = cpu_defn<STR("arm_v6t2"), v6>;
 
-using arm_v7     = cpu_defn<STR("arm_v7"), arm_v6t2>;
-using arm_v7a    = cpu_defn<STR("arm_v7a"), arm_v7>;
-using arm_v7r    = cpu_defn<STR("arm_v7r"), arm_v7>;
-using arm_v7m    = cpu_defn<STR("arm_v7m"), arm_v7>;
+using v7     = cpu_defn<STR("arm_v7"), v6t2>;
+using v7a    = cpu_defn<STR("arm_v7a"), v7>;
+using v7r    = cpu_defn<STR("arm_v7r"), v7>;
+using v7m    = cpu_defn<STR("arm_v7m"), v7>;
 
 //
 // These types can be used in opcode selection tests
@@ -90,20 +90,20 @@ using arm_v7m    = cpu_defn<STR("arm_v7m"), arm_v7>;
 
 // first is default. all listed are available on command line
 using cpu_is_list = list<
-              arm_v7    // default
-            , arm_v4
-            , arm_v4t
-            , arm_v5
-            , arm_v5t
-            , arm_v5te
-            , arm_v5tej
-            , arm_v6
-            , arm_v6k
-            , arm_v6t2
-            , arm_v7
-            , arm_v7a
-            , arm_v7r
-            , arm_v7m
+              v7    // default
+            , v4
+            , v4t
+            , v5
+            , v5t
+            , v5te
+            , v5tej
+            , v6
+            , v6k
+            , v6t2
+            , v7
+            , v7a
+            , v7r
+            , v7m
             >;
 
 

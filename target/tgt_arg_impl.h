@@ -21,13 +21,12 @@ namespace kas::tgt
 
 template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T>
 tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
-        ::tgt_arg_t(std::pair<expr_t, MODE_T> const& parsed) : expr (parsed.first)
+        ::tgt_arg_t(MODE_T mode, expr_t const& arg_expr) : expr(arg_expr)
 {
-    std::cout << "arg_t::ctor mode = " << +parsed.second << " expr = " << expr;
+    std::cout << "arg_t::ctor mode = " << +mode << " expr = " << expr;
     std::cout << " *this::loc = " << static_cast<parser::kas_loc>(*this) << std::endl;
     
     // accumulate error
-    auto  mode = parsed.second;
     const char *msg   {};
 
     // see if `reg` or `regset` in expr
@@ -260,7 +259,7 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
     {
         auto& info = immed_info(sz);
         if (info.sz_bytes != bytes)
-            throw std::logic_error{"arg_t::emit: invalid size four immediate arg"};
+            throw std::logic_error{"arg_t::emit: invalid size for immediate arg"};
 #if 0
         // check for floating point
         if (info.flt_fmt)
@@ -271,7 +270,8 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
 #endif
     }
             
-    base << core::set_size(bytes) << expr; 
+    if (bytes)
+        base << core::set_size(bytes) << expr; 
 }
 
 

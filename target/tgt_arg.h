@@ -51,13 +51,13 @@ struct tgt_arg_t : kas_token
     // error from `kas_error_t`
     tgt_arg_t(parser::kas_error_t err) : _mode(MODE_ERROR), err(err) {}
 
-    // ctor from default parser
-    tgt_arg_t(std::pair<expr_t, MODE_T> const&);
+    // ctor(s) for default parser
+    tgt_arg_t(std::pair<expr_t, MODE_T> const& p) : tgt_arg_t(p.second, p.first) {}
+    tgt_arg_t(std::pair<MODE_T, expr_t> const& p) : tgt_arg_t(p.first, p.second) {}
 
 protected:
-    // simplify derived class ctors
-    tgt_arg_t(arg_mode_t mode, expr_t e = {}) : tgt_arg_t({e, mode})
-            {}
+    // declare primary constructor
+    tgt_arg_t(arg_mode_t mode, expr_t const& e);
 
     // CRTP casts
     auto constexpr& derived() const
@@ -84,6 +84,18 @@ public:
     bool is_const () const
     {
         return expr.get_fixed_p();
+    }
+
+    bool is_immed () const
+    {
+        switch (mode())
+        {
+            case arg_mode_t::MODE_IMMEDIATE:
+            case arg_mode_t::MODE_IMMED_QUICK:
+                return true;
+            default:
+                return false;
+        }
     }
 
     // validate methods

@@ -25,7 +25,8 @@ enum arm_op_size_t
 // override defaults for various sizes
 struct arm_mcode_size_t : tgt::tgt_mcode_size_t
 {
-    using mcode_size_t = uint16_t;
+    static constexpr auto MAX_ARGS = 4;
+    using mcode_size_t = uint32_t;
 };
 
 // forward declare arm default mcode arg formatter

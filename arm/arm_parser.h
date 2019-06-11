@@ -192,12 +192,21 @@ auto const arg_regset = parse_regset > '}' > attr(MODE_REGSET);
 // Direct, Immediate, Register-set
 //
 
+
 using arm_parsed_arg_t = std::pair<expr_t, arm_arg_mode>;
 auto const simple_parsed_arg = rule<class _, arm_parsed_arg_t> {"arm_parsed_arg"}
         = (expr() > (('!' > attr(MODE_REG_UPDATE))
                      |      attr(MODE_DIRECT)
                      ))
-        | ('#' > expr()   > attr(MODE_IMMEDIATE))
+        | (lit('#') >
+          ( (":lower16:"    > expr() > attr(MODE_IMMED_LOWER))
+          | (":upper16:"    > expr() > attr(MODE_IMMED_UPPER))
+          | (":lower0_7:#"  > expr() > attr(MODE_IMMED_BYTE_0))
+          | (":lower8_15:#" > expr() > attr(MODE_IMMED_BYTE_1))
+          | (":upper0_7:#"  > expr() > attr(MODE_IMMED_BYTE_2))
+          | (":upper8_15:#" > expr() > attr(MODE_IMMED_BYTE_3))
+          | (                 expr() > attr(MODE_IMMEDIATE))
+          ))
         | ('{' > arg_regset)
         ;
 

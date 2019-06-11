@@ -103,7 +103,7 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         // format:
         //  0) fixed area: OK bitset in host order
         //  1) insn index
-        //  2) dummy word to hold args
+        //  2) dummy word to hold (first) args
         //  3) serialized args
 
         auto& fixed = data.fixed;
