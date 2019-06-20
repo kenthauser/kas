@@ -235,10 +235,94 @@ auto const arm_args = rule<class _, std::vector<arm_arg_t>> {"arm_args"}
        = arm_arg % ','              // allow comma seperated list of args
        | repeat(1)[arm_missing]     // no args: MODE_NONE, but location tagged
        ;
+        
+// XXX no_case
+struct ccode_parser : symbols<uint8_t>
+{
+    ccode_parser()
+    {
+        add ("eq",  0)
+            ("ne",  1)
+            ("cs",  2)
+            ("hs",  2)
+            ("cc",  3)
+            ("lo",  3)
+            ("mi",  4)
+            ("pl",  5)
+            ("vs",  6)
+            ("vc",  7)
+            ("hi",  8)
+            ("ls",  9)
+            ("ge", 10)
+            ("lt", 11)
+            ("lt", 12)
+            ("le", 13)
+            ("al", 14)      // rejected if `NO_AL` bit set
+            ;
+    }
+};
+
+// set "arm_stmt_t" flags based on condition codes & other insn-name flags
+auto gen_stmt = [](auto& ctx)
+    {
+        // result is `stmt_t`
+        arm_stmt_t stmt;
+        auto& flags = stmt.flags;
+        
+        auto& args   = _attr(ctx);
+        stmt.insn_p  = boost::fusion::at_c<0>(args);
+        auto& s_flag = boost::fusion::at_c<1>(args);
+        auto& ccode  = boost::fusion::at_c<2>(args);
+        auto& size   = boost::fusion::at_c<3>(args);
+       
+        if (s_flag)
+            flags.has_sflag = true;
+        if (ccode)
+        {
+            flags.has_ccode = true;
+            flags.ccode     = *ccode;
+        }
+        if (size)
+        {
+            switch (*size)
+            {
+                case 'N':
+                case 'n':
+                    flags.has_nflag = true;
+                    break;
+                case 'W':
+                case 'w':
+                    flags.has_wflag = true;
+                    break;
+                
+                // error case: set both nflag & wflag
+                default:
+                    flags.has_nflag = true;
+                    flags.has_wflag = true;
+                    break;
+            }
+        }
+        _val(ctx) = stmt;
+    };
+
+// need "named rule" to get proper error message
+auto const arm_insn_end = rule<class _> {"arm_insn_end"} = x3::blank;
+
+// ARM encodes several "options" in insn name. Decode them.
+// invalid options error out in `arm_insn_t::validate_args` 
+auto const parse_insn = rule<class _, arm_stmt_t> {"instruction"} = 
+        lexeme[(arm_insn_x3()           // insn_base_name
+                > -char_("sS")          // s-flag (update flags)
+                > -ccode_parser()       // condition code
+                > -(lit('.') >> char_("nNwW"))  // "size code" (.N & .W)
+                > arm_insn_end          // no trailing chars allowed
+                )[gen_stmt]
+                ];
+
 
 // need two rules to get tagging 
 auto const raw_arm_stmt = rule<class _, arm_stmt_t> {} = 
-                    (arm_insn_x3() > arm_args)[arm_stmt_t()];
+            (parse_insn > arm_args)[arm_stmt_t()];
 
 // Parser interface
 arm_stmt_x3 arm_stmt {"arm_stmt"};

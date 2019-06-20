@@ -39,6 +39,7 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
                  , bitset_t&      ok
                  , mcode_t const *mcode_p
                  , stmt_args_t&&  args
+                 , unsigned       stmt_flags
 
                  // and opcode data
                  , data_t&  data
@@ -69,7 +70,7 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
         
         auto inserter = base_t::tgt_data_inserter(data);
         inserter(op.index);
-        tgt_insert_args(inserter, op, std::move(args));
+        tgt_insert_args(inserter, op, std::move(args), stmt_flags);
         return this;
     }
     

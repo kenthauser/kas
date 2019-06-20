@@ -153,7 +153,7 @@ struct tgt_mcode_t
     }
     
     // machine code arranged as words: big-endian
-    auto code() const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
+    auto code(uint32_t stmt_flags) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
 
     void print(std::ostream&) const;
 

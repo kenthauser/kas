@@ -13,15 +13,47 @@
 namespace kas::tgt
 {
 
-template <typename INSN_T, typename ARG_T>
-struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<INSN_T, ARG_T>>
+template <typename DERIVED_T, typename INSN_T, typename ARG_T>
+struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<DERIVED_T, INSN_T, ARG_T>>
 {
-    using insn_t   = INSN_T;
-    using arg_t    = ARG_T;
+    using derived_t = DERIVED_T;
+    using base_t    = tgt_stmt;
+    using insn_t    = INSN_T;
+    using arg_t     = ARG_T;
+
+    using kas_error_t = parser::kas_error_t;
+
+protected:
+    // CRTP casts
+    auto& derived() const
+        { return *static_cast<derived_t const*>(this); }
+    auto& derived()
+        { return *static_cast<derived_t*>(this); }
+
+public:
 
     // method used to assemble instruction
-    // NB: if arg_t::reset() required, it must be in grammar
     core::opcode *gen_insn(core::opcode::data_t&);
+
+    // method validate args. Principally for target & address mode
+    template <typename ARGS_T, typename TRACE>
+    kas_error_t validate_args(insn_t const&, ARGS_T&, bool& args_arg_const, TRACE * = {}) const;
+
+    // method to validate mcode. Principally for target
+    template <typename MCODE_T>
+    const char *validate_mcode(MCODE_T *mcode_p) const;
+   
+    // statement flags: variable data stored in opcode `name`: eg `ble` (branch if less-than-or-equal)
+    // NB: not all architectures use `stmt_flags` to handle cases such as `ble`
+    // 1. Generate `code` based on `statement flags`
+    uint32_t get_stmt_flags() const { return {}; }
+
+    // 2. Modify `code` base value according to statement flags
+    static void apply_stmt_flags(uint32_t flags, void const *mcode_p, void *code_p) {}
+
+    // 3. Extract stored statment flags from previously modified code
+    static uint32_t extract_stmt_flags(void const *mcode_p, void *code_p) { return {}; }
+
 
     // methods used by test fixtures
     std::string name() const;

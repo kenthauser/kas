@@ -27,39 +27,20 @@ void tgt_insn_t<OPCODE_T, TST_T, MAX_MCODES, INDEX_T>::
 
 
 
-template <typename OPCODE_T, typename TST_T, unsigned MAX_MCODES, typename INDEX_T>
-template <typename ARGS_T, typename TRACE_T>
-auto  tgt_insn_t<OPCODE_T, TST_T, MAX_MCODES, INDEX_T>::
-        validate_args(ARGS_T& args
-                    , bool& args_are_const
-                    , TRACE_T *trace
-                    ) const -> kas_error_t
+template <typename O, typename T, unsigned M, typename I>
+uint8_t tgt_insn_t<O, T, M, I>::get_sz() const
 {
-#if 0
-    // if no opcodes, then result is HW_TST
-    if (mcodes.empty())
-        return { tst.name(), args.front() };
-#endif
+    if (mcodes.size())
+        return mcodes.front()->sz();
+    return 0;
+}
 
-    // if first is dummy, no args to check
-    if (args.front().is_missing())
-        return {};
-
-    // NB: pickup size from first mcode of insn
-    auto sz = mcodes.front()->sz();
-    for (auto& arg : args)
-    {
-        // if not supported, return error
-        if (auto diag = arg.ok_for_target(sz))
-            return diag;
-
-        // test if constant    
-        if (args_are_const)
-            if (!arg.is_const())
-                args_are_const = false;
-    }
-    
-    return {};
+template <typename O, typename T, unsigned M, typename I>
+template <typename OS>
+void tgt_insn_t<O, T, M, I>::
+        print(OS& os) const
+{
+    os << "[" << name << "]";
 }
 
 }

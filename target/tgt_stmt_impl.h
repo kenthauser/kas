@@ -1,6 +1,23 @@
 #ifndef KAS_TARGET_TGT_STMT_IMPL_H
 #define KAS_TARGET_TGT_STMT_IMPL_H
 
+// TGT_IMPL
+//
+// The principle `tgt_stmt` method is `gen_insn`. This method is invoked by `kas_core` to 
+// generate an "instruction" given a "statement".
+//
+// To select the proper instruction, three "validators" are invoked. These are:
+//
+// 1) stmt::validate_args   This validator ensures that argument `registers` and addressing
+//                          modes are valid for `target`.
+// 
+// 2) stmt::validate_mcode  This validator ensures `mcode` is valid for `target`. Also, all
+//                          non-standard `stmt` information must be consumed.
+//
+// 3) mcode::validate_args  This validator is applied to all `mcodes` in `tgt_insn` to match
+//                          arguments and mcodes. First pass is `OK/FAIL`. Second pass returns
+//                          size of resulting object code. First, shortest, is selected.
+
 #include "tgt_stmt.h"
 //#include "tgt_opc_quick.h"
 
@@ -16,8 +33,8 @@ namespace kas::tgt
 
 using namespace kas::core::opc;
 
-template <typename INSN_T, typename ARG_T>
-core::opcode *tgt_stmt<INSN_T, ARG_T>
+template <typename DERIVED_T, typename INSN_T, typename ARG_T>
+core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
         ::gen_insn(core::opcode::data_t& data)
 {
     // get support types from `mcode`
@@ -37,7 +54,6 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
     auto& insn = *insn_p;
     auto& fixed = data.fixed;
     
-    
     // print name/args
     if (trace)
     {
@@ -50,7 +66,7 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
     // validate args as appropriate for target
     // also note if all args are "const" (ie: just regs & literals)
     bool args_are_const = true;
-    if (auto diag = insn.validate_args(args, args_are_const, trace))
+    if (auto diag = derived().validate_args(insn, args, args_are_const, trace))
     {
         data.fixed.diag = diag;
         return {};
@@ -82,8 +98,15 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
         if (trace)
             *trace << "validating: " << +i << ": ";
 
-        auto result = mcode_p->validate_args(args, trace);
-        auto diag = result.first;
+        auto diag = derived().validate_mcode(mcode_p);
+        int  cur_index = 0;     // error is mcode, not arg
+
+        if (!diag)
+        {
+            auto result = mcode_p->validate_args(args, trace);
+            diag      = result.first;
+            cur_index = result.second;
+        }
         
         if (trace)
         {
@@ -96,7 +119,7 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
         if (!diag)
         {
             // match found. record in OK
-            // also record iff first matching
+            // also record mcode_p iff first matching
             ok.set(i);
             if (!matching_mcode_p)
                 matching_mcode_p = mcode_p;
@@ -105,10 +128,10 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
         }
         
         // diag: record best error message
-        else if (!err_msg || result.second > err_index)
+        else if (!err_msg || cur_index > err_index)
         {
             err_msg   = diag;
-            err_index = result.second;
+            err_index = cur_index;
         }
         
         ++i;        // next
@@ -184,8 +207,9 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
                 , ok
                 , matching_mcode_p
                 , std::move(args)
-                
-                // and opcode data
+                , derived().get_stmt_flags()
+
+                // and opcode data area reference
                 , data
                 );
 #else
@@ -194,14 +218,59 @@ core::opcode *tgt_stmt<INSN_T, ARG_T>
 }
 
 // test fixure routine to display statement name
-template <typename INSN_T, typename ARG_T>
-std::string tgt_stmt<INSN_T, ARG_T>::name() const
+template <typename DERIVED_T, typename INSN_T, typename ARG_T>
+std::string tgt_stmt<DERIVED_T, INSN_T, ARG_T>::name() const
 {
     using BASE_NAME = typename INSN_T::mcode_t::BASE_NAME;
     
-    auto name_prefix = kas::str_cat<BASE_NAME, KAS_STRING(":")>::value;
+    static constexpr auto name_prefix = kas::str_cat<BASE_NAME, KAS_STRING(":")>::value;
     return name_prefix + insn_p->name;
 }
+
+template <typename DERIVED_T, typename INSN_T, typename ARG_T>
+template <typename ARGS_T, typename TRACE_T>
+auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
+        validate_args(insn_t const& insn
+                    , ARGS_T& args
+                    , bool& args_are_const
+                    , TRACE_T *trace
+                    ) const -> kas_error_t
+{
+#if 0
+    // if no opcodes, then result is HW_TST
+    if (mcodes.empty())
+        return { tst.name(), args.front() };
+#endif
+
+    // if first is dummy, no args to check
+    if (args.front().is_missing())
+        return {};
+
+    // NB: pickup size from first mcode of insn
+    auto sz = insn.get_sz();
+    for (auto& arg : args)
+    {
+        // if not supported, return error
+        if (auto diag = arg.ok_for_target(sz))
+            return diag;
+
+        // test if constant    
+        if (args_are_const)
+            if (!arg.is_const())
+                args_are_const = false;
+    }
+    
+    return {};
+}
+
+template <typename DERIVED_T, typename INSN_T, typename ARG_T>
+template <typename MCODE_T>
+auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
+        validate_mcode(MCODE_T *mcode_p) const -> const char *
+{
+    return {};
+}
+
 }
 
 #endif

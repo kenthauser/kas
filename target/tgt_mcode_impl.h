@@ -177,7 +177,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-    code() const
+    code(unsigned stmt_flags) const
     -> std::array<mcode_size_t, MAX_MCODE_WORDS>
 {
     std::array<mcode_size_t, derived_t::MAX_MCODE_WORDS> code_data;

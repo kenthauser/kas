@@ -21,6 +21,7 @@
 #include "arm_parser.h"
 
 // arch impl files
+#include "arm_stmt_impl.h"
 #include "arm_arg_impl.h"
 #include "arm_arg_serialize.h"
 #include "arm_mcode_impl.h"
@@ -71,7 +72,8 @@ namespace kas::arm::parser
     // parser for opcode names
     arm_insn_x3 arm_insn_parser {"arm opcode"};
     
-    auto const arm_insn_parser_def = insn_sym_parser.x3();
+    //auto const arm_insn_parser_def = insn_sym_parser.x3();
+    auto const arm_insn_parser_def = insn_sym_parser.x3_raw();
     BOOST_SPIRIT_DEFINE(arm_insn_parser);
 
     // instantiate parsers

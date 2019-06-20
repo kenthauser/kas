@@ -1,8 +1,6 @@
 #ifndef KAS_TARGET_TGT_INSN_H
 #define KAS_TARGET_TGT_INSN_H
 
-// pulls forward declarations for all kas_core types
-//#include "kas_core/opcode.h"
 
 #include <cstdint>
 #include <deque>
@@ -14,8 +12,8 @@ namespace kas::tgt
 template <typename MCODE_T
         , typename TST_T      = std::uint16_t
         , unsigned MAX_MCODES = 16 
-        , typename INDEX_T    = std::uint16_t>
-
+        , typename INDEX_T    = std::uint16_t
+        >
 struct tgt_insn_t
 {
     using mcode_t   = MCODE_T;
@@ -25,7 +23,7 @@ struct tgt_insn_t
     using opcode    = core::opcode;
     using kas_error_t = parser::kas_error_t;
 
-    // used by "adder"
+// used by "adder"
     using obstack_t = std::deque<tgt_insn_t>;
     static inline const obstack_t *index_base;
     
@@ -45,20 +43,14 @@ struct tgt_insn_t
     template <typename ARGS_T>
     core::opcode *gen_insn(core::opcode::data_t&, ARGS_T&&) const;
 
-    template <typename ARGS_T, typename TRACE_T>
-    kas_error_t validate_args(ARGS_T& args, bool& args_arg_const, TRACE_T *trace = {}) const;
-
     // methods are variadic templated to eliminate need for args to be forward declared
     template <typename...Ts>
     mcode_t const *eval(bitset_t&, Ts&&...) const;
 
-    // XXX move to impl
-    template <typename OS>
-    void print(OS& os) const
-    {
-        os << "[" << name << "]";
-    }
+    uint8_t get_sz() const;
 
+    template <typename OS> void print(OS& os) const;
+    
     // retrieve instance from (zero-based) index
     static auto& get(index_t idx) { return (*index_base)[idx]; }
     static inline const mcode_t  *list_mcode_p;
