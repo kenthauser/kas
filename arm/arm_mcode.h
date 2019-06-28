@@ -7,6 +7,17 @@
 namespace kas::arm
 {
 
+// these are the bits in `DEFN`
+static constexpr auto SZ_ARCH_ARM     = 0x00;
+static constexpr auto SZ_ARCH_THB     = 0x01;
+static constexpr auto SZ_ARCH_THB_EE  = 0x02;
+static constexpr auto SZ_ARCH_ARM64   = 0x04;
+
+static constexpr auto SZ_DEFN_COND    = 0x10;
+static constexpr auto SZ_DEFN_S_FLAG  = 0x20;
+static constexpr auto SZ_DEFN_NW_FLAG = 0x40;
+static constexpr auto SZ_DEFN_NO_AL   = 0x80;
+
 // all instructions have a specified "size" of operand
 // these are the bits in `SZ`
 static constexpr auto SZ_SZ_COND_MASK = 0x0f;
@@ -53,6 +64,10 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t, arm_stmt_t, error_msg, arm_mc
     //
     // override default methods
     //
+    
+    // machine code arranged as words: big-endian
+    auto code(uint32_t stmt_flags) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
+
 
    uint8_t const sz() const { return _sz & 0; } 
 #if 0    

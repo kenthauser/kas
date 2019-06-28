@@ -95,6 +95,7 @@ using arm_insn_common_l = list<list<>
 , defn<sz_w, STR("ldr")  , OP<0x8001>, FMT_X   , REG, REG>
 
 , defn<a7_cqs, STR("mov") , OP<0x1a0'0000, void, void, 0xf000 >, FMT_12_0   , REG, REG> 
+//, defn<a7_u  , STR("mov") , OP<0x1a0'0000, void, void, 0xf000 >, FMT_12_0   , REG, REG> 
 , defn<a7_cqs, STR("mov") , OP<0x3a0'0000, void, void, 0xf000 >, FMT_12_F   , REG, U12> 
 , defn<a7_cq , STR("movw"), OP<0x300'0000, hw::v6t2           >, FMT_12_MOVW, REG, U16>
 , defn<a7_cq , STR("mov") , OP<0x300'0000, hw::v6t2           >, FMT_12_MOVW, REG, U16>

@@ -27,20 +27,20 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         *trace << " cnt = " << +cnt;
 
     expr_fits fits;
+    auto  err_index = 1;            // index of zero reserved for `validate_mcode`
 
     // NB: here `args` still holds `MISSING` as first for no args
     if (args.front().is_missing())
     {
         msg = cnt ? err_msg_t::ERR_missing : nullptr;
-        return { msg, 0 };
+        return { msg, err_index };
     }
    
-    int n = 0;      // doesn't conflict with missing
     for (auto& arg : args)
     {
         // if too many args
         if (!cnt--)
-            return { err_msg_t::ERR_too_many, n };
+            return { err_msg_t::ERR_too_many, err_index };
         if (trace)
             *trace << " " << val_p.name() << " ";
        
@@ -48,17 +48,17 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         auto result = val_p->ok(arg, sz(), fits);
 
         if (result == expression::NO_FIT)
-            return { msg, n };
+            return { msg, err_index };
 
         // not that 1 matched, change msg
         msg = err_msg_t::ERR_argument;
         ++val_p;
-        ++n;
+        ++err_index;
     }
 
     // error if not enough args
     if (cnt)
-        return { err_msg_t::ERR_too_few, n };
+        return { err_msg_t::ERR_too_few, err_index };
     return {};
 }
 

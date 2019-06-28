@@ -37,25 +37,19 @@ namespace kas::tgt::opc
 //
 
 
-// these are the bits in `DEFN`
-static constexpr auto SZ_ARCH_ARM     = 0x00;
-static constexpr auto SZ_ARCH_THB     = 0x01;
-static constexpr auto SZ_ARCH_THB_EE  = 0x02;
-static constexpr auto SZ_ARCH_ARM64   = 0x04;
-
-static constexpr auto SZ_DEFN_COND    = 0x10;
-static constexpr auto SZ_DEFN_S_FLAG  = 0x20;
-static constexpr auto SZ_DEFN_NW_FLAG = 0x40;
-static constexpr auto SZ_DEFN_NO_AL   = 0x80;
-
 // only single-sizes have non-standard suffix treatment
 #if 1
-template <int...> using arm_sz = meta::int_<0>;
+//template <int...> using arm_sz = meta::int_<0x10>;
+template <int...> using arm_sz = meta::int_<0x0>;
 #else
 template <int OP_ARCH, int...OP_FLAGS>
 using arm_sz = meta::int_<(OP_ARCH | ... | OP_FLAGS)>;
-#endif
 
+template <>
+struct 
+
+#endif
+#if 1
 template <>
 struct tgt_mcode_sizes<arm::arm_mcode_t>
 {
@@ -97,18 +91,19 @@ struct tgt_mcode_sizes<arm::arm_mcode_t>
         iter(tgt_mcode_sizes const& obj, bool is_begin_iter = {})
         {
             auto& defn = obj.arm_sz_defn;
-            
+#if 0
             // calculate `iters` for end, using instance value
-            if (!(defn & SZ_DEFN_COND))
+            if (!(defn & arm::SZ_DEFN_COND))
                 ccode_end = std::next(ccode_iter);
-            else if (defn & SZ_DEFN_NO_AL)
+            else if (defn & arm::SZ_DEFN_NO_AL)
                 ccode_end= std::prev(ccode_end);
 
-            if (!(defn & SZ_DEFN_S_FLAG))
+            if (!(defn & arm::SZ_DEFN_S_FLAG))
                 sflag_end = std::next(sflag_iter);
 
-            if (!(defn & SZ_DEFN_NW_FLAG))
+            if (!(defn & arm::SZ_DEFN_NW_FLAG))
                 nwflag_end= std::next(nwflag_iter);
+#endif
         }
 
         // std `range-for` methods
@@ -178,7 +173,7 @@ struct tgt_mcode_sizes<arm::arm_mcode_t>
         // XXX this is for `ARM` arch. 
         if (*it.sflag_iter)
             name += "s";
-        if (arm_sz_defn & SZ_DEFN_COND)
+        if (arm_sz_defn & arm::SZ_DEFN_COND)
             name += it.ccode_iter->second;
         if (*it.nwflag_iter & 1)
             name += ".n";
@@ -191,5 +186,6 @@ struct tgt_mcode_sizes<arm::arm_mcode_t>
 
     uint8_t  arm_sz_defn;
 };
+#endif
 }
 #endif

@@ -38,11 +38,13 @@ struct arm_stmt_t : tgt::tgt_stmt<arm_stmt_t, arm_insn_t, arm_arg_t>
     // bitfields don't zero-init. Use support type.
     struct flags_t : detail::alignas_t<flags_t, uint16_t>
     {
-       uint16_t ccode     : 4;      // conditional instruction code
-       uint16_t has_ccode : 1;      // is conditional
-       uint16_t has_sflag : 1;      // opcode has `S` suffix (ie: set flags)
-       uint16_t has_nflag : 1;      // opcode has `.N` suffix (ie: only narrow)
-       uint16_t has_wflag : 1;      // opcode has `.W` suffix (ie: only wide)
+        using base_t::base_t;
+
+        value_t ccode     : 4;      // conditional instruction code
+        value_t has_ccode : 1;      // is conditional
+        value_t has_sflag : 1;      // opcode has `S` suffix (ie: set flags)
+        value_t has_nflag : 1;      // opcode has `.N` suffix (ie: only narrow)
+        value_t has_wflag : 1;      // opcode has `.W` suffix (ie: only wide)
     } flags;
 };
 

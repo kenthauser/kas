@@ -1,7 +1,7 @@
 #ifndef KAS_TARGET_TGT_STMT_IMPL_H
 #define KAS_TARGET_TGT_STMT_IMPL_H
 
-// TGT_IMPL
+// TGT_STMT_IMPL
 //
 // The principle `tgt_stmt` method is `gen_insn`. This method is invoked by `kas_core` to 
 // generate an "instruction" given a "statement".
@@ -26,6 +26,8 @@
 // Two special caes:
 //  1)  if opcode has no arguments (eg "nop"), a single "MODE_NONE"
 //      is created for op-code level error messages
+//
+// XXX target dependent and expected by validators
 //  2)  bitfield arguments (the offset, width portion) are not separated
 //      by commas, but are a separate "tgt_arg_t" instance.
 namespace kas::tgt
@@ -143,9 +145,14 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     // no match: generate message
     if (!matching_mcode_p)
     {
-        if (err_index >= args.size())
-            err_index  = args.size() - 1;
-        data.fixed.diag = parser::kas_diag::error(err_msg, args[err_index]).ref();
+        if (err_index > args.size())
+            err_index = args.size();
+
+        parser::kas_position_tagged const *loc_p = this;
+
+        if (err_index)
+            loc_p = &args[err_index-1];
+        data.fixed.diag = parser::kas_diag::error(err_msg, *loc_p).ref();
         return {};
     }
 
@@ -209,7 +216,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
                 , std::move(args)
                 , derived().get_stmt_flags()
 
-                // and opcode data area reference
+                // and core_opcode data area reference
                 , data
                 );
 #else
@@ -268,6 +275,8 @@ template <typename MCODE_T>
 auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
         validate_mcode(MCODE_T *mcode_p) const -> const char *
 {
+    // XXX validate "tst"
+    
     return {};
 }
 

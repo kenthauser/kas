@@ -86,3 +86,22 @@ Generic TGT types:
 9. back-port Z80
 
 
+************************************
+
+ARM Notes:
+
+1. implement STMT flags wrt ccode, sflag
+
+2. implement relocation flags in TGT_EMIT
+
+3. add ALU insns
+
+4. add A32 insns
+
+5. add T16 & T32 insns
+
+6. add A64 insns
+
+7. backport TGT mods.
+
+
