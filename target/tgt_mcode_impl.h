@@ -177,6 +177,13 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+    sz() const -> uint8_t
+{
+    return defn().sz;
+}
+    
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
+auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     code(unsigned stmt_flags) const
     -> std::array<mcode_size_t, MAX_MCODE_WORDS>
 {
@@ -195,7 +202,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         else
             value = 0;
     }
-
+#if 0
     auto& sz_obj = d.sizes_base[d.sz_index];
 #ifdef XXX
     if (!sz_obj.single_size)
@@ -206,7 +213,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         code_data[size_fn.word()] |= sz_code;
     }
 #endif
-
+#endif
     return code_data;
 }
 

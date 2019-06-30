@@ -109,6 +109,11 @@ struct arm_arg_t : tgt::tgt_arg_t<arm_arg_t, arm_arg_mode, arm_reg_t, arm_reg_se
               { 0 }         // 0: Immediate arguments not emited after machine code
         };
 
+    auto& immed_info(uint8_t sz) const
+    {
+        return base_t::immed_info(0);
+    }
+
     // handle non-generic modes 
     const char *set_mode(unsigned mode);
    

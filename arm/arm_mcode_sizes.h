@@ -38,15 +38,12 @@ namespace kas::tgt::opc
 
 
 // only single-sizes have non-standard suffix treatment
-#if 1
+#if 0
 //template <int...> using arm_sz = meta::int_<0x10>;
 template <int...> using arm_sz = meta::int_<0x0>;
 #else
 template <int OP_ARCH, int...OP_FLAGS>
 using arm_sz = meta::int_<(OP_ARCH | ... | OP_FLAGS)>;
-
-template <>
-struct 
 
 #endif
 #if 1

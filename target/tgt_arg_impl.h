@@ -167,7 +167,7 @@ int tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
 
         case MODE_T::MODE_IMMEDIATE:
             if (is_signed) *is_signed = true;
-            return immed_info(sz).sz_bytes;
+            return derived().immed_info(sz).sz_bytes;
     }
 }
 
@@ -257,7 +257,7 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
     // check for special IMMEDIATE processing
     if (mode() == MODE_T::MODE_IMMEDIATE)
     {
-        auto& info = immed_info(sz);
+        auto& info = derived().immed_info(sz);
         if (info.sz_bytes != bytes)
             throw std::logic_error{"arg_t::emit: invalid size for immediate arg"};
 #if 0

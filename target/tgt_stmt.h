@@ -46,13 +46,10 @@ public:
     // statement flags: variable data stored in opcode `name`: eg `ble` (branch if less-than-or-equal)
     // NB: not all architectures use `stmt_flags` to handle cases such as `ble`
     // 1. Generate `code` based on `statement flags`
-    uint32_t get_stmt_flags() const { return {}; }
+    constexpr uint32_t get_stmt_flags() const { return {}; }
 
-    // 2. Modify `code` base value according to statement flags
-    static void apply_stmt_flags(uint32_t flags, void const *mcode_p, void *code_p) {}
-
-    // 3. Extract stored statment flags from previously modified code
-    static uint32_t extract_stmt_flags(void const *mcode_p, void *code_p) { return {}; }
+    // 2. Extract stored statment flags from previously modified code
+    constexpr static uint32_t extract_stmt_flags(void const *mcode_p, void *code_p) { return {}; }
 
 
     // methods used by test fixtures

@@ -37,7 +37,6 @@ struct tgt_defn_adder
 
         // store pointers to arrays of instances in `defn_t`
         defn_t::names_base = at_c<all_types_defns, defn_t::XLT_IDX_NAME>::value;
-        defn_t::sizes_base = at_c<all_types_defns, defn_t::XLT_IDX_SIZE>::value;
         defn_t::fmts_base  = at_c<all_types_defns, defn_t::XLT_IDX_FMT>::value;
 
         // Generate the `val_combo` definitions and instances
@@ -74,13 +73,7 @@ struct tgt_defn_adder
     {
         // initialize runtime objects from definitions
         //
-        // For each `defn_t` defintion, several size variants are created.
-        // Allocate 1 `mcode_t` object for each size variant
-        //
-        // For each `mcode_t` object, several "name" variants
-        // can be created. For each "name", use X3 parser to lookup
-        // (& allocate) `insn_t` instance. Then add `mcode_t`
-        // instance pointer to `insn_t` instance.
+        // Each `defn` generates a single `mcode_defn`
 
         // allocate run-time objects in deques and reference as pointers
         auto insn_obstack   = new typename insn_t::obstack_t;
@@ -103,43 +96,33 @@ struct tgt_defn_adder
             p->print(std::cout);
             std::cout << std::endl;
 #endif
-            auto& sz_obj = p->sizes_base[p->sz_index];
-            for (auto&& sz : sz_obj)
+            // XXX don't worry about hw validators: allocate all
+            mcode_t *mcode_p {};
+
+            // create the "mcode instance" 
+            // NB: use "deque::size()" for instance index
+            mcode_p = &mcode_obstack->emplace_back(mcode_obstack->size(), n);
+            auto name = p->name();
+
+            // test for "list" opcode
+            if (name[0] == '*')
             {
-                // XXX don't worry about hw validators: allocate all
-                mcode_t *mcode_p {};
-
-                // create the "mcode instance" 
-                // NB: use "deque::size()" for instance index
-                mcode_p = &mcode_obstack->emplace_back(mcode_obstack->size(), n, sz);
-                auto base_name = p->name();
-
-                // test for "list" opcode
-                if (base_name[0] == '*')
-                {
-                    // save list opcode "mcode" as global in `insn_t`
-                    insn_t::list_mcode_p = mcode_p;
-                    break;      // get next defn
-                }
-               
-                // each size may generate several names. first is canonical for disassembler
-                for (auto&& name : sz_obj(base_name, sz))
-                {
-#ifdef TRACE_INSN_ADD
-                    std::cout << "insn name: " << name << ", size = " << +sz << std::endl;
-#endif
-                    // lookup name. creates new "lookup table" slot if not found
-                    auto& insn_p = x3.at(name);
-
-                    // if new slot, allocate insn
-                    if (!insn_p)
-                        insn_p = &insn_obstack->emplace_back(insn_obstack->size(), std::move(name));
-
-                    // add opcode to insn
-                    insn_p->add_mcode(mcode_p);
-                }
+                // save list opcode "mcode" as global in `insn_t`
+                insn_t::list_mcode_p = mcode_p;
+                continue;       // get next defn
             }
+           
+            // lookup name. creates new "lookup table" slot if not found
+            auto& insn_p = x3.at(name);
+
+            // if new slot, allocate insn
+            if (!insn_p)
+                insn_p = &insn_obstack->emplace_back(insn_obstack->size(), std::move(name));
+
+            // add opcode to insn
+            insn_p->add_mcode(mcode_p);
         }
+        
         if (!insn_t::list_mcode_p)
             throw std::logic_error{"insn_adder: no LIST instruction"};
     }

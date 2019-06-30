@@ -82,23 +82,21 @@ static constexpr auto DEFN_IDX_SZ   = 0;
 static constexpr auto DEFN_IDX_NAME = 1;
 static constexpr auto DEFN_IDX_CODE = 2;
 static constexpr auto DEFN_IDX_TST  = 3;
-static constexpr auto DEFN_IDX_INFO = 4;    // code size function
-static constexpr auto DEFN_IDX_FMT  = 5;
-static constexpr auto DEFN_IDX_VAL  = 6;
+static constexpr auto DEFN_IDX_FMT  = 4;
+static constexpr auto DEFN_IDX_VAL  = 5;
 
 // general definition: SZ list, NAME type, OP type, optional FMT & VALIDATORS
 template <typename SZ, typename NAME, typename OP_INFO, typename FMT = void, typename...Ts>
 struct insn_defn
 {
-    // default "size" is `list<>`
-    using DEFN_SZ = meta::if_<std::is_same<void, SZ>, meta::list<>, SZ>;
+    // default "size" is `int_<0>`
+    using DEFN_SZ = meta::if_<std::is_same<void, SZ>, meta::int_<0>, SZ>;
 
     // six fixed types, plus additional `VALIDATORs`
     using type = meta::list<DEFN_SZ
                           , NAME
                           , typename OP_INFO::code
                           , typename OP_INFO::tst
-                          , typename OP_INFO::size_fn
                           , FMT             // formatter
                           , Ts...           // validators
                           >;

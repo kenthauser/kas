@@ -85,7 +85,7 @@ struct tgt_mcode_defn
 
     // define LISTS for `adder::XLATE_LIST`
     using NAME_LIST = list<int_<traits::DEFN_IDX_NAME>>;
-    using SIZE_LIST = list<int_<traits::DEFN_IDX_SZ>, int_<traits::DEFN_IDX_INFO>>;  
+    using SIZE_LIST = list<int_<traits::DEFN_IDX_SZ>>;
     using FMT_LIST  = list<int_<traits::DEFN_IDX_FMT>>;
     
     // create list with integer sequence <IDX_VAL...(IDX_VAL+MAX_ARGS)>
@@ -99,7 +99,6 @@ struct tgt_mcode_defn
     // `ADDER` & `XLATE_LIST` are picked up by `sym_parser_t`
     using ADDER      = adder_t;
     using XLATE_LIST = list<list<const char *       , NAME_LIST>
-                          , list<const mcode_sizes_t, SIZE_LIST, void, list<>, quote<list>>
                           , list<const fmt_t *      , FMT_LIST, parser::VT_CTOR, fmt_dflt_list>
                           , list<const val_t *      , VAL_LIST, parser::VT_CTOR>
 
@@ -109,28 +108,26 @@ struct tgt_mcode_defn
 
     // declare indexes into XLATE list (used by `adder`)
     static constexpr auto XLT_IDX_NAME = 0;
-    static constexpr auto XLT_IDX_SIZE = 1;
-    static constexpr auto XLT_IDX_FMT  = 2;
-    static constexpr auto XLT_IDX_VAL  = 3;
-    static constexpr auto XLT_IDX_VALC = 4;
+    static constexpr auto XLT_IDX_FMT  = 1;
+    static constexpr auto XLT_IDX_VAL  = 2;
+    static constexpr auto XLT_IDX_VALC = 3;
 
     // CTOR: passed list<defn_list, xlt_list>
-    template <typename NAME, typename SZ, typename FMT, typename...VALs, typename VAL_C,
-              typename S, typename N, typename CODE, typename TST, typename...X>
-    constexpr tgt_mcode_defn(list<list<list<NAME>, list<SZ>, list<FMT>
+    template <typename NAME, typename FMT, typename...VALs, typename VAL_C,
+              typename SZ, typename N, typename CODE, typename TST, typename...X>
+    constexpr tgt_mcode_defn(list<list<list<NAME>, list<FMT>
                                      , list<VALs...>, list<VAL_C>>
-                                , list<S, N, CODE, TST, X...>>)
+                                , list<SZ, N, CODE, TST, X...>>)
             : name_index  { NAME::value  + 1   }
-            , sz_index    { SZ::value          }
             , fmt_index   { FMT::value   + 1   }
             , val_c_index { VAL_C::value + 1   }
+            , sz          { SZ::value          }
             , code        { CODE::value        }
             , code_words  { code_to_words<mcode_size_t>(CODE::value) }
             //, tst         { TST::value     }
             {}
             
-    static inline const char * const  *names_base;
-    static inline const mcode_sizes_t *sizes_base;
+    static inline const char  *const *names_base;
     static inline const fmt_t *const *fmts_base;
     static inline val_c_t      const *val_c_base;
 
@@ -149,7 +146,7 @@ struct tgt_mcode_defn
     name_idx_t  name_index;    
     val_c_idx_t val_c_index;   
     fmt_idx_t   fmt_index;    
-    uint8_t     sz_index;       
+    uint8_t     sz;             // info about sizes supported
     uint8_t     code_words;     // zero-based count of words
 };
 

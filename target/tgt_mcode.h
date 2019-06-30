@@ -118,8 +118,8 @@ struct tgt_mcode_t
         { return *static_cast<derived_t*>(this); }
 
     // constructor: just save indexes
-    tgt_mcode_t(mcode_idx_t index, defn_idx_t defn_index, uint8_t sz)
-        : index{index}, defn_index{defn_index}, _sz{sz}
+    tgt_mcode_t(mcode_idx_t index, defn_idx_t defn_index)
+        : index{index}, defn_index{defn_index}
         {}
 
     // declare as template to defer definition of `ARGS_T`
@@ -140,27 +140,25 @@ struct tgt_mcode_t
     defn_t     const& defn() const;
     fmt_t      const& fmt()  const;
     val_c_t    const& vals() const;
-    uint8_t    const  sz()   const { return _sz; }
+    uint8_t           sz()   const;
     std::string       name() const;
 
     // machine code size in bytes (for format & serialize)
     uint8_t code_size() const;
 
-    // machine code "base" size used in calculation
+    // machine code "base" size used in calculation (defaults to `code_size`)
     auto base_size() const
     {
         return derived().code_size();
     }
     
-    // machine code arranged as words: big-endian
+    // machine code arranged as words: big-endian array (ie highest order words first)
     auto code(uint32_t stmt_flags) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
 
     void print(std::ostream&) const;
 
     mcode_idx_t index;         // -> access this instance (zero-based)
     defn_idx_t  defn_index;    // -> access associated defn for name, fmt, validator (zero-based)
-    uint8_t     _sz;
-
 };
 
 }

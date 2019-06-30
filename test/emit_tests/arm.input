@@ -1,4 +1,6 @@
+	mov 	r7, sp
 	movs	r7, sp
+	moveq   r7, sp
 	movT	r7, sp
 	moveq  	r7, sp
 	moveq.n	r7, sp

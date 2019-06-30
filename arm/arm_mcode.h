@@ -60,25 +60,12 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t, arm_stmt_t, error_msg, arm_mc
 
     using fmt_default = opc::FMT_X;
 
-    
     //
     // override default methods
     //
     
-    // machine code arranged as words: big-endian
+    // Insert condition code & s_flag as required
     auto code(uint32_t stmt_flags) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
-
-
-   uint8_t const sz() const { return _sz & 0; } 
-#if 0    
-    // arm: base code & displacement interspersed in output
-    template <typename ARGS_T> 
-    void emit(core::emit_base&
-            , mcode_size_t *
-            , ARGS_T&&
-            , core::core_expr_dot const*
-            ) const;
-#endif
 };
 
 

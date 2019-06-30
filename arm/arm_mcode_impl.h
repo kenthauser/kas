@@ -30,9 +30,10 @@ auto arm_mcode_t::code(unsigned stmt_flags) const
             high_word = 0xe000;
     }
     if (flags.has_sflag)
-        high_word |= 1 << (23-16);
+        high_word |= 1 << (20-16);
 
-    std::cout << "mcode_t:code: " << std::hex << flags.value() << " " << +sz;
+    std::cout << "mcode_t::code: " << std::hex << stmt_flags << std::endl;
+    std::cout << "mcode_t::code: " << std::hex << flags.value() << " " << +sz;
     std::cout << " -> " << high_word << std::endl;
 
     if (high_word)
