@@ -57,7 +57,8 @@ namespace kas::expression::ast
 {
 namespace x3 = boost::spirit::x3;
 
-namespace detail {
+namespace detail
+{
     using namespace meta;
     using namespace meta::placeholders;
 

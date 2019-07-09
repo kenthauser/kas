@@ -303,13 +303,126 @@ namespace kas::core
         //std::cout << "core_expr::flatten: done: " << expr_t(*this) << std::endl;
     }
 
-    template <typename BASE_T>
-    void core_expr::emit(BASE_T& base) const
+    template <typename BASE_T, typename RELOC_T>
+    void core_expr::emit(BASE_T& base, RELOC_T& reloc) const
     {
-        auto n = calc_num_relocs();
+#if 1
+        auto do_emit = [&base](auto& reloc, expr_term const *term_p = {}, bool pc_rel = false)
+        {
+            reloc.sym_p     = {};
+            reloc.section_p = {};
+            if (term_p && term_p->symbol_p)
+                reloc.sym_p = term_p->symbol_p;
+            else if (term_p && term_p->addr_p)
+            {
+                reloc.addend   +=  term_p->addr_p->offset()();
+                reloc.section_p = &term_p->addr_p->section();
+            }
+            if (pc_rel)
+                reloc.reloc.flags |=  core_reloc::RFLAGS_PC_REL;
+            else
+                reloc.reloc.flags &=~ core_reloc::RFLAGS_PC_REL;
+        
+            reloc.emit(base);
+        };
+
+        calc_num_relocs();      // needed??
 
         //std::cout << "core_expr::emit: " << expr_t(*this) << " fixed = " << fixed << std::endl;
+        // build "new" reloc for expression
+        reloc.addend += fixed;      // acumulate `fixed`
+        reloc.expr_p  = {};         // processing now
 
+        // examine `minus` list to find `pc_rel` & subs
+        auto section_p = &base.get_section();
+        unsigned pc_rel_cnt = !!(reloc.reloc.flags & core_reloc::RFLAGS_PC_REL);
+        unsigned minus_cnt  = {};
+
+        for (auto& m : minus)
+        {
+            // if paired, ignore
+            if (m.p)
+                continue;
+            if (m.addr_p && &m.addr_p->section() == section_p)
+            {
+                reloc.addend -= m.addr_p->offset()() - base.position();
+                ++pc_rel_cnt;
+            }
+            else
+                ++minus_cnt;
+        }
+    
+        // loop back thru finding compatable `minus` as needed
+        auto m_iter = minus.begin();
+
+        // handle "paired" `plus` expressions
+        for (auto& p : plus)
+        {
+            // if `plus` matched, update `offset`
+            if (p.addr_p && p.p)
+            {
+                reloc.addend += p.addr_p->offset()();
+                reloc.addend -= p.p->addr_p->offset()();
+                continue;
+            }
+            
+            // if PC_REL pending, & `p` in correct section, apply
+            if (pc_rel_cnt)
+                if (p.addr_p && &p.addr_p->section() == &base.get_section())
+                {
+                    reloc.reloc.flags  &=~ core_reloc::RFLAGS_PC_REL;
+                    reloc.addend       +=  p.addr_p->offset()() - base.position();
+                    --pc_rel_cnt;
+                    continue;
+                }
+
+            // here generate a `relocation`. 
+            // if `pc_rel` pending, perform first
+            if (pc_rel_cnt)
+            {
+                --pc_rel_cnt;
+                do_emit(reloc, &p, true);
+                continue;
+            }
+            
+            // emit pending `minus` next
+            if (minus_cnt)
+            {
+                --minus_cnt;
+                for(;;)
+                {
+                    auto& m = *m_iter++;
+                    
+                    if (m.p)
+                        continue;
+                    if (m.addr_p && &m.addr_p->section() == section_p)
+                        continue;
+
+                    // here need to emit `minus` relocation
+                    // same width & offset
+                    RELOC_T m_reloc { {K_REL_SUB, reloc.reloc.bits}, 0, reloc.offset };
+                    
+                    do_emit(m_reloc, &m);
+                    break;
+                }
+            }
+
+            // emit `plus` reloc (w/o pc_rel)
+            do_emit(reloc, &p);
+        }
+
+        // need a `plus` for every `minus`
+        if (pc_rel_cnt || minus_cnt)
+        {
+            std::cout << "core_expr::emit: insufficient plus terms: " << expr_t(*this) << std::endl;
+            return;
+        }
+
+        // if addend, must emit at least once
+        if (reloc.addend)
+            do_emit(reloc);
+
+#else
         // emit fixed
         base(fixed);
 
@@ -337,7 +450,7 @@ namespace kas::core
         }
 
         // XXX don't know how to emit minus relocs. ignore for now
-
+#endif
     }
 
     void core_expr::prune()

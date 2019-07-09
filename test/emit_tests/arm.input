@@ -8,6 +8,8 @@
 	movge.Q	r7, sp
     mov r6, #12
     movw r5, #:lower16:150000
+    movw r6, #l_label
+    movt r6, #l_label
     mov r5, #50000
     mov r1, r2, LSR #5
     mov r8, r9, ror #0
@@ -46,6 +48,9 @@
 
 l_label:
     .long   1234
+    .long   l_label
+    .long   . - l_label 
+    .long   g_label - 4
 
     .globl  g_label
 

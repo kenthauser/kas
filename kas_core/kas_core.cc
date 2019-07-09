@@ -11,7 +11,8 @@
 #include "core_fragment_impl.h"
 #include "core_data_impl.h"
 #include "core_emit_impl.h"
-#include "emit_reloc_impl.h"
+#include "core_reloc_impl.h"
+//#include "emit_reloc_impl.h"
 
 #include "expr/literal_types.h"
 
@@ -61,10 +62,6 @@ namespace kas::core
     {
         os << name();
     }
-
-    // core_expr cooperates in emit
-    template void core_expr::emit(emit_base&) const;
-    template void core_expr::emit(emit_reloc_t&) const;
 
     template void core_expr    ::print(std::ostream&) const;
     template void core_addr    ::print(std::ostream&) const;

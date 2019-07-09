@@ -95,7 +95,7 @@ namespace kas::core
         const char *size(expr_t& new_size);
         const char *size(uint32_t new_size);
 
-        // specialize for allowed types (eg e_fixed_t, kass_loc)
+        // specialize for allowed types (eg e_fixed_t, kas_loc)
         template <typename T>
         T const* get_p() const
         {

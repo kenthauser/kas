@@ -88,10 +88,6 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
 #if 0
         std::cout << "opc_fixed::emit_one: " << value << std::endl;
 #endif
-#if 0
-        if (!fits.ufits_sz(value, sizeof(value_type)) && loc_p)
-            value = kas_diag::error("value out of range");
-#endif
         base << set_size(sizeof(value_type));
         base << value;
     

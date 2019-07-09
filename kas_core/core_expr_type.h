@@ -133,7 +133,7 @@ namespace kas::core
         }
 
         // backend interface: expr can have multiple relocs
-        template <typename BASE_T> void emit(BASE_T&) const;
+        template <typename BASE_T, typename RELOC_T> void emit(BASE_T&, RELOC_T&) const;
 
         // interface for `core_fits`: implemented in `core_expr_fits.h`
         short calc_num_relocs() const;

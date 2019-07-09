@@ -95,10 +95,19 @@ private:
         };
     }
 
+    decltype(emit_formatted::emit_reloc) put_reloc()
+    {
+        return [&](e_chan_num num, std::size_t width, std::string const& msg)
+        {
+            relocs.push_back(std::move(msg));
+        };
+    }
+
     friend listing_line<Iter>;
-    emit_formatted fmt{ put(), put_diag() };
+    emit_formatted fmt{ put(), put_diag(), put_reloc() };
     std::array<std::vector<std::string>, NUM_EMIT_FMT> buffers;
     std::list<parser::kas_diag::index_t> diagnostics;
+    std::list<std::string> relocs;
     std::map<size_t, Iter> current_pos;
     parser::kas_loc::index_t prev_loc {};
     std::ostream& out;
@@ -143,6 +152,7 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
     line.gen_data(buffers[EMIT_DATA]);
     line.gen_equ (buffers[EMIT_EXPR]);
     line.set_force_addr(buffers[EMIT_ADDR]);
+    line.append_reloc(relocs);
     line.append_diag(diagnostics);
     buffers = {};
 
@@ -153,8 +163,9 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
 template <typename Iter>
 struct listing_line
 {
-    using data_type = typename decltype(emit_listing<Iter>::buffers)::value_type;
-    using diag_type = decltype(emit_listing<Iter>::diagnostics);
+    using data_type  = typename decltype(emit_listing<Iter>::buffers)::value_type;
+    using diag_type  = decltype(emit_listing<Iter>::diagnostics);
+    using reloc_type = decltype(emit_listing<Iter>::relocs);
 
     static constexpr size_t addr_size = 11;
     static constexpr size_t data_size = 22;
@@ -170,6 +181,7 @@ struct listing_line
     void gen_equ(data_type  const&);
     void set_force_addr(data_type const&);
     void append_diag(diag_type&);
+    void append_reloc(reloc_type&);
     Iter emit_line(Iter first, Iter last);
 private:
     void do_emit(Iter first, Iter last);
@@ -185,6 +197,7 @@ private:
 
     emit_listing<Iter>& e;
     diag_type diagnostics;
+    reloc_type relocs;
     std::ostream& out;
 };
 
@@ -245,6 +258,12 @@ void listing_line<Iter>::append_diag(diag_type& new_diags)
 }
 
 template <typename Iter>
+void listing_line<Iter>::append_reloc(reloc_type& new_relocs)
+{
+    relocs.splice(relocs.end(), new_relocs);
+}
+
+template <typename Iter>
 Iter listing_line<Iter>::emit_line(Iter first, Iter last)
 {
     // see if source contains newline
@@ -261,8 +280,17 @@ Iter listing_line<Iter>::emit_line(Iter first, Iter last)
         if (!data_overflow.empty())
             do_emit(next, next);
 
+    // output pending relocations
+    for (; !relocs.empty(); relocs.pop_front())
+    {
+        // select column
+        out << std::string(addr_size, ' ');
+        out << "[RELOC: " << relocs.front() << "]" << std::endl;
+    }
+
     // output pending diagnostics
-    for (; !diagnostics.empty(); diagnostics.pop_front()) {
+    for (; !diagnostics.empty(); diagnostics.pop_front())
+    {
         auto& diag = parser::kas_diag::get(diagnostics.front());
         auto message = diag.level_msg() + diag.message;
         out << std::string(addr_size + data_size + 2, ' ');

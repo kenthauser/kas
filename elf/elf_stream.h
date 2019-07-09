@@ -135,26 +135,30 @@ public:
 
     void put_symbol_reloc(
                   core::e_chan_num num
-                , uint32_t    reloc
+                , core::reloc_info_t const& info
+                , uint8_t width
+                , uint8_t offset
                 , core::core_symbol const& sym
-                , int64_t& data
+                , int64_t addend
                 ) override
     {
         auto sym_num = sym.sym_num();
         if (!sym_num)
             throw std::logic_error("emit_elf: no sym_num for symbol: " + sym.name());
-        put_elf_reloc(num, reloc, sym_num, data);
+        put_elf_reloc(num, info.num, sym_num, addend);
     }
 
     void put_section_reloc(
                   core::e_chan_num num
-                , uint32_t    reloc
+                , core::reloc_info_t const& info
+                , uint8_t width
+                , uint8_t offset
                 , core::core_section const& section
-                , int64_t& data
+                , int64_t addend 
                 ) override
     {
         auto sym_num = es_data::core2es(section).sym_num;
-        put_elf_reloc(num, reloc, sym_num, data);
+        put_elf_reloc(num, info.num, sym_num, addend);
     }
 
     // put_str & put_diag are used in generation of listings...

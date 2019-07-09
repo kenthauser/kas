@@ -7,6 +7,7 @@
 //
 
 #include <cstdint>
+#include "core_reloc.h"
 
 
 namespace kas::core
@@ -23,15 +24,19 @@ struct emit_stream
     // emit reloc
     virtual void put_symbol_reloc(
               e_chan_num num
-            , uint32_t    reloc
+            , reloc_info_t const& info
+            , uint8_t width
+            , uint8_t offset
             , core_symbol const& sym
-            , int64_t& data
+            , int64_t addend
             ) = 0;
     virtual void put_section_reloc(
               e_chan_num num
-            , uint32_t    reloc
+            , reloc_info_t const& info
+            , uint8_t width
+            , uint8_t offset
             , core_section const& section
-            , int64_t& data
+            , int64_t addend
             ) = 0;
 
     // emit diagnostics

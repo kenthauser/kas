@@ -11,14 +11,15 @@ namespace kas::core
     {
         std::function<void(e_chan_num, std::string const&)> put;
         std::function<void(e_chan_num, std::size_t, parser::kas_diag const&)> emit_diag;
+        std::function<void(e_chan_num, std::size_t, std::string msg)> emit_reloc;
         std::map<unsigned, std::size_t> position_map;
         const core_section *section_p{};
         std::size_t  *position_p{};
         //int64_t  offset {};
         const char *suffix_p {};
 
-        emit_formatted(decltype(put) put_, decltype(emit_diag) diag_) :
-                put(put_), emit_diag(diag_)
+        emit_formatted(decltype(put) put, decltype(emit_diag) diag, decltype(emit_reloc) reloc) :
+                put(put), emit_diag(diag), emit_reloc(reloc)
         {
             // XXX: should be in `core_emit`, but test fixture include issue.
             set_section(core_section::get(".text"));
@@ -107,11 +108,38 @@ namespace kas::core
             *position_p += chunk_size * num_chunks;
         }
 
+        auto reloc_msg(reloc_info_t const& info
+                     , uint8_t width
+                     , uint8_t offset
+                     , std::string const& base_name
+                     , int64_t addend
+                     ) const
+        {
+            // limit to 6 digits
+            auto addr_bytes = 6;    // XXX
+            if (addr_bytes > 3)
+                addr_bytes = 3;
+
+
+            std::ostringstream s;
+            auto sfx = emit_formatted::section_suffix(*section_p);
+            s << fmt_hex(addr_bytes, position() + offset, sfx);
+            s << " " << info.name << " ";
+            s << base_name;
+            if (addend)
+                s << " " << fmt_hex(4, addend); // XXX width invalid
+
+            return s.str();
+        }
+
+
         void put_section_reloc(
                   e_chan_num num
-                , uint32_t    reloc
+                , reloc_info_t const& info
+                , uint8_t width
+                , uint8_t offset
                 , core_section const& section
-                , int64_t& data
+                , int64_t addend
                 ) override
         {
 
@@ -120,13 +148,18 @@ namespace kas::core
                 suffix_p = emit_formatted::section_suffix(section);
             else
                 suffix_p = "?";
+
+            auto s = reloc_msg(info, width, offset, section.name(), addend);
+            emit_reloc(num, width, s);
         }
 
         void put_symbol_reloc(
                   e_chan_num num
-                , uint32_t    reloc
+                , reloc_info_t const& info
+                , uint8_t width
+                , uint8_t offset
                 , core_symbol const& sym
-                , int64_t& data
+                , int64_t addend 
                 ) override
         {
             // only external symbols resolve here
@@ -134,6 +167,9 @@ namespace kas::core
                 suffix_p = "*";
             else
                 suffix_p = "X";
+
+            auto s = reloc_msg(info, width, offset, sym.name(), addend);
+            emit_reloc(num, width, s);
         }
 
         void put_str(e_chan_num num, std::size_t, std::string const& s) override
@@ -226,7 +262,15 @@ namespace kas::core
             };
         }
 
-        emit_formatted fmt{put(buffer), emit_diag(buffer)};
+        decltype(emit_formatted::emit_reloc) emit_reloc(std::string &out)
+        {
+            return [&](e_chan_num num, std::size_t width, std::string const& msg)
+            {
+                out += "[Reloc: " + msg + "] ";
+            };
+        }
+
+        emit_formatted fmt{put(buffer), emit_diag(buffer), emit_reloc(buffer)};
         std::string buffer;
     };
 

@@ -1,0 +1,251 @@
+#ifndef KAS_CORE_CORE_RELOC_IMPL_H
+#define KAS_CORE_CORE_RELOC_IMPL_H
+
+#include "core_reloc.h"
+
+namespace kas::core
+{
+
+enum arm_reloc_t : uint8_t
+{
+      ARM_REL_MOVW  = NUM_KAS_RELOC
+    , ARM_REL_MOVT
+    , NUM_ARM_RELOC
+};
+// XXX M68K relocations here for now
+
+constexpr reloc_info_t m68k_elf_relocs[] =
+{
+    {  0 , "R_68K_NONE"     , { K_REL_NONE      ,  0, 0 }}
+  , {  1 , "R_68K_32"       , { K_REL_ADD       , 32, 0 }}
+  , {  2 , "R_68K_16"       , { K_REL_ADD       , 16, 0 }}
+  , {  3 , "R_68K_8"        , { K_REL_ADD       ,  8, 0 }}
+  , {  4 , "R_68K_32PC"     , { K_REL_ADD       , 32, 1 }}
+  , {  5 , "R_68K_16PC"     , { K_REL_ADD       , 16, 1 }}
+  , {  6 , "R_68K_8PC"      , { K_REL_ADD       ,  8, 1 }}
+  , {  7 , "R_68K_GOT32"    , { K_REL_GOT       , 32, 1 }}
+  , {  8 , "R_68K_GOT16"    , { K_REL_GOT       , 16, 1 }}
+  , {  9 , "R_68K_GOT8"     , { K_REL_GOT       ,  8, 1 }}
+  , { 10 , "R_68K_GOT32O"   , { K_REL_GOT       , 32, 0 }}
+  , { 11 , "R_68K_GOT16O"   , { K_REL_GOT       , 16, 0 }}
+  , { 12 , "R_68K_GOT8O"    , { K_REL_GOT       ,  8, 0 }}
+  , { 13 , "R_68K_PLT32"    , { K_REL_PLT       , 32, 1 }}
+  , { 14 , "R_68K_PLT16"    , { K_REL_PLT       , 16, 1 }}
+  , { 15 , "R_68K_PLT8"     , { K_REL_PLT       ,  8, 1 }}
+  , { 16 , "R_68K_PLT32O"   , { K_REL_PLT       , 32, 0 }}
+  , { 17 , "R_68K_PLT16O"   , { K_REL_PLT       , 16, 0 }}
+  , { 18 , "R_68K_PLT8O"    , { K_REL_PLT       ,  8, 0 }}
+  , { 19 , "R_68K_COPY"     , { K_REL_COPY      , 32, 0 }}
+  , { 20 , "R_68K_GLOB_DAT" , { K_REL_GLOB_DAT  , 32, 0 }}
+  , { 21 , "R_68K_JMP_SLOT" , { K_REL_JMP_SLOT  , 32, 0 }}
+};
+
+
+static const auto R_OPT_ARM_NC = 1;
+
+constexpr reloc_info_t arm_elf_relocs[] =
+{
+    {  0 , "R_ARM_NONE"         , { K_REL_NONE      ,  0, 0 }}
+  , { 20 , "R_ARM_COPY"         , { K_REL_COPY      , 32, 0 }}
+  , { 21 , "R_ARM_GLOB_DAT"     , { K_REL_GLOB_DAT  , 32, 0 }}
+  , { 22 , "R_ARM_JMP_SLOT"     , { K_REL_JMP_SLOT  , 32, 0 }}
+  , {  2 , "R_ARM_ABS32"        , { K_REL_ADD       , 32, 0 }}
+  , {  3 , "R_ARM_REL32"        , { K_REL_ADD       , 32, 1 }}
+  , {  5 , "R_ARM_ABS16"        , { K_REL_ADD       , 16, 0 }}
+  , {  6 , "R_ARM_ABS12"        , { K_REL_ADD       , 12, 0 }}
+  , {  8 , "R_ARM_ABS8"         , { K_REL_ADD       ,  8, 0 }}
+  , { 42 , "R_ARM_PREL31"       , { K_REL_ADD       , 32, 0 }}
+  , { 43 , "R_ARM_MOVW_ABS_NC"  , { ARM_REL_MOVW    , 32, 0  }}
+  , { 44 , "R_ARM_MOVT_ABS"     , { ARM_REL_MOVT    , 32, 0  }}
+  , { 45 , "R_ARM_MOVW_PCREL_NC", { ARM_REL_MOVW    , 32, 1  }}
+  , { 46 , "R_ARM_MOVT_PCREL"   , { ARM_REL_MOVT    , 32, 1  }}
+
+#if 0
+  , {  4 , "R_ARM_LDR_PC_G0"    , { K_REL_ADD       , 32, 1 }}
+  , {  7 , "R_ARM_THM_ABS5"     , { K_REL_GOT       , 32, 1 }}
+  , {  9 , "R_ARM_SBREL32"      , { K_REL_GOT       ,  8, 1 }}
+  , { 10 , "R_ARM_THM_CALL"     , { K_REL_GOT       , 32, 0 }}
+  , { 11 , "R_ARM_THM_PC8"      , { K_REL_GOT       , 16, 0 }}
+  , { 12 , "R_ARM_BREL_ADJ"     , { K_REL_GOT       ,  8, 0 }}
+  , { 13 , "R_ARM_TLS_DESC"     , { K_REL_PLT       , 32, 1 }}
+//  , {  1 , "R_ARM_PC24"       , { K_REL_ADD   , 32, 0 }}
+//  , { 14 , "R_ARM_THM_SWI8"    , { K_REL_PLT       , 16, 1 }}
+//  , { 15 , "R_ARM_XPC25"     , { K_REL_PLT       ,  8, 1 }}
+//  , { 16 , "R_ARM_THM_XPC22"   , { K_REL_PLT       , 32, 0 }}
+  , { 17 , "R_ARM_TLS_DTPMOD32" , { K_REL_PLT       , 16, 0 }}
+  , { 18 , "R_ARM_TLS_DTPOFF32" , { K_REL_PLT       ,  8, 0 }}
+  , { 19 , "R_ARM_TLS_TPOFF32"  , { K_REL_COPY      , 32, 0 }}
+  , { 23 , "R_ARM_RELATIVE"     , { K_REL_ADD  , 32, 0 }}
+  , { 24 , "R_ARM_GOTOFF32"     , { K_REL_ADD  , 32, 0 }}
+  , { 25 , "R_ARM_BASE_PREL"    , { K_REL_ADD  , 32, 0 }}
+  , { 26 , "R_ARM_GOT_BREL"     , { K_REL_ADD  , 32, 0 }}
+  , { 27 , "R_ARM_PLT32"        , { K_REL_ADD  , 32, 0 }}
+  , { 28 , "R_ARM_CALL"         , { K_REL_ADD  , 32, 0 }}
+  , { 29 , "R_ARM_JMP24"        , { K_REL_ADD  , 32, 0 }}
+  , { 30 , "R_ARM_THM_JUMP24"   , { K_REL_ADD  , 32, 0 }}
+  , { 31 , "R_ARM_BASE_ABS"     , { K_REL_ADD  , 32, 0 }}
+#endif
+};
+
+constexpr reloc_op_t kas_reloc_ops [] =
+{
+     { K_REL_ADD    , reloc_op_t::update_add }
+   , { K_REL_SUB    , reloc_op_t::update_sub }
+   , { K_REL_COPY   , reloc_op_t::update_set }
+};
+
+
+auto deferred_reloc_t::get_info(emit_base& base) const -> reloc_info_t const *
+{
+    // get type of `reloc` hash key & declare map
+    using key_t = decltype(std::declval<core_reloc>().key());
+    using map_t = std::map<key_t, reloc_info_t const *>;
+
+    // create `std::map` of `core_reloc` -> `reloc_info_t` relationship
+    static map_t *map_p;
+    if (!map_p)
+    {
+        map_p = new map_t;
+        for (auto& info : arm_elf_relocs)
+            map_p->emplace(info.reloc.key(), &info);
+    }
+
+    // convert `reloc` to target machine `info`
+    auto iter = map_p->find(reloc.key());       // lookup current relocation
+
+    // return pointer to info if found
+    return iter != map_p->end() ? iter->second : nullptr;
+}
+
+// complete construction of `reloc`
+void deferred_reloc_t::operator()(expr_t const& e)
+{
+    if (!loc_p)
+        loc_p = e.get_loc_p();      // if `tagged` store location
+
+    // just use `if tree` to initialize relocation
+    // don't need `apply_visitor` as most types don't relocate
+    if (auto p = e.get_fixed_p())
+        addend += *p;
+    else if (auto p = e.template get_p<core_symbol>())
+        (*this)(*p);
+    else if (auto p = e.template get_p<core_expr>())
+        (*this)(*p);
+    else if (auto p = e.template get_p<core_addr>())
+        (*this)(*p);
+    else
+    {
+        std::cout << "deferred_reloc_t::operator(): unsupported type" << std::endl;
+    }
+}
+
+// symbols can `vary`. Sort by type of symbol
+void deferred_reloc_t::operator()(core_symbol const& value)
+{
+    // see if resolved symbol
+    if (auto p = value.addr_p())
+        (*this)(*p);
+
+    // if `EQU`, interpret value
+    else if (auto p = value.value_p())
+        (*this)(*p);
+
+    // otherwise, unresolved symbol
+    else
+        sym_p = &value;
+}
+
+void deferred_reloc_t::operator()(core_addr const& value)
+{
+    addend   +=  value.offset()();
+    section_p = &value.section();
+}
+
+void deferred_reloc_t::operator()(core_expr const& value)
+{
+    if (auto p = value.get_fixed_p())
+        addend += *p;
+    else
+        expr_p = &value;
+}
+
+void deferred_reloc_t::emit(emit_base& base)
+{
+    auto info_p = get_info(base);
+
+    bool use_rela = false;
+//    use_rela = true;
+    int64_t base_delta = {};
+    if (!use_rela)
+    {
+        base_delta = addend;
+        addend = {};
+    }
+    
+    // emit relocations to backend
+    if (section_p)
+        base.put_section_reloc(*this, info_p, *section_p, addend);
+    else if (sym_p)
+        base.put_symbol_reloc(*this, info_p, *sym_p, addend);
+    else if (expr_p)
+        expr_p->emit(base, *this);
+    else if (addend)
+        base_delta = addend;
+    addend = {};
+
+    // if "base_delta", apply relocation to base
+    if (base_delta)
+        apply_reloc(base, *info_p, base_delta);
+}
+
+// Apply `reloc_fn`: deal with offsets & width deltas
+void deferred_reloc_t::apply_reloc(emit_base& base, reloc_info_t const& info, int64_t& addend)
+{
+    auto read_subfield = [&](int64_t data) -> std::tuple<int64_t, uint64_t, uint8_t>
+        {
+            uint64_t mask  {};
+            uint8_t  shift {};
+            auto     width = info.reloc.bits / 8;
+           
+            if (base.width < (width + offset))
+                throw std::logic_error { "apply_reloc: invalid width/offset" };
+#ifdef XXX
+            // normal case: matching widths & zero offset.
+            if (base.bits == info.reloc.bits)
+                return { data, 0, 0 };
+#endif
+            // constexpr to calculate mask
+            mask  = (width == 4) ? 0xffff'ffff : (width == 2) ? 0xffff : (width == 1) ? 0xff : ~0; 
+            shift = (width - offset - 1) * 8;
+            
+            if (mask)
+            {
+                mask <<= shift;
+                data = (data & mask) >> shift;
+            }
+
+            // sign-extend data
+            switch(width)
+            {
+                case 1: data = static_cast<int8_t >(data); break;
+                case 2: data = static_cast<int16_t>(data); break;
+                case 4: data = static_cast<int32_t>(data); break;
+                default: break;
+            }
+            return { data, mask, shift };
+        };
+
+    auto [data, mask, shift] = read_subfield(base.data);
+    
+    // apply reloc methods
+    base.data += addend;
+};
+
+// static method
+// return true iff `relocs` emited OK
+bool deferred_reloc_t::done(emit_base& base) { return true; }
+
+
+}
+
+#endif
