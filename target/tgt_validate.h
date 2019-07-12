@@ -129,13 +129,13 @@ struct tgt_validate_args
 
     struct iter : std::iterator<std::forward_iterator_tag, tgt_validate<MCODE_T>>
     {
-        iter(tgt_validate_args const& obj, val_idx_t index = 0) : obj(obj), index(index) {}
+        iter(tgt_validate_args const& obj, val_idx_t index = 0) : obj_p(&obj), index(index) {}
 
     private:
         // get index of current validator
         auto val_index() const
         {
-            return obj.arg_index[index];
+            return obj_p->arg_index[index];
         }
 
     public:
@@ -169,12 +169,12 @@ struct tgt_validate_args
         
         auto operator!=(iter const& other) const
         {
-            return &obj != &other.obj || index != other.index;
+            return obj_p != other.obj_p || index != other.index;
         }
 
     private:
         val_idx_t index;
-        tgt_validate_args const& obj;
+        tgt_validate_args const *obj_p;
     };
 
     

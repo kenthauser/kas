@@ -33,6 +33,8 @@ struct tgt_format
     using val_t        = typename MCODE_T::val_t;
     using opcode_t     = typename MCODE_T::opcode_t;
 
+    using emit_base    = core::emit_base;
+
     static_assert(FMT_MAX_ARGS >= MCODE_T::MAX_ARGS);
 
     // "instance" is just a virtual-pointer collection
@@ -80,6 +82,22 @@ private:
     virtual void extract_arg6(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
         { val_p->set_arg(arg, 0); }
 
+    // format first method, compress rest of methods
+    virtual void emit_arg1(emit_base&, mcode_size_t* op, arg_t& arg, val_t const *val_p) const 
+    { 
+        // prototype `arg1`: no relocation 
+    }
+    virtual void emit_arg2(emit_base&, mcode_size_t* op, arg_t& arg, val_t const *val_p) const
+        {}
+    virtual void emit_arg3(emit_base&, mcode_size_t* op, arg_t& arg, val_t const *val_p) const
+        {}
+    virtual void emit_arg4(emit_base&, mcode_size_t* op, arg_t& arg, val_t const *val_p) const
+        {}
+    virtual void emit_arg5(emit_base&, mcode_size_t* op, arg_t& arg, val_t const *val_p) const
+        {}
+    virtual void emit_arg6(emit_base&, mcode_size_t* op, arg_t& arg, val_t const *val_p) const
+        {}
+
 public:
     // access inserters/extractors via public interface
     auto insert(unsigned n, mcode_size_t* op, arg_t& arg, val_t const *val_p) const
@@ -115,6 +133,22 @@ public:
             }
     }
     
+    void emit(unsigned n, emit_base& base, mcode_size_t* op, arg_t& arg, val_t const *val_p) const
+    {
+        if (val_p)
+            switch (n)
+            {
+                case 0: return emit_arg1(base, op, arg, val_p);
+                case 1: return emit_arg2(base, op, arg, val_p);
+                case 2: return emit_arg3(base, op, arg, val_p);
+                case 3: return emit_arg4(base, op, arg, val_p);
+                case 4: return emit_arg5(base, op, arg, val_p);
+                case 5: return emit_arg6(base, op, arg, val_p);
+                default:
+                    throw std::runtime_error("emit: bad index");
+            }
+    }
+
     // return "opcode derived type" for given fmt
     virtual opcode_t& get_opc() const = 0;
 };
@@ -157,6 +191,8 @@ struct tgt_fmt_generic
     using fmt_t        = typename MCODE_T::fmt_t;
     using mcode_size_t = typename MCODE_T::mcode_size_t;
     
+    using emit_base    = core::emit_base;                                                           \
+    
     static constexpr auto MASK = (1 << BITS) - 1;
     static bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p)
     {
@@ -175,6 +211,8 @@ struct tgt_fmt_generic
         auto value = MASK & (op[WORD] >> SHIFT);
         val_p->set_arg(arg, value);
     }
+
+    static void emit(emit_base&, mcode_size_t *, arg_t&, val_t const *) {}
 };
 
 //
@@ -193,10 +231,14 @@ struct tgt_fmt_arg<MCODE_T, N, T> : virtual MCODE_T::fmt_t                      
     using mcode_size_t = typename MCODE_T::mcode_size_t;                                            \
     using arg_t        = typename MCODE_T::arg_t;                                                   \
     using val_t        = typename MCODE_T::val_t;                                                   \
+    using emit_base    = core::emit_base;                                                           \
     bool insert_arg ## N (mcode_size_t* op, arg_t& arg, val_t const * val_p) const override         \
         { return T::insert(op, arg, val_p);}                                                        \
     void extract_arg ## N (mcode_size_t const* op, arg_t& arg, val_t const * val_p) const override  \
         { T::extract(op, arg, val_p); }                                                             \
+    void emit_arg ## N (emit_base& base, mcode_size_t* op                                           \
+                      , arg_t& arg, val_t const * val_p) const override                             \
+        { return T::emit(base, op, arg, val_p); }                                                   \
 };
 
 // declare `FMT_MAX_ARGS` times

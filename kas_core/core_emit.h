@@ -180,10 +180,10 @@ static constexpr auto emit_expr = _set_e_chan<EMIT_EXPR>;
 static constexpr auto emit_info = _set_e_chan<EMIT_INFO>;
 static constexpr auto emit_addr = _set_e_chan<EMIT_ADDR>;
 
-// emit relocation manipulato
+// emit relocation manipulator
 struct emit_reloc
 {
-    emit_reloc(core_reloc const& r, int64_t addend = {})
+    emit_reloc(core_reloc r, int64_t addend = {})
         : reloc(r), addend(addend) {}
     
     // expect relocatable expression.
@@ -204,8 +204,8 @@ private:
     emit_base *base_p;
     deferred_reloc_t *r {};
 
-    core_reloc const& reloc;
-    int64_t           addend;
+    core_reloc reloc;
+    int64_t    addend;
 };
 
 

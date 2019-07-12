@@ -6,12 +6,6 @@
 namespace kas::core
 {
 
-enum arm_reloc_t : uint8_t
-{
-      ARM_REL_MOVW  = NUM_KAS_RELOC
-    , ARM_REL_MOVT
-    , NUM_ARM_RELOC
-};
 // XXX M68K relocations here for now
 
 constexpr reloc_info_t m68k_elf_relocs[] =
@@ -87,12 +81,50 @@ constexpr reloc_info_t arm_elf_relocs[] =
 #endif
 };
 
+int64_t read_4_12(int64_t data)
+{
+    auto value = (data >> 4) & 0xf000;
+    return value | (data & 0xfff);
+}
+
+int64_t write_4_12(int64_t data, int64_t value)
+{
+    auto mask = 0xf0fff;
+    data  &=~ mask;
+    value |= (value & 0xf000) << 4;
+    return data | (value & mask);
+}
+
+
+
 constexpr reloc_op_t kas_reloc_ops [] =
 {
      { K_REL_ADD    , reloc_op_t::update_add }
    , { K_REL_SUB    , reloc_op_t::update_sub }
    , { K_REL_COPY   , reloc_op_t::update_set }
+   , { ARM_REL_MOVW , reloc_op_t::update_add, write_4_12, read_4_12 }
 };
+
+auto deferred_reloc_t::get_ops(uint8_t reloc_op) const -> reloc_op_t const *
+{
+    using vector_t = std::vector<reloc_op_t const *>;
+    static vector_t *vec_p;
+
+    if (!vec_p)
+    {
+        vec_p = new vector_t;
+        for (auto& op : kas_reloc_ops)
+        {
+            if (op.op >= vec_p->size())
+                vec_p->resize(op.op + 10);  // don't extend each loop
+            (*vec_p)[op.op] = &op;
+        }
+    }
+    if (reloc_op < vec_p->size())
+        return (*vec_p)[reloc_op];
+    return {};
+}
+
 
 
 auto deferred_reloc_t::get_info(emit_base& base) const -> reloc_info_t const *
@@ -110,6 +142,10 @@ auto deferred_reloc_t::get_info(emit_base& base) const -> reloc_info_t const *
             map_p->emplace(info.reloc.key(), &info);
     }
 
+    // if unknown "op", return not found
+    if (!get_ops(reloc.reloc))
+        return nullptr;
+        
     // convert `reloc` to target machine `info`
     auto iter = map_p->find(reloc.key());       // lookup current relocation
 
@@ -171,14 +207,18 @@ void deferred_reloc_t::operator()(core_expr const& value)
 
 void deferred_reloc_t::emit(emit_base& base)
 {
+    // if no width specified by reloc, use current width
+    if (reloc.bits == 0)
+        reloc.bits = base.width * 8;
+    
     auto info_p = get_info(base);
 
     bool use_rela = false;
 //    use_rela = true;
-    int64_t base_delta = {};
+    int64_t base_addend = {};
     if (!use_rela)
     {
-        base_delta = addend;
+        base_addend = addend;
         addend = {};
     }
     
@@ -190,28 +230,28 @@ void deferred_reloc_t::emit(emit_base& base)
     else if (expr_p)
         expr_p->emit(base, *this);
     else if (addend)
-        base_delta = addend;
+        base_addend = addend;
     addend = {};
 
     // if "base_delta", apply relocation to base
-    if (base_delta)
-        apply_reloc(base, *info_p, base_delta);
+    if (base_addend && info_p)
+        apply_reloc(base, base_addend);
 }
 
 // Apply `reloc_fn`: deal with offsets & width deltas
-void deferred_reloc_t::apply_reloc(emit_base& base, reloc_info_t const& info, int64_t& addend)
+void deferred_reloc_t::apply_reloc(emit_base& base, int64_t& addend)
 {
     auto read_subfield = [&](int64_t data) -> std::tuple<int64_t, uint64_t, uint8_t>
         {
             uint64_t mask  {};
             uint8_t  shift {};
-            auto     width = info.reloc.bits / 8;
+            auto     width = reloc.bits / 8;
            
             if (base.width < (width + offset))
                 throw std::logic_error { "apply_reloc: invalid width/offset" };
 #ifdef XXX
             // normal case: matching widths & zero offset.
-            if (base.bits == info.reloc.bits)
+            if (base.bits == reloc.bits)
                 return { data, 0, 0 };
 #endif
             // constexpr to calculate mask
@@ -238,7 +278,14 @@ void deferred_reloc_t::apply_reloc(emit_base& base, reloc_info_t const& info, in
     auto [data, mask, shift] = read_subfield(base.data);
     
     // apply reloc methods
-    base.data += addend;
+    auto& ops = *get_ops(reloc.reloc);
+    auto value = base.data;
+    if (ops.read_fn)
+        value = ops.read_fn(value);
+    value = ops.update_fn(value, addend);
+    if (ops.write_fn)
+        value = ops.write_fn(base.data, value);
+    base.data = value;
 };
 
 // static method

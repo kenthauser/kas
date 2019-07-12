@@ -20,12 +20,20 @@ enum kas_reloc_t : uint8_t
     , NUM_KAS_RELOC
 };
 
+// XXX move to ARM
+enum arm_reloc_t : uint8_t
+{
+      ARM_REL_MOVW  = NUM_KAS_RELOC
+    , ARM_REL_MOVT
+    , NUM_ARM_RELOC
+};
+
 struct core_reloc
 {
     static constexpr auto RFLAGS_PC_REL = 1;
 
     core_reloc() = default;
-    constexpr core_reloc(uint8_t reloc, uint8_t bits, uint8_t pc_rel = false)
+    constexpr core_reloc(uint8_t reloc, uint8_t bits = 0, uint8_t pc_rel = false)
         : reloc(reloc)
         , bits(bits)
         , flags ( pc_rel ? RFLAGS_PC_REL : 0
@@ -58,29 +66,23 @@ struct reloc_info_t
 struct reloc_op_t
 {
     using read_fn_t   = int64_t(*)(int64_t data);
-    using update_fn_t = int64_t(*)(int64_t data, int64_t addend);
+    using update_fn_t = int64_t(*)(int64_t value, int64_t addend);
     using write_fn_t  = int64_t(*)(int64_t data, int64_t value);
 
     reloc_op_t() = default;
-    constexpr reloc_op_t(kas_reloc_t op
+    constexpr reloc_op_t(uint8_t op
                        , update_fn_t update_fn = update_add
-                       , write_fn_t  write_fn  = write_dir
-                       , read_fn_t   read_fn   = read_dir
+                       , write_fn_t  write_fn  = {}
+                       , read_fn_t   read_fn   = {}
                        )
             : op(op), read_fn(read_fn), write_fn(write_fn), update_fn(update_fn) {}
 
-    // prototype read function
-    static int64_t read_dir (int64_t data) { return data; }
-
-    // prototype write function
-    static int64_t write_dir(int64_t data, int64_t value)   { return value; } 
-
     // prototype update functions
-    static int64_t update_add(int64_t data, int64_t addend) { return data + addend; } 
-    static int64_t update_sub(int64_t data, int64_t addend) { return data - addend; } 
-    static int64_t update_set(int64_t data, int64_t addend) { return addend; } 
+    static int64_t update_add(int64_t value, int64_t addend) { return value + addend; } 
+    static int64_t update_sub(int64_t value, int64_t addend) { return value - addend; } 
+    static int64_t update_set(int64_t value, int64_t addend) { return addend; } 
 
-    kas_reloc_t op;
+    uint8_t     op;
     update_fn_t update_fn;
     write_fn_t  write_fn;
     read_fn_t   read_fn;
@@ -110,12 +112,13 @@ struct deferred_reloc_t
 
     // emit relocs & apply to base value
     void emit(emit_base& base);
-    void apply_reloc(emit_base& base, reloc_info_t const& info, int64_t& addend);
+    void apply_reloc(emit_base& base, int64_t& addend);
 
     // return true if `relocs` emited OK
     static bool done(emit_base& base);
     
     reloc_info_t const *get_info(emit_base& base) const;
+    reloc_op_t  const *get_ops (uint8_t) const;
 
 
     core_reloc          reloc;
@@ -124,7 +127,7 @@ struct deferred_reloc_t
     core_expr    const *expr_p    {};
     core_section const *section_p {};
     kas_loc      const *loc_p     {};
-    uint8_t             width     {};
+    uint8_t             width     {};       // XXX refactor out.
     uint8_t             offset    {};
 };
 

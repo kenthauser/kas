@@ -8,6 +8,7 @@
 	movge.Q	r7, sp
     mov r6, #12
     movw r5, #:lower16:150000
+    movw r6, #50000
     movw r6, #l_label
     movt r6, #l_label
     mov r5, #50000

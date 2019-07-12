@@ -120,32 +120,56 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
             , core::core_expr_dot const* dot_p
             ) const
 {
-    // 1. emit base code
-   
-    auto n = code_size()/sizeof(mcode_size_t);
-    while (n--)
+    // 1. apply args & emit relocs as required
+    // Insert args into machine code "base" value
+    auto val_iter     = vals().begin();
+    auto val_iter_end = vals().end();
+
+    // now that have selected machine code match, must be validator for each arg
+    // if base code has "relocation", emit it
+    unsigned n = 0;
+    for (auto& arg : args)
+    {
+        auto val_p = &*val_iter++;
+        auto arg_n = n++;
+        if (!fmt().insert(arg_n, op_p, arg, val_p))
+            fmt().emit(arg_n, base, op_p, arg, val_p);
+    }
+
+    // 2. emit base code
+    auto words = code_size()/sizeof(mcode_size_t);
+    while (words--)
         base << *op_p++;
 
-    // 2. emit args
-    
-    // hook into validators
-    auto& val_c = defn().vals();
-    auto  val_p = val_c.begin();
-    auto  fits = core::core_fits(dot_p);
+    // 3. emit args
+    val_iter = vals().begin();          // rerun validators
+    auto fits = core::core_fits(dot_p);
 
     for (auto& arg : args)
     {
         op_size_t size;
 
         // arg needs "size" to emit properly
-        val_p->size(arg, sz(), fits, size);
+        val_iter->size(arg, sz(), fits, size);
 
         // arg_t not templated by MCODE_T, so pass as arg
-        arg.emit(base, sz(), size());
+        emit_arg(base, std::move(arg), sz(), size());
 
         // next validator
-        ++val_p; 
+        ++val_iter; 
     }
+}
+
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
+template <typename ARG_T>
+void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+        emit_arg(core::emit_base& base
+            , ARG_T&&   arg
+            , uint8_t   sz
+            , uint8_t   size
+            ) const
+{
+        arg.emit(base, sz, size);
 }
 
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
@@ -202,18 +226,6 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         else
             value = 0;
     }
-#if 0
-    auto& sz_obj = d.sizes_base[d.sz_index];
-#ifdef XXX
-    if (!sz_obj.single_size)
-    {
-        auto& size_fn = sz_obj.size_fn;
-        auto sz_code = size_fn(sz());
-        std::cout << "adding code: " << std::hex << +sz_code << " sz = " << +sz() << std::endl;
-        code_data[size_fn.word()] |= sz_code;
-    }
-#endif
-#endif
     return code_data;
 }
 

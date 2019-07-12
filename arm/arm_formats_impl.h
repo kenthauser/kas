@@ -37,6 +37,10 @@ struct fmt_fixed
     {
         val_p->set_arg(arg, *op);
     }
+
+    static void emit(core::emit_base& base, mcode_size_t *op, arm_arg_t& arg, val_t const *val_p)
+    {
+    }
 };
 
 struct fmt_movw
@@ -46,18 +50,16 @@ struct fmt_movw
 
     static bool insert(mcode_size_t* op, arm_arg_t& arg, val_t const *val_p)
     {
-        // don't worry about reloc, yet
-        auto p = arg.expr.get_fixed_p();
-
-        if (p)
-        {
-            *op |= *p & 0xfff;
-            *op |= (*p & 0xf000) << 4;
-        }
-
-        return p;
+        // let reloc code insert value
+        return false;
     }
     
+    static void emit(core::emit_base& base, mcode_size_t *op, arm_arg_t& arg, val_t const *val_p)
+    {
+        core::emit_reloc reloc { core::ARM_REL_MOVW };
+        base << reloc << arg.expr;
+    }
+
     static void extract(mcode_size_t const* op, arm_arg_t& arg, val_t const *val_p)
     {
         

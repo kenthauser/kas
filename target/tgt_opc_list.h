@@ -146,7 +146,6 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         op_size_t size; 
 
         // XXX need core_fits 
-        //auto mcode_p = eval_insn_list(insn, ok, args, size, expression::expr_fits(), this->trace);
         auto mcode_p = insn.eval(ok, args, size, expression::expr_fits(), this->trace);
         
         // XXX need to handle error case...
@@ -155,17 +154,7 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         auto& mc = *mcode_p;
         auto code = mc.code(stmt_flags);
 
-        // Insert args into machine code "base" value
-        auto& fmt         = mc.fmt();
-        auto& vals        = mc.vals();
-        auto val_iter     = vals.begin();
-        auto val_iter_end = vals.end();
-
-        // now that have selected machine code match, must be validator for each arg
-        unsigned n = 0;
-        for (auto& arg : args)
-            fmt.insert(n++, code.data(), arg, &*val_iter++);
-
+        // emit opcode
         mc.emit(base, code.data(), args, dot_p);
     }
 };

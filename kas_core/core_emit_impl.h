@@ -41,12 +41,9 @@ deferred_reloc_t& emit_base::add_reloc(core_reloc r, int64_t addend)
     if (reloc_p == std::end(relocs))
         throw std::runtime_error("emit_base: too many relocations for insn");
 
-    // set default "RELOC" to `add` with current `width`
+    // set default "RELOC" to `add`
     if (r.reloc == K_REL_NONE)
-    {
         r.reloc = K_REL_ADD;
-        r.bits  = width * 8;        // reloc's use "bits"
-    }
    
     *reloc_p++ = { r, addend };
     return reloc_p[-1];
@@ -156,7 +153,9 @@ void emit_base::put_section_reloc(deferred_reloc_t const& r, reloc_info_t const 
 {
     if (!info_p)
     {
-        // ** put diag **
+        std::cout << "no info for reloc: code = " << +r.reloc.reloc;
+        std::cout << " bits = " << +r.reloc.bits << std::endl;
+        return;
     }
 
     stream.put_section_reloc(e_chan, *info_p, r.width, r.offset, section, addend);
@@ -166,7 +165,9 @@ void emit_base::put_symbol_reloc (deferred_reloc_t const& r, reloc_info_t const 
 {
     if (!info_p)
     {
-        // ** put diag **
+        std::cout << "no info for reloc: code = " << +r.reloc.reloc;
+        std::cout << " bits = " << +r.reloc.bits << std::endl;
+        return;
     }
 
         // ** put diag **
