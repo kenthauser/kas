@@ -55,6 +55,7 @@
 #include "m68k.h"
 #include "m68k_stmt.h"
 #include "m68k_parser_support.h"    // evaluate complex m68k args
+#include "m68k_stmt_flags.h"
 
 #include "expr/expr.h"              // expression public interface
 //#include "kas_core/core_parse_references.h"
@@ -286,13 +287,9 @@ namespace kas::m68k::parser
     struct m68k_bf_arg  : kas::parser::annotate_on_success {};
     struct m68k_missing : kas::parser::annotate_on_success {};
 
-
     BOOST_SPIRIT_DEFINE(m68k_arg, m68k_bf_arg, m68k_missing)
 
-    // an m68k instruction is "opcode" followed by comma-separated "arg_list"
-    // bitfield breaks regularity. Allow bitfield to follow arg w/o comma
-    // no arguments indicated by location tagged `m68k_arg` with type MODE_NONE
-    
+    // Parse comma-separated list (or empty list)
     rule<class _m68k_args, std::vector<m68k_arg_t>> const m68k_args = "m68k_args";
     auto const m68k_args_def
            = (m68k_arg >> *((',' > m68k_arg) | m68k_bf_arg))
@@ -301,12 +298,88 @@ namespace kas::m68k::parser
 
     BOOST_SPIRIT_DEFINE(m68k_args)
 
+
+    // an m68k instruction is "opcode" followed by comma-separated "arg_list"
+    // bitfield breaks regularity. Allow bitfield to follow arg w/o comma
+    // no arguments indicated by location tagged `m68k_arg` with type MODE_NONE
+#if 1    
+// set "m68k_stmt_t" flags based on condition codes & other insn-name flags
+auto gen_stmt = [](auto& ctx)
+    {
+        // result is `stmt_t`
+        m68k_stmt_t stmt;
+        
+        auto& args    = x3::_attr(ctx);
+        stmt.insn_p   = boost::fusion::at_c<0>(args);
+        auto& ccode   = boost::fusion::at_c<1>(args);
+        auto& has_dot = boost::fusion::at_c<2>(args);
+        auto& size    = boost::fusion::at_c<3>(args);
+       
+        auto& flags = stmt.flags;
+        if (ccode)
+        {
+            flags.has_ccode = true;
+
+            // different condition code maps for general & fp insns
+            // floating point insn names start with `f`
+            bool is_fp = stmt.insn_p->name[0] == 'f';
+            auto code = m68k_ccode::code(*ccode, is_fp);
+            if (code < 0)
+            {
+                // invalid condition code
+                x3::_pass(ctx) = false;
+            }
+            else
+                flags.ccode = code;
+        }
+
+        if (has_dot)
+            flags.has_dot = true;
+        
+        if (size)
+        {
+            flags.arg_size = *size;
+        }
+        else 
+        {
+            flags.arg_size = 7;
+            if (has_dot)
+                x3::_pass(ctx) = false;     // size req'd if dot
+        }
+        
+        x3::_val(ctx) = stmt;
+    };
+
+// need "named rule" to get proper error message
+auto const m68k_insn_end = rule<class _> {"m68k_insn_end"} = x3::blank;
+
+// M68K encodes several "options" in insn name. Decode them.
+// invalid options error out in `m68k_insn_t::validate_args` 
+auto const parse_insn = rule<class _, m68k_stmt_t> {"instruction"} = 
+        lexeme[(m68k_insn_x3()          // insn_base_name
+                > -m68k_ccode::x3()     // has condition-code
+                > -char_('.')           // has-dot
+                > -m68k_sfx::x3()       // has suffix
+                > m68k_insn_end         // no trailing chars allowed
+                )[gen_stmt]
+                ];
+
+
+// need two rules to get tagging 
+auto const raw_m68k_stmt = rule<class _, m68k_stmt_t> {} = 
+            (parse_insn > m68k_args)[m68k_stmt_t()];
+            
+// Parser interface
+m68k_stmt_x3 m68k_stmt {"m68k_stmt"};
+auto const m68k_stmt_def = raw_m68k_stmt;
+#else
     auto const raw_m68k_stmt = rule<class _, m68k_stmt_t> {} =
                         (m68k_insn_x3() > m68k_args)[m68k_stmt_t()]; 
 
     // Parser interface
     m68k_stmt_x3 m68k_stmt {"m68k_stmt"};
     auto const m68k_stmt_def = raw_m68k_stmt;
+#endif
     
     BOOST_SPIRIT_DEFINE(m68k_stmt)
 

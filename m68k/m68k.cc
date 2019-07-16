@@ -20,7 +20,7 @@
 //#include "insns_m68851.h"
 #include "insns_m68881.h"
 #include "insns_cpu32.h"
-#include "insns_coldfire.h"
+//#include "insns_coldfire.h"
 #endif
 
 // parse instruction + args
@@ -28,6 +28,7 @@
 
 // arch impl files
 #include "mit_moto_names.h"
+#include "m68k_stmt_impl.h"
 #include "m68k_arg_impl.h"
 #include "m68k_arg_emit.h"
 #include "m68k_arg_size.h"

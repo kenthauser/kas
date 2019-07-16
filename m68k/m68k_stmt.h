@@ -17,11 +17,40 @@
 
 namespace kas::m68k
 {
-    // declare result of parsing
-    // NB: there are  variants of `move.l`
-    //using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t, hw::hw_tst, 16>;
-    using m68k_insn_t = tgt::tgt_insn_t<m68k_mcode_t, unsigned, 32>;
-    using m68k_stmt_t = tgt::tgt_stmt<m68k_insn_t, m68k_arg_t>;
+// declare result of parsing
+// NB: there are  17 variants of `move.l`
+//using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t, hw::hw_tst, 16>;
+using m68k_insn_t = tgt::tgt_insn_t<m68k_mcode_t, unsigned, 32>;
+
+struct m68k_stmt_t : tgt::tgt_stmt<m68k_stmt_t, m68k_insn_t, m68k_arg_t>
+{
+    using base_t::base_t;
+
+    // X3 method to initialize instance
+    template <typename Context>
+    void operator()(Context const& ctx);
+
+    // method validate args. Principally for target & address mode
+    template <typename ARGS_T, typename TRACE>
+    kas_error_t validate_args(insn_t const&, ARGS_T&, bool& args_arg_const, TRACE * = {}) const;
+
+    // method to validate mcode. Principally for target
+    template <typename MCODE_T>
+    const char *validate_mcode(MCODE_T const *mcode_p) const;
+    
+    uint32_t get_stmt_flags() const { return flags.value(); }
+   
+    // bitfields don't zero-init. Use support type.
+    struct flags_t : detail::alignas_t<flags_t, uint16_t>
+    {
+        using base_t::base_t;
+
+        value_t arg_size  : 8;      // argument size: 7 == void (not specified)
+        value_t ccode     : 5;      // conditional instruction code
+        value_t has_ccode : 1;      // is conditional
+        value_t has_dot   : 1;      // size suffix has `dot` (motorola format)
+    } flags;
+};
 }
 
 

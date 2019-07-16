@@ -1,23 +1,30 @@
-#ifndef KAS_ARM_ARM_STMT_IMPL_H
-#define KAS_ARM_ARM_STMT_IMPL_H
+#ifndef KAS_M68K_M68K_STMT_IMPL_H
+#define KAS_M68K_M68K_STMT_IMPL_H
 
-#include "arm_stmt.h"
-#include "arm_mcode.h"
+#include "m68k_stmt.h"
+#include "m68k_mcode.h"
 
-namespace kas::arm
+namespace kas::m68k
 {
+
 template <typename Context>
-void arm_stmt_t::operator()(Context const& ctx)
+void m68k_stmt_t::operator()(Context const& ctx)
 {
     // X3 method to initialize instance
     auto& x3_args = x3::_attr(ctx);
+#if 0    
+    insn_p        = boost::fusion::at_c<0>(x3_args);
+    args          = boost::fusion::at_c<1>(x3_args); 
+    x3::_val(ctx) = *this;
+#else
     auto& stmt    = boost::fusion::at_c<0>(x3_args);
     stmt.args     = boost::fusion::at_c<1>(x3_args); 
     x3::_val(ctx) = stmt;
+#endif
 } 
 
 template <typename ARGS_T, typename TRACE_T>
-auto  arm_stmt_t::validate_args(insn_t const& insn
+auto  m68k_stmt_t::validate_args(insn_t const& insn
                     , ARGS_T& args
                     , bool& args_are_const
                     , TRACE_T *trace
@@ -53,7 +60,7 @@ auto  arm_stmt_t::validate_args(insn_t const& insn
 
 // NB: This method rejects single `MCODE` not `STMT`
 template <typename MCODE_T>
-const char *arm_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
+const char *m68k_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
 {
     if (auto base_err = base_t::validate_mcode(mcode_p))
         return base_err;
@@ -61,7 +68,7 @@ const char *arm_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
     auto sz = mcode_p->sz();
 
     std::cout << "validate_mcode: flags = " << std::hex << flags.value() << " sz = " << +sz << std::endl;
-
+#if 0
     // check condition code, s-flag, and arch match MCODE & mode
     if (flags.has_ccode)
         if (~sz & SZ_DEFN_COND)
@@ -74,7 +81,7 @@ const char *arm_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
     if (flags.ccode == 0xe)
         if (sz & SZ_DEFN_NO_AL)
             return "AL condition code not allowed";
-
+#endif
     return {};
 }
 }

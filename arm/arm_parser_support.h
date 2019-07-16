@@ -4,21 +4,6 @@
 #include "arm_stmt.h"
 #include "arm_arg.h"
 
-namespace kas::arm
-{
-
-template <typename Context>
-void arm_stmt_t::operator()(Context const& ctx)
-{
-    // X3 method to initialize instance
-    auto& x3_args = x3::_attr(ctx);
-    auto& stmt    = boost::fusion::at_c<0>(x3_args);
-    stmt.args     = boost::fusion::at_c<1>(x3_args); 
-    x3::_val(ctx) = stmt;
-} 
-
-}
-
 namespace kas::arm::parser
 {
 // support types: help parsing `indirect` and `shift`

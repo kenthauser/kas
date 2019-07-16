@@ -69,14 +69,27 @@ template <typename=void> struct m68k_defn_list : meta::list<> {};
 //
 
 using namespace tgt::opc::traits;
+#if 0
 using tgt::opc::define_sz;
 using tgt::opc::sz_void;
+#else
+template <int, typename = void>
+using define_sz = meta::int_<0>;
+using sz_void   = define_sz<0>;
+#endif
 
+#if 0
 // multiple sizes: generate `list` directly`
 using sz_lwb  = meta::list<meta::int_<(1 << OP_SIZE_LONG) | (1 << OP_SIZE_WORD) | (1 << OP_SIZE_BYTE)>>;
 using sz_lw   = meta::list<meta::int_<(1 << OP_SIZE_LONG) | (1 << OP_SIZE_WORD)>>;
 using sz_wb   = meta::list<meta::int_<(1 << OP_SIZE_WORD) | (1 << OP_SIZE_BYTE)>>;
 using sz_all  = meta::list<meta::int_<0x7f>>;
+#else
+using sz_lwb = sz_void;
+using sz_lw  = sz_void;
+using sz_wb  = sz_void;
+using sz_all = sz_void;
+#endif
 
 // single-sizes
 using sz_b    = define_sz<OP_SIZE_BYTE>;

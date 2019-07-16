@@ -65,6 +65,10 @@ struct fmt_reg_mode
         auto cpu_mode  = (value >> (SHIFT+MODE_OFFSET-3)) & MODE_MASK; 
         val_p->set_arg(arg, reg_num | cpu_mode);
     }
+
+    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p)
+    {
+    }
 };
 
 // if MODE_OFFSET is three, just generic with N bits
@@ -155,6 +159,9 @@ struct fmt_reg_pair
         arg.outer = gen_reg(reg2);
         arg.set_mode(MODE_PAIR);
     }
+    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p)
+    {
+    }
 };
 
 // coldfire MAC throws bits all over the place
@@ -196,6 +203,9 @@ struct fmt_subreg
 #endif
     }
 
+    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p)
+    {
+    }
 };
 
 // emac accN stored: (optionally complemented) LSB in word 0, bit 7; MSB in word 1, bit 5
@@ -231,6 +241,9 @@ struct fmt_emac_an
         
         val_p->set_arg(*arg, reg_num | cpu_mode);
 #endif
+    }
+    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p)
+    {
     }
 };
 

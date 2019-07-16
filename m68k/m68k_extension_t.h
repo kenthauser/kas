@@ -31,25 +31,25 @@ using m68k_ext_size_t = std::uint16_t;
 struct m68k_extension_t : kas::detail::alignas_t<m68k_extension_t, m68k_ext_size_t>
 {
     using base_t  = kas::detail::alignas_t<m68k_extension_t, m68k_ext_size_t>;
-    using align_t = typename base_t::align_t;
+    using value_t = typename base_t::value_t;
 
     // illegal to suppress both index & base reg. Use as init'd flag
     // ie: if both suppressed, extension is not inited. XXX
-    align_t mem_mode     : 4;
-    align_t disp_size    : 2;
-    align_t _index_suppr : 1;   // ->!_reg_inited
-    align_t base_suppr   : 1;
-    align_t _reg_inited  : 1;
-    align_t reg_scale    : 2;
-    align_t _reg_long    : 1;
-    align_t _reg_num     : 4;
+    value_t mem_mode     : 4;
+    value_t disp_size    : 2;
+    value_t _index_suppr : 1;   // ->!_reg_inited
+    value_t base_suppr   : 1;
+    value_t _reg_inited  : 1;
+    value_t reg_scale    : 2;
+    value_t _reg_long    : 1;
+    value_t _reg_num     : 4;
 
     // convert from "serialization" format (as well as default ctor)
-    m68k_extension_t(align_t ext = 0) : base_t(ext)
+    m68k_extension_t(value_t ext = 0) : base_t(ext)
     {
         // static_assert in alignas_t makes this safe
         void *v = this;
-        *static_cast<align_t*>(v) = ext;
+        *static_cast<value_t*>(v) = ext;
 
         if (!*this) {
             reg_long(M_SIZE_AUTO);
@@ -62,8 +62,8 @@ struct m68k_extension_t : kas::detail::alignas_t<m68k_extension_t, m68k_ext_size
     m68k_extension_t(U hw, U& inner, bool& is_brief);
 
     // convert to "hardware" format
-    align_t hw_value() const;
-    align_t brief_value(int) const;
+    value_t hw_value() const;
+    value_t brief_value(int) const;
 
     // index_t utility functions
     operator bool() const
@@ -148,7 +148,7 @@ m68k_extension_t::m68k_extension_t(U hw, U& inner, bool& is_brief) : m68k_extens
 }
 
 // "hardware format ready to be emitted"
-inline m68k_extension_t::align_t m68k_extension_t::hw_value() const
+inline m68k_extension_t::value_t m68k_extension_t::hw_value() const
 {
     // calculate reg "byte";
     auto reg_byte = reg_num() << 4;
@@ -167,7 +167,7 @@ inline m68k_extension_t::align_t m68k_extension_t::hw_value() const
 }
 
 // "brief format ready to be emitted"
-inline m68k_extension_t::align_t m68k_extension_t::brief_value(int disp) const
+inline m68k_extension_t::value_t m68k_extension_t::brief_value(int disp) const
 {
     auto base = hw_value() & ~0x1ff;
     return base | (disp & 0xff);
