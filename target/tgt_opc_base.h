@@ -19,6 +19,7 @@ struct tgt_opc_base : core::opc::opcode
     using insn_t       = typename mcode_t::insn_t;
     using bitset_t     = typename insn_t::bitset_t;
     using arg_t        = typename mcode_t::arg_t;
+    using stmt_info_t  = typename mcode_t::stmt_info_t;
     using stmt_args_t  = typename mcode_t::stmt_args_t;
     using mcode_size_t = typename mcode_t::mcode_size_t;
 
@@ -39,7 +40,7 @@ struct tgt_opc_base : core::opc::opcode
                  , bitset_t&      ok
                  , mcode_t const *mcode_p
                  , stmt_args_t&&  args
-                 , unsigned       stmt_flags
+                 , stmt_info_t    stmt_info
 
                  // and kas_core boilerplate
                  , opcode::data_t& data

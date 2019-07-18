@@ -18,6 +18,7 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
     using insn_t       = typename mcode_t::insn_t;
     using bitset_t     = typename mcode_t::bitset_t;
     using arg_t        = typename mcode_t::arg_t;
+    using stmt_info_t  = typename mcode_t::stmt_info_t;
     using stmt_args_t  = typename mcode_t::stmt_args_t;
     using mcode_size_t = typename mcode_t::mcode_size_t;
 
@@ -35,7 +36,7 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
                  , bitset_t&      ok
                  , mcode_t const *mcode_p
                  , stmt_args_t&&  args
-                 , unsigned       stmt_flags
+                 , stmt_info_t    stmt_info
 
                  // and kas_core boilerplate
                  , data_t& data
@@ -58,7 +59,7 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         
         inserter(insn.index);
         auto& mc = *insn.list_mcode_p;
-        tgt_insert_args(inserter, mc, std::move(args), stmt_flags);
+        tgt_insert_args(inserter, mc, std::move(args), stmt_info);
         
         // store OK bitset in fixed area
         fixed.fixed = ok.to_ulong();
@@ -138,8 +139,8 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
 
         auto& insn       = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         auto& list_mc    = *insn.list_mcode_p;
-        auto  stmt_flags = stmt_t::extract_stmt_flags(&list_mc, nullptr);
-        //auto  stmt_flags = stmt_t::extract_stmt_flags(&list_mc, reader.head());
+        auto  stmt_info = stmt_t::extract_stmt_info(&list_mc, nullptr);
+        //auto  stmt_info = stmt_t::extract_stmt_info(&list_mc, reader.head());
         auto  args       = serial_args(reader, list_mc);
 
         // get best match
@@ -152,7 +153,7 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
 
         // get opcode "base" value
         auto& mc = *mcode_p;
-        auto code = mc.code(stmt_flags);
+        auto code = mc.code(stmt_info);
 
         // emit opcode
         mc.emit(base, code.data(), args, dot_p);

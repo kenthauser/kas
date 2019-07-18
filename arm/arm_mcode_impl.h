@@ -9,15 +9,15 @@
 namespace kas::arm
 {
 
-auto arm_mcode_t::code(unsigned stmt_flags) const
+auto arm_mcode_t::code(unsigned stmt_info) const
     -> std::array<mcode_size_t, MAX_MCODE_WORDS>
 {
     // put base code in array
-    auto code_data = base_t::code(stmt_flags);
+    auto code_data = base_t::code(stmt_info);
     
     // add ccode & s_flags as appropriate
     auto sz = this->sz();
-    arm_stmt_t::flags_t flags(stmt_flags);
+    arm_stmt_t::flags_t flags(stmt_info);
     
     // add condition code?
     unsigned high_word{};
@@ -32,7 +32,7 @@ auto arm_mcode_t::code(unsigned stmt_flags) const
     if (flags.has_sflag)
         high_word |= 1 << (20-16);
 
-    std::cout << "mcode_t::code: " << std::hex << stmt_flags << std::endl;
+    std::cout << "mcode_t::code: " << std::hex << stmt_info.value() << std::endl;
     std::cout << "mcode_t::code: " << std::hex << flags.value() << " " << +sz;
     std::cout << " -> " << high_word << std::endl;
 

@@ -38,17 +38,21 @@ struct m68k_stmt_t : tgt::tgt_stmt<m68k_stmt_t, m68k_insn_t, m68k_arg_t>
     template <typename MCODE_T>
     const char *validate_mcode(MCODE_T const *mcode_p) const;
     
-    uint32_t get_stmt_flags() const { return flags.value(); }
-   
     // bitfields don't zero-init. Use support type.
     struct flags_t : detail::alignas_t<flags_t, uint16_t>
     {
         using base_t::base_t;
 
-        value_t arg_size  : 8;      // argument size: 7 == void (not specified)
+        value_t arg_size  : 3;      // argument size: 7 == void (not specified)
         value_t ccode     : 5;      // conditional instruction code
         value_t has_ccode : 1;      // is conditional
         value_t has_dot   : 1;      // size suffix has `dot` (motorola format)
+
+        // just use `flags_t` as `stmt_info_t`
+        auto info() const
+        {
+            return *this;
+        }
     } flags;
 };
 }

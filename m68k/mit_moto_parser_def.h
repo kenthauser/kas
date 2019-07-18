@@ -302,7 +302,7 @@ namespace kas::m68k::parser
     // an m68k instruction is "opcode" followed by comma-separated "arg_list"
     // bitfield breaks regularity. Allow bitfield to follow arg w/o comma
     // no arguments indicated by location tagged `m68k_arg` with type MODE_NONE
-#if 1    
+
 // set "m68k_stmt_t" flags based on condition codes & other insn-name flags
 auto gen_stmt = [](auto& ctx)
     {
@@ -315,7 +315,8 @@ auto gen_stmt = [](auto& ctx)
         auto& has_dot = boost::fusion::at_c<2>(args);
         auto& size    = boost::fusion::at_c<3>(args);
        
-        auto& flags = stmt.flags;
+        auto& flags = stmt.get_flags();
+#if 0
         if (ccode)
         {
             flags.has_ccode = true;
@@ -342,11 +343,11 @@ auto gen_stmt = [](auto& ctx)
         }
         else 
         {
-            flags.arg_size = 7;
+            flags.arg_size = OP_SIZE_VOID;
             if (has_dot)
                 x3::_pass(ctx) = false;     // size req'd if dot
         }
-        
+#endif
         x3::_val(ctx) = stmt;
     };
 
@@ -372,14 +373,6 @@ auto const raw_m68k_stmt = rule<class _, m68k_stmt_t> {} =
 // Parser interface
 m68k_stmt_x3 m68k_stmt {"m68k_stmt"};
 auto const m68k_stmt_def = raw_m68k_stmt;
-#else
-    auto const raw_m68k_stmt = rule<class _, m68k_stmt_t> {} =
-                        (m68k_insn_x3() > m68k_args)[m68k_stmt_t()]; 
-
-    // Parser interface
-    m68k_stmt_x3 m68k_stmt {"m68k_stmt"};
-    auto const m68k_stmt_def = raw_m68k_stmt;
-#endif
     
     BOOST_SPIRIT_DEFINE(m68k_stmt)
 

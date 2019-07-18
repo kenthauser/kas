@@ -67,6 +67,7 @@ struct tgt_mcode_t
     // extract types from STMT
     using insn_t       = typename stmt_t::insn_t;
     using arg_t        = typename stmt_t::arg_t;
+    using stmt_info_t  = decltype(std::declval<stmt_t>().get_flags().info());
     using stmt_args_t  = decltype(stmt_t::args);
 
     using arg_mode_t   = typename arg_t::arg_mode_t;
@@ -156,12 +157,13 @@ struct tgt_mcode_t
     }
     
     // machine code arranged as words: big-endian array (ie highest order words first)
-    auto code(uint32_t stmt_flags) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
+    auto code(stmt_info_t stmt_info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
 
     void print(std::ostream&) const;
 
     mcode_idx_t index;         // -> access this instance (zero-based)
     defn_idx_t  defn_index;    // -> access associated defn for name, fmt, validator (zero-based)
+    // NB: additional disassembly items will be required
 };
 
 }

@@ -73,7 +73,7 @@ template <typename Inserter, typename MCODE_T, typename ARGS_T>
 void tgt_insert_args(Inserter& inserter
                     , MCODE_T const& m_code
                     , ARGS_T&& args
-                    , unsigned stmt_flags
+                    , typename MCODE_T::stmt_info_t stmt_info
                     )
 {
     using arg_t = typename MCODE_T::arg_t;
@@ -81,7 +81,7 @@ void tgt_insert_args(Inserter& inserter
     constexpr auto ARGS_PER_INFO = detail::tgt_arg_info<MCODE_T>::ARGS_PER_INFO;
    
     // insert base "code" (a appropriately sized zero) & use pointer for arg inserter
-    auto code_p = inserter(m_code.code(stmt_flags).data(), m_code.code_size());
+    auto code_p = inserter(m_code.code(stmt_info).data(), m_code.code_size());
 
     auto& fmt         = m_code.fmt();
     auto  sz          = m_code.sz();

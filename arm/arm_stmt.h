@@ -34,7 +34,7 @@ struct arm_stmt_t : tgt::tgt_stmt<arm_stmt_t, arm_insn_t, arm_arg_t>
     template <typename MCODE_T>
     const char *validate_mcode(MCODE_T const *mcode_p) const;
     
-    uint32_t get_stmt_flags() const { return flags.value(); }
+    uint32_t get_flags() const { return flags.value(); }
    
     // bitfields don't zero-init. Use support type.
     struct flags_t : detail::alignas_t<flags_t, uint16_t>

@@ -12,15 +12,9 @@ void m68k_stmt_t::operator()(Context const& ctx)
 {
     // X3 method to initialize instance
     auto& x3_args = x3::_attr(ctx);
-#if 0    
-    insn_p        = boost::fusion::at_c<0>(x3_args);
-    args          = boost::fusion::at_c<1>(x3_args); 
-    x3::_val(ctx) = *this;
-#else
     auto& stmt    = boost::fusion::at_c<0>(x3_args);
     stmt.args     = boost::fusion::at_c<1>(x3_args); 
     x3::_val(ctx) = stmt;
-#endif
 } 
 
 template <typename ARGS_T, typename TRACE_T>
@@ -30,18 +24,12 @@ auto  m68k_stmt_t::validate_args(insn_t const& insn
                     , TRACE_T *trace
                     ) const -> kas_error_t
 {
-#if 0
-    // if no opcodes, then result is HW_TST
-    if (mcodes.empty())
-        return { tst.name(), args.front() };
-#endif
-
     // if first is dummy, no args to check
     if (args.front().is_missing())
         return {};
 
-    // NB: pickup size from first mcode of insn
-    auto sz = insn.get_sz();
+    // get arg size from flags
+    auto sz = flags.arg_size;
     
     for (auto& arg : args)
     {

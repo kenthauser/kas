@@ -23,6 +23,13 @@ struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<DERIVED_T, INSN_T, ARG_T>>
 
     using kas_error_t = parser::kas_error_t;
 
+    // default `flags` type
+    struct flags_t
+    {
+        short value() const { return 0; }
+        short info()  const { return value(); }
+    } flags;
+
 protected:
     // CRTP casts
     auto& derived() const
@@ -31,6 +38,7 @@ protected:
         { return *static_cast<derived_t*>(this); }
 
 public:
+    auto& get_flags() const { return derived().flags; }
 
     // method used to assemble instruction
     core::opcode *gen_insn(core::opcode::data_t&);
@@ -46,10 +54,10 @@ public:
     // statement flags: variable data stored in opcode `name`: eg `ble` (branch if less-than-or-equal)
     // NB: not all architectures use `stmt_flags` to handle cases such as `ble`
     // 1. Generate `code` based on `statement flags`
-    constexpr uint32_t get_stmt_flags() const { return {}; }
+    //constexpr uint32_t get_flags() const { return {}; }
 
     // 2. Extract stored statment flags from previously modified code
-    constexpr static uint32_t extract_stmt_flags(void const *mcode_p, void *code_p) { return {}; }
+    constexpr static uint32_t extract_stmt_info(void const *mcode_p, void *code_p) { return {}; }
 
 
     // methods used by test fixtures

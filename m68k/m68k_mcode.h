@@ -37,6 +37,7 @@ struct m68k_mcode_size_t : tgt::tgt_mcode_size_t
     using mcode_idx_t  = uint16_t; 
     using name_idx_t   = uint16_t;
     using defn_idx_t   = uint16_t;
+    using info_t       = uint16_t;
 };
 
 // forward declare m68k default mcode arg formatter

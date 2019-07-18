@@ -214,7 +214,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
                 , ok
                 , matching_mcode_p
                 , std::move(args)
-                , derived().get_stmt_flags()
+                , derived().get_flags().info()
 
                 // and core_opcode data area reference
                 , data

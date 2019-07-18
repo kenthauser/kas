@@ -21,6 +21,7 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
     using insn_t       = typename base_t::insn_t;
     using bitset_t     = typename base_t::bitset_t;
     using arg_t        = typename base_t::arg_t;
+    using stmt_info_t  = typename base_t::stmt_info_t;
     using stmt_args_t  = typename base_t::stmt_args_t;
     using mcode_size_t = typename base_t::mcode_size_t;
     using op_size_t    = typename base_t::op_size_t;
@@ -39,7 +40,7 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
                  , bitset_t&      ok
                  , mcode_t const *mcode_p
                  , stmt_args_t&&  args
-                 , unsigned       stmt_flags
+                 , stmt_info_t    stmt_info
 
                  // and opcode data
                  , data_t&  data
@@ -70,7 +71,7 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
         
         auto inserter = base_t::tgt_data_inserter(data);
         inserter(op.index);
-        tgt_insert_args(inserter, op, std::move(args), stmt_flags);
+        tgt_insert_args(inserter, op, std::move(args), stmt_info);
         return this;
     }
     
