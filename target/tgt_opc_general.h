@@ -62,7 +62,7 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
         }
         
         // don't bother to trace, know mcode matches
-        op.size(args, data.size, expression::expr_fits{});
+        op.size(args, mcode_p->sz(stmt_info), data.size, expression::expr_fits{});
 
         // serialize format (for resolved instructions)
         // 1) mcode index
@@ -88,6 +88,7 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
         
         auto args    = base_t::serial_args(reader, mcode);
         auto code_p  = args.code_p;
+        auto& sz     = args.sz;
 
         // print "mcode name"
         os << mcode.name();
@@ -126,6 +127,7 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
         auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
         
         auto args    = base_t::serial_args(reader, mcode);
+        auto& sz     = args.sz;
 
         // base instruction size
         op_size_t new_size = mcode.base_size();
@@ -134,7 +136,7 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
         for (auto& arg : args)
         {
             auto old_mode = arg.mode();
-            new_size += arg.size(mcode.sz(), &fits);
+            new_size += arg.size(sz, &fits);
             //if (arg.mode() != old_mode)
             //    args.update_mode(arg);      // XXX fold into TGT method...Not called for Z80...
         }
@@ -154,7 +156,7 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
 
         auto args    = base_t::serial_args(reader, opcode);
         
-        opcode.emit(base, args.code_p, args, dot_p);
+        opcode.emit(base, args.code_p, args, args.sz, dot_p);
     }
 };
 }

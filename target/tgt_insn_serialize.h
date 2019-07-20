@@ -84,7 +84,7 @@ void tgt_insert_args(Inserter& inserter
     auto code_p = inserter(m_code.code(stmt_info).data(), m_code.code_size());
 
     auto& fmt         = m_code.fmt();
-    auto  sz          = m_code.sz();
+    auto  sz          = m_code.sz(stmt_info);
     auto& vals        = m_code.vals();
     auto val_iter     = vals.begin();
     auto val_iter_end = vals.end();
@@ -161,9 +161,11 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
     constexpr auto ARGS_PER_INFO = detail::tgt_arg_info<MCODE_T>::ARGS_PER_INFO;
     using  mcode_size_t = typename MCODE_T::mcode_size_t;
     using  arg_t        = typename MCODE_T::arg_t; using  arg_info     = detail::tgt_arg_info<MCODE_T>; 
+    using  stmt_info_t  = typename MCODE_T::stmt_info_t;
 
     static arg_t     static_args[MCODE_T::MAX_ARGS+1];
     static arg_info *static_info[MCODE_T::MAX_ARGS/ARGS_PER_INFO+1];
+    
 
     // initialize static array (default constructs to empty)
     for (auto& arg : static_args) arg = {};
@@ -175,10 +177,11 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
 
     // get "opcode" info
     auto  code_p = reader.get_fixed_p(m_code.code_size());
+    stmt_info_t stmt_info{};
 
     // read & decode arguments until empty
     auto& fmt         = m_code.fmt();
-    auto  sz          = m_code.sz();
+    auto  sz          = m_code.sz(stmt_info);
     auto& vals        = m_code.vals();
     auto val_iter     = vals.begin();
     auto val_iter_end = vals.end();
@@ -195,7 +198,8 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
         //std::cout << std::endl;
         
         // deserialize `arg_info` if needed (get `ARGS_PER_INFO` at a time...)
-        if ((n % ARGS_PER_INFO) == 0) {
+        if ((n % ARGS_PER_INFO) == 0)
+        {
             if (reader.empty())
                 break;
             // read info pointer into static area...
@@ -204,7 +208,9 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
             p = (*info_p)->begin();
             // ready for next static entry
             ++info_p;
-        } else {
+        } 
+        else
+        {
             ++p;
             if (p->arg_mode == arg_t::MODE_NONE)
                 break;

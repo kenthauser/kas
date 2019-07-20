@@ -58,10 +58,10 @@ const char *arm_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
     if (auto base_err = base_t::validate_mcode(mcode_p))
         return base_err;
 
-    auto sz = mcode_p->sz();
+    auto info = mcode_p->sz();
 
-    std::cout << "validate_mcode: flags = " << std::hex << flags.value() << " sz = " << +sz << std::endl;
-
+    std::cout << "validate_mcode: info = " << +info << std::endl;
+#if 0
     // check condition code, s-flag, and arch match MCODE & mode
     if (flags.has_ccode)
         if (~sz & SZ_DEFN_COND)
@@ -74,7 +74,7 @@ const char *arm_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
     if (flags.ccode == 0xe)
         if (sz & SZ_DEFN_NO_AL)
             return "AL condition code not allowed";
-
+#endif
     return {};
 }
 }

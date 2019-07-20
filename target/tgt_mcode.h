@@ -46,6 +46,7 @@ struct tgt_mcode_size_t
     using fmt_idx_t     = uint8_t;
     using val_idx_t     = uint8_t;
     using val_c_idx_t   = uint8_t;
+    using defn_info_t   = uint8_t;
 };
 
 template <typename MCODE_T> struct tgt_size { };
@@ -67,7 +68,7 @@ struct tgt_mcode_t
     // extract types from STMT
     using insn_t       = typename stmt_t::insn_t;
     using arg_t        = typename stmt_t::arg_t;
-    using stmt_info_t  = decltype(std::declval<stmt_t>().get_flags().info());
+    using stmt_info_t  = std::remove_reference_t<decltype(std::declval<stmt_t>().get_info())>;
     using stmt_args_t  = decltype(stmt_t::args);
 
     using arg_mode_t   = typename arg_t::arg_mode_t;
@@ -103,6 +104,7 @@ struct tgt_mcode_t
     using fmt_idx_t    = typename SIZE_T::fmt_idx_t;
     using val_idx_t    = typename SIZE_T::val_idx_t;
     using val_c_idx_t  = typename SIZE_T::val_c_idx_t;
+    using defn_info_t  = typename SIZE_T::defn_info_t;
     
     static constexpr auto MAX_ARGS        = SIZE_T::MAX_ARGS;
     static constexpr auto MAX_MCODE_WORDS = SIZE_T::MAX_MCODE_WORDS;
@@ -126,13 +128,13 @@ struct tgt_mcode_t
     // declare as template to defer definition of `ARGS_T`
     // validate arg count & arg_modes are supported on run-time target
     template <typename ARGS_T>
-    std::pair<const char *, int> validate_args (ARGS_T& args, std::ostream *trace = {}) const;
+    std::pair<const char *, int> validate_args (ARGS_T& args, uint8_t sz, std::ostream *trace = {}) const;
 
     template <typename ARGS_T>
-    fits_result size(ARGS_T& args, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
+    fits_result size(ARGS_T& args, uint8_t sz, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
 
     template <typename ARGS_T>
-    void emit(core::emit_base&, mcode_size_t*, ARGS_T&&, core::core_expr_dot const * = {}) const;
+    void emit(core::emit_base&, mcode_size_t*, ARGS_T&&, uint8_t sz, core::core_expr_dot const * = {}) const;
     
     template <typename ARG_T>
     void emit_arg(core::emit_base&, ARG_T&&, uint8_t sz, uint8_t size) const;
@@ -144,7 +146,7 @@ struct tgt_mcode_t
     defn_t     const& defn() const;
     fmt_t      const& fmt()  const;
     val_c_t    const& vals() const;
-    uint8_t           sz()   const;
+    uint8_t           sz(stmt_info_t stmt_info) const;
     std::string       name() const;
 
     // machine code size in bytes (for format & serialize)
@@ -158,6 +160,7 @@ struct tgt_mcode_t
     
     // machine code arranged as words: big-endian array (ie highest order words first)
     auto code(stmt_info_t stmt_info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
+    uint8_t extract_sz(mcode_size_t const *) const;
 
     void print(std::ostream&) const;
 

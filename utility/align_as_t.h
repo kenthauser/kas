@@ -14,7 +14,6 @@
 
 namespace kas
 {
-
 namespace detail
 {
     template <typename Derived_t, typename Align_t>
@@ -87,6 +86,8 @@ namespace detail
     }
 }
 
+template <typename...Ts>
+using alignas_t = detail::alignas_t<Ts...>;
 }
 
 #endif

@@ -65,6 +65,7 @@ protected:
             : mcode(mcode)
         {
             std::tie(code_p, args, update_handle) = tgt::opc::tgt_read_args(reader, mcode);
+            sz = mcode.extract_sz(code_p);
         }
         
         // create an `iterator` to allow range-for to process sizes
@@ -108,6 +109,7 @@ protected:
         MCODE_T const& mcode;
         mcode_size_t  *code_p;
         arg_t         *args;
+        uint8_t        sz;
         void          *update_handle;
     };
 

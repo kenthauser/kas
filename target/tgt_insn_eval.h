@@ -6,11 +6,12 @@
 namespace kas::tgt
 {
 
-template <typename INSN_T, typename OK_T, typename ARGS_T>
+template <typename INSN_T, typename OK_T, typename ARGS_T, typename STMT_INFO_T>
 auto eval_insn_list
         ( INSN_T const& insn
         , OK_T& ok
         , ARGS_T& args
+        , STMT_INFO_T stmt_info
         , core::opc::opcode::op_size_t& insn_size
         , expression::expr_fits const& fits
         , std::ostream* trace
@@ -19,8 +20,9 @@ auto eval_insn_list
     using namespace expression;     // get fits_result
 
     // save current "match"
-    using mcode_t   = typename INSN_T::mcode_t;
-    using op_size_t = typename mcode_t::op_size_t;
+    using mcode_t      = typename INSN_T::mcode_t;
+    using op_size_t    = typename mcode_t::op_size_t;
+    using stmt_info_t  = typename mcode_t::stmt_info_t;
 
     mcode_t const *mcode_p{};
     auto match_result = fits.no;
@@ -38,7 +40,7 @@ auto eval_insn_list
     // loop thru "opcodes" until no more matches
     auto bitmask = ok.to_ulong();
     auto index = 0;
-    for (auto op_p = insn.mcodes.begin(); bitmask; ++op_p, ++index)
+    for (auto op_iter = insn.mcodes.begin(); bitmask; ++op_iter, ++index)
     {
         bool op_is_ok = bitmask & 1;    // test if current was OK
         bitmask >>= 1;                  // set up for next
@@ -49,8 +51,9 @@ auto eval_insn_list
         if (trace)
             *trace << std::dec << std::setw(2) << index << ": ";
         
+        auto sz = (*op_iter)->sz(stmt_info);
         op_size_t size;
-        auto result = (*op_p)->size(args, size, fits, trace);
+        auto result = (*op_iter)->size(args, sz, size, fits, trace);
 
         if (result == fits.no)
         {
@@ -70,7 +73,7 @@ auto eval_insn_list
         // first "match" is always "current best"
         if (!mcode_p)
         {
-            mcode_p      = *op_p;
+            mcode_p      = *op_iter;
             insn_size    = size;
             match_result = result;
             match_index  = index;

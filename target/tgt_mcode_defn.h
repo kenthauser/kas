@@ -74,6 +74,7 @@ struct tgt_mcode_defn
     using val_c_t       = typename mcode_t::val_c_t;
     using adder_t       = typename mcode_t::adder_t;
     using mcode_sizes_t = typename mcode_t::mcode_sizes_t;
+    using defn_info_t   = typename mcode_t::defn_info_t;
 
     using fmt_default   = typename mcode_t::fmt_default;     // default type (or void)
 
@@ -114,19 +115,20 @@ struct tgt_mcode_defn
 
     // CTOR: passed list<defn_list, xlt_list>
     template <typename NAME, typename FMT, typename...VALs, typename VAL_C,
-              typename SZ, typename N, typename CODE, typename TST, typename...X>
+              typename INFO, typename N, typename CODE, typename TST, typename...X>
     constexpr tgt_mcode_defn(list<list<list<NAME>, list<FMT>
                                      , list<VALs...>, list<VAL_C>>
-                                , list<SZ, N, CODE, TST, X...>>)
+                                , list<INFO, N, CODE, TST, X...>>)
             : name_index  { NAME::value  + 1   }
             , fmt_index   { FMT::value   + 1   }
             , val_c_index { VAL_C::value + 1   }
-            , sz          { SZ::value          }
+            , info        { INFO::value        }
             , code        { CODE::value        }
             , code_words  { code_to_words<mcode_size_t>(CODE::value) }
             //, tst         { TST::value     }
             {}
-            
+    
+    // index base values initialized by `adder`
     static inline const char  *const *names_base;
     static inline const fmt_t *const *fmts_base;
     static inline val_c_t      const *val_c_base;
@@ -146,8 +148,8 @@ struct tgt_mcode_defn
     name_idx_t  name_index;    
     val_c_idx_t val_c_index;   
     fmt_idx_t   fmt_index;    
-    uint8_t     sz;             // info about sizes supported
     uint8_t     code_words;     // zero-based count of words
+    defn_info_t info;           // info about sizes supported
 };
 
 // don't inline support routines

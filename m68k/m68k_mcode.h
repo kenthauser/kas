@@ -27,6 +27,17 @@ enum m68k_op_size_t
     , NUM_OP_SIZE
 };
 
+// declare "standard" co-processor ID values
+enum m68k_cpid : int8_t
+{
+      M68K_CPID_MMU         // 0 = Memory management unit
+    , M68K_CPID_FPU         // 1 = Floating point unit
+    , M68K_CPID_MMU_040     // 2 = '040 MMU extensions
+    , M68K_CPID_MOVE16      // 3 = move16 instructions
+    , M68K_CPID_TABLE       // 4 = CPU_32/Coldfire table instructions
+    , M68K_CPID_DEBUG = 15  // 15 = Debug instructions
+};
+
 
 
 // override defaults for various defn index sizes
@@ -37,7 +48,7 @@ struct m68k_mcode_size_t : tgt::tgt_mcode_size_t
     using mcode_idx_t  = uint16_t; 
     using name_idx_t   = uint16_t;
     using defn_idx_t   = uint16_t;
-    using info_t       = uint16_t;
+    using defn_info_t  = uint16_t;
 };
 
 // forward declare m68k default mcode arg formatter

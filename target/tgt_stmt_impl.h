@@ -62,6 +62,8 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
         *trace << "tgt_stmt::eval: " << insn.name << " [" << insn.mcodes.size() << " opcodes]";
         for (auto& arg : args)
             *trace << ", " << arg;
+        *trace << "  Stmt info: ";
+        derived().print_info(*trace);
         *trace << std::endl;
     }
 
@@ -90,9 +92,9 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
         if (trace)
         {
             *trace << std::dec << std::endl;;
-            *trace << "mcode: " << +mcode_p->index      << " ";
-            *trace << "sz: "    << +mcode_p->sz()       << " ";
-            *trace << "defn: "  << +mcode_p->defn_index << " ";
+            *trace << "mcode: " << +mcode_p->index          << " ";
+            *trace << "sz: "    << +mcode_p->sz(get_info()) << " ";
+            *trace << "defn: "  << +mcode_p->defn_index     << " ";
             mcode_p->defn().print(*trace);
         }
 #endif
@@ -105,7 +107,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
 
         if (!diag)
         {
-            auto result = mcode_p->validate_args(args, trace);
+            auto result = mcode_p->validate_args(args, mcode_p->sz(get_info()), trace);
             diag      = result.first;
             cur_index = result.second;
         }
@@ -214,7 +216,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
                 , ok
                 , matching_mcode_p
                 , std::move(args)
-                , derived().get_flags().info()
+                , derived().get_info()
 
                 // and core_opcode data area reference
                 , data

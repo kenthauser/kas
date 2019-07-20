@@ -65,55 +65,120 @@ using m68k_defn_groups = meta::list<
 template <typename=void> struct m68k_defn_list : meta::list<> {};
 
 //
+// Override `tgt_insn_common` metafunctions to accommodate the M68K `SIZE_FN`
+//
+// `SIZE_FN` value is merged into `SZ` value
+//
+
+template <std::size_t OPCODE, typename TST = void, typename SIZE_FN = void, std::size_t MASK = 0>
+struct OP
+{
+    using type    = OP;
+
+    using code    = std::integral_constant<std::size_t, OPCODE>;
+    using mask    = std::integral_constant<std::size_t, MASK>;
+
+    // default `SIZE_FN` index to zero
+    using size_fn_idx = meta::if_<std::is_void<SIZE_FN>
+                            , meta::int_<0>
+                            , meta::find_index<INFO_SIZE_LIST, SIZE_FN>
+                            >;
+
+    static_assert(!std::is_same_v<size_fn_idx, meta::npos>, "Invalid SIZE_FN");
+    
+    // default tst "value" is always zero. Approximate default test
+    using tst     = meta::if_<std::is_void<TST>, meta::int_<0>, TST>;
+};
+
+// general definition: SZ list, NAME type, OP type, optional FMT & VALIDATORS
+template <typename SZ, typename NAME, typename OP_INFO, typename FMT = void, typename...Ts>
+struct defn
+{
+    // default "size" is `int_<0>`
+    using DEFN_INFO = meta::if_<std::is_same<void, SZ>, meta::int_<0>, SZ>;
+
+    // M68K_INFO picks up additional value from `OP`
+    using M68K_INFO = meta::int_<DEFN_INFO::value | (OP_INFO::size_fn_idx::value << 12)>;
+
+    // six fixed types, plus additional `VALIDATORs`
+    using type = meta::list<M68K_INFO
+                          , NAME
+                          , typename OP_INFO::code
+                          , typename OP_INFO::tst
+                          , FMT             // formatter
+                          , Ts...           // validators
+                          >;
+};
+
+//
 // declare "size traits" for use in instruction definintion
 //
 
-using namespace tgt::opc::traits;
-#if 0
-using tgt::opc::define_sz;
-using tgt::opc::sz_void;
-#else
-template <int, typename = void>
-using define_sz = meta::int_<0>;
-using sz_void   = define_sz<0>;
-#endif
+// XXX I can't get `fold` with integer types & shift to work
+// XXX Just use constexpr function instead. KBH 2019/07/18
+template <typename...BITS>
+constexpr auto m68k_as_mask(unsigned value, unsigned bit, BITS...bits)
+{
+    value |= 1 << bit;
+    if constexpr (sizeof...(BITS) != 0)
+        return m68k_as_mask(value, bits...);
+    return value;
+}
 
-#if 0
-// multiple sizes: generate `list` directly`
-using sz_lwb  = meta::list<meta::int_<(1 << OP_SIZE_LONG) | (1 << OP_SIZE_WORD) | (1 << OP_SIZE_BYTE)>>;
-using sz_lw   = meta::list<meta::int_<(1 << OP_SIZE_LONG) | (1 << OP_SIZE_WORD)>>;
-using sz_wb   = meta::list<meta::int_<(1 << OP_SIZE_WORD) | (1 << OP_SIZE_BYTE)>>;
-using sz_all  = meta::list<meta::int_<0x7f>>;
-#else
-using sz_lwb = sz_void;
-using sz_lw  = sz_void;
-using sz_wb  = sz_void;
-using sz_all = sz_void;
-#endif
+template <typename SFX, unsigned DFLT = OP_SIZE_WORD, unsigned...SIZES>
+//using m68k_sz = meta::int_<(SFX::value | (1 << DFLT)) | ... | (1 << SIZES)>;
+using m68k_sz = meta::int_<m68k_as_mask(SFX::value, DFLT, SIZES...)>;
+
+// instructions for suffix handling:
+// eg: instructions such as `moveq.l` can also be spelled `moveq`
+// SFX_* types say how to handle "blank" suffix
+// ccode:       disallow T/F condition codes
+// ccode_all:   allow T/F condition codes
+
+// NB: 4 MSBs of 16-bit `SZ` used to hold `INFO_SIZE` index
+using SFX_NORMAL        = meta::int_<0x0000>;    // sfx required
+using SFX_OPTIONAL      = meta::int_<0x0100>;    // sfx optional
+using SFX_CANON_NONE    = meta::int_<0x0200>;    // no sfx is canonical
+using SFX_NONE          = meta::int_<0x0300>;    // sfx prohibited
+using SFX_CCODE         = meta::int_<0x0400 | SFX_OPTIONAL::value>;
+using SFX_CCODE_ALL     = meta::int_<0x0400 | SFX_NONE::value>;    
+
+
+using sz_void   = m68k_sz<SFX_NONE>;
+
+using sz_lwb = m68k_sz<SFX_NORMAL, OP_SIZE_LONG, OP_SIZE_WORD, OP_SIZE_BYTE>;
+using sz_lw  = m68k_sz<SFX_NORMAL, OP_SIZE_LONG, OP_SIZE_WORD>; 
+using sz_wb  = m68k_sz<SFX_NORMAL, OP_SIZE_WORD, OP_SIZE_BYTE>;
+using sz_all = meta::int_<SFX_NORMAL::value | 0x7f>;        // don't generate fancy meta-code
 
 // single-sizes
-using sz_b    = define_sz<OP_SIZE_BYTE>;
-using sz_w    = define_sz<OP_SIZE_WORD>;
-using sz_l    = define_sz<OP_SIZE_LONG>;
-using sz_s    = define_sz<OP_SIZE_SINGLE>;
-using sz_d    = define_sz<OP_SIZE_DOUBLE>;
-using sz_x    = define_sz<OP_SIZE_XTND>;
-using sz_p    = define_sz<OP_SIZE_PACKED>;
+using sz_b    = m68k_sz<SFX_NORMAL, OP_SIZE_BYTE>;
+using sz_w    = m68k_sz<SFX_NORMAL, OP_SIZE_WORD>;
+using sz_l    = m68k_sz<SFX_NORMAL, OP_SIZE_LONG>;
+using sz_s    = m68k_sz<SFX_NORMAL, OP_SIZE_SINGLE>;
+using sz_d    = m68k_sz<SFX_NORMAL, OP_SIZE_DOUBLE>;
+using sz_x    = m68k_sz<SFX_NORMAL, OP_SIZE_XTND>;
+using sz_p    = m68k_sz<SFX_NORMAL, OP_SIZE_PACKED>;
 
 // void never has suffix (also: always single size)
-using sz_v    = sz_void;
+using sz_v    = m68k_sz<SFX_NONE>;
 
 // only difference between v% & %v: first name is canonical.
-using sz_wv   = define_sz<OP_SIZE_WORD, tgt::opc::SFX_OPTIONAL>;
-using sz_vw   = define_sz<OP_SIZE_WORD, tgt::opc::SFX_CANONICAL_NONE>;
-using sz_lv   = define_sz<OP_SIZE_LONG, tgt::opc::SFX_OPTIONAL>;
-using sz_vl   = define_sz<OP_SIZE_LONG, tgt::opc::SFX_CANONICAL_NONE>;
-using sz_bv   = define_sz<OP_SIZE_BYTE, tgt::opc::SFX_OPTIONAL>;
-using sz_vb   = define_sz<OP_SIZE_BYTE, tgt::opc::SFX_CANONICAL_NONE>;
+using sz_wv   = m68k_sz<SFX_OPTIONAL    , OP_SIZE_WORD>;
+using sz_vw   = m68k_sz<SFX_CANON_NONE  , OP_SIZE_WORD>;
+using sz_lv   = m68k_sz<SFX_OPTIONAL    , OP_SIZE_LONG>;
+using sz_vl   = m68k_sz<SFX_CANON_NONE  , OP_SIZE_LONG>;
+using sz_bv   = m68k_sz<SFX_OPTIONAL    , OP_SIZE_BYTE>;
+using sz_vb   = m68k_sz<SFX_CANON_NONE  , OP_SIZE_BYTE>;
 
 // set size field, but no suffix (capital W/L). not common.
-using sz_W    = define_sz<OP_SIZE_WORD, tgt::opc::SFX_NONE>;
-using sz_L    = define_sz<OP_SIZE_LONG, tgt::opc::SFX_NONE>;
+using sz_W    = m68k_sz<SFX_NONE        , OP_SIZE_WORD>;
+using sz_L    = m68k_sz<SFX_NONE        , OP_SIZE_LONG>;
+
+// condition code instructions
+using sz_cc     = m68k_sz<SFX_CCODE>;
+using sz_all_cc = m68k_sz<SFX_CCODE_ALL>;
+using sz_cc_fp  = meta::int_<SFX_CCODE_ALL::value | 0x7f>;
 
 }
 

@@ -2,23 +2,12 @@
 #define KAS_M68K_M68K_SIZE_LWB_H
 
 #include "m68k_mcode.h"         // need op-size defns
+#include "utility/align_as_t.h"
 
 namespace kas::m68k::opc
 {
 using namespace meta;
 using namespace hw;
-
-///////////////////////////////////////////////////////////////////////    
-// until a better home is found
-enum m68k_cpid : int8_t
-{
-      M68K_CPID_MMU         // 0 = Memory management unit
-    , M68K_CPID_FPU         // 1 = Floating point unit
-    , M68K_CPID_MMU_040     // 2 = '040 MMU extensions
-    , M68K_CPID_MOVE16      // 3 = move16 instructions
-    , M68K_CPID_TABLE       // 4 = CPU_32/Coldfire table instructions
-    , M68K_CPID_DEBUG = 15  // 15 = Debug instructions
-};
 
 /////////////////////////////////////////////////////////////////////////
 //
@@ -46,6 +35,18 @@ using INFO_SIZE_NORM1 = insn_add_size<1,  6, SEQ_BWL_012>;
 using INFO_SIZE_MAC   = insn_add_size<1, 11, SEQ_WL_01>;
 using INFO_SIZE_VOID  = insn_add_size<0,  0, SEQ_VOID>;
 
+using INFO_SIZE_LIST = meta::list<
+                              INFO_SIZE_NORM        // default type is first
+                            , INFO_SIZE_MOVE 
+                            , INFO_SIZE_BWL9 
+                            , INFO_SIZE_WL   
+                            , INFO_SIZE_WL0  
+                            , INFO_SIZE_WL9  
+                            , INFO_SIZE_FLT  
+                            , INFO_SIZE_NORM1
+                            , INFO_SIZE_MAC  
+                            , INFO_SIZE_VOID 
+                            >;
 
 ///////////////////////////////////////////////////////////////////////    
 //
@@ -53,9 +54,10 @@ using INFO_SIZE_VOID  = insn_add_size<0,  0, SEQ_VOID>;
 //
 ///////////////////////////////////////////////////////////////////////    
 
-struct m68k_insn_lwb 
+struct m68k_insn_lwb : alignas_t<m68k_insn_lwb, uint8_t>
 {
-    using value_t = uint8_t;            // size of constexpr defn
+    using base_t::base_t;
+
     using default_t = INFO_SIZE_NORM;   // default size fn 
 
     template <typename W, typename B, typename S>

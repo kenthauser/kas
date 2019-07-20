@@ -44,7 +44,7 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
     {
         // process insn for size before saving
         //eval_insn_list(insn, ok, args, data.size, expression::expr_fits(), this->trace);
-        insn.eval(ok, args, data.size, expression::expr_fits(), this->trace);
+        insn.eval(ok, args, stmt_info, data.size, expression::expr_fits(), this->trace);
 
         // serialize format (for unresolved instructions)
         // 0) fixed area: OK bitset in host order
@@ -120,9 +120,13 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         auto& mc   = *insn.list_mcode_p;
         auto  args = base_t::serial_args(reader, mc);
 
+        // XXX 
+        stmt_info_t stmt_info{};
+        stmt_info.arg_size = args.sz;
+
         // evaluate with new `fits`
         //eval_insn_list(insn, ok, args, data.size, fits, this->trace);
-        insn.eval(ok, args, data.size, fits, this->trace);
+        insn.eval(ok, args, stmt_info, data.size, fits, this->trace);
 
         // save new "OK"
         fixed.fixed = ok.to_ulong();
@@ -147,16 +151,17 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         op_size_t size; 
 
         // XXX need core_fits 
-        auto mcode_p = insn.eval(ok, args, size, expression::expr_fits(), this->trace);
+        auto mcode_p = insn.eval(ok, args, stmt_info, size, expression::expr_fits(), this->trace);
         
         // XXX need to handle error case...
 
         // get opcode "base" value
         auto& mc = *mcode_p;
         auto code = mc.code(stmt_info);
+        auto sz   = mc.sz(stmt_info);
 
         // emit opcode
-        mc.emit(base, code.data(), args, dot_p);
+        mc.emit(base, code.data(), args, sz, dot_p);
     }
 };
 }

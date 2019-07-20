@@ -36,7 +36,12 @@ auto  m68k_stmt_t::validate_args(insn_t const& insn
         // if not supported, return error
         if (auto diag = arg.ok_for_target(sz))
             return diag;
-
+#if 0
+        // if floating point arg, require `floating point` insn
+        if (e_type == E_FLOAT || RC_FLOAT)
+            if (insn_p->name[0] != 'f')
+                return ERR_FLOAT;
+#endif
         // test if constant    
         if (args_are_const)
             if (!arg.is_const())
@@ -53,9 +58,7 @@ const char *m68k_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
     if (auto base_err = base_t::validate_mcode(mcode_p))
         return base_err;
 
-    auto sz = mcode_p->sz();
-
-    std::cout << "validate_mcode: flags = " << std::hex << flags.value() << " sz = " << +sz << std::endl;
+    std::cout << "validate_mcode: info = " << std::hex << mcode_p->defn().info << std::endl;
 #if 0
     // check condition code, s-flag, and arch match MCODE & mode
     if (flags.has_ccode)
@@ -72,6 +75,18 @@ const char *m68k_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
 #endif
     return {};
 }
+
+void m68k_stmt_t::print_info(std::ostream& os) const
+{
+    auto sz = m68k_sfx::suffixes[flags.arg_size];
+    if (!sz)
+        sz = 'v';
+    os << "sz = " << sz;
+    
+    if (flags.has_ccode)
+        os << " ccode = " << flags.ccode;
+}
+
 }
 
 #endif

@@ -27,7 +27,7 @@ struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<DERIVED_T, INSN_T, ARG_T>>
     struct flags_t
     {
         short value() const { return 0; }
-        short info()  const { return value(); }
+        auto& info()  { return *this; }
     } flags;
 
 protected:
@@ -38,7 +38,13 @@ protected:
         { return *static_cast<derived_t*>(this); }
 
 public:
-    auto& get_flags() const { return derived().flags; }
+    auto& get_flags()       { return derived().flags; }
+
+    auto& get_info()        { return derived().flags.info(); }
+    void  print_info(std::ostream& os) const
+    {
+        os << "*None*";
+    }
 
     // method used to assemble instruction
     core::opcode *gen_insn(core::opcode::data_t&);

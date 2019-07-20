@@ -316,7 +316,7 @@ auto gen_stmt = [](auto& ctx)
         auto& size    = boost::fusion::at_c<3>(args);
        
         auto& flags = stmt.get_flags();
-#if 0
+
         if (ccode)
         {
             flags.has_ccode = true;
@@ -339,7 +339,16 @@ auto gen_stmt = [](auto& ctx)
         
         if (size)
         {
-            flags.arg_size = *size;
+            switch (*size)
+            {
+                case 'l': case 'L': flags.arg_size = OP_SIZE_LONG;   break;
+                case 's': case 'S': flags.arg_size = OP_SIZE_SINGLE; break;
+                case 'x': case 'X': flags.arg_size = OP_SIZE_XTND;   break;
+                case 'p': case 'P': flags.arg_size = OP_SIZE_PACKED; break;
+                case 'w': case 'W': flags.arg_size = OP_SIZE_WORD;   break;
+                case 'd': case 'D': flags.arg_size = OP_SIZE_DOUBLE; break;
+                case 'b': case 'B': flags.arg_size = OP_SIZE_BYTE;   break;
+            }
         }
         else 
         {
@@ -347,7 +356,7 @@ auto gen_stmt = [](auto& ctx)
             if (has_dot)
                 x3::_pass(ctx) = false;     // size req'd if dot
         }
-#endif
+
         x3::_val(ctx) = stmt;
     };
 

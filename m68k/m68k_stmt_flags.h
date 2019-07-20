@@ -15,25 +15,22 @@ struct m68k_sfx
 
     static auto x3()
     {
-#if 0
-        auto get_idx = [](auto ctx)
-            {
-                auto c = x3::_attr(ctx);
-                x3::_val(ctx) = static_cast<uint8_t>(std::strchr(suffixes, c) - suffixes);
-            };
-
         // XXX x3 bug: won't accept `const char *` only literal 2019/07/16
-        //return x3::char_("lsxpwdb")[get_idx];
-#endif
         return x3::char_("lsxpwdb");
     }
 
     static const char sfx(uint8_t code)
     {
-        if (code > 7)
+        switch (code)
+        {
+        default:
             throw std::logic_error{"m68k_sfx::sfx: code"};
-
-        return suffixes[code];
+        case 7:
+            return 'v';
+        case 0: case 1: case 2: case 3:
+        case 4: case 5: case 6:
+            return suffixes[code];
+        }
     }
 };
 

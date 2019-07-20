@@ -49,11 +49,13 @@ struct m68k_stmt_t : tgt::tgt_stmt<m68k_stmt_t, m68k_insn_t, m68k_arg_t>
         value_t has_dot   : 1;      // size suffix has `dot` (motorola format)
 
         // just use `flags_t` as `stmt_info_t`
-        auto info() const
+        auto& info() 
         {
             return *this;
         }
     } flags;
+
+    void print_info(std::ostream& os) const;
 };
 }
 

@@ -9,7 +9,9 @@ namespace kas::tgt
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-        validate_args(ARGS_T& args, std::ostream *trace) const
+        validate_args(ARGS_T& args
+                    , uint8_t sz
+                    , std::ostream *trace) const
      -> std::pair<const char *, int>
 {
     if (trace)
@@ -45,7 +47,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
             *trace << " " << val_p.name() << " ";
        
         // if invalid for sz(), pick up in size() method
-        auto result = val_p->ok(arg, sz(), fits);
+        auto result = val_p->ok(arg, sz, fits);
 
         if (result == expression::NO_FIT)
             return { msg, err_index };
@@ -66,7 +68,11 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-        size(ARGS_T& args, opc::op_size_t& size, expr_fits const& fits, std::ostream *trace) const
+        size(ARGS_T& args
+           , uint8_t sz
+           , opc::op_size_t& size
+           , expr_fits const& fits
+           , std::ostream *trace) const
     -> fits_result
 {
     // hook into validators
@@ -85,7 +91,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         if (trace)
             *trace << " " << val_p.name() << " ";
 
-        auto r = val_p->size(arg, sz(), fits, size);
+        auto r = val_p->size(arg, sz, fits, size);
         
         if (trace)
             *trace << +r << " ";
@@ -117,6 +123,7 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         emit(core::emit_base& base
             , mcode_size_t *op_p
             , ARGS_T&&   args
+            , uint8_t sz
             , core::core_expr_dot const* dot_p
             ) const
 {
@@ -150,10 +157,10 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         op_size_t size;
 
         // arg needs "size" to emit properly
-        val_iter->size(arg, sz(), fits, size);
+        val_iter->size(arg, sz, fits, size);
 
         // arg_t not templated by MCODE_T, so pass as arg
-        emit_arg(base, std::move(arg), sz(), size());
+        emit_arg(base, std::move(arg), sz, size());
 
         // next validator
         ++val_iter; 
@@ -201,10 +208,19 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-    sz() const -> uint8_t
+    sz(stmt_info_t info) const -> uint8_t
 {
-    return defn().sz;
+    return 0;       // default `size` 
 }
+
+    
+template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
+auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
+    extract_sz(mcode_size_t const *) const -> uint8_t
+{
+    return 0;       // default `size` 
+}
+
     
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::

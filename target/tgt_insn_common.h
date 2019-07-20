@@ -40,7 +40,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 #include "tgt_mcode_sizes.h"        // need `sz_void`
-//#include "tgt_mcode_cond.h"         // declare condition-code based sizes
 #include "tgt_mcode_defn.h"         // declare constexpr defn
 #include "kas/kas_string.h"         // name as type
 
