@@ -306,7 +306,7 @@ auto gen_stmt = [](auto& ctx)
     };
 
 // need "named rule" to get proper error message
-auto const arm_insn_end = rule<class _> {"arm_insn_end"} = x3::blank;
+auto const arm_insn_end = rule<class _> {"arm_insn_end"} = !x3::graph;
 
 // ARM encodes several "options" in insn name. Decode them.
 // invalid options error out in `arm_insn_t::validate_args` 

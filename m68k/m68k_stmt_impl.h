@@ -17,6 +17,7 @@ void m68k_stmt_t::operator()(Context const& ctx)
     x3::_val(ctx) = stmt;
 } 
 
+// Validate ARGS supported by target & floating-point status
 template <typename ARGS_T, typename TRACE_T>
 auto  m68k_stmt_t::validate_args(insn_t const& insn
                     , ARGS_T& args
@@ -29,6 +30,7 @@ auto  m68k_stmt_t::validate_args(insn_t const& insn
         return {};
 
     // get arg size from flags
+    // NB: size can be `OP_SIZE_VOID`
     auto sz = flags.arg_size;
     
     for (auto& arg : args)
@@ -39,7 +41,7 @@ auto  m68k_stmt_t::validate_args(insn_t const& insn
 #if 0
         // if floating point arg, require `floating point` insn
         if (e_type == E_FLOAT || RC_FLOAT)
-            if (insn_p->name[0] != 'f')
+            if (!is_fp())
                 return ERR_FLOAT;
 #endif
         // test if constant    
@@ -51,7 +53,7 @@ auto  m68k_stmt_t::validate_args(insn_t const& insn
     return {};
 }
 
-// NB: This method rejects single `MCODE` not `STMT`
+// Validate single MCODE supported by `TST` & `STMT_FLAGS`
 template <typename MCODE_T>
 const char *m68k_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
 {
@@ -59,20 +61,46 @@ const char *m68k_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
         return base_err;
 
     std::cout << "validate_mcode: info = " << std::hex << mcode_p->defn().info << std::endl;
-#if 0
-    // check condition code, s-flag, and arch match MCODE & mode
-    if (flags.has_ccode)
-        if (~sz & SZ_DEFN_COND)
-            return "condition code not allowed";
 
-    if (flags.has_sflag)
-        if (~sz & SZ_DEFN_S_FLAG)
-            return "s-flag not allowed";
+    auto sfx_code = mcode_p->defn().info & opc::SFX_MASK;
+    
+    // if size specified, validate it's supported
+    if (flags.arg_size != OP_SIZE_VOID)
+    {
+        if (!(mcode_p->defn().info & (1 << flags.arg_size)))
+            return error_msg::ERR_bad_size;
+        
+        // if suffix prohibited, error out
+        if (sfx_code == opc::SFX_NONE::value)
+            return error_msg::ERR_sfx_none;
+    }
 
-    if (flags.ccode == 0xe)
-        if (sz & SZ_DEFN_NO_AL)
-            return "AL condition code not allowed";
-#endif
+    // otherwise, validate "no size" is valid
+    else
+    {
+        if (sfx_code == opc::SFX_NORMAL::value)
+            return error_msg::ERR_sfx_reqd;
+    }
+
+    // validate "conditional" instructions
+    if (mcode_p->defn().info & opc::SFX_CCODE_BIT::value)
+    {
+        // here ccode insn: require ccode suffix
+        if (!flags.has_ccode)
+            return error_msg::ERR_ccode_reqd;
+
+        // disallow T/F ccode if mcode disallows it 
+        if (sfx_code == opc::SFX_NONE::value && !is_fp() && flags.ccode < 2)
+            return error_msg::ERR_no_cc_tf;
+    }
+
+    // don't allow condition codes on non-ccode insns
+    else
+    {
+        if (flags.has_ccode)
+            return error_msg::ERR_no_ccode;
+    }
+
     return {};
 }
 

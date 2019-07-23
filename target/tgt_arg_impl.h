@@ -240,7 +240,7 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
     // here has data, but not expression
     else if (info_p->has_data)
     {
-        bool is_signed {false};
+        bool is_signed {true};
         int  bytes = this->size(sz, {}, &is_signed);
         if (is_signed)
             bytes = -bytes;

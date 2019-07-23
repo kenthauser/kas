@@ -11,26 +11,21 @@ struct m68k_sfx
 {
     // parse opereration size "suffix"
     // suffixes (all single byte)
-    static constexpr const char *suffixes = "lsxpwdb"; 
+    static constexpr const char *suffixes   = "lsxpwdbv"; 
+    static constexpr const char *parse_sfxs = "lsxpwdb"; 
 
     static auto x3()
     {
         // XXX x3 bug: won't accept `const char *` only literal 2019/07/16
+        //return x3::char_(parse_sfxs);
         return x3::char_("lsxpwdb");
     }
 
     static const char sfx(uint8_t code)
     {
-        switch (code)
-        {
-        default:
+        if (code > 7)
             throw std::logic_error{"m68k_sfx::sfx: code"};
-        case 7:
-            return 'v';
-        case 0: case 1: case 2: case 3:
-        case 4: case 5: case 6:
-            return suffixes[code];
-        }
+        return suffixes[code];
     }
 };
 

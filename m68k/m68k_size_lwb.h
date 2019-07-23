@@ -35,7 +35,9 @@ using INFO_SIZE_NORM1 = insn_add_size<1,  6, SEQ_BWL_012>;
 using INFO_SIZE_MAC   = insn_add_size<1, 11, SEQ_WL_01>;
 using INFO_SIZE_VOID  = insn_add_size<0,  0, SEQ_VOID>;
 
-using INFO_SIZE_LIST = meta::list<
+using INFO_SIZE_LIST  = insn_add_size<0,  8, SEQ_FLT>;
+
+using LWB_SIZE_LIST = meta::list<
                               INFO_SIZE_NORM        // default type is first
                             , INFO_SIZE_MOVE 
                             , INFO_SIZE_BWL9 
@@ -45,7 +47,8 @@ using INFO_SIZE_LIST = meta::list<
                             , INFO_SIZE_FLT  
                             , INFO_SIZE_NORM1
                             , INFO_SIZE_MAC  
-                            , INFO_SIZE_VOID 
+                            , INFO_SIZE_VOID
+                            , INFO_SIZE_LIST
                             >;
 
 ///////////////////////////////////////////////////////////////////////    
@@ -54,10 +57,9 @@ using INFO_SIZE_LIST = meta::list<
 //
 ///////////////////////////////////////////////////////////////////////    
 
-struct m68k_insn_lwb : alignas_t<m68k_insn_lwb, uint8_t>
+struct m68k_insn_lwb 
 {
-    using base_t::base_t;
-
+    using value_t   = uint8_t;          // storage for type
     using default_t = INFO_SIZE_NORM;   // default size fn 
 
     template <typename W, typename B, typename S>
@@ -112,6 +114,52 @@ private:
 
         return -1;
     }
+    
+    static constexpr int get_sz(int seq, uint8_t code)
+    {
+        switch (seq)
+        {
+            case SEQ_BWL_012:
+                if (code == 0) return OP_SIZE_BYTE;
+                if (code == 1) return OP_SIZE_WORD;
+                if (code == 2) return OP_SIZE_LONG;
+                break;
+                
+            case SEQ_BWL_132:
+                if (code == 1) return OP_SIZE_BYTE;
+                if (code == 3) return OP_SIZE_WORD;
+                if (code == 2) return OP_SIZE_LONG;
+                break;
+                
+            case SEQ_BWL_123:
+                if (code == 1) return OP_SIZE_BYTE;
+                if (code == 2) return OP_SIZE_WORD;
+                if (code == 3) return OP_SIZE_LONG;
+                break;
+                
+            case SEQ_WL_01:
+                code &= 1;      // only single bit
+                if (code == 0) return OP_SIZE_WORD;
+                if (code == 1) return OP_SIZE_LONG;
+                break;
+            
+            case SEQ_WL_23:
+                if (code == 2) return OP_SIZE_WORD;
+                if (code == 3) return OP_SIZE_LONG;
+                break;
+            
+            case SEQ_FLT:
+                return code;
+            
+            case SEQ_VOID:
+                return OP_SIZE_VOID;
+
+            default:
+                break;
+        }
+
+        return -1;
+    }
 public:
     uint16_t operator()(uint8_t sz) const
     {
@@ -124,6 +172,16 @@ public:
     uint8_t word() const { return sz_word; }
     
     static_assert(NUM_SEQ <= 8);    // must fit in the allocated 3 bits
+
+    uint8_t extract(uint16_t const *code_p) const
+    {
+        auto lwb_code = code_p[sz_word] >> sz_bit;
+        auto sz = get_sz(sz_seq, lwb_code & 7);
+
+        if (lwb_code < 0)
+            throw std::runtime_error{"Invalid insn_lwb code (get)"};
+        return sz;
+    }
 
 private:
     value_t sz_seq  : 3;

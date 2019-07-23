@@ -39,6 +39,8 @@ using fmt_reg = fmt_generic<SHIFT, 3, WORD>;
 using arg1_0      = fmt_arg<1, fmt_reg<0>>;
 using arg2_0      = fmt_arg<2, fmt_reg<0>>;
 
+using arg2_3      = fmt_arg<2, fmt_reg<3>>;     // special for `LIST`
+
 using arg1_9      = fmt_arg<1, fmt_reg<9>>;
 using arg2_9      = fmt_arg<2, fmt_reg<9>>;
 
@@ -126,7 +128,7 @@ using arg6_an2  = fmt_arg<6, fmt_generic<2, 2, 1>>;
 
 
 // used by OPC_LIST instructions
-struct FMT_LIST     : fmt_list, arg1_0rm, arg2_6rm, arg3_12rm {};
+struct FMT_LIST     : fmt_list, arg1_0, arg2_3 {};
 
 
 // branch formats have implied argument format

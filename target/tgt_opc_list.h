@@ -143,9 +143,9 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
 
         auto& insn       = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         auto& list_mc    = *insn.list_mcode_p;
-        auto  stmt_info = stmt_t::extract_stmt_info(&list_mc, nullptr);
-        //auto  stmt_info = stmt_t::extract_stmt_info(&list_mc, reader.head());
         auto  args       = serial_args(reader, list_mc);
+        stmt_info_t stmt_info{};
+        stmt_info.arg_size = args.sz;
 
         // get best match
         op_size_t size; 
@@ -159,6 +159,10 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         auto& mc = *mcode_p;
         auto code = mc.code(stmt_info);
         auto sz   = mc.sz(stmt_info);
+
+        std::cout << "opc_list: code[0] = " << std::hex << code[0] << std::endl;
+        std::cout << "opc_list: stmt_info = " << std::hex << +stmt_info.arg_size << std::endl;
+        std::cout << "opc_list: sz = " << +sz << std::endl;
 
         // emit opcode
         mc.emit(base, code.data(), args, sz, dot_p);

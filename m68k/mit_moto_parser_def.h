@@ -360,17 +360,14 @@ auto gen_stmt = [](auto& ctx)
         x3::_val(ctx) = stmt;
     };
 
-// need "named rule" to get proper error message
-auto const m68k_insn_end = rule<class _> {"m68k_insn_end"} = x3::blank;
-
 // M68K encodes several "options" in insn name. Decode them.
 // invalid options error out in `m68k_insn_t::validate_args` 
 auto const parse_insn = rule<class _, m68k_stmt_t> {"instruction"} = 
         lexeme[(m68k_insn_x3()          // insn_base_name
-                > -m68k_ccode::x3()     // has condition-code
-                > -char_('.')           // has-dot
-                > -m68k_sfx::x3()       // has suffix
-                > m68k_insn_end         // no trailing chars allowed
+                > -m68k_ccode::x3()     // optional condition-code
+                > -char_('.')           // optional dot
+                > -m68k_sfx::x3()       // optional suffix
+                >>!x3::graph            // end token
                 )[gen_stmt]
                 ];
 

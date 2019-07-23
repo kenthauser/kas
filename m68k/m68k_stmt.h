@@ -37,6 +37,12 @@ struct m68k_stmt_t : tgt::tgt_stmt<m68k_stmt_t, m68k_insn_t, m68k_arg_t>
     // method to validate mcode. Principally for target
     template <typename MCODE_T>
     const char *validate_mcode(MCODE_T const *mcode_p) const;
+
+    // utility method to test if floating-point insn
+    bool is_fp() const
+    {
+        return insn_p->name[0] == 'f';
+    }
     
     // bitfields don't zero-init. Use support type.
     struct flags_t : detail::alignas_t<flags_t, uint16_t>

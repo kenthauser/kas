@@ -81,7 +81,7 @@ struct OP
     // default `SIZE_FN` index to zero
     using size_fn_idx = meta::if_<std::is_void<SIZE_FN>
                             , meta::int_<0>
-                            , meta::find_index<INFO_SIZE_LIST, SIZE_FN>
+                            , meta::find_index<LWB_SIZE_LIST, SIZE_FN>
                             >;
 
     static_assert(!std::is_same_v<size_fn_idx, meta::npos>, "Invalid SIZE_FN");
@@ -125,7 +125,7 @@ constexpr auto m68k_as_mask(unsigned value, unsigned bit, BITS...bits)
     return value;
 }
 
-template <typename SFX, unsigned DFLT = OP_SIZE_WORD, unsigned...SIZES>
+template <typename SFX, unsigned DFLT = OP_SIZE_VOID, unsigned...SIZES>
 //using m68k_sz = meta::int_<(SFX::value | (1 << DFLT)) | ... | (1 << SIZES)>;
 using m68k_sz = meta::int_<m68k_as_mask(SFX::value, DFLT, SIZES...)>;
 
@@ -140,11 +140,17 @@ using SFX_NORMAL        = meta::int_<0x0000>;    // sfx required
 using SFX_OPTIONAL      = meta::int_<0x0100>;    // sfx optional
 using SFX_CANON_NONE    = meta::int_<0x0200>;    // no sfx is canonical
 using SFX_NONE          = meta::int_<0x0300>;    // sfx prohibited
-using SFX_CCODE         = meta::int_<0x0400 | SFX_OPTIONAL::value>;
-using SFX_CCODE_ALL     = meta::int_<0x0400 | SFX_NONE::value>;    
+using SFX_CCODE_BIT     = meta::int_<0x4000>;    // CCODE req'd
+using SFX_CCODE         = meta::int_<SFX_CCODE_BIT::value | SFX_OPTIONAL::value>;
+using SFX_CCODE_ALL     = meta::int_<SFX_CCODE_BIT::value | SFX_NONE::value>;    
+
+static constexpr auto SFX_MASK  = 0x300;     // flag mask to test SFX codes
+static constexpr auto SFX_IS_CC = 0x400;     // flag mask to test if condition code
 
 
 using sz_void   = m68k_sz<SFX_NONE>;
+
+using sz_list = meta::int_<SFX_NORMAL::value | 0xff>;
 
 using sz_lwb = m68k_sz<SFX_NORMAL, OP_SIZE_LONG, OP_SIZE_WORD, OP_SIZE_BYTE>;
 using sz_lw  = m68k_sz<SFX_NORMAL, OP_SIZE_LONG, OP_SIZE_WORD>; 

@@ -205,12 +205,12 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
         }
     }
 #endif
+    matching_mcode_p = {};      // XXX force list for all
     
     // if `insn` not resolved to single `mcode`, use list
     if (!matching_mcode_p)
         matching_mcode_p = insn_t::list_mcode_p;
 
-#if 1
     return matching_mcode_p->fmt().get_opc().gen_insn(
                   insn
                 , ok
@@ -221,9 +221,6 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
                 // and core_opcode data area reference
                 , data
                 );
-#else
-    return nullptr;
-#endif
 }
 
 // test fixure routine to display statement name

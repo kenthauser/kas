@@ -152,7 +152,7 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
                     size = -2;      // signed
                     break;
                 case M_SIZE_LONG:
-                    size = 4;
+                    size = -4;
                     break;
             }
             
@@ -177,7 +177,7 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
                     size = -2;      // signed
                     break;
                 case M_SIZE_LONG:
-                    size = 4;
+                    size = -4;
                     break;
             }
             

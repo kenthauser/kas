@@ -81,6 +81,7 @@ void tgt_insert_args(Inserter& inserter
     constexpr auto ARGS_PER_INFO = detail::tgt_arg_info<MCODE_T>::ARGS_PER_INFO;
    
     // insert base "code" (a appropriately sized zero) & use pointer for arg inserter
+    std::cout << "tgt_insert:args: stmt_info = " << std::hex << stmt_info.value() << std::endl;
     auto code_p = inserter(m_code.code(stmt_info).data(), m_code.code_size());
 
     auto& fmt         = m_code.fmt();
@@ -177,11 +178,13 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
 
     // get "opcode" info
     auto  code_p = reader.get_fixed_p(m_code.code_size());
-    stmt_info_t stmt_info{};
+    // XXX
+    //stmt_info_t stmt_info{};
+    auto sz = m_code.extract_sz(code_p);
 
     // read & decode arguments until empty
     auto& fmt         = m_code.fmt();
-    auto  sz          = m_code.sz(stmt_info);
+    //auto  sz          = m_code.sz(stmt_info);
     auto& vals        = m_code.vals();
     auto val_iter     = vals.begin();
     auto val_iter_end = vals.end();
