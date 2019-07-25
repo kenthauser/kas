@@ -47,6 +47,8 @@
 #include "target/tgt_validate.h"
 #include "expr/expr_fits.h"
 
+#include <typeinfo>
+
 namespace kas::m68k::opc
 {
 using namespace meta;
@@ -118,8 +120,9 @@ struct val_am : m68k_mcode_t::val_t
         auto result = fits.yes;
         if (arg_size.min != arg_size.max)
             result = fits.maybe;
-
+        
         // infer "maybe": if `inner` or `outer` not resolved, it's a maybe.
+        // don't worry about size being tested: just being tested for "resolved"
         if (result == fits.yes)
             if (fits.fits<int16_t>(arg.expr) == fits.maybe)
                 result = fits.maybe;
@@ -162,7 +165,6 @@ struct val_am : m68k_mcode_t::val_t
             case MODE_PC_INDEX:
             case MODE_INDEX_BRIEF:
             case MODE_PC_INDEX_BRIEF:
-                std::cout << "val_am::all_saved = false " << std::endl;
                 return false;
             default:
                 break;

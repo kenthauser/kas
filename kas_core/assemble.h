@@ -123,10 +123,10 @@ private:
     void assemble_src(Inserter inserter, parser::parser_src& src, std::ostream *out)
     {
     
-        kas::core::opcode::trace = out;
+        //kas::core::opcode::trace = out;
 
         // trace source file operations
-        src.set_trace(out);
+        //src.set_trace(out);
         
         // create parser object
         auto stmt_stream = parser::kas_parser(parser::stmt_x3(), src);

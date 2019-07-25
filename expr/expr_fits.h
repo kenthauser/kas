@@ -31,7 +31,13 @@
 
 #include "utility/print_type_name.h"
 
-namespace kas::expression {
+namespace kas::core
+{
+    struct core_expr;
+}
+
+namespace kas::expression
+{
     struct expr_fits
     {
         using result_t = fits_result;
@@ -49,7 +55,7 @@ namespace kas::expression {
         using fits_max_t   = int64_t;
         using fits_value_t = int64_t;
 
-        virtual ~expr_fits() {}; //= default;
+        virtual ~expr_fits() = default;
 
         // general entrypoint & variant trampoline
         virtual result_t fits(expr_t const& e, fits_min_t min, fits_max_t max) const
@@ -57,16 +63,19 @@ namespace kas::expression {
             // allow `expr_fits` base type to identify fixed value expressions
             if (auto p = e.get_fixed_p())
                 return (*this)(*p, min, max);
-#if 1
+#if 0
             // XXX make min/max member variables so not passed around
             // XXX allows better variant support.
             return e.apply_visitor(
                 x3::make_lambda_visitor<result_t>
                     ([&](auto const& value)
-                        { return (*this)(value, min, max); }
+                        {
+                            std::cout << "fits::fits: value = " << expr_t(value) << std::endl;
+                            return (*this)(value, min, max);
+                        }
                     ));
 #else
-            return e.apply_visitor([&](auto node){ return (*this)(node, min, max); });
+            return MIGHT_FIT;
 #endif
         }
 
@@ -166,9 +175,15 @@ namespace kas::expression {
         std::enable_if_t<!std::is_integral<T>::value, result_t>
         operator()(T const&, fits_min_t, fits_max_t) const
         {
-            // print_type_name{"expr_fits: emits_value"}.name<T>();
+            print_type_name{"expr_fits: emits_value"}.name<T>();
             bool is_value_type = emits_value<T>::value;
             return is_value_type ? MIGHT_FIT : NO_FIT;
+        }
+
+        result_t operator()(core::core_expr const& e, fits_min_t, fits_max_t) const
+        {
+            std::cout << "expr_fits::fits: expr = " << expr_t(e) << std::endl;
+            return MIGHT_FIT;
         }
 
         // implement `integral` and `error` types

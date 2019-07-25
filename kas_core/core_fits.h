@@ -63,7 +63,6 @@ namespace kas::core
 
         virtual result_t fits(expr_t const& e, fits_min_t min, fits_max_t max) const override
         {
-            //std::cout << "core_fits: fits: " << e << std::endl;
             // allow `expr_fits` base type to evaluate fixed value expressions
             if (auto p = e.get_fixed_p())
                 return (*this)(*p, min, max);

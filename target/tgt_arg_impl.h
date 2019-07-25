@@ -23,8 +23,8 @@ template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T>
 tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
         ::tgt_arg_t(MODE_T mode, expr_t const& arg_expr) : expr(arg_expr)
 {
-    std::cout << "arg_t::ctor mode = " << +mode << " expr = " << expr;
-    std::cout << " *this::loc = " << static_cast<parser::kas_loc>(*this) << std::endl;
+    //std::cout << "arg_t::ctor mode = " << +mode << " expr = " << expr;
+    //std::cout << " *this::loc = " << static_cast<parser::kas_loc>(*this) << std::endl;
     
     // accumulate error
     const char *msg   {};

@@ -60,8 +60,6 @@ const char *m68k_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
     if (auto base_err = base_t::validate_mcode(mcode_p))
         return base_err;
 
-    std::cout << "validate_mcode: info = " << std::hex << mcode_p->defn().info << std::endl;
-
     auto sfx_code = mcode_p->defn().info & opc::SFX_MASK;
     
     // if size specified, validate it's supported
@@ -104,6 +102,7 @@ const char *m68k_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
     return {};
 }
 
+// XXX convert to ostream support
 void m68k_stmt_t::print_info(std::ostream& os) const
 {
     auto sz = m68k_sfx::suffixes[flags.arg_size];

@@ -82,7 +82,7 @@ void insert_one (Inserter& inserter
     // write arg data into machine code if possible (dependent on validator)
     // returns false if no validator
     bool completely_saved = fmt.insert(n, code_p, arg, val_p);
-    
+//#define TRACE_ARG_SERIALIZE
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "write_one: " << arg << ": completely_saved = " << std::boolalpha << completely_saved;
     std::cout << " has_validator = " << bool(val_p) << std::endl;

@@ -117,13 +117,10 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
 
         auto& insn = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         
-        auto& mc   = *insn.list_mcode_p;
-        auto  args = base_t::serial_args(reader, mc);
-
-        // XXX 
-        stmt_info_t stmt_info{};
-        stmt_info.arg_size = args.sz;
-
+        auto& mc        = *insn.list_mcode_p;
+        auto  args      = base_t::serial_args(reader, mc);
+        auto  stmt_info = args.info;
+        
         // evaluate with new `fits`
         //eval_insn_list(insn, ok, args, data.size, fits, this->trace);
         insn.eval(ok, args, stmt_info, data.size, fits, this->trace);
@@ -144,8 +141,7 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         auto& insn       = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         auto& list_mc    = *insn.list_mcode_p;
         auto  args       = serial_args(reader, list_mc);
-        stmt_info_t stmt_info{};
-        stmt_info.arg_size = args.sz;
+        auto  stmt_info  = args.info;
 
         // get best match
         op_size_t size; 
@@ -160,9 +156,9 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         auto code = mc.code(stmt_info);
         auto sz   = mc.sz(stmt_info);
 
-        std::cout << "opc_list: code[0] = " << std::hex << code[0] << std::endl;
-        std::cout << "opc_list: stmt_info = " << std::hex << +stmt_info.arg_size << std::endl;
-        std::cout << "opc_list: sz = " << +sz << std::endl;
+        //std::cout << "opc_list: code[0] = " << std::hex << code[0] << std::endl;
+        //std::cout << "opc_list: stmt_info = " << std::hex << +stmt_info.arg_size << std::endl;
+        //std::cout << "opc_list: sz = " << +sz << std::endl;
 
         // emit opcode
         mc.emit(base, code.data(), args, sz, dot_p);

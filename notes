@@ -105,3 +105,18 @@ ARM Notes:
 7. backport TGT mods.
 
 
+****************************************
+
+M68K Notes (m68k.input)
+
+*1. move.l a4@-,a1@(123): DST mode not inserted (correct: 2364 007b)
+ 
+*2. move.b #.-m_second, d4: offset incorrect
+
+*3. move.l #m_last-m_first, d3: base value incorrectly calculated 
+
+*4. ARM relocation name generated.
+
+*5. "extract" is for sz, not info.
+
+6. stmt::print_info method, needs to be ostream support.

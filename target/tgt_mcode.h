@@ -160,7 +160,7 @@ struct tgt_mcode_t
     
     // machine code arranged as words: big-endian array (ie highest order words first)
     auto code(stmt_info_t stmt_info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
-    uint8_t extract_sz(mcode_size_t const *) const;
+    stmt_info_t extract_info(mcode_size_t const *) const;
 
     void print(std::ostream&) const;
 

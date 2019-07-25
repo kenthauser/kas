@@ -313,6 +313,7 @@ expression::e_fixed_t tgt_data_reader_t<MCODE_T>::get_fixed(int size)
     // extend with rest of chunks    
     while(--chunks)
     {
+        // if # chunks exceeds size of `value`, return LSBs
         if constexpr (sizeof(value_type)  >= sizeof (value))
             value = 0;
         else

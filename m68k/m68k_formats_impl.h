@@ -34,24 +34,24 @@ template <int SHIFT, unsigned WORD = 0, int MODE_OFFSET = 3, unsigned MODE_BITS 
 struct fmt_reg_mode
 {
     using val_t = m68k_mcode_t::val_t;
-    // actual word mask
-    static constexpr auto MASK      = (7 << SHIFT) | (7 << (SHIFT+MODE_OFFSET));
-
-    // shifted word mask (operates on 6-bit value)
-    static constexpr auto MODE_MASK = ((1 << MODE_BITS) - 1) << 3;
+    
+    // MODE BITS are either 3 or 1 (ie general mode or general register)
+    static constexpr auto MODE_BIT_MASK = (1 << MODE_BITS) - 1; 
 
     static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
     {
         kas::expression::expr_fits fits;
-        
-        // validator return 6 bits: mode + reg
+
+        // validator returns 6 bits: mode + reg
         auto value    = val_p->get_value(arg);
         auto cpu_reg  = value & 7;
-        auto cpu_mode = arg.mode_normalize() & MODE_MASK;
+        auto cpu_mode = (value >> 3) & MODE_BIT_MASK;
 
         value  = cpu_reg  <<  SHIFT;
-        value |= cpu_mode << (SHIFT+MODE_OFFSET-3);
-        
+        value |= cpu_mode << (SHIFT+MODE_OFFSET);
+
+        static constexpr auto MASK = (7 << SHIFT) | (MODE_BIT_MASK << (SHIFT + MODE_OFFSET)); 
+
         op[WORD]  &= ~MASK;
         op[WORD]  |= value;
 
@@ -62,8 +62,8 @@ struct fmt_reg_mode
     {
         auto value     = op[WORD];
         auto reg_num   = (value >>  SHIFT)                & 7;
-        auto cpu_mode  = (value >> (SHIFT+MODE_OFFSET-3)) & MODE_MASK; 
-        val_p->set_arg(arg, reg_num | cpu_mode);
+        auto cpu_mode  = (value >> (SHIFT+MODE_OFFSET)) & MODE_BIT_MASK; 
+        val_p->set_arg(arg, reg_num | (cpu_mode << 3));
     }
 
     static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p)

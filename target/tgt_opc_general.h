@@ -88,7 +88,7 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
         
         auto args    = base_t::serial_args(reader, mcode);
         auto code_p  = args.code_p;
-        auto& sz     = args.sz;
+        auto sz      = mcode.sz(args.info);
 
         // print "mcode name"
         os << mcode.name();
@@ -127,7 +127,7 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
         auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
         
         auto args    = base_t::serial_args(reader, mcode);
-        auto& sz     = args.sz;
+        auto sz      = mcode.sz(args.info);
 
         // base instruction size
         op_size_t new_size = mcode.base_size();
@@ -152,11 +152,12 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
         //  2) opcode binary code (word or long)
         //  3) serialized args
         auto  reader = base_t::tgt_data_reader(data);
-        auto& opcode = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
 
-        auto args    = base_t::serial_args(reader, opcode);
+        auto args    = base_t::serial_args(reader, mcode);
+        auto sz      = mcode.sz(args.info);
         
-        opcode.emit(base, args.code_p, args, args.sz, dot_p);
+        mcode.emit(base, args.code_p, args, sz, dot_p);
     }
 };
 }

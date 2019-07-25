@@ -137,6 +137,7 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     unsigned n = 0;
     for (auto& arg : args)
     {
+        // XXX `emit` needs to be named RELOC
         auto val_p = &*val_iter++;
         auto arg_n = n++;
         if (!fmt().insert(arg_n, op_p, arg, val_p))
@@ -216,9 +217,9 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-    extract_sz(mcode_size_t const *) const -> uint8_t
+    extract_info(mcode_size_t const *) const -> stmt_info_t
 {
-    return 0;       // default `size` 
+    return {};       // default construct
 }
 
     

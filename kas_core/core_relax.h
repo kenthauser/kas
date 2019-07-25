@@ -4,7 +4,6 @@
 
 #include "core_fits.h"
 
-
 namespace kas::core
 {
 
@@ -43,8 +42,8 @@ struct core_relax
     auto relax_fn(fuzz_t fuzz)
     {
         core_fits fits(c.get_insn_dot(), fuzz);
-
-        return [&fits](auto& insn, core_expr_dot const&)
+    
+        return [fits](auto& insn, core_expr_dot const&)
             {
                 if (!insn.is_relaxed())
                 {

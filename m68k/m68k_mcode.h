@@ -73,7 +73,7 @@ struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t, m68k_stmt_t, error_msg, m68
 
     uint8_t sz(stmt_info_t info) const;
     auto    code(stmt_info_t info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
-    uint8_t extract_sz(mcode_size_t const *) const;
+    stmt_info_t extract_info(mcode_size_t const *) const;
 
 };
 

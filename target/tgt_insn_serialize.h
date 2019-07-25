@@ -81,7 +81,7 @@ void tgt_insert_args(Inserter& inserter
     constexpr auto ARGS_PER_INFO = detail::tgt_arg_info<MCODE_T>::ARGS_PER_INFO;
    
     // insert base "code" (a appropriately sized zero) & use pointer for arg inserter
-    std::cout << "tgt_insert:args: stmt_info = " << std::hex << stmt_info.value() << std::endl;
+    //std::cout << "tgt_insert:args: stmt_info = " << std::hex << stmt_info.value() << std::endl;
     auto code_p = inserter(m_code.code(stmt_info).data(), m_code.code_size());
 
     auto& fmt         = m_code.fmt();
@@ -134,12 +134,13 @@ void tgt_insert_args(Inserter& inserter
 
         if (!val_p)
             val_name = "*NONE*";
-        
+#if 0
         std::cout << "tgt_insert_args: " << +n 
                   << " mode = " << +arg.mode() 
                   << " arg = " << arg 
                   << " val = " << val_name
                   << std::endl;
+#endif
         detail::insert_one<MCODE_T>(inserter, n, p, arg, sz, fmt, val_p, code_p);
         ++n;
     }
@@ -179,8 +180,8 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
     // get "opcode" info
     auto  code_p = reader.get_fixed_p(m_code.code_size());
     // XXX
-    //stmt_info_t stmt_info{};
-    auto sz = m_code.extract_sz(code_p);
+    auto stmt_info = m_code.extract_info(code_p);
+    auto sz        = m_code.sz(stmt_info);
 
     // read & decode arguments until empty
     auto& fmt         = m_code.fmt();

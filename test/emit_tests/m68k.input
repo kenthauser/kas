@@ -70,11 +70,11 @@ m_first:
     move.w  #-3,d2
     move.b  #-3,d2
 m_second:
-    ;move.l  #.-m_second, d4
-    ;move.w  #.-m_second, d4
-    ;move.b  #.-m_second, d4
+    move.l  #.-m_second, d4
+    move.w  #.-m_second, d4
+    move.b  #.-m_second, d4
     .skip   8
-    ;move.l  #m_last-m_first, d3
+    move.l  #m_last-m_third, d3
 m_third:
     divs.l  a2@(d0),d1
     divs.l  a2@(d0),d1:d1

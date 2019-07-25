@@ -52,6 +52,7 @@ struct m68k_stmt_t : tgt::tgt_stmt<m68k_stmt_t, m68k_insn_t, m68k_arg_t>
         value_t arg_size  : 3;      // argument size: 7 == void (not specified)
         value_t ccode     : 5;      // conditional instruction code
         value_t has_ccode : 1;      // is conditional
+        value_t fp_ccode  : 1;      // is floating point conditional
         value_t has_dot   : 1;      // size suffix has `dot` (motorola format)
 
         // just use `flags_t` as `stmt_info_t`

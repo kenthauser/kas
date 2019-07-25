@@ -138,7 +138,7 @@ auto deferred_reloc_t::get_info(emit_base& base) const -> reloc_info_t const *
     if (!map_p)
     {
         map_p = new map_t;
-        for (auto& info : arm_elf_relocs)
+        for (auto& info : m68k_elf_relocs)
             map_p->emplace(info.reloc.key(), &info);
     }
 

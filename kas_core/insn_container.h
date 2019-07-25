@@ -368,7 +368,6 @@ namespace kas::core
 
         // generate container_data from insn
         value_type data{insn};
-        insn_size = insn.data.size;
         
         // allocate new frag if current doesn't have room
         // NB: insn_size is instance variable which can be modified
@@ -382,6 +381,9 @@ namespace kas::core
         else if (core_addr::must_init_dot())
             *this = opc::opc_label();       // insert dummy label insn
 
+        // extract size from `insn`
+        insn_size = insn.data.size;
+        
         if (opc_index == idx_section)
             put_segment(std::move(data));
         else if (opc_index == idx_org)

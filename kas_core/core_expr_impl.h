@@ -306,7 +306,6 @@ namespace kas::core
     template <typename BASE_T, typename RELOC_T>
     void core_expr::emit(BASE_T& base, RELOC_T& reloc) const
     {
-#if 1
         auto do_emit = [&base](auto& reloc, expr_term const *term_p = {}, bool pc_rel = false)
         {
             reloc.sym_p     = {};
@@ -343,9 +342,10 @@ namespace kas::core
             // if paired, ignore
             if (m.p)
                 continue;
+            // if minus term in current section, convert to `PC_REL` cnt
             if (m.addr_p && &m.addr_p->section() == section_p)
             {
-                reloc.addend -= m.addr_p->offset()() - base.position();
+                reloc.addend -= m.addr_p->offset()();
                 ++pc_rel_cnt;
             }
             else
@@ -366,12 +366,12 @@ namespace kas::core
                 continue;
             }
             
-            // if PC_REL pending, & `p` in correct section, apply
+            // if PC_REL pending, & `p` in correct section, consume a `pc_rel`
             if (pc_rel_cnt)
                 if (p.addr_p && &p.addr_p->section() == &base.get_section())
                 {
                     reloc.reloc.flags  &=~ core_reloc::RFLAGS_PC_REL;
-                    reloc.addend       +=  p.addr_p->offset()() - base.position();
+                    reloc.addend       +=  p.addr_p->offset()();
                     --pc_rel_cnt;
                     continue;
                 }
@@ -418,39 +418,9 @@ namespace kas::core
             return;
         }
 
-        // if addend, must emit at least once
+        // if addend, must emit at least once (fixed data)
         if (reloc.addend)
             do_emit(reloc);
-
-#else
-        // emit fixed
-        base(fixed);
-
-        // do plus. assume all addresses relaxed. need to to resolve addresses
-        for (auto&p : plus) {
-            if (p.addr_p) {
-                // if addr is paired, just add in offset delta
-                if (p.p) {
-                    //std::cout << " ==> data changed from " << base.data;
-                    base( p.addr_p->offset()());
-                    base(-p.p->addr_p->offset()());
-                    //std::cout << " to " << base.data << std::endl;
-                } else {
-                    //std::cout << " ==> emit addr " << *p.addr_p << std::endl;
-                    base(*p.addr_p);
-                }
-                continue;
-            }
-
-            if (p.symbol_p) {
-                //std::cout << " ==> emit symbol " << expr_t(*p.symbol_p) << std::endl;
-                base(*p.symbol_p);
-                continue;
-            }
-        }
-
-        // XXX don't know how to emit minus relocs. ignore for now
-#endif
     }
 
     void core_expr::prune()

@@ -319,12 +319,13 @@ auto gen_stmt = [](auto& ctx)
 
         if (ccode)
         {
-            flags.has_ccode = true;
-
             // different condition code maps for general & fp insns
             // floating point insn names start with `f`
             bool is_fp = stmt.insn_p->name[0] == 'f';
+            flags.has_ccode = true;
+            flags.fp_ccode  = is_fp;
             auto code = m68k_ccode::code(*ccode, is_fp);
+
             if (code < 0)
             {
                 // invalid condition code

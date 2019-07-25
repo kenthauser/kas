@@ -59,12 +59,6 @@ public:
    
     // statement flags: variable data stored in opcode `name`: eg `ble` (branch if less-than-or-equal)
     // NB: not all architectures use `stmt_flags` to handle cases such as `ble`
-    // 1. Generate `code` based on `statement flags`
-    //constexpr uint32_t get_flags() const { return {}; }
-
-    // 2. Extract stored statment flags from previously modified code
-    constexpr static uint32_t extract_stmt_info(void const *mcode_p, void *code_p) { return {}; }
-
 
     // methods used by test fixtures
     std::string name() const;

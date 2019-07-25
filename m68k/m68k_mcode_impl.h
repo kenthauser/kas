@@ -46,15 +46,77 @@ auto m68k_mcode_t::code(stmt_info_t info) const
             auto& sz_fn = LWB_SIZES::value[defn_info >> 12];
             code[sz_fn.word()] |= sz_fn(arg_sz);
         }
+
+    // insert codition code if required
+    switch (defn_info & opc::SFX_IS_CC)
+    {
+        default:
+        case 0:
+            break;
+        case 0x400:     // standard 68k condition code
+            code[0] |= info.ccode << 8;
+            break;
+        case 0x800:     // floating point code
+            code[0] |= info.ccode;
+            break;
+        case 0xc00:     // LIST format
+         {
+            if (!info.has_ccode)
+                break;
+            auto ccode = info.ccode;
+            if (info.fp_ccode)
+                ccode |= 0x20;
+            else
+                ccode |= 0x10;
+            code[0] |= ccode << 6;
+            break;
+         }
+    }
+
     return code;
 }
 
-uint8_t m68k_mcode_t::extract_sz(mcode_size_t const *code_p) const
+auto m68k_mcode_t::extract_info(mcode_size_t const *code_p) const -> stmt_info_t
 {
-    auto& sz_fn = LWB_SIZES::value[defn().info >> 12];
-    auto sz = sz_fn.extract(code_p);
-    std::cout << "m68k_mcode_t::extract_sz: sz = " << m68k_sfx::suffixes[sz] << std::endl;
-    return sz_fn.extract(code_p);
+    stmt_info_t info;       // build return value
+   
+    // calculate SZ
+    auto defn_info = defn().info;
+    auto& sz_fn = LWB_SIZES::value[defn_info >> 12];     // 4 MSBs
+    info.arg_size = sz_fn.extract(code_p);
+
+    // calculate Condition Codes
+    switch (defn_info & opc::SFX_IS_CC)
+    {
+        default:
+        case 0:
+            break;
+        case 0x400:
+            info.has_ccode = true;
+            info.ccode = (code_p[0] >> 8) & 0xf;
+            break;
+        case 0x800:
+            info.has_ccode = true;
+            info.fp_ccode  = true;
+            info.ccode     = code_p[0] & 0x1f;
+            break;
+        case 0xc00:
+        {
+            // raw format for LIST
+            auto ccode = code_p[0] >> 6;
+            if (ccode & 0x20)
+                info.fp_ccode = true;
+            else if (ccode & 0x10)
+                ccode &= 0xf;
+            else
+                break;
+
+            info.has_ccode = true;
+            info.ccode = ccode & 0x1f;      // NB: mask not needed. Dest is 5 bits
+            break;
+        }
+    }
+    return info;
 }
 
 }

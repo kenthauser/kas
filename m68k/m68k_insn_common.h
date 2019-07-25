@@ -135,22 +135,25 @@ using m68k_sz = meta::int_<m68k_as_mask(SFX::value, DFLT, SIZES...)>;
 // ccode:       disallow T/F condition codes
 // ccode_all:   allow T/F condition codes
 
+
 // NB: 4 MSBs of 16-bit `SZ` used to hold `INFO_SIZE` index
 using SFX_NORMAL        = meta::int_<0x0000>;    // sfx required
 using SFX_OPTIONAL      = meta::int_<0x0100>;    // sfx optional
 using SFX_CANON_NONE    = meta::int_<0x0200>;    // no sfx is canonical
 using SFX_NONE          = meta::int_<0x0300>;    // sfx prohibited
-using SFX_CCODE_BIT     = meta::int_<0x4000>;    // CCODE req'd
+using SFX_CCODE_BIT     = meta::int_<0x0400>;    // CCODE req'd (4 bits shifted 8)
 using SFX_CCODE         = meta::int_<SFX_CCODE_BIT::value | SFX_OPTIONAL::value>;
 using SFX_CCODE_ALL     = meta::int_<SFX_CCODE_BIT::value | SFX_NONE::value>;    
 
-static constexpr auto SFX_MASK  = 0x300;     // flag mask to test SFX codes
-static constexpr auto SFX_IS_CC = 0x400;     // flag mask to test if condition code
+using SFX_CCODE_FP      = meta::int_<0xc00>;     // FP ccode: first word, 5 LSBs
+using SFX_CCODE_RAW     = meta::int_<0x800>;     // raw FP code (for list): 6 bits shifted 6
 
+static constexpr auto SFX_MASK  = 0x300;     // flag mask to test SFX codes
+static constexpr auto SFX_IS_CC = 0xc00;     // flag mask to test if condition code
 
 using sz_void   = m68k_sz<SFX_NONE>;
 
-using sz_list = meta::int_<SFX_NORMAL::value | 0xff>;
+using sz_list = meta::int_<SFX_NORMAL::value | SFX_CCODE_RAW::value | 0xff>;
 
 using sz_lwb = m68k_sz<SFX_NORMAL, OP_SIZE_LONG, OP_SIZE_WORD, OP_SIZE_BYTE>;
 using sz_lw  = m68k_sz<SFX_NORMAL, OP_SIZE_LONG, OP_SIZE_WORD>; 
@@ -184,7 +187,7 @@ using sz_L    = m68k_sz<SFX_NONE        , OP_SIZE_LONG>;
 // condition code instructions
 using sz_cc     = m68k_sz<SFX_CCODE>;
 using sz_all_cc = m68k_sz<SFX_CCODE_ALL>;
-using sz_cc_fp  = meta::int_<SFX_CCODE_ALL::value | 0x7f>;
+using sz_cc_fp  = meta::int_<SFX_CCODE_FP::value | 0x7f>;
 
 }
 
