@@ -125,8 +125,33 @@ struct val_direct_del : m68k_validate
     fits_result size(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits
                                                     , op_size_t& op_size) const override
     {
-        // set total size min to zero to flag branch can delete instruction
-        op_size = { 0, 6 };     // branch with byte/word/long displacement
+        op_size.max = 6;            // not on 68000
+
+        // test if can delete. Slightly different so as to be sure
+        if (op_size.min == 0)
+            if (fits.seen_this_pass(arg.expr))
+                op_size.min = 2;
+            
+        // the following works for zero, two, four.
+        // six will fail at `while` loop
+        int disp_size = op_size.min >> 1;
+        while (op_size.min < op_size.max)
+        {
+            switch (fits.disp_sz(disp_size, arg.expr, op_size.min))
+            {
+                case expr_fits::no:
+                    break;          // try next value
+                case expr_fits::yes:
+                    op_size.max = op_size.min;
+                    return expr_fits::yes;
+                default:
+                    return expr_fits::maybe;
+            }
+            op_size.min += 2;
+            ++disp_size;
+        }
+
+        // iff 68000, fits::no
         return expr_fits::yes;   
     }
 };

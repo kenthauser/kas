@@ -145,8 +145,8 @@ using SFX_CCODE_BIT     = meta::int_<0x0400>;    // CCODE req'd (4 bits shifted 
 using SFX_CCODE         = meta::int_<SFX_CCODE_BIT::value | SFX_OPTIONAL::value>;
 using SFX_CCODE_ALL     = meta::int_<SFX_CCODE_BIT::value | SFX_NONE::value>;    
 
-using SFX_CCODE_FP      = meta::int_<0xc00>;     // FP ccode: first word, 5 LSBs
-using SFX_CCODE_RAW     = meta::int_<0x800>;     // raw FP code (for list): 6 bits shifted 6
+using SFX_CCODE_FP      = meta::int_<0x800>;     // FP ccode: first word, 5 LSBs
+using SFX_CCODE_RAW     = meta::int_<0xc00>;     // raw FP code (for list): 6 bits shifted 6
 
 static constexpr auto SFX_MASK  = 0x300;     // flag mask to test SFX codes
 static constexpr auto SFX_IS_CC = 0xc00;     // flag mask to test if condition code
@@ -186,7 +186,7 @@ using sz_L    = m68k_sz<SFX_NONE        , OP_SIZE_LONG>;
 
 // condition code instructions
 using sz_cc     = m68k_sz<SFX_CCODE>;
-using sz_all_cc = m68k_sz<SFX_CCODE_ALL>;
+using sz_cc_all = m68k_sz<SFX_CCODE_ALL>;
 using sz_cc_fp  = meta::int_<SFX_CCODE_FP::value | 0x7f>;
 
 }

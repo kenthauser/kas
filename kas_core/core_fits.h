@@ -94,7 +94,7 @@ namespace kas::core
 
         // returns true if symbol is before `dot` or external
         // used to disallow branch deletion
-        bool seen_this_pass(expr_t const& e) const
+        virtual bool seen_this_pass(expr_t const& e) const override
         {
             if (dot_p)
                 if (auto sym_p = e.template get_p<core_symbol>())

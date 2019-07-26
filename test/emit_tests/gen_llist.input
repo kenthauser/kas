@@ -258,4 +258,4 @@ gen_llist:
 	.string	"short unsigned int"
 .LASF1:
 	.string	"unsigned int"
-	.ident	"GCC: (GNU) 5.4.0"
+:	.ident	"GCC: (GNU) 5.4.0"

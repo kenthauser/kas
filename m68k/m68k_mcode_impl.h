@@ -46,8 +46,12 @@ auto m68k_mcode_t::code(stmt_info_t info) const
             auto& sz_fn = LWB_SIZES::value[defn_info >> 12];
             code[sz_fn.word()] |= sz_fn(arg_sz);
         }
+    
+    std::cout << "m68k_mcode_t::code: cc = " << info.has_ccode << " ccode = " << info.ccode;
+    std::cout << " defn = " << std::hex << defn_info << std::endl;
 
     // insert codition code if required
+    // NB: values from `m68k_insn_common.h`
     switch (defn_info & opc::SFX_IS_CC)
     {
         default:

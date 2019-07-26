@@ -317,6 +317,8 @@ auto gen_stmt = [](auto& ctx)
        
         auto& flags = stmt.get_flags();
 
+        std::cout << "gen_stmt: insn = " << stmt.insn_p->name << std::endl;
+
         if (ccode)
         {
             // different condition code maps for general & fp insns
@@ -326,6 +328,8 @@ auto gen_stmt = [](auto& ctx)
             flags.fp_ccode  = is_fp;
             auto code = m68k_ccode::code(*ccode, is_fp);
 
+            std::cout << "gen_stmt: has_ccode: code = " << +code << std::endl;
+            
             if (code < 0)
             {
                 // invalid condition code

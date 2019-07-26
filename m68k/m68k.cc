@@ -89,7 +89,7 @@ namespace kas::m68k::parser
     // parser for opcode names
     m68k_insn_x3 m68k_insn_parser {"m68k opcode"};
     
-    auto const m68k_insn_parser_def = insn_sym_parser.x3();
+    auto const m68k_insn_parser_def = insn_sym_parser.x3_raw();
     BOOST_SPIRIT_DEFINE(m68k_insn_parser);
 
     // instantiate parsers

@@ -139,6 +139,9 @@ struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t, uint16_t, 4, 12>
     {
         if (i == 0)
             return n + 1;
+        // allow MOTO
+        if (i == 1)
+            return n;
         return {};
     }
 

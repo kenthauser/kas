@@ -341,9 +341,13 @@ using m68k_branch_cc_v = list<list<>
 , defn<sz_v, STR("jra"),  OP<0x6000>, FMT_BRANCH, DIRECT_DEL>
 , defn<sz_v, STR("bsr"),  OP<0x6100>, FMT_BRANCH, DIRECT>
 , defn<sz_v, STR("jbsr"), OP<0x6100>, FMT_BRANCH, DIRECT>
+#if 0
 , cc<0x6000, cc_names, STR("b"), void, FMT_BRANCH, DIRECT_DEL>
 , cc<0x6000, cc_names, STR("j"), void, FMT_BRANCH, DIRECT_DEL>
-
+#else
+, defn<sz_cc_all, STR("b"), OP<0x6000>, FMT_BRANCH, DIRECT_DEL>
+, defn<sz_cc_all, STR("j"), OP<0x6000>, FMT_BRANCH, DIRECT_DEL>
+#endif
 // Scc (coldfire: data register only)
 , cc<0x50c0, all_cc_names, STR("s"), m68k    , FMT_0RM, MEM_ALTER>
 , cc<0x50c0, all_cc_names, STR("s"), coldfire, FMT_0RM, DATA_REG>

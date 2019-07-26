@@ -87,6 +87,11 @@ namespace kas::expression
             return maybe;       // constants know nothing else of offsets...
         }
 
+        virtual bool seen_this_pass(expr_t const& e) const
+        {
+            return false;
+        }
+        
         result_t fits(e_fixed_t e, fits_min_t min, fits_max_t max) const
         {
             return (*this)(e, min, max);
@@ -160,6 +165,23 @@ namespace kas::expression
             constexpr fits_min_t min { std::numeric_limits<T>::min() };
             constexpr fits_max_t max { std::numeric_limits<T>::max() };
             return disp(e, min, max, delta);
+        }
+
+        constexpr auto disp_sz(unsigned sz, expr_t const& e, int delta) const
+        {
+            switch (sz)
+            {
+                case 0:
+                    return disp(e, 0, 0, delta);
+                case 1:
+                    return disp<int8_t>(e, delta);
+                case 2:
+                    return disp<int16_t>(e, delta);
+                case 4:
+                    return disp<int32_t>(e, delta);
+                default:
+                    throw std::logic_error(__FUNCTION__);
+            }
         }
 
         template <typename U>
