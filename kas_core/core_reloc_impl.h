@@ -159,7 +159,7 @@ void deferred_reloc_t::operator()(expr_t const& e)
     if (!loc_p)
         loc_p = e.get_loc_p();      // if `tagged` store location
 
-    // just use `if tree` to initialize relocation
+    // use `if tree` to initialize relocation
     // don't need `apply_visitor` as most types don't relocate
     if (auto p = e.get_fixed_p())
         addend += *p;
@@ -202,7 +202,7 @@ void deferred_reloc_t::operator()(core_expr const& value)
     if (auto p = value.get_fixed_p())
         addend += *p;
     else
-        expr_p = &value;
+        core_expr_p = &value;
 }
 
 void deferred_reloc_t::emit(emit_base& base)
@@ -211,6 +211,17 @@ void deferred_reloc_t::emit(emit_base& base)
     if (reloc.bits == 0)
         reloc.bits = base.width * 8;
     
+    // absorb section_p if PC_REL && matches
+    // NB: could be done in `add`, but `deferred_reloc_t` doesn't know `base`
+    if (section_p == &base.get_section())
+        if (reloc.flags & core_reloc::RFLAGS_PC_REL)
+        {
+            section_p    = {};
+            addend      -= base.position();
+            reloc.flags &=~ core_reloc::RFLAGS_PC_REL;
+        }
+   
+    // get pointer to machine-specific info matching `reloc`
     auto info_p = get_info(base);
 
     bool use_rela = false;
@@ -221,20 +232,20 @@ void deferred_reloc_t::emit(emit_base& base)
         base_addend = addend;
         addend = {};
     }
-    
+   
     // emit relocations to backend
     if (section_p)
         base.put_section_reloc(*this, info_p, *section_p, addend);
     else if (sym_p)
         base.put_symbol_reloc(*this, info_p, *sym_p, addend);
-    else if (expr_p)
-        expr_p->emit(base, *this);
+    else if (core_expr_p)
+        core_expr_p->emit(base, *this);
     else if (addend)
         base_addend = addend;
     addend = {};
 
-    // if "base_delta", apply relocation to base
-    if (base_addend && info_p)
+    // if "base_addend", apply relocation to base
+    if (base_addend)
         apply_reloc(base, base_addend);
 }
 
@@ -246,23 +257,21 @@ void deferred_reloc_t::apply_reloc(emit_base& base, int64_t& addend)
             uint64_t mask  {};
             uint8_t  shift {};
             auto     width = reloc.bits / 8;
-           
+          
             if (base.width < (width + offset))
                 throw std::logic_error { "apply_reloc: invalid width/offset" };
-#ifdef XXX
-            // normal case: matching widths & zero offset.
-            if (base.bits == reloc.bits)
+
+            // normal case: matching widths
+            if (base.width == width)
                 return { data, 0, 0 };
-#endif
+
             // constexpr to calculate mask
             mask  = (width == 4) ? 0xffff'ffff : (width == 2) ? 0xffff : (width == 1) ? 0xff : ~0; 
-            shift = (width - offset - 1) * 8;
-            
-            if (mask)
-            {
-                mask <<= shift;
-                data = (data & mask) >> shift;
-            }
+            shift = (base.width - offset - 1) * 8;
+           
+            // apply offset & delta width operations
+            mask <<= shift;
+            data = (data & mask) >> shift;
 
             // sign-extend data
             switch(width)
@@ -275,17 +284,40 @@ void deferred_reloc_t::apply_reloc(emit_base& base, int64_t& addend)
             return { data, mask, shift };
         };
 
+    auto write_subfield = [](auto base, auto value, auto mask, auto shift)
+                -> decltype(base)
+        {
+            // normal case. matching widths
+            if (!mask) return value;
+
+            // remove result bits from original data & insert shifted value
+            base &=~ mask;
+            base |=  mask & (value << shift);
+            return base;
+        };
+
+    // read data as subfield
     auto [data, mask, shift] = read_subfield(base.data);
+
+    // working copy of data is base `addend`
+    auto value = data;
     
-    // apply reloc methods
+    // retrieve reloc methods
     auto& ops = *get_ops(reloc.reloc);
-    auto value = base.data;
+    
+    // if `read_fn` extract addend from `data`
     if (ops.read_fn)
         value = ops.read_fn(value);
+
+    // apply `update_fn` on value
     value = ops.update_fn(value, addend);
+
+    // if `write_fn` update extracted data
     if (ops.write_fn)
-        value = ops.write_fn(base.data, value);
-    base.data = value;
+        value = ops.write_fn(data, value);
+
+    // insert new `data` as subfield
+    base.data = write_subfield(base.data, value, mask, shift);
 };
 
 // static method

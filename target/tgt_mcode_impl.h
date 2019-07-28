@@ -140,8 +140,8 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         // XXX `emit` needs to be named RELOC
         auto val_p = &*val_iter++;
         auto arg_n = n++;
-        if (!fmt().insert(arg_n, op_p, arg, val_p))
-            fmt().emit(arg_n, base, op_p, arg, val_p);
+        if (!fmt().insert(arg_n, op_p, arg, val_p, dot_p))
+            fmt().emit(arg_n, base, op_p, arg, val_p, dot_p);
     }
 
     // 2. emit base code

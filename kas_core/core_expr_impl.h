@@ -329,8 +329,8 @@ namespace kas::core
 
         //std::cout << "core_expr::emit: " << expr_t(*this) << " fixed = " << fixed << std::endl;
         // build "new" reloc for expression
-        reloc.addend += fixed;      // acumulate `fixed`
-        reloc.expr_p  = {};         // processing now
+        reloc.addend      += fixed;     // acumulate `fixed`
+        reloc.core_expr_p  = {};        // processing now
 
         // examine `minus` list to find `pc_rel` & subs
         auto section_p = &base.get_section();

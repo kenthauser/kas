@@ -132,7 +132,7 @@ struct FMT_LIST     : fmt_list, arg1_0, arg2_3 {};
 
 
 // branch formats have implied argument format
-using FMT_BRANCH     = fmt_branch;
+struct FMT_BRANCH   : fmt_branch, fmt_arg<1, fmt_displacement> {};
 using FMT_CP_BRANCH  = fmt_cp_branch;
 
 // dbcc have single argument

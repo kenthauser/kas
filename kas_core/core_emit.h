@@ -124,7 +124,7 @@ private:
     void set_width(std::size_t w);
 
     // utility methods
-    deferred_reloc_t& add_reloc(core_reloc r = {}, int64_t addend = {});
+    deferred_reloc_t& add_reloc(core_reloc r = {}, int64_t addend = {}, uint8_t offset = {});
 
     void assert_width() const;      
     void set_defaults();
@@ -183,8 +183,8 @@ static constexpr auto emit_addr = _set_e_chan<EMIT_ADDR>;
 // emit relocation manipulator
 struct emit_reloc
 {
-    emit_reloc(core_reloc r, int64_t addend = {})
-        : reloc(r), addend(addend) {}
+    emit_reloc(core_reloc r, int64_t addend = {}, uint8_t offset = {})
+        : reloc(r), addend(addend), offset(offset) {}
     
     // expect relocatable expression.
     auto& operator<<(expr_t const& e)
@@ -194,10 +194,10 @@ struct emit_reloc
     }
     
 private:
-    friend auto& operator<<(emit_base& base, emit_reloc& r)
+    friend auto operator<<(emit_base& base, emit_reloc r)
     {
         r.base_p = &base;
-        r.r      = &base.add_reloc(r.reloc, r.addend);
+        r.r      = &base.add_reloc(r.reloc, r.addend, r.offset);
         return r;
     }
 
@@ -206,6 +206,7 @@ private:
 
     core_reloc reloc;
     int64_t    addend;
+    uint8_t    offset;
 };
 
 

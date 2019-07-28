@@ -36,7 +36,7 @@ void emit_base::set_chan(e_chan_num chan)
     e_chan = chan;
 }
 
-deferred_reloc_t& emit_base::add_reloc(core_reloc r, int64_t addend)
+deferred_reloc_t& emit_base::add_reloc(core_reloc r, int64_t addend, uint8_t offset)
 {
     if (reloc_p == std::end(relocs))
         throw std::runtime_error("emit_base: too many relocations for insn");
@@ -45,7 +45,7 @@ deferred_reloc_t& emit_base::add_reloc(core_reloc r, int64_t addend)
     if (r.reloc == K_REL_NONE)
         r.reloc = K_REL_ADD;
    
-    *reloc_p++ = { r, addend };
+    *reloc_p++ = { r, addend, offset };
     return reloc_p[-1];
 }
 

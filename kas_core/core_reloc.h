@@ -120,15 +120,14 @@ struct deferred_reloc_t
     reloc_info_t const *get_info(emit_base& base) const;
     reloc_op_t  const *get_ops (uint8_t) const;
 
-
     core_reloc          reloc;
-    int64_t             addend    {};
-    core_symbol  const *sym_p     {};
-    core_expr    const *expr_p    {};
-    core_section const *section_p {};
-    kas_loc      const *loc_p     {};
-    uint8_t             width     {};       // XXX refactor out.
-    uint8_t             offset    {};
+    int64_t             addend      {};
+    core_symbol  const *sym_p       {};
+    core_expr    const *core_expr_p {};
+    core_section const *section_p   {};
+    kas_loc      const *loc_p       {};
+    uint8_t             width       {};     // XXX refactor out.
+    uint8_t             offset      {};
 };
 
 }

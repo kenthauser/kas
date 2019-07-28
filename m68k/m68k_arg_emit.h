@@ -40,11 +40,30 @@ void m68k_arg_t::emit(core::emit_base& base, uint8_t sz, unsigned size) const
         case MODE_DIRECT_LONG:
             size = 4;
             break;
-
+        
         // immediate: store fixed & float formats
         case MODE_IMMED:
             size     = immed_info(sz).sz_bytes;
             break;
+
+        // byte branch emitted as part of base word
+        case MODE_BRANCH_BYTE:
+            return;
+
+        // word & long branch offsets
+        case MODE_BRANCH_WORD:
+        case MODE_BRANCH_LONG:
+        {
+            // word & long branches have displacments from displacement location
+            if (mode() == MODE_BRANCH_WORD)
+                base << core::set_size(2);
+            else
+                base << core::set_size(4);
+                
+            static constexpr core::core_reloc reloc { core::K_REL_ADD, 0, true };
+            base << core::emit_reloc(reloc) << expr << 0;
+            return;
+        }
 
         case MODE_INDEX:
         case MODE_PC_INDEX:
@@ -102,12 +121,14 @@ void m68k_arg_t::emit(core::emit_base& base, uint8_t sz, unsigned size) const
     }
 
     // check for "byte" emit
-    // XXX Really want "byte-sized" relocation
     if (size == 1)
     {
-        // byte immed acutally causes word to be emitted
-        base << core::set_size(1) << 0;
-        base << core::set_size(1) << expr;
+        // byte immed actually causes word to be emitted
+        // emit `expr` as 8-bit reloc with offset of 1 & not pc_rel
+        // emit zero word as actual data
+        static constexpr core::core_reloc reloc { core::K_REL_ADD, 8, false };
+        base << core::emit_reloc(reloc, 0, 1) << expr;
+        base << core::set_size(2) << 0;
     }
     else
         base << core::set_size(size) << expr;

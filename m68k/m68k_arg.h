@@ -39,6 +39,10 @@ enum m68k_arg_mode : uint8_t
     , MODE_IMMED_QUICK      // 20: immed arg stored in opcode
     , MODE_REG_QUICK        // 21: movec: mode_reg stored in opcode
     , MODE_MOVEP            // 22: special for MOVEP insn
+// Branch displacement sizes
+    , MODE_BRANCH_BYTE      // 23: store displacment in insn
+    , MODE_BRANCH_WORD      // 24: single displacment word
+    , MODE_BRANCH_LONG      // 25: two displacement words
 
 // Support "modes"
     , MODE_ERROR            // set error message

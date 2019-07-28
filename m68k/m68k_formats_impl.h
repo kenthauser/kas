@@ -38,7 +38,8 @@ struct fmt_reg_mode
     // MODE BITS are either 3 or 1 (ie general mode or general register)
     static constexpr auto MODE_BIT_MASK = (1 << MODE_BITS) - 1; 
 
-    static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
+    static bool insert(uint16_t* op, m68k_arg_t& arg
+                     , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
         kas::expression::expr_fits fits;
 
@@ -66,7 +67,8 @@ struct fmt_reg_mode
         val_p->set_arg(arg, reg_num | (cpu_mode << 3));
     }
 
-    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p)
+    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
+                   , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
     }
 };
@@ -74,6 +76,57 @@ struct fmt_reg_mode
 // if MODE_OFFSET is three, just generic with N bits
 template <unsigned SHIFT, unsigned WORD, unsigned BITS>
 struct fmt_reg_mode<SHIFT, WORD, 3, BITS> : fmt_generic<SHIFT, 3 + BITS, WORD> {};
+
+// insert a "branch displacement"
+struct fmt_displacement
+{
+    using val_t = m68k_mcode_t::val_t;
+    
+    static bool insert(uint16_t* op, m68k_arg_t& arg
+                     , val_t const *val_p, core::core_expr_dot const *dot_p)
+    {
+        return false;
+    }
+    
+    static void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p)
+    {
+    }
+
+    // insert relocation in first word
+    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
+                   , val_t const *val_p, core::core_expr_dot const *dot_p)
+    {
+        // calculate size here
+        core::core_fits fits(dot_p);
+        m68k_arg_t::op_size_t size;
+        val_p->size(arg, 0, fits, size);
+
+        switch (size())
+        {
+        default:
+            throw std::logic_error{"invalid fmt_displacement size"};
+
+        case 2:   // byte offset
+        {
+            // 8-bits & pc-relative
+            static constexpr core::core_reloc reloc { core::K_REL_ADD, 8, true };
+            arg.set_mode(MODE_BRANCH_BYTE);
+            
+            // displacement from pc + 2, size is 1 byte
+            base << core::emit_reloc(reloc, -2, 1) << arg.expr;
+            break;
+        }
+        case 4:   // word offset
+            arg.set_mode(MODE_BRANCH_WORD);
+            break;
+        case 6:   // long offset
+            arg.set_mode(MODE_BRANCH_LONG);
+            *op |= 0xff;            // long offset will follow
+            break;
+        }
+    }
+};
+
 
 // Format PAIRs: Must specify offsets. Default is 3-bits in WORD1
 // NB: if single register is specified for `PAIR` it is duplicated in both positions
@@ -88,7 +141,8 @@ struct fmt_reg_pair
     static constexpr auto MASK_0 = (BITS_MASK << SHIFT_0);
     static constexpr auto MASK_1 = (BITS_MASK << SHIFT_1);
 
-    static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
+    static bool insert(uint16_t* op, m68k_arg_t& arg
+                     , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
         auto get_reg = [](auto& e)
             {
@@ -159,7 +213,8 @@ struct fmt_reg_pair
         arg.outer = gen_reg(reg2);
         arg.set_mode(MODE_PAIR);
     }
-    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p)
+    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
+                   , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
     }
 };
@@ -175,7 +230,8 @@ struct fmt_subreg
 {
     using val_t = m68k_mcode_t::val_t;
 
-    static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
+    static bool insert(uint16_t* op, m68k_arg_t& arg
+                     , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
 #if 0
         // validator return 6 bits: mode + reg
@@ -203,7 +259,8 @@ struct fmt_subreg
 #endif
     }
 
-    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p)
+    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
+                   , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
     }
 };
@@ -215,7 +272,8 @@ struct fmt_emac_an
     using val_t = m68k_mcode_t::val_t;
     //static constexpr auto MASK = (7 << SHIFT) | (7 << (SHIFT+MODE_OFFSET));
 
-    static bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p)
+    static bool insert(uint16_t* op, m68k_arg_t& arg
+                     , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
 #if 0
         // validator return 6 bits: mode + reg
@@ -242,7 +300,8 @@ struct fmt_emac_an
         val_p->set_arg(*arg, reg_num | cpu_mode);
 #endif
     }
-    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p)
+    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
+                   , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
     }
 };
