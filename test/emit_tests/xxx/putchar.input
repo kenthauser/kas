@@ -3,8 +3,8 @@
 .Ltext0:
 	.cfi_sections	.debug_frame
 	.align	2
-	.type	chk, @function
-chk:
+	.type	Xchk, @function
+Xchk:
 .LFB0:
 	.file 1 "chk.h"
 	.loc 1 32 0
@@ -27,7 +27,7 @@ chk:
 	rts
 	.cfi_endproc
 .LFE0:
-	.size	chk, .-chk
+	.size	Xchk, .-Xchk
 	.align	2
 	.type	abort, STT_FUNC
 	.type	abort, function
@@ -3156,4 +3156,4 @@ abort_supv:
 	.string	"next"
 .LASF10:
 	.string	"desc"
-	.ident	"GCC: (GNU) 5.4.0"
+	;.ident	"GCC: (GNU) 5.4.0"

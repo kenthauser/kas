@@ -126,7 +126,7 @@ private:
         //kas::core::opcode::trace = out;
 
         // trace source file operations
-        //src.set_trace(out);
+        src.set_trace(out);
         
         // create parser object
         auto stmt_stream = parser::kas_parser(parser::stmt_x3(), src);
@@ -172,10 +172,10 @@ private:
         return [&seg](auto& inserter)
         {
             // Symbol processing at end of "parse".
-            // 1. flag undefined "internal" symbols.
+            // 1. error undefined "internal" symbols.
             // 2. mark undefined "referenced" symbols as GLOBL
             // 3. move lcomm symbols to bss
-            auto resolve_one_symbol = [&inserter, seg=seg.index()](auto& sym) mutable
+            auto resolve_one_symbol = [&inserter, seg_index=seg.index()](auto& sym) mutable
             {
                 // 1. error undefined internal symbols
                 if (sym.binding() == STB_INTERNAL && !sym.addr_p())
@@ -189,12 +189,14 @@ private:
                 if (sym.binding() != STB_GLOBAL && sym.kind() == STT_COMMON)
                 {
                     // put commons in specified segment (do once)
-                    if (seg) {
-                        *inserter++ = { opc::opc_section(), seg };
-                        seg = {};
+                    // NB: do in loop so as not to create `.bss` data unless used
+                    if (seg_index)
+                    {
+                        *inserter++ = { opc::opc_section(), seg_index };
+                        seg_index = {};     // don't repeat
                     }
                     
-                    // if common specified alignment, make it so
+                    // if common symbol specified alignment, make it so
                     if (sym.align() > 1)
                         *inserter++ = { opc::opc_align(), sym.align() };
                     
@@ -203,10 +205,8 @@ private:
                     *inserter++ = { opc::opc_label(), sym.ref(), STB_LOCAL };
                 }
             };
-            
+           
             core_symbol::for_each(resolve_one_symbol);
-            
-            
         };
     };
 

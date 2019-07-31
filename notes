@@ -120,3 +120,34 @@ M68K Notes (m68k.input)
 *5. "extract" is for sz, not info.
 
 6. stmt::print_info method, needs to be ostream support.
+
+7. `chk:` label fails. Mimics insn name
+
+8. fix m68k_branch arg-mode discrimination
+
+9. rename fmt::emit -> fmt::emit_reloc
+
+10. remove recently added `dot_p` to insert/emit_reloc. Any code executed
+    after "assembly complete" shouldn't call `fits`
+
+11. `ident` doesn't work
+
+12. move with `direct:long arg` dest emits mode 7.0 (direct:short) with 4-byte arg
+
+13. move.l short, long: src = (symbol value .text+2), dst = globl: src mode: 7.2 (correct)
+    but w/o displacement. dst_mode = 7.0 (correct is 7.1). 32-bit displacement generated
+    Emits `emit: expected` error
+
+14. move with source pc@ generates: invalid indirect
+
+15. move with source pc@(d1, 123) generates : invalid addr_mode
+
+16. move.b #-100, d6 generates "ff9c" as arg. correct is "009c"
+
+17. refactor "extension" for relocations & to remove `fits` from emit.
+
+18. `list` needs to restore `args` before next ?
+
+
+
+

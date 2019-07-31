@@ -2,7 +2,7 @@
 ; test move instructions
 
 ; 0. constants used
-
+    .word   -1       ; make `short` not zero
 short:
 
 	.globl	long
@@ -19,8 +19,9 @@ fixed	= 100
 	move.l	a3@+, a4@-
 	move.w	a4@-, a5@(123)
 	move.b	a5@(12), d0@(20)
-;	move.l	a1@(d2, 3), short
+	move.l	a1@(d2, 3), short   ; writable .text
 	move.w	short, long
+	move.l	long, short
 	move.b	long, #fixed
 	move.l	#fixed, d2
 	move.w	#zero, d3
@@ -34,6 +35,11 @@ fixed	= 100
 	move.w	#123, d1
 	move.l	#123, a2
 	move.w 	#123, a3
+
+    move.l  #-100, d4
+    move.w  #-100, d5
+    move.b  #-100, d6
+
 
 	moveq.l	#-100, d4
 	moveq.l	#-200, d4

@@ -43,13 +43,12 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
                  ) override
     {
         // process insn for size before saving
-        //eval_insn_list(insn, ok, args, data.size, expression::expr_fits(), this->trace);
         insn.eval(ok, args, stmt_info, data.size, expression::expr_fits(), this->trace);
 
         // serialize format (for unresolved instructions)
         // 0) fixed area: OK bitset in host order
         // 1) insn index
-        // 2) dummy zero base opcode (e_data_t<>)
+        // 2) dummy base opcode (store stmt_info & some arg_info)
         // 3) serialized args
 
         auto& di      = data.di();
@@ -81,10 +80,9 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         auto  reader = base_t::tgt_data_reader(data);
         reader.reserve(-1);
 
-        auto& insn = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
-        //auto  data_p = reader.get_fixed_p(M_SIZE_WORD);
-        auto& mc = *insn.list_mcode_p;
-        auto  args = base_t::serial_args(reader, mc);
+        auto& insn =  insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
+        auto& mc   = *insn.list_mcode_p;
+        auto  args =  base_t::serial_args(reader, mc);
 
         // print OK bits & name...
         os << ok.to_string().substr(ok.size() - insn.mcodes.size()) << " " << insn.name;
@@ -117,14 +115,17 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
 
         auto& insn = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         
-        auto& mc        = *insn.list_mcode_p;
-        auto  args      = base_t::serial_args(reader, mc);
-        auto  stmt_info = args.info;
+        auto& mc   = *insn.list_mcode_p;
+        auto  args =  base_t::serial_args(reader, mc);
+        auto  info =  args.info;        // stmt_info
         
         // evaluate with new `fits`
-        //eval_insn_list(insn, ok, args, data.size, fits, this->trace);
-        insn.eval(ok, args, stmt_info, data.size, fits, this->trace);
-
+        insn.eval(ok, args, info, data.size, fits, this->trace);
+#if 0
+        // if list reduced to single mcode, update `args` per mcode
+        if (ok.count() == 1)
+            base_t::update_args(args);
+#endif
         // save new "OK"
         fixed.fixed = ok.to_ulong();
         return data.size;

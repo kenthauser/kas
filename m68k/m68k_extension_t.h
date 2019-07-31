@@ -51,7 +51,8 @@ struct m68k_extension_t : kas::detail::alignas_t<m68k_extension_t, m68k_ext_size
         void *v = this;
         *static_cast<value_t*>(v) = ext;
 
-        if (!*this) {
+        if (!*this)
+        {
             reg_long(M_SIZE_AUTO);
             disp_size = M_SIZE_ZERO;
         }

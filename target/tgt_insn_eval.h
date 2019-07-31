@@ -122,12 +122,17 @@ auto eval_insn_list
     if (!mcode_p)
         insn_size.set_error();
 
-    if (trace) {
+    if (trace)
+    {
         *trace << "candidates: " << ok.count();
         *trace << " : " << ok.to_string().substr(ok.size()-insn.mcodes.size());
         *trace << " : size = "   << insn_size;
         *trace << '\n' << std::endl;
     }
+#if 0
+    if (ok.count() == 1)
+        args.update();
+#endif
 
     return mcode_p;
 }
