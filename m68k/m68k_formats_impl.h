@@ -67,7 +67,7 @@ struct fmt_reg_mode
         val_p->set_arg(arg, reg_num | (cpu_mode << 3));
     }
 
-    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
+    static void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
                    , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
     }
@@ -93,7 +93,7 @@ struct fmt_displacement
     }
 
     // insert relocation in first word
-    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
+    static void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
                    , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
         // calculate size here
@@ -213,7 +213,7 @@ struct fmt_reg_pair
         arg.outer = gen_reg(reg2);
         arg.set_mode(MODE_PAIR);
     }
-    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
+    static void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
                    , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
     }
@@ -259,7 +259,7 @@ struct fmt_subreg
 #endif
     }
 
-    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
+    static void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
                    , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
     }
@@ -300,7 +300,7 @@ struct fmt_emac_an
         val_p->set_arg(*arg, reg_num | cpu_mode);
 #endif
     }
-    static void emit(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
+    static void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
                    , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
     }

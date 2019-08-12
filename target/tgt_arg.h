@@ -31,6 +31,10 @@ struct tgt_arg_t : kas_token
     using reg_t    = REG_T;
     using regset_t = REGSET_T;
 
+    // writeback data for arg update
+    // NB: default should be void, but c++17 doesn't allow
+    using arg_wb_info = uint8_t;
+
     using op_size_t = core::opc::opcode::op_size_t;
 
     // expose required "MODES"
@@ -143,10 +147,24 @@ public:
     bool serialize(Inserter& inserter, uint8_t sz, ARG_INFO *info_p);
     
     template <typename Reader, typename ARG_INFO>
-    void extract(Reader& reader, uint8_t sz, ARG_INFO const *);
+    void extract(Reader& reader, uint8_t sz, ARG_INFO const *, arg_wb_info *);
 
     // size calculated by validator
-    void emit(core::emit_base& base, uint8_t sz, unsigned bytes) const;
+    void emit(core::emit_base& base, uint8_t sz, unsigned bytes);
+
+    // emit immediate value
+    void emit_immed(core::emit_base& base, tgt_immed_info const& info) const;
+    void emit_flt  (core::emit_base& base, uint8_t fmt) const;
+
+    // get/set state during relax: default is `mode` with no `info`
+    struct arg_state
+    {
+        arg_mode_t  mode;
+        arg_wb_info info;
+    };
+        
+    arg_state get_state() const             { return { mode(), 0 }; }
+    void set_state(arg_state  const& state) { set_mode(state.mode); }
 
     // support methods
     template <typename OS>

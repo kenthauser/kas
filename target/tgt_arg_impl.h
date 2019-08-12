@@ -213,7 +213,7 @@ bool tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
 template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T>
 template <typename Reader, typename ARG_INFO>
 void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
-            ::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
+            ::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p, arg_wb_info *)
 {
     if (info_p->has_reg)
     {
@@ -252,7 +252,7 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
 // NB: only called if non-zero size
 template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T>
 void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
-            ::emit(core::emit_base& base, uint8_t sz, unsigned bytes) const
+            ::emit(core::emit_base& base, uint8_t sz, unsigned bytes) 
 {
     // check for special IMMEDIATE processing
     if (mode() == MODE_T::MODE_IMMEDIATE)
@@ -272,6 +272,23 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
             
     if (bytes)
         base << core::set_size(bytes) << expr; 
+}
+
+// default immediate arg `emit` routine
+template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T>
+void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
+            ::emit_immed(core::emit_base& base, tgt_immed_info const& info) const
+{
+    if (info.flt_fmt)
+        return emit_flt(base, info.flt_fmt);
+    base << core::set_size(info.sz_bytes) << expr;
+}
+
+// default immediate arg floating point `emit` routine
+template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T>
+void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
+            ::emit_flt(core::emit_base& base, uint8_t flt_fmt) const
+{
 }
 
 

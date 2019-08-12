@@ -104,7 +104,7 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         // format:
         //  0) fixed area: OK bitset in host order
         //  1) insn index
-        //  2) dummy word to hold (first) args
+        //  2) dummy word to hold stmt_info & (first) args
         //  3) serialized args
 
         auto& fixed = data.fixed;
@@ -121,11 +121,12 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         
         // evaluate with new `fits`
         insn.eval(ok, args, info, data.size, fits, this->trace);
-#if 0
+
         // if list reduced to single mcode, update `args` per mcode
+        // XXX should this be `if relaxed?` for fewer updates
         if (ok.count() == 1)
-            base_t::update_args(args);
-#endif
+            args.update();          // write-back new modes
+
         // save new "OK"
         fixed.fixed = ok.to_ulong();
         return data.size;
@@ -133,6 +134,7 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
 
     void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *dot_p) const override
     {
+        // deserialize data
         auto& fixed = data.fixed;
         bitset_t ok(fixed.fixed);
         
@@ -144,24 +146,18 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         auto  args       = serial_args(reader, list_mc);
         auto  stmt_info  = args.info;
 
-        // get best match
-        op_size_t size; 
-
-        // XXX need core_fits 
-        auto mcode_p = insn.eval(ok, args, stmt_info, size, expression::expr_fits(), this->trace);
-        
-        // XXX need to handle error case...
-
-        // get opcode "base" value
-        auto& mc = *mcode_p;
+        // "find first set" in bitset
+        auto index = 0;
+        for (auto bitmask = ok.to_ulong(); bitmask; ++index)
+            if (bitmask & 1)
+                break;
+            else
+                bitmask >>= 1;
+       
+        // extract mcode & emit
+        auto& mc = *insn.mcodes[index];
         auto code = mc.code(stmt_info);
         auto sz   = mc.sz(stmt_info);
-
-        //std::cout << "opc_list: code[0] = " << std::hex << code[0] << std::endl;
-        //std::cout << "opc_list: stmt_info = " << std::hex << +stmt_info.arg_size << std::endl;
-        //std::cout << "opc_list: sz = " << +sz << std::endl;
-
-        // emit opcode
         mc.emit(base, code.data(), args, sz, dot_p);
     }
 };

@@ -231,7 +231,7 @@ auto core_fits::operator()
     (core_addr const& addr, fits_min_t min, fits_max_t max, int disp) const
     -> result_t
 {
-#if 1
+#if 0
     std::cout << std::endl;
     std::cout << "core_fits: (disp) core_addr: " << expr_t(addr);
     std::cout << " min/max = " << std::hex << min << "/" << max;
@@ -321,7 +321,7 @@ auto core_fits::operator()
     if (!dot_p)
         return maybe;
 
-#if 1
+#if 0
     std::cout << "\nfits (" <<  min << ", " << max << "): ";
     std::cout << "\nexpr = " << expr_t(e) << " offset = " << e.get_offset(dot_p);
     std::cout << " dot_offset = " << dot_p->dot_offset();

@@ -147,14 +147,20 @@ void tgt_insert_args(Inserter& inserter
 
     // if non-modulo number of args, flag end in `arg_info` area
     if (auto idx_n = n % ARGS_PER_INFO)
-        p[idx_n].arg_mode = arg_t::MODE_NONE;
+        p[idx_n].init_mode = arg_t::MODE_NONE;
 }
 
-
+// pointers into `data` area to modify/restore args
+template <typename MCODE_T>
+struct tgt_writeback
+{
+    detail::arg_info_t                      *info_p;
+    typename MCODE_T::arg_t::arg_writeback_t arg_wb_p {};
+};
 
 // deserialize arguments: for format, see above
-template <typename Reader, typename MCODE_T>
-auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
+template <typename READER_T, typename MCODE_T>
+auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
 {
     // deserialize into static array.
     // add extra `static_arg` as an end-of-list flag.
@@ -162,12 +168,14 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
     // of common read/write routines (eg: `eval_list`)
     constexpr auto ARGS_PER_INFO = detail::tgt_arg_info<MCODE_T>::ARGS_PER_INFO;
     using  mcode_size_t = typename MCODE_T::mcode_size_t;
-    using  arg_t        = typename MCODE_T::arg_t; using  arg_info     = detail::tgt_arg_info<MCODE_T>; 
+    using  arg_t        = typename MCODE_T::arg_t;
+    using  arg_info     = detail::tgt_arg_info<MCODE_T>; 
     using  stmt_info_t  = typename MCODE_T::stmt_info_t;
-
-    static arg_t     static_args[MCODE_T::MAX_ARGS+1];
-    static arg_info *static_info[MCODE_T::MAX_ARGS/ARGS_PER_INFO+1];
+    using  arg_wb_t     = typename arg_t::arg_writeback_t;
+    using  wb_t         = tgt_writeback<MCODE_T>;
     
+    static arg_t   static_args[MCODE_T::MAX_ARGS+1];
+    static wb_t    static_info[MCODE_T::MAX_ARGS+1];
 
     // initialize static array (default constructs to empty)
     for (auto& arg : static_args) arg = {};
@@ -175,24 +183,22 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
 
     // get working pointers into static arrays
     auto arg_p  = std::begin(static_args);
-    auto info_p = std::begin(static_info);
+    auto wb_p   = std::begin(static_info);
 
     // get "opcode" info
-    auto  code_p = reader.get_fixed_p(m_code.code_size());
-    // XXX
-    auto stmt_info = m_code.extract_info(code_p);
-    auto sz        = m_code.sz(stmt_info);
+    auto code_p     = reader.get_fixed_p(m_code.code_size());
+    auto stmt_info  = m_code.extract_info(code_p);
+    auto sz         = m_code.sz(stmt_info);
 
     // read & decode arguments until empty
     auto& fmt         = m_code.fmt();
-    //auto  sz          = m_code.sz(stmt_info);
     auto& vals        = m_code.vals();
     auto val_iter     = vals.begin();
     auto val_iter_end = vals.end();
 
     // read until end flag: eg: MODE_NONE or reader.empty()
     detail::arg_info_t *p;
-    for (unsigned n = 0; true ;++n, ++arg_p)
+    for (unsigned n = 0; true ;++n, ++arg_p, ++wb_p)
     {
 
         // last static_arg is end-of-list flag, should never reach it.
@@ -206,25 +212,25 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
         {
             if (reader.empty())
                 break;
-            // read info pointer into static area...
-            *info_p = &arg_info::cast(reader.get_fixed_p(sizeof(mcode_size_t)));
+            
+            // get pointer to array of `arg_info_t`
+            auto info_p = &arg_info::cast(reader.get_fixed_p(sizeof(mcode_size_t)));
             // get first in this array
-            p = (*info_p)->begin();
-            // ready for next static entry
-            ++info_p;
+            p = info_p->begin();
         } 
         else
         {
             ++p;
-            if (p->arg_mode == arg_t::MODE_NONE)
+            if (p->init_mode == arg_t::MODE_NONE)
                 break;
         }
 
-        // do the work
+        // do the work (more args than validators occurs in `list` format)
+        *wb_p = { p };              // default construct `arg_writeback_t`
         if (val_iter != val_iter_end)
-            detail::extract_one<MCODE_T>(reader, n, p, arg_p, sz, fmt, &*val_iter++, code_p);
+            detail::extract_one<MCODE_T>(reader, n, *wb_p, *arg_p, sz, fmt, &*val_iter++, code_p);
         else
-            detail::extract_one<MCODE_T>(reader, n, p, arg_p, sz, fmt, nullptr, code_p);
+            detail::extract_one<MCODE_T>(reader, n, *wb_p, *arg_p, sz, fmt, nullptr, code_p);
 
         // std::cout << std::hex;
         // std::cout << "read_arg  : mode = " << (int)p->arg_mode << " p_mode = " << arg_p->mode;
@@ -238,17 +244,27 @@ auto tgt_read_args(Reader& reader, MCODE_T const& m_code)
 // update opcode with new mode
 template <typename MCODE_T>
 inline void tgt_arg_update(
-        MCODE_T const& m_code,       // machine code
-        unsigned n,                 // argument number
-        typename MCODE_T::arg_t& arg,        // argument reference
-        void  *update_handle,       // opaque value generated in `read_args`
-        typename MCODE_T::mcode_size_t *code_p  // opcode data location
+        unsigned n,                         // arg index
+        typename MCODE_T::arg_t& arg,       // argument reference
+        void    *wb_handle                  // opaque value generated in `read_args`
         )
 {
+    auto wb_info = static_cast<tgt_writeback<MCODE_T> *>(wb_handle);
+
+    auto& arg_wb = wb_info[n];
+
+    std::cout << "tgt_arg_update: arg = " << arg;
+    std::cout << " mode update: " << +arg_wb.info_p->cur_mode;
+    std::cout << " -> " << +arg.mode();
+    std::cout << std::endl;
+    arg_wb.info_p->cur_mode = arg.mode();
+    //if (auto p = arg_wb.arg_wb_p)
+    //    arg.update(p);
+
+#if 0
     constexpr auto ARGS_PER_INFO = detail::tgt_arg_info<MCODE_T>::ARGS_PER_INFO;
     using arg_info_t   = detail::tgt_arg_info<MCODE_T>; 
     auto info_p = static_cast<arg_info_t**>(update_handle);
-
     // get format & validator
     auto& fmt  = m_code.fmt();
     auto& vals = m_code.vals();
@@ -274,6 +290,7 @@ inline void tgt_arg_update(
         fmt.insert(n, code_p, arg, &*val_iter);
     else
         fmt.insert(n, code_p, arg, nullptr);
+#endif
 }
 }
 #endif

@@ -167,7 +167,7 @@ void m68k_opcode_t::emit(
     base << *op_p;
     if (opc_long)
         base << *++op_p;
-
+#if 0
     // emit additional arg data
     for (auto& arg : args)
     {
@@ -214,6 +214,7 @@ void m68k_opcode_t::emit(
                 break;
         } // switch
     } // for
+#endif
 }
 
 }

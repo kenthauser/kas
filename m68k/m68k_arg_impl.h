@@ -83,24 +83,20 @@ m68k_arg_mode m68k_arg_t::mode_normalize() const
     switch (mode()) {
     default:
         return mode();
-    case MODE_INDEX_BRIEF:
-        return MODE_INDEX;
     case MODE_MOVEP:
         return MODE_ADDR_DISP;
+    case MODE_ADDR_DISP_LONG:
+        return MODE_INDEX;
     case MODE_DIRECT:
     case MODE_DIRECT_ALTER:
-        return MODE_DIRECT_SHORT;
-    case MODE_PC_INDEX_BRIEF:
-        return MODE_PC_INDEX;
+        return MODE_DIRECT_LONG;
+    case MODE_DIRECT_PCREL:
+        return MODE_PC_DISP;
     }
 }
 
 uint8_t m68k_arg_t::cpu_mode() const
 {
-    // store MODE_DIRECT as PC_DISP
-    if (mode() == MODE_DIRECT)
-        return 7;
-
     auto normalized = mode_normalize();
     if (normalized < 7)
         return normalized;
@@ -111,10 +107,18 @@ uint8_t m68k_arg_t::cpu_mode() const
 
 uint8_t m68k_arg_t::cpu_reg() const
 {
-    // store MODE_DIRECT as PC_DISP
-    if (mode() == MODE_DIRECT)
-        return 2;
-
+    // special case "artificial" modes
+    switch (mode())
+    {
+        case MODE_DIRECT:
+        case MODE_DIRECT_ALTER:
+            return 1;       // DIRECT_LONG
+        case MODE_DIRECT_PCREL:
+            return 2;       // PC_DISP
+        default:
+            break;
+    }
+    
     auto normalized = mode_normalize();
     if (normalized < 7)
         return reg_num;

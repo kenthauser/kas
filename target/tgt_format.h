@@ -89,24 +89,24 @@ private:
         { val_p->set_arg(arg, 0); }
 
     // format first method, compress rest of methods
-    virtual void emit_arg1(emit_base&, mcode_size_t* op, arg_t& arg
+    virtual void emit_reloc_arg1(emit_base&, mcode_size_t* op, arg_t& arg
                             , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
     { 
         // prototype `arg1`: no relocation 
     }
-    virtual void emit_arg2(emit_base&, mcode_size_t* op, arg_t& arg
+    virtual void emit_reloc_arg2(emit_base&, mcode_size_t* op, arg_t& arg
                             , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
         {}
-    virtual void emit_arg3(emit_base&, mcode_size_t* op, arg_t& arg
+    virtual void emit_reloc_arg3(emit_base&, mcode_size_t* op, arg_t& arg
                             , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
         {}
-    virtual void emit_arg4(emit_base&, mcode_size_t* op, arg_t& arg
+    virtual void emit_reloc_arg4(emit_base&, mcode_size_t* op, arg_t& arg
                             , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
         {}
-    virtual void emit_arg5(emit_base&, mcode_size_t* op, arg_t& arg
+    virtual void emit_reloc_arg5(emit_base&, mcode_size_t* op, arg_t& arg
                             , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
         {}
-    virtual void emit_arg6(emit_base&, mcode_size_t* op, arg_t& arg
+    virtual void emit_reloc_arg6(emit_base&, mcode_size_t* op, arg_t& arg
                             , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
         {}
 
@@ -146,18 +146,18 @@ public:
             }
     }
     
-    auto emit(unsigned n, emit_base& base, mcode_size_t* op, arg_t& arg
+    auto emit_reloc(unsigned n, emit_base& base, mcode_size_t* op, arg_t& arg
               , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
     {
         if (val_p)
             switch (n)
             {
-                case 0: return emit_arg1(base, op, arg, val_p, dot_p);
-                case 1: return emit_arg2(base, op, arg, val_p, dot_p);
-                case 2: return emit_arg3(base, op, arg, val_p, dot_p);
-                case 3: return emit_arg4(base, op, arg, val_p, dot_p);
-                case 4: return emit_arg5(base, op, arg, val_p, dot_p);
-                case 5: return emit_arg6(base, op, arg, val_p, dot_p);
+                case 0: return emit_reloc_arg1(base, op, arg, val_p, dot_p);
+                case 1: return emit_reloc_arg2(base, op, arg, val_p, dot_p);
+                case 2: return emit_reloc_arg3(base, op, arg, val_p, dot_p);
+                case 3: return emit_reloc_arg4(base, op, arg, val_p, dot_p);
+                case 4: return emit_reloc_arg5(base, op, arg, val_p, dot_p);
+                case 5: return emit_reloc_arg6(base, op, arg, val_p, dot_p);
                 default:
                     throw std::runtime_error("emit: bad index");
             }
@@ -196,6 +196,7 @@ struct tgt_fmt_opc_list : virtual MCODE_T::fmt_t
 //
 
 // Insert/Extract N bits from machine code
+// NB: must work correctly for BITS == 0 (ie, do nothing)
 template <typename MCODE_T, unsigned SHIFT, unsigned BITS, unsigned WORD = 0>
 struct tgt_fmt_generic
 {
@@ -225,7 +226,7 @@ struct tgt_fmt_generic
         val_p->set_arg(arg, value);
     }
 
-    static void emit(emit_base&, mcode_size_t *, arg_t&
+    static void emit_reloc(emit_base&, mcode_size_t *, arg_t&
                    , val_t const *, core::core_expr_dot const *dot_p = {}) {}
 };
 
@@ -251,9 +252,9 @@ struct tgt_fmt_arg<MCODE_T, N, T> : virtual MCODE_T::fmt_t                      
         { return T::insert(op, arg, val_p, dot_p);}                                                 \
     void extract_arg ## N (mcode_size_t const* op, arg_t& arg, val_t const * val_p) const override  \
         { T::extract(op, arg, val_p); }                                                             \
-    void emit_arg ## N (emit_base& base, mcode_size_t* op, arg_t& arg                               \
+    void emit_reloc_arg ## N (emit_base& base, mcode_size_t* op, arg_t& arg                         \
                       , val_t const * val_p, core::core_expr_dot const *dot_p) const override       \
-        { return T::emit(base, op, arg, val_p, dot_p); }                                            \
+        { return T::emit_reloc(base, op, arg, val_p, dot_p); }                                      \
 };
 
 // declare `FMT_MAX_ARGS` times

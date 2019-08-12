@@ -167,9 +167,9 @@ struct listing_line
     using diag_type  = decltype(emit_listing<Iter>::diagnostics);
     using reloc_type = decltype(emit_listing<Iter>::relocs);
 
-    static constexpr size_t addr_size = 11;
-    static constexpr size_t data_size = 22;
-    static constexpr size_t tab_space = 4;
+    static constexpr size_t addr_size  = 11;
+    static constexpr size_t data_size  = 22;
+    static constexpr size_t tab_space  = 4;
     static constexpr size_t cont_lines = 2;
 
     listing_line(std::ostream& out, emit_listing<Iter> &e) : e(e), out(out) {}
@@ -309,7 +309,8 @@ Iter listing_line<Iter>::emit_line(Iter first, Iter last)
 template <typename Iter>
 void listing_line<Iter>::do_emit(Iter first, Iter last)
 {
-    if (data_field.empty() && !data_overflow.empty()) {
+    if (data_field.empty() && !data_overflow.empty())
+    {
         // swap twiddles pointers. better than copying overflow vector
         data_type overflow;
         overflow.swap(data_overflow);
@@ -321,7 +322,8 @@ void listing_line<Iter>::do_emit(Iter first, Iter last)
     case 0:
         break;
     case 1:
-        if ((data_field.size() + data_overflow.front().size() + 1) < data_size) {
+        if ((data_field.size() + data_overflow.front().size() + 1) < data_size)
+        {
             data_field += " " + data_overflow.front();
             data_overflow.clear();
             break;
@@ -338,7 +340,8 @@ void listing_line<Iter>::do_emit(Iter first, Iter last)
     out << std::left;
 
     // if data field present, emit size & address
-    if (equ_field.size() && data_field.size() == 0) {
+    if (equ_field.size() && data_field.size() == 0)
+    {
         data_field = equ_field;
         addr_field.clear();
     }
@@ -352,8 +355,10 @@ void listing_line<Iter>::do_emit(Iter first, Iter last)
 
     // now copy source, expanding tabs
     short tab_position{tab_space};
-    while (first != last) {
-        switch (auto c = *first++) {
+    while (first != last)
+    {
+        switch (auto c = *first++)
+        {
             case '\t':
                 if (tab_position)
                     out << std::string(tab_position, ' ');

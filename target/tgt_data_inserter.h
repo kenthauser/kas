@@ -29,6 +29,8 @@
 //  T* operator()(expr_t&&, mode)
 //  T* operator()(int i   , mode)
 //
+#if 0
+XXX This is obsolete
 // where `mode` describes information to be stored. Supported values are:
 //
 //  M_SIZE_EXPR     // store expression. returns nullptr
@@ -42,6 +44,7 @@
 //                         - if fits in 16-bits, return pointer to word
 //                         - if doesn't fit, store as expression
 //
+#endif
 // NB: it is "writers" resposibility to note if `M_SIZE_SWORD` returned nullptr
 // so that it can be read back as `M_SIZE_AUTO`.
 

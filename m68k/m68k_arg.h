@@ -11,6 +11,11 @@
 namespace kas::m68k
 {
 // Declare `stmt_m68k` parsed instruction argument
+// NB: must be able to determine emitted size & cpu mode
+// of all args using only `mode` (+ extension word for indirects)
+// Thus, multiple "modes" are used for branch sizes. Also,
+// "DISP_LONG" mode translates into "index" or "disp" depending on
+// size of arg.
 enum m68k_arg_mode : uint8_t
 {
 // Directly supported modes
@@ -28,14 +33,14 @@ enum m68k_arg_mode : uint8_t
     , MODE_PC_INDEX         // 7-3 PC + index
     , MODE_IMMED            // 7-4 immediate (int or float)
 // Additional support modes
-    , MODE_DIRECT           // 12: uncategorized direct arg
-    , MODE_DIRECT_ALTER     // 13: direct: PC_REL not allowed
-    , MODE_REG              // 14: m68k register
-    , MODE_REGSET           // 15: m68k register set
-    , MODE_PAIR             // 16: register pair (multiply/divide/cas2)
-    , MODE_BITFIELD         // 17: bitfield instructions
-    , MODE_INDEX_BRIEF      // 18: brief mode index (word)
-    , MODE_PC_INDEX_BRIEF   // 19: brief PC + index (word)
+    , MODE_ADDR_DISP_LONG   // 12: address displacement with long arg
+    , MODE_DIRECT           // 13: uncategorized direct arg
+    , MODE_DIRECT_ALTER     // 14: direct: PC_REL not allowed
+    , MODE_DIRECT_PCREL     // 15: direct: PC_REL indicated
+    , MODE_REG              // 16: m68k register
+    , MODE_REGSET           // 17: m68k register set
+    , MODE_PAIR             // 18: register pair (multiply/divide/cas2)
+    , MODE_BITFIELD         // 19: bitfield instructions
     , MODE_IMMED_QUICK      // 20: immed arg stored in opcode
     , MODE_REG_QUICK        // 21: movec: mode_reg stored in opcode
     , MODE_MOVEP            // 22: special for MOVEP insn
@@ -45,13 +50,12 @@ enum m68k_arg_mode : uint8_t
     , MODE_BRANCH_LONG      // 25: two displacement words
 
 // Support "modes"
-    , MODE_ERROR            // set error message
-    , MODE_NONE             // when parsed: indicates missing
+    , MODE_ERROR            // 26: set error message
+    , MODE_NONE             // 27: when parsed: indicates end-of-args
     , NUM_ARG_MODES
 
 // MODES which must be defined for compatibilty with `tgt_arg` ctor
 // never allocated. Do not need to include in `NUM_ARG_MODES`
-// XXX should probably define simplified CTOR for derived types
     , MODE_INDIRECT
     , MODE_IMMEDIATE 
     , MODE_REG_INDIR 
@@ -78,6 +82,9 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
 {
     // inherit basic ctors
     using base_t::base_t;
+    
+    // `extension_t` updated during evalaution along with mode
+    using arg_writeback_t = m68k_extension_t *;
     
     // direct, immediate, register pair, or bitfield
     m68k_arg_t(m68k_arg_mode mode, expr_t e = {}, expr_t outer = {})
@@ -107,13 +114,20 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
             , {  0 }        // 7: VOID
         };
 
+    // serialize arg into `insn data` area
     template <typename Inserter, typename ARG_INFO>
     bool serialize(Inserter& inserter, uint8_t sz, ARG_INFO *);
     
+    // extract serialized arg from `insn data` area
     template <typename Reader, typename ARG_INFO>
-    void extract(Reader& reader, uint8_t sz, ARG_INFO const*);
+    void extract(Reader& reader, uint8_t sz, ARG_INFO const*, m68k_extension_t **);
 
-    void emit(core::emit_base& base, uint8_t sz, unsigned bytes) const;
+    // restore arg to `extracted` value for new iteration of `size`
+    template <typename ARG_INFO>
+    void restore(ARG_INFO const*, m68k_extension_t const *);
+
+    // emit arg & relocations based on mode & sz
+    void emit(core::emit_base& base, uint8_t sz, unsigned bytes);
 
     // true if all `expr` and `outer` are registers or constants 
     bool is_const () const;

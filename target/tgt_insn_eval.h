@@ -39,6 +39,21 @@ auto eval_insn_list
         
     // loop thru "opcodes" until no more matches
     auto bitmask = ok.to_ulong();
+
+    // don't need to save state if single match. Won't restore
+    using state_t = typename mcode_t::arg_t::arg_state;
+    state_t initial_state[mcode_t::MAX_ARGS];
+    if (ok.count() > 1)
+    {
+        auto p = initial_state;
+        for (auto& arg : args)
+            *p++ = arg.get_state();
+    }
+
+    bool state_updated {};      // both start false
+    bool needs_restore {};
+
+    // loop thru candidates & find best match
     auto index = 0;
     for (auto op_iter = insn.mcodes.begin(); bitmask; ++op_iter, ++index)
     {
@@ -47,12 +62,23 @@ auto eval_insn_list
         if (!op_is_ok)                  // loop if not ok
             continue;
 
+        // don't restore on first iteration
+        if (needs_restore)
+        {
+            state_updated = false;
+            auto p = initial_state;
+            for (auto& arg : args)
+                arg.set_state(*p++);
+        }
+        needs_restore = true;
+        
         // size for this opcode
         if (trace)
             *trace << std::dec << std::setw(2) << index << ": ";
         
         auto sz = (*op_iter)->sz(stmt_info);
         op_size_t size;
+        
         auto result = (*op_iter)->size(args, sz, size, fits, trace);
 
         if (result == fits.no)
@@ -77,6 +103,7 @@ auto eval_insn_list
             insn_size    = size;
             match_result = result;
             match_index  = index;
+            state_updated = true;       // use state from this iteration
             continue;
         } 
        
@@ -129,10 +156,25 @@ auto eval_insn_list
         *trace << " : size = "   << insn_size;
         *trace << '\n' << std::endl;
     }
-#if 0
+
+    // if found a single match, update args
     if (ok.count() == 1)
-        args.update();
-#endif
+    {
+        // if state modified, need to rerun size. sigh.
+        if (!state_updated)
+        {
+            // restore state
+            auto p = initial_state;
+            for (auto& arg: args)
+                arg.set_state(*p++);
+
+            // rerun size
+            auto sz = mcode_p->sz(stmt_info);
+            op_size_t size;
+            
+            mcode_p->size(args, sz, size, fits, nullptr);
+        }
+    }
 
     return mcode_p;
 }

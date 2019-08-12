@@ -23,17 +23,23 @@ fixed	= 100
 	move.w	short, long
 	move.l	long, short
 	move.b	long, #fixed
+	move.b	#fixed, long
 	move.l	#fixed, d2
 	move.w	#zero, d3
+    move.l  a2@(long),d1
+    move.l  a2@(short),d2
 	move.b	pc@, d4
+	move.b	pc@(0), d4
     move.l  pc@(d1, +123), d5
-    move.l  pc@(d1, -123), d5
+    move.l  pc@(a1, +123), d6
+    move.l  pc@(a2, -123), d7
 
 ; 2. test special (moveq), etc
 
 	move.l	#123, d0
 	move.w	#123, d1
-	move.l	#123, a2
+	move.l	#123, a3
+	move.l	#0x2ffff, a2
 	move.w 	#123, a3
 
     move.l  #-100, d4
@@ -71,7 +77,7 @@ fixed	= 100
 	movec a1, vbr
 
 	moves.b	d1,a2@+
-	moves.b	a1,a2@+
+	moves.b a1,a2@+
 	moves.w	a3@-,d2
 	moves.l d0@,a3
 	moves.l d3,d4
@@ -86,7 +92,7 @@ fixed	= 100
 	movem.w	d0-d2/a0-a2/a6/a7, long
 
 	movem.l sp@+, #456
-	movem.w	long, d0-d2/a0-a2/a6/a7
+	movem.w long, d0-d2/a0-a2/a6/a7
 
 ; 4. move16
     move16  a2@+, a4@+

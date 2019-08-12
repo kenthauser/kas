@@ -39,6 +39,7 @@ using INFO_SIZE_LIST  = insn_add_size<0,  12, SEQ_FLT>;     // stash in MSBs
 
 using LWB_SIZE_LIST = meta::list<
                               INFO_SIZE_NORM        // default type is first
+                            , INFO_SIZE_VOID        // VOID type must be second
                             , INFO_SIZE_MOVE 
                             , INFO_SIZE_BWL9 
                             , INFO_SIZE_WL   
@@ -47,7 +48,6 @@ using LWB_SIZE_LIST = meta::list<
                             , INFO_SIZE_FLT  
                             , INFO_SIZE_NORM1
                             , INFO_SIZE_MAC  
-                            , INFO_SIZE_VOID
                             , INFO_SIZE_LIST
                             >;
 

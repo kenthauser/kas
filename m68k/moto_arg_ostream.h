@@ -41,18 +41,15 @@ namespace kas::m68k
 
         auto index_reg_name = [&reg_name](m68k_extension_t const& ext) -> std::string
             {
-                if (ext.index_suppr())
+                if (!ext.has_index_reg)
                     return reg_name(RC_ZADDR, 0);
 
-                auto reg = ext.reg_num();
+                auto reg = ext.reg_num;
                 std::string name = reg_name(reg & 8 ? RC_ADDR : RC_DATA, reg & 7);
 
-                if (ext.reg_long()) {
-                    name += ".l";
-                } else {
-                    name += ".w";
-                }
-                switch (ext.reg_scale) {
+                name += ext.reg_is_word ? ".w" : ".l";
+                switch (ext.reg_scale)
+                {
                     case 0: break;
                     case 1: name += "*2"; break;
                     case 2: name += "*4"; break;
@@ -104,15 +101,6 @@ namespace kas::m68k
         case MODE_IMMED:
         case MODE_IMMED_QUICK:
             return os << "#" << base;
-        case MODE_INDEX_BRIEF:
-            {
-                // expand brief word to full index
-                auto brief_word = *base.get_fixed_p();
-                bool is_brief;
-                index = { brief_word, brief_word, is_brief };
-                base = brief_word;
-                break;
-            }
         case MODE_DIRECT:
         case MODE_DIRECT_ALTER:
         case MODE_REG:
@@ -131,13 +119,13 @@ namespace kas::m68k
         // here for index modes...
         // do some bit twiddling with inner/outer modes
         auto const& inner = base;
-        auto outer_mode   = index.mem_mode &~ M_SIZE_POST_INDEX;
+        auto outer_mode   = index.mem_size;
         auto inner_mode   = index.disp_size;
         bool inner_zero   = inner_mode == M_SIZE_ZERO;
         bool outer_zero   = outer_mode == M_SIZE_ZERO;
 
-        bool index_second = index.mem_mode != outer_mode;
-        bool index_first  = !index.index_suppr() && !index_second;
+        bool index_second = index.mem_size != outer_mode;
+        bool index_first  = index.has_index_reg && !index_second;
 
         // if not memory indirect
         if (!index_second && !outer_mode) {

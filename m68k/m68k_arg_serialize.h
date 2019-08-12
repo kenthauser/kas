@@ -101,7 +101,10 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
                     if (size != 1)
                         info_p->has_data = save_expr(outer, size);
                 }
-                return info_p->has_expr;
+                
+                // emit relocations if inner or outer unresolved
+                // XXX
+                return info_p->has_expr || info_p->has_data;
             }                
             break;
     }
@@ -114,9 +117,10 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
 }
 
 
-// deserialize m68k_ments: for format, see above
+// deserialize m68k arguments: for format, see above
+// save pointer `extension_t` word if present
 template <typename Reader, typename ARG_INFO>
-void m68k_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
+void m68k_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p, m68k_extension_t **wb_p)
 {
     if (info_p->has_reg)
     {
@@ -133,7 +137,9 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
         auto size = 0;
 
         // get extension word
-        ext = reader.get_fixed(2);
+        auto& wb_ext = decltype(ext)::cast(reader.get_fixed_p(2));
+        *wb_p = &wb_ext;
+        ext = wb_ext;
 
         // get inner expression if stored
         if (info_p->has_expr)       // `has_expr` mapped to `inner_has_expr`
@@ -209,6 +215,7 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
                 // immed is signed
                 bytes = -immed_info(sz).sz_bytes;
                 break;
+            case MODE_ADDR_DISP_LONG:
             case MODE_DIRECT_LONG:
                 bytes = 4;
                 break;

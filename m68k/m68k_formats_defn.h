@@ -164,14 +164,16 @@ struct FMT_I12_28RM : fmt_gen, arg1_i<12, 1>, arg2_1w12rm {};
 struct FMT_28RM_I12 : fmt_gen, arg2_i<12, 1>, arg1_1w12rm {};
 
 // Quick Immed 1-word formats
-struct FMT_3I       : fmt_gen, arg1_i<3> {};    // aka FMT_0 (for trap)
+struct FMT_3I       : fmt_gen, arg1_i<3> {};
 struct FMT_4I       : fmt_gen, arg1_i<4> {};
 struct FMT_8I_9     : fmt_gen, arg1_i<8>, arg2_9 {};
+struct FMT_Z_0RM    : fmt_gen, arg1_i<0>, arg2_0rm {};
 
 // Quick Immed 2-word formats
 struct FMT_0RM_I16  : fmt_gen, arg1_0rm, arg2_i<16, 1> {};
 struct FMT_I16_0RM  : fmt_gen, arg1_i<16, 1>, arg2_0rm {};
 struct FMT_I8_0RM   : fmt_gen, arg1_i<8, 1>, arg2_0rm {};
+struct FMT_I16_9    : fmt_gen, arg1_i<16, 1>, arg2_9 {};
 
 // special for movem to memory PRE_DECR
 struct FMT_I16R_0RM : fmt_gen, arg1_i<16, 1, true>, arg2_0rm {};

@@ -31,6 +31,7 @@
 #include "m68k_stmt_impl.h"
 #include "m68k_mcode_impl.h"
 #include "m68k_arg_impl.h"
+#include "m68k_extension_impl.h"
 #include "m68k_arg_emit.h"
 #include "m68k_arg_size.h"
 #include "m68k_arg_serialize.h"

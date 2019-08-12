@@ -64,7 +64,7 @@ protected:
         serial_args_t(READER_T& reader, MCODE_T const& mcode)
             : mcode(mcode)
         {
-            std::tie(code_p, args, update_handle) = tgt::opc::tgt_read_args(reader, mcode);
+            std::tie(code_p, args, wb_handle) = tgt::opc::tgt_read_args(reader, mcode);
             info = mcode.extract_info(code_p);
         }
         
@@ -99,18 +99,17 @@ protected:
 
         auto begin() const { return iter(*this, true); }
         auto end()   const { return iter(*this);       }
-            
-        void update_mode(arg_t& arg)
-        {
-            auto n = &arg - args;
-            tgt_arg_update(mcode, n, arg, update_handle, code_p);
-        }
-        
+       
+        // set/reset arg modes after evaluation
+        void update()  const;
+        void restore() const {}
+       
+        // instance variables
         MCODE_T const& mcode;
         mcode_size_t  *code_p;
         arg_t         *args;
         stmt_info_t    info;
-        void          *update_handle;
+        void          *wb_handle;       // opaque writeback handle
     };
 
     template <typename READER_T>
@@ -119,5 +118,18 @@ protected:
         return serial_args_t<READER_T>(reader, mcode); 
     }
 };
+
+// update args using `writeback` handle
+template <typename MCODE_T>
+template <typename READER_T>
+void tgt_opc_base<MCODE_T>::template serial_args_t<READER_T>::update() const
+{
+    auto n = 0;
+    for (auto& arg : *this)
+    {
+        tgt_arg_update<MCODE_T>(n++, arg, wb_handle);
+    }
+}
+
 }
 #endif

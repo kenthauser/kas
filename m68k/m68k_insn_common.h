@@ -65,52 +65,6 @@ using m68k_defn_groups = meta::list<
 template <typename=void> struct m68k_defn_list : meta::list<> {};
 
 //
-// Override `tgt_insn_common` metafunctions to accommodate the M68K `SIZE_FN`
-//
-// `SIZE_FN` value is merged into `SZ` value
-//
-
-template <std::size_t OPCODE, typename TST = void, typename SIZE_FN = void, std::size_t MASK = 0>
-struct OP
-{
-    using type    = OP;
-
-    using code    = std::integral_constant<std::size_t, OPCODE>;
-    using mask    = std::integral_constant<std::size_t, MASK>;
-
-    // default `SIZE_FN` index to zero
-    using size_fn_idx = meta::if_<std::is_void<SIZE_FN>
-                            , meta::int_<0>
-                            , meta::find_index<LWB_SIZE_LIST, SIZE_FN>
-                            >;
-
-    static_assert(!std::is_same_v<size_fn_idx, meta::npos>, "Invalid SIZE_FN");
-    
-    // default tst "value" is always zero. Approximate default test
-    using tst     = meta::if_<std::is_void<TST>, meta::int_<0>, TST>;
-};
-
-// general definition: SZ list, NAME type, OP type, optional FMT & VALIDATORS
-template <typename SZ, typename NAME, typename OP_INFO, typename FMT = void, typename...Ts>
-struct defn
-{
-    // default "size" is `int_<0>`
-    using DEFN_INFO = meta::if_<std::is_same<void, SZ>, meta::int_<0>, SZ>;
-
-    // M68K_INFO picks up additional value from `OP`
-    using M68K_INFO = meta::int_<DEFN_INFO::value | (OP_INFO::size_fn_idx::value << 12)>;
-
-    // six fixed types, plus additional `VALIDATORs`
-    using type = meta::list<M68K_INFO
-                          , NAME
-                          , typename OP_INFO::code
-                          , typename OP_INFO::tst
-                          , FMT             // formatter
-                          , Ts...           // validators
-                          >;
-};
-
-//
 // declare "size traits" for use in instruction definintion
 //
 
@@ -128,6 +82,10 @@ constexpr auto m68k_as_mask(unsigned value, unsigned bit, BITS...bits)
 template <typename SFX, unsigned DFLT = OP_SIZE_VOID, unsigned...SIZES>
 //using m68k_sz = meta::int_<(SFX::value | (1 << DFLT)) | ... | (1 << SIZES)>;
 using m68k_sz = meta::int_<m68k_as_mask(SFX::value, DFLT, SIZES...)>;
+
+// test if `SZ` represents multiple SZs (eg not just BYTE, WORD, or LONG)
+template <typename SZ, auto SZs = SZ::value & 0x7f>
+constexpr bool MULTIPLE_SZ = SZs & (SZs - 1);
 
 // instructions for suffix handling:
 // eg: instructions such as `moveq.l` can also be spelled `moveq`
@@ -188,6 +146,58 @@ using sz_L    = m68k_sz<SFX_NONE        , OP_SIZE_LONG>;
 using sz_cc     = m68k_sz<SFX_CCODE>;
 using sz_cc_all = m68k_sz<SFX_CCODE_ALL>;
 using sz_cc_fp  = meta::int_<SFX_CCODE_FP::value | 0x7f>;
+
+//
+// Override `tgt_insn_common` metafunctions to accommodate the M68K `SIZE_FN`
+//
+// `SIZE_FN` value is merged into `SZ` value
+//
+
+template <std::size_t OPCODE, typename TST = void, typename SIZE_FN = void, std::size_t MASK = 0>
+struct OP
+{
+    using type    = OP;
+
+    using code    = std::integral_constant<std::size_t, OPCODE>;
+    using mask    = std::integral_constant<std::size_t, MASK>;
+
+    // default `SIZE_FN` index to zero
+    using size_fn_idx = meta::if_<std::is_void<SIZE_FN>
+                            , meta::int_<0>
+                            , meta::find_index<LWB_SIZE_LIST, SIZE_FN>
+                            >;
+
+    static_assert(!std::is_same_v<size_fn_idx, meta::npos>, "Invalid SIZE_FN");
+    
+    // default tst "value" is always zero. Approximate default test
+    using tst     = meta::if_<std::is_void<TST>, meta::int_<0>, TST>;
+};
+
+// general definition: SZ list, NAME type, OP type, optional FMT & VALIDATORS
+template <typename SZ, typename NAME, typename OP_INFO, typename FMT = void, typename...Ts>
+struct defn
+{
+    // default "size" is `int_<0>`
+    using DEFN_INFO = meta::if_<std::is_same<void, SZ>, meta::int_<0>, SZ>;
+
+    // select IDX_NONE if single type in SZ
+    using INFO_IDX = std::conditional_t<MULTIPLE_SZ<SZ>
+                                    , typename OP_INFO::size_fn_idx
+                                    , meta::int_<1>
+                                    >;
+
+    // M68K_INFO picks up additional value from `OP`
+    using M68K_INFO = meta::int_<DEFN_INFO::value | (INFO_IDX::value << 12)>;
+
+    // six fixed types, plus additional `VALIDATORs`
+    using type = meta::list<M68K_INFO
+                          , NAME
+                          , typename OP_INFO::code
+                          , typename OP_INFO::tst
+                          , FMT             // formatter
+                          , Ts...           // validators
+                          >;
+};
 
 }
 

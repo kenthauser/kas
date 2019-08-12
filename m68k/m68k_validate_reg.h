@@ -87,18 +87,17 @@ struct val_am : m68k_mcode_t::val_t
                 : match {am}, _mode(_mode), _reg(_reg) {}
 
     // test argument against validation
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // basic AM mode match
         if ((arg.am_bitset() & match) != match)
             return fits.no;
-#if 0 
-        // XXX    
+        
         // disallow PC-relative if arg is "ALTERABLE"
         if (arg.mode() == MODE_DIRECT)
             if (match & AM_ALTERABLE)
                 arg.set_mode(MODE_DIRECT_ALTER);
-#endif
+
         // if expression doesn't fit, will error out later.
         // better matches selected in `m68k_arg_t::size()`
         return fits.yes;
@@ -164,8 +163,6 @@ struct val_am : m68k_mcode_t::val_t
         {
             case MODE_INDEX:
             case MODE_PC_INDEX:
-            case MODE_INDEX_BRIEF:
-            case MODE_PC_INDEX_BRIEF:
                 return false;
             default:
                 break;
@@ -187,7 +184,7 @@ struct val_reg : m68k_mcode_t::val_t
     constexpr val_reg(uint16_t r_class, int16_t r_num = -1) : r_class{r_class}, r_num(r_num) {}
 
     // test argument against validation
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // must special case ADDR_REG & DATA_REG as these are
         // stored as a "arg.mode()": (magic number alert...).

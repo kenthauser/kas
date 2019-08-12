@@ -134,6 +134,7 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
 
     // now that have selected machine code match, must be validator for each arg
     // if base code has "relocation", emit it
+    
     unsigned n = 0;
     for (auto& arg : args)
     {
@@ -141,7 +142,7 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         auto val_p = &*val_iter++;
         auto arg_n = n++;
         if (!fmt().insert(arg_n, op_p, arg, val_p, dot_p))
-            fmt().emit(arg_n, base, op_p, arg, val_p, dot_p);
+            fmt().emit_reloc(arg_n, base, op_p, arg, val_p, dot_p);
     }
 
     // 2. emit base code
@@ -150,7 +151,7 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         base << *op_p++;
 
     // 3. emit args
-    val_iter = vals().begin();          // rerun validators
+    val_iter = vals().begin();          // rerun validators XXX?
     auto fits = core::core_fits(dot_p);
 
     for (auto& arg : args)
@@ -228,6 +229,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     code(stmt_info_t stmt_info) const
     -> std::array<mcode_size_t, MAX_MCODE_WORDS>
 {
+    // split `code` into array of words
     std::array<mcode_size_t, derived_t::MAX_MCODE_WORDS> code_data;
     auto& d = defn();
 
@@ -238,11 +240,12 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     while(n--)
     {
         *--p = value;
-        if constexpr ((8 * sizeof(mcode_size_t)) <= sizeof (value))
+        if constexpr (sizeof(mcode_size_t) < sizeof(value))
             value >>= 8 * sizeof(mcode_size_t);
         else
             value = 0;
     }
+    
     return code_data;
 }
 

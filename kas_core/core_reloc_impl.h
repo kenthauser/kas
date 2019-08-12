@@ -207,6 +207,14 @@ void deferred_reloc_t::operator()(core_expr const& value)
 
 void deferred_reloc_t::emit(emit_base& base)
 {
+    // if symbol, reinterpret before emitting
+    if (sym_p)
+    {
+        auto& sym = *sym_p;
+        sym_p = {};
+        (*this)(sym);
+    }
+
     // if no width specified by reloc, use current width
     if (reloc.bits == 0)
         reloc.bits = base.width * 8;

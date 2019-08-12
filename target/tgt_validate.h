@@ -86,7 +86,7 @@ struct tgt_validate
     using arg_t      = typename MCODE_T::arg_t;
 
     // if arg invalid for particular "size", error it out in `size` method
-    virtual fits_result ok  (arg_t const& arg, uint8_t sz, expr_fits const& fits) const = 0;
+    virtual fits_result ok  (arg_t& arg, uint8_t sz, expr_fits const& fits) const = 0;
     virtual fits_result size(arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t&) const
     { 
         // default: return "fits", don't update size

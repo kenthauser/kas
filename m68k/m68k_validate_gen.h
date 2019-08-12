@@ -44,12 +44,13 @@ struct val_range : m68k_validate
     constexpr val_range(int32_t min, int32_t max, int8_t zero = 0)
                 : min(min), max(max), zero(zero) {}
 
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // range is only for immediate args
         switch (arg.mode())
         {
             case MODE_IMMED:
+            case MODE_IMMED_QUICK:
                 if (auto p = arg.expr.get_fixed_p())
                 {
                     // if zero is mapped, block it.
@@ -63,8 +64,18 @@ struct val_range : m68k_validate
         }
     }
 
+    fits_result size(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits
+                                                    , op_size_t& op_size) const override
+    {
+        return ok(arg, sz, fits);
+    }
+
+    // get value to store in register
     unsigned get_value(m68k_arg_t& arg) const override
     {
+        // if stored in arg, it's QUICK
+        arg.set_mode(MODE_IMMED_QUICK);
+        
         // calclulate value to insert in machine code
         auto p = arg.expr.get_fixed_p();
         auto n = p ? *p : 0;
@@ -75,7 +86,7 @@ struct val_range : m68k_validate
     {
         // calculate expression value from machine code
         arg.expr = value ? value : zero;
-        arg.set_mode(MODE_IMMED);
+        arg.set_mode(MODE_IMMED_QUICK);
     }
     
     // consumes arg
@@ -87,7 +98,7 @@ struct val_range : m68k_validate
 
 struct val_dir_long : m68k_validate
 {
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -113,7 +124,7 @@ struct val_dir_long : m68k_validate
 struct val_direct_del : m68k_validate
 {
     // special for branch to flag deletable branch
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // allow direct mode 
         static constexpr auto am = AM_DIRECT;
@@ -160,7 +171,7 @@ struct val_direct_del : m68k_validate
 
 struct val_movep : m68k_validate
 {
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -185,7 +196,7 @@ struct val_pair : m68k_validate
 {
     constexpr val_pair(bool addr_ok) : addr_ok(addr_ok) {}
 
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // check for pair of DATA or GENERAL registers
         if (arg.mode() != MODE_PAIR)
@@ -253,10 +264,12 @@ struct val_regset : m68k_validate
     constexpr val_regset(uint8_t kind = {}, bool rev = false)
                 : kind{kind}, rev(rev) {}
     
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         switch (arg.mode()) {
             case MODE_IMMED:
+            case MODE_IMMED_QUICK:
+                // XXX test for fixed in range
                 return fits.yes;
             case MODE_REGSET:
                 if (auto rs_p = arg.expr.template get_p<m68k_reg_set>())
@@ -284,15 +297,31 @@ struct val_regset : m68k_validate
 
     unsigned get_value(m68k_arg_t& arg) const override
     {
-        // calclulate value to insert in machine code
-        return 0;
+        switch (arg.mode())
+        {
+            case MODE_IMMED:
+                arg.set_mode(MODE_IMMED_QUICK);
+                // FALLSTHRU
+            case MODE_IMMED_QUICK:
+                if (auto p = arg.expr.get_fixed_p())
+                    return *p;
+                return 0;
+            case MODE_DATA_REG:
+            case MODE_ADDR_REG:
+            case MODE_REG:
+            case MODE_REGSET:
+                return 0;
+            default:
+            // calclulate value to insert in machine code
+                return 0;
+        }
     }
 
     void set_arg(m68k_arg_t& arg, unsigned value) const override
     {
         // calculate expression value from machine code
         arg.expr = value;
-        arg.set_mode(MODE_IMMED);
+        arg.set_mode(MODE_IMMED_QUICK);
     }
     
     // kind == 0 for general register
@@ -307,7 +336,7 @@ struct val_bitfield : m68k_validate
     static constexpr auto BF_REG_BIT    = (1 << (BF_FIELD_SIZE - 1));
     static constexpr auto BF_MASK       = BF_REG_BIT - 1;
 
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         auto bf_fits = [&](auto& e) -> fits_result
             {
@@ -371,7 +400,7 @@ struct val_bitfield : m68k_validate
 
 struct val_subreg : m68k_validate
 {
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // check for ... MAC registers
         if (arg.mode() > MODE_ADDR_REG)
@@ -405,7 +434,7 @@ struct val_subreg : m68k_validate
 
 struct val_acc : m68k_validate
 {
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         auto rp = arg.expr.template get_p<m68k_reg_t>();
         if (!rp || rp->kind() != RC_CPU)
@@ -440,7 +469,7 @@ struct val_acc : m68k_validate
 // Check that CF may disallow anyway, via 3-word limit
 struct val_cf_bit_tst : m68k_validate
 {
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // use AM bits: test is MEMORY w/o IMMED
         if (arg.am_bitset() & AM_IMMED)
@@ -456,7 +485,7 @@ struct val_cf_bit_tst : m68k_validate
 // Check that CF may disallow anyway, via 3-word limit
 struct val_cf_bit_static : m68k_validate
 {
-    fits_result ok(m68k_arg_t const& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // for coldfire BIT instructions on STATIC bit # cases.
         auto mode_norm = arg.mode_normalize();
@@ -482,6 +511,7 @@ template <typename N, typename T, int...Ts>
 using _val_gen = list<N, T, int_<Ts>...>;
 
 VAL_GEN (Q_IMMED,    val_range, -128, 127);     // 8 bits signed (moveq)
+VAL_GEN (Q_IMMED16,  val_range, -32768, 32767); // 16 bits signed
 VAL_GEN (Q_MATH,     val_range, 1,   8, 8);     // allow 1-8 inclusive
 VAL_GEN (Q_3BITS,    val_range, 0,   7);
 VAL_GEN (Q_4BITS,    val_range, 0,  15);

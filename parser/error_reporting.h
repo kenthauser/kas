@@ -72,6 +72,7 @@ public:
         Iterator first, Iterator last, std::string file = "", int tabs = 4)
       : file(file)
       , tabs(tabs)
+      , tab_position(tabs)
       , pos_cache(first, last) {}
 
     typedef void result_type;
@@ -191,7 +192,8 @@ private:
     std::size_t position(Iterator i) const;
 
     std::string file;
-    int tabs;
+    int tabs;           // tab width
+    mutable int tab_position;   // position within tab
     x3::position_cache<std::deque<Iterator>> pos_cache;
 };
 
@@ -229,11 +231,19 @@ void x3_error_handler<Iterator>::print_indicator(std::ostream& err_out, Iterator
         auto c = *start;
         if (c == '\r' || c == '\n')
             break;
-        else if (c == '\t')
-            for (int i = 0; i < tabs; ++i)
-                err_out << ind;
+
+        if (c == '\t')
+        {
+            if (tab_position)
+                err_out << std::string(tab_position, ind);
+            tab_position = tabs;
+        }
         else
+        {
             err_out << ind;
+            if (!--tab_position)
+                tab_position = tabs;
+        }
     }
 }
 

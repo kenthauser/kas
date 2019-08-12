@@ -60,7 +60,11 @@ using m68k_move_v = list<list<>
 , defn<sz_l , STR("move"),  OP<0x7000>, FMT_8I_9, Q_IMMED, DATA_REG>
 
 // move immediate zero: map to clear
-, defn<sz_lwb, STR("move"), OP<0x4200>, FMT_X_0RM, Z_IMMED, DATA_ALTER>
+, defn<sz_lwb, STR("move"), OP<0x4200>, FMT_Z_0RM, Z_IMMED, DATA_ALTER>
+
+// map movea 16-bit to LEA
+, defn<sz_l,   STR("move") , OP<0x41f8'0000>,  FMT_I16_9, Q_IMMED16, ADDR_REG>
+, defn<sz_l,   STR("movea"), OP<0x41f8'0000>,  FMT_I16_9, Q_IMMED16, ADDR_REG>
 
 // CCR, SR moves
 , defn<sz_vw, STR("move"), OP<0x46c0>,           FMT_0RM,   DATA, SR>

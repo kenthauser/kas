@@ -99,7 +99,7 @@ struct sym_parser_t
     }
 
     // x3::symbols_parser is a "prefix" parser
-    // most parsers need to be wrapped in lexeme[x3 >> !alnum].
+    // most parsers need to be wrapped in lexeme[x3 >> !endsym].
     // operators are the exception. do at instantiation
     auto& x3_raw() const
     {
@@ -110,7 +110,7 @@ struct sym_parser_t
 
     auto x3() const
     {
-        return x3::lexeme[x3_raw() >> !x3::alnum];
+        return x3::lexeme[x3_raw() >> !(x3::alnum | '_')];
     }
 
     struct deref

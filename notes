@@ -125,29 +125,39 @@ M68K Notes (m68k.input)
 
 8. fix m68k_branch arg-mode discrimination
 
-9. rename fmt::emit -> fmt::emit_reloc
+*9. rename fmt::emit -> fmt::emit_reloc
 
 10. remove recently added `dot_p` to insert/emit_reloc. Any code executed
     after "assembly complete" shouldn't call `fits`
 
 11. `ident` doesn't work
 
-12. move with `direct:long arg` dest emits mode 7.0 (direct:short) with 4-byte arg
+*12. move with `direct:long arg` dest emits mode 7.0 (direct:short) with 4-byte arg
 
-13. move.l short, long: src = (symbol value .text+2), dst = globl: src mode: 7.2 (correct)
+*13. move.l short, long: src = (symbol value .text+2), dst = globl: src mode: 7.2 (correct)
     but w/o displacement. dst_mode = 7.0 (correct is 7.1). 32-bit displacement generated
     Emits `emit: expected` error
 
-14. move with source pc@ generates: invalid indirect
+*14. move with source pc@ generates: invalid indirect
 
-15. move with source pc@(d1, 123) generates : invalid addr_mode
+*15. move with source pc@(d1, 123) generates : invalid addr_mode
 
 16. move.b #-100, d6 generates "ff9c" as arg. correct is "009c"
 
-17. refactor "extension" for relocations & to remove `fits` from emit.
+#17. refactor "extension" for relocations & to remove `fits` from emit.
 
-18. `list` needs to restore `args` before next ?
+*18. `list` needs to restore `args` before next ?
 
+19. parse_support picks up wrong `pc`
 
+*20. a2@(inner) & a2@(outer) both generate `symbol` reloc even `inner` is local & `outer` extern
 
+*21. "size" still called after "assembly done". 
+
+*22. move.l #123, a4 --> `lea`
+
+*23. tab expansion in error message "~~~~ <<- Here" incorrect. Source tab expansion correct.
+
+24. immed byte arg not masked to 8 bits. Modify `set_size` to
+    `set_size(emit_bytes, data_size, offset)` & make `reloc` honor both base::offset & base::size. 
 

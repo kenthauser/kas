@@ -17,7 +17,7 @@ namespace kas::m68k
         // declare a couple of utilities
         auto disp_str = [](expr_t e, int mode)
             {
-                const char *mode_strs[] = {":a", ":z", ":w", ":l"};
+                const char *mode_strs[] = {":b", ":z", ":w", ":l"};
 
                 std::stringstream str;
                 str << e << mode_strs[mode & 3];
@@ -41,17 +41,16 @@ namespace kas::m68k
 
         auto index_reg_name = [&reg_name](m68k_extension_t const& ext) -> std::string
             {
-                if (ext.index_suppr())
+                if (!ext.has_index_reg)
                     return reg_name(RC_ZADDR, 0);
 
-                auto reg = ext.reg_num();
+                auto reg = ext.reg_num;
                 std::string name = reg_name(reg & 8 ? RC_ADDR : RC_DATA, reg & 7);
 
-                if (ext.reg_long()) {
-                    name += ":l";
-                } else {
-                    name += ":w";
-                }
+                // append word/long specified
+                name += ext.reg_is_word ? ":w" : ":l";
+                
+                // append scale if non-zero
                 switch (ext.reg_scale) {
                     case 0: break;
                     case 1: name += ":2"; break;
@@ -105,6 +104,7 @@ namespace kas::m68k
         case MODE_PRE_DECR:
             return os << reg_name(RC_ADDR, reg) << "@-" << suffix;
         case MODE_ADDR_DISP:
+        case MODE_ADDR_DISP_LONG:
         case MODE_MOVEP:
             os << reg_name(RC_ADDR, reg);
             return os << "@(" << base << ")" << suffix;
@@ -122,16 +122,6 @@ namespace kas::m68k
         case MODE_IMMED:
         case MODE_IMMED_QUICK:
             return os << "#" << base;
-        case MODE_INDEX_BRIEF:
-        case MODE_PC_INDEX_BRIEF:
-            {
-                // expand brief word to full index
-                auto brief_word = *base.get_fixed_p();
-                bool is_brief;
-                index = { brief_word, brief_word, is_brief };
-                base = brief_word;
-                break;
-            }
         case MODE_DIRECT:
         case MODE_DIRECT_ALTER:
         case MODE_REG:
@@ -155,33 +145,45 @@ namespace kas::m68k
 
         // do some bit twiddling with inner/outer modes
         auto const& inner = base;
-        auto outer_mode   = index.mem_mode &~ M_SIZE_POST_INDEX;
+        auto outer_mode   = index.mem_size;
         auto inner_mode   = index.disp_size;
         bool inner_zero   = inner_mode == M_SIZE_ZERO;
         bool outer_zero   = outer_mode == M_SIZE_ZERO;
 
-        bool index_second = index.mem_mode != outer_mode;
-        bool index_first  = !index.index_suppr() && !index_second;
+        bool index_second = index.is_post_index;
+        bool index_first  = index.has_index_reg && !index_second;
 
         // print index (2x)
-        if (index_first) {
+        if (index_first) 
+        {
             os << "@(" << index_reg_name(index);
             if (!inner_zero)
                 os << "," << disp_str(inner, inner_mode);
             os << ")";
-        } else if (!inner_zero) {
+        } 
+
+        else if (!inner_zero)
+        {
             os << "@(" << disp_str(inner, inner_mode) << ")";
-        } else {
+        } 
+
+        else 
+        {
             os << "@(0)";
         }
 
-        if (index_second) {
+        if (index_second)
+        {
             os << "@(" << index_reg_name(index);
             if (!outer_zero)
                 os << "," << disp_str(outer, outer_mode);
             os << ")";
-        } else {
-            if (outer_mode) {
+        } 
+
+        else 
+        {
+            if (outer_mode)
+            {
                 if (!outer_zero)
                     os << "@(" << disp_str(outer, outer_mode) << ")";
                 else
