@@ -13,22 +13,40 @@
 namespace kas::tgt
 {
 
+// default a default "info" for arch's which don't derive any info
+// from parsed stmt except for `name` and `args`
+struct tgt_stmt_info_t
+{
+    static constexpr uint8_t value() { return 0; }
+    static constexpr uint8_t sz()    { return 0; }
+
+    template <typename MCODE_T>
+    void bind(MCODE_T const&) const {}
+
+    void print(std::ostream& os) const
+    {
+        os << "*None*";
+    }
+    
+    friend std::ostream& operator<<(std::ostream& os, tgt_stmt_info_t const& i)
+    { i.print(os); return os; }
+};
+
+
 template <typename DERIVED_T, typename INSN_T, typename ARG_T>
 struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<DERIVED_T, INSN_T, ARG_T>>
 {
     using derived_t = DERIVED_T;
     using base_t    = tgt_stmt;
     using insn_t    = INSN_T;
+    using mcode_t   = typename INSN_T::mcode_t;
     using arg_t     = ARG_T;
+
 
     using kas_error_t = parser::kas_error_t;
 
-    // default `flags` type
-    struct flags_t
-    {
-        short value() const { return 0; }
-        auto& info()  { return *this; }
-    } flags;
+    // use default `info` as default `flags`
+    tgt_stmt_info_t flags;
 
 protected:
     // CRTP casts
@@ -40,12 +58,8 @@ protected:
 public:
     auto& get_flags()       { return derived().flags; }
 
-    auto& get_info()        { return derived().flags.info(); }
-    void  print_info(std::ostream& os) const
-    {
-        os << "*None*";
-    }
-
+    auto& get_info()        { return derived().flags; }
+    
     // method used to assemble instruction
     core::opcode *gen_insn(core::opcode::data_t&);
 
@@ -53,9 +67,8 @@ public:
     template <typename ARGS_T, typename TRACE>
     kas_error_t validate_args(insn_t const&, ARGS_T&, bool& args_arg_const, TRACE * = {}) const;
 
-    // method to validate mcode. Principally for target
-    template <typename MCODE_T>
-    const char *validate_mcode(MCODE_T *mcode_p) const;
+    // method to validate mcode. Principally for argument validation
+    const char *validate_mcode(mcode_t const *mcode_p) const;
    
     // statement flags: variable data stored in opcode `name`: eg `ble` (branch if less-than-or-equal)
     // NB: not all architectures use `stmt_flags` to handle cases such as `ble`

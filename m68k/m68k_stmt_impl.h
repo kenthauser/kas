@@ -54,8 +54,7 @@ auto  m68k_stmt_t::validate_args(insn_t const& insn
 }
 
 // Validate single MCODE supported by `TST` & `STMT_FLAGS`
-template <typename MCODE_T>
-const char *m68k_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
+const char *m68k_stmt_t::validate_mcode(mcode_t const *mcode_p) const
 {
     if (auto base_err = base_t::validate_mcode(mcode_p))
         return base_err;
@@ -102,16 +101,38 @@ const char *m68k_stmt_t::validate_mcode(MCODE_T const *mcode_p) const
     return {};
 }
 
-// XXX convert to ostream support
-void m68k_stmt_t::print_info(std::ostream& os) const
+// Handle instruction with no suffix but implied size.
+// Think "link" and "trap".
+// Actual mcode size is extracted from `mcode.defn()`
+void m68k_stmt_info_t::bind(m68k_mcode_t const& mc) const
 {
-    auto sz = m68k_sfx::suffixes[flags.arg_size];
+    auto sz = arg_size;
+    if (sz == OP_SIZE_VOID)
+    {
+        // if void, check if single size specified
+        auto defn_sz = mc.defn().info & 0x7f;
+
+        // don't bother with switch
+        if (defn_sz == (1 << OP_SIZE_LONG))
+            sz = OP_SIZE_LONG;
+        else if (defn_sz == (1 << OP_SIZE_WORD))
+            sz = OP_SIZE_WORD;
+        else if (defn_sz == (1 << OP_SIZE_BYTE))
+            sz = OP_SIZE_BYTE;
+    }
+    bound_sz = sz;
+}
+
+
+void m68k_stmt_info_t::print(std::ostream& os) const
+{
+    auto sz = m68k_sfx::suffixes[arg_size];
     if (!sz)
         sz = 'v';
     os << "sz = " << sz;
     
-    if (flags.has_ccode)
-        os << " ccode = " << flags.ccode;
+    if (has_ccode)
+        os << " ccode = " << ccode;
 }
 
 }

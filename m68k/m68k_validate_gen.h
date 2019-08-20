@@ -44,6 +44,15 @@ struct val_range : m68k_validate
     constexpr val_range(int32_t min, int32_t max, int8_t zero = 0)
                 : min(min), max(max), zero(zero) {}
 
+    // construct for `T` min/max limit
+    template <typename T>
+    static constexpr auto val_range_t(int8_t zero = 0)
+    {
+        return val_range(std::numeric_limits<T>::min()
+                       , std::numeric_limits<T>::max()
+                       , zero);
+    }
+
     fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
     {
         // range is only for immediate args
@@ -512,6 +521,7 @@ using _val_gen = list<N, T, int_<Ts>...>;
 
 VAL_GEN (Q_IMMED,    val_range, -128, 127);     // 8 bits signed (moveq)
 VAL_GEN (Q_IMMED16,  val_range, -32768, 32767); // 16 bits signed
+//VAL_GEN (Q_IMMED16,  val_range_t<int16_t>); // 16 bits signed
 VAL_GEN (Q_MATH,     val_range, 1,   8, 8);     // allow 1-8 inclusive
 VAL_GEN (Q_3BITS,    val_range, 0,   7);
 VAL_GEN (Q_4BITS,    val_range, 0,  15);

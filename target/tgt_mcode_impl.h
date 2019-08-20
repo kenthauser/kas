@@ -138,7 +138,6 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     unsigned n = 0;
     for (auto& arg : args)
     {
-        // XXX `emit` needs to be named RELOC
         auto val_p = &*val_iter++;
         auto arg_n = n++;
         if (!fmt().insert(arg_n, op_p, arg, val_p, dot_p))
@@ -150,35 +149,12 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     while (words--)
         base << *op_p++;
 
-    // 3. emit args
+    // 3. emit immediate args
     val_iter = vals().begin();          // rerun validators XXX?
     auto fits = core::core_fits(dot_p);
 
     for (auto& arg : args)
-    {
-        op_size_t size;
-
-        // arg needs "size" to emit properly
-        val_iter->size(arg, sz, fits, size);
-
-        // arg_t not templated by MCODE_T, so pass as arg
-        emit_arg(base, std::move(arg), sz, size());
-
-        // next validator
-        ++val_iter; 
-    }
-}
-
-template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
-template <typename ARG_T>
-void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-        emit_arg(core::emit_base& base
-            , ARG_T&&   arg
-            , uint8_t   sz
-            , uint8_t   size
-            ) const
-{
-        arg.emit(base, sz, size);
+        arg.emit(base, sz);
 }
 
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>

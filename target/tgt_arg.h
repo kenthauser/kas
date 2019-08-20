@@ -149,11 +149,8 @@ public:
     template <typename Reader, typename ARG_INFO>
     void extract(Reader& reader, uint8_t sz, ARG_INFO const *, arg_wb_info *);
 
-    // size calculated by validator
-    void emit(core::emit_base& base, uint8_t sz, unsigned bytes);
-
     // emit immediate value
-    void emit_immed(core::emit_base& base, tgt_immed_info const& info) const;
+    void emit_immed(core::emit_base& base, uint8_t sz ) const;
     void emit_flt  (core::emit_base& base, uint8_t fmt) const;
 
     // get/set state during relax: default is `mode` with no `info`

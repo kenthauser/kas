@@ -41,8 +41,6 @@ struct fmt_reg_mode
     static bool insert(uint16_t* op, m68k_arg_t& arg
                      , val_t const *val_p, core::core_expr_dot const *dot_p)
     {
-        kas::expression::expr_fits fits;
-
         // validator returns 6 bits: mode + reg
         auto value    = val_p->get_value(arg);
         auto cpu_reg  = value & 7;
@@ -56,7 +54,9 @@ struct fmt_reg_mode
         op[WORD]  &= ~MASK;
         op[WORD]  |= value;
 
-        return fits.zero(arg.expr) == fits.yes;
+        // test if expr is zero. return true iff expr == zero
+        auto p = arg.expr.get_fixed_p();
+        return p && !*p;
     }
     
     static void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p)

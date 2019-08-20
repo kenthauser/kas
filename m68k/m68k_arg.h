@@ -127,7 +127,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
     void restore(ARG_INFO const*, m68k_extension_t const *);
 
     // emit arg & relocations based on mode & sz
-    void emit(core::emit_base& base, uint8_t sz, unsigned bytes);
+    void emit(core::emit_base& base, uint8_t sz);
 
     // true if all `expr` and `outer` are registers or constants 
     bool is_const () const;

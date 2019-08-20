@@ -136,9 +136,6 @@ struct tgt_mcode_t
     template <typename ARGS_T>
     void emit(core::emit_base&, mcode_size_t*, ARGS_T&&, uint8_t sz, core::core_expr_dot const * = {}) const;
     
-    template <typename ARG_T>
-    void emit_arg(core::emit_base&, ARG_T&&, uint8_t sz, uint8_t size) const;
-
     // retrieve instance from index
     static auto& get(uint16_t idx) { return (*index_base)[idx]; }
 

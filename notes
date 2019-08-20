@@ -142,7 +142,7 @@ M68K Notes (m68k.input)
 
 *15. move with source pc@(d1, 123) generates : invalid addr_mode
 
-16. move.b #-100, d6 generates "ff9c" as arg. correct is "009c"
+*16. move.b #-100, d6 generates "ff9c" as arg. correct is "009c"
 
 #17. refactor "extension" for relocations & to remove `fits` from emit.
 
@@ -161,3 +161,12 @@ M68K Notes (m68k.input)
 24. immed byte arg not masked to 8 bits. Modify `set_size` to
     `set_size(emit_bytes, data_size, offset)` & make `reloc` honor both base::offset & base::size. 
 
+25. Refactor `tgt_format` base class to be virtual. Instantiate virtual class in virtual base class. 
+    override base-class members with virtual base class members.
+
+26. refactor `val_range` into tgt. Add <size_t> ctors
+
+27. refactor `validate` to take info instead of sz. refactor `tgt::arg.size() to take info.
+    define `info` as separate type. include `sz` method.
+    
+28. 

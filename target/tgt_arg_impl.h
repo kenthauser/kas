@@ -248,37 +248,12 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
     }
 }
 
-// emit: size is from validator
-// NB: only called if non-zero size
-template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T>
-void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
-            ::emit(core::emit_base& base, uint8_t sz, unsigned bytes) 
-{
-    // check for special IMMEDIATE processing
-    if (mode() == MODE_T::MODE_IMMEDIATE)
-    {
-        auto& info = derived().immed_info(sz);
-        if (info.sz_bytes != bytes)
-            throw std::logic_error{"arg_t::emit: invalid size for immediate arg"};
-#if 0
-        // check for floating point
-        if (info.flt_fmt)
-            base << core::set_float(info.fmt_fmt);
-
-        else if (info.mask)
-            base << core::low_bytes(info.mask);
-#endif
-    }
-            
-    if (bytes)
-        base << core::set_size(bytes) << expr; 
-}
-
 // default immediate arg `emit` routine
 template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T>
 void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
-            ::emit_immed(core::emit_base& base, tgt_immed_info const& info) const
+            ::emit_immed(core::emit_base& base, uint8_t sz) const
 {
+    auto& info = immed_info(sz);
     if (info.flt_fmt)
         return emit_flt(base, info.flt_fmt);
     base << core::set_size(info.sz_bytes) << expr;

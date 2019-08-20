@@ -62,9 +62,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
         *trace << "tgt_stmt::eval: " << insn.name << " [" << insn.mcodes.size() << " opcodes]";
         for (auto& arg : args)
             *trace << ", " << arg;
-        *trace << "  Stmt info: ";
-        derived().print_info(*trace);
-        *trace << std::endl;
+        *trace << "  Stmt info: " << get_info() << std::endl;
     }
 
     // validate args as appropriate for target
@@ -270,9 +268,8 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
 }
 
 template <typename DERIVED_T, typename INSN_T, typename ARG_T>
-template <typename MCODE_T>
 auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
-        validate_mcode(MCODE_T *mcode_p) const -> const char *
+        validate_mcode(mcode_t const *mcode_p) const -> const char *
 {
     // XXX validate "tst"
     

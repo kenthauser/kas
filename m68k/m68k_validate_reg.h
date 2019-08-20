@@ -299,7 +299,7 @@ namespace kas::m68k
 {
 
 // NB: _am_bitset is `mutable` so this calculation is done once...
-inline uint16_t m68k_arg_t::am_bitset() const
+uint16_t m68k_arg_t::am_bitset() const
 {
     using namespace opc;        // pickup AM_* definitions
 
@@ -331,7 +331,7 @@ inline uint16_t m68k_arg_t::am_bitset() const
                 if (am_index <= MODE_IMMED)
                     // ...and NOT special coldfire MAC mode
                     if (reg_subword == REG_SUBWORD_FULL)
-                        break;
+                        break;      // break iff OK.
                         
                 // ERROR: no match. Pick non-zero value which never matches
                 return _am_bitset = AM_NONE;

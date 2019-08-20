@@ -1,0 +1,60 @@
+Notes from GAS manual
+
+1. pseudo ops
+
+.lcomm can specify alignment
+.largecomm  ;# COFF only: same as .comm, but put in .lbss instead of .bss
+
+.intel_syntax  [prefix | noprefix]  ; require % prefix for registers
+.att_syntax    [prefix | noprefix]  ;(default)
+
+.code16, .code32, .code64
+
+AT&T immediates use `$` prefix, intel none.
+
+intel "push 4" is att "pushl $4"
+
+intel registers undelimited. AT&T preceded by '%'
+
+arg order is opposite for at&t & intel
+
+intel "add eax, 4" is at&t "addl $4, %eax"
+
+intel uses "byte ptr", "word ptr", etc. AT&T uses opcode suffix
+
+intel "mov al, byte ptr foo" is at&t "movb foo, %al"
+
+immed form long jumps are
+
+intel "call/tmp far section:offset" -> at&t "lcall/ljmp $section, $offset"
+intel "ret far stack-adjust"        -> at&T "lret $stack-adjust"
+
+prefixes:
+
+data16, addr16, data32, addr32
+lock, rep, repe, repne
+
+also
+
+rex64xyz (64, x, y, z may each be omitted)
+
+
+** Memory references **
+intel: section:[base + index*scale + disp]
+
+AT&T: section:disp(base, index, scale)
+AT&T: optional args may be missing:
+
+examples:
+-4(%ebp) -> [ebp-4]             // section: %ss
+foo(,%eax,4) -> [foo + eax * 4] // section: %ds
+foo(,1)     -> [foo]            // section: %ds (notice only 1 comma)
+%gs:foo     -> gs:foo
+
+absolute (as opposed to PC relative) call & jump preceeded with *
+
+x86-64 adds RIP (instruction pointer relative) addressing. Using RIP as base register
+
+1234(%rip) -> [rip + 1234]
+
+symbol(%rip) -> [rip + symbol]
