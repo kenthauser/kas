@@ -27,7 +27,6 @@
 *
 *****************************************************************************/
 
-//#include "m68k_insn_validate.h"
 #include "m68k_mcode.h"
 #include "target/tgt_validate.h"
 
@@ -36,78 +35,9 @@ namespace kas::m68k::opc
 
 namespace 
 {
-using m68k_validate = typename m68k_mcode_t::val_t;
-
-// the "range" validators all resolve to zero size
-struct val_range : m68k_validate
+struct val_dir_long : m68k_mcode_t::val_t
 {
-    constexpr val_range(int32_t min, int32_t max, int8_t zero = 0)
-                : min(min), max(max), zero(zero) {}
-
-    // construct for `T` min/max limit
-    template <typename T>
-    static constexpr auto val_range_t(int8_t zero = 0)
-    {
-        return val_range(std::numeric_limits<T>::min()
-                       , std::numeric_limits<T>::max()
-                       , zero);
-    }
-
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
-    {
-        // range is only for immediate args
-        switch (arg.mode())
-        {
-            case MODE_IMMED:
-            case MODE_IMMED_QUICK:
-                if (auto p = arg.expr.get_fixed_p())
-                {
-                    // if zero is mapped, block it.
-                    if (!*p && zero)
-                        return fits.no;
-                    return fits.fits(*p, min, max);
-                }
-                return fits.fits(arg.expr, min, max);
-            default:
-                return fits.no;
-        }
-    }
-
-    fits_result size(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits
-                                                    , op_size_t& op_size) const override
-    {
-        return ok(arg, sz, fits);
-    }
-
-    // get value to store in register
-    unsigned get_value(m68k_arg_t& arg) const override
-    {
-        // if stored in arg, it's QUICK
-        arg.set_mode(MODE_IMMED_QUICK);
-        
-        // calclulate value to insert in machine code
-        auto p = arg.expr.get_fixed_p();
-        auto n = p ? *p : 0;
-        return n == zero ? 0 : n;
-    }
-
-    void set_arg(m68k_arg_t& arg, unsigned value) const override
-    {
-        // calculate expression value from machine code
-        arg.expr = value ? value : zero;
-        arg.set_mode(MODE_IMMED_QUICK);
-    }
-    
-    // consumes arg
-    virtual bool all_saved(arg_t&) const override { return true; }
-
-    int32_t min, max;
-    int8_t  zero;
-};
-
-struct val_dir_long : m68k_validate
-{
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -121,7 +51,7 @@ struct val_dir_long : m68k_validate
         return fits.no;
     }
 
-    fits_result size(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits
+    fits_result size(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits
                                                     , op_size_t& op_size) const override
     {
         op_size += 4;
@@ -130,10 +60,11 @@ struct val_dir_long : m68k_validate
     }
 };
 
-struct val_direct_del : m68k_validate
+struct val_branch : m68k_mcode_t::val_t
 {
-    // special for branch to flag deletable branch
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    // special for branch. Allow deletable branch
+    constexpr val_branch(bool can_delete = {}) : can_delete(can_delete) {}
+    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
     {
         // allow direct mode 
         static constexpr auto am = AM_DIRECT;
@@ -144,29 +75,38 @@ struct val_direct_del : m68k_validate
     }
 
     // NB: this validator is reason we need size_p: whole insn can be deleted
-    fits_result size(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits
+    fits_result size(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits
                                                     , op_size_t& op_size) const override
     {
         op_size.max = 6;            // not on 68000
 
         // test if can delete. Slightly different so as to be sure
-        if (op_size.min == 0)
-            if (fits.seen_this_pass(arg.expr))
-                op_size.min = 2;
+        if (can_delete && !fits.seen_this_pass(arg.expr))
+            op_size.min = 0;
+        else
+            op_size.min = 2;
             
-        // the following works for zero, two, four.
+        // the following shift works for zero, two, four.
         // six will fail at `while` loop
         int disp_size = op_size.min >> 1;
+        int mode = MODE_BRANCH_BYTE;
         while (op_size.min < op_size.max)
         {
-            switch (fits.disp_sz(disp_size, arg.expr, op_size.min))
+            std::cout << "\nval_branch: fits: " << arg.expr << " sz = " << +disp_size << std::endl;
+            // if attempting to delete, must use "displacment" of zero. Else sizeof(mcode_op_t)
+            switch (fits.disp_sz(disp_size, arg.expr, op_size.min ? 2 : 0))
             {
                 case expr_fits::no:
+                    if (op_size.min)
+                        ++mode;     // set next mode
                     break;          // try next value
                 case expr_fits::yes:
+                    arg.set_mode(mode);
                     op_size.max = op_size.min;
+                    std::cout << "val_branch:yes: arg = " << arg << std::endl;
                     return expr_fits::yes;
                 default:
+                    std::cout << "val_branch:maybe: mode = " << +mode << std::endl;
                     return expr_fits::maybe;
             }
             op_size.min += 2;
@@ -174,13 +114,17 @@ struct val_direct_del : m68k_validate
         }
 
         // iff 68000, fits::no
+        arg.set_mode(mode);
+        std::cout << "val_branch:default: arg = " << arg << std::endl;
         return expr_fits::yes;   
     }
+
+    bool can_delete;
 };
 
-struct val_movep : m68k_validate
+struct val_movep : m68k_mcode_t::val_t
 {
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -192,7 +136,7 @@ struct val_movep : m68k_validate
                 return fits.no;
         }
     }
-    fits_result size(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits
+    fits_result size(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits
                                                     , op_size_t& op_size) const override
     {
         arg.set_mode(MODE_MOVEP);
@@ -201,11 +145,11 @@ struct val_movep : m68k_validate
     }
 };
 
-struct val_pair : m68k_validate
+struct val_pair : m68k_mcode_t::val_t
 {
     constexpr val_pair(bool addr_ok) : addr_ok(addr_ok) {}
 
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
     {
         // check for pair of DATA or GENERAL registers
         if (arg.mode() != MODE_PAIR)
@@ -261,22 +205,19 @@ struct val_pair : m68k_validate
         arg.set_mode(MODE_PAIR);
     }
     
-    // consumes arg
-    virtual bool all_saved(arg_t&) const override { return true; }
-
     const bool addr_ok{};
 };
 
 // REGSET Functions: Allow single register or regset of appropriate kind()
-struct val_regset : m68k_validate
+struct val_regset : m68k_mcode_t::val_t
 {
     constexpr val_regset(uint8_t kind = {}, bool rev = false)
                 : kind{kind}, rev(rev) {}
     
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
     {
         switch (arg.mode()) {
-            case MODE_IMMED:
+            case MODE_IMMEDIATE:
             case MODE_IMMED_QUICK:
                 // XXX test for fixed in range
                 return fits.yes;
@@ -308,7 +249,7 @@ struct val_regset : m68k_validate
     {
         switch (arg.mode())
         {
-            case MODE_IMMED:
+            case MODE_IMMEDIATE:
                 arg.set_mode(MODE_IMMED_QUICK);
                 // FALLSTHRU
             case MODE_IMMED_QUICK:
@@ -338,14 +279,14 @@ struct val_regset : m68k_validate
     bool    rev;
 };
 
-struct val_bitfield : m68k_validate
+struct val_bitfield : m68k_mcode_t::val_t
 {
     // `is_register` is MSB of both offset & width fields
     static constexpr auto BF_FIELD_SIZE = 6;
     static constexpr auto BF_REG_BIT    = (1 << (BF_FIELD_SIZE - 1));
     static constexpr auto BF_MASK       = BF_REG_BIT - 1;
 
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
     {
         auto bf_fits = [&](auto& e) -> fits_result
             {
@@ -402,14 +343,11 @@ struct val_bitfield : m68k_validate
         arg.expr  = get_expr(value >> BF_FIELD_SIZE);
         arg.set_mode(MODE_BITFIELD);
     }
-    
-    // consumes arg
-    virtual bool all_saved(arg_t&) const override { return true; }
 };
 
-struct val_subreg : m68k_validate
+struct val_subreg : m68k_mcode_t::val_t
 {
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
     {
         // check for ... MAC registers
         if (arg.mode() > MODE_ADDR_REG)
@@ -441,9 +379,9 @@ struct val_subreg : m68k_validate
 
 };
 
-struct val_acc : m68k_validate
+struct val_acc : m68k_mcode_t::val_t
 {
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
     {
         auto rp = arg.expr.template get_p<m68k_reg_t>();
         if (!rp || rp->kind() != RC_CPU)
@@ -476,9 +414,9 @@ struct val_acc : m68k_validate
 
 // Allow different MODES that M68K for the CF `BTST` insn only.
 // Check that CF may disallow anyway, via 3-word limit
-struct val_cf_bit_tst : m68k_validate
+struct val_cf_bit_tst : m68k_mcode_t::val_t
 {
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
     {
         // use AM bits: test is MEMORY w/o IMMED
         if (arg.am_bitset() & AM_IMMED)
@@ -490,11 +428,11 @@ struct val_cf_bit_tst : m68k_validate
     }
 };
 
-// Allow different MODES that M68K. 
+// Allow different MODES than M68K. 
 // Check that CF may disallow anyway, via 3-word limit
-struct val_cf_bit_static : m68k_validate
+struct val_cf_bit_static : m68k_mcode_t::val_t
 {
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
     {
         // for coldfire BIT instructions on STATIC bit # cases.
         auto mode_norm = arg.mode_normalize();
@@ -519,9 +457,12 @@ struct val_cf_bit_static : m68k_validate
 template <typename N, typename T, int...Ts>
 using _val_gen = list<N, T, int_<Ts>...>;
 
-VAL_GEN (Q_IMMED,    val_range, -128, 127);     // 8 bits signed (moveq)
-VAL_GEN (Q_IMMED16,  val_range, -32768, 32767); // 16 bits signed
-//VAL_GEN (Q_IMMED16,  val_range_t<int16_t>); // 16 bits signed
+// specialize generic validators
+using val_range   = tgt::opc::tgt_val_range<m68k_mcode_t>;
+template <typename T>
+using val_range_t = tgt::opc::tgt_val_range_t<m68k_mcode_t, T>;
+
+// QUICK validators. emit size is zero 
 VAL_GEN (Q_MATH,     val_range, 1,   8, 8);     // allow 1-8 inclusive
 VAL_GEN (Q_3BITS,    val_range, 0,   7);
 VAL_GEN (Q_4BITS,    val_range, 0,  15);
@@ -530,20 +471,27 @@ VAL_GEN (Q_8BITS,    val_range, 0, 255);
 VAL_GEN (Z_IMMED,    val_range, 0,   0);
 VAL_GEN (Q_MOV3Q,    val_range, -1,  7, -1);    // map -1 to value zero
 
-// XXX is this just immed?
-VAL_GEN (BIT_IMMED,  val_range, -0x7fff'ffff, 0x7fff'ffff);
+// immediate QUICK validators using T
+VAL_GEN (Q_IMMED,    val_range_t<int8_t>);      // 8 bits signed (moveq)
+VAL_GEN (Q_IMMED16,  val_range_t<int16_t>);     // 16 bits signed
+VAL_GEN (BIT_IMMED,  val_range_t<int32_t>);     // 32 bits signed
 
+// XXX 
 VAL_GEN (ADDR_DISP,  val_range, 0, 0);   // mode == ADDR_DISP ? XXX convert to AM
 VAL_GEN (ADDR_INDIR, val_range, 0, 1);   // mode == ADDR_INDIR ? XXX convert to AM
+
+// XXX 
 VAL_GEN (INDIR_MASK, val_range, 0, 2);   // mode in (INDIR, INCR, DECR, DISP)
 
 VAL_GEN (PAIR,       val_pair, 0);       // data pair
 VAL_GEN (GEN_PAIR,   val_pair, 1);       // gen-reg pair
 
-VAL_GEN (DIR_LONG,   val_dir_long);      // DIRECT_LONG                  w/ size fn
-VAL_GEN (DIRECT_DEL, val_direct_del);    // DELETABLE branch             w/ size fn
+VAL_GEN (BRANCH   ,  val_branch);       // BRANCH (displacement)
+VAL_GEN (BRANCH_DEL, val_branch, 1);    // DELETABLE branch
 
 VAL_GEN (MOVEP,      val_movep);         // indir or disp.
+
+VAL_GEN (DIR_LONG   , val_dir_long);    // special for move16
 
 VAL_GEN (BITFIELD,   val_bitfield);      // BITFIELD test
 

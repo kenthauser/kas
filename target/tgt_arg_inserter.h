@@ -76,7 +76,7 @@ void insert_one (Inserter& inserter
                , unsigned n
                , detail::arg_info_t *p
                , typename MCODE_T::arg_t& arg
-               , uint8_t sz
+               , typename MCODE_T::stmt_info_t const& info
                , typename MCODE_T::fmt_t const&  fmt
                , typename MCODE_T::val_t const  *val_p
                , typename MCODE_T::mcode_size_t *code_p
@@ -96,11 +96,11 @@ void insert_one (Inserter& inserter
     p->cur_mode = p->init_mode = arg.mode();
     p->has_reg  = !val_p;
     p->has_data = !completely_saved;
-    p->has_expr = arg.serialize(inserter, sz, p);
+    p->has_expr = arg.serialize(inserter, info, p);
 
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "write_one: " << arg;
-    std::cout << ": mode = "   << std::dec << std::setw(2) << +p->arg_mode;
+    std::cout << ": mode = "   << std::dec << std::setw(2) << +p->init_mode;
     std::cout << " bits: "     << +p->has_reg << "/" << +p->has_data << "/" << +p->has_expr;
     std::cout << std::endl;
 #endif
@@ -121,7 +121,7 @@ void extract_one(Reader& reader
 {
     auto p = wb_info.info_p;
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << "\n[read_one:  mode = " << std::dec << std::setw(2) << +p->arg_mode;
+    std::cout << "\n[read_one:  mode = " << std::dec << std::setw(2) << +p->init_mode;
     std::cout << " bits: " << +p->has_reg  << "/" << +p->has_data << "/" << +p->has_expr;
 #endif
 

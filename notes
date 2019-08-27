@@ -119,7 +119,7 @@ M68K Notes (m68k.input)
 
 *5. "extract" is for sz, not info.
 
-6. stmt::print_info method, needs to be ostream support.
+*6. stmt::print_info method, needs to be ostream support.
 
 7. `chk:` label fails. Mimics insn name
 
@@ -161,12 +161,20 @@ M68K Notes (m68k.input)
 24. immed byte arg not masked to 8 bits. Modify `set_size` to
     `set_size(emit_bytes, data_size, offset)` & make `reloc` honor both base::offset & base::size. 
 
-25. Refactor `tgt_format` base class to be virtual. Instantiate virtual class in virtual base class. 
+*25. Refactor `tgt_format` base class to be virtual. Instantiate virtual class in virtual base class. 
     override base-class members with virtual base class members.
 
-26. refactor `val_range` into tgt. Add <size_t> ctors
+*26. refactor `val_range` into tgt. Add <size_t> ctors
 
-27. refactor `validate` to take info instead of sz. refactor `tgt::arg.size() to take info.
+*27. refactor `validate` to take info instead of sz. refactor `tgt::arg.size() to take info.
     define `info` as separate type. include `sz` method.
     
-28. 
+28. move.l a2@(short), d2: shoud this be evaled as move.l pc(a2, short-(pc+2)), d2.
+
+29. `opc::calc_size` must use & return `data.size`. why?
+
+*30. core_fits(disp) doesn't handle fuzz correctly. fits<byte>([10, 22]) with fuzz of 109 should not be maybe.
+
+31. frags marked `relaxed` when they're not.
+
+

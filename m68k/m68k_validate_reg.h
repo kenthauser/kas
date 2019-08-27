@@ -41,12 +41,8 @@
  *
  *****************************************************************************/
 
-#include "m68k_arg.h"
-#include "m68k_error_messages.h"
-
+#include "m68k_mcode.h"
 #include "target/tgt_validate.h"
-#include "expr/expr_fits.h"
-
 #include <typeinfo>
 
 namespace kas::m68k::opc
@@ -87,7 +83,7 @@ struct val_am : m68k_mcode_t::val_t
                 : match {am}, _mode(_mode), _reg(_reg) {}
 
     // test argument against validation
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
     {
         // basic AM mode match
         if ((arg.am_bitset() & match) != match)
@@ -104,13 +100,13 @@ struct val_am : m68k_mcode_t::val_t
     }
 
     // bytes required by arg: registers never require extra space, but "extensions" may..
-    fits_result size(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t& op_size) const override
+    fits_result size(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits, op_size_t& op_size) const override
     {
         // regset baked into base size
         if (match == AM_REGSET)
             return fits.yes;
 
-        auto arg_size = arg.size(sz, &fits);
+        auto arg_size = arg.size(info, &fits);
         if (arg_size.is_error())
             return fits.no;
 
@@ -156,22 +152,6 @@ struct val_am : m68k_mcode_t::val_t
 
         arg.set_mode(mode);
     }
-    
-    virtual bool all_saved(arg_t& arg) const override
-    { 
-        switch (arg.mode())
-        {
-            case MODE_INDEX:
-            case MODE_PC_INDEX:
-                return false;
-            default:
-                break;
-        }
-        
-        expr_fits fits;
-        return fits.zero(arg.expr) == fits.yes;
-    }
-
 
     uint16_t match;
     int8_t   _mode;
@@ -184,7 +164,7 @@ struct val_reg : m68k_mcode_t::val_t
     constexpr val_reg(uint16_t r_class, int16_t r_num = -1) : r_class{r_class}, r_num(r_num) {}
 
     // test argument against validation
-    fits_result ok(m68k_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
     {
         // must special case ADDR_REG & DATA_REG as these are
         // stored as a "arg.mode()": (magic number alert...).
@@ -260,7 +240,7 @@ VAL(CONTROL,        AM_CTRL);
 VAL(CONTROL_ALTER,  AM_CTRL | AM_ALTERABLE);
 VAL(MEM,            AM_MEMORY);
 VAL(MEM_ALTER,      AM_MEMORY | AM_ALTERABLE);
-VAL(IMMED,          AM_IMMED, MODE_IMMED);      // mode == 7-4
+VAL(IMMED,          AM_IMMED, MODE_IMMEDIATE);  // mode == 7-4
 VAL(POST_INCR,      AM_PINC,  MODE_POST_INCR);  // mode == 3
 VAL(PRE_DECR,       AM_PDEC,  MODE_PRE_DECR);   // mode == 4
 VAL(DIRECT,         AM_DIRECT);             // mode == 7-0 & 7-1
@@ -328,7 +308,7 @@ uint16_t m68k_arg_t::am_bitset() const
                 return _am_bitset = AM_REGSET;
             default:
                 // OK if directly-mapped mode...
-                if (am_index <= MODE_IMMED)
+                if (am_index <= MODE_IMMEDIATE)
                     // ...and NOT special coldfire MAC mode
                     if (reg_subword == REG_SUBWORD_FULL)
                         break;      // break iff OK.

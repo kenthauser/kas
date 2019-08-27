@@ -10,7 +10,7 @@ template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         validate_args(ARGS_T& args
-                    , uint8_t sz
+                    , stmt_info_t const& info 
                     , std::ostream *trace) const
      -> std::pair<const char *, int>
 {
@@ -46,8 +46,8 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         if (trace)
             *trace << " " << val_p.name() << " ";
        
-        // if invalid for sz(), pick up in size() method
-        auto result = val_p->ok(arg, sz, fits);
+        // if invalid for info, pick up in size() method
+        auto result = val_p->ok(arg, info, fits);
 
         if (result == expression::NO_FIT)
             return { msg, err_index };
@@ -69,7 +69,7 @@ template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         size(ARGS_T& args
-           , uint8_t sz
+           , stmt_info_t const& info
            , opc::op_size_t& size
            , expr_fits const& fits
            , std::ostream *trace) const
@@ -91,22 +91,22 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         if (trace)
             *trace << " " << val_p.name() << " ";
 
-        auto r = val_p->size(arg, sz, fits, size);
+        auto r = val_p->size(arg, info, fits, size);
         
         if (trace)
             *trace << +r << " ";
             
         switch (r)
         {
-        case expr_fits::maybe:
-            result = fits.maybe;
-            break;
-        case expr_fits::yes:
-            break;
-        case expr_fits::no:
-            size = -1;
-            result = fits.no;
-            break;
+            case expr_fits::maybe:
+                result = fits.maybe;
+                break;
+            case expr_fits::yes:
+                break;
+            case expr_fits::no:
+                size = -1;
+                result = fits.no;
+                break;
         }
         ++val_p;
     }
@@ -120,41 +120,34 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
 void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-        emit(core::emit_base& base
-            , mcode_size_t *op_p
-            , ARGS_T&&   args
-            , uint8_t sz
-            , core::core_expr_dot const* dot_p
-            ) const
+        emit(core::emit_base& base, ARGS_T&& args, stmt_info_t const& info) const
 {
-    // 1. apply args & emit relocs as required
-    // Insert args into machine code "base" value
-    auto val_iter     = vals().begin();
-    auto val_iter_end = vals().end();
+    // 0. get base machine code data
+    auto machine_code = code(info);
+    auto code_p       = machine_code.data();
 
-    // now that have selected machine code match, must be validator for each arg
+    // 1. apply args & emit relocs as required
+    // now that have selected machine code match, there must be validator for each arg
+    // Insert args into machine code "base" value
     // if base code has "relocation", emit it
-    
+    auto val_iter = vals().begin();
     unsigned n = 0;
     for (auto& arg : args)
     {
         auto val_p = &*val_iter++;
-        auto arg_n = n++;
-        if (!fmt().insert(arg_n, op_p, arg, val_p, dot_p))
-            fmt().emit_reloc(arg_n, base, op_p, arg, val_p, dot_p);
+        if (!fmt().insert(n, code_p, arg, val_p))
+            fmt().emit_reloc(n, base, code_p, arg, val_p);
+        ++n;
     }
 
     // 2. emit base code
     auto words = code_size()/sizeof(mcode_size_t);
     while (words--)
-        base << *op_p++;
+        base << *code_p++;
 
-    // 3. emit immediate args
-    val_iter = vals().begin();          // rerun validators XXX?
-    auto fits = core::core_fits(dot_p);
-
+    // 3. emit arg information
     for (auto& arg : args)
-        arg.emit(base, sz);
+        arg.emit(base, info);
 }
 
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
@@ -186,23 +179,15 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-    sz(stmt_info_t info) const -> uint8_t
-{
-    return 0;       // default `size` 
-}
-
-    
-template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
-auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     extract_info(mcode_size_t const *) const -> stmt_info_t
 {
-    return {};       // default construct
+    return {};       // default: `no stmt_t`
 }
 
     
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-    code(stmt_info_t stmt_info) const
+    code(stmt_info_t const &stmt_info) const
     -> std::array<mcode_size_t, MAX_MCODE_WORDS>
 {
     // split `code` into array of words

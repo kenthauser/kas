@@ -31,7 +31,7 @@ enum m68k_arg_mode : uint8_t
     , MODE_DIRECT_LONG      // 7-1 32-bit direct address
     , MODE_PC_DISP          // 7-2 PC + word offset
     , MODE_PC_INDEX         // 7-3 PC + index
-    , MODE_IMMED            // 7-4 immediate (int or float)
+    , MODE_IMMEDIATE        // 7-4 immediate (int or float)
 // Additional support modes
     , MODE_ADDR_DISP_LONG   // 12: address displacement with long arg
     , MODE_DIRECT           // 13: uncategorized direct arg
@@ -57,7 +57,6 @@ enum m68k_arg_mode : uint8_t
 // MODES which must be defined for compatibilty with `tgt_arg` ctor
 // never allocated. Do not need to include in `NUM_ARG_MODES`
     , MODE_INDIRECT
-    , MODE_IMMEDIATE 
     , MODE_REG_INDIR 
     , MODE_REG_OFFSET 
 };
@@ -77,6 +76,9 @@ struct token_reg : kas_token {};
 
 struct token_missing  : kas_token {};
 
+// forward declare type
+struct m68k_stmt_info_t;
+
 // `REG_T` & `REGSET_T` args allow `MCODE_T` to lookup types
 struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_reg_set>
 {
@@ -95,7 +97,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
     // and inited via copy elision
 
     // override `size`
-    op_size_t size(uint8_t sz, expression::expr_fits const *fits_p = {}, bool *is_signed = {});
+    op_size_t size(m68k_stmt_info_t const&, expression::expr_fits const *fits_p = {}, bool *is_signed = {});
 
     // support for `access-mode` validation
     uint16_t am_bitset() const;
@@ -116,18 +118,18 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
 
     // serialize arg into `insn data` area
     template <typename Inserter, typename ARG_INFO>
-    bool serialize(Inserter& inserter, uint8_t sz, ARG_INFO *);
+    bool serialize(Inserter& inserter, m68k_stmt_info_t const&, ARG_INFO *);
     
     // extract serialized arg from `insn data` area
     template <typename Reader, typename ARG_INFO>
-    void extract(Reader& reader, uint8_t sz, ARG_INFO const*, m68k_extension_t **);
+    void extract(Reader& reader, m68k_stmt_info_t const&, ARG_INFO const*, m68k_extension_t **);
 
     // restore arg to `extracted` value for new iteration of `size`
     template <typename ARG_INFO>
     void restore(ARG_INFO const*, m68k_extension_t const *);
 
-    // emit arg & relocations based on mode & sz
-    void emit(core::emit_base& base, uint8_t sz);
+    // emit arg & relocations based on mode & info
+    void emit(core::emit_base& base, m68k_stmt_info_t const&);
 
     // true if all `expr` and `outer` are registers or constants 
     bool is_const () const;
@@ -147,7 +149,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
     }
 
     // validate if arg suitable for target
-    kas::parser::kas_error_t ok_for_target(uint8_t sz);
+    kas::parser::kas_error_t ok_for_target(m68k_stmt_info_t const&);
 
     expr_t           outer;             // for '020 PRE/POST index addess modes
     m68k_arg_subword reg_subword {};    // for coldfire H/L subword access

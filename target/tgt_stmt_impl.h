@@ -50,7 +50,8 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     // get kas types from opcode
     using core::opcode;
     auto trace  = opcode::trace;
-    //trace = nullptr;
+    trace = nullptr;
+    //trace = &std::cout;
     
     // convenience references 
     auto& insn = *insn_p;
@@ -62,11 +63,11 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
         *trace << "tgt_stmt::eval: " << insn.name << " [" << insn.mcodes.size() << " opcodes]";
         for (auto& arg : args)
             *trace << ", " << arg;
-        *trace << "  Stmt info: " << get_info() << std::endl;
+        *trace << "  stmt_info: " << get_info() << std::endl;
     }
 
     // validate args as appropriate for target
-    // also note if all args are "const" (ie: just regs & literals)
+    // also note if all args are "const" (ie: just registers & literals)
     bool args_are_const = true;
     if (auto diag = derived().validate_args(insn, args, args_are_const, trace))
     {
@@ -74,12 +75,13 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
         return {};
     }
 
-    // select mcode matching args (normally only a single mcode))
+    // select mcode(s) matching args (normally only a single mcode))
     bitset_t ok;
     mcode_t const* matching_mcode_p {};
     bool multiple_matches = false;
     const char *err_msg{};
     int         err_index;
+    auto& info = get_info();
 
     // loop thru mcodes, recording first error & recording all matches
     int i = 0; 
@@ -90,9 +92,9 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
         if (trace)
         {
             *trace << std::dec << std::endl;;
-            *trace << "mcode: " << +mcode_p->index          << " ";
-            *trace << "sz: "    << +mcode_p->sz(get_info()) << " ";
-            *trace << "defn: "  << +mcode_p->defn_index     << " ";
+            *trace << "mcode: "     << +mcode_p->index      << " ";
+            *trace << "stmt_info: " << info                 << " ";
+            *trace << "defn: "      << +mcode_p->defn_index << " ";
             mcode_p->defn().print(*trace);
         }
 #endif
@@ -100,15 +102,11 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
         if (trace)
             *trace << "validating: " << +i << ": ";
 
-        auto diag = derived().validate_mcode(mcode_p);
-        int  cur_index = 0;     // error is mcode, not arg
-
-        if (!diag)
-        {
-            auto result = mcode_p->validate_args(args, mcode_p->sz(get_info()), trace);
-            diag      = result.first;
-            cur_index = result.second;
-        }
+        // test if arguments match mcode
+        info.bind(*mcode_p);
+        auto result    = mcode_p->validate_args(args, info, trace);
+        auto diag      = result.first;
+        auto cur_index = result.second;
         
         if (trace)
         {
@@ -130,13 +128,14 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
         }
         
         // diag: record best error message
+        // best match matches most arguments
         else if (!err_msg || cur_index > err_index)
         {
             err_msg   = diag;
             err_index = cur_index;
         }
         
-        ++i;        // next
+        ++i;        // next candidate mcode
     }
     
     if (trace)
@@ -209,12 +208,13 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     if (!matching_mcode_p)
         matching_mcode_p = insn_t::list_mcode_p;
 
+    info.bind(*matching_mcode_p);
     return matching_mcode_p->fmt().get_opc().gen_insn(
                   insn
                 , ok
                 , matching_mcode_p
                 , std::move(args)
-                , derived().get_info()
+                , info
 
                 // and core_opcode data area reference
                 , data
@@ -250,12 +250,10 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
     if (args.front().is_missing())
         return {};
 
-    // NB: pickup size from first mcode of insn
-    auto sz = insn.get_sz();
     for (auto& arg : args)
     {
         // if not supported, return error
-        if (auto diag = arg.ok_for_target(sz))
+        if (auto diag = arg.ok_for_target(get_info()))
             return diag;
 
         // test if constant    
@@ -263,15 +261,6 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
             if (!arg.is_const())
                 args_are_const = false;
     }
-    
-    return {};
-}
-
-template <typename DERIVED_T, typename INSN_T, typename ARG_T>
-auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
-        validate_mcode(mcode_t const *mcode_p) const -> const char *
-{
-    // XXX validate "tst"
     
     return {};
 }

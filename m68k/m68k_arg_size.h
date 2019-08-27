@@ -9,7 +9,7 @@
 namespace kas::m68k
 {
 
-auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_signed_p)
+auto m68k_arg_t::size(m68k_stmt_info_t const& info, expression::expr_fits const *fits_p, bool *is_signed_p)
      -> op_size_t
 {
     // copy result code enum to namespace
@@ -19,13 +19,14 @@ auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_
     
     short min {};
     op_size_t result;
+    auto sz = info.sz();
 
     // default to unsigned
     if (is_signed_p) *is_signed_p = false;
 
     switch (mode())
     {
-        case MODE_IMMED:
+        case MODE_IMMEDIATE:
             // immediate can be signed
             if (is_signed_p)
                 *is_signed_p = true;

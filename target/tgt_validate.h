@@ -13,9 +13,6 @@
  * `ok`   tests if arg passes validation test.
  * `size` performs `ok` & then evaluates size of arg.
  *
- * A third virtual method `all_saved` is signal to serializer that 
- * `tgt_validate` has successfully stored complete arg in machine code.
- *
  *
  * The second type is `tgt_validate_args`
  *
@@ -28,15 +25,13 @@
  *
  * `tgt_validate` description
  *
- * Each validator has 5 virtual methods. 
+ * Each validator has 4 virtual methods. 
  *
- * ok        (arg, fits)            : returns `fits_result`
- * size      (arg, sz, fits, size&) : updates `size` if `ok`. returns `ok`
- * get_value (arg)                  : get unsigned value for formatter insertion
- * set_arg   (arg, value)           : generate `arg` with formatter extracted `value`
+ * ok        (arg, fits)              : returns `fits_result`
+ * size      (arg, info, fits, size&) : updates `size` if `ok`. returns `ok`
+ * get_value (arg)                    : get unsigned value for formatter insertion
+ * set_arg   (arg, value)             : generate `arg` with formatter extracted `value`
  *                                    NB: `set_mode(mode)` executed after value extracted
- * all_saved (arg)                  : if `false` must also save expression
- *                                    NB: default: return true iff `expr` is zero
  *
  * NB: `ok` validator presumed to store register values
  *
@@ -83,28 +78,21 @@ using op_size_t   = core::opcode::op_size_t;
 template <typename MCODE_T>
 struct tgt_validate
 {
-    using arg_t      = typename MCODE_T::arg_t;
+    using arg_t       = typename MCODE_T::arg_t;
+    using stmt_info_t = typename MCODE_T::stmt_info_t;
 
     // if arg invalid for particular "size", error it out in `size` method
-    virtual fits_result ok  (arg_t& arg, uint8_t sz, expr_fits const& fits) const = 0;
-    virtual fits_result size(arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t&) const
+    virtual fits_result ok  (arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const = 0;
+    virtual fits_result size(arg_t& arg, stmt_info_t const& info, expr_fits const& fits, op_size_t&) const
     { 
         // default: return "fits", don't update size
-        return ok(arg, sz, fits);
+        return ok(arg, info, fits);
     }
 
     // insert & extract values from opcode
     virtual unsigned get_value(arg_t& arg)           const { return {}; }
     virtual void     set_arg  (arg_t& arg, unsigned) const {}
-
-    // `not_saved` only called on args that are `OK`
-    // no validator returning `not_saved::true` are in "*LIST*" serialize validators
-    virtual bool     all_saved(arg_t& arg) const
-    { 
-        expr_fits fits;
-        return fits.zero(arg.expr) == fits.yes;
-    }
-
+    
     // NB: literal types can't define dtors
     // virtual ~tgt_validate() = default;
 };
@@ -214,6 +202,7 @@ struct tgt_val_reg : MCODE_T::val_t
 
     using arg_t       = typename MCODE_T::arg_t;
     using arg_mode_t  = typename MCODE_T::arg_mode_t;
+    using stmt_info_t = typename MCODE_T::stmt_info_t;
     using reg_t       = typename MCODE_T::reg_t;
     using reg_class_t = typename reg_t  ::reg_class_t;
     using reg_value_t = typename reg_t  ::reg_value_t;
@@ -250,7 +239,7 @@ struct tgt_val_reg : MCODE_T::val_t
     constexpr bool is_single_register() const { return r_num != static_cast<reg_value_t>(~0); } 
    
     // test argument against validation
-    fits_result ok(arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
     {
         if (!derived().is_mode_ok(arg))
             return fits.no;
@@ -286,88 +275,81 @@ struct tgt_val_reg : MCODE_T::val_t
             arg.reg = reg_t(reg_class, r_num);
     }
 
-    // registers by themselves have no size. Don't override default size() method 
-    bool all_saved(arg_t& arg) const override { return true; }
-
     reg_value_t r_num;
     reg_class_t r_class;
     mode_int_t  r_mode;
 };
     
-
-// the "range" validators all resolve to zero size
-template <typename Derived, typename MCODE_T>
+// the "range" validators default to zero size
+template <typename MCODE_T>
 struct tgt_val_range : MCODE_T::val_t
 {
-    using base_t      = tgt_val_range;
-    using derived_t   = Derived;
-
     using arg_t       = typename MCODE_T::arg_t;
     using arg_mode_t  = typename MCODE_T::arg_mode_t;
-    using reg_t       = typename MCODE_T::reg_t;
-    using reg_class_t = typename reg_t  ::reg_class_t;
-    using reg_value_t = typename reg_t  ::reg_value_t;
+    using stmt_info_t = typename MCODE_T::stmt_info_t;
 
-    using mode_int_t  = std::underlying_type_t<arg_mode_t>;
+    constexpr tgt_val_range(int32_t min, int32_t max, int8_t zero = 0, int8_t size = 0)
+                            : min(min), max(max), zero(zero), _size(size) {}
 
-
-    constexpr tgt_val_range(uint16_t size, int32_t min, int32_t max)
-                            : _size(size), min(min), max(max) {}
-
-    // CRTP cast
-    auto constexpr& derived() const
-        { return *static_cast<derived_t const*>(this); }
-    
-    // method to determine if `mode == REG`
-    constexpr bool is_mode_ok(arg_t const& arg) const
+    fits_result ok(arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
     {
+        // range is only for immediate args
         switch (arg.mode())
         {
-        case arg_mode_t::MODE_DIRECT:
-        case arg_mode_t::MODE_IMMEDIATE:
-        case arg_mode_t::MODE_IMMED_QUICK:
-            return true;
-        default:
-            return false;
+            case arg_mode_t::MODE_IMMEDIATE:
+            case arg_mode_t::MODE_IMMED_QUICK:
+                if (auto p = arg.expr.get_fixed_p())
+                {
+                    // if zero is mapped, block it.
+                    if (!*p && zero)
+                        return fits.no;
+                    return fits.fits(*p, min, max);
+                }
+                return fits.fits(arg.expr, min, max);
+            default:
+                return fits.no;
         }
     }
 
-    fits_result ok(arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result size(arg_t& arg, stmt_info_t const& info, expr_fits const& fits
+                                                    , op_size_t& op_size) const override
     {
-        // range is only for direct args
-        if (derived().is_mode_ok(arg))
-            return fits.fits(arg.expr, min, max);
-        return fits.no;
+        if (_size) op_size += _size;
+        return ok(arg, info, fits);
     }
-    
+
+    // get value to store in register
     unsigned get_value(arg_t& arg) const override
     {
-        if (auto p = arg.expr.get_fixed_p())
-            return *p;
-        return 0;
+        // if no size, it's QUICK
+        arg.set_mode(_size ? arg_mode_t::MODE_IMMEDIATE : arg_mode_t::MODE_IMMED_QUICK);
+        
+        // calclulate value to insert in machine code
+        auto p = arg.expr.get_fixed_p();
+        auto n = p ? *p : 0;
+        return n == zero ? 0 : n;
     }
-    
+
     void set_arg(arg_t& arg, unsigned value) const override
     {
-        // only valid for IMMED_QUICK format
-        if (_size == 0)
-            arg.expr = value;
-    }
-
-    // immediates may be inserted in opcode, or added data
-    fits_result size(arg_t& arg
-                    , uint8_t sz
-                    , expr_fits const& fits
-                    , op_size_t& insn_size) const override
-    {
-        insn_size += _size;
-        return ok(arg, sz, fits);
+        // calculate expression value from machine code
+        arg.expr = value ? value : zero;
+        arg.set_mode(_size ? arg_mode_t::MODE_IMMEDIATE : arg_mode_t::MODE_IMMED_QUICK);
     }
     
-    uint16_t _size;
     int32_t  min, max;
+    int8_t   zero, _size;
 };
 
+
+template <typename MCODE_T, typename T>
+struct tgt_val_range_t : tgt_val_range<MCODE_T>
+{
+    tgt_val_range_t(uint8_t size = 0)
+        : tgt_val_range<MCODE_T>(std::numeric_limits<T>::min()
+                               , std::numeric_limits<T>::max()
+                               , 0, size) {}
+};
 
 }
 #endif

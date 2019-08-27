@@ -295,16 +295,17 @@ namespace kas::core
             if (insn.opc_index == idx_label)
                 insn.fixed().offset = dot.frag_offset();
 
+// XXX ip->update knows old size. Could return delta for `dot.advance`
             auto old_size = insn.size();
             fn(insn, dot);
             auto new_size = insn.size();
-            if (old_size != new_size)
-                it->update(new_size());
 
-            // move dot & `value_type` data values
+            if (old_size != new_size)
+                it->update(new_size);
+            
             dot.advance(new_size, old_size);
-            it->advance(insn);
-            ++it;
+            it->advance(insn);      // consume `data`
+            ++it;                   // next insn
         }
 #ifdef TRACE_DO_FRAG
         std::cout << "do_frag::loop end: " << frag;

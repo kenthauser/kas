@@ -67,8 +67,9 @@ public:
     template <typename ARGS_T, typename TRACE>
     kas_error_t validate_args(insn_t const&, ARGS_T&, bool& args_arg_const, TRACE * = {}) const;
 
-    // method to validate mcode. Principally for argument validation
-    const char *validate_mcode(mcode_t const *mcode_p) const;
+    // method to validate mcode. Principally for `stmt_info_t` validation
+    // default: not `stmt_info_t`
+    constexpr const char *validate_mcode(mcode_t const *mcode_p) const { return {}; }
    
     // statement flags: variable data stored in opcode `name`: eg `ble` (branch if less-than-or-equal)
     // NB: not all architectures use `stmt_flags` to handle cases such as `ble`

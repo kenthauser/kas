@@ -11,7 +11,7 @@ auto eval_insn_list
         ( INSN_T const& insn
         , OK_T& ok
         , ARGS_T& args
-        , STMT_INFO_T stmt_info
+        , STMT_INFO_T const& stmt_info
         , core::opc::opcode::op_size_t& insn_size
         , expression::expr_fits const& fits
         , std::ostream* trace
@@ -28,6 +28,7 @@ auto eval_insn_list
     auto match_result = fits.no;
     auto match_index  = 0;
 
+    trace = &std::cout;
     if (trace)
     {
         std::cout << "tgt_insn::eval: " << insn.name;
@@ -76,17 +77,18 @@ auto eval_insn_list
         if (trace)
             *trace << std::dec << std::setw(2) << index << ": ";
         
-        auto sz = (*op_iter)->sz(stmt_info);
+        stmt_info.bind(**op_iter);
         op_size_t size;
         
-        auto result = (*op_iter)->size(args, sz, size, fits, trace);
+        auto result = (*op_iter)->size(args, stmt_info, size, fits, trace);
 
         if (result == fits.no)
         {
             ok.reset(index);
             continue;
         }
-
+#if 0
+        // XXX study logic...
         // Better match if new max better than current min
         if (result == fits.yes && insn_size.min > size.max)
         {
@@ -95,6 +97,7 @@ auto eval_insn_list
                 ok.reset(match_index);
             mcode_p = {};
         }
+#endif
         
         // first "match" is always "current best"
         if (!mcode_p)
@@ -169,10 +172,10 @@ auto eval_insn_list
                 arg.set_state(*p++);
 
             // rerun size
-            auto sz = mcode_p->sz(stmt_info);
+            stmt_info.bind(*mcode_p);
             op_size_t size;
             
-            mcode_p->size(args, sz, size, fits, nullptr);
+            mcode_p->size(args, stmt_info, size, fits, nullptr);
         }
     }
 

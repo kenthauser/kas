@@ -37,130 +37,73 @@ struct tgt_format
 
     static_assert(FMT_MAX_ARGS >= MCODE_T::MAX_ARGS);
 
-    // "instance" is just a virtual-pointer collection
-    // NB: requires `constexpr` ctor to be used as constexpr
-    constexpr tgt_format() {};
-
-private: 
-    // NB: these methods are private. Must be accessed via `insert`, `extract` methods
-
-    // Implement `FMT_MAX_ARGS` inserters & extractors
-    // default to no-ops for inserters/extractors instead of ABC
-    // NB: missing validators occur during serialize/deserialize
-    
-    // format first method, compress rest of methods
-    virtual bool insert_arg1(mcode_size_t* op, arg_t& arg
-                            , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
-    { 
-        // prototype `arg1`: not completely saved
-        return false;
-    }
-    virtual bool insert_arg2(mcode_size_t* op, arg_t& arg
-                            , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
-        { return false; }
-    virtual bool insert_arg3(mcode_size_t* op, arg_t& arg
-                            , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
-        { return false; }
-    virtual bool insert_arg4(mcode_size_t* op, arg_t& arg
-                            , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
-        { return false; }
-    virtual bool insert_arg5(mcode_size_t* op, arg_t& arg
-                            , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
-        { return false; }
-    virtual bool insert_arg6(mcode_size_t* op, arg_t& arg
-                            , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
-        { return false; }
-
-    // format first method, compress rest of methods
-    virtual void extract_arg1(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
+    // formatter insertion actions
+    // virtual methods in this type overridden to create formatters.
+    // see example `fmt_generic` which follows method definition.
+    struct fmt_impl
     {
-        // prototype `arg1`
-        val_p->set_arg(arg, 0);
-    }
-    virtual void extract_arg2(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
-        { val_p->set_arg(arg, 0); }
-    virtual void extract_arg3(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
-        { val_p->set_arg(arg, 0); }
-    virtual void extract_arg4(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
-        { val_p->set_arg(arg, 0); }
-    virtual void extract_arg5(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
-        { val_p->set_arg(arg, 0); }
-    virtual void extract_arg6(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
-        { val_p->set_arg(arg, 0); }
+        virtual bool insert(mcode_size_t* op, arg_t& arg, val_t const * val_p) const
+        {
+            return false;
+        }
 
-    // format first method, compress rest of methods
-    virtual void emit_reloc_arg1(emit_base&, mcode_size_t* op, arg_t& arg
-                            , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
-    { 
-        // prototype `arg1`: no relocation 
+        virtual void extract(mcode_size_t const* op, arg_t& arg, val_t const * val_p) const 
+            {}                                                            
+        
+        virtual void emit_reloc(emit_base& base, mcode_size_t* op, arg_t& arg, val_t const * val_p) const
+            {}
+    };
+    
+private: 
+    // NB: using a `static inline` instead of method makes CLANG drop core 2019/08/21 KBH
+    auto& default_impl() const
+    {
+        constexpr static fmt_impl dummy;
+        return dummy;
     }
-    virtual void emit_reloc_arg2(emit_base&, mcode_size_t* op, arg_t& arg
-                            , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
-        {}
-    virtual void emit_reloc_arg3(emit_base&, mcode_size_t* op, arg_t& arg
-                            , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
-        {}
-    virtual void emit_reloc_arg4(emit_base&, mcode_size_t* op, arg_t& arg
-                            , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
-        {}
-    virtual void emit_reloc_arg5(emit_base&, mcode_size_t* op, arg_t& arg
-                            , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
-        {}
-    virtual void emit_reloc_arg6(emit_base&, mcode_size_t* op, arg_t& arg
-                            , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
-        {}
 
+    // allow override of formatter implementation for each arg
+    virtual fmt_impl const& get_arg1() const { return default_impl(); }
+    virtual fmt_impl const& get_arg2() const { return default_impl(); }
+    virtual fmt_impl const& get_arg3() const { return default_impl(); }
+    virtual fmt_impl const& get_arg4() const { return default_impl(); }
+    virtual fmt_impl const& get_arg5() const { return default_impl(); }
+    virtual fmt_impl const& get_arg6() const { return default_impl(); }
+
+    auto& get_impl(uint8_t n) const
+    {
+        switch (n)
+        {
+            case 0: return get_arg1();
+            case 1: return get_arg2();
+            case 2: return get_arg3();
+            case 3: return get_arg4();
+            case 4: return get_arg5();
+            case 5: return get_arg6();
+            default:
+                throw std::runtime_error("tgt_format::get_impl: bad index");
+        }
+    }
+    
 public:
     // access inserters/extractors via public interface
-    auto insert(unsigned n, mcode_size_t* op, arg_t& arg
-              , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
+    auto insert(unsigned n, mcode_size_t* op, arg_t& arg, val_t const *val_p) const 
     {
         if (val_p)
-            switch (n)
-            {
-                case 0: return insert_arg1(op, arg, val_p, dot_p);
-                case 1: return insert_arg2(op, arg, val_p, dot_p);
-                case 2: return insert_arg3(op, arg, val_p, dot_p);
-                case 3: return insert_arg4(op, arg, val_p, dot_p);
-                case 4: return insert_arg5(op, arg, val_p, dot_p);
-                case 5: return insert_arg6(op, arg, val_p, dot_p);
-                default:
-                    throw std::runtime_error("insert: bad index");
-            }
-        return false;   // false == "not completely saved"
+            return get_impl(n).insert(op, arg, val_p);
+        return false;       // "not completely saved"
     }
 
     void extract(int n, mcode_size_t const* op, arg_t& arg, val_t const *val_p) const
     {
         if (val_p)
-            switch (n)
-            {
-                case 0: return extract_arg1(op, arg, val_p);
-                case 1: return extract_arg2(op, arg, val_p);
-                case 2: return extract_arg3(op, arg, val_p);
-                case 3: return extract_arg4(op, arg, val_p);
-                case 4: return extract_arg5(op, arg, val_p);
-                case 5: return extract_arg6(op, arg, val_p);
-                default:
-                    throw std::runtime_error("extract: bad index");
-            }
+            get_impl(n).extract(op, arg, val_p);
     }
     
-    auto emit_reloc(unsigned n, emit_base& base, mcode_size_t* op, arg_t& arg
-              , val_t const *val_p, core::core_expr_dot const *dot_p = {}) const 
+    void emit_reloc(unsigned n, emit_base& base, mcode_size_t* op, arg_t& arg, val_t const *val_p) const 
     {
         if (val_p)
-            switch (n)
-            {
-                case 0: return emit_reloc_arg1(base, op, arg, val_p, dot_p);
-                case 1: return emit_reloc_arg2(base, op, arg, val_p, dot_p);
-                case 2: return emit_reloc_arg3(base, op, arg, val_p, dot_p);
-                case 3: return emit_reloc_arg4(base, op, arg, val_p, dot_p);
-                case 4: return emit_reloc_arg5(base, op, arg, val_p, dot_p);
-                case 5: return emit_reloc_arg6(base, op, arg, val_p, dot_p);
-                default:
-                    throw std::runtime_error("emit: bad index");
-            }
+            get_impl(n).emit_reloc(base, op, arg, val_p);
     }
 
     // return "opcode derived type" for given fmt
@@ -191,14 +134,14 @@ struct tgt_fmt_opc_list : virtual MCODE_T::fmt_t
 };
 
 //
-// generic type to extract N bits OFFSET for WORD (0-baased)
+// generic `fmt_impl` to extract N bits at OFFSET for WORD (0-baased)
 // always paired: insert & extract
 //
 
 // Insert/Extract N bits from machine code
 // NB: must work correctly for BITS == 0 (ie, do nothing)
 template <typename MCODE_T, unsigned SHIFT, unsigned BITS, unsigned WORD = 0>
-struct tgt_fmt_generic
+struct tgt_fmt_generic : MCODE_T::fmt_t::fmt_impl
 {
     // extract types from `MCODE_T`
     using arg_t        = typename MCODE_T::arg_t;
@@ -209,55 +152,43 @@ struct tgt_fmt_generic
     using emit_base    = core::emit_base;
     
     static constexpr auto MASK = (1 << BITS) - 1;
-    static bool insert(mcode_size_t* op, arg_t& arg
-                    , val_t const *val_p, core::core_expr_dot const *dot_p = {})
+    bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
     {
         auto value = val_p->get_value(arg);
         auto code  = op[WORD]; 
              code &= ~(MASK << SHIFT);
              code |= (value & MASK) << SHIFT;
         op[WORD]   = code;
-        return val_p->all_saved(arg);
+        return true;
     }
 
-    static void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p)
+    void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const override
     {
         auto value = MASK & (op[WORD] >> SHIFT);
         val_p->set_arg(arg, value);
     }
-
-    static void emit_reloc(emit_base&, mcode_size_t *, arg_t&
-                   , val_t const *, core::core_expr_dot const *dot_p = {}) {}
+    
+    // don't need to override `emit_reloc` for generic type
 };
 
 //
-// declare `mix-in` types for arguments
+// declare specialized templates to override the argument formatters
 //
 
-// declare template for arg inserter
+// declare template for arg formatter 
 template <typename MCODE_T, unsigned, typename T>
 struct tgt_fmt_arg;
 
-// specialize arg inserter for each arg
-#define DEFN_ARG(N)                                                                                 \
-template <typename MCODE_T, typename T>                                                             \
-struct tgt_fmt_arg<MCODE_T, N, T> : virtual MCODE_T::fmt_t                                          \
-{                                                                                                   \
-    using mcode_size_t = typename MCODE_T::mcode_size_t;                                            \
-    using arg_t        = typename MCODE_T::arg_t;                                                   \
-    using val_t        = typename MCODE_T::val_t;                                                   \
-    using emit_base    = core::emit_base;                                                           \
-    bool insert_arg ## N (mcode_size_t* op, arg_t& arg                                              \
-                      , val_t const * val_p, core::core_expr_dot const *dot_p) const override       \
-        { return T::insert(op, arg, val_p, dot_p);}                                                 \
-    void extract_arg ## N (mcode_size_t const* op, arg_t& arg, val_t const * val_p) const override  \
-        { T::extract(op, arg, val_p); }                                                             \
-    void emit_reloc_arg ## N (emit_base& base, mcode_size_t* op, arg_t& arg                         \
-                      , val_t const * val_p, core::core_expr_dot const *dot_p) const override       \
-        { return T::emit_reloc(base, op, arg, val_p, dot_p); }                                      \
-};
+// specialize arg formatter for each arg (as a virtual base class)
+// (Override `get_argN` and instantiate formatter `T`)
+#define DEFN_ARG(N)                                                                \
+template <typename MCODE_T, typename T>                                            \
+struct tgt_fmt_arg<MCODE_T, N, T> : virtual MCODE_T::fmt_t                         \
+{   using fmt_impl = typename MCODE_T::fmt_t::fmt_impl;                            \
+    fmt_impl const& get_arg ## N () const override { constexpr static T impl; return impl; } };
 
-// declare `FMT_MAX_ARGS` times
+
+// specialize for each of the `FMT_MAX_ARGS` arguments
 DEFN_ARG(1)
 DEFN_ARG(2)
 DEFN_ARG(3)

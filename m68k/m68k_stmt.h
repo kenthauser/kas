@@ -29,7 +29,8 @@ struct m68k_stmt_info_t : detail::alignas_t<m68k_stmt_info_t, uint16_t>
     using base_t::base_t;
     using mcode_t = m68k_mcode_t;
 
-    // bind updates info for mcode under evaluation
+    // `bind` updates info for mcode under evaluation
+    // NB: `bound_sz` inited to `arg_size` in parser.
     void bind(mcode_t const&) const;
     uint8_t sz() const { return bound_sz; }
 
@@ -45,9 +46,8 @@ struct m68k_stmt_info_t : detail::alignas_t<m68k_stmt_info_t, uint16_t>
     value_t ccode     : 5;      // conditional instruction code
     value_t has_ccode : 1;      // is conditional
     value_t fp_ccode  : 1;      // is floating point conditional
-    value_t has_dot   : 1;      // size suffix has `dot` (motorola format)
 
-    // bound_sz is mutable so rest of `info_t` doesn't need to be stored
+    // bound_sz is mutable so rest of `info_t` doesn't need to be saved & restored 
     mutable value_t bound_sz  : 3;      // (for validate/emit: sz for this mcode)
 };
 

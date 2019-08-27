@@ -128,13 +128,13 @@ struct tgt_mcode_t
     // declare as template to defer definition of `ARGS_T`
     // validate arg count & arg_modes are supported on run-time target
     template <typename ARGS_T>
-    std::pair<const char *, int> validate_args (ARGS_T& args, uint8_t sz, std::ostream *trace = {}) const;
+    std::pair<const char *, int> validate_args (ARGS_T& args, stmt_info_t const& info, std::ostream *trace = {}) const;
 
     template <typename ARGS_T>
-    fits_result size(ARGS_T& args, uint8_t sz, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
+    fits_result size(ARGS_T& args, stmt_info_t const& info, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
 
     template <typename ARGS_T>
-    void emit(core::emit_base&, mcode_size_t*, ARGS_T&&, uint8_t sz, core::core_expr_dot const * = {}) const;
+    void emit(core::emit_base&, ARGS_T&&, stmt_info_t const& info) const;
     
     // retrieve instance from index
     static auto& get(uint16_t idx) { return (*index_base)[idx]; }
@@ -143,7 +143,6 @@ struct tgt_mcode_t
     defn_t     const& defn() const;
     fmt_t      const& fmt()  const;
     val_c_t    const& vals() const;
-    uint8_t           sz(stmt_info_t stmt_info) const;
     std::string       name() const;
 
     // machine code size in bytes (for format & serialize)
@@ -156,7 +155,7 @@ struct tgt_mcode_t
     }
     
     // machine code arranged as words: big-endian array (ie highest order words first)
-    auto code(stmt_info_t stmt_info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
+    auto code(stmt_info_t const& stmt_info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
     stmt_info_t extract_info(mcode_size_t const *) const;
 
     void print(std::ostream&) const;

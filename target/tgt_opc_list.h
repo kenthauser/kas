@@ -51,7 +51,6 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         // 2) dummy base opcode (store stmt_info & some arg_info)
         // 3) serialized args
 
-        auto& di      = data.di();
         auto& fixed   = data.fixed;
         auto inserter = base_t::tgt_data_inserter(data);
         inserter.reserve(-1);       // skip fixed area
@@ -122,9 +121,8 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         // evaluate with new `fits`
         insn.eval(ok, args, info, data.size, fits, this->trace);
 
-        // if list reduced to single mcode, update `args` per mcode
-        // XXX should this be `if relaxed?` for fewer updates
-        if (ok.count() == 1)
+        // if size resolved, update args
+        if (data.size.is_relaxed())
             args.update();          // write-back new modes
 
         // save new "OK"
@@ -157,8 +155,8 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         // extract mcode & emit
         auto& mc = *insn.mcodes[index];
         auto code = mc.code(stmt_info);
-        auto sz   = mc.sz(stmt_info);
-        mc.emit(base, code.data(), args, sz, dot_p);
+        stmt_info.bind(mc);
+        mc.emit(base, args, stmt_info);
     }
 };
 }

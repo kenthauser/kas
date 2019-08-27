@@ -195,7 +195,7 @@ private:
 m68k_parsed_arg_t::operator m68k_arg_t ()
 {
 
-#define TRACE_M68K_PARSE
+//#define TRACE_M68K_PARSE
 #ifdef  TRACE_M68K_PARSE
     static const char * const parse_names[] = 
         { "MISSING", "DIR", "IMMED", "INDIR", "INCR", "DECR", "PAIR", "BITFIELD"
@@ -344,7 +344,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 case E_EXPR:
                 case E_INT:
                 case E_FLOAT:
-                    return { MODE_IMMED, base_value };
+                    return { MODE_IMMEDIATE, base_value };
                 default:
                     return { error_msg::ERR_immediate, base_value };
             }

@@ -75,11 +75,12 @@ namespace kas::core
                     ));
         }
 
-        virtual result_t disp(expr_t const& e, fits_min_t min, fits_max_t max, int fixed) const override
+        virtual result_t disp(expr_t const& e, fits_min_t min, fits_max_t max, int delta) const override
         {
-            //std::cout << "core_fits: disp: " << e;
-            //std::cout << " min/max = " << min << "/" << max;
-            //std::cout << ", delta: " << delta << std::endl;
+            std::cout << "core_fits: disp: " << e;
+            std::cout << " min/max = " << min << "/" << max;
+            std::cout << ", delta: " << delta;
+            std::cout << ", fuzz: "  << fuzz  << std::endl;
 
             if (auto p = e.get_fixed_p())
                 return no;      // constants are not displacements
@@ -87,7 +88,7 @@ namespace kas::core
             return e.apply_visitor(
                 x3::make_lambda_visitor<result_t>
                     ([&](auto const& value)
-                        { return (*this)(value, min, max, fixed); }
+                        { return (*this)(value, min, max, delta); }
                     ));
         }
 
@@ -212,14 +213,18 @@ namespace kas::core
 
             if (min_result == no)
                 return no;
-            
-            // check max with fuzz
-            //std::cout << "max (" << offset.max << ", " << min+fuzz << ", " << max-fuzz << ")" << std::endl;
-            auto max_result = (*this)(offset.max, min+fuzz, max-fuzz);
 
+            // check max w/o fuzz
+            auto max_result = (*this)(offset.max, min, max);
             if (max_result == yes)
                 return yes;
-            return maybe;
+
+            // check max with fuzz
+            max_result = (*this)(offset.max, min, max+fuzz);
+
+            if (max_result == yes)
+                return maybe;
+            return no;
         }
 
     private:

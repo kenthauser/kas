@@ -8,7 +8,7 @@
 namespace kas::m68k
 {
 
-auto m68k_arg_t::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
+auto m68k_arg_t::ok_for_target(m68k_stmt_info_t const& info) -> kas::parser::kas_error_t
 {
     auto error = [this](const char *msg)
         {
@@ -28,6 +28,8 @@ auto m68k_arg_t::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
     }
 
     // perform checks 
+    auto sz = info.sz();
+
     // 1. can't access address register as byte
     if (mode() == MODE_ADDR_REG && sz == OP_SIZE_BYTE)
        return error(error_msg::ERR_addr_reg_byte);
@@ -60,7 +62,7 @@ auto m68k_arg_t::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
                 break;
             case MODE_INDEX:
             case MODE_PC_INDEX:
-            case MODE_IMMED:
+            case MODE_IMMEDIATE:
             case MODE_DIRECT_SHORT:
             case MODE_DIRECT_LONG:
                 return hw::coldfire::name{};
@@ -100,7 +102,7 @@ uint8_t m68k_arg_t::cpu_mode() const
     auto normalized = mode_normalize();
     if (normalized < 7)
         return normalized;
-    if (normalized <= MODE_IMMED)
+    if (normalized <= MODE_IMMEDIATE)
         return 7;
     return -1;
 }
@@ -122,7 +124,7 @@ uint8_t m68k_arg_t::cpu_reg() const
     auto normalized = mode_normalize();
     if (normalized < 7)
         return reg_num;
-    if (normalized <= MODE_IMMED)
+    if (normalized <= MODE_IMMEDIATE)
         return normalized - 7;
     return 0;
 }

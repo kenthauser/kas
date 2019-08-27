@@ -119,9 +119,15 @@ namespace kas::m68k
         case MODE_PC_INDEX:
             pc_reg = true;
             break;      // pc + index
-        case MODE_IMMED:
+        case MODE_IMMEDIATE:
         case MODE_IMMED_QUICK:
             return os << "#" << base;
+        case MODE_BRANCH_BYTE:
+            return os << base << ":b";
+        case MODE_BRANCH_WORD:
+            return os << base << ":w";
+        case MODE_BRANCH_LONG:
+            return os << base << ":l";
         case MODE_DIRECT:
         case MODE_DIRECT_ALTER:
         case MODE_REG:

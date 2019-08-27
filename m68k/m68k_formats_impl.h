@@ -31,15 +31,14 @@ using fmt_generic = tgt::opc::tgt_fmt_generic<m68k_mcode_t, Ts...>;
 // reg-mode sets 6-bits.
 // NB: MODE_BITS can be set to 1 to allow only general register extract
 template <int SHIFT, unsigned WORD = 0, int MODE_OFFSET = 3, unsigned MODE_BITS = 3>
-struct fmt_reg_mode
+struct fmt_reg_mode : m68k_mcode_t::fmt_t::fmt_impl
 {
     using val_t = m68k_mcode_t::val_t;
     
     // MODE BITS are either 3 or 1 (ie general mode or general register)
     static constexpr auto MODE_BIT_MASK = (1 << MODE_BITS) - 1; 
 
-    static bool insert(uint16_t* op, m68k_arg_t& arg
-                     , val_t const *val_p, core::core_expr_dot const *dot_p)
+    bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
         // validator returns 6 bits: mode + reg
         auto value    = val_p->get_value(arg);
@@ -59,17 +58,12 @@ struct fmt_reg_mode
         return p && !*p;
     }
     
-    static void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p)
+    void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
         auto value     = op[WORD];
         auto reg_num   = (value >>  SHIFT)                & 7;
         auto cpu_mode  = (value >> (SHIFT+MODE_OFFSET)) & MODE_BIT_MASK; 
         val_p->set_arg(arg, reg_num | (cpu_mode << 3));
-    }
-
-    static void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
-                   , val_t const *val_p, core::core_expr_dot const *dot_p)
-    {
     }
 };
 
@@ -78,50 +72,33 @@ template <unsigned SHIFT, unsigned WORD, unsigned BITS>
 struct fmt_reg_mode<SHIFT, WORD, 3, BITS> : fmt_generic<SHIFT, 3 + BITS, WORD> {};
 
 // insert a "branch displacement"
-struct fmt_displacement
+struct fmt_displacement : m68k_mcode_t::fmt_t::fmt_impl
 {
     using val_t = m68k_mcode_t::val_t;
-    
-    static bool insert(uint16_t* op, m68k_arg_t& arg
-                     , val_t const *val_p, core::core_expr_dot const *dot_p)
-    {
-        return false;
-    }
-    
-    static void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p)
-    {
-    }
-
-    // insert relocation in first word
-    static void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
-                   , val_t const *val_p, core::core_expr_dot const *dot_p)
+   
+    // branch `machine code` insertions handled by `emit_reloc`
+    void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p) const override
     {
         // calculate size here
-        core::core_fits fits(dot_p);
-        m68k_arg_t::op_size_t size;
-        val_p->size(arg, 0, fits, size);
-
-        switch (size())
+        switch (arg.mode())
         {
         default:
-            throw std::logic_error{"invalid fmt_displacement size"};
+            std::cout << "emit_relocation: bad arg: " << arg << ", mode = " << +arg.mode() << std::endl;
+            throw std::logic_error{"invalid fmt_displacement mode"};
 
-        case 2:   // byte offset
+        case MODE_BRANCH_BYTE:
         {
             // 8-bits & pc-relative
             static constexpr core::core_reloc reloc { core::K_REL_ADD, 8, true };
-            arg.set_mode(MODE_BRANCH_BYTE);
             
-            // displacement from pc + 2, size is 1 byte
+            // displacement from pc + 2, 1 byte offset from base machine code word
             base << core::emit_reloc(reloc, -2, 1) << arg.expr;
             break;
         }
-        case 4:   // word offset
-            arg.set_mode(MODE_BRANCH_WORD);
-            break;
-        case 6:   // long offset
-            arg.set_mode(MODE_BRANCH_LONG);
-            *op |= 0xff;            // long offset will follow
+        case MODE_BRANCH_WORD:
+            break;                  // zero LSBs indicate word offset will follow
+        case MODE_BRANCH_LONG:
+            *op |= 0xff;            // ones LSBs indicate long offset will follow
             break;
         }
     }
@@ -131,7 +108,7 @@ struct fmt_displacement
 // Format PAIRs: Must specify offsets. Default is 3-bits in WORD1
 // NB: if single register is specified for `PAIR` it is duplicated in both positions
 template <unsigned SHIFT_0, unsigned SHIFT_1, unsigned BITS = 3, unsigned WORD_0 = 1, unsigned WORD_1 = WORD_0>
-struct fmt_reg_pair
+struct fmt_reg_pair : m68k_mcode_t::fmt_t::fmt_impl
 {
     // assert anticipated cases
     static_assert(BITS == 3 || BITS == 4);
@@ -141,8 +118,7 @@ struct fmt_reg_pair
     static constexpr auto MASK_0 = (BITS_MASK << SHIFT_0);
     static constexpr auto MASK_1 = (BITS_MASK << SHIFT_1);
 
-    static bool insert(uint16_t* op, m68k_arg_t& arg
-                     , val_t const *val_p, core::core_expr_dot const *dot_p)
+    bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
         auto get_reg = [](auto& e)
             {
@@ -190,7 +166,7 @@ struct fmt_reg_pair
         return true;
     }
     
-    static void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p)
+    void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
         // XXX if pair is resolved to same reg twice, should disassembler report
         // XXX `REG` or `REG:REG`. I belive all insns assemble the same with
@@ -213,10 +189,6 @@ struct fmt_reg_pair
         arg.outer = gen_reg(reg2);
         arg.set_mode(MODE_PAIR);
     }
-    static void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
-                   , val_t const *val_p, core::core_expr_dot const *dot_p)
-    {
-    }
 };
 
 // coldfire MAC throws bits all over the place
@@ -226,12 +198,11 @@ struct fmt_reg_pair
 
 // data format from validator: 4 LSBs: general register #, SUB_BIT << 4
 template <unsigned SHIFT, int B4_OFFSET, unsigned SUB_BIT, unsigned WORD = 0, unsigned SUB_WORD = 1>
-struct fmt_subreg
+struct fmt_subreg : m68k_mcode_t::fmt_t::fmt_impl
 {
     using val_t = m68k_mcode_t::val_t;
 
-    static bool insert(uint16_t* op, m68k_arg_t& arg
-                     , val_t const *val_p, core::core_expr_dot const *dot_p)
+    bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
 #if 0
         // validator return 6 bits: mode + reg
@@ -248,7 +219,7 @@ struct fmt_subreg
         return true;
     }
     
-    static void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p)
+    void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
 #if 0
         auto value = op[WORD];
@@ -259,21 +230,19 @@ struct fmt_subreg
 #endif
     }
 
-    static void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
-                   , val_t const *val_p, core::core_expr_dot const *dot_p)
+    void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p) const override
     {
     }
 };
 
 // emac accN stored: (optionally complemented) LSB in word 0, bit 7; MSB in word 1, bit 5
 template <bool INVERT_LSB = false>
-struct fmt_emac_an
+struct fmt_emac_an : m68k_mcode_t::fmt_t::fmt_impl
 {
     using val_t = m68k_mcode_t::val_t;
     //static constexpr auto MASK = (7 << SHIFT) | (7 << (SHIFT+MODE_OFFSET));
 
-    static bool insert(uint16_t* op, m68k_arg_t& arg
-                     , val_t const *val_p, core::core_expr_dot const *dot_p)
+    bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
 #if 0
         // validator return 6 bits: mode + reg
@@ -290,7 +259,7 @@ struct fmt_emac_an
         return true;
     }
     
-    static void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p)
+    void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
 #if 0
         auto value = op[WORD];
@@ -300,8 +269,7 @@ struct fmt_emac_an
         val_p->set_arg(*arg, reg_num | cpu_mode);
 #endif
     }
-    static void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg
-                   , val_t const *val_p, core::core_expr_dot const *dot_p)
+    void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p) const override
     {
     }
 };

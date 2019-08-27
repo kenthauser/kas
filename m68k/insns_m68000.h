@@ -333,25 +333,29 @@ using cc = cc_sz<OpCode, sz_void, INFO_SIZE_VOID, CC_LIST, Args...>;
 using m68k_branch_cc_v = list<list<>
 
 // DBcc -- `dbra` is alternate spelling of `dbf`
-, cc<0x50c8, all_cc_names, STR("db"), m68k, FMT_DBCC, DATA_REG, DIRECT>
-, defn<sz_v, STR("dbra"), OP<0x51c8, m68k>, FMT_DBCC, DATA_REG, DIRECT>
+, cc<0x50c8, all_cc_names, STR("db"), m68k, FMT_DBCC, DATA_REG, BRANCH>
+, defn<sz_v, STR("dbra"), OP<0x51c8, m68k>, FMT_DBCC, DATA_REG, BRANCH>
 
-// jmps
+// jmps & branches
+// the 68k user manual defines JMP, JSR, Bcc, BRA, and BSR
+// the disassembler picks first match. The assembler picks first shortest
+// (ie it will prefer JMP PC@(word) to BRA.w since they're the same size)
 , defn<sz_v, STR("jmp"), OP<0x4ec0>, FMT_0RM, CONTROL>
 , defn<sz_v, STR("jsr"), OP<0x4e80>, FMT_0RM, CONTROL>
 
 // branch & branch subroutine
-, defn<sz_v, STR("bra"),  OP<0x6000>, FMT_BRANCH, DIRECT_DEL>
-, defn<sz_v, STR("jra"),  OP<0x6000>, FMT_BRANCH, DIRECT_DEL>
-, defn<sz_v, STR("bsr"),  OP<0x6100>, FMT_BRANCH, DIRECT>
-, defn<sz_v, STR("jbsr"), OP<0x6100>, FMT_BRANCH, DIRECT>
-#if 0
-, cc<0x6000, cc_names, STR("b"), void, FMT_BRANCH, DIRECT_DEL>
-, cc<0x6000, cc_names, STR("j"), void, FMT_BRANCH, DIRECT_DEL>
-#else
-, defn<sz_cc_all, STR("b"), OP<0x6000>, FMT_BRANCH, DIRECT_DEL>
-, defn<sz_cc_all, STR("j"), OP<0x6000>, FMT_BRANCH, DIRECT_DEL>
-#endif
+, defn<sz_cc, STR("b") ,  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
+, defn<sz_v, STR("bra"),  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
+, defn<sz_v, STR("bsr"),  OP<0x6100>, FMT_BRANCH, BRANCH>
+
+// declare alternate spellings of branch instructions
+, defn<sz_cc, STR("j") ,  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
+, defn<sz_v, STR("jra"),  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
+, defn<sz_v, STR("jmp"),  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
+
+, defn<sz_v, STR("jsr"),  OP<0x6100>, FMT_BRANCH, BRANCH>
+, defn<sz_v, STR("jbsr"), OP<0x6100>, FMT_BRANCH, BRANCH>
+
 // Scc (coldfire: data register only)
 , cc<0x50c0, all_cc_names, STR("s"), m68k    , FMT_0RM, MEM_ALTER>
 , cc<0x50c0, all_cc_names, STR("s"), coldfire, FMT_0RM, DATA_REG>

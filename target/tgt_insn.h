@@ -47,8 +47,6 @@ struct tgt_insn_t
     template <typename...Ts>
     mcode_t const *eval(bitset_t&, Ts&&...) const;
 
-    uint8_t get_sz() const;
-
     template <typename OS> void print(OS& os) const;
     
     // retrieve instance from (zero-based) index

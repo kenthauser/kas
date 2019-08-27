@@ -88,7 +88,6 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
         
         auto args    = base_t::serial_args(reader, mcode);
         auto code_p  = args.code_p;
-        auto sz      = mcode.sz(args.info);
 
         // print "mcode name"
         os << mcode.name();
@@ -127,21 +126,21 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
         auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
         
         auto args    = base_t::serial_args(reader, mcode);
-        auto sz      = mcode.sz(args.info);
+        auto info    = args.info;
+        info.bind(mcode);
 
         // base instruction size
-        op_size_t new_size = mcode.base_size();
+        data.size = mcode.base_size();
        
         // evaluate args with new `fits`
         for (auto& arg : args)
-        {
-            auto old_mode = arg.mode();
-            new_size += arg.size(sz, &fits);
-            //if (arg.mode() != old_mode)
-            //    args.update_mode(arg);      // XXX fold into TGT method...Not called for Z80...
-        }
+            data.size += arg.size(info, &fits);
+
+        // if resolved, write back new sizes
+        if (data.size.is_relaxed())
+            args.update();
         
-        return new_size;
+        return data.size;
     }
 
     void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *dot_p) const override
@@ -153,11 +152,9 @@ struct tgt_opc_general : tgt_opc_base<MCODE_T>
         //  3) serialized args
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
-
         auto args    = base_t::serial_args(reader, mcode);
-        auto sz      = mcode.sz(args.info);
-        
-        mcode.emit(base, args.code_p, args, sz, dot_p);
+
+        mcode.emit(base, args, args.info);
     }
 };
 }

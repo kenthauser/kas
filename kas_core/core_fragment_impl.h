@@ -177,17 +177,31 @@ void core_fragment::set_size()
     // This to prevent overwriting addresses modified by "align" & "org" 
 
     auto end = end_addr();
+    std::cout << "frag: set_size: " << *this << " end_addr = " << end << std::endl;
     if (next_p_)
         next_p_->set_base(end);
 
     // are addresses final?
     frag_is_relaxed = end.is_relaxed();
 
+    if (seg_p->relax_frag)   
+        std::cout << "frag:set_size: relax_frag = " << *seg_p->relax_frag << std::endl;
+    else
+        std::cout << "frag:set_size: relax_frag = nullptr" << std::endl;
+
     // start relax at next frag.
     if (frag_is_relaxed)
-        seg_p->relax_frag = next_p_;
+        seg_p->relax_frag = {};
+    else if (!seg_p->relax_frag)
+        seg_p->relax_frag = this;
+       
+    if (seg_p->relax_frag)   
+        std::cout << "frag:set_size: relax_frag = " << *seg_p->relax_frag << std::endl;
+    else
+        std::cout << "frag:set_size: relax_frag = nullptr" << std::endl;
 
-    std::cout << "frag: set_size: " << *this << " is relaxed" << std::endl;
+    if (frag_is_relaxed)
+        std::cout << "frag: set_size: " << *this << " is relaxed" << std::endl;
 
 }
 

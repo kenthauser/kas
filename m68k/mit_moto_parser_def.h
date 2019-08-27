@@ -308,28 +308,23 @@ auto gen_stmt = [](auto& ctx)
     {
         // result is `stmt_t`
         m68k_stmt_t stmt;
+        auto& flags = stmt.get_flags();
         
+        // unpack args & evaluate
         auto& args    = x3::_attr(ctx);
         stmt.insn_p   = boost::fusion::at_c<0>(args);
         auto& ccode   = boost::fusion::at_c<1>(args);
         auto& has_dot = boost::fusion::at_c<2>(args);
         auto& size    = boost::fusion::at_c<3>(args);
        
-        auto& flags = stmt.get_flags();
-
-        std::cout << "gen_stmt: insn = " << stmt.insn_p->name << std::endl;
-
         if (ccode)
         {
             // different condition code maps for general & fp insns
             // floating point insn names start with `f`
-            bool is_fp = stmt.insn_p->name[0] == 'f';
             flags.has_ccode = true;
-            flags.fp_ccode  = is_fp;
-            auto code = m68k_ccode::code(*ccode, is_fp);
+            flags.fp_ccode  = stmt.is_fp();
+            auto code = m68k_ccode::code(*ccode, flags.fp_ccode);
 
-            std::cout << "gen_stmt: has_ccode: code = " << +code << std::endl;
-            
             if (code < 0)
             {
                 // invalid condition code
@@ -339,25 +334,27 @@ auto gen_stmt = [](auto& ctx)
                 flags.ccode = code;
         }
 
-        if (has_dot)
-            flags.has_dot = true;
-        
         if (size)
         {
+            uint8_t sz;
             switch (*size)
             {
-                case 'l': case 'L': flags.arg_size = OP_SIZE_LONG;   break;
-                case 's': case 'S': flags.arg_size = OP_SIZE_SINGLE; break;
-                case 'x': case 'X': flags.arg_size = OP_SIZE_XTND;   break;
-                case 'p': case 'P': flags.arg_size = OP_SIZE_PACKED; break;
-                case 'w': case 'W': flags.arg_size = OP_SIZE_WORD;   break;
-                case 'd': case 'D': flags.arg_size = OP_SIZE_DOUBLE; break;
-                case 'b': case 'B': flags.arg_size = OP_SIZE_BYTE;   break;
+                case 'l': case 'L': sz = OP_SIZE_LONG;   break;
+                case 's': case 'S': sz = OP_SIZE_SINGLE; break;
+                case 'x': case 'X': sz = OP_SIZE_XTND;   break;
+                case 'p': case 'P': sz = OP_SIZE_PACKED; break;
+                case 'w': case 'W': sz = OP_SIZE_WORD;   break;
+                case 'd': case 'D': sz = OP_SIZE_DOUBLE; break;
+                case 'b': case 'B': sz = OP_SIZE_BYTE;   break;
+                default:
+                    x3::_pass(ctx) = false;
+                    break;
             }
+            flags.bound_sz = flags.arg_size = sz;   // init bound_sz to parsed size
         }
         else 
         {
-            flags.arg_size = OP_SIZE_VOID;
+            flags.bound_sz = flags.arg_size = OP_SIZE_VOID;
             if (has_dot)
                 x3::_pass(ctx) = false;     // size req'd if dot
         }
@@ -369,10 +366,10 @@ auto gen_stmt = [](auto& ctx)
 // invalid options error out in `m68k_insn_t::validate_args` 
 auto const parse_insn = rule<class _, m68k_stmt_t> {"instruction"} = 
         lexeme[(m68k_insn_x3()          // insn_base_name
-                > -m68k_ccode::x3()     // optional condition-code
-                > -char_('.')           // optional dot
-                > -m68k_sfx::x3()       // optional suffix
-                >>!x3::graph            // end token
+                >> -m68k_ccode::x3()    // optional condition-code
+                >> -char_('.')          // optional dot
+                >> -alpha               // optional suffix
+                >> !graph               // end token
                 )[gen_stmt]
                 ];
 

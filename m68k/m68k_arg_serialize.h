@@ -16,7 +16,7 @@ namespace kas::m68k
 {
 
 template <typename Inserter, typename ARG_INFO>
-bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
+bool m68k_arg_t::serialize (Inserter& inserter, m68k_stmt_info_t const& info, ARG_INFO *info_p)
 {
     auto save_expr = [&](auto expr, auto size) -> bool
         {
@@ -38,6 +38,9 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
     // here the `has_reg` bit may be set spuriously
     // (happens when no appropriate validator present)
     // don't save if no register present
+    if (info_p->has_reg || mode() != MODE_IMMED_QUICK)
+        info_p->has_data = true;
+    
     if (!reg.valid())
         info_p->has_reg = false;
     if (info_p->has_reg)
@@ -103,14 +106,13 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
                 }
                 
                 // emit relocations if inner or outer unresolved
-                // XXX
                 return info_p->has_expr || info_p->has_data;
             }                
             break;
     }
 
     if (info_p->has_data)
-        return save_expr(expr, size(sz).max);
+        return save_expr(expr, size(info).max);
 
     // didn't save expression
     return false;
@@ -120,7 +122,7 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
 // deserialize m68k arguments: for format, see above
 // save pointer `extension_t` word if present
 template <typename Reader, typename ARG_INFO>
-void m68k_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p, m68k_extension_t **wb_p)
+void m68k_arg_t::extract(Reader& reader, m68k_stmt_info_t const& info, ARG_INFO const *info_p, m68k_extension_t **wb_p)
 {
     if (info_p->has_reg)
     {
@@ -211,9 +213,9 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p, m68
             case MODE_MOVEP:
                 bytes = -2;
                 break;
-            case MODE_IMMED:
+            case MODE_IMMEDIATE:
                 // immed is signed
-                bytes = -immed_info(sz).sz_bytes;
+                bytes = -immed_info(info.sz()).sz_bytes;
                 break;
             case MODE_ADDR_DISP_LONG:
             case MODE_DIRECT_LONG:
