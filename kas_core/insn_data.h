@@ -21,7 +21,7 @@ namespace opc
         using fixed_t = FIXED_T;
 
         // access as fixed value or array of smaller types
-        fixed_t    fixed;
+        fixed_t     fixed;
         uint8_t     data[sizeof(fixed_t)];
 
         // access as `core` types

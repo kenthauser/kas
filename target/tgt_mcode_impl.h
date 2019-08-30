@@ -123,7 +123,7 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         emit(core::emit_base& base, ARGS_T&& args, stmt_info_t const& info) const
 {
     // 0. get base machine code data
-    auto machine_code = code(info);
+    auto machine_code = derived().code(info);
     auto code_p       = machine_code.data();
 
     // 1. apply args & emit relocs as required

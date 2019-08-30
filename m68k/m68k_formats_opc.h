@@ -17,13 +17,16 @@
 namespace kas::m68k::opc
 {
 
+struct m68k_opc_branch;
+
 // get `opc` generic base classes
-using fmt_gen  = tgt::opc::tgt_fmt_opc_gen <m68k_mcode_t>;
-using fmt_list = tgt::opc::tgt_fmt_opc_list<m68k_mcode_t>;
+using fmt_gen    = tgt::opc::tgt_fmt_opc_gen   <m68k_mcode_t>;
+using fmt_list   = tgt::opc::tgt_fmt_opc_list  <m68k_mcode_t>;
+using fmt_branch = tgt::opc::tgt_fmt_opc_branch<m68k_mcode_t>;
 
 #if 1
 
-using fmt_branch    = fmt_gen;
+//using fmt_branch    = fmt_gen;
 using fmt_dbcc      = fmt_gen;
 using fmt_cas2      = fmt_gen;
 using fmt_cp_branch = fmt_gen;

@@ -139,7 +139,6 @@ private:
         }
         else if (auto *rp = expr.get_p<m68k_reg_t>())
         {
-            std::cout << "classify: kind = " << rp->kind() << std::endl;
             switch (rp->kind())
             {
             case RC_DATA:
@@ -202,7 +201,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
         , "MOTO_INDEX", "MOTO_MEM", "INDIR_W", "INDIR_L"
         , "SFX_W", "SFX_L", "SFX_U"
         };
-    
+
     // print arg
     std::cout << "m68k_parsed_arg_t: mode = ";
     if (mode.mode < std::extent<decltype(parse_names)>::value)

@@ -19,7 +19,7 @@
 //                          size of resulting object code. First, shortest, is selected.
 
 #include "tgt_stmt.h"
-//#include "tgt_opc_quick.h"
+#include "tgt_opc_quick.h"
 
 // args is a container of "MCODE_T::arg_t" from comma-separated arguments
 //
@@ -50,7 +50,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     // get kas types from opcode
     using core::opcode;
     auto trace  = opcode::trace;
-    trace = nullptr;
+    //trace = nullptr;
     //trace = &std::cout;
     
     // convenience references 
@@ -164,45 +164,42 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
         args.clear();
 
 
-#if 0
     // logic: here at least one arg matches. 
     // 1) if constant `args`, emit binary code
     // 2) if single match, use format for selected opcode
     // 3) otherwise, use opcode for "list"
 
+    // XXX force list or general during debug
+    //matching_mcode_p = {};      // XXX force list for all
+    //args_are_const   = {};      // XXX don't use quick
+
     if (args_are_const)
     {
-        op_size_t insn_size;
         expression::expr_fits fits;
 
         // all const args: can select best opcode & calculate size
         if (!matching_mcode_p)
         {
-            matching_mcode_p = insn.eval(ok, args, insn_size, fits, trace);
+            matching_mcode_p = insn.eval(ok, args, info, data.size, fits, trace);
         }
 
         // single opcode matched: calculate size
         else
         {
-            insn_size = matching_mcode_p->base_size();
-            for (auto& arg : args)
-                insn_size += arg.size(fits);
+            info.bind(*matching_mcode_p);
+            matching_mcode_p->size(args, info, data.size, fits, trace);
         }
 
-        if (trace)
-            *trace << "size = " << insn_size << std::endl;
-
-        // if binary data fits in "fixed" area of opcode, just emit as binary data
-        if (insn_size() <= sizeof(fixed))
+        // XXX if binary data fits in "fixed" area of opcode, just emit as binary data
+        if (data.size() <= sizeof(data.fixed.fixed))
         {
-            static opc::tgt_opc_quick<mcode_size_t> opc_quick;
+            static opc::tgt_opc_quick<mcode_t> opc_quick;
 
-            if (opc_quick.proc_args(data, *matching_mcode_p, args, insn_size()))
-                return &opc_quick;
+            opc_quick.proc_args(data, *matching_mcode_p, args, info);
+            return &opc_quick;
         }
     }
-#endif
-    matching_mcode_p = {};      // XXX force list for all
+
     
     // if `insn` not resolved to single `mcode`, use list
     if (!matching_mcode_p)
@@ -212,7 +209,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     return matching_mcode_p->fmt().get_opc().gen_insn(
                   insn
                 , ok
-                , matching_mcode_p
+                , *matching_mcode_p
                 , std::move(args)
                 , info
 

@@ -177,4 +177,9 @@ M68K Notes (m68k.input)
 
 31. frags marked `relaxed` when they're not.
 
+32. `ref_loc_t` instances are 64 bits. need to reduce to 32 bits. probably by storing "referenced" type in
+    loc map & using single 32-bit index to retrieve both.
+
+33. `quick` now just `fixed`. Need to generalize.
+
 

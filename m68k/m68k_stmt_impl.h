@@ -132,7 +132,7 @@ void m68k_stmt_info_t::print(std::ostream& os) const
     os << "sz = " << sz;
     
     if (has_ccode)
-        os << " ccode = " << ccode;
+        os << " ccode = " << m68k_ccode::name(ccode, fp_ccode);
 }
 
 }

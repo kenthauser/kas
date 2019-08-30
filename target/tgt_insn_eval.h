@@ -186,7 +186,8 @@ auto eval_insn_list
 template <typename MCODE_T, typename TST_T, unsigned MAX_MCODES, typename INDEX_T>
 template <typename...Ts>
 auto tgt_insn_t<MCODE_T, TST_T, MAX_MCODES, INDEX_T>
-        ::eval(bitset_t& ok, Ts&&...args) const -> mcode_t const *
+        ::eval(bitset_t& ok, Ts&&...args) const
+        -> MCODE_T const *
 {
     return eval_insn_list(*this, ok, std::forward<Ts>(args)...);
 }

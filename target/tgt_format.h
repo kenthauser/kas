@@ -14,8 +14,9 @@
 // insert returns `true` if argument completely stored in machine code
 
 #include "kas_core/opcode.h"
-#include "tgt_opc_general.h"
 #include "tgt_opc_list.h"
+#include "tgt_opc_general.h"
+#include "tgt_opc_branch.h"
 
 namespace kas::tgt::opc
 {
@@ -110,7 +111,7 @@ public:
     virtual opcode_t& get_opc() const = 0;
 };
 
-// generic types to support `opc_general & `opc_list` opcodes
+// generic types to support `opc_general`, `opc_list` & `opc_branch` opcodes
 template <typename MCODE_T>
 struct tgt_fmt_opc_gen : virtual MCODE_T::fmt_t
 {
@@ -132,6 +133,18 @@ struct tgt_fmt_opc_list : virtual MCODE_T::fmt_t
         return opc;
     }
 };
+
+template <typename MCODE_T>
+struct tgt_fmt_opc_branch : virtual MCODE_T::fmt_t
+{
+    using opcode_t = typename MCODE_T::opcode_t;
+    virtual opcode_t& get_opc() const override 
+    {
+        static tgt_opc_branch<MCODE_T> opc; 
+        return opc;
+    }
+};
+
 
 //
 // generic `fmt_impl` to extract N bits at OFFSET for WORD (0-baased)

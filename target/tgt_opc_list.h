@@ -7,13 +7,11 @@ namespace kas::tgt::opc
 {
 
 template <typename MCODE_T>
-struct tgt_opc_list : tgt_opc_base<MCODE_T>
+struct tgt_opc_list : MCODE_T::opcode_t
 {
-    using base_t  = tgt_opc_base<MCODE_T>;
     using mcode_t = MCODE_T;
 
-    using base_t::serial_args;
-   
+    using base_t       = typename mcode_t::opcode_t;
     using stmt_t       = typename mcode_t::stmt_t;
     using insn_t       = typename mcode_t::insn_t;
     using bitset_t     = typename mcode_t::bitset_t;
@@ -25,6 +23,9 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
     using data_t       = typename base_t::data_t;
     using Iter         = typename base_t::Iter;
 
+    // expose internal type in base class (without "this->" prefix)
+    using base_t::serial_args;
+    
     OPC_INDEX();
     
     using NAME = str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_LIST")>;
@@ -34,7 +35,7 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
                  // results of "validate" 
                    insn_t const&  insn
                  , bitset_t&      ok
-                 , mcode_t const *mcode_p
+                 , mcode_t const& mcode
                  , stmt_args_t&&  args
                  , stmt_info_t    stmt_info
 
@@ -56,8 +57,7 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
         inserter.reserve(-1);       // skip fixed area
         
         inserter(insn.index);
-        auto& mc = *insn.list_mcode_p;
-        tgt_insert_args(inserter, mc, std::move(args), stmt_info);
+        tgt_insert_args(inserter, mcode, std::move(args), stmt_info);
         
         // store OK bitset in fixed area
         fixed.fixed = ok.to_ulong();
@@ -93,6 +93,9 @@ struct tgt_opc_list : tgt_opc_base<MCODE_T>
             os << delim << arg;
             delim = ",";
         }
+        
+        // ...finish with `info`
+        std::cout << " ; info: " << args.info;
     }
 
     op_size_t calc_size(data_t& data, core::core_fits const& fits) const override

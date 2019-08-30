@@ -106,7 +106,7 @@ struct val_branch : m68k_mcode_t::val_t
                     std::cout << "val_branch:yes: arg = " << arg << std::endl;
                     return expr_fits::yes;
                 default:
-                    std::cout << "val_branch:maybe: mode = " << +mode << std::endl;
+                    std::cout << "val_branch:maybe: mode = " << std::dec << +mode << std::endl;
                     return expr_fits::maybe;
             }
             op_size.min += 2;

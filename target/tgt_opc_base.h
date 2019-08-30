@@ -19,6 +19,7 @@ struct tgt_opc_base : core::opc::opcode
     using insn_t       = typename mcode_t::insn_t;
     using bitset_t     = typename insn_t::bitset_t;
     using arg_t        = typename mcode_t::arg_t;
+    using arg_mode_t   = typename mcode_t::arg_mode_t;
     using stmt_info_t  = typename mcode_t::stmt_info_t;
     using stmt_args_t  = typename mcode_t::stmt_args_t;
     using mcode_size_t = typename mcode_t::mcode_size_t;
@@ -38,7 +39,7 @@ struct tgt_opc_base : core::opc::opcode
                  // results of "validate" 
                    insn_t const&  insn
                  , bitset_t&      ok
-                 , mcode_t const *mcode_p
+                 , mcode_t const& mcode
                  , stmt_args_t&&  args
                  , stmt_info_t    stmt_info
 

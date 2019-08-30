@@ -54,7 +54,7 @@ struct insn_container_data
         std::advance(iter(), _cnt);
     }
 
-    void update(op_size_t size)
+    void update(op_size_t const& size)
     {
         _size = size;
     }

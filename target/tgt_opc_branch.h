@@ -1,17 +1,14 @@
-#ifndef KAS_TARGET_TGT_OPC_GENERAL_H
-#define KAS_TARGET_TGT_OPC_GENERAL_H
+#ifndef KAS_TARGET_TGT_OPC_BRANCH_H
+#define KAS_TARGET_TGT_OPC_BRANCH_H
 
 
-#include "tgt_opc_base.h"
+#include "target/tgt_opc_base.h"
 
 namespace kas::tgt::opc
 {
-using namespace kas::core::opc;
-
-using op_size_t = kas::core::opcode::op_size_t;
 
 template <typename MCODE_T>
-struct tgt_opc_general : MCODE_T::opcode_t
+struct tgt_opc_branch : MCODE_T::opcode_t
 {
     using mcode_t = MCODE_T;
     using base_t  = typename mcode_t::opcode_t;
@@ -31,10 +28,9 @@ struct tgt_opc_general : MCODE_T::opcode_t
     using Iter         = typename base_t::Iter;
 
     OPC_INDEX();
-
-    using NAME = str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_GEN")>;
+    using NAME = str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_BRANCH")>;
     const char *name() const override { return NAME::value; }
-   
+
     core::opcode *gen_insn(
                  // results of "validate" 
                    insn_t const&  insn
@@ -43,14 +39,14 @@ struct tgt_opc_general : MCODE_T::opcode_t
                  , stmt_args_t&&  args
                  , stmt_info_t    stmt_info
 
-                 // and opcode data
-                 , data_t&  data
+                 // and kas_core boilerplate
+                 , data_t& data
                  ) override
     {
         // get size for this opcode
         if (auto trace = this->trace)
         {
-            *trace << "tgt_opc_general::gen_insn: " << insn.name;
+            *trace << "tgt_opc_branch::gen_insn: " << insn.name;
             auto delim = ": ";
             for (auto& arg : args)
             {
@@ -62,7 +58,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
         }
         
         // don't bother to trace, know mcode matches
-        mcode.size(args, mcode.sz(stmt_info), data.size, expression::expr_fits{});
+        //mcode.size(args, mcode.sz(stmt_info), data.size, expression::expr_fits{});
 
         // serialize format (for resolved instructions)
         // 1) mcode index
@@ -71,8 +67,15 @@ struct tgt_opc_general : MCODE_T::opcode_t
         
         auto inserter = base_t::tgt_data_inserter(data);
         inserter(mcode.index);
-        tgt_insert_args(inserter, mcode, std::move(args), stmt_info);
+        auto machine_code = mcode.code(stmt_info);
+        auto code_p       = machine_code.data();
+        inserter(*code_p);      // one word
+        inserter(std::move(args.front().expr));
+
+        //inserter(std::move(args.front()), M_SIZE_AUTO);
+        data.size = {0, 6};     // ranges from deleted to long branch/jmp
         return this;
+
     }
     
     void fmt(data_t const& data, std::ostream& os) const override
@@ -80,41 +83,26 @@ struct tgt_opc_general : MCODE_T::opcode_t
         // deserialize insn data
         // format:
         //  1) opcode index
-        //  2) opcode binary code (word or long)
-        //  3) serialized args
-        
+        //  2) destination as expression
+
         auto  reader = base_t::tgt_data_reader(data);
-        auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto  code_p = reader.get_fixed_p(mcode.code_size());
+        auto& dest   = reader.get_expr();
         
-        auto args    = base_t::serial_args(reader, mcode);
-        auto code_p  = args.code_p;
+        auto  info   = mcode.extract_info(code_p);
+        
+        // print "name"
+        os << mcode.defn().name();
+        
+        // ...print opcode...
+        os << std::hex << " " << std::setw(mcode.code_size()) << *code_p;
 
-        // print "mcode name"
-        os << mcode.name();
-        
-        // ...print machine code
-        // ...first word
-        os << std::hex;
-
-        auto delim = " ";
-        auto n = mcode.code_size();
-        for(auto n = mcode.code_size(); n > 0; ++code_p)
-        {
-            os << delim << +*code_p;
-            delim = "'";
-            n -= sizeof(*code_p);
-        }
-        
         // ...and args
-        delim = " : ";
-        for (auto& arg : args)
-        {
-            os << delim << arg;
-            delim = ",";
-        }
+        os << " : " << dest;
 
-        // ...finish with `info`
-        std::cout << " ; info: " << args.info;
+        // ...and info
+        os << " ; info = " << info;
     }
 
     op_size_t calc_size(data_t& data, core::core_fits const& fits) const override
@@ -122,41 +110,51 @@ struct tgt_opc_general : MCODE_T::opcode_t
         // deserialize insn data
         // format:
         //  1) opcode index
-        //  2) opcode binary code (word or long)
-        //  3) serialized args
+        //  2) destination as expression
 
         auto  reader = base_t::tgt_data_reader(data);
-        auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto  code_p = reader.get_fixed_p(mcode.code_size());
+        auto& dest   = reader.get_expr();
         
-        auto  args   = base_t::serial_args(reader, mcode);
-        auto& info   = args.info;
-
-        // calculate instruction size
+        auto  info   = mcode.extract_info(code_p);
         info.bind(mcode);
-        mcode.size(args, info, data.size, fits, this->trace);
-      
-        // if resolved, write back new sizes
-        if (data.size.is_relaxed())
-            args.update();
+
+        // get "final" validator (dest always last arg)
+        auto& vals    = mcode.defn().vals();
+        auto  arg_cnt = vals.size();
+        auto  val_p   = typename mcode_t::val_c_t::iter(vals, arg_cnt - 1);
+
+        arg_t arg(arg_mode_t::MODE_DIRECT, dest);
+        auto  ok = val_p->size(arg, info, fits, data.size);
+        if (ok == fits.yes)
+            *code_p |= arg.mode() - arg_mode_t::MODE_BRANCH_BYTE + 1;
         
-        return data.size;
+        return data.size; 
     }
 
     void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *dot_p) const override
     {
-        // deserialze insn data
-        // format:
-        //  1) opcode index
-        //  2) opcode binary code (word or long)
-        //  3) serialized args
         auto  reader = base_t::tgt_data_reader(data);
-        auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
-        auto  args   = base_t::serial_args(reader, mcode);
-        auto& info   = args.info;
-
+        auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto  code_p = reader.get_fixed_p(mcode.code_size());
+        auto& dest   = reader.get_expr();
+        
+        // extract `info` from code_p
+        auto  info   = mcode.extract_info(code_p);
         info.bind(mcode);
+
+        // extract `branch mode` from code_p
+        using arg_mode_t = typename mcode_t::arg_mode_t;
+        auto mode = static_cast<arg_mode_t>((*code_p & 7) + arg_mode_t::MODE_BRANCH_BYTE - 1);
+
+        // generate "args"
+        arg_t args[] = {{mode, dest}};
+
+        // emit
         mcode.emit(base, args, info);
     }
 };
 }
+
 #endif
