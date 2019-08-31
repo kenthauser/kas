@@ -119,27 +119,28 @@ namespace detail
        
     // use helper function to perform partial specialization
     template <typename mcode_size_t, typename Inserter>
-    struct quick_emit_t : core::emit_base
+    struct quick_base_t : core::emit_base
     {
-        quick_emit_t(Inserter& inserter, unsigned size)
+        quick_base_t(Inserter& inserter, unsigned size)
             : stream(inserter, size)
             , emit_base{stream}
             {}
-        
+   #if 1
         void emit(core::core_insn& insn, core::core_expr_dot const *dot_p) override
         {
-            // dot unknown 
-            insn.emit(*this, nullptr);
-        }
+            // XXX can't delete virtual method
+            throw std::logic_error("quick_base_t::emit: XXX");
+        } 
+#endif
 
         quick_stream<mcode_size_t, Inserter> stream;
     };
 
     // c++17 doesn't allow partial deduction guides. Sigh. 
     template <typename mcode_size_t, typename Inserter>
-    auto quick_emit(Inserter& inserter, unsigned size)
+    auto quick_base(Inserter& inserter, unsigned size)
     {
-        return quick_emit_t<mcode_size_t, Inserter>(inserter, size);
+        return quick_base_t<mcode_size_t, Inserter>(inserter, size);
     }
 }
 
@@ -164,8 +165,8 @@ struct tgt_opc_quick : core::opcode
     {
         // NB: data.size already set
         auto inserter = tgt_data_inserter_t<MCODE_T>(data);
-        auto emitter  = detail::quick_emit<mcode_size_t>(inserter, data.size());
-        mcode.emit(emitter, std::move(args), info);
+        auto base     = detail::quick_base<mcode_size_t>(inserter, data.size());
+        mcode.emit(base, std::move(args), info);
     }
     
     
