@@ -19,7 +19,7 @@ struct elf_stream : core::emit_stream
     }
             
 private:
-    void const *swap(void const *p, std::size_t width) const
+    void const *swap(void const *p, uint8_t width) const
     {
         auto& cvt = elf_output.cvt;
         switch(width)
@@ -56,7 +56,7 @@ private:
         }
     }
 
-    void put(core::e_chan_num num, void const *p, std::size_t width)
+    void put(core::e_chan_num num, void const *p, uint8_t width)
     {
         if (num == core::EMIT_DATA)
             es_data_p->put(p, width);
@@ -64,12 +64,12 @@ private:
 
 
 public:
-    void put_uint(core::e_chan_num num, std::size_t width, uint64_t data) override
+    void put_uint(core::e_chan_num num, uint8_t width, int64_t data) override
     {
         put(num, swap(&data, width), width);
     }
 
-    void put_data(core::e_chan_num num, void const *data_p, std::size_t chunk_size, std::size_t num_chunks) override
+    void put_data(core::e_chan_num num, void const *data_p, uint8_t chunk_size, uint8_t num_chunks) override
     {
         if (num != core::EMIT_DATA)
             return;
@@ -162,11 +162,11 @@ public:
     }
 
     // put_str & put_diag are used in generation of listings...
-    void put_str(core::e_chan_num num, std::size_t, std::string const& s) override
+    void put_str(core::e_chan_num num, uint8_t, std::string const& s) override
     {
     }
 
-    void put_diag(core::e_chan_num num, std::size_t width, parser::kas_diag const& diag) override
+    void put_diag(core::e_chan_num num, uint8_t width, parser::kas_diag const& diag) override
     {
         if (num == core::EMIT_DATA) {
             auto& cvt = elf_output.cvt;

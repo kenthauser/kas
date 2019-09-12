@@ -132,7 +132,6 @@ struct tgt_opc_general : MCODE_T::opcode_t
         auto& info   = args.info;
 
         // calculate instruction size
-        info.bind(mcode);
         mcode.size(args, info, data.size, fits, this->trace);
       
         // if resolved, write back new sizes
@@ -154,7 +153,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
         auto  args   = base_t::serial_args(reader, mcode);
         auto& info   = args.info;
 
-        info.bind(mcode);
+        info.bind(mcode);       // XXX verify needed. List performs & general uses modified `info`
         mcode.emit(base, args, info);
     }
 };

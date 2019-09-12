@@ -10,11 +10,11 @@ namespace kas::core
     struct emit_formatted : emit_stream
     {
         std::function<void(e_chan_num, std::string const&)> put;
-        std::function<void(e_chan_num, std::size_t, parser::kas_diag const&)> emit_diag;
-        std::function<void(e_chan_num, std::size_t, std::string msg)> emit_reloc;
-        std::map<unsigned, std::size_t> position_map;
+        std::function<void(e_chan_num, uint8_t, parser::kas_diag const&)> emit_diag;
+        std::function<void(e_chan_num, uint8_t, std::string msg)> emit_reloc;
+        std::map<unsigned, uint8_t> position_map;
         const core_section *section_p{};
-        std::size_t  *position_p{};
+        uint8_t  *position_p{};
         //int64_t  offset {};
         const char *suffix_p {};
 
@@ -25,7 +25,7 @@ namespace kas::core
             set_section(core_section::get(".text"));
         }
 
-        std::string fmt_hex(std::size_t n, unsigned long value, const char *suffix = nullptr) const
+        std::string fmt_hex(uint8_t n, unsigned long value, const char *suffix = nullptr) const
         {
             // format value as hex string. append (reasonable length) suffix.
             static constexpr int MAX_SUFFIX_LENGTH = 10;
@@ -55,21 +55,21 @@ namespace kas::core
             return p;   // NB: not dangling -- ctor for std::string
         }
 
-        std::string fmt_addr(std::size_t n, core_expr_dot const& dot) const
+        std::string fmt_addr(uint8_t n, core_expr_dot const& dot) const
         {
             auto offset = dot.offset()();
             auto suffix = section_suffix(dot.section());
             return fmt_hex(n, offset, suffix);
         }
 
-        std::string fmt_addr(std::size_t n, core_addr const& addr, unsigned long delta = 0) const
+        std::string fmt_addr(uint8_t n, core_addr const& addr, unsigned long delta = 0) const
         {
             auto offset = addr.offset();
             auto suffix = section_suffix(addr.section());
             return fmt_hex(n, offset() + delta, suffix);
         }
 
-        void put_uint (e_chan_num num, std::size_t width, uint64_t data) override
+        void put_uint (e_chan_num num, uint8_t width, emit_value_t data) override
         {
             put(num, fmt_hex(width, data, suffix_p));
             if (num == EMIT_DATA)
@@ -79,14 +79,14 @@ namespace kas::core
         }
 
         template <typename T>
-        void do_put_data(e_chan_num num, void const *v, std::size_t num_chunks)
+        void do_put_data(e_chan_num num, void const *v, uint8_t num_chunks)
         {
             auto p = static_cast<T const *>(v);
             while (num_chunks--)
                 put(num, fmt_hex(sizeof(T), *p++));
         }
 
-        void put_data (e_chan_num num, void const *p, std::size_t chunk_size, std::size_t num_chunks) override
+        void put_data (e_chan_num num, void const *p, uint8_t chunk_size, uint8_t num_chunks) override
         {
             switch (chunk_size) 
             {
@@ -172,12 +172,12 @@ namespace kas::core
             emit_reloc(num, width, s);
         }
 
-        void put_str(e_chan_num num, std::size_t, std::string const& s) override
+        void put_str(e_chan_num num, uint8_t, std::string const& s) override
         {
             put(num, s);
         }
 
-        void put_diag(e_chan_num num, std::size_t width, parser::kas_diag const& diag) override
+        void put_diag(e_chan_num num, uint8_t width, parser::kas_diag const& diag) override
         {
             emit_diag(num, width, diag);
             if (num == EMIT_DATA)
@@ -256,7 +256,7 @@ namespace kas::core
 
         decltype(emit_formatted::emit_diag) emit_diag(std::string &out)
         {
-            return [&](e_chan_num num, std::size_t width, parser::kas_diag const& diag)
+            return [&](e_chan_num num, uint8_t width, parser::kas_diag const& diag)
             {
                 out += "[Err: " + diag.message + "] ";
             };
@@ -264,7 +264,7 @@ namespace kas::core
 
         decltype(emit_formatted::emit_reloc) emit_reloc(std::string &out)
         {
-            return [&](e_chan_num num, std::size_t width, std::string const& msg)
+            return [&](e_chan_num num, uint8_t width, std::string const& msg)
             {
                 out += "[Reloc: " + msg + "] ";
             };

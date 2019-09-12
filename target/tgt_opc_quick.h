@@ -1,156 +1,114 @@
 #ifndef KAS_TARGET_TGT_OPC_QUICK_H
 #define KAS_TARGET_TGT_OPC_QUICK_H
 
-// Special opcode for the extremely common case of 
+// Special opcode for the extremely common case of fully resolved
+// instructions.
 //
 // All args are constant (registers or fixed point)
 //
+// All args must be "written" as power-of-2 multiple of size of opcode (`mcode_size_t).
+// NB: the sizeof the arg need not be power-of-2 multiple, but can be emitted
+// as multiple power-of-2 writes (eg: m68k extension word with inner/outer expressions)
+//
 // Note that this `opcode` is instruction-set agnostic. Only the
-// `machine-code` size is variable. 
+// `machine-code` size is used.
 
 // Implementation notes:
 //
-// A "new" emit-subclass, `emit_quick` is created. This "emitter" accepts
-// fixed writes of size sizeof `mcode_size_t`. All others it absorbs & 
-// sets error flag. At end of "opcode.emit", the error flag is tested to see
-// if "quick" requirements are satisified.
+// A new `core::emit_stream` subclass created which stores formatted data in
+// the `opcode_data` area for insn. A special `core::emit_base` subclass
+// created to trampoline data to/from `emit_stream` subclass.
+//
+// Data is stored as a sequence of `{width,value}` pairs. The first element
+// is always the opcode & has (assumed) width `mcode_size_t`. Additional widths
+// are stored dynamically created `width iterator` managed by `detail::quick_arg_iter`.
+//
+// A single special case of an insn consisting of two `mcode_size_t` values is handled
+// specially. This case is especially common and allows two 16-bit values to fit in the
+// 32-bit opcode fixed data area. The code to handle this case is found in the co-operating
+// methods: `write_quick_data::operator()` & `read_quick_data::operator()`
 
-#include "tgt_data_inserter.h"
+
+#include "tgt_opc_quick_detail.h"
 #include "kas_core/opcode.h"
-#include "kas_core/emit_stream.h"
-#include "kas_core/core_insn.h"
 
 
 namespace kas::tgt::opc
 {
 
-namespace detail
+// base for `tgt_opc_quick`, dependent on `opcode size` only
+template <typename mcode_size_t>
+struct tgt_opc_quick_base : core::opcode
 {
-    // allow all 
-    template <typename mcode_size_t, typename Inserter>
-    struct quick_stream : core::emit_stream
+    using emit_value_t = typename core::emit_base::emit_value_t;
+    using iter_t       =  detail::quick_arg_iter<mcode_size_t, emit_value_t>;
+
+    struct write_quick_data 
     {
-        using e_chan_num = core::e_chan_num;
-        quick_stream(Inserter& inserter, unsigned size) : di(inserter), size(size) {}
-
-        void put_uint(e_chan_num num, std::size_t width, uint64_t data) override
-        {
-        #if 1
-            di(data, width);
-        #else
-            // if mcode_t insert, perform
-            if (width == sizeof(mcode_size_t) && ok && size)
-            {
-                di(data, width);
-                size -= width;
-            }
-
-            // wrong size or exceeds max size
-            else
-                set_error(num);
-        #endif
-
-        }
-        void put_data(e_chan_num num, void const *, std::size_t, std::size_t) override
-        {
-            set_error(__FUNCTION__);        // always error
-        }
-        
-        // emit reloc
-        void put_symbol_reloc(
-                  e_chan_num num
-                , core::reloc_info_t const& info
-                , uint8_t width
-                , uint8_t offset
-                , core::core_symbol const& sym
-                , int64_t addend
-                ) override
-        {
-            set_error(__FUNCTION__);
-        }
-        
-        void put_section_reloc(
-                  e_chan_num num
-                , core::reloc_info_t const& info
-                , uint8_t width
-                , uint8_t offset
-                , core::core_section const& section
-                , int64_t addend
-                ) override
-        {
-            set_error(__FUNCTION__);
-        }
-
-        // emit diagnostics
-        void put_diag(e_chan_num num, std::size_t, parser::kas_diag const&) override
-        {
-            set_error(__FUNCTION__);
-        };
-
-        // XXX emit temp diagnostic message (type not known)
-        void put_str(e_chan_num num, std::size_t, std::string const&) override
-        {
-            set_error(__FUNCTION__);
-        }
-        
-        // current section interface
-        void set_section(core::core_section const&) override
-        {
-            set_error(__FUNCTION__);
-        };
-
-        std::size_t position() const override
-        {
-            set_error(__FUNCTION__);
-            return {};
-        }
-
-    private:
-        void set_error(const char *fn) const
-        {
-            std::string msg{fn};
-            throw std::logic_error("quick_stream: " + msg + " unimplemented");
-        }
-
-        
-        Inserter& di;
-        unsigned  size;
-    };
-       
-    // use helper function to perform partial specialization
-    template <typename mcode_size_t, typename Inserter>
-    struct quick_base_t : core::emit_base
-    {
-        quick_base_t(Inserter& inserter, unsigned size)
-            : stream(inserter, size)
-            , emit_base{stream}
+        write_quick_data(data_t& data) : inserter(data), size(data.size())
             {}
-   #if 1
-        void emit(core::core_insn& insn, core::core_expr_dot const *dot_p) override
+        
+        // money function. write `arg`
+        void operator()(uint8_t width, emit_value_t value);
+
+        // static trampoline to money function
+        static void cb_fn(void *cb_handle, uint8_t width, emit_value_t value)
         {
-            // XXX can't delete virtual method
-            throw std::logic_error("quick_base_t::emit: XXX");
-        } 
-#endif
+            (*static_cast<write_quick_data *>(cb_handle))(width, value);
+        }
 
-        quick_stream<mcode_size_t, Inserter> stream;
+        tgt_data_inserter_t<mcode_size_t, emit_value_t> inserter;
+        iter_t  iter;
+        int16_t size;
     };
-
-    // c++17 doesn't allow partial deduction guides. Sigh. 
-    template <typename mcode_size_t, typename Inserter>
-    auto quick_base(Inserter& inserter, unsigned size)
+    
+    struct read_quick_data
     {
-        return quick_base_t<mcode_size_t, Inserter>(inserter, size);
+        read_quick_data(data_t const& data) : reader(data), size(data.size())
+            {}
+
+        operator bool() const { return size > 0; }
+       
+        // money function. read `arg`
+        std::pair<std::uint8_t, emit_value_t> operator()();
+        
+        tgt_data_reader_t<mcode_size_t, emit_value_t> reader;
+        iter_t  iter;
+        int16_t size;
+        bool    first_read{true};
+    };
+    
+    void fmt(data_t const& data, std::ostream& os) const override
+    {
+        auto reader = read_quick_data(data);
+        auto sep = "";
+        os << std::hex;
+        while (reader)
+        {
+            auto [width, value] = reader();
+            os << sep << value;
+            sep = " ";
+        }
     }
-}
 
+    void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *) const override
+    {
+        auto reader = read_quick_data(data);
+        while (reader)
+        {
+            auto [width, value] = reader();
+            base << core::set_size(width) << value;
+        }
+    }
+};
 
-// just a "standard" opcode
+// just a "standard" opcode; not derived from `tgt_opc_base`
 template <typename MCODE_T>
-struct tgt_opc_quick : core::opcode
+struct tgt_opc_quick : tgt_opc_quick_base<typename MCODE_T::mcode_size_t>
 {
     using mcode_size_t = typename MCODE_T::mcode_size_t;
     using stmt_info_t  = typename MCODE_T::stmt_info_t;
+    using base_t       = tgt_opc_quick_base<mcode_size_t>;
 
     OPC_INDEX();
 
@@ -164,34 +122,67 @@ struct tgt_opc_quick : core::opcode
                  , stmt_info_t const& info)
     {
         // NB: data.size already set
-        auto inserter = tgt_data_inserter_t<MCODE_T>(data);
-        auto base     = detail::quick_base<mcode_size_t>(inserter, data.size());
+        auto writer = typename base_t::write_quick_data(data);
+        auto base   = detail::quick_base<mcode_size_t>(writer.cb_fn, &writer);
         mcode.emit(base, std::move(args), info);
     }
-    
-    
-    void fmt(data_t const& data, std::ostream& os) const override
-    {
-        auto words = data.size() / sizeof(mcode_size_t);
-        auto p     = data.fixed.begin<mcode_size_t>();
-
-        os << std::hex;
-        while (words--)
-        {
-            os << +*p++;
-            if (words)
-                os << " ";
-        }
-    }
-
-    void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *dot_p) const override
-    {
-        auto words = data.size() / sizeof(mcode_size_t);
-        auto p     = data.fixed.begin<mcode_size_t>();
-        while (words--)
-            base << *p++;
-    }
 };
+
+//
+// cooperating read/write methods to store quick data as `{width, value}` pairs
+//
+// NB: since this is a templated implemetation, it can be overridden via a 
+// NB: specialization in the proper namespace.
+//
+
+template <typename mcode_size_t>
+void tgt_opc_quick_base<mcode_size_t>::write_quick_data::operator()
+                                            (uint8_t width, emit_value_t value)
+{
+    // Opcode is first with `sizeof(mcode_size_t)`. Always write w/o iter.
+    if (!size && !iter)
+        iter = { inserter() };      // construct new width iterator
+
+    // if `width` iter, store width first
+    if (iter)
+        *iter++ = width;
+
+    // save value
+    inserter(value, width);
+    
+    // allow single arg with width `sizeof(mcode_size_t)` to be written w/o iter
+    if (size == 2 * sizeof(mcode_size_t))
+        size = sizeof(mcode_size_t);
+    else
+        size = 0;       // otherwise all args use `iter`
+}
+
+
+template <typename mcode_size_t>
+auto tgt_opc_quick_base<mcode_size_t>::read_quick_data::operator()()
+    -> std::pair<std::uint8_t, emit_value_t>
+{
+    // if first read, get opcode
+    auto width = sizeof(mcode_size_t);
+    if (iter)
+        width = *iter++;
+
+    // retrieve data
+    auto value = reader.get_fixed(width);
+    size -= width;
+
+    // prepare for next cycle if not done
+    // no iter if done or if single arg with size `sizeof(mcode_size_t)`
+    if (size && !iter)
+    {
+        if (!first_read || size != sizeof(mcode_size_t))
+            iter = { reader.get_fixed_p() };    // construct new width iterator
+        first_read = false;
+    }
+    
+    // return result pair
+    return { width, value };
+}
 
 }
 

@@ -68,8 +68,10 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
 
     // validate args as appropriate for target
     // also note if all args are "const" (ie: just registers & literals)
-    bool args_are_const = true;
-    if (auto diag = derived().validate_args(insn, args, args_are_const, trace))
+    // NB: all const args are candidates for `quick` format
+    // NB: some target may have other requirements for `quick` opcode
+    bool ok_for_quick = true;
+    if (auto diag = derived().validate_args(insn, args, ok_for_quick, trace))
     {
         data.fixed.diag = diag;
         return {};
@@ -103,7 +105,6 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
             *trace << "validating: " << +i << ": ";
 
         // test if arguments match mcode
-        info.bind(*mcode_p);
         auto result    = mcode_p->validate_args(args, info, trace);
         auto diag      = result.first;
         auto cur_index = result.second;
@@ -171,41 +172,27 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
 
     // XXX force list or general during debug
     //matching_mcode_p = {};      // XXX force list for all
-    //args_are_const   = {};      // XXX don't use quick
+    //ok_for_quick   = {};      // XXX don't use quick
 
-    if (args_are_const)
+    if (ok_for_quick)
     {
         expression::expr_fits fits;
 
         // all const args: can select best opcode & calculate size
-        if (!matching_mcode_p)
-        {
-            matching_mcode_p = insn.eval(ok, args, info, data.size, fits, trace);
-        }
-
-        // single opcode matched: calculate size
-        else
-        {
-            info.bind(*matching_mcode_p);
+        if (matching_mcode_p)
             matching_mcode_p->size(args, info, data.size, fits, trace);
-        }
+        else
+            matching_mcode_p = insn.eval(ok, args, info, data.size, fits, trace);
 
-        // XXX if binary data fits in "fixed" area of opcode, just emit as binary data
-        if (data.size() <= sizeof(data.fixed.fixed))
-        {
-            static opc::tgt_opc_quick<mcode_t> opc_quick;
-
-            opc_quick.proc_args(data, *matching_mcode_p, args, info);
-            return &opc_quick;
-        }
+        static opc::tgt_opc_quick<mcode_t> opc_quick;
+        opc_quick.proc_args(data, *matching_mcode_p, args, info);
+        return &opc_quick;
     }
 
-    
     // if `insn` not resolved to single `mcode`, use list
     if (!matching_mcode_p)
         matching_mcode_p = insn_t::list_mcode_p;
 
-    info.bind(*matching_mcode_p);
     return matching_mcode_p->fmt().get_opc().gen_insn(
                   insn
                 , ok
@@ -233,7 +220,7 @@ template <typename ARGS_T, typename TRACE_T>
 auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
         validate_args(insn_t const& insn
                     , ARGS_T& args
-                    , bool& args_are_const
+                    , bool& ok_for_quick
                     , TRACE_T *trace
                     ) const -> kas_error_t
 {
@@ -254,9 +241,9 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
             return diag;
 
         // test if constant    
-        if (args_are_const)
+        if (ok_for_quick)
             if (!arg.is_const())
-                args_are_const = false;
+                ok_for_quick = false;
     }
     
     return {};

@@ -180,6 +180,12 @@ M68K Notes (m68k.input)
 32. `ref_loc_t` instances are 64 bits. need to reduce to 32 bits. probably by storing "referenced" type in
     loc map & using single 32-bit index to retrieve both.
 
-33. `quick` now just `fixed`. Need to generalize.
+*33. `quick` now just `fixed`. Need to generalize.
 
+*34. refactor `tgt_data_inserter_t` to accept `chunk_type` (for chunk) & `data_type` (for arg).
+    Default `data_type` to `expression::e_fixed_t`
+
+*35. enforce `tgt_data_inserter_t`, `tgt_data_reader_t` takes size/data upto `data_type`
+
+36. still problem with int64_t being converted to expr. Fix tgt_data_inserter unsigned short, int>
 

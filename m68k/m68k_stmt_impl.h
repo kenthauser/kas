@@ -21,7 +21,7 @@ void m68k_stmt_t::operator()(Context const& ctx)
 template <typename ARGS_T, typename TRACE_T>
 auto  m68k_stmt_t::validate_args(insn_t const& insn
                     , ARGS_T& args
-                    , bool& args_are_const
+                    , bool& ok_for_quick
                     , TRACE_T *trace
                     ) const -> kas_error_t
 {
@@ -44,10 +44,14 @@ auto  m68k_stmt_t::validate_args(insn_t const& insn
             if (!is_fp())
                 return ERR_FLOAT;
 #endif
-        // test if constant    
-        if (args_are_const)
+        // test if constant & ok for `quick` format
+        if (ok_for_quick)
+        {
             if (!arg.is_const())
-                args_are_const = false;
+                ok_for_quick = false;
+            else if (arg.is_immed() && is_fp())
+                ok_for_quick = false;
+        }
     }
     
     return {};
@@ -122,7 +126,6 @@ void m68k_stmt_info_t::bind(m68k_mcode_t const& mc) const
     }
     bound_sz = sz;
 }
-
 
 void m68k_stmt_info_t::print(std::ostream& os) const
 {

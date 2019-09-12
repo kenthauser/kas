@@ -25,6 +25,7 @@ struct tgt_opc_base : core::opc::opcode
     using mcode_size_t = typename mcode_t::mcode_size_t;
 
     using op_size_t    = typename core::opcode::op_size_t;
+    using emit_value_t = typename core::emit_base::emit_value_t;
    
 
     //
@@ -50,12 +51,12 @@ struct tgt_opc_base : core::opc::opcode
 protected:
     static auto tgt_data_inserter(data_t& data)
     {
-        return tgt_data_inserter_t<MCODE_T>(data);
+        return tgt_data_inserter_t<mcode_size_t, emit_value_t>(data);
     }
 
     static auto tgt_data_reader(data_t const& data)
     {
-        return tgt_data_reader_t<MCODE_T>(data);
+        return tgt_data_reader_t<mcode_size_t, emit_value_t>(data);
     }
 
     // create a "container" for deserialized args
@@ -127,9 +128,7 @@ void tgt_opc_base<MCODE_T>::template serial_args_t<READER_T>::update() const
 {
     auto n = 0;
     for (auto& arg : *this)
-    {
         tgt_arg_update<MCODE_T>(n++, arg, wb_handle);
-    }
 }
 
 }

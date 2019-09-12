@@ -110,7 +110,6 @@ struct m68k_opc_general : m68k_stmt_opcode
 
     void emit(Iter it, uint16_t cnt, core::emit_base& base, core::core_expr_dot const& dot) override
     {
-#if 1
         // deserialze insn data
         // format:
         //  1) opcode index
@@ -122,7 +121,6 @@ struct m68k_opc_general : m68k_stmt_opcode
         auto  args   = serial_args{reader, opcode.fmt(), op_p};
 
         opcode.emit(base, op_p, args, dot);
-#endif
     }
 };
 }

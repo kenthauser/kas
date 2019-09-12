@@ -75,6 +75,9 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
            , std::ostream *trace) const
     -> fits_result
 {
+    // apply `mcode` constraints to info
+    info.bind(derived());
+
     // hook into validators
     auto& val_c = vals();
     auto  val_p = val_c.begin();

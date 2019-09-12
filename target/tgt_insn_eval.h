@@ -11,7 +11,7 @@ auto eval_insn_list
         ( INSN_T const& insn
         , OK_T& ok
         , ARGS_T& args
-        , STMT_INFO_T const& stmt_info
+        , STMT_INFO_T& stmt_info
         , core::opc::opcode::op_size_t& insn_size
         , expression::expr_fits const& fits
         , std::ostream* trace
@@ -59,7 +59,7 @@ auto eval_insn_list
     for (auto op_iter = insn.mcodes.begin(); bitmask; ++op_iter, ++index)
     {
         bool op_is_ok = bitmask & 1;    // test if current was OK
-        bitmask >>= 1;                  // set up for next
+        bitmask >>= 1;                  // set up for next:b 
         if (!op_is_ok)                  // loop if not ok
             continue;
 
@@ -77,9 +77,9 @@ auto eval_insn_list
         if (trace)
             *trace << std::dec << std::setw(2) << index << ": ";
         
-        stmt_info.bind(**op_iter);
         op_size_t size;
-        
+       
+        // NB: size `binds` info & may modify global arg
         auto result = (*op_iter)->size(args, stmt_info, size, fits, trace);
 
         if (result == fits.no)
@@ -172,9 +172,9 @@ auto eval_insn_list
                 arg.set_state(*p++);
 
             // rerun size
-            stmt_info.bind(*mcode_p);
             op_size_t size;
             
+            // NB: size `binds` info. modifies passed arg.
             mcode_p->size(args, stmt_info, size, fits, nullptr);
         }
     }

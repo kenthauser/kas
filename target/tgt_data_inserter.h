@@ -68,13 +68,15 @@ XXX This is obsolete
 
 namespace kas::tgt::opc
 {
-template <typename MCODE_T>
+template <typename VALUE_T, typename EMIT_VALUE_T = int32_t>
 struct tgt_data_inserter_t
 {
-    using value_type = typename MCODE_T::mcode_size_t;
+    using value_type   = VALUE_T;
+    using emit_value_t = EMIT_VALUE_T;
+    using signed_t     = std::make_signed_t<value_type>;
     static_assert(std::is_unsigned_v<value_type>);
-    using signed_t = std::make_signed_t<value_type>;
 
+    // hook into `core_insn` infrastructure
     using data_t   = typename core::opcode::data_t;
     using Inserter = typename data_t::Inserter;
     
@@ -87,7 +89,7 @@ struct tgt_data_inserter_t
         p = data.fixed.begin<value_type>();
     }
 
-    // make sure `n` bytes available in current "segment"
+    // make sure `n` bytes available in current "segment" (fixed or chunk)
     void reserve(unsigned bytes)
     {
         // convert to chunks
@@ -100,8 +102,9 @@ struct tgt_data_inserter_t
     }
 
     // insert fixed or expression
-    value_type* operator()(expr_t&&e, unsigned size = 0)
+    value_type* operator()(expr_t&&e, int size = 0)
     {
+        std::cout << "insert_expr: " << e << " size = " << size << std::endl;
         if (size)
             if (auto ip = e.get_fixed_p())
                 return (*this)(*ip, size);
@@ -111,9 +114,10 @@ struct tgt_data_inserter_t
         return nullptr;
     }
 
-    // insert data via pointer: NB size must be > 0
-    value_type* operator()(value_type *code_p, unsigned size)
+    // insert data via pointer
+    value_type* operator()(value_type *code_p, int size)
     {
+        std::cout << "insert(): " << *code_p << " size = " << size << std::endl;
         reserve(size);
 
         auto p = insert_one(*code_p);
@@ -127,16 +131,22 @@ struct tgt_data_inserter_t
 
     // infer the size & signed/unsigned from T
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
-    value_type* operator()(T const& t, unsigned size = sizeof(T))
+    value_type* operator()(T const& t, int size = 0)
     {
-        if constexpr (std::is_signed_v<T>)
-            return insert_fixed(t, -size);
-        else
-            return insert_fixed(t, size);
+        // NB: `signed` irrevelent on store
+        if (!size)
+            size = sizeof(T);
+        return insert_fixed(t, size);
+    }
+
+    // insert `value_type` zero
+    value_type* operator()()
+    {
+        return (*this)(value_type());
     }
 
 private:
-    value_type* insert_fixed(int i, int size);
+    value_type* insert_fixed(emit_value_t i, int size);
     value_type* insert_one(value_type i);
     
     Inserter& di;
@@ -145,12 +155,33 @@ private:
     short n;
 };
 
-template <typename MCODE_T>
-auto tgt_data_inserter_t<MCODE_T>::insert_fixed(int i, int size) -> value_type *
+template <typename VALUE_T, typename EMIT_VALUE_T>
+auto tgt_data_inserter_t<VALUE_T, EMIT_VALUE_T>::insert_fixed(emit_value_t i, int size) -> value_type *
 {
+    // recurse to save chunks in big-endian order
+    // add support lambda `_save` because c++ loves indirection...
+    auto save = [this](int n, unsigned chunks)
+    {
+        auto _save = [this](int n, unsigned chunks, const auto& _save) -> value_type *
+            {
+                // if multiple chunks, need to return first. 
+                if (--chunks)
+                {
+                    auto result = _save(n >> sizeof(value_type) * 8, chunks, _save);
+                    insert_one(n);
+                    return result;
+                }
+                return insert_one(n);
+            };
+        
+        return _save(n, chunks, _save);
+    };
+
     // Signed irrelevent on store
     if (size < 0)
         size = -size;
+
+    std::cout << "insert_fixed: " << std::hex << i << " size = " << size << std::endl;
 
     // convert bytes to chunks
     auto chunks = (size + sizeof(value_type) - 1)/sizeof(value_type);
@@ -158,26 +189,20 @@ auto tgt_data_inserter_t<MCODE_T>::insert_fixed(int i, int size) -> value_type *
     // no data -- return current pointer
     if (chunks == 0)
         return p;
+    
+    // if one chunk, short-circuit multi-chunk logic
+    if (chunks == 1)
+        return insert_one(i);
 
     // if multiple words, store big-endian & return pointer to first chunk
-    if (chunks > 1)
-    {
-        reserve(chunks);
-        
-        // store first word & save pointer
-        auto first_word  = i >> (--chunks * sizeof(value_type) * 8);
-        auto first_p     = (*this)(first_word, sizeof(value_type));
-        /* store rest */   (*this)(i, size - sizeof(value_type));
-        
-        return first_p;
-    }
-    
-    return insert_one(i);
+    reserve(chunks);
+    return save(i, chunks);
 }
 
-template <typename MCODE_T>
-auto tgt_data_inserter_t<MCODE_T>::insert_one(value_type i) -> value_type *
+template <typename VALUE_T, typename EMIT_VALUE_T>
+auto tgt_data_inserter_t<VALUE_T, EMIT_VALUE_T>::insert_one(value_type i) -> value_type *
 {
+    std::cout << "insert_one: " << std::hex << i << std::endl;
     // save one word in fixed area if room
     if (n)
     {
@@ -192,13 +217,14 @@ auto tgt_data_inserter_t<MCODE_T>::insert_one(value_type i) -> value_type *
 }
 
 // `tgt_data_reader_t`  deserializes data stored by `tgt_data_inserter_t` above.
-template <typename MCODE_T>
+template <typename VALUE_T, typename EMIT_VALUE_T = int32_t>
 struct tgt_data_reader_t
 {
-    using value_type = typename MCODE_T::mcode_size_t;
+    using value_type   = VALUE_T;
+    using emit_value_t = EMIT_VALUE_T;
+    using signed_t   = std::make_signed_t<value_type>;
     static_assert(std::is_unsigned_v<value_type>);
-    using signed_t       = std::make_signed_t<value_type>;
-    
+
     // need iterator to non-const values
     using data_t          = typename core::opcode::data_t;
     using Iter            = typename data_t::Iter;
@@ -221,6 +247,8 @@ struct tgt_data_reader_t
     {
         // convert to chunks
         auto chunks = (bytes + sizeof(value_type) - 1)/sizeof(value_type);
+
+        // reserve in `fixed` or `chunk` space
         if (n == 0)
             chunk_it.reserve(chunks);
         else if (n < chunks)
@@ -235,7 +263,7 @@ struct tgt_data_reader_t
     }
 
     // get fixed value
-    expression::e_fixed_t get_fixed(int size);
+    emit_value_t get_fixed(int size);
 
     // infer the size & signed/unsigned from T
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
@@ -251,7 +279,7 @@ struct tgt_data_reader_t
     // get *mutable* pointer to chunk data
     // used to get pointer to stored machine-code.
     // NB: assume size is positive multiple of sizeof(value_type)
-    value_type* get_fixed_p(int size = 0)
+    value_type* get_fixed_p(int size = sizeof(value_type))
     {
         // get pointer to first word.
         reserve(size);
@@ -289,10 +317,10 @@ private:
     value_type *p;
 };
 
-template <typename MCODE_T>
-expression::e_fixed_t tgt_data_reader_t<MCODE_T>::get_fixed(int size)
+template <typename VALUE_T, typename EMIT_VALUE_T>
+auto tgt_data_reader_t<VALUE_T, EMIT_VALUE_T>::get_fixed(int size) -> emit_value_t
 {
-    expression::e_fixed_t value {};
+    emit_value_t value {};
 
     if (size == 0)
         return 0;

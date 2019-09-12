@@ -29,11 +29,15 @@ struct emit_data;
 
 struct emit_base
 {
-    using result_type = void;       // for apply_visitor
+    using result_type  = void;       // for apply_visitor
+    using emit_value_t = typename emit_stream::emit_value_t;
     
     emit_base(emit_stream& stream) : stream(stream) {}
 
     // Entry point to create instruction output
+    // NB: `dot_p` not to be used to calculate size (via `fits`).
+    // NB: `dot_p` can be used to tag location in dwarf `opc_dw_line`,
+    // NB: for address in listings, and for other debugging facilities
     virtual void emit(struct core_insn& insn, core_expr_dot const *dot_p = {}) = 0;
     virtual ~emit_base() = default;
 
@@ -137,7 +141,7 @@ private:
     static constexpr auto MAX_RELOCS_PER_LOCATION = 4;
     std::array<deferred_reloc_t, MAX_RELOCS_PER_LOCATION> relocs;
 
-    int64_t         data      {};
+    emit_value_t         data      {};
     e_chan_num      e_chan    { EMIT_DATA };
     uint8_t         width     {};
     deferred_reloc_t::flags_t reloc_flags;
@@ -183,7 +187,10 @@ static constexpr auto emit_addr = _set_e_chan<EMIT_ADDR>;
 // emit relocation manipulator
 struct emit_reloc
 {
-    emit_reloc(core_reloc r, int64_t addend = {}, uint8_t offset = {})
+    using emit_value_t = typename emit_base::emit_value_t;
+
+
+    emit_reloc(core_reloc r, emit_value_t addend = {}, uint8_t offset = {})
         : reloc(r), addend(addend), offset(offset) {}
     
     // expect relocatable expression.
@@ -205,7 +212,7 @@ private:
     deferred_reloc_t *r {};
 
     core_reloc reloc;
-    int64_t    addend;
+    emit_value_t  addend;
     uint8_t    offset;
 };
 
@@ -239,7 +246,9 @@ private:
 // NB: not a `core_emit` friend. Use `emit_data` interface
 struct emit_filler
 {
-    emit_filler(std::size_t n, int64_t fill_c = 0, std::size_t fill_w = sizeof(char))
+    using emit_value_t = typename emit_base::emit_value_t;
+    
+    emit_filler(uint8_t n, emit_value_t fill_c = 0, uint8_t fill_w = sizeof(char))
         : num_bytes(n), fill_c(fill_c), fill_w(fill_w) {}
 
 private:
@@ -247,14 +256,14 @@ private:
     friend void operator<<(emit_base& base, emit_filler const& s)
     {
         // for now, just put N bytes of zero
-        static constexpr int64_t zero = 0;
-        base << emit_data(1, s.num_bytes) << &zero;
+        static constexpr emit_value_t zero = 0;
+        base << emit_data(sizeof(char), s.num_bytes) << &zero;
     }
 
-    std::size_t num_bytes;
-    int64_t     fill_c;
-    std::size_t fill_w;
-    emit_base *base_p;
+    emit_base   *base_p;
+    emit_value_t fill_c;
+    uint8_t      fill_w;
+    uint8_t      num_bytes;
 };
 
 }
