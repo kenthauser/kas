@@ -107,11 +107,11 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
     static constexpr tgt::tgt_immed_info sz_info [] =
         {
               {  4    }     // 0: LONG
-            , {  4, 2 }     // 1: SINGLE
-            , { 12, 6 }     // 2: XTND
-            , { 12, 7 }     // 3: PACKED
+            , {  4, 32 }     // 1: SINGLE
+            , { 12, 80 }     // 2: XTND
+            , { 12, 81 }     // 3: PACKED
             , {  2    }     // 4: WORD
-            , {  8, 4 }     // 5: DOUBLE
+            , {  8, 64 }     // 5: DOUBLE
             , {  2, {}, 1 } // 6: BYTE
             , {  0 }        // 7: VOID
         };

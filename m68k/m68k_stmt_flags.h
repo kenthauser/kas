@@ -16,7 +16,7 @@ struct m68k_sfx
 
     static auto x3()
     {
-        // XXX x3 bug: won't accept `const char *` only literal 2019/07/16
+        // x3 bug: won't accept `const char *` only literal KBH 2019/07/16
         //return x3::char_(parse_sfxs);
         return x3::char_("lsxpwdb");
     }
@@ -24,7 +24,7 @@ struct m68k_sfx
     static const char sfx(uint8_t code)
     {
         if (code > 7)
-            throw std::logic_error{"m68k_sfx::sfx: code"};
+            throw std::logic_error{"m68k_sfx::sfx: code = " + std::to_string(code)};
         return suffixes[code];
     }
 };

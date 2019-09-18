@@ -22,6 +22,23 @@ namespace kas::m68k
 
 struct m68k_format_float : expression::ieee754_base<m68k_format_float>
 {
+    using base_t = expression::ieee754_base<m68k_format_float>;
+    using FLT    = base_t::flt_t;
+
+    result_type flt(FLT const& flt, int bits) const
+    {
+        switch (bits)
+        {
+            case 80:
+                return flt2(flt, std::integral_constant<int, 80>());
+            case 81:
+                return m68k_packed(flt);
+            default:
+                return base_t::flt(flt, bits);
+        }
+    }; 
+
+//protected:
     // M68K "extended" format (80-bits)
     // add 80-bit binary overload. Expose existing overloads.
     using base_t::flt2;
@@ -33,7 +50,7 @@ struct m68k_format_float : expression::ieee754_base<m68k_format_float>
         auto mant_p = derived().flt2(flt, FLT2, 15, 64, p);
         p[1] = mant_p[0];
         p[2] = mant_p[1];
-        return { 3, p };
+        return { sizeof(*p), 3, p };
     }
 
     // M68K "packed" output format (80-bits)
@@ -129,7 +146,7 @@ struct m68k_format_float : expression::ieee754_base<m68k_format_float>
             }
         }
 
-        return { 3, output.begin() };
+        return { sizeof(*p), 3, output.begin() };
     }
     
 };

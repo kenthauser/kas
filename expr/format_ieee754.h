@@ -29,34 +29,37 @@ struct ieee754_base
     // chunk format used for data
     using IEEE_DATA_T = uint32_t;
 
-    // number of words of output + pointer
-    //using result_type = std::tuple<int, IEEE_DATA_T const *>;
-    using result_type = std::tuple<int, void const *>;
+    // floating point format result type:
+    // tuple: { bytes_per_chunk, chunk_count, chunk_pointer }
+    using result_type = std::tuple<uint8_t, uint8_t, void const *>;
 
     // conversion target formats
     // NB: FLT2_LB uses the "Leading Bit" protocol
     enum { FLT2, FLT2_LB, FLT10, FLT_FIXED };
 
-    // interface funtions: template arg is N bits
-    template <int N>
-    result_type fixed(FLT const& flt) const
+    // interface funtions: fixed always return integral type. Specify return type.
+    template <typename T = long>
+    T fixed(FLT const& flt) const
     {
-        return derived().fixed(flt, std::integral_constant<int,N>());
+        return derived().fixed(flt, T());
+    }
+    
+    // process IEEE interchange formats
+    result_type flt(FLT const& flt, int bits) const
+    {
+        switch (bits)
+        {
+            case 32:
+                return derived().flt2(flt, std::integral_constant<int, 32>());
+            case 64:
+                return derived().flt2(flt, std::integral_constant<int, 64>());
+            default:
+                break;
+        }
+        return { 0, 0, "Unsupported floating point format" };
     }
 
-    template <int N>
-    result_type flt2(FLT const& flt) const
-    {
-        return derived().flt2(flt, std::integral_constant<int,N>());
-    }
-
-    template <int N>
-    result_type flt10(FLT const& flt) const
-    {
-        return derived().flt10(flt, std::integral_constant<int,N>());
-    }
-
-protected:
+//protected:
     // CRTP casts
     auto& derived() const
         { return *static_cast<derived_t const*>(this); }
@@ -76,7 +79,7 @@ protected:
     {
         // not supported
         //return { 0, "Unsupported IEEE format" };
-        return { 0, nullptr };
+        return { 0, 0, nullptr };
     }
 
     template <typename T>
@@ -84,42 +87,16 @@ protected:
     {
         // not supported
         //return { 0, "Unsupported IEEE format" };
-        return { 0, nullptr };
+        return { 0, 0, nullptr };
     }
 
     // fixed format has general solution
     template <typename T>
-    result_type fixed(FLT const& flt, T) const
+    T fixed(FLT const& flt, T) const
     {
-        static constexpr auto bits  = T::value;
+        static constexpr auto bits  = std::numeric_limits<T>::digits;
         static constexpr auto words = (bits-1)/32 + 1;
-        return fixed(flt, bits, words);
-    }
-
-    // IEEE "single" format (32-bits)
-    result_type flt2(FLT const& flt, std::integral_constant<int,32>) const
-    {
-        // args: format, exponent bits, mantissa bits, buffer
-        auto p      = output.begin();
-        auto mant_p = flt2(flt, FLT2_LB, 8, 24, p);
-        p[0] |= *mant_p;
-        return { 1, p };
-    }
-    
-    // IEEE "double" format (64-bits)
-    result_type flt2(FLT const& flt, std::integral_constant<int,64>) const
-    {
-        // args: format, exponent bits, mantissa bits, buffer
-        auto p      = output.begin();
-        auto mant_p = flt2(flt, FLT2_LB, 11, 53, p);
-        p[0] |= mant_p[0];
-        p[1]  = mant_p[1];
-        return { 2, p };
-    }
-
-    // perform fixed format conversion 
-    result_type fixed(FLT const& flt, unsigned bits, unsigned words) const
-    {
+        
         // IEEE uses 32-bit groups
         static_assert(FLT::MANT_WORD_BITS == 32);
 
@@ -136,7 +113,37 @@ protected:
         if (exp < 0) exp = 0;
         auto [_b, _c, mant]   = flt.get_bin_parts(exp);
        
-        return { words, mant.end() - words };
+        // XXX temp
+        auto p = mant.end();
+        auto n = words;
+        T result{};
+        while (n--)
+        {
+            result <<= sizeof(IEEE_DATA_T);
+            result |= *--p;
+        }
+        return result;
+    }
+
+    // IEEE "single" format (32-bits)
+    result_type flt2(FLT const& flt, std::integral_constant<int,32>) const
+    {
+        // args: format, exponent bits, mantissa bits, buffer
+        auto p      = output.begin();
+        auto mant_p = flt2(flt, FLT2_LB, 8, 24, p);
+        p[0] |= *mant_p;
+        return { sizeof(*p), 1, p };
+    }
+    
+    // IEEE "double" format (64-bits)
+    result_type flt2(FLT const& flt, std::integral_constant<int,64>) const
+    {
+        // args: format, exponent bits, mantissa bits, buffer
+        auto p      = output.begin();
+        auto mant_p = flt2(flt, FLT2_LB, 11, 53, p);
+        p[0] |= mant_p[0];
+        p[1]  = mant_p[1];
+        return { sizeof(*p), 2, p };
     }
 
     // IEEE binary floating point conversion
@@ -150,9 +157,9 @@ protected:
         // convert to fixed point format
         auto [flags, exp, mant] = flt.get_bin_parts(mant_bits);
 
-        std::cout << "flt2: exp = " << std::dec << exp;
-        std::cout << " mant = " << std::hex << mant[0] << " " << mant[1];
-        std::cout << std::endl;
+        //std::cout << "flt2: exp = " << std::dec << exp;
+        //std::cout << " mant = " << std::hex << mant[0] << " " << mant[1];
+        //std::cout << std::endl;
         
         // IEEE biases the exponent based on count of exponent bits
         auto bias = (1 << (exp_bits - 1)) - 1;
@@ -168,7 +175,7 @@ protected:
             // extract mantissa with fewer bits (NB: exp is negative)
             std::tie(std::ignore, std::ignore, mant) = flt.get_bin_parts(mant_bits + exp);
 
-            // denormalized exponent is always zero
+            // denormalied exponent is always zero
             exp = 0;
         }
 
@@ -217,11 +224,11 @@ protected:
         // left justify exponent
         *p = e << (32 - exp_bits - 1);
 
-        std::cout << "flt2: bias = " << std::hex << bias;
-        std::cout << " exp = " << *p;
-        std::cout << " words = " << mant.end() - mant_begin;
-        std::cout << " mant = " << mant[0] << " " << mant[1];
-        std::cout << std::endl;
+        //std::cout << "flt2: bias = " << std::hex << bias;
+        //std::cout << " exp = " << *p;
+        //std::cout << " words = " << mant.end() - mant_begin;
+        //std::cout << " mant = " << mant[0] << " " << mant[1];
+        //std::cout << std::endl;
         
         return mant_begin;
     }
@@ -243,7 +250,7 @@ protected:
         // format float as "<optional -><single digit>.<precision digits><e><+/-><digits>"
         os << std::scientific << std::setprecision(precision-1) << flt();
 
-        std::cout << "get_dec_parts: " << flt() << " -> " << os.str() << std::endl;
+        //std::cout << "get_dec_parts: " << flt() << " -> " << os.str() << std::endl;
 
         // decompose above to signed exponent (integral value) & begin/end pair for digits
         int exp = 0;

@@ -7,7 +7,6 @@
 #include "kas_core/core_emit.h"
 #include "kas_core/core_fits.h"
 
-
 namespace kas::tgt::opc
 {
 // forward declare templates
@@ -91,7 +90,7 @@ struct tgt_mcode_t
     using mcode_sizes_t = opc::tgt_mcode_sizes  <MCODE_T>;
 
     // declare "default" fomatter
-    using fmt_default  = void;      // must be specified per-arch
+    using fmt_default  = void;                      // must be specified per-arch
     
     // declare "default" code size_fn
     using code_size_t  = void;      // specified in `MCODE_T` if needed

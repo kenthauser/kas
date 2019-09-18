@@ -31,9 +31,20 @@
 
 #include <limits>
 
+#if 0
+// XXX
+#include "m68k/m68k_format_float.h"
+#else
+// forward declare
+namespace kas::m68k
+{
+    struct m68k_format_float;
+}
+#endif
 namespace kas::expression
 {
 
+    struct ieee754; 
 
 namespace detail {
 
@@ -132,14 +143,15 @@ namespace detail {
         static inline core::kas_clear _c{base_t::obj_clear};
     };
     
-    
     using kas_float  = core::ref_loc_t<struct float_host_t>;
 
     struct float_host_t : core::kas_object<float_host_t, kas_float>
     {
+        // XXX should be template parameter
+        using flt_format = ieee754;
+
         // IEEE is based on 32-bits groups, so organize mantissa into 32-bit segments
         // most significant is first. 
-
         using emits_value = std::true_type;
         using value_type  = long double;
         using mantissa_t  = std::uint32_t;
@@ -152,16 +164,7 @@ namespace detail {
         static constexpr auto MANT_WORD_BITS = std::numeric_limits<mantissa_t>::digits;
         
         
-        explicit float_host_t(value_type value = {}) : value(std::move(value))
-        {
-#if 0
-            std::ostringstream str;
-
-            str << "kas_float: value = " << std::setprecision(HOST_MANT_BITS);
-            str << std::hexfloat << value;
-            std::cout << str.str() << std::endl;
-#endif
-        }
+        explicit float_host_t(value_type value = {}) : value(std::move(value)) {}
 
         value_type const& operator()() const
         {

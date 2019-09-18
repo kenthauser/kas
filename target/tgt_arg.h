@@ -151,7 +151,7 @@ public:
 
     // emit immediate value
     void emit_immed(core::emit_base& base, uint8_t sz ) const;
-    void emit_flt  (core::emit_base& base, uint8_t fmt) const;
+    void emit_flt  (core::emit_base& base, uint8_t sz, uint8_t fmt) const;
 
     // get/set state during relax: default is `mode` with no `info`
     struct arg_state

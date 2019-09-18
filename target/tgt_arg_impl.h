@@ -15,6 +15,8 @@
 // developed.
 
 #include "tgt_arg.h"
+#include "expr/format_ieee754.h"
+#include "m68k/m68k_format_float.h"
 
 namespace kas::tgt
 {
@@ -253,17 +255,52 @@ template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T>
 void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
             ::emit_immed(core::emit_base& base, uint8_t sz) const
 {
+    using flt_t     = typename expression::e_float_t::object_t;
+    using fmt_float = typename flt_t::flt_format;
+
     auto& info = immed_info(sz);
     if (info.flt_fmt)
-        return emit_flt(base, info.flt_fmt);
+        return derived().emit_flt(base, info.sz_bytes, info.flt_fmt);
+    if (auto p = expr.template get_p<flt_t>())
+    {
+        // XXX warning float as fixed
+        std::cout << "tgt_arg_t::emit_immed: " << expr << " emitted as integral value" << std::endl;
+        base << core::set_size(info.sz_bytes) << fmt_float().fixed(*p);
+    }
     base << core::set_size(info.sz_bytes) << expr;
 }
 
 // default immediate arg floating point `emit` routine
 template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T>
 void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
-            ::emit_flt(core::emit_base& base, uint8_t flt_fmt) const
+            ::emit_flt(core::emit_base& base, uint8_t bytes, uint8_t flt_fmt) const
 {
+    // just interchange formats
+    using flt_t     = typename expression::e_float_t::object_t;
+    using fmt_float = typename flt_t::flt_format;
+
+    // the contortion below is because a temporary `flt_t` can be constructed
+    // but not assigned. static's are no help, because they're only constructed once.
+    auto p = expr.get_fixed_p();
+    flt_t fixed{ p ? static_cast<long double>(*p) : 0 };
+    flt_t const *flt_p = expr.template get_p<flt_t>();
+    
+    if (!flt_p && p)
+        flt_p = &fixed;     // fixed point formatted as floating point
+    else if (!flt_p)
+    {
+        std::cout << "tgt_arg_t::emit_flt: " << expr << " is not rational constant" << std::endl;
+        return;
+    }
+    
+    auto [chunk_size, chunks, data_p] = fmt_float().flt(*flt_p, flt_fmt);
+    if (chunk_size == 0)
+    {
+        if (data_p)
+            std::cout << "tgt_arg_t::emit_flt: error: " << static_cast<const char *>(data_p) << std::endl;
+        return;
+    }
+    base << core::emit_data(chunk_size, chunks) << data_p;
 }
 
 

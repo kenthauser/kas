@@ -32,14 +32,12 @@ namespace kas::parser::detail
     template<typename = void> struct fmt_comment_str   : boost::mpl::string<';'> {};
 }
 
-
-
 // BSD doesn't define new types to add, just parsers
 namespace kas::expression
 {
 // use general representation for strings 
 template <> struct e_string<void> : meta::id<kas_string> {};
-template <> struct e_float<void>  : meta::id<kas_float> {};
+template <> struct e_float<void>  : meta::id<kas_float>  {};
 
 namespace detail
 {

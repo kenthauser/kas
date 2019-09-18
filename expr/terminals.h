@@ -1,7 +1,11 @@
 #ifndef KAS_EXPR_TERMINALS_H
 #define KAS_EXPR_TERMINALS_H
 
-#include "expr_types.h"
+#include "expr_types.h"         // get base type templates
+#include "literal_types.h"
+#include "format_ieee754.h"
+
+#include "machine_types.h"      // get overrides
 #include "utility/reduce.h"
 
 #include <boost/spirit/home/x3.hpp>
@@ -30,6 +34,11 @@ namespace parser
     using e_float_parser = x3::rule<struct _float_p, T>;
 }
 
+// declare default float formatter
+// delete formatter if no floating point
+template <typename> struct float_fmt { using type = ieee754; };
+template <> struct float_fmt<void> : meta::id<void> {};
+
 // declare default fixed/float/string parsers
 template <typename T, typename>
 struct fixed_p : parser::e_fixed_parser<T> {};
@@ -42,8 +51,8 @@ template <typename T, typename>
 struct string_p : parser::quoted_string_parser<T> {};
 
 // if float or string type is deleted, delete associated parser
-template <> struct float_p<void>  : meta::id<void> {};
-template <> struct string_p<void> : meta::id<void> {};
+template <> struct float_p<void>   : meta::id<void> {};
+template <> struct string_p<void>  : meta::id<void> {};
 
 // declare aliases to reduce `mpl` noise...
 using e_fixed_t   = typename e_fixed<>::type;

@@ -16,7 +16,8 @@ namespace kas::expression
 namespace print {}
 
 // open detail namespace for configuration types
-namespace detail {
+namespace detail
+{
     using namespace meta;
 
     // Declare expression terminal element definition:
@@ -37,9 +38,25 @@ namespace detail {
     template <typename = void> struct options_types_v : list<> {};
 }
 
+// Forward declare template for fixed, floating, and string types
+// NB: The `float` & `string` defaults are `kas_object` types & thus
+// NB: can't be defined before `*_types.h` includes complete.
+// NB: Declare templates here & define defaults in `terminals.h`
 template<typename = void> struct e_fixed   { using type = int32_t;  };
-template<typename = void> struct e_float   { using type = void;     };
-template<typename = void> struct e_string  { using type = void;     };
+template<typename = void> struct e_float;
+template<typename = void> struct e_string;
+
+// Forward declare template for formatting `floating` args
+// NB: default to IEEE interchange formats. Addition formats
+// NB: (eg "extended") supported by derived types.
+template<typename = void> struct float_fmt;
+
+// Forward declare templates for fixed, floating, and string parsers
+// These templates are instantiated with a single expression type argument
+// NB can't default "type", because that would instantiate e_* templates
+template<typename E_FIXED,  typename = void> struct fixed_p;
+template<typename E_FLOAT,  typename = void> struct float_p;
+template<typename E_STRING, typename = void> struct string_p;
 
 // declare info about processor targeted by assembler
 template<typename = void> struct e_data_t  { using type = uint32_t; };
@@ -52,13 +69,6 @@ namespace precedence
     struct precedence_c;
 }
 template<typename = void> struct e_precedence { using type = precedence::precedence_c; };
-
-// Forward declare templates for fixed, floating, and string parsers
-// These templates are instantiated with a single expression type argument
-// NB can't default "type", because that would instantiate e_* templates
-template<typename E_FIXED,  typename = void> struct fixed_p;
-template<typename E_FLOAT,  typename = void> struct float_p;
-template<typename E_STRING, typename = void> struct string_p;
 
 // Declare expression operator type.
 // `expr_op` is used in x3 grammar, so it needs to be
