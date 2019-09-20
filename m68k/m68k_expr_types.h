@@ -28,7 +28,7 @@ namespace kas::m68k
 namespace kas::expression
 {
     // M68K defines non-standard `extended` & `packed` formats
-    //template <> struct float_fmt<void> { using type = m68k::m68k_format_float; };
+    template <> struct float_fmt<void> { using type = m68k::m68k_format_float; };
     template <> struct err_msg_t<void> { using type = m68k::error_msg;   };
     
     // M68K is baased on 16-bit instructions & 32-bit addresses

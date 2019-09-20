@@ -12,7 +12,7 @@ namespace kas::expression::parser
 {
     auto decode_flt = [](auto& ctx)
     {
-        _val(ctx)  = kas_float::add(_attr(ctx));
+        _val(ctx)  = e_float_t::add(_attr(ctx));
     };
 
     auto parse_flt = [](auto&& parser, auto&& decode)
@@ -20,7 +20,7 @@ namespace kas::expression::parser
         return  parser[decode];
     };
 
-    e_float_parser<kas_float> c_float_p = "floating point parser (c-rules)";
+    e_float_parser<e_float_t> c_float_p = "floating point parser (c-rules)";
 
     auto const c_float_p_def = lexeme[
             parse_flt(strict_float_p<long double>(), decode_flt)

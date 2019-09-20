@@ -11,8 +11,6 @@
 
 namespace kas::m68k
 {
-
-
 // all m68k instructions have a specified "size" of operand
 // enumerate them (align values with m68881 source register values)
 enum m68k_op_size_t
@@ -38,8 +36,6 @@ enum m68k_cpid : int8_t
     , M68K_CPID_TABLE       // 4 = CPU_32/Coldfire table instructions
     , M68K_CPID_DEBUG = 15  // 15 = Debug instructions
 };
-
-
 
 // override defaults for various defn index sizes
 struct m68k_mcode_size_t : tgt::tgt_mcode_size_t
@@ -74,7 +70,6 @@ struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t, m68k_stmt_t, error_msg, m68
     uint8_t sz(stmt_info_t info) const;
     auto    code(stmt_info_t info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
     stmt_info_t extract_info(mcode_size_t const *) const;
-
 };
 
 

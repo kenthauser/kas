@@ -96,25 +96,14 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_r
     // indirect & index values are constructed in `m68k_parser_support.h`
     // and inited via copy elision
 
+    // override `sz_info' in `impl`
+    static const tgt::tgt_immed_info sz_info[];
+
     // override `size`
     op_size_t size(m68k_stmt_info_t const&, expression::expr_fits const *fits_p = {}, bool *is_signed = {});
 
     // support for `access-mode` validation
     uint16_t am_bitset() const;
-
-    // declare size of immed args
-    // NB: names of arg modes (OP_SIZE_*) is in `m68k_mcode.h`
-    static constexpr tgt::tgt_immed_info sz_info [] =
-        {
-              {  4    }     // 0: LONG
-            , {  4, 32 }     // 1: SINGLE
-            , { 12, 80 }     // 2: XTND
-            , { 12, 81 }     // 3: PACKED
-            , {  2    }     // 4: WORD
-            , {  8, 64 }     // 5: DOUBLE
-            , {  2, {}, 1 } // 6: BYTE
-            , {  0 }        // 7: VOID
-        };
 
     // serialize arg into `insn data` area
     template <typename Inserter, typename ARG_INFO>

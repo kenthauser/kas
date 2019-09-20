@@ -14,6 +14,7 @@
 // T& get()         -- return mutable instance to wrapped type
 // bool empty()     -- true if no instance of T associated with reference
 // bool operator==  -- compare two instances (as ref's)
+//                     NB: true iff referenced object is same
 
 #include "expr/expr_types.h"
 #include "parser/kas_position.h"

@@ -101,7 +101,7 @@ struct emit_opc
     // XXX handle const char * strings.
     void operator()(NAME, const char *name)
     {
-        auto str = expression::kas_string::add(name);
+        auto str = expression::e_string_t::add(name);
         do_fixed_emit<typename NAME::op>(str);
     }
 

@@ -25,13 +25,21 @@ struct m68k_format_float : expression::ieee754_base<m68k_format_float>
     using base_t = expression::ieee754_base<m68k_format_float>;
     using FLT    = base_t::flt_t;
 
+    enum
+    {
+          FMT_M68K_BASE = NUM_FMT_IEEE
+        , FMT_M68K_80_EXTEND
+        , FMT_M68K_80_PACKED
+    };
+    
+
     result_type flt(FLT const& flt, int bits) const
     {
         switch (bits)
         {
-            case 80:
+            case FMT_M68K_80_EXTEND:
                 return flt2(flt, std::integral_constant<int, 80>());
-            case 81:
+            case FMT_M68K_80_PACKED:
                 return m68k_packed(flt);
             default:
                 return base_t::flt(flt, bits);
@@ -65,11 +73,12 @@ struct m68k_format_float : expression::ieee754_base<m68k_format_float>
             flags.is_zero = true;
 
         auto p = output.begin();
-
+    
         // Generate a NaN
         if (flags.is_nan)
         {
             // generate a "NaN" with sign bit clear
+            static_assert(std::is_unsigned_v<std::remove_reference_t<decltype(*p)>>);
             *p++ = ~0 >> 1;
 
             // generate a NaN with "payload" bits from `flt`

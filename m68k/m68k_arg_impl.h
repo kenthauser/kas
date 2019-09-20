@@ -3,10 +3,25 @@
 
 
 #include "m68k_arg.h"
+#include "m68k_format_float.h"
 #include "m68k_error_messages.h"
 
 namespace kas::m68k
 {
+
+// declare size of immed args
+// NB: definition of arg modes (OP_SIZE_*) is in `m68k_mcode.h`
+const tgt::tgt_immed_info m68k_arg_t::sz_info [] =
+    {
+          {  4  }                                       // 0: LONG
+        , {  4, m68k_format_float::FMT_IEEE_32_SINGLE } // 1: SINGLE
+        , { 12, m68k_format_float::FMT_M68K_80_EXTEND } // 2: XTND
+        , { 12, m68k_format_float::FMT_M68K_80_PACKED } // 3: PACKED
+        , {  2  }                                       // 4: WORD
+        , {  8, m68k_format_float::FMT_IEEE_64_DOUBLE } // 5: DOUBLE
+        , {  2, {}, 1 }                                 // 6: BYTE
+        , {  0  }                                       // 7: VOID
+    };
 
 auto m68k_arg_t::ok_for_target(m68k_stmt_info_t const& info) -> kas::parser::kas_error_t
 {

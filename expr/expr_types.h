@@ -46,6 +46,9 @@ template<typename = void> struct e_fixed   { using type = int32_t;  };
 template<typename = void> struct e_float;
 template<typename = void> struct e_string;
 
+// Forward declare base type for holding floating point types
+template<typename = void> struct float_base;
+
 // Forward declare template for formatting `floating` args
 // NB: default to IEEE interchange formats. Addition formats
 // NB: (eg "extended") supported by derived types.

@@ -26,6 +26,16 @@ struct ieee754_base
     using derived_t = Derived;
     using flt_t     = FLT;
 
+    // declare supported formats
+    enum
+    {
+          FMT_IEEE_NONE
+        , FMT_IEEE_32_SINGLE
+        , FMT_IEEE_64_DOUBLE
+        , FMT_IEEE_16_HALF
+        , NUM_FMT_IEEE
+    };
+
     // chunk format used for data
     using IEEE_DATA_T = uint32_t;
 
@@ -45,13 +55,13 @@ struct ieee754_base
     }
     
     // process IEEE interchange formats
-    result_type flt(FLT const& flt, int bits) const
+    result_type flt(FLT const& flt, int fmt) const
     {
-        switch (bits)
+        switch (fmt)
         {
-            case 32:
+            case FMT_IEEE_32_SINGLE:
                 return derived().flt2(flt, std::integral_constant<int, 32>());
-            case 64:
+            case FMT_IEEE_64_DOUBLE:
                 return derived().flt2(flt, std::integral_constant<int, 64>());
             default:
                 break;
@@ -59,7 +69,7 @@ struct ieee754_base
         return { 0, 0, "Unsupported floating point format" };
     }
 
-//protected:
+protected:
     // CRTP casts
     auto& derived() const
         { return *static_cast<derived_t const*>(this); }
@@ -67,64 +77,17 @@ struct ieee754_base
         { return *static_cast<derived_t*>(this); }
 
     // declare largest output format
+    static constexpr auto OUTPUT_BITS_WORD = std::numeric_limits<IEEE_DATA_T>::digits;
     static constexpr auto MAX_OUTPUT_BITS  = 128;
-    static constexpr auto MAX_OUTPUT_WORDS = (MAX_OUTPUT_BITS-1)/32 + 1;
+    static constexpr auto MAX_OUTPUT_WORDS = (MAX_OUTPUT_BITS-1)/OUTPUT_BITS_WORD + 1;
 
     // shared output buffer
     static inline std::array<IEEE_DATA_T, MAX_OUTPUT_WORDS> output;
     
-    // no general IEEE format: return not supported
-    template <typename T>
-    result_type flt2(FLT const& flt, T) const
-    {
-        // not supported
-        //return { 0, "Unsupported IEEE format" };
-        return { 0, 0, nullptr };
-    }
-
-    template <typename T>
-    result_type flt10(FLT const& flt, T) const
-    {
-        // not supported
-        //return { 0, "Unsupported IEEE format" };
-        return { 0, 0, nullptr };
-    }
-
-    // fixed format has general solution
-    template <typename T>
-    T fixed(FLT const& flt, T) const
-    {
-        static constexpr auto bits  = std::numeric_limits<T>::digits;
-        static constexpr auto words = (bits-1)/32 + 1;
-        
-        // IEEE uses 32-bit groups
-        static_assert(FLT::MANT_WORD_BITS == 32);
-
-        // many float -> fixed conversions are possible
-        // 
-        // This method: round float at # of "bits" requested
-        // Take integral part of resulting float.
-        // NB: This makes .9 repeating resolve to 1 instead 0 that `modf` would return
-        
-        // round mantissa to "bits" resolution
-        auto [flags, exp, _a] = flt.get_bin_parts(bits);
-
-        // extract # of integral bits
-        if (exp < 0) exp = 0;
-        auto [_b, _c, mant]   = flt.get_bin_parts(exp);
-       
-        // XXX temp
-        auto p = mant.end();
-        auto n = words;
-        T result{};
-        while (n--)
-        {
-            result <<= sizeof(IEEE_DATA_T);
-            result |= *--p;
-        }
-        return result;
-    }
-
+    // no general IEEE format: link error if not defined
+    template <typename T> result_type flt2 (FLT const& flt, T) const;
+    template <typename T> result_type flt10(FLT const& flt, T) const;
+    
     // IEEE "single" format (32-bits)
     result_type flt2(FLT const& flt, std::integral_constant<int,32>) const
     {
@@ -231,6 +194,44 @@ struct ieee754_base
         //std::cout << std::endl;
         
         return mant_begin;
+    }
+
+    // fixed format has general solution
+    template <typename T>
+    T fixed(FLT const& flt, T) const
+    {
+        static constexpr auto bits  = std::numeric_limits<T>::digits;
+        static constexpr auto words = (bits-1)/32 + 1;
+        
+        // IEEE uses 32-bit groups
+        static_assert(FLT::MANT_WORD_BITS == 32);
+
+        // many float -> fixed conversions are possible
+        // 
+        // This method: round float at # of "bits" requested
+        // Take integral part of resulting float.
+        // NB: This makes .9 repeating resolve to 1 instead 0 that `modf` would return
+        
+        // round mantissa to "bits" resolution
+        auto [flags, exp, _a] = flt.get_bin_parts(bits);
+
+        // extract # of integral bits
+        if (exp < 0) exp = 0;
+        auto [_b, _c, mant]   = flt.get_bin_parts(exp);
+       
+        // XXX temp: signed/unsigned T issues. 
+        // XXX temp: if mant exceeds limits for T
+        auto p = mant.end();
+        auto n = words;
+        T result{};
+        while (n--)
+        {
+            result <<= sizeof(IEEE_DATA_T);
+            result |= *--p;
+        }
+        if (flags.is_neg)
+            result = -result;
+        return result;
     }
 
     // declare a "decimal" analog to the floating-point method

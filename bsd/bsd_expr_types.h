@@ -36,8 +36,8 @@ namespace kas::parser::detail
 namespace kas::expression
 {
 // use general representation for strings 
-template <> struct e_string<void> : meta::id<kas_string> {};
-template <> struct e_float<void>  : meta::id<kas_float>  {};
+//template <> struct e_string<void> : meta::id<kas_string> {};
+//template <> struct e_float<void>  : meta::id<kas_float>  {};
 
 namespace detail
 {

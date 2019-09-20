@@ -202,7 +202,7 @@ protected:
 //protected:
 public:
     // test fixture support: deallocate all instances
-    static void clear() {}      // default `derived_t::clear()`
+    static void clear() {}      // default if `derived_t::clear()` not defined
     static void obj_clear()
     {
         //print_type_name{"kas_object: clear"}.name<derived_t>();
@@ -210,13 +210,13 @@ public:
         derived_t::clear();
     }
 
-    // XXX 12 Mar 2018. This doesn't seem to work. Wait for full c++17 compiler?
     static inline kas_clear _c{obj_clear};
 private:
     friend          ref_loc_t;
     index_t         obj_index {};
    
-    // XXX mutable for ref()
+    // holds location where object created or first referenced
+    // NB: mutable so can be set by `ref_loc_t`
     mutable parser::kas_loc obj_loc {};
 
 };
