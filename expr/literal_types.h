@@ -33,12 +33,13 @@
 
 namespace kas::expression::detail
 {
-using kas_string = core::ref_loc_t<struct kas_string_t>;
 
-struct kas_string_t : core::kas_object<kas_string_t, kas_string>
+template <typename REF>
+struct kas_string_t : core::kas_object<kas_string_t<REF>, REF>
 {
+    using base_t      = core::kas_object<kas_string_t<REF>, REF>;
     using emits_value = std::true_type;
-    using ref_t       = kas_string;
+    using ref_t       = REF;
 
     using base_t::index;
         
@@ -112,10 +113,11 @@ private:
 
 // support largest int by host
 // holds values that are too big for `e_fixed_t`
-using kas_bigint_host  = core::ref_loc_t<struct bigint_host_t>;
 
-struct bigint_host_t : core::kas_object<bigint_host_t, kas_bigint_host>
+template <typename REF>
+struct bigint_host_t : core::kas_object<bigint_host_t<REF>, REF>
 {
+    using base_t      = core::kas_object<bigint_host_t<REF>, REF>;
     using emits_value = std::true_type;
     using value_type = std::intmax_t;
 
@@ -128,10 +130,11 @@ private:
     static inline core::kas_clear _c{base_t::obj_clear};
 };
 
-using kas_float  = core::ref_loc_t<struct float_host_t>;
-
-struct float_host_t : core::kas_object<float_host_t, kas_float>
+template <typename REF>
+struct float_host_t : core::kas_object<float_host_t<REF>, REF>
 {
+    using base_t = core::kas_object<float_host_t<REF>, REF>;
+
     // IEEE is based on 32-bits groups, so organize mantissa into 32-bit segments
     // most significant is first. 
     using emits_value = std::true_type;
@@ -261,9 +264,10 @@ private:
 namespace kas::expression
 {
 // decalare
-using kas_string = detail::kas_string;
-//using kas_float  = detail::kas_float;
-using kas_bigint_host = detail::kas_bigint_host;
+// XXX 
+using kas_float       = core::ref_loc_t<detail::float_host_t>;
+using kas_bigint_host = core::ref_loc_t<detail::bigint_host_t>;
+using kas_string      = core::ref_loc_t<detail::kas_string_t>;
 
 // using host_float = detail::float_host<>;
 }

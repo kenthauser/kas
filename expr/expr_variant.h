@@ -64,13 +64,8 @@ namespace detail
 
     // test for ref-loc-t wrapped types
     template <typename T, typename = void>
-    struct is_ref_loc_wrapped: std::false_type {};
-
-    // works for declared (& not yet defined) types as well
-    template <typename T>
-    struct is_ref_loc_wrapped<T, std::void_t<typename T::object_t, typename T::index_t>> :
-        std::is_same<T, core::ref_loc_t<typename T::object_t, typename T::index_t>> {};
-
+    struct is_ref_loc_wrapped: std::is_base_of<core::ref_loc_tag, T> {};
+    
     // alias to get `object_t` from T
     template <typename T>
     using get_object_t = typename T::object_t;

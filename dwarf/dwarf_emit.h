@@ -77,7 +77,7 @@ inline decltype(auto) gen_addr_ref(unsigned section_idx, std::size_t offset
     offsets.emplace_back(offset);
 
     // create address with frag_p/offset_p pair
-    return core::core_addr::add(frag_p, &offsets.back());
+    return core::core_addr_t::add(frag_p, &offsets.back());
 }
 
 

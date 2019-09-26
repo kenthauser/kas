@@ -29,7 +29,7 @@ namespace kas::expression::detail
 
 // look for error type in argument list (meta::npos if none)
 template <typename...Ts>
-using Err_Index = meta::find_index<meta::list<Ts...>, kas::parser::kas_diag&>;
+using Err_Index = meta::find_index<meta::list<Ts...>, kas::parser::kas_diag_t&>;
 
 struct op_visitor
 {
@@ -98,12 +98,12 @@ expr_t expr_op::eval(kas_position_tagged const& loc
 {
     // propogate error if previously detected
     if (err != meta::npos::value)
-        return *static_cast<kas::parser::kas_diag const *>(args[err]);
+        return *static_cast<kas::parser::kas_diag_t const *>(args[err]);
 
     // test if args match operator
     auto it = ops.find(hash);
     if (it == ops.end())
-        return kas::parser::kas_diag::error("Invalid expression", loc);
+        return kas::parser::kas_diag_t::error("Invalid expression", loc);
         
     // look for divide by zero if ARITY == 2
     if constexpr (N == 2)
@@ -113,7 +113,7 @@ expr_t expr_op::eval(kas_position_tagged const& loc
         
         if (defn_p->is_divide)
             if (zero_fns[dem_type-1](args[1]))
-                return kas::parser::kas_diag::error("Divide by zero", loc);
+                return kas::parser::kas_diag_t::error("Divide by zero", loc);
     }
 
     // evaluate 

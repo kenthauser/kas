@@ -29,7 +29,7 @@ struct emit_stream
             , reloc_info_t const& info
             , uint8_t width
             , uint8_t offset
-            , core_symbol const& sym
+            , core_symbol_t const& sym
             , emit_value_t addend
             ) = 0;
     virtual void put_section_reloc(
@@ -42,7 +42,7 @@ struct emit_stream
             ) = 0;
 
     // emit diagnostics
-    virtual void put_diag(e_chan_num, uint8_t, parser::kas_diag const&) = 0;
+    virtual void put_diag(e_chan_num, uint8_t, parser::kas_diag_t const&) = 0;
 
     // XXX emit temp diagnostic message (type not known)
     virtual void put_str(e_chan_num, uint8_t, std::string const&) = 0;

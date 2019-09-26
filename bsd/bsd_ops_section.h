@@ -47,7 +47,7 @@ struct bsd_section_base :  opc_section
     struct segment_result
     {
         segment_result(const char *msg, kas_loc const& loc)
-                : diag{ kas_diag::error(msg).ref(loc) } {}
+                : diag{ kas_diag_t::error(msg).ref(loc) } {}
         segment_result(seg_index_t idx)
                 : idx{ idx } {}
 

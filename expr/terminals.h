@@ -42,9 +42,10 @@ template <typename T, typename>
 struct float_p : parser::e_float_parser<T> {};
 
 // declare default floating base & formatter
-// delete formatter if no floating point
-template <typename> struct float_base : meta::id<detail::float_host_t> {};
-template <typename> struct float_fmt  : meta::id<ieee754> {};
+// both are templates, so `meta::quote` them.
+// common override for `float_base` is `void` to delete floating point support
+template <typename> struct float_base : meta::id<meta::quote_trait<detail::float_host_t>> {};
+template <typename> struct float_fmt  : meta::quote<ieee754>              {};
 //template <> struct float_fmt<void>    : meta::id<void> {};
 //template <> struct float_p<void>      : meta::id<void> {};
 
@@ -52,11 +53,11 @@ template <typename> struct float_fmt  : meta::id<ieee754> {};
 template <typename>
 struct e_float
 {
-    using base = meta::_t<float_base<>>;
-    using type = std::conditional_t<!std::is_void_v<base>
-                                  , core::ref_loc_t<base>
-                                  , void
-                                  >;
+    // XXX not quite
+    using base     = meta::_t<float_base<>>;
+    using type     = core::ref_loc_t<detail::float_host_t>;
+    using object_t = typename type::object_t;
+    using fmt      = ieee754<type>;
 };
 
 // default quoted_string parser ignores escape sequences

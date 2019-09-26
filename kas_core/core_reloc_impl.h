@@ -163,11 +163,11 @@ void deferred_reloc_t::operator()(expr_t const& e)
     // don't need `apply_visitor` as most types don't relocate
     if (auto p = e.get_fixed_p())
         addend += *p;
-    else if (auto p = e.template get_p<core_symbol>())
+    else if (auto p = e.template get_p<core_symbol_t>())
         (*this)(*p);
-    else if (auto p = e.template get_p<core_expr>())
+    else if (auto p = e.template get_p<core_expr_t>())
         (*this)(*p);
-    else if (auto p = e.template get_p<core_addr>())
+    else if (auto p = e.template get_p<core_addr_t>())
         (*this)(*p);
     else
     {
@@ -176,7 +176,7 @@ void deferred_reloc_t::operator()(expr_t const& e)
 }
 
 // symbols can `vary`. Sort by type of symbol
-void deferred_reloc_t::operator()(core_symbol const& value)
+void deferred_reloc_t::operator()(core_symbol_t const& value)
 {
     // see if resolved symbol
     if (auto p = value.addr_p())
@@ -191,13 +191,13 @@ void deferred_reloc_t::operator()(core_symbol const& value)
         sym_p = &value;
 }
 
-void deferred_reloc_t::operator()(core_addr const& value)
+void deferred_reloc_t::operator()(core_addr_t const& value)
 {
     addend   +=  value.offset()();
     section_p = &value.section();
 }
 
-void deferred_reloc_t::operator()(core_expr const& value)
+void deferred_reloc_t::operator()(core_expr_t const& value)
 {
     if (auto p = value.get_fixed_p())
         addend += *p;

@@ -26,7 +26,7 @@ namespace kas::core::opc
         //  1. converting local common -> blocks starting with symbol (BSS)
         //  2. generating dwarf programs
 
-        void operator()(data_t& data, core_symbol& sym, short binding = STB_INTERNAL) const
+        void operator()(data_t& data, core_symbol_t& sym, short binding = STB_INTERNAL) const
         {
             if (auto msg = sym.make_label(binding)) { 
                 //throw std::logic_error(std::string(__FUNCTION__) + ": " + msg);
@@ -107,7 +107,7 @@ namespace kas::core::opc
         const char *name() const override { return "COMM"; }
 
         void proc_args(data_t& data, short binding, short comm_size, short align
-                       , core_symbol& sym, kas_loc const& loc)
+                       , core_symbol_t& sym, kas_loc const& loc)
         {
             if (auto result = sym.make_common(comm_size, binding, align))
                 return make_error(data, result, loc);
@@ -138,7 +138,7 @@ namespace kas::core::opc
                        // std::cout << ": " << sym_ref_p->get().name() << " -> " << binding << std::endl;
                     }
                     else
-                        *data.di() = kas_diag::error("Symbol argument required", loc);
+                        *data.di() = kas_diag_t::error("Symbol argument required", loc);
 
                     return 0;
                 };
@@ -193,7 +193,7 @@ namespace kas::core::opc
 
         const char *name() const override { return "TYPE"; }
 
-        void proc_args(data_t& data, int8_t type, core_symbol& sym, kas_loc const& loc)
+        void proc_args(data_t& data, int8_t type, core_symbol_t& sym, kas_loc const& loc)
         {
             if (auto msg = sym.set_type(type))
                 make_error(data, msg, loc);
@@ -206,7 +206,7 @@ namespace kas::core::opc
 
         const char *name() const override { return "SIZE"; }
 
-        void proc_args(data_t& data, core_symbol& sym, expr_t&& value, kas_loc const& loc)
+        void proc_args(data_t& data, core_symbol_t& sym, expr_t&& value, kas_loc const& loc)
         {
             //std::cout << "opc_sym_size: " << sym.name() << " -> " << value << std::endl;
 
@@ -222,7 +222,7 @@ namespace kas::core::opc
         void fmt(data_t const& data, std::ostream& os) const override
         {
             auto iter = data.iter();
-            auto& sym = core_symbol::get(data.fixed.fixed); 
+            auto& sym = core_symbol_t::get(data.fixed.fixed); 
             os << sym.name();
 
             if (data.cnt)
@@ -238,7 +238,7 @@ namespace kas::core::opc
             // use `core_data_size_t` to size (listing) output
             base << core::set_size(sizeof_data_t) << emit_expr;
             
-            auto& sym = core_symbol::get(data.fixed.fixed); 
+            auto& sym = core_symbol_t::get(data.fixed.fixed); 
             if (data.cnt)
                 base << *iter;
             else

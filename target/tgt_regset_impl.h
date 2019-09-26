@@ -12,15 +12,15 @@ namespace kas::tgt
 //
 ////////////////////////////////////////////////////////////////////////////
 
-template <typename Derived, typename Reg_t, typename T, typename Loc>
-tgt_reg_set<Derived, Reg_t, T, Loc>::tgt_reg_set(Reg_t const& l, char op)
+template <typename Derived, typename Reg_t, typename Ref>
+tgt_reg_set<Derived, Reg_t, Ref>::tgt_reg_set(Reg_t const& l, char op)
 {
     //std::cout << "tgt_reg_set::ctor: " << l << std::endl;
     ops.emplace_back(op, l);
 }
 
-template <typename Derived, typename Reg_t, typename T, typename Loc>
-int16_t tgt_reg_set<Derived, Reg_t, T, Loc>::kind() const
+template <typename Derived, typename Reg_t, typename Ref>
+int16_t tgt_reg_set<Derived, Reg_t, Ref>::kind() const
 {
     if (_error)
         return -(_error);
@@ -33,8 +33,8 @@ int16_t tgt_reg_set<Derived, Reg_t, T, Loc>::kind() const
 }
 
 // register set binop:: left is always left, thus subverting shunting yard.
-template <typename Derived, typename Reg_t, typename T, typename Loc>
-auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, tgt_reg_set const& r)
+template <typename Derived, typename Reg_t, typename Ref>
+auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, derived_t const& r)
     -> derived_t&
 {
     // use `op` to create new `reg_set_op` at end
@@ -48,8 +48,8 @@ auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, tgt_reg_set const
 }
 
 // expression binop:: only +/- supported, so no precidence issue
-template <typename Derived, typename Reg_t, typename T, typename Loc>
-auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, core::core_expr const& r)
+template <typename Derived, typename Reg_t, typename Ref>
+auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, core_expr_t const& r)
     -> derived_t&
 {
     if (kind() != -RS_OFFSET)
@@ -71,7 +71,7 @@ auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, core::core_expr c
 #endif
     {
         //auto& expr = _value + r;
-        auto& expr = core::core_expr::add(r) + _value;
+        auto& expr = core_expr_t::add(r) + _value;
         _expr = &expr;
     }
     else if (op == '+')
@@ -84,8 +84,8 @@ auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, core::core_expr c
     return derived();
 }
 
-template <typename Derived, typename Reg_t, typename T, typename Loc>
-auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, int r)
+template <typename Derived, typename Reg_t, typename Ref>
+auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, int r)
     -> derived_t&
 {
     if (kind() != -RS_OFFSET)
@@ -103,8 +103,8 @@ auto tgt_reg_set<Derived, Reg_t, T, Loc>::binop(const char op, int r)
 }
 
 // for *only* predecrement (f)movem to memory, bits are reversed
-template <typename Derived, typename Reg_t, typename T, typename Loc>
-auto tgt_reg_set<Derived, Reg_t, T, Loc>::value(bool reverse) const -> rs_value_t
+template <typename Derived, typename Reg_t, typename Ref>
+auto tgt_reg_set<Derived, Reg_t, Ref>::value(bool reverse) const -> rs_value_t
 {
     // short circuit if previously calculated
     // NB: mask can't be zero: we don't create empty regsets
@@ -171,9 +171,9 @@ auto tgt_reg_set<Derived, Reg_t, T, Loc>::value(bool reverse) const -> rs_value_
     return mask;
 }
 
-template <typename Derived, typename Reg_t, typename T, typename Loc>
+template <typename Derived, typename Reg_t, typename Ref>
 template <typename OFFSET_T>
-OFFSET_T tgt_reg_set<Derived, Reg_t, T, Loc>::offset() const
+OFFSET_T tgt_reg_set<Derived, Reg_t, Ref>::offset() const
 {
     if (_expr) return *_expr;
     return _value;
@@ -181,9 +181,9 @@ OFFSET_T tgt_reg_set<Derived, Reg_t, T, Loc>::offset() const
 
 
 
-template <typename Derived, typename Reg_t, typename T, typename Loc>
+template <typename Derived, typename Reg_t, typename Ref>
 template <typename OS>
-void tgt_reg_set<Derived, Reg_t, T, Loc>::print(OS& os) const
+void tgt_reg_set<Derived, Reg_t, Ref>::print(OS& os) const
 {
     // print register-set
     auto print_rs = [&]

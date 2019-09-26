@@ -13,14 +13,14 @@ using namespace meta::placeholders;
 template <typename T>
 auto gen_dwarf_32_header(T& emit)
 {
-    using core_symbol = core::core_symbol;
-    using opc_label   = core::opc::opc_label;
+    using core::core_symbol_t;
+    using core::opc::opc_label;
 
-    auto bgn_ref  = core_symbol::add("dwarf_bgn", core::STB_INTERNAL).ref();
-    auto end_ref  = core_symbol::add("dwarf_end", core::STB_INTERNAL).ref();
+    auto bgn_ref  = core_symbol_t::add("dwarf_bgn", core::STB_INTERNAL).ref();
+    auto end_ref  = core_symbol_t::add("dwarf_end", core::STB_INTERNAL).ref();
     
-    auto bhdr_ref = core_symbol::add("dwarf_bhdr", core::STB_INTERNAL).ref();
-    auto ehdr_ref = core_symbol::add("dwarf_ehdr", core::STB_INTERNAL).ref(); 
+    auto bhdr_ref = core_symbol_t::add("dwarf_bhdr", core::STB_INTERNAL).ref();
+    auto ehdr_ref = core_symbol_t::add("dwarf_ehdr", core::STB_INTERNAL).ref(); 
 
     // section length (not including section length field)
     emit(opc_label(), bgn_ref);
@@ -216,10 +216,10 @@ void emit_rule(DL_STATE& s, EMIT& emit, Ts...args)
         if constexpr (arg_len < 0) {
             // variable length -- drop labels & emit `core_expr`
             
-            auto& dot = core::core_addr::get_dot(core::core_addr::DOT_NEXT);
-            ext_ref   = core::core_symbol::add().ref();
+            auto& dot = core::core_addr_t::get_dot(core::core_addr_t::DOT_NEXT);
+            auto& ext = core::core_symbol_t::add();
 
-            emit(ULEB(), ext_ref - dot);
+            emit(ULEB(), ext - dot);
         } else if constexpr (arg_len < 128) {
             // add INSN byte to fixed length
             emit(UBYTE(),(int)arg_len + 1);   // assume fixed length not >= 128

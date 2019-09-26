@@ -70,7 +70,7 @@ namespace detail
                 return (void)leb_t::write(fn, *p);
           
             // if expression resolves to constant offset, emit it
-            if (auto p = e.template get_p<core_expr>())
+            if (auto p = e.template get_p<core_expr_t>())
                 if (p->num_relocs() == 0)
                     return (void)leb_t::write(fn, p->get_offset()());
             // not resolved to fixed -> error

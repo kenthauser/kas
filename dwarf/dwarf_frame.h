@@ -13,15 +13,15 @@ using namespace meta;
 template <typename T>
 auto& gen_cie_32(T& emit)
 {
-    using core_symbol = core::core_symbol;
-    using core_addr   = core::core_addr;
-    using opc_label   = core::opc::opc_label;
-    using opc_align   = core::opc::opc_align;
+    using core::core_symbol_t;
+    using core::core_addr_t;
+    using core::opc::opc_label;
+    using core::opc::opc_align;
 
     using dl_addr_t = typename DL_STATE::dl_addr_t;
 
-    auto& bgn_cie  = core_addr::get_dot();
-    auto& end_cie  = core_symbol::add("");//, core::STB_INTERNAL);
+    auto& bgn_cie  = core_addr_t::get_dot();
+    auto& end_cie  = core_symbol_t::add("");//, core::STB_INTERNAL);
     
     // section length (not including section length field)
     emit(UWORD(), end_cie - bgn_cie - UWORD::size);
@@ -49,16 +49,16 @@ auto& gen_cie_32(T& emit)
 template <typename T, typename CIE>
 void gen_fde_32(T& emit, df_data const& d, CIE& cie)
 {
-    using core_symbol = core::core_symbol;
-    using core_addr   = core::core_addr;
-    using opc_label   = core::opc::opc_label;
-    using opc_align   = core::opc::opc_align;
+    using core::core_symbol_t;
+    using core::core_addr_t;
+    using core::opc::opc_label;
+    using core::opc::opc_align;
 
     using dl_addr_t = typename DL_STATE::dl_addr_t;
 
     // DOT_NEXT is `dot` *after* next instruction emitted
-    auto& bgn_fde  = core_addr::get_dot(core_addr::DOT_NEXT);
-    auto& end_fde  = core_symbol::add();
+    auto& bgn_fde  = core_addr_t::get_dot(core_addr_t::DOT_NEXT);
+    auto& end_fde  = core_symbol_t::add();
 
     // section length (not including section length field)
     emit(UWORD(), end_fde - bgn_fde);

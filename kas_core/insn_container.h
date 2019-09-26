@@ -379,7 +379,7 @@ namespace kas::core
         auto  opc_index = insn.opc_index;
         if (opc_index == idx_label)
             put_label(std::move(data));
-        else if (core_addr::must_init_dot())
+        else if (core_addr_t::must_init_dot())
             *this = opc::opc_label();       // insert dummy label insn
 
         // extract size from `insn`
@@ -397,7 +397,7 @@ namespace kas::core
         // move dot if object code emitted data
         if (insn_size.max)
         {
-            core_addr::new_dot();
+            core_addr_t::new_dot();
             c.dot.dot_offset += insn_size;
         }
 
@@ -425,7 +425,7 @@ namespace kas::core
 
         // NB: don't allocate two `labels` at the same address. 
         // convert INSN to `nop`
-        if (!core_addr::must_init_dot())
+        if (!core_addr_t::must_init_dot())
         {
             static opc::opc_nop opc{};
             data.set_opc_index(opc.index());
@@ -441,7 +441,7 @@ namespace kas::core
         fixed.offset = c.dot.frag_offset();     // init with first pass value
         
         // init `core:addr` instance for this location
-        core_addr::cur_dot().init_addr(frag_p, &fixed.offset);
+        core_addr_t::cur_dot().init_addr(frag_p, &fixed.offset);
     }
 
     // insert insn: segment
@@ -478,9 +478,9 @@ namespace kas::core
         
         // calculate displacement to see if `skip`
         // NB: can't be skip if `dot` not previously allocated
-        // XXX if (!core_addr::cur_dot().empty()) {
-        if (!core_addr::cur_dot().empty()) {
-            auto& disp =  target - core_addr::get_dot();
+        // XXX if (!core_addr_t::cur_dot().empty()) {
+        if (!core_addr_t::cur_dot().empty()) {
+            auto& disp =  target - core_addr_t::get_dot();
             if (auto skip = disp.get_fixed_p()) {
                 // create skip insn...
                 data.set_index(opc::opc_skip().index());
@@ -529,7 +529,7 @@ namespace kas::core
         // make sure locations in previous frag remain in previous frag
         // NB: new segment might not be same, creating *total* error.
         // NB: new_dot() is no-op if old dot not previously referenced
-        core_addr::new_dot();
+        core_addr_t::new_dot();
 
 #ifdef XXX
         // XXX could reduce relax a bit, but currently

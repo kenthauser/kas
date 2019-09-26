@@ -20,10 +20,9 @@
 namespace kas::m68k
 {
 
-struct m68k_format_float : expression::ieee754_base<m68k_format_float>
+struct m68k_format_float : expression::ieee754_base<m68k_format_float, expression::e_float_t>
 {
-    using base_t = expression::ieee754_base<m68k_format_float>;
-    using FLT    = base_t::flt_t;
+    using base_t = expression::ieee754_base<m68k_format_float, expression::e_float_t>;
 
     enum
     {
@@ -33,7 +32,7 @@ struct m68k_format_float : expression::ieee754_base<m68k_format_float>
     };
     
 
-    result_type flt(FLT const& flt, int bits) const
+    result_type flt(flt_t const& flt, int bits) const
     {
         switch (bits)
         {

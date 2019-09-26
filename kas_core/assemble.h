@@ -206,7 +206,7 @@ private:
                 }
             };
            
-            core_symbol::for_each(resolve_one_symbol);
+            core_symbol_t::for_each(resolve_one_symbol);
         };
     };
 

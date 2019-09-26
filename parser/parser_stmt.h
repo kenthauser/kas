@@ -120,7 +120,7 @@ namespace detail
             : diag(diag), base_t(diag.get_loc())
             {}
         
-        stmt_diag(kas_diag const& diag) : stmt_diag(diag.ref()) {}
+        stmt_diag(kas_diag_t const& diag) : stmt_diag(diag.ref()) {}
 
         const char *name() const
         {

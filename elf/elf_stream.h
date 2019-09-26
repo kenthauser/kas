@@ -138,7 +138,7 @@ public:
                 , core::reloc_info_t const& info
                 , uint8_t width
                 , uint8_t offset
-                , core::core_symbol const& sym
+                , core::core_symbol_t const& sym
                 , int64_t addend
                 ) override
     {
@@ -166,7 +166,7 @@ public:
     {
     }
 
-    void put_diag(core::e_chan_num num, uint8_t width, parser::kas_diag const& diag) override
+    void put_diag(core::e_chan_num num, uint8_t width, parser::kas_diag_t const& diag) override
     {
         if (num == core::EMIT_DATA) {
             auto& cvt = elf_output.cvt;

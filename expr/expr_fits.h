@@ -31,11 +31,6 @@
 
 #include "utility/print_type_name.h"
 
-namespace kas::core
-{
-    struct core_expr;
-}
-
 namespace kas::expression
 {
     struct expr_fits
@@ -194,7 +189,7 @@ namespace kas::expression
         // use non-reference argument as imperfect match
         // require integers to promote to tested type
         template <typename T>
-        std::enable_if_t<!std::is_integral<T>::value, result_t>
+        std::enable_if_t<!std::is_integral_v<T>, result_t>
         operator()(T const&, fits_min_t, fits_max_t) const
         {
             print_type_name{"expr_fits: emits_value"}.name<T>();
@@ -202,7 +197,7 @@ namespace kas::expression
             return is_value_type ? MIGHT_FIT : NO_FIT;
         }
 
-        result_t operator()(core::core_expr const& e, fits_min_t, fits_max_t) const
+        result_t operator()(core::core_expr_t const& e, fits_min_t, fits_max_t) const
         {
             std::cout << "expr_fits::fits: expr = " << expr_t(e) << std::endl;
             return MIGHT_FIT;

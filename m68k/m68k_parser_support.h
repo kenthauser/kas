@@ -170,7 +170,7 @@ private:
         {
             e_type = E_FLOAT;
         } 
-        else if (auto *rs = expr.get_p<m68k_reg_set>())
+        else if (auto *rs = expr.get_p<m68k_reg_set_t>())
         {
             e_type = E_REGSET;
         } 
@@ -328,7 +328,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 {
                     // is register set well formed? (ie: kind() >= 0)
                     m68k_arg_t r{ MODE_REGSET, std::move(base_value) };
-                    if (auto rp = r.expr.get_p<m68k_reg_set>())
+                    if (auto rp = r.expr.get_p<m68k_reg_set_t>())
                         if (rp->kind() >= 0)
                             return r;
                     return { error_msg::ERR_regset, r.expr };
@@ -375,9 +375,10 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
             return addr_only(MODE_POST_INCR);
         case PARSE_DECR:
             return addr_only(MODE_PRE_DECR);
+#ifdef XXX
         case PARSE_MISSING:
             return { MODE_DIRECT, core::missing_ref{} };
-
+#endif
         case PARSE_PAIR:
             {
                 auto& inner = mode.args.front();

@@ -68,7 +68,7 @@ struct token_dot      : kas_token
 {
     operator core::addr_ref() const
     { 
-        auto ref = core::core_addr::get_dot().ref(*this);
+        auto ref = core::core_addr_t::get_dot().ref(*this);
 #ifdef TRACE_TOKEN
         std::cout << "token_dot: -> ";
         ref.print(std::cout);
@@ -154,9 +154,9 @@ struct bsd_arg : kas_token
     operator expr_t&&()
     {
         if (is_missing())
-            expr = ::kas::parser::kas_diag::error("Missing argument", *this);
+            expr = ::kas::parser::kas_diag_t::error("Missing argument", *this);
         else if (!has_value())
-            expr = ::kas::parser::kas_diag::error("Invalid expression", *this);
+            expr = ::kas::parser::kas_diag_t::error("Invalid expression", *this);
         return std::move(expr);
     }
 

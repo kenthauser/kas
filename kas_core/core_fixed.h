@@ -141,14 +141,14 @@ namespace detail {
                     // evaluate expression & emit
                     auto& value = reader.get_expr();        // what
                     auto loc_p = value.get_loc_p();         // where
-
+#ifdef XXX
                     // check for error conditions
                     if (value.template get_p<missing_ref>() && loc_p)
                         value = kas::parser::kas_diag::error("missing argument", *loc_p);
                     else if (!fits.ufits_sz(value, config.value_sz) && loc_p)
                         //value = kas_diag::error("value out of range");
                         ; /* XXX don't error */
-
+#endif
                     config.emit_one(base, value, dot_p);
                 }
             }

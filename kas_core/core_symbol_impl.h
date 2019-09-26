@@ -8,18 +8,19 @@
 
 namespace kas::core
 {
-    
+
 template <>
-expression::e_fixed_t const *core_symbol::get_p<expression::e_fixed_t>() const
+template <>
+e_fixed_t const *core_symbol<symbol_ref>::get_p<e_fixed_t>() const
 {
     if (auto p = value_p())
         return p->get_fixed_p();
     return nullptr;
 }
 
-
 // setters to modify symbol
-const char *core_symbol::set_type(int8_t new_type)
+template <typename Ref>
+const char *core_symbol<Ref>::set_type(int8_t new_type)
 {
     // NB: STT_NOTYPE is synonym for LABEL
     // allow LABEL -> FUNC, and absorb FUNC -> LABEL
@@ -33,7 +34,8 @@ const char *core_symbol::set_type(int8_t new_type)
     return nullptr;
 }
 
-const char *core_symbol::set_value(expression::ast::expr_t& value, int8_t type)
+template <typename Ref>
+const char *core_symbol<Ref>::set_value(expression::ast::expr_t& value, int8_t type)
 {
     if (auto err = set_type(type))
         return err;
@@ -45,7 +47,8 @@ const char *core_symbol::set_value(expression::ast::expr_t& value, int8_t type)
     return nullptr;
 }
 
-const char *core_symbol::make_label(uint32_t binding)
+template <typename Ref>
+const char *core_symbol<Ref>::make_label(uint32_t binding)
 {
     // if TOKEN or UNDEF, apply binding
     if (s_binding == STB_TOKEN || s_binding == STB_UNKN)
@@ -61,11 +64,13 @@ const char *core_symbol::make_label(uint32_t binding)
     if (s_addr_p)
         return "Symbol previously defined";
 
-    s_addr_p = &core_addr::get_dot();
+    s_addr_p = &core_addr_t::get_dot();
     return nullptr;
 }
 
-const char *core_symbol::make_common(uint32_t comm_size, int8_t binding, uint16_t align)
+
+template <typename Ref>
+const char *core_symbol<Ref>::make_common(uint32_t comm_size, int8_t binding, uint16_t align)
 {
     if (auto err = set_type(STT_COMMON))
         return err;
@@ -81,21 +86,23 @@ const char *core_symbol::make_common(uint32_t comm_size, int8_t binding, uint16_
     return {};
 }
 
-
-const char *core_symbol::make_error(const char *msg)
+template <typename Ref>
+const char *core_symbol<Ref>::make_error(const char *msg)
 {
     // make global so backend symbol created (gen object on error...)
 #if 0
     s_binding = STB_GLOBAL;
     s_type    = STT_ERROR; 
 #endif
-    s_value_p = new expr_t(parser::kas_diag::error(msg, s_loc));
+    s_value_p = new expr_t(parser::kas_diag_t::error(msg, s_loc));
     return msg;
 }
 
+
 #ifdef ENFORCE_FILE_FIRST_LOCAL
 // static
-const char *core_symbol::set_file(symbol_ref ref)
+template <typename Ref>
+const char *core_symbol<Ref>::set_file(symbol_ref ref)
 {
     if (file_sym_p)
         return "File previously defined";
@@ -106,7 +113,8 @@ const char *core_symbol::set_file(symbol_ref ref)
 #endif
 
 // elf getters/setters
-void core_symbol::sym_num(uint32_t num)
+template <typename Ref>
+void core_symbol<Ref>::sym_num(uint32_t num)
 {
     if (s_symnum)
         throw std::runtime_error{"core_symbol: " + s_name + ": sym_num already set"};
@@ -115,7 +123,8 @@ void core_symbol::sym_num(uint32_t num)
 
 // special getter for `value_p`. If value is undefined, 
 // change symbol binding from `TOKEN` so symbol is emitted.
-expr_t const* core_symbol::value_p() const
+template <typename Ref>
+expr_t const* core_symbol<Ref>::value_p() const
 { 
     if (s_value_p)
         return s_value_p;
@@ -125,7 +134,8 @@ expr_t const* core_symbol::value_p() const
 }
 
 
-unsigned const core_symbol::size() const
+template <typename Ref>
+unsigned const core_symbol<Ref>::size() const
 {
     // test if fixed size or missing expr_p
     if (f_size)
@@ -133,10 +143,10 @@ unsigned const core_symbol::size() const
     if (!e_size_p)
         return 0;
 
-    //std::cout << "core_symbol::size(): " << name() << ": " << *e_size_p << std::endl;
+    //std::cout << "core_symbol<Ref>::size(): " << name() << ": " << *e_size_p << std::endl;
     if (auto p = e_size_p->get_fixed_p()) {
         return *p;
-    } else if (auto p = e_size_p->template get_p<core_expr>()) {
+    } else if (auto p = e_size_p->template get_p<core_expr_t>()) {
         // this isn't obvious. if no relocs, test offset
         // expressions are only "matched" when dot is present
         // the `opc_sym_size::calc_size` trick makes this work.
@@ -146,7 +156,8 @@ unsigned const core_symbol::size() const
     return 0;
 }
 
-const char *core_symbol::size(expr_t& new_size)
+template <typename Ref>
+const char *core_symbol<Ref>::size(expr_t& new_size)
 {
     if (f_size || e_size_p)
         return "Symbol size can't be altered";
@@ -157,7 +168,8 @@ const char *core_symbol::size(expr_t& new_size)
     return {};
 }
 
-const char *core_symbol::size(uint32_t new_size)
+template <typename Ref>
+const char *core_symbol<Ref>::size(uint32_t new_size)
 {
     if (f_size || e_size_p)
         if (new_size != f_size)
@@ -166,6 +178,21 @@ const char *core_symbol::size(uint32_t new_size)
     return {};
 }
 
+template const char *core_symbol<symbol_ref>::set_type(int8_t new_type);
+template const char *core_symbol<symbol_ref>::set_value(expression::ast::expr_t& value, int8_t type);
+template const char *core_symbol<symbol_ref>::make_label(uint32_t binding);
+template const char *core_symbol<symbol_ref>::make_common(uint32_t comm_size, int8_t binding, uint16_t align);
+template const char *core_symbol<symbol_ref>::make_error(const char *msg);
+template void core_symbol<symbol_ref>::sym_num(uint32_t num);
+
+template expr_t const*  core_symbol<symbol_ref>::value_p() const;
+template unsigned const core_symbol<symbol_ref>::size()    const;
+template const char *core_symbol<symbol_ref>::size(expr_t& new_size);
+template const char *core_symbol<symbol_ref>::size(uint32_t new_size);
+
+#ifdef ENFORCE_FILE_FIRST_LOCAL
+template const char *core_symbol<symbol_ref>::set_file(symbol_ref ref);
+#endif
 }
 
 #endif

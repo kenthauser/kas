@@ -35,7 +35,7 @@ using ::kas::parser::kas_token;
 struct bsd_ident
 {
     // declare symbol & reference types
-    using symbol_type = core::core_symbol;
+    using symbol_type = core::core_symbol_t;
     using value_type  = std::add_pointer_t<symbol_type>;
 
 private:

@@ -3,14 +3,14 @@
 
 #include "expr/expr_types.h"
 #include "core_terminal_types.h"
-#include "ref_loc_t.h"
-#include "core_expr_type.h"
-#include "core_symbol.h"
-#include "core_addr.h"
+
+//#include "core_expr_type.h"
+//#include "core_symbol.h"
+//#include "core_addr.h"
+
 #include "core_chunk_types.h"
 
 #include <cstdint>
-
 #include <iostream>
 
 namespace kas::core
@@ -26,7 +26,7 @@ extern const uint8_t sizeof_data_t;
 
 
 // alias a couple of types from ::kas::parser namespace
-using kas_pos = ::kas::parser::kas_position_tagged;
+//using kas_pos = ::kas::parser::kas_position_tagged;
 using kas_loc = ::kas::parser::kas_loc;
 
 // forward declaration
@@ -45,7 +45,6 @@ namespace opc
     using opcode = insn_opcode<>;
 }
 
-
 namespace kas::expression::detail
 {
 // NB: in detail namespace, all types are `meta`
@@ -56,9 +55,6 @@ using core_base_types = list<
       core::expr_ref
     , core::symbol_ref
     , core::addr_ref
-
-    // parser placeholder types (also location tagged)
-    , core::missing_ref
     >;
 
 template <> struct term_types_v<defn_core> : concat<list<>

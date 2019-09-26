@@ -6,7 +6,7 @@
 namespace kas::elf
 {
 
-uint32_t es_symbol::add(core::core_symbol& s)
+uint32_t es_symbol::add(core::core_symbol_t& s)
 {
     Elf64_Sym sym {};
 
@@ -63,7 +63,7 @@ uint32_t es_symbol::add(core::core_symbol& s)
     return sym_num;
 }
 
-bool es_symbol::should_emit_local(core::core_symbol& s) const
+bool es_symbol::should_emit_local(core::core_symbol_t& s) const
 {
     // suppress symbols with "Local" names
     bool suppress_local_names = true;
@@ -83,7 +83,7 @@ bool es_symbol::should_emit_local(core::core_symbol& s) const
 }
 
 
-bool es_symbol::should_emit_non_local(core::core_symbol& s) const
+bool es_symbol::should_emit_non_local(core::core_symbol_t& s) const
 {
     // don't allow skipped LOCAL's to sneek thru
     return s.binding() != STB_LOCAL;

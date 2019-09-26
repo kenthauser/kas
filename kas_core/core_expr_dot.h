@@ -171,7 +171,7 @@ struct core_expr_dot
         return (p->max + cur_delta.max) < dot_offset.max;
     }
 
-    bool seen_this_pass(core_addr const& addr) const
+    bool seen_this_pass(core_addr_t const& addr) const
     {
         return seen_this_pass(addr.frag_p, addr.offset_p);
     }
@@ -192,7 +192,7 @@ struct core_expr_dot
         return offset + cur_delta;
     }
 
-    auto rebase(core_addr const& addr) const
+    auto rebase(core_addr_t const& addr) const
     {
         return rebase(addr.frag_p, addr.offset_p);
     }
@@ -233,7 +233,7 @@ public:
 //private:
 
     // XXX should probably use public interface
-    friend struct core_expr;
+    friend core_expr_t;
 
     // initialized by `set_frag`
     addr_offset_t dot_offset;       // dot's offset in current frag

@@ -10,7 +10,7 @@ namespace kas::core
     struct emit_formatted : emit_stream
     {
         std::function<void(e_chan_num, std::string const&)> put;
-        std::function<void(e_chan_num, uint8_t, parser::kas_diag const&)> emit_diag;
+        std::function<void(e_chan_num, uint8_t, parser::kas_diag_t const&)> emit_diag;
         std::function<void(e_chan_num, uint8_t, std::string msg)> emit_reloc;
         std::map<unsigned, uint8_t> position_map;
         const core_section *section_p{};
@@ -62,7 +62,7 @@ namespace kas::core
             return fmt_hex(n, offset, suffix);
         }
 
-        std::string fmt_addr(uint8_t n, core_addr const& addr, unsigned long delta = 0) const
+        std::string fmt_addr(uint8_t n, core_addr_t const& addr, unsigned long delta = 0) const
         {
             auto offset = addr.offset();
             auto suffix = section_suffix(addr.section());
@@ -158,7 +158,7 @@ namespace kas::core
                 , reloc_info_t const& info
                 , uint8_t width
                 , uint8_t offset
-                , core_symbol const& sym
+                , core_symbol_t const& sym
                 , int64_t addend 
                 ) override
         {
@@ -177,7 +177,7 @@ namespace kas::core
             put(num, s);
         }
 
-        void put_diag(e_chan_num num, uint8_t width, parser::kas_diag const& diag) override
+        void put_diag(e_chan_num num, uint8_t width, parser::kas_diag_t const& diag) override
         {
             emit_diag(num, width, diag);
             if (num == EMIT_DATA)
@@ -256,7 +256,7 @@ namespace kas::core
 
         decltype(emit_formatted::emit_diag) emit_diag(std::string &out)
         {
-            return [&](e_chan_num num, uint8_t width, parser::kas_diag const& diag)
+            return [&](e_chan_num num, uint8_t width, parser::kas_diag_t const& diag)
             {
                 out += "[Err: " + diag.message + "] ";
             };

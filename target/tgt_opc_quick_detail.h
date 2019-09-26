@@ -130,7 +130,7 @@ struct quick_stream : core::emit_stream
             , core::reloc_info_t const& info
             , uint8_t width
             , uint8_t offset
-            , core::core_symbol const& sym
+            , core::core_symbol_t const& sym
             , int64_t addend
             ) override
     {
@@ -150,7 +150,7 @@ struct quick_stream : core::emit_stream
     }
 
     // emit diagnostics
-    void put_diag(e_chan_num num, uint8_t, parser::kas_diag const&) override
+    void put_diag(e_chan_num num, uint8_t, parser::kas_diag_t const&) override
     {
         set_error(__FUNCTION__);
     };

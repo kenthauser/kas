@@ -51,10 +51,10 @@ auto const end_of_input = x3::rule<_tag_eoi, stmt_eoi> { "eoi" } = x3::eoi;
 // parse invalid content to end-of-line or comment
 struct token_junk: kas_token
 {
-    operator kas_diag const& ()
+    operator kas_diag_t const& ()
     {
         if (!diag_p)
-            diag_p = &kas_diag::warning("Junk following statement, ignored", *this);
+            diag_p = &kas_diag_t::warning("Junk following statement, ignored", *this);
         
         std::cout << diag_p->ref() << std::endl;
         return *diag_p;
@@ -62,7 +62,7 @@ struct token_junk: kas_token
 
     operator stmt_error()
     {
-        kas_diag const& diag = *this;
+        kas_diag_t const& diag = *this;
         std::cout << "token_junk: stmt_error: " << diag.ref() << std::endl; 
         return diag;
     }
@@ -80,7 +80,7 @@ struct token_junk: kas_token
 
     }
 
-    kas_diag const *diag_p {};
+    kas_diag_t const *diag_p {};
 };
 
 auto const junk = token<token_junk>[+x3::omit[x3::char_ - stmt_eol]];

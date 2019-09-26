@@ -22,7 +22,7 @@ struct opc_dw_file : opcode
 	{
 		data.fixed.fixed = index;
 		if (index == 0) {
-			auto& sym = core_symbol::add(name, STB_LOCAL, STT_FILE);
+			auto& sym = core_symbol_t::add(name, STB_LOCAL, STT_FILE);
 #ifdef ENFORCE_FILE_FIRST_LOCAL
 			auto err = sym.set_file_symbol();
 			if (err)
@@ -48,12 +48,12 @@ struct opc_dw_file : opcode
         // if !defined FILE_SYMBOL
         if (index < 0)
         {
-            auto& sym = core_symbol::get(-index);
+            auto& sym = core_symbol_t::get(-index);
             os << "0: SYM: " << -index << " " << sym.name();
 #ifdef ENFORCE_FILE_FIRST_LOCAL
         } else if (index == 0) {
 			// get "file" from symbol table
-			if (auto sym_p = core_symbol::file())
+			if (auto sym_p = core_symbol_t::file())
 				os << "0: SYM: " << sym_p->index() << " " << sym_p->name();
 			else 
 				os << "0: ** FILE SYMBOL NOT DEFINED **";

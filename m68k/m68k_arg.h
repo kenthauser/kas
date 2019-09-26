@@ -80,7 +80,7 @@ struct token_missing  : kas_token {};
 struct m68k_stmt_info_t;
 
 // `REG_T` & `REGSET_T` args allow `MCODE_T` to lookup types
-struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_reg_set>
+struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_reg_set_t>
 {
     // inherit basic ctors
     using base_t::base_t;

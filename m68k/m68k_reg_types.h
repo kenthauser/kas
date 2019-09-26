@@ -117,14 +117,11 @@ enum
 // XXX the prefix is `%` & should be delcared here
 enum m68k_reg_prefix { PFX_NONE, PFX_ALLOW, PFX_REQUIRE };
 
-struct m68k_reg_set;
-
 // 4-bit class, 12-bit value
 struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t, uint16_t, 4, 12>
 {
     using hw_tst         = hw::hw_tst;
     using reg_defn_idx_t = uint8_t;
-    using reg_set_t      = m68k_reg_set;
 
     using base_t::base_t;
     
@@ -154,8 +151,10 @@ struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t, uint16_t, 4, 12>
 //
 ////////////////////////////////////////////////////////////////////////////
 
-struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set, m68k_reg_t>
+template <typename Ref>
+struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set<Ref>, m68k_reg_t, Ref>
 {
+    using base_t = tgt::tgt_reg_set<m68k_reg_set<Ref>, m68k_reg_t, Ref>;
     using base_t::base_t;
 
     uint16_t reg_kind(m68k_reg_t const& r) const
@@ -207,14 +206,16 @@ struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set, m68k_reg_t>
         //
         // Easiest solution: toggle reverse for FP
 
-        const int mask_bits  = (kind() == RC_FLOAT) ? 8 : 16;
-        const bool bit_order = (kind() == RC_FLOAT) ? RS_DIR_MSB0 : RS_DIR_LSB0;
+        // XXX too much this
+        const int mask_bits  = (this->kind() == RC_FLOAT) ? 8 : 16;
+        const bool bit_order = (this->kind() == RC_FLOAT) ? this->RS_DIR_MSB0 : this->RS_DIR_LSB0;
 
         return { bit_order ^ reverse, mask_bits };
     }
 };
 
-using m68k_rs_ref = typename m68k_reg_set::ref_loc_t;
+using m68k_rs_ref    = core::ref_loc_t<m68k_reg_set>;
+using m68k_reg_set_t = typename m68k_rs_ref::object_t;
 }
 
 

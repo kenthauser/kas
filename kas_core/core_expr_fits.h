@@ -57,9 +57,11 @@ point in the translation, only a single examination is needed.
 namespace kas::core
 {
 // calculate the mutable value in `core_expr`
-short core_expr::calc_num_relocs() const
+
+template <typename REF>
+short core_expr<REF>::calc_num_relocs() const
 {
-    //std::cout << "core_expr::num_relocs: expr = " << expr_t(*this) << std::endl;
+    //std::cout << "core_expr<REF>::num_relocs: expr = " << expr_t(*this) << std::endl;
 
     if (reloc_cnt < 0) {
         flatten();
@@ -69,12 +71,13 @@ short core_expr::calc_num_relocs() const
         reloc_cnt  = std::count_if(plus.begin(),  plus.end(),  unpaired);
         reloc_cnt += std::count_if(minus.begin(), minus.end(), unpaired);
     }
-    //std::cout << "core_expr::num_relocs --> " << reloc_cnt << std::endl;
+    //std::cout << "core_expr<REF>::num_relocs --> " << reloc_cnt << std::endl;
     return reloc_cnt;
 }
 
 // link `plus` & `minus` nodes in same fragment
-void core_expr::pair_nodes () const
+template <typename REF>
+void core_expr<REF>::pair_nodes () const
 {
     // find `plus` addr_p to balance `minus` addr_p
     auto find_plus = [&](expr_term m) -> expr_term const *
@@ -103,7 +106,8 @@ void core_expr::pair_nodes () const
 }
 
 #if 1
-expr_offset_t core_expr::expr_term::offset(core_expr_dot const *dot_p) const
+template <typename REF>
+expr_offset_t core_expr<REF>::expr_term::offset(core_expr_dot const *dot_p) const
 {
     if (!addr_p)
         return {};
@@ -122,7 +126,7 @@ expr_offset_t core_expr::expr_term::offset(core_expr_dot const *dot_p) const
 
 #else
 // declare the cases for "applying delta" to fragments
-enum core_expr::expr_term::cx_delta_t : uint16_t
+enum core_expr<REF>::expr_term::cx_delta_t : uint16_t
      {
        CX_UNDEF
      , CX_NO_DELTA
@@ -132,7 +136,7 @@ enum core_expr::expr_term::cx_delta_t : uint16_t
      , CX_FRAG_AFTER
      };
 
-expr_offset_t core_expr::expr_term::offset(core_expr_dot const *dot_ptr) const
+expr_offset_t core_expr<REF>::expr_term::offset(core_expr_dot const *dot_ptr) const
 {
     auto calc_delta = [dot_ptr](auto&& node) -> cx_delta_t
     {
@@ -166,7 +170,7 @@ expr_offset_t core_expr::expr_term::offset(core_expr_dot const *dot_ptr) const
         {
             default:
                 // XXX need BAD_CASE() macro
-                assert("core_expr::expr_term::offset: cx value" == nullptr);
+                assert("core_expr<REF>::expr_term::offset: cx value" == nullptr);
             case CX_UNDEF:
             case CX_NO_DELTA:
             case CX_FRAG_BEFORE:
@@ -195,7 +199,8 @@ expr_offset_t core_expr::expr_term::offset(core_expr_dot const *dot_ptr) const
 }
 #endif
 
-expr_offset_t core_expr::get_disp(core_expr_dot const& dot) const
+template <typename REF>
+expr_offset_t core_expr<REF>::get_disp(core_expr_dot const& dot) const
 {
     // NB: here we know `disp_ok()` is true
 
@@ -204,12 +209,13 @@ expr_offset_t core_expr::get_disp(core_expr_dot const& dot) const
     return get_offset() - dot.offset();
 }
 
-bool core_expr::disp_ok(core_expr_dot const& dot) const
+template <typename REF>
+bool core_expr<REF>::disp_ok(core_expr_dot const& dot) const
 {
     if (reloc_cnt != 1)
         return false;
 
-    decltype(plus)::value_type const *p {};
+    typename decltype(plus)::value_type const *p {};
 
     for (auto&& expr : plus)
         if (!expr.p) {
@@ -228,7 +234,7 @@ bool core_expr::disp_ok(core_expr_dot const& dot) const
 //
 
 auto core_fits::operator()
-    (core_addr const& addr, fits_min_t min, fits_max_t max, int delta) const
+    (core_addr_t const& addr, fits_min_t min, fits_max_t max, int delta) const
     -> result_t
 {
 #if 1
@@ -264,7 +270,7 @@ auto core_fits::operator()
 
 
 auto core_fits::operator()
-    (core_expr const& e, fits_min_t min, fits_max_t max) const
+    (core_expr_t const& e, fits_min_t min, fits_max_t max) const
     -> result_t
 {
     // XXX this logic not quite complete.
@@ -275,7 +281,7 @@ auto core_fits::operator()
             break;
         case 1:
             //std::cout << " -> core_addr{}" << std::endl;
-            return (*this)(core_addr{}, min, max);
+            return (*this)(core_addr_t{}, min, max);
         default:
             //std::cout << " -> no " << std::endl;
             return no;
@@ -301,7 +307,7 @@ auto core_fits::operator()
 
 // calculate if displacement is in range
 auto core_fits::operator()
-    (core_expr const& e, fits_min_t min, fits_max_t max, int delta) const
+    (core_expr_t const& e, fits_min_t min, fits_max_t max, int delta) const
     -> result_t
 {
     switch (e.num_relocs())
@@ -330,8 +336,8 @@ auto core_fits::operator()
     std::cout << std::endl;
 #endif
 
-if (!e.disp_ok(*dot_p))
-        return no;
+    if (!e.disp_ok(*dot_p))
+            return no;
 
     return (*this)(e.get_disp(*dot_p) - delta, min, max);
 }

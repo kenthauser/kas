@@ -98,7 +98,7 @@ namespace kas::core
         virtual bool seen_this_pass(expr_t const& e) const override
         {
             if (dot_p)
-                if (auto sym_p = e.template get_p<core_symbol>())
+                if (auto sym_p = e.template get_p<core_symbol_t>())
                     if (auto addr_p = sym_p->addr_p())
                         if (&addr_p->section() == &dot_p->section())
                             return dot_p->seen_this_pass(*addr_p);
@@ -113,6 +113,15 @@ namespace kas::core
         }
 
     protected:
+        template <typename T>
+        std::enable_if_t<!std::is_integral_v<T>, result_t>
+        operator()(T const&, fits_min_t, fits_max_t) const
+        {
+            print_type_name{"expr_fits: emits_value"}.name<T>();
+            bool is_value_type = expression::emits_value<T>::value;
+            return is_value_type ? maybe : no;
+        }
+
         // unwrap reference wrappers (std:: & core::ref_loc_t)
         template <typename T>
         result_t operator()(std::reference_wrapper<T> const& ref, fits_min_t min, fits_max_t max) const
@@ -120,22 +129,22 @@ namespace kas::core
             return (*this)(ref.get(), min, max);
         }
 
-        template <typename T, typename Index>
-        auto operator()(ref_loc_t<T, Index> const& ref, fits_min_t min, fits_max_t max) const
-                -> std::enable_if_t<sizeof(T) != 0, result_t>
+        template <typename T, typename = std::enable_if_t<std::is_base_of_v<core::ref_loc_tag, T>>>
+        auto operator()(T const& ref, fits_min_t min, fits_max_t max) const
+                -> std::enable_if_t<sizeof(typename T::object_t) != 0, result_t>
         {
             print_type_name{"core_fits: unwrap"}.name<T>();
             return (*this)(ref.get(), min, max);
         }
 
         // relocated addresses never fit.
-        result_t operator()(core_addr const& e, fits_min_t min, fits_max_t max) const
+        result_t operator()(core_addr_t const& e, fits_min_t min, fits_max_t max) const
         {
             return no;
         }
 
 
-        result_t operator()(core_symbol const& e, fits_min_t min, fits_max_t max) const
+        result_t operator()(core_symbol_t const& e, fits_min_t min, fits_max_t max) const
         {
             //std::cout << "core_fits: core_symbol: " << expr_t(e);
             //std::cout << " max = " << std::hex << max << std::endl;
@@ -147,6 +156,7 @@ namespace kas::core
             return no;
         }
 
+#if 0
         result_t operator()(expression::detail::kas_string_t const& e, fits_min_t min, fits_max_t max) const
         {
             fits_max_t n;
@@ -165,6 +175,7 @@ namespace kas::core
             }
             return (*this)(n, min, max);
         }
+#endif
 
         // catch non-core-expr deltas
         template <typename T>
@@ -174,7 +185,7 @@ namespace kas::core
             return no;
         }
 
-        result_t operator()(core_symbol const& sym, fits_min_t min, fits_max_t max, int delta) const
+        result_t operator()(core_symbol_t const& sym, fits_min_t min, fits_max_t max, int delta) const
         {
             //std::cout << "core_fits: (disp) core_symbol: " << expr_t(sym);
             //std::cout << " max = " << std::hex << max;
@@ -190,9 +201,9 @@ namespace kas::core
         }
         
         // the non-trivial implementations are in core_expr_fits.h
-        result_t operator()(core_expr const&, fits_min_t, fits_max_t) const;
-        result_t operator()(core_expr const&, fits_min_t, fits_max_t, int delta) const;
-        result_t operator()(core_addr const&, fits_min_t, fits_max_t, int delta) const;
+        result_t operator()(core_expr_t const&, fits_min_t, fits_max_t) const;
+        result_t operator()(core_expr_t const&, fits_min_t, fits_max_t, int delta) const;
+        result_t operator()(core_addr_t const&, fits_min_t, fits_max_t, int delta) const;
 
         // support routine to evaluate offset_t<> & fuzz
         //

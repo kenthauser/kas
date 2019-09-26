@@ -28,7 +28,7 @@ auto m68k_arg_t::ok_for_target(m68k_stmt_info_t const& info) -> kas::parser::kas
     auto error = [this](const char *msg)
         {
             set_mode(MODE_ERROR);
-            return err = kas::parser::kas_diag::error(msg, *this).ref();
+            return err = kas::parser::kas_diag_t::error(msg, *this).ref();
         };
 
     // 0. if parsed as error, propogate
@@ -152,7 +152,7 @@ bool m68k_arg_t::is_const () const
             // `is_const` implies insn ready to emit.
             if (e.template get_p<m68k_reg_t>())
                 return true;
-            if (e.template get_p<m68k_reg_set>())
+            if (e.template get_p<m68k_reg_set_t>())
                 return true;
             if (e.get_fixed_p())
                 return true;

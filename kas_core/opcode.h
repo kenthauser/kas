@@ -39,8 +39,8 @@
 namespace kas::core::opc
 {
 
-using kas_error_t = parser::kas_error_t;
-using kas_diag    = parser::kas_diag;
+using parser::kas_error_t;
+using parser::kas_diag_t;
 
 #define OPC_INDEX()   \
     uint16_t& opc_index() const override            \
@@ -169,19 +169,18 @@ public:
     // convenience method: pass msg & `loc`
     void make_error(insn_data& data, const char *msg, kas::parser::kas_loc const& loc)
     {
-        return make_error(data, kas_diag::error(msg).ref(loc));
+        return make_error(data, kas_diag_t::error(msg).ref(loc));
     }
 
     void make_error(insn_data& data, std::string const& msg, kas::parser::kas_loc const& loc)
     {
         return make_error(data, msg.c_str(), loc);
     }
-    
-    // convenience method: pass msg & `ref`
-    template <typename T, typename U>
-    void make_error(insn_data& data, const char *msg, ref_loc_t<T, U> const& ref)
+
+    template <typename REF, typename = std::enable_if_t<std::is_base_of_v<ref_loc_tag, REF>>>
+    void make_error(insn_data& data, const char *msg, REF const& ref)
     {
-        return make_error(data, msg, *ref.template get_p<kas_loc>());
+        return make_error(data, msg, *ref.template get_p<kas::parser::kas_loc>());
     }
 
 public:
@@ -197,7 +196,7 @@ kas_error_t opcode::validate_min_max(C& c, uint16_t min, uint16_t max)
     if (c.size() == 1)
         if (c.front().is_missing()) {
             if (min == 1)
-                return kas_diag::error("Requires argument").ref(c.front());
+                return kas_diag_t::error("Requires argument").ref(c.front());
             else if (!min) {
                 c.clear();
                 return {};
@@ -205,12 +204,12 @@ kas_error_t opcode::validate_min_max(C& c, uint16_t min, uint16_t max)
         }
 
     if (c.size() < min)
-        return kas_diag::error("Too few arguments").ref(*std::prev(c.end()));
+        return kas_diag_t::error("Too few arguments").ref(*std::prev(c.end()));
 
     if (c.size() > max) {
         auto last = c.begin();
         std::advance(last, max);
-        return kas_diag::error("Too many arguments").ref(*last);
+        return kas_diag_t::error("Too many arguments").ref(*last);
     }
 
     return {};

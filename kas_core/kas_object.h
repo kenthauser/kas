@@ -40,6 +40,7 @@ struct kas_object
     using derived_t   = Derived;
     using ref_loc_t   = Ref;
     using index_t     = meta::_t<detail::get_index_t<Ref>>;
+    using object_t    = derived_t;      // XXX better name for derived_t
 
     // for `expr_fits`
     using emits_value = std::true_type;     // object holds value
@@ -93,8 +94,18 @@ public:
 
     // return index to use with `get`
     auto index() const { return obj_index; }
+#if 0
+    template <typename T>
+    T const* get_p(T const&) const
+    {
+        return nullptr;
+    }
 
-
+    auto get_p(parser::kas_loc const&) const
+    {
+        return &obj_loc;
+    }
+#endif
     // use friend function to create reference
     // NB: only define if `Ref` type defined as non-void
     template <typename U = Ref, typename = std::enable_if_t<!std::is_same_v<U, void>>>

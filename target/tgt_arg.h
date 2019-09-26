@@ -49,7 +49,7 @@ struct tgt_arg_t : kas_token
             : _mode(MODE_ERROR), expr(e)
     {
         // create a `diag` instance
-        auto& diag = parser::kas_diag::error(err, *this);
+        auto& diag = parser::kas_diag_t::error(err, *this);
         this->err  = diag.ref();
     }
     // error from `kas_error_t`
@@ -109,7 +109,7 @@ public:
         auto error = [this](const char *msg)
             {
                 set_mode(MODE_ERROR);
-                return err = kas::parser::kas_diag::error(msg, *this).ref();
+                return err = kas::parser::kas_diag_t::error(msg, *this).ref();
             };
 
         // 0. if parsed as error, propogate

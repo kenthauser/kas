@@ -130,7 +130,7 @@ tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
     // if error, generate `error` argument
     if (msg)
     {
-        err = kas::parser::kas_diag::error(msg, *this).ref();
+        err = kas::parser::kas_diag_t::error(msg, *this).ref();
         set_mode(MODE_T::MODE_ERROR);
     }
 }

@@ -24,7 +24,7 @@ struct opc_df_startproc : opcode
         }
 
         auto& obj = df_data::add(omit_prologue);
-        obj.set_begin(core_addr::get_dot().ref());
+        obj.set_begin(core_addr_t::get_dot().ref());
         data.fixed.fixed = obj.index();
 	}
 };
@@ -44,7 +44,7 @@ struct opc_df_endproc : opcode
             return make_error(data, "endproc: not in frame", loc);
 
         // record current address in frame. error if different section
-        p->set_end(core_addr::get_dot().ref());
+        p->set_end(core_addr_t::get_dot().ref());
         data.fixed.fixed = p->index();
         p = nullptr;                // no longer in frame
 	}
@@ -68,7 +68,7 @@ struct opc_df_oper: opcode
         data.fixed.fixed = obj.index();
 
         // XXX Need better way to set "offset". For now just allocate label
-        obj.set_addr(core_addr::get_dot().ref());
+        obj.set_addr(core_addr_t::get_dot().ref());
 	}
 
 };

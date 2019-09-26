@@ -13,18 +13,19 @@ namespace kas::tgt
 ////////////////////////////////////////////////////////////////////////////
 
 
-template <typename Derived, typename Reg_t, typename T = uint32_t, typename Loc = core::ref_loc_t<Derived>>
-struct tgt_reg_set : core::kas_object<Derived, Loc>
+template <typename Derived, typename Reg_t, typename Ref>
+struct tgt_reg_set : core::kas_object<Derived, Ref>
 {
     using base_t     = tgt_reg_set;
     using derived_t  = Derived;
     using reg_t      = Reg_t;
     using rs_value_t = int32_t;     // NB: e_fixed_t
-
+    using core_expr_t = typename core::core_expr_t;
+#if 0
     // this `Reg_t` member type simplifies global operator definitions
     static_assert(std::is_same_v<Derived, typename reg_t::reg_set_t>
                 , "member type `reg_set_t` not properly defined in `Reg_t`");
-
+#endif
     // declare errors
     enum  { RS_ERROR_INVALID_CLASS = 1, RS_ERROR_INVALID_RANGE, RS_OFFSET };
 
@@ -74,12 +75,12 @@ public:
     tgt_reg_set(reg_t const& r, char op = '=');
 
     // need mutable operators only
-    auto& operator- (derived_t const& r)        { return binop('-', r); }
-    auto& operator/ (derived_t const& r)        { return binop('/', r); }
-    auto& operator+ (core::core_expr const& r)  { return binop('+', r); }
-    auto& operator- (core::core_expr const& r)  { return binop('-', r); }
-    auto& operator+ (int r)                     { return binop('+', r); }
-    auto& operator- (int r)                     { return binop('-', r); }
+    auto& operator- (derived_t const& r)     { return binop('-', r); }
+    auto& operator/ (derived_t const& r)     { return binop('/', r); }
+    auto& operator+ (core_expr_t const& r)   { return binop('+', r); }
+    auto& operator- (core_expr_t const& r)   { return binop('-', r); }
+    auto& operator+ (int r)                  { return binop('+', r); }
+    auto& operator- (int r)                  { return binop('-', r); }
 
     // calculate register-set value 
     rs_value_t value(bool reverse = false) const;
@@ -97,8 +98,8 @@ public:
     template <typename OS> void print(OS&) const;
     
     // expose binop to facilitate manual regset manipulation
-    derived_t& binop(const char op, tgt_reg_set const& r);
-    derived_t& binop(const char op, core::core_expr const& r);
+    derived_t& binop(const char op, derived_t const& r);
+    derived_t& binop(const char op, core_expr_t const& r);
     derived_t& binop(const char op, int r);
 private:
 
@@ -110,7 +111,7 @@ private:
     mutable rs_value_t _value  {};
     mutable rs_value_t _value2 {};
     mutable int16_t    _error  {};
-    core::core_expr   *_expr   {};
+    core_expr_t       *_expr   {};
 
     static inline core::kas_clear _c{base_t::obj_clear};
 };

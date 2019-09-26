@@ -4,6 +4,7 @@
 // public interface to the expression parser
 
 #include "parser_types.h"
+#include "kas_error.h"
 #include "parser_stmt.h"
 #include "parser_variant.h"
 #include <boost/spirit/home/x3.hpp>

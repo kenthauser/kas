@@ -25,7 +25,9 @@ using skipper_t = x3::ascii::blank_type;
 template <typename Iter> struct error_handler;
 
 // KAS ERROR type
-using kas_error_t = core::ref_loc_t<struct kas_diag>;
+template <typename> struct kas_diag;
+using kas_error_t = core::ref_loc_t<kas_diag>;
+using kas_diag_t  = typename kas_error_t::object_t;
 
 using kas_position_tagged = kas_position_tagged_t<iterator_type>;
 

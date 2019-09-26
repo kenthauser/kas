@@ -42,7 +42,7 @@ struct kas_loc
     operator bool() const { return loc; }
 
     // used in error_handler::where & for ostream
-    auto get() const { return loc; }
+    auto get() const { return loc; }    // XXX delete?
     std::string where() const;
 
 private:

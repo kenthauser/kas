@@ -85,7 +85,7 @@ private:
 
     decltype(emit_formatted::emit_diag) put_diag()
     {
-        return [&](e_chan_num num, std::size_t width, parser::kas_diag const& diag)
+        return [&](e_chan_num num, std::size_t width, parser::kas_diag_t const& diag)
         {
             if (num == EMIT_DATA) {
                 std::string xxx(width * 2, 'x');
@@ -106,7 +106,7 @@ private:
     friend listing_line<Iter>;
     emit_formatted fmt{ put(), put_diag(), put_reloc() };
     std::array<std::vector<std::string>, NUM_EMIT_FMT> buffers;
-    std::list<parser::kas_diag::index_t> diagnostics;
+    std::list<parser::kas_diag_t::index_t> diagnostics;
     std::list<std::string> relocs;
     std::map<size_t, Iter> current_pos;
     parser::kas_loc::index_t prev_loc {};
@@ -291,7 +291,7 @@ Iter listing_line<Iter>::emit_line(Iter first, Iter last)
     // output pending diagnostics
     for (; !diagnostics.empty(); diagnostics.pop_front())
     {
-        auto& diag = parser::kas_diag::get(diagnostics.front());
+        auto& diag = parser::kas_diag_t::get(diagnostics.front());
         auto message = diag.level_msg() + diag.message;
         out << std::string(addr_size + data_size + 2, ' ');
         //std::cout << "emit_diag: loc = " << diag.loc << std::endl;

@@ -31,31 +31,34 @@ namespace kas::core
 // NB: two 32-bit indexes fit in a 64-bit type.
 
 struct ref_loc_tag {};
-template <typename T, typename Index = uint32_t>
+
+template <template <typename> class T, typename Index = uint32_t>
 struct ref_loc_t : ref_loc_tag
 {
     using type     = ref_loc_t;
     using index_t  = Index;
-    using object_t = T;
+    using object_t = T<ref_loc_t>;
 
     ref_loc_t() = default;
 
     // create object_t instance & return "reference"
     template <typename...Ts>
-    static auto add(Ts&&...args)
+    static ref_loc_t add(Ts&&...args)
     {
-        return T::add(std::forward<Ts>(args)...).ref();
+        return object_t::add(std::forward<Ts>(args)...).ref();
     }
 
     // get `emits_value` from base type
-    using emits_value = meta::_t<meta::defer<expression::emits_value, T>>;
+    using emits_value = meta::_t<meta::defer<expression::emits_value, object_t>>;
 
     // basic tests for `ref`
     //bool empty() const { return !index; }
     operator bool() const { return index; }
     bool operator== (ref_loc_t const& other) const
         { return index && (index == other.index); }
-
+    
+    // XXX modify object call to `get_p(T)` to simplify specialization
+    
     // specialize `get_p` for allowed types (eg e_fixed_t, kas_loc)
     template <typename U>
     std::enable_if_t<!std::is_same<U, parser::kas_loc>::value, U const*>
@@ -73,7 +76,7 @@ struct ref_loc_t : ref_loc_tag
     // return *mutable* reference to base type
     // NB: member template defers dependent name resolution until instantiation
     template <typename...Ts>
-    T& get(Ts&&...) const { return T::get(index, loc); }
+    object_t& get(Ts&&...) const { return object_t::get(index, loc); }
 
     // define getter & setter for `loc`
     parser::kas_loc const& get_loc() const { return loc; }
@@ -87,7 +90,7 @@ struct ref_loc_t : ref_loc_tag
 
 private:
     // declare friend function to access ctor
-    friend ref_loc_t get_ref(T const& obj, ref_loc_t const&)
+    friend ref_loc_t get_ref(object_t const& obj, ref_loc_t const&)
     {
         return { obj.index(), obj.loc() };
     }
@@ -110,12 +113,12 @@ private:
 };
 
 
-template <typename T, typename Index>
+template <template <typename> class T, typename Index>
 template <typename OS>
 void ref_loc_t<T, Index>::print(OS& os) const
 {
     auto loc_str = loc.where();
-    os << "[" << boost::typeindex::type_id<T>().pretty_name();
+    os << "[" << boost::typeindex::type_id<object_t>().pretty_name();
     os << ": " << index << " loc: " << loc_str << "]";
 }
 

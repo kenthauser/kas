@@ -73,10 +73,10 @@ struct elf_file {
         // count actual symbols
         Elf64_Half n_syms {};
 
-        core::core_symbol::dump(std::cout);
+        core::core_symbol_t::dump(std::cout);
        
         // XXX may be better to just use core_symbol::size()
-        core::core_symbol::for_each_emitted([&n_syms](auto&...)
+        core::core_symbol_t::for_each_emitted([&n_syms](auto&...)
             {
                 ++n_syms; 
             });
@@ -100,8 +100,8 @@ struct elf_file {
         if (auto file_sym_p = core::core_symbol::file())
             symtab_p->add(*file_sym_p);
 #else
-        if (core::core_symbol::num_objects()) {
-            auto& first = core::core_symbol::get(1);
+        if (core::core_symbol_t::num_objects()) {
+            auto& first = core::core_symbol_t::get(1);
             if (first.kind() == STT_FILE)
                 symtab_p->add(first);
         }
@@ -111,7 +111,7 @@ struct elf_file {
             d.sym_num = symtab_p->add(d);
 
         // 7. Add symbols: continue with STB_LOCAL symbols from `core_symbol`
-        core::core_symbol::for_each_emitted([symtab_p](auto& sym)
+        core::core_symbol_t::for_each_emitted([symtab_p](auto& sym)
             {
                 if (sym.binding() == STB_LOCAL)
                     if (!sym.sym_num())
@@ -120,7 +120,7 @@ struct elf_file {
             });
 
         // 8. Add symbols: finish with remaining symbols from `core_symbol`
-        core::core_symbol::for_each_emitted([symtab_p](auto& sym)
+        core::core_symbol_t::for_each_emitted([symtab_p](auto& sym)
             {
                 if (!sym.sym_num())
                     if (symtab_p->should_emit_non_local(sym))
@@ -128,7 +128,7 @@ struct elf_file {
             });
 
         // 9. done
-        core::core_symbol::dump(std::cout);
+        core::core_symbol_t::dump(std::cout);
     }
 
 

@@ -42,16 +42,19 @@ struct tagged_msg
 // ******* assembler diagnostic constructor ************
 enum class kas_diag_enum { FATAL, ERROR, WARNING, INFO };
 
-struct kas_diag : core::kas_object<kas_diag, kas_error_t>{
+template <typename REF>
+struct kas_diag : core::kas_object<kas_diag<REF>, REF>
+{
+    using base_t = core::kas_object<kas_diag<REF>, REF>;
     using base_t::index;
     using base_t::for_each;
-    friend base_t;
 
     // doesn't participate in expression evaluation
     using not_expression_type = void;
 
-    kas_diag(kas_diag_enum level, std::string message
-                , parser::kas_loc loc = {})
+    kas_diag(kas_diag_enum level
+           , std::string message
+           , parser::kas_loc loc = {})
         : level(level), message(std::move(message)), base_t(loc)
         {}
 
@@ -67,7 +70,7 @@ struct kas_diag : core::kas_object<kas_diag, kas_error_t>{
     // allow tagging of "new" errors
     static auto& last()
     {
-        return get(num_objects());
+        return get(base_t::num_objects());
     }
 
     template <typename OS> void print(OS& os) const;
@@ -75,16 +78,16 @@ struct kas_diag : core::kas_object<kas_diag, kas_error_t>{
     // named constructors
     template <typename...Args>
     static auto& fatal  (Args&&...args)
-            { return add(kas_diag_enum::FATAL, std::forward<Args>(args)...); }
+            { return base_t::add(kas_diag_enum::FATAL, std::forward<Args>(args)...); }
     template <typename...Args>
     static auto& error  (Args&&...args)
-            { return add(kas_diag_enum::ERROR, std::forward<Args>(args)...); }
+            { return base_t::add(kas_diag_enum::ERROR, std::forward<Args>(args)...); }
     template <typename...Args>
     static auto& warning (Args&&...args)
-            { return add(kas_diag_enum::WARNING, std::forward<Args>(args)...); }
+            { return base_t::add(kas_diag_enum::WARNING, std::forward<Args>(args)...); }
     template <typename...Args>
     static auto& info  (Args&&...args)
-            { return add(kas_diag_enum::INFO, std::forward<Args>(args)...); }
+            { return base_t::add(kas_diag_enum::INFO, std::forward<Args>(args)...); }
 
 
 // private:
@@ -93,8 +96,9 @@ struct kas_diag : core::kas_object<kas_diag, kas_error_t>{
     static inline core::kas_clear _c{base_t::obj_clear};
 };
 
+template <typename REF>
 template <typename OS>
-void kas_diag::print(OS& os) const
+void kas_diag<REF>::print(OS& os) const
 {
     os << level_msg() << message;
 }

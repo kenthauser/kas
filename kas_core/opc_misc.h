@@ -104,8 +104,8 @@ namespace kas::core::opc
                 static constexpr addr_offset_t zero;
 
                 auto& segment = dot.frag_p->segment();
-                auto& base = core_addr::add().init_addr(segment.initial(), &zero);
-                auto& sum = base + *p;
+                auto& base = core_addr_t::add().init_addr(segment.initial(), &zero);
+                auto& sum  = base + *p;
                 std::cout << "opc_org: dest = " << expr_t(sum) << std::endl;
                 *iter = sum.ref(data.fixed.loc);
                 return { 0, static_cast<short>(*p) };

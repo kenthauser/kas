@@ -35,7 +35,7 @@ namespace kas {
 
             print_type_name{"symbol_ref"}.name<typename emits_value<core::symbol_ref>::type>();
             print_type_name{"addr_ref"}.name<typename emits_value<core::addr_ref>::type>();
-            print_type_name{"missing_ref"}.name<typename emits_value<core::missing_ref>::type>();
+            //print_type_name{"missing_ref"}.name<typename emits_value<core::missing_ref>::type>();
         }
     };// _x ;
 
@@ -52,7 +52,7 @@ namespace kas::core
     //decltype(core_insn::data)        core_insn::data;
 
     
-    std::ostream& operator<<(std::ostream& os, core_symbol const& s)
+    std::ostream& operator<<(std::ostream& os, core_symbol_t const& s)
     {
         return os << "[ident " << s.index() - 1 << ":" << s.name() << "]";
     }
@@ -63,13 +63,13 @@ namespace kas::core
         os << name();
     }
 
-    template void core_expr    ::print(std::ostream&) const;
-    template void core_addr    ::print(std::ostream&) const;
-    template void core_symbol  ::print(std::ostream&) const;
+    template void core_expr_t  ::print(std::ostream&) const;
+    template void core_addr_t  ::print(std::ostream&) const;
+    template void core_symbol_t::print(std::ostream&) const;
 
     template void addr_ref     ::print(std::ostream&) const;
     template void symbol_ref   ::print(std::ostream&) const;
-    template void missing_ref  ::print(std::ostream&) const;
+    //template void missing_ref  ::print(std::ostream&) const;
 
     template void core_section ::print(std::ostream&) const;
     template void core_segment ::print(std::ostream&) const;

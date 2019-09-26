@@ -291,7 +291,7 @@ struct es_symbol : elf_section_base
     }
 
     // defined in elf_symbol_util.h
-    uint32_t add(core::core_symbol&);
+    uint32_t add(core::core_symbol_t&);
 
     // create a `ST_SECTION` symbol for a data section
     uint32_t add(es_data& d)
@@ -314,8 +314,8 @@ struct es_symbol : elf_section_base
     }
 
     // utility to decide if symbol should be emitted...
-    bool should_emit_local(core::core_symbol& s) const;
-    bool should_emit_non_local(core::core_symbol& s) const;
+    bool should_emit_local(core::core_symbol_t& s) const;
+    bool should_emit_non_local(core::core_symbol_t& s) const;
 
 private:
     // symbol string table

@@ -65,15 +65,15 @@ struct emit_base
         { (*this)(value); return *this; }
 
     // special case: emits from internal sources (eg dwarf)
-    emit_base& operator<<(core_symbol const& value)
+    emit_base& operator<<(core_symbol_t const& value)
         { (*this)(value); return *this; }
-    emit_base& operator<<(core_addr   const& value)
+    emit_base& operator<<(core_addr_t   const& value)
         { (*this)(value); return *this; }
-    emit_base& operator<<(core_expr   const& value)
+    emit_base& operator<<(core_expr_t   const& value)
         { (*this)(value); return *this; }
 
     // special case: don't allow diagnostics to chain
-    void operator<<(parser::kas_diag const& diag)
+    void operator<<(parser::kas_diag_t const& diag)
         { (*this)(diag); }
 
     // support manipulator functions..
@@ -93,7 +93,7 @@ struct emit_base
 
 private:
     friend expr_t;          // for apply_visitor
-    friend core_expr;       // implements special `emit` method.
+    friend core_expr_t;     // implements special `emit` method.
 
     // friend manipulators
     friend set_size;
@@ -104,10 +104,10 @@ private:
 
     // driven entry-points from stream operators above 
     void operator()(expr_t const& e);
-    void operator()(core_addr const&);
-    void operator()(core_symbol const&);
-    void operator()(core_expr const&);
-    void operator()(parser::kas_diag const&);
+    void operator()(core_addr_t const&);
+    void operator()(core_symbol_t const&);
+    void operator()(core_expr_t const&);
+    void operator()(parser::kas_diag_t const&);
     
     // set width & emit object code
     void put_fixed(int64_t value, uint8_t obj_width = {});
@@ -122,7 +122,7 @@ private:
     void put_section_reloc(deferred_reloc_t const&, reloc_info_t const *info_p
                          , core_section const& section, int64_t addend);
     void put_symbol_reloc (deferred_reloc_t const&, reloc_info_t const *info_p
-                         , core_symbol  const& symbol, int64_t addend);
+                         , core_symbol_t  const& symbol, int64_t addend);
     
     // manipulators to configure data stream
     void set_width(std::size_t w);

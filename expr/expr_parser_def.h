@@ -10,6 +10,7 @@
 
 #include "expr.h"                   // defines ast & parser terminals
 #include "operators.h"              // defines expression operations
+#include "parser/parser.h"
 
 // XXX why are these included here
 #include "c_int_parser.h"

@@ -116,14 +116,14 @@ void emit_base::operator()(expr_t const& e)
 }
 
 // handle `diag`: emit error into error stream
-void emit_base::operator()(parser::kas_diag const& diag)
+void emit_base::operator()(parser::kas_diag_t const& diag)
 {
     stream.put_diag(e_chan, width, diag);
     set_defaults();
 }
 
 // handle "internal" methods as relocatable
-void emit_base::operator()(core_addr const& addr)
+void emit_base::operator()(core_addr_t const& addr)
 {
     // add relocation & emit
     add_reloc()(addr);
@@ -132,7 +132,7 @@ void emit_base::operator()(core_addr const& addr)
 }
 
 
-void emit_base::operator()(core_symbol const& sym)
+void emit_base::operator()(core_symbol_t const& sym)
 {
     // add relocation & emit
     add_reloc()(sym);
@@ -140,7 +140,7 @@ void emit_base::operator()(core_symbol const& sym)
     //stream.put_symbol_reloc(e_chan, r(width), sym, data);
 }
 
-void emit_base::operator()(core_expr const& expr)
+void emit_base::operator()(core_expr_t const& expr)
 {
     // add relocation & emit
     add_reloc()(expr);
@@ -161,7 +161,7 @@ void emit_base::put_section_reloc(deferred_reloc_t const& r, reloc_info_t const 
     stream.put_section_reloc(e_chan, *info_p, r.width, r.offset, section, addend);
 }
 void emit_base::put_symbol_reloc (deferred_reloc_t const& r, reloc_info_t const *info_p
-                     , core_symbol  const& symbol, int64_t addend)
+                     , core_symbol_t  const& symbol, int64_t addend)
 {
     if (!info_p)
     {

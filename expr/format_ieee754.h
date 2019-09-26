@@ -14,17 +14,13 @@
 
 namespace kas::expression
 {
-
-
 // declare "interchange" formatter
-struct ieee754;
-
-template <typename Derived = ieee754, typename FLT = detail::float_host_t>
+template <typename Derived, typename FLT>
 struct ieee754_base
 {
     using base_t    = ieee754_base;
     using derived_t = Derived;
-    using flt_t     = FLT;
+    using flt_t     = typename FLT::object_t;
 
     // declare supported formats
     enum
@@ -49,13 +45,13 @@ struct ieee754_base
 
     // interface funtions: fixed always return integral type. Specify return type.
     template <typename T = long>
-    T fixed(FLT const& flt) const
+    T fixed(flt_t const& flt) const
     {
         return derived().fixed(flt, T());
     }
     
     // process IEEE interchange formats
-    result_type flt(FLT const& flt, int fmt) const
+    result_type flt(flt_t const& flt, int fmt) const
     {
         switch (fmt)
         {
@@ -85,11 +81,11 @@ protected:
     static inline std::array<IEEE_DATA_T, MAX_OUTPUT_WORDS> output;
     
     // no general IEEE format: link error if not defined
-    template <typename T> result_type flt2 (FLT const& flt, T) const;
-    template <typename T> result_type flt10(FLT const& flt, T) const;
+    template <typename T> result_type flt2 (flt_t const& flt, T) const;
+    template <typename T> result_type flt10(flt_t const& flt, T) const;
     
     // IEEE "single" format (32-bits)
-    result_type flt2(FLT const& flt, std::integral_constant<int,32>) const
+    result_type flt2(flt_t const& flt, std::integral_constant<int,32>) const
     {
         // args: format, exponent bits, mantissa bits, buffer
         auto p      = output.begin();
@@ -99,7 +95,7 @@ protected:
     }
     
     // IEEE "double" format (64-bits)
-    result_type flt2(FLT const& flt, std::integral_constant<int,64>) const
+    result_type flt2(flt_t const& flt, std::integral_constant<int,64>) const
     {
         // args: format, exponent bits, mantissa bits, buffer
         auto p      = output.begin();
@@ -112,10 +108,10 @@ protected:
     // IEEE binary floating point conversion
     // common routine to generate Exponent & Mantissa.
     // Final assembly required.
-    auto flt2(FLT const& flt, unsigned fmt, unsigned exp_bits, unsigned mant_bits, IEEE_DATA_T *p) const
+    auto flt2(flt_t const& flt, unsigned fmt, unsigned exp_bits, unsigned mant_bits, IEEE_DATA_T *p) const
     {
         // IEEE uses 32-bit groups
-        static_assert(FLT::MANT_WORD_BITS == 32);
+        static_assert(flt_t::MANT_WORD_BITS == 32);
 
         // convert to fixed point format
         auto [flags, exp, mant] = flt.get_bin_parts(mant_bits);
@@ -198,13 +194,13 @@ protected:
 
     // fixed format has general solution
     template <typename T>
-    T fixed(FLT const& flt, T) const
+    T fixed(flt_t const& flt, T) const
     {
         static constexpr auto bits  = std::numeric_limits<T>::digits;
         static constexpr auto words = (bits-1)/32 + 1;
         
         // IEEE uses 32-bit groups
-        static_assert(FLT::MANT_WORD_BITS == 32);
+        static_assert(flt_t::MANT_WORD_BITS == 32);
 
         // many float -> fixed conversions are possible
         // 
@@ -236,7 +232,7 @@ protected:
 
     // declare a "decimal" analog to the floating-point method
     // to convert floating point to fixed point.
-    auto get_dec_parts(FLT const& flt, int precision) const
+    auto get_dec_parts(flt_t const& flt, int precision) const
     {
 #if 0
         if (precision > std::numeric_limit<typename FLT::value_type>::digits10)
@@ -301,7 +297,8 @@ protected:
 };
 
 // ieee754 with just interchange formats
-struct ieee754 : ieee754_base<ieee754> {};
+template <typename FLT>
+struct ieee754 : ieee754_base<ieee754<FLT>, FLT> {};
 
 
 }

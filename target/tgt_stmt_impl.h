@@ -152,7 +152,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
 
         if (err_index)
             loc_p = &args[err_index-1];
-        data.fixed.diag = parser::kas_diag::error(err_msg, *loc_p).ref();
+        data.fixed.diag = parser::kas_diag_t::error(err_msg, *loc_p).ref();
         return {};
     }
 

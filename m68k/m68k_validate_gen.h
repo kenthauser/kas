@@ -222,7 +222,7 @@ struct val_regset : m68k_mcode_t::val_t
                 // XXX test for fixed in range
                 return fits.yes;
             case MODE_REGSET:
-                if (auto rs_p = arg.expr.template get_p<m68k_reg_set>())
+                if (auto rs_p = arg.expr.template get_p<m68k_reg_set_t>())
                 {
                     if (!kind && rs_p->kind() <= RC_ADDR)
                         return fits.yes;

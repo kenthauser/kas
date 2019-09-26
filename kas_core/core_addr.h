@@ -13,8 +13,12 @@ namespace kas::core
 {
 
 // a location is identified as fragment + offset
-struct core_addr : kas_object<core_addr, addr_ref>
+template <typename REF>
+struct core_addr : kas_object<core_addr<REF>, REF>
 {
+    using base_t = kas_object<core_addr<REF>, REF>;
+    using base_t::add;
+    
     using NAME = KAS_STRING("core_addr");
 
     enum { DOT_CUR, DOT_NEXT };
@@ -108,7 +112,8 @@ private:
 };
 
 // with core_fragment defined, implement core_addr method
-inline frag_offset_t core_addr::offset() const
+template <typename REF>
+inline frag_offset_t core_addr<REF>::offset() const
 {
     auto offset = frag_p->base_addr();
     if (offset_p)
@@ -116,7 +121,8 @@ inline frag_offset_t core_addr::offset() const
     return offset;
 }
 
-inline core_section const& core_addr::section() const
+template <typename REF>
+inline core_section const& core_addr<REF>::section() const
 {
     return frag_p->segment().section();
 }
@@ -128,8 +134,9 @@ inline bool core_fragment::operator<(core_fragment const& other) const
     return other.frag_num() < frag_num();
 }
 
+template <typename REF>
 template <typename OS>
-void core_addr::print(OS& os) const
+void core_addr<REF>::print(OS& os) const
 {
     // generate a single emit to OS (for formatting)
     std::ostringstream str;
