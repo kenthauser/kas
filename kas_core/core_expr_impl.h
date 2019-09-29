@@ -605,6 +605,8 @@ void core_expr<REF>::print(OS& os) const
     }
 }
 
+
+
 template auto core_expr<expr_ref>::operator+(e_fixed_t v) -> core_expr&;
 template auto core_expr<expr_ref>::operator+(core_symbol_t const& sym) -> core_expr&;
 template auto core_expr<expr_ref>::operator+(core_addr_t const& addr) -> core_expr&;
@@ -614,6 +616,13 @@ template auto core_expr<expr_ref>::operator-(core_symbol_t const& sym) -> core_e
 template auto core_expr<expr_ref>::operator-(core_addr_t const& addr) -> core_expr&;
 template auto core_expr<expr_ref>::operator-(core_expr const& other) -> core_expr&;
 
+template core_expr<expr_ref>::core_expr(core_expr const&);
+template expr_offset_t core_expr<expr_ref>::get_offset(core_expr_dot const* dot_ptr);
+template short core_expr<expr_ref>::calc_num_relocs() const;
+
+template core_expr<expr_ref>::expr_term::expr_term(core_symbol_t const&);
+template core_expr<expr_ref>::expr_term::expr_term(core_addr_t const&);
+template core_expr<expr_ref>::expr_term::expr_term(expr_term const&);
 
 }
 

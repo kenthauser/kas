@@ -1,11 +1,10 @@
-CXXFLAGS += -std=c++17 -g -pedantic -I.
+CXXFLAGS += -std=c++17 -pedantic -I. -g
 CXXFLAGS += -isystem spirit/include -isystem meta/include -isystem /usr/local/include
 CXXFLAGS += -ftemplate-depth=4096
-## CXXFLAGS += -O2
+#CXXFLAGS += -O2
 ##CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
 # CXXFLAGS += -O2 -isystem ../boost_1_58_0
 #CXX = g++-8
-CFLAGS = -O2
 # CXXFLAGS += -DPRINT_EXPR_INFO
 
 # clang options to create .deps file & .phony target

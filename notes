@@ -189,3 +189,14 @@ M68K Notes (m68k.input)
 
 36. still problem with int64_t being converted to expr. Fix tgt_data_inserter unsigned short, int>
 
+*37. refactor `ref_loc_t` to take template, not type.
+
+38. refactor `tgt_reg` & `tgt_regset` to take template, not type.
+
+*39. Erroring wrong insn: `expected = 0x4, actual = 0xfff...fff04`. Probably `cross-frag` reporting error
+
+40. Emit `warnings` in output file.
+
+41. Don't generate `warnings` in `emit`. Object should be fixed.
+
+

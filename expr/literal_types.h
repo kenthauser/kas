@@ -148,10 +148,16 @@ struct float_host_t : core::kas_object<float_host_t<REF>, REF>
     static constexpr auto HOST_MANT_BITS = std::numeric_limits<value_type>::digits;
     static constexpr auto MANT_WORD_BITS = std::numeric_limits<mantissa_t>::digits;
     
-    
-    explicit float_host_t(value_type value = {}) : value(std::move(value)) {}
+    float_host_t(value_type value = {}) : value(value) {}
 
+    // operator() extracts value
     value_type const& operator()() const
+    {
+        return value;
+    }
+
+    // allow standard expression operations on type 
+    operator value_type() const
     {
         return value;
     }

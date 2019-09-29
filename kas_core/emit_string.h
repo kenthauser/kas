@@ -12,10 +12,9 @@ namespace kas::core
         std::function<void(e_chan_num, std::string const&)> put;
         std::function<void(e_chan_num, uint8_t, parser::kas_diag_t const&)> emit_diag;
         std::function<void(e_chan_num, uint8_t, std::string msg)> emit_reloc;
-        std::map<unsigned, uint8_t> position_map;
+        std::map<typename core_section::index_t, std::size_t> position_map;
         const core_section *section_p{};
-        uint8_t  *position_p{};
-        //int64_t  offset {};
+        std::size_t *position_p{};
         const char *suffix_p {};
 
         emit_formatted(decltype(put) put, decltype(emit_diag) diag, decltype(emit_reloc) reloc) :

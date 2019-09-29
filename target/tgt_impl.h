@@ -27,7 +27,8 @@ namespace kas::tgt
     using regset_ref = typename regset_t::ref_loc_t;
     
     // instantiate reg routines referenced from expression parsers
-    template const char *tgt_reg<reg_t>::validate(int) const;
+    // XXX need to refactor: warning about `typedef not permitted`
+    template const char *reg_t::name() const;
 
     // instantiate reg_set routines referenced from expression parsers
     // NB: error if `regset_t` is `void`

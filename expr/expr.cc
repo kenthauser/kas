@@ -61,11 +61,14 @@ namespace {
             std::cout << ", largest type ("  << sizeof_<largest>::value;
             print_type_name{")"}.name<largest>();
             std::cout << "sizeof(expr_t) = " << sizeof(expr_t) << std::endl;
-
-
+            
+            std::cout << std::endl;
             flt_info<float>      ("float      ");
             flt_info<double>     ("double     ");
             flt_info<long double>("long double");
+
+            std::cout << std::endl;
+            print_expr_ops();
         }
 
         template <typename T>
@@ -90,6 +93,15 @@ namespace {
             std::cout << " exponent bits = " << exp_digits();
             std::cout << " max_exp10 = " << std::numeric_limits<T>::max_exponent10;
             std::cout << std::endl;
+        }
+
+        void print_expr_ops() const
+        {
+            print_type_name{"expr_op_types"}.name<kas::expression::detail::expr_types>();
+
+            auto& ops = kas::expression::detail::bin_ops;
+            //auto  defns = ops.defns;
+            //auto  cnt   = ops.defns_count;
         }
 
     } _x;

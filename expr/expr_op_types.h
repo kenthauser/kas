@@ -167,6 +167,7 @@ namespace detail
         template <typename X3>
         void operator()(X3& x3, unsigned count)
         {
+            defns_count = count;
             for (auto defn_p = defns; count--; ++defn_p)
             {
                 auto& s = obstack.emplace_back(*defn_p);
@@ -184,6 +185,7 @@ namespace detail
         }
 
         DEFN_T const* const defns;
+        unsigned defns_count;
     };
 }
 

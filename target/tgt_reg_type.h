@@ -43,6 +43,11 @@ struct tgt_reg
 {
     using base_t      = tgt_reg;
     using derived_t   = Derived;
+
+    // actual types are needed for template instantiation (typedefs not allowed)
+    using mcode_sz_t  = BASE_T;
+    using reg_c_bits  = std::integral_constant<unsigned, REG_C_BITS>;
+    using value_bits  = std::integral_constant<unsigned, VALUE_BITS>;
     
     // Declare `constexpr defn` type
     using defn_t      = tgt_reg_defn<Derived>;

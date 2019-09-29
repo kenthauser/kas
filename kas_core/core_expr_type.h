@@ -37,6 +37,7 @@ namespace kas::core
 // forward declare types
 using expression::ast::expr_t;
 using expression::e_fixed_t;
+struct core_fits;
 
 template <typename Ref>
 struct core_expr : kas_object<core_expr<Ref>, Ref>
@@ -46,7 +47,7 @@ struct core_expr : kas_object<core_expr<Ref>, Ref>
     // enforced by static_assert in `core_expr::get<e_fixed_t>`
     using base_t       = kas_object<core_expr<Ref>, Ref>;
     using base_t::index;
-
+private:
     struct expr_term
     {
         // if more types added -- expand `flatten()`
@@ -75,7 +76,7 @@ struct core_expr : kas_object<core_expr<Ref>, Ref>
         mutable expr_term const *p {};
         mutable cx_delta_t cx {};
     };
-
+public:
     using emits_value = std::true_type;
     using sym_list_t = std::list<expr_term>;
     
@@ -127,7 +128,6 @@ struct core_expr : kas_object<core_expr<Ref>, Ref>
     template <typename BASE_T, typename RELOC_T> void emit(BASE_T&, RELOC_T&) const;
 
     // interface for `core_fits`: implemented in `core_expr_fits.h`
-    short calc_num_relocs() const;
     short num_relocs() const { return reloc_cnt; }
     expr_offset_t get_offset(core_expr_dot const *dot = nullptr);
 
@@ -146,6 +146,8 @@ struct core_expr : kas_object<core_expr<Ref>, Ref>
     e_fixed_t const* get_fixed_p() const;
 
 private:
+    friend core_fits;
+
     // evaluate symbols, find duplicates & combine constants
     void flatten();
 
@@ -161,6 +163,9 @@ private:
 
     // find same-fragment operands & calculate relax_deltas
     void pair_nodes() const;     // calculate mutable variables
+    
+    // helper for `core_fits`
+    short calc_num_relocs() const;
 
     // elements: operands and the constant
     sym_list_t plus;

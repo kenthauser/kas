@@ -208,23 +208,35 @@ struct expr_t : detail::expr_x3_variant
     // create "numeric" ctor which filters out floats
     // then forward to private ctor which filters out big-integers
 
+    // 1. integers that can be converted to `e_fixed_t`
     template <typename T, typename = std::enable_if_t<
                                         std::is_integral_v<
                                             std::remove_reference_t<T>
                                      >>>
     expr_t(T&& value) : expr_t(value, true) {}
 
+    // 2. floating point types that can be converted to `e_float_t`
+    template <typename T
+            , typename FLT_T = typename e_float_t::object_t
+            , typename = std::enable_if_t<
+                            std::is_floating_point_v<
+                                std::remove_reference_t<T>
+                         >>>
+    expr_t(T&& value, FLT_T = {}) : expr_t(FLT_T::add(std::forward<T>(value))) {}
+
+
     // 3. wrapped ctor types
     // NB: only accept lvalues as `unwrapped` instances must by permanently allocated
     template <typename T, typename = std::enable_if_t<meta::in<unwrapped, T>::value>>
     expr_t(T const& t) : base_t(t.ref()) {}
 
-    // 4. not integral nor wrapped: forward to base_t
+    // 4. not integral, not floating point, nor wrapped: forward to base_t
     template <typename T
             , typename U = std::decay_t<T>  // remove const && ref
             , typename   = std::enable_if_t<
                              !meta::in<unwrapped, U>::value &&
-                             !std::is_integral_v<U>
+                             !std::is_integral_v<U>         &&
+                             !std::is_floating_point_v<U>
                             >>
     expr_t(T&& value) : base_t(std::forward<T>(value)) {}
 

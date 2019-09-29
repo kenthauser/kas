@@ -119,7 +119,6 @@ struct core_insn
         {
             std::cout << "core_insn::emit: expected = 0x" << std::hex << wr_size;
             std::cout << " actual = 0x" << std::hex << (wr_size - delta) << std::endl;
-            std::cout << "core_insn::emit: insn: " << fmt() << std::endl;
         }
 #endif
 #undef VALIDATE_EMIT

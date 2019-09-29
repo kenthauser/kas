@@ -95,14 +95,8 @@ namespace
     template <typename DEFNS, typename XTRA = list<>>
     using get_expr_op_names = _t<apply<get_types_one_item<DEFNS>
                                      , list<void, NAME_LIST, void, XTRA>>>;
-#if 0 
-    using NAMES     = list<get_expr_op_names<sfx_types,
-                              get_expr_op_names<pfx_types,
-                                 get_expr_op_names<bin_types>>>>;
-#else
     using NAMES     = list<get_expr_op_names<pfx_types,
                               get_expr_op_names<bin_types>>>;
-#endif
 }
 
 // create parsers from lists
@@ -116,7 +110,7 @@ static const auto pfx_ops = parser::sym_parser_t<expr_op_defn, pfx_types, void, 
 //
 namespace kas::expression::parser
 {
-// NB: x3_oper is "raw" parser, not requiring "x3::lexeme[(&) >> !x3:alnum]"
+// NB: x3_oper is "raw" parser, not requiring "x3::lexeme[(&) >> !x3::graphic]"
 auto const bin_op_x3 = x3::no_case[detail::bin_ops.x3_raw()];
 auto const pfx_op_x3 = x3::no_case[detail::pfx_ops.x3_raw()];
 //auto const sfx_op_x3 = x3::no_case[detail::sfx_ops.x3_raw()];
