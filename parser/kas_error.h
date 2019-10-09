@@ -48,6 +48,10 @@ struct kas_diag : core::kas_object<kas_diag<REF>, REF>
     using base_t = core::kas_object<kas_diag<REF>, REF>;
     using base_t::index;
     using base_t::for_each;
+    
+    // XXX enable DUMP
+    using NAME = KAS_STRING("kas_diag");
+    using base_t::dump;
 
     // doesn't participate in expression evaluation
     using not_expression_type = void;
@@ -95,14 +99,6 @@ struct kas_diag : core::kas_object<kas_diag<REF>, REF>
     std::string message;
     static inline core::kas_clear _c{base_t::obj_clear};
 };
-
-template <typename REF>
-template <typename OS>
-void kas_diag<REF>::print(OS& os) const
-{
-    os << level_msg() << message;
-}
-
 
 }
 

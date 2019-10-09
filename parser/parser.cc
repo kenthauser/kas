@@ -16,6 +16,19 @@ std::string kas_loc::where() const
 }
 
 #if 0
+template <typename REF>
+template <typename OS>
+void kas_diag<REF>::print(OS& os) const
+{
+    auto where = this->loc().where();
+    os << level_msg() << message << " : " << escaped_str(where);
+}
+
+template void kas_diag<kas_error_t>::print<std::ostream&>(std::ostream&) const;
+template void kas_diag<kas_error_t>::print<std::ostringstream&>(std::ostringstream&) const;
+#endif
+
+#if 0
 
 template <typename Iter>
 kas_position_tagged_t<Iter>::operator kas_loc&() const

@@ -68,6 +68,8 @@ struct kas_assemble
         kas::core::core_segment::dump(std::cout);
         kas::core::core_fragment::dump(std::cout);
 #endif
+        kas::parser::kas_diag_t::dump(std::cout);
+        
     #if 0
         // 4. generate `cframe` data into a second container
         if (dwarf::df_data::size() != 0) {

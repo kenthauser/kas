@@ -100,17 +100,17 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
 // In `emit_one` &/or core_emit &/or backend work on serialize.
 // Use #bits for `size_one`
 
-template <typename NBits>
-struct opc_float : opc_data<opc_float<NBits>, uint32_t>
+template <unsigned NBits>
+struct opc_float : opc_data<opc_float<NBits>, expression::e_float_t>
 {
-    using value_type = uint32_t;
+    using value_type = expression::e_float_t;
     using op_size_t  = typename opcode::op_size_t;
 
-    using NAME = m_name<NBits::value, KAS_STRING("FLT")>;
+    using NAME = m_name<NBits, KAS_STRING("FLT")>;
 
     // XXX need bits->float size macro
     // for now, round up to multiple of 32bits
-    static constexpr unsigned words_one = (NBits::value + 31)/32;
+    static constexpr unsigned words_one = (NBits + 31)/32;
     static constexpr unsigned size_one  = words_one * (32/8);
 
     template <typename CI>
@@ -121,6 +121,16 @@ struct opc_float : opc_data<opc_float<NBits>, uint32_t>
     }
 
     static constexpr unsigned sizeof_diag = size_one;
+    
+    static void emit_one(emit_base& base, expr_t const& value, core_expr_dot const *dot_p)
+    {
+        // evaluate expression & emit
+#if 0
+        std::cout << "opc_fixed::emit_one: " << value << std::endl;
+        base << set_size(sizeof(value_type));
+        base << value;
+#endif
+    }
 };
 #endif
 

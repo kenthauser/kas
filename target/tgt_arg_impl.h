@@ -60,7 +60,7 @@ tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
     case MODE_T::MODE_IMMEDIATE:
         // immediate must be non-register expression
         if (reg_p || rs_p)
-            msg = error_msg::ERR_argument;
+            msg = err_msg_t::ERR_argument;
         break;
 
     case MODE_T::MODE_REGSET:
@@ -69,7 +69,7 @@ tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
             if (rs_p && rs_p->kind() != -REGSET_T::RS_OFFSET)
                 break;
         }
-        msg = error_msg::ERR_argument;
+        msg = err_msg_t::ERR_argument;
         break;
 
     case MODE_T::MODE_REG_OFFSET:
@@ -82,7 +82,7 @@ tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
                 break;
             }
         }
-        msg = error_msg::ERR_argument;
+        msg = err_msg_t::ERR_argument;
         break;
 
     case MODE_T::MODE_INDIRECT:
@@ -118,7 +118,7 @@ tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
         
         // reg-sets must be DIRECT or RS_OFFSET. 
         if (rs_p)
-            msg = error_msg::ERR_argument;
+            msg = err_msg_t::ERR_argument;
         
         break;
     }
@@ -168,6 +168,28 @@ int tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
             return sizeof(typename expression::e_data_t<>::type);
 
         case MODE_T::MODE_IMMEDIATE:
+    #if 0
+            std::cout << "tgt_arg_t::size: immediate: " << std::showpoint << expr << std::endl;
+
+            // special processing if `floating-point` support
+            if constexpr (!std::is_void<expression::e_float_t>())
+            {
+                // if float as immed, check if floating or fixed format
+                if (!derived().immed_info(sz).flt_fmt)
+                    // if fixed format immed, check if floating value
+                    if (auto p = expr.template get_p<expression::e_float_t>())
+                    {
+                        std::cout << "tgt_arg_t::size: immediate float" << std::endl;
+                        auto n = derived().immed_info(sz).sz_bytes;
+
+                        auto msg = expression::ieee754<expression::e_float_t>().ok_for_fixed(*p, n * 8);
+                        if (msg)
+                            set_error(msg);
+                        else
+                            parser::kas_diag_t::warning(m68k::err_msg_t::ERR_flt_fixed);
+                    }
+            }
+#endif
             if (is_signed) *is_signed = true;
             return derived().immed_info(sz).sz_bytes;
     }
@@ -258,19 +280,19 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
     auto& info = immed_info(sz);
     
     // process floating point types if supported
-    if constexpr (!std::is_void_v<expression::e_float_fmt>)
+    if constexpr (!std::is_void_v<e_float_t>)
     {
         // CASE: emit formatted as floating point
         if (info.flt_fmt)
             return derived().emit_flt(base, info.sz_bytes, info.flt_fmt);
 
         // CASE: emit floating point as fixed
-        using flt_t = typename expression::e_float_t::object_t;
+        using flt_t = typename e_float_t::object_t;
         if (auto p = expr.template get_p<flt_t>())
         {
             // XXX warning float as fixed
             std::cout << "tgt_arg_t::emit_immed: " << expr << " emitted as integral value" << std::endl;
-            base << core::set_size(info.sz_bytes) << expression::e_float_fmt().fixed(*p);
+            base << core::set_size(info.sz_bytes) << typename flt_t::fmt().fixed(*p);
             return;
         }
     }
@@ -301,7 +323,7 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
         return;
     }
     
-    auto [chunk_size, chunks, data_p] = expression::e_float_fmt().flt(*flt_p, flt_fmt);
+    auto [chunk_size, chunks, data_p] = typename flt_t::fmt().flt(*flt_p, flt_fmt);
     if (chunk_size == 0)
     {
         // XXX should throw

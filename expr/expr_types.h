@@ -45,8 +45,11 @@ template<typename = void> struct e_fixed   { using type = int32_t;  };
 template<typename = void> struct e_float;
 template<typename = void> struct e_string;
 
+// Forward declare float "host value"
+template<typename = void> struct float_value;
+
 // Forward declare base type for holding floating point types
-template<typename = void> struct float_base;
+template<typename = void> struct float_host;
 
 // Forward declare template for formatting `floating` args
 // NB: default to IEEE interchange formats. Addition formats
@@ -61,9 +64,9 @@ template<typename E_FLOAT,  typename = void> struct float_p;
 template<typename E_STRING, typename = void> struct string_p;
 
 // declare info about processor targeted by assembler
-template<typename = void> struct e_data_t  { using type = uint32_t; };
+template<typename = void> struct e_data_t  { using type =  int32_t; };
 template<typename = void> struct e_addr_t  { using type = uint32_t; };
-template<typename = void> struct err_msg_t { using type = void;     };
+template<typename = void> struct err_msg;
 
 // Forward declare operator precedence type & default to c-language rules
 namespace precedence

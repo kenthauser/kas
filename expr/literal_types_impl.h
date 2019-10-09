@@ -1,5 +1,5 @@
-#ifndef KAS_EXPR_LITERAL_TYPES_H
-#define KAS_EXPR_LITERAL_TYPES_H
+#ifndef KAS_EXPR_LITERAL_TYPES_IMPL_H
+#define KAS_EXPR_LITERAL_TYPES_IMPL_H
 
 // declare assembler FLOATING & STRING literal types
 
@@ -33,11 +33,11 @@
 
 namespace kas::expression::detail
 {
-
-template <typename REF>
-struct kas_string_t : core::kas_object<kas_string_t<REF>, REF>
+#if 0
+template <typename REF, typename VALUE>>
+struct kas_string_t : core::kas_object<kas_string_t<REF, VALUE>, REF>
 {
-    using base_t      = core::kas_object<kas_string_t<REF>, REF>;
+    using base_t      = core::kas_object<kas_string_t<REF, VALUE>, REF>;
     using emits_value = std::true_type;
     using ref_t       = REF;
 
@@ -114,10 +114,10 @@ private:
 // support largest int by host
 // holds values that are too big for `e_fixed_t`
 
-template <typename REF>
-struct bigint_host_t : core::kas_object<bigint_host_t<REF>, REF>
+template <typename REF, typename VALUE>>
+struct bigint_host_t : core::kas_object<bigint_host_t<REF, VALUE>, REF>
 {
-    using base_t      = core::kas_object<bigint_host_t<REF>, REF>;
+    using base_t      = core::kas_object<bigint_host_t<REF, VALUE>, REF>;
     using emits_value = std::true_type;
     using value_type = std::intmax_t;
 
@@ -129,98 +129,100 @@ private:
     value_type value {};
     static inline core::kas_clear _c{base_t::obj_clear};
 };
+#endif
+template <typename REF, typename VALUE, typename FMT>
+auto float_host_ieee<REF, VALUE, FMT>::get_flags() const -> flag_t
+{
+    // get sign & zero the other flags
+    flag_t flags = { std::signbit(value) };
 
-#define FLOAT_HOST float_host_ieee
+    // look for special cases
+    switch (std::fpclassify(value))
+    {
+        case FP_ZERO:
+            flags.is_zero = true;
+            break;
+        case FP_INFINITE:
+            flags.is_inf  = true;
+            break;
+        case FP_NAN:
+            flags.is_nan  = true;
+            break;
+        case FP_SUBNORMAL:
+            flags.subnorm = true;
+            break;
+        case FP_NORMAL:
+        default:
+            break;
+    }
+    return flags; 
+}
 
 template <typename REF, typename VALUE, typename FMT>
-struct FLOAT_HOST: core::kas_object<FLOAT_HOST<REF, VALUE, FMT>, REF>
+template <typename T>
+auto float_host_ieee<REF, VALUE, FMT>::get_bin_parts(T *mantissa_p, int mant_bits, bool truncate) const
+    -> std::tuple<flag_t, int>
 {
-    using base_t = core::kas_object<FLOAT_HOST<REF, VALUE, FMT>, REF>;
+    if ((unsigned)mant_bits > HOST_MANT_BITS)
+        throw std::logic_error{"float_host_ieee::get_parts: bits out of range"};
 
-    // IEEE is based on 32-bits groups, so organize mantissa into 32-bit segments
-    // most significant is first. 
-    using emits_value = std::true_type;     // XXX for `expr_fits`
-    using value_type  = VALUE;
-    using fmt         = FMT;
-    using mantissa_t  = std::uint32_t;
-
-    // if host not `ieee` format, need to implement appropriate `get_flags` & `get_bin_parts` 
-    static constexpr auto HOST_MANT_BITS = std::numeric_limits<value_type>::digits;
+    // normalized number must be positive
+    auto flags    = get_flags();
+    auto fraction = flags.is_neg ? -value : value;
     
-    // info on floating point value
-    struct flag_t
-    {
-        uint8_t is_neg  : 1;
-        uint8_t is_zero : 1;
-        uint8_t is_inf  : 1;
-        uint8_t is_nan  : 1;
-        uint8_t subnorm : 1;
-    };
-    
-    constexpr FLOAT_HOST(value_type value = {}) : value(value) {}
+    // extract normalized fraction, exponent
+    int exponent;
+    fraction = std::frexp(fraction, &exponent);
 
-    // operator() extracts value
-    value_type const& operator()() const
+    // need to round if less than full precision requested
+    if (mant_bits != HOST_MANT_BITS)
     {
-        return value;
+        // round (or truncate) at N bits, then shift for export
+        if (!truncate)
+            fraction = std::round(std::ldexp(fraction, mant_bits));
+        else
+            fraction = std::trunc(std::ldexp(fraction, mant_bits));
+        
+        // fraction must remain < 1.0
+        if (fraction >= std::exp2(mant_bits))
+        {
+            fraction /= 2;
+            ++exponent;
+        }
+        
+        // shift value to LSBs (of integral value)
+        // NB: this reduced precision float is "sub-normal"
+        fraction = std::ldexp(fraction, -HOST_MANT_BITS);
     }
 
-    // allow standard expression operations on type 
-    operator value_type const&() const
+    // in order convert float to fixed without using bit manipulation, must
+    // save integral part, subtract, and repeat.
+
+    // get info on host `value_type`
+    static constexpr auto MANT_WORD_BITS = std::numeric_limits<T>::digits;
+    static constexpr auto MANT_WORDS     = (HOST_MANT_BITS-1)/MANT_WORD_BITS + 1;
+
+    if (mantissa_p)
     {
-        return value;
+        auto p = mantissa_p;
+        auto n = MANT_WORDS;
+        while (n--)
+        {
+            // get bits for this word
+            fraction = std::ldexp(fraction, MANT_WORD_BITS);
+
+            // split "fraction" in to integral/fraction parts
+            // NB: modf is exact: no rounding
+            value_type ip;
+            fraction = std::modf(fraction, &ip);
+
+            // save integral part
+            *mantissa_p++ = ip;
+        }
     }
-
-//protected:
-    // identify special values
-    flag_t get_flags() const;
-
-    // get_bin_parts: the floating-point "money" function
-    //
-    // convert floating point to fixed format, with rounding
-    //
-    // round mantissa to "n-bits" & store in provided array.
-    // Return flags & (unbiased) exponent
-
-    template <typename T>
-    auto get_bin_parts(T *mantissa_p = {}, int mant_bits = HOST_MANT_BITS, bool truncate = false) const
-        -> std::tuple<flag_t, int>;
-
-private:
-    value_type value;
-};
-#if 0
-// overload with type that requires ieee_754 host format
-template <typename REF, typename VALUE, typename FMT>
-struct float_host_ieee : float_host<REF, VALUE, FMT>
-{
-    static_assert(std::numeric_limits<VALUE>::is_iec559);
     
-    using base_t = float_host<REF, VALUE, FMT>;
-   
-    // inherit constructor
-    using base_t::base_t;
-
-    // expose protected methods after proper operation verified
-    using base_t::get_flags;
-    using base_t::get_bin_parts;
-
-    // expose methods used by `ref_loc_t`
-    using base_t::get;
-};
-
-#endif
-#undef FLOAT_HOST
-
+    return std::make_tuple(flags, exponent);
 }
-#if 1
-namespace kas::expression
-{
-// decalare
-// XXX 
-using kas_bigint_host = core::ref_loc_t<detail::bigint_host_t>;
-using kas_string      = core::ref_loc_t<detail::kas_string_t>;
 }
-#endif
 
 #endif

@@ -101,6 +101,9 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
         , list<STR("ascii"),        bsd_fixed<opc_string<std::false_type>>>
         , list<STR("asciz"),        bsd_fixed<opc_string<std::true_type>>>
         , list<STR("string"),       bsd_fixed<opc_string<std::true_type>>>
+//        , list<STR("single"),       bsd_fixed<opc_float<m68k::m68k_format_float::FMT_IEEE_32_SINGLE>>>
+//        , list<STR("double"),       bsd_fixed<opc_float<m68k::m68k_format_float::FMT_IEEE_64_DOUBLE>>>
+//        , list<STR("extended"),     bsd_fixed<opc_float<m68k::m68k_format_float::FMT_M68K_80_EXTEND>>>
 #if 0
         //, list<STR("string8"),      opc_string<std::true_type>, std::uint8_t>
         //, list<STR("string16"),     opc_string<std::true_type>, std::uint16_t>

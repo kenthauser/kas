@@ -4,8 +4,6 @@
 ; 0. constants used
 
 fp_short:
-    fabs.d   #7.5/2, fp6   ; 5 = double (64-bit float)
-    fabs.d   #7.5/1.5, fp6   ; 5 = double (64-bit float)
 
    fabs.l   d0,fp1
    fabs.s   a1@, fp2
@@ -25,18 +23,17 @@ fp_short:
    fabs.s   #1.0, fp6   ; 1 = single (32-bit float)
    fabs.x   #1.0, fp6   ; 2 = extended (80-bit float)
    fabs.p   #1.0, fp6   ; 3 = packed (fortran bcd)
-   fabs.w   #135.0, fp6   ; 4 = word
-   fabs.w   #135/2.0, fp6   ; 4 = word
-   fabs.d   #135.0, fp6   ; 5 = double (64-bit float)
+   fabs.w   #1.0, fp6   ; 4 = word
+   fabs.d   #1.0, fp6   ; 5 = double (64-bit float)
    fabs.b   #1.0, fp6   ; 6 = byte
 ;
-   fabs.l   #-2.0, fp6  ; 0 = long
-   fabs.s   #-2.0, fp6  ; 1 = single (32-bit float)
-   fabs.x   #-2.0, fp6  ; 2 = extended (80-bit float)
-   fabs.p   #-2.0, fp6  ; 3 = packed (fortran bcd)
-   fabs.w   #-2.0, fp6  ; 4 = word
-   fabs.d   #-2.0, fp6  ; 5 = double (64-bit float)
-   fabs.b   #-2.0, fp6  ; 6 = byte
+   fabs.l   #-2, fp6    ; 0 = long
+   fabs.s   #-2, fp6    ; 1 = single (32-bit float)
+   fabs.x   #-2, fp6    ; 2 = extended (80-bit float)
+   fabs.p   #-2, fp6    ; 3 = packed (fortran bcd)
+   fabs.w   #-2, fp6    ; 4 = word
+   fabs.d   #-2, fp6    ; 5 = double (64-bit float)
+   fabs.b   #-2, fp6    ; 6 = byte
 ;
    fabs.b   fp_short, fp7
    fabs.x   fp1, fp2

@@ -61,6 +61,14 @@ std::string escaped_str(T&& in)
     return output;
 }
 
+template <typename REF>
+template <typename OS>
+void kas_diag<REF>::print(OS& os) const
+{
+    auto where = this->loc().where();
+    os << level_msg() << message << " : " << escaped_str(where);
+}
+
 
 template <typename Iterator>
 class x3_error_handler

@@ -14,15 +14,18 @@
 // Add support for the M68K specific types
 //
 
-#include "expr/format_ieee754.h"
+#include "expr/format_ieee754_impl.h"
 
 
 namespace kas::m68k
 {
 
-struct m68k_format_float : expression::ieee754_base<m68k_format_float, expression::e_float_t>
+struct m68k_format_float : expression::ieee754_base<m68k_format_float, e_float_t>
 {
-    using base_t = expression::ieee754_base<m68k_format_float, expression::e_float_t>;
+    using base_t      = expression::ieee754_base<m68k_format_float, e_float_t>;
+    //using flt_t       = typename base_t::flt_t;
+    //using result_type = typename base_t::result_type;
+    //using base_t::
 
     enum
     {
@@ -54,7 +57,7 @@ struct m68k_format_float : expression::ieee754_base<m68k_format_float, expressio
     {
         // args: format, exponent bits, mantissa bits, buffer
         auto p      = output.begin();
-        auto mant_p = derived().flt2(flt, FLT2, 15, 64, p);
+        auto mant_p = flt2(flt, base_t::FLT2, 15, 64, p);
         p[1] = mant_p[0];
         p[2] = mant_p[1];
         return { sizeof(*p), 3, p };
@@ -76,6 +79,14 @@ struct m68k_format_float : expression::ieee754_base<m68k_format_float, expressio
         // Generate a NaN
         if (flags.is_nan)
         {
+            // IEEE uses 32-bit groups
+            using mantissa_t = uint32_t;
+            static constexpr auto MANT_WORD_BITS = 32;
+            static constexpr auto MANT_WORDS     = (flt_t::HOST_MANT_BITS-1)/MANT_WORD_BITS + 1;
+            
+            // working buffer
+            mantissa_t mantissa[MANT_WORDS];
+
             // generate a "NaN" with sign bit clear
             static_assert(std::is_unsigned_v<std::remove_reference_t<decltype(*p)>>);
             *p++ = ~0 >> 1;
@@ -83,9 +94,9 @@ struct m68k_format_float : expression::ieee754_base<m68k_format_float, expressio
             // generate a NaN with "payload" bits from `flt`
             // NB: get "full" precision to prevent rounding
             // NB: correct for 64-bit mantissa host. Unclear about other combinations
-            auto [ _1, _2, mant ] = flt.get_bin_parts();
-            *p++ = mant[0];
-            *p++ = mant[1];
+            auto [_1, _2] = flt.get_bin_parts(mantissa);
+            *p++ = mantissa[0];
+            *p++ = mantissa[1];
         }
        
         // Generate a zero value

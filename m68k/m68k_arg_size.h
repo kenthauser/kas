@@ -27,6 +27,30 @@ auto m68k_arg_t::size(m68k_stmt_info_t const& info, expression::expr_fits const 
     switch (mode())
     {
         case MODE_IMMEDIATE:
+    #if 0
+            std::cout << "m68k_arg_t::size: immediate: " << std::showpoint << expr << std::endl;
+
+            // special processing if `floating-point` support
+            if constexpr (!std::is_void<expression::e_float_t>())
+            {
+                // if float as immed, check if floating or fixed format
+                if (!immed_info(sz).flt_fmt)
+                    // if fixed format immed, check if floating value
+                    if (auto p = expr.template get_p<expression::e_float_t>())
+                    {
+                        std::cout << "m68k_arg_t::size: immediate float" << std::endl;
+                        auto n = immed_info(sz).sz_bytes;
+
+                        auto msg = expression::ieee754<expression::e_float_t>().ok_for_fixed(*p, n * 8);
+                        if (msg)
+                            set_error(msg);
+                        else
+                            parser::kas_diag_t::warning(m68k::error_msg::ERR_flt_fixed);
+                    }
+            }
+            if (is_signed) *is_signed = true;
+            return derived().immed_info(sz).sz_bytes;
+        #endif
             // immediate can be signed
             if (is_signed_p)
                 *is_signed_p = true;

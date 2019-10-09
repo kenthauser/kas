@@ -1,12 +1,10 @@
-#ifndef KAS_M68K_ERROR_MESSAGES_H
-#define KAS_M68K_ERROR_MESSAGES_H
+#ifndef KAS_EXPR_ERROR_MESSAGES_BASE_H
+#define KAS_EXPR_ERROR_MESSAGES_BASE_H
 
-#include "expr/error_messages_base.h"
-
-namespace kas::m68k
+namespace kas::expression
 {
 
-struct error_msg : expression::error_msg
+struct error_msg
 {
     static constexpr auto ERR_invalid       = "X invalid arguments";
     static constexpr auto ERR_argument      = "X invalid argument";

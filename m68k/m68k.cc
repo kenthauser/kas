@@ -35,6 +35,7 @@
 #include "m68k_arg_emit.h"
 #include "m68k_arg_size.h"
 #include "m68k_arg_serialize.h"
+#include "expr/literal_types_impl.h"
 
 #include "mit_arg_ostream.h"
 #include "moto_arg_ostream.h"

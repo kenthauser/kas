@@ -3,7 +3,8 @@
 
 #include "expr_types.h"         // get base type templates
 #include "literal_types.h"
-#include "format_ieee754.h"
+#include "error_messages_base.h"
+//#include "format_ieee754.h"
 
 #include "machine_types.h"      // get overrides
 #include "utility/reduce.h"
@@ -43,21 +44,23 @@ struct float_p : parser::e_float_parser<T> {};
 
 // declare default floating base & formatter
 // both are templates, so `meta::quote` them.
-// common override for `float_base` is `void` to delete floating point support
-template <typename> struct float_base : meta::id<meta::quote_trait<detail::float_host_t>> {};
-template <typename> struct float_fmt  : meta::quote<ieee754>              {};
-//template <> struct float_fmt<void>    : meta::id<void> {};
-//template <> struct float_p<void>      : meta::id<void> {};
+// common override for `e_float` is `void` to delete floating point support
+template <typename> struct float_value : meta::id<long double> {};
+template <typename> struct float_host  : meta::id<meta::quote<detail::float_host_ieee>> {};
+template <typename> struct float_fmt   : meta::id<struct ieee754> {};
+
+template <typename> struct err_msg     : meta::id<error_msg> {};
 
 // default floating point reference type. Allow base type to be deleted.
 template <typename>
 struct e_float
 {
-    // XXX not quite
-    using base     = meta::_t<float_base<>>;
-    using type     = core::ref_loc_t<detail::float_host_t>;
-    using object_t = typename type::object_t;
-    using fmt      = ieee754<type>;
+    // retrieve the configurable types
+    using e_flt_value   = meta::_t<float_value<>>;
+    using e_flt_format  = meta::_t<float_fmt<>>;
+    using e_flt_host    = meta::bind_back<meta::_t<float_host<>>, e_flt_value, e_flt_format>;
+
+    using type          = core::ref_loc<e_flt_host>;
 };
 
 // default quoted_string parser ignores escape sequences
@@ -77,8 +80,10 @@ struct e_string
 using e_fixed_t   = typename e_fixed<>::type;
 using e_float_t   = typename e_float<>::type;
 using e_string_t  = typename e_string<>::type;
+using err_msg_t   = typename err_msg<>::type;
+
 //using e_bigint_host_t  = kas_bigint_host;
-using e_float_fmt = typename float_fmt<>::type;
+//using e_float_fmt = typename float_fmt<>::type;
 
 namespace detail
 {
@@ -113,6 +118,16 @@ namespace detail
 using detail::term_types;
 using detail::term_op_p;
 }
+
+namespace kas
+{
+    // expose common types in top-level namespace
+    using expression::e_fixed_t;
+    using expression::e_float_t;
+    using expression::err_msg_t;
+    //using expression::e_string_t;
+}
+
 
 // specialize std::arithmetic<> for `kas_float`
 // NB: perfectly legal to add full specializations to namespace `std`

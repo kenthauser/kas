@@ -217,7 +217,10 @@ struct expr_t : detail::expr_x3_variant
 
     // 2. floating point types that can be converted to `e_float_t`
     template <typename T
-            , typename FLT_T = typename e_float_t::object_t
+            , typename FLT_T = std::enable_if_t<
+                            !std::is_void_v<e_float_t>
+                           , typename e_float_t::object_t
+                           >
             , typename = std::enable_if_t<
                             std::is_floating_point_v<
                                 std::remove_reference_t<T>

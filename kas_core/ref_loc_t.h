@@ -30,20 +30,31 @@ namespace kas::core
 // create position-tagged `index_t` used in `expr` subsystem
 // NB: two 32-bit indexes fit in a 64-bit type.
 
+// forward declare `ref_loc` template
+template <typename T, typename Index = void> struct ref_loc;
+
+// declare "convience" template: take `template` instead of `type`
+template <template <typename> class T, typename Index = void>
+using ref_loc_t = ref_loc<meta::quote<T>, Index>;
+
+
+
 struct ref_loc_tag {};
 
-template <template <typename> class T, typename Index = uint32_t>
-struct ref_loc_t : ref_loc_tag
+template <typename T, typename Index>
+struct ref_loc : ref_loc_tag
 {
-    using type     = ref_loc_t;
-    using index_t  = Index;
-    using object_t = T<ref_loc_t>;
+    using index_default = uint32_t;
+    using type     = ref_loc;
 
-    ref_loc_t() = default;
+    using index_t  = meta::if_<std::is_void<Index>, index_default, Index>;
+    using object_t = meta::invoke<T, ref_loc>;
+
+    ref_loc() = default;
 
     // create object_t instance & return "reference"
     template <typename...Ts>
-    static ref_loc_t add(Ts&&...args)
+    static ref_loc add(Ts&&...args)
     {
         return object_t::add(std::forward<Ts>(args)...).ref();
     }
@@ -54,19 +65,19 @@ struct ref_loc_t : ref_loc_tag
     // basic tests for `ref`
     //bool empty() const { return !index; }
     operator bool() const { return index; }
-    bool operator== (ref_loc_t const& other) const
+    bool operator== (ref_loc const& other) const
         { return index && (index == other.index); }
     
     // XXX modify object call to `get_p(T)` to simplify specialization
     
     // specialize `get_p` for allowed types (eg e_fixed_t, kas_loc)
     template <typename U>
-    std::enable_if_t<!std::is_same<U, parser::kas_loc>::value, U const*>
+    std::enable_if_t<!std::is_same_v<U, parser::kas_loc>, U const*>
     get_p() const { return nullptr; }
 
     // use SFINAE to specialize for `kas_loc`
     template <typename U>
-    std::enable_if_t<std::is_same<U, parser::kas_loc>::value, U const*>
+    std::enable_if_t<std::is_same_v<U, parser::kas_loc>, U const*>
     get_p() const
     {
         return loc ? &loc : nullptr;
@@ -80,7 +91,7 @@ struct ref_loc_t : ref_loc_tag
 
     // define getter & setter for `loc`
     parser::kas_loc const& get_loc() const { return loc; }
-    ref_loc_t& set_loc(parser::kas_loc new_loc)
+    ref_loc& set_loc(parser::kas_loc new_loc)
     {
         loc = new_loc;
         return *this;
@@ -90,17 +101,17 @@ struct ref_loc_t : ref_loc_tag
 
 private:
     // declare friend function to access ctor
-    friend ref_loc_t get_ref(object_t const& obj, ref_loc_t const&)
+    friend ref_loc get_ref(object_t const& obj, ref_loc const&)
     {
         return { obj.index(), obj.loc() };
     }
 
     // private ctor: `friend get_ref()` can use it.
-    ref_loc_t(index_t index, parser::kas_loc loc = {})
+    ref_loc(index_t index, parser::kas_loc loc = {})
         : index(index), loc(loc) {}
 
     template <typename OS>
-    friend OS& operator<<(OS& os, ref_loc_t const& ref)
+    friend OS& operator<<(OS& os, ref_loc const& ref)
     {
         ref.print(os);
         return os;
@@ -109,18 +120,16 @@ private:
     index_t index{};
     parser::kas_loc loc {};
 
-    void _() { static_assert(sizeof(ref_loc_t) <= sizeof(void*)); };
+    void _() { static_assert(sizeof(ref_loc) <= sizeof(void*)); };
 };
 
-
-template <template <typename> class T, typename Index>
+template <typename T, typename Index>
 template <typename OS>
-void ref_loc_t<T, Index>::print(OS& os) const
+void ref_loc<T, Index>::print(OS& os) const
 {
     auto loc_str = loc.where();
     os << "[" << boost::typeindex::type_id<object_t>().pretty_name();
     os << ": " << index << " loc: " << loc_str << "]";
 }
-
 }
 #endif

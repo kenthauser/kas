@@ -25,7 +25,6 @@ struct tgt_arg_t : kas_token
     using base_t     = tgt_arg_t;
     using derived_t  = Derived;
     using arg_mode_t = MODE_T;
-    using error_msg  = typename expression::err_msg_t<>::type;
 
     // allow lookup of `reg_t` & `regset_t`
     using reg_t    = REG_T;
@@ -162,6 +161,13 @@ public:
         
     arg_state get_state() const             { return { mode(), 0 }; }
     void set_state(arg_state  const& state) { set_mode(state.mode); }
+
+    parser::kas_error_t set_error(const char *msg)
+    {
+        set_mode(MODE_ERROR);
+        err = kas::parser::kas_diag_t::error(msg).ref();
+        return err;
+    }
 
     // support methods
     template <typename OS>

@@ -199,4 +199,40 @@ M68K Notes (m68k.input)
 
 41. Don't generate `warnings` in `emit`. Object should be fixed.
 
+*42. Need to declare "rounding" modes to `flt.get_bin_parts`. Implement ROUND, TRUNC. Acutally `bool trunc` will probably suffice
+
+43. Handle +/- INF, +/- NAN in `ieee::fixed`. Test for overflow where warning generated.
+
+********************
+
+Plan 10/2: First fix floating point emit/warning/etc
+
+*1. Handle +/- INF, +/- NAN as floating point.
+
+2. Error when float->fixed overflows, is NAN, or INF
+
+3. Warn when float->fixed doesn't overflow
+
+*4. Make template and value_t are configurable in template
+
+*5. Rename template: float_host_t -> float_host
+
+*6. Implement 16-bit float format
+
+*7. Refactor out `float` impl.
+
+8. if e_float_t deleted: variant won't compile
+
+9. expr_t: get_p<e_float_t> & get_p<typename e_float_t::object_t> should return different values
+
+10. parser variant: fix configuration via header files
+
+11. python `configure` script
+
+12. make `err_msg` derived form multiple base types
+
+
+
+
+
 

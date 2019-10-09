@@ -35,15 +35,17 @@ auto  m68k_stmt_t::validate_args(insn_t const& insn
     
     for (auto& arg : args)
     {
+
+        // if floating point arg, require `floating point` insn
+        if (auto p = arg.template get_p<expression::e_float_t>())
+            if (!is_fp())
+                arg.set_error(error_msg::ERR_float);
+
         // if not supported, return error
+        // NB: must be last: may `loc_tag` other errors
         if (auto diag = arg.ok_for_target(sz))
             return diag;
-#if 0
-        // if floating point arg, require `floating point` insn
-        if (e_type == E_FLOAT || RC_FLOAT)
-            if (!is_fp())
-                return ERR_FLOAT;
-#endif
+
         // test if constant & ok for `quick` format
         if (ok_for_quick)
         {
