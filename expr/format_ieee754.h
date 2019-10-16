@@ -46,13 +46,14 @@ struct ieee754_base
 
     // interface funtions: fixed always return integral type. Specify return type.
     template <typename T = long>
-    T fixed(flt_t const& flt) const
+    static T fixed(flt_t const& flt)
     {
-        return derived().fixed(flt, T());
+        return derived_t::fixed(flt, T());
     }
     
     // error messages for NAN, INF, overflow
-    const char *ok_for_fixed(flt_t const& flt, uint8_t fixed_bits) const;
+    // `expr` converted to error if `error`
+    static void ok_for_fixed(expr_t& expr, uint8_t fixed_bits);
     
     // process IEEE interchange formats
     result_type flt(flt_t const& flt, int fmt) const
@@ -102,7 +103,7 @@ protected:
     mantissa_t *flt2(flt_t const& flt, unsigned fmt, unsigned exp_bits, unsigned mant_bits, IEEE_DATA_T *p) const;
     
     // fixed format has general solution
-    template <typename T> T fixed(flt_t const& flt, T) const;
+    template <typename T> static T fixed(flt_t const& flt, T);// const;
 
     // declare a "decimal" analog to the floating-point method
     // to convert floating point to fixed point.

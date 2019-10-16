@@ -45,7 +45,7 @@ auto m68k_arg_t::size(m68k_stmt_info_t const& info, expression::expr_fits const 
                         if (msg)
                             set_error(msg);
                         else
-                            parser::kas_diag_t::warning(m68k::error_msg::ERR_flt_fixed);
+                            e_diag_t::warning(m68k::error_msg::ERR_flt_fixed);
                     }
             }
             if (is_signed) *is_signed = true;

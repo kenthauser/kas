@@ -48,7 +48,9 @@ struct ref_loc : ref_loc_tag
     using type     = ref_loc;
 
     using index_t  = meta::if_<std::is_void<Index>, index_default, Index>;
-    using object_t = meta::invoke<T, ref_loc>;
+
+    // XXX doesn't eval obj_t. But doesn't hurt.
+    using object_t = meta::_t<meta::id<meta::invoke<T, ref_loc>>>;
 
     ref_loc() = default;
 

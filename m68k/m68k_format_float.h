@@ -11,7 +11,7 @@
 //
 // The IEEE formats are supported by the routines in "expr/format_ieee754.h"
 //
-// Add support for the M68K specific types
+// Add support for the M68K specific types (extended, packed)
 //
 
 #include "expr/format_ieee754_impl.h"
@@ -23,9 +23,6 @@ namespace kas::m68k
 struct m68k_format_float : expression::ieee754_base<m68k_format_float, e_float_t>
 {
     using base_t      = expression::ieee754_base<m68k_format_float, e_float_t>;
-    //using flt_t       = typename base_t::flt_t;
-    //using result_type = typename base_t::result_type;
-    //using base_t::
 
     enum
     {

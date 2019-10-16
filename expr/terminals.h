@@ -125,6 +125,7 @@ namespace kas
     using expression::e_fixed_t;
     using expression::e_float_t;
     using expression::err_msg_t;
+    using e_diag_t  = parser::kas_diag_t;
     //using expression::e_string_t;
 }
 

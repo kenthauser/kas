@@ -154,25 +154,44 @@ auto ieee754_base<Derived, FLT>::
 }
 
 // get message if no conversion from float -> fixed
+// NB: static method
 template <typename Derived, typename FLT>
-const char *ieee754_base<Derived, FLT>::ok_for_fixed(flt_t const& flt, uint8_t fixed_bits) const
+void ieee754_base<Derived, FLT>::ok_for_fixed(expr_t& expr, uint8_t fixed_bits)
 {
-    auto [flags, exp] = flt.get_bin_parts();
+    if (auto p = expr.get_p<e_float_t>())
+    {
+        using flt_t = typename e_float_t::object_t;
 
-    if (flags.is_inf)
-        return m68k::error_msg::ERR_flt_inf;
-    if (flags.is_nan)
-        return m68k::error_msg::ERR_flt_nan;
-    if (exp > fixed_bits)
-        return m68k::error_msg::ERR_flt_ovf;
+        std::cout << "ok_for_fixed: float = " << expr_t(*p) << std::endl;
+        
+        auto const& flt = p->get();
+        print_type_name {"ok_for_fixed: *p"}(*p);
+        print_type_name {"ok_for_fixed: flt"}(flt);
 
-    return {};
+ //       std::cout << "flt (expr *p): " << expr_t(*p) << std::endl;
+ //       std::cout << "flt (*p): " << *p << std::endl;
+ //       std::cout << "flt (flt) " << flt << std::endl;
+        
+        // XXX why is dummy required
+        uint32_t dummy[2];
+#if 1
+        auto [flags, exp] = flt.get_bin_parts(dummy);
+        if (flags.is_inf)
+            expr = e_diag_t::error(err_msg_t::ERR_flt_inf);
+        else if (flags.is_nan)
+            expr = e_diag_t::error(err_msg_t::ERR_flt_nan);
+        else if (exp > fixed_bits)
+            expr = e_diag_t::error(err_msg_t::ERR_flt_ovf);
+ //       else
+ //           e_diag_t::warning(err_msg_t::ERR_flt_fixed, flt.loc());
+#endif
+    }
 }
 
 // fixed format has general solution
 template <typename Derived, typename FLT>
 template <typename T>
-T ieee754_base<Derived, FLT>::fixed(flt_t const& flt, T) const
+T ieee754_base<Derived, FLT>::fixed(flt_t const& flt, T)
 {
     static_assert(std::is_signed_v<T>, "ieee_754::fixed requires signed result type");
     static constexpr auto bits  = std::numeric_limits<T>::digits;

@@ -91,59 +91,11 @@ auto end_of_line = x3::rule<class _junk> { "eol" } = stmt_eol | junk;
 //      * combine lists of parsers to single parser
 //      * handle empty list case
 //////////////////////////////////////////////////////////////////////////
-#if 0
-namespace detail
-{
-    using rule_t = x3::rule<class _, stmt_t>;
-    
-    // general recursion case
-    template <typename RT, typename T, typename...Ts>
-    rule_t make_parser_impl(RT parser, meta::list<T, Ts...>)
-    {
-        // recurse if more parsers
-        if constexpr (sizeof...(Ts) != 0)
-            return make_parser_impl(parser | x3::as_parser(T()), meta::list<Ts...>());
-    
-        // exit recursion
-        return parser | x3::as_parser(T());
-    }
 
-    // handle list of single or multiple parsers
-    template <typename T, typename...Ts>
-    rule_t make_parser(meta::list<T, Ts...>)
-    {
-        // if multiple, recurse.
-        if constexpr (sizeof...(Ts) != 0)
-            return make_parser_impl(x3::as_parser(T()), meta::list<Ts...>());
-
-        // if single element, just first
-        return x3::as_parser(T());
-    }
-
-    // handle empty list: don't match
-    auto make_parser(meta::list<>)
-    {
-        return x3::eps(false);
-    }
-
-}
-
-// generate parser from stmts & lists
-template <template<typename=void> class LIST>
-auto make_parser_from_list()
-{
-    return detail::make_parser(all_defns<LIST>());
-}
-
-// get meta list of parsers from config vectors<>
-auto const label_parsers = make_parser_from_list<detail::label_ops_l>();
-auto const stmt_parsers  = make_parser_from_list<detail::stmt_ops_l >();
-
-#else
 // lambda functions: parse label only & parse to end-of-line
-auto const parse_lbl  = [](auto&& p) { return p; };
-auto const parse_eol  = [](auto&& p) { return p >> stmt_eol; };
-auto const parse_junk = [](auto&& p) { return p >> x3::omit[junk] >> stmt_eol; };
+auto const parse_lbl  = [](auto p) { return p; };
+auto const parse_eol  = [](auto p) { return p > end_of_line; };
+auto const parse_junk = [](auto p) { return p >> x3::omit[junk] >> stmt_eol; };
 
 template <typename F, typename...Ts>
 auto make_value_tuple(F&& fn, meta::list<Ts...>&&)
@@ -160,10 +112,9 @@ auto const XXX_stmt_tuple = reduce_tuple(std::bit_or<>(), XXX_stmt_tuple_t());
 auto const label_tuple  = make_value_tuple(parse_lbl , label_parsers()); 
 auto const stmt_tuple   = make_value_tuple(parse_eol , stmt_parsers()); 
 auto const junk_tuple   = make_value_tuple(parse_junk, stmt_parsers()); 
-#endif
 
 auto const statement_def =
-#if 0
+#if 1
             reduce_tuple(std::bit_or<>{}, stmt_tuple)
 #else
             ( bsd::parser::stmt_comma_x3() > end_of_line )
@@ -176,7 +127,6 @@ auto const statement_def =
 #endif
           | reduce_tuple(std::bit_or<>{}, label_tuple)
           | end_of_input
-         // | reduce_tuple(std::bit_or<>{}, junk_tuple)
           | junk
           ;
 
@@ -212,7 +162,7 @@ struct resync_base
         // generate & record error message
         base.on_error(first, last, exc, context);
 
-        // resync from error location & forward error.
+        // resync from error location & forward error
         first = exc.where();
     
         auto first_unparsed = first;

@@ -62,14 +62,22 @@ struct _xxx
 {
     _xxx()
     {
-        print_type_name{"stmt_parsers"}.name<stmt_parsers>();
+        print_type_name{"parser_type_l<cpu>"}.name<typename detail::parser_type_l<defn_cpu>::type>();
+        print_type_name{"parser_type_l<fmt>"}.name<typename detail::parser_type_l<defn_fmt>::type>();
+        std::cout << std::endl;
 
-        print_type_name{"stmt<cpu>"}.name<typename detail::parser_type_l<defn_cpu>::type>();
-        print_type_name{"stmt<fmt>"}.name<typename detail::parser_type_l<defn_fmt>::type>();
+        print_type_name{"label_parsers"}.name<label_parsers>();
+        std::cout << std::endl;
+        print_type_name{"stmt_parsers" }.name<stmt_parsers>();
+        std::cout << std::endl;
+        
+        //print_type_name{"label_tuple_t"}.name<XXX_stmt_tuple_t>();
+        print_type_name{"label_tuple"}(label_tuple);
+        std::cout << std::endl;
 
         print_type_name{"stmt_tuple_t"}.name<XXX_stmt_tuple_t>();
         print_type_name{"stmt_tuple"}(XXX_stmt_tuple);
     }
-};// _x;
+} _x;
 
 }

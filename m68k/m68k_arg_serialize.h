@@ -32,6 +32,18 @@ bool m68k_arg_t::serialize (Inserter& inserter, m68k_stmt_info_t const& info, AR
                 return false;               // and no expression.
             }
             info_p->has_data = true;    
+#if 1   
+            // if possibly `e_float_t` perform tests 
+            if constexpr (!std::is_void_v<e_float_t>)
+            {
+                std::cout << "tgt_arg_t::serialize: " << expr << std::endl;
+                using fmt = typename e_float_t::object_t::fmt;
+#if 1
+                if (!p)
+                    fmt::ok_for_fixed(expr, size * 8);
+#endif
+            }
+#endif
             return !inserter(std::move(expr), size);
         };
     

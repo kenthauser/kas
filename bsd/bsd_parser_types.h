@@ -11,10 +11,10 @@ namespace kas::bsd::parser
     using namespace kas::parser;
 
     // declare statment parsers
-    using stmt_comma_x3 = x3::rule<class _tag_com, bsd::bsd_stmt_pseudo>;
+    using stmt_comma_x3 = x3::rule<class _tag_comma, bsd::bsd_stmt_pseudo>;
     BOOST_SPIRIT_DECLARE(stmt_comma_x3)
     
-    using stmt_space_x3 = x3::rule<class _tag_spc, bsd::bsd_stmt_pseudo>;
+    using stmt_space_x3 = x3::rule<class _tag_space, bsd::bsd_stmt_pseudo>;
     BOOST_SPIRIT_DECLARE(stmt_space_x3)
     
     using stmt_equ_x3   = x3::rule<class _tag_equ, bsd::bsd_stmt_equ>;
@@ -31,32 +31,30 @@ namespace kas::bsd::parser
 namespace kas::parser::detail
 {
     // use BSD comment & separator values as system values
-    // XXX need some `meta` defer mechanism...
     template<> struct stmt_separator_str<void> : fmt_separator_str<> {};
     template<> struct stmt_comment_str  <void> : fmt_comment_str<>   {};
 
     // types for stmt variant
-    template <> struct parser_type_l<defn_fmt> : 
-        meta::list<
+    template <> struct parser_type_l<defn_fmt> : meta::list<
               bsd::bsd_stmt_pseudo
             , bsd::bsd_stmt_label
             , bsd::bsd_stmt_equ
             , bsd::bsd_stmt_org
             > {};
 
-    // specialize templates declared in `parser_stmt.h`
-    template <> struct stmt_ops_l<defn_fmt> : meta::list<
-    //template <> struct stmt_ops_l<int> : meta::list<
-          bsd::parser::stmt_comma_x3
-        , bsd::parser::stmt_space_x3
-        , bsd::parser::stmt_equ_x3
-        , bsd::parser::stmt_org_x3
-    > {};
-
-    // declare bsd label definitions
+    // declare label definitions
     template <> struct label_ops_l<defn_fmt> : meta::list<
-          bsd::parser::stmt_label_x3
-    > {};
+              bsd::parser::stmt_label_x3
+            > {};
+    
+    // parsers for non-label types
+    template <> struct stmt_ops_l<defn_fmt> : meta::list<
+              bsd::parser::stmt_comma_x3
+            , bsd::parser::stmt_space_x3
+            , bsd::parser::stmt_equ_x3
+            , bsd::parser::stmt_org_x3
+            > {};
+
 }
 
 

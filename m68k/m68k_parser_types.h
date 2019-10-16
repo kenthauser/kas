@@ -35,7 +35,9 @@ namespace kas::parser::detail
             > {};
 
     // statements parsed by parser
-    template <> struct parser_stmt_l<defn_cpu> :
+    // XXX
+    //template <> struct parser_stmt_l<defn_cpu> :
+    template <> struct stmt_ops_l<defn_cpu> :
         meta::list<
               m68k::parser::m68k_stmt_x3
             > {};

@@ -15,8 +15,6 @@
 // developed.
 
 #include "tgt_arg.h"
-#include "expr/format_ieee754.h"
-#include "m68k/m68k_format_float.h"
 
 namespace kas::tgt
 {
@@ -41,7 +39,7 @@ tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
 
     // `REGSET_T` can be void, so code slightly differently
     REGSET_T *rs_p  {};
-    if constexpr (!std::is_void<REGSET_T>::value)
+    if constexpr (!std::is_void_v<REGSET_T>)
         rs_p = expr.template get_p<REGSET_T>();
 
     if (rs_p)
@@ -65,10 +63,9 @@ tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
 
     case MODE_T::MODE_REGSET:
         if constexpr (!std::is_void<REGSET_T>::value)
-        {
             if (rs_p && rs_p->kind() != -REGSET_T::RS_OFFSET)
                 break;
-        }
+        
         msg = err_msg_t::ERR_argument;
         break;
 
@@ -186,7 +183,7 @@ int tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
                         if (msg)
                             set_error(msg);
                         else
-                            parser::kas_diag_t::warning(m68k::err_msg_t::ERR_flt_fixed);
+                            parser::kas_diag_t::warning(err_msg_t::ERR_flt_fixed);
                     }
             }
 #endif
@@ -213,6 +210,16 @@ bool tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
                 return false;               // and no expression.
             }
             info_p->has_data = true;    
+            
+            // if possibly `e_float_t` perform tests 
+            if constexpr (!std::is_void_v<e_float_t>)
+            {
+                std::cout << "tgt_arg_t::serialize: " << expr << std::endl;
+                using fmt = typename e_float_t::object_t::fmt;
+                if (!p)
+                    fmt::ok_for_fixed(expr, sz * 8);
+            }
+
             return !inserter(std::move(expr), size);
         };
     
@@ -287,12 +294,15 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
             return derived().emit_flt(base, info.sz_bytes, info.flt_fmt);
 
         // CASE: emit floating point as fixed
+        // NB: a previous `fmt::ok_for_fixed` should have converted all inappropriate
+        //     values to diagnoistics. Just throw if problem.
+
         using flt_t = typename e_float_t::object_t;
         if (auto p = expr.template get_p<flt_t>())
         {
             // XXX warning float as fixed
             std::cout << "tgt_arg_t::emit_immed: " << expr << " emitted as integral value" << std::endl;
-            base << core::set_size(info.sz_bytes) << typename flt_t::fmt().fixed(*p);
+            base << core::set_size(info.sz_bytes) << flt_t::fmt::fixed(*p);
             return;
         }
     }
@@ -311,11 +321,11 @@ void tgt_arg_t<Derived, MODE_T, REG_T, REGSET_T>
     // the contortion below is because a temporary `flt_t` can be constructed
     // but not assigned. static's are no help, because they're only constructed once.
     auto p = expr.get_fixed_p();
-    flt_t fixed{ p ? static_cast<flt_value_t>(*p) : 0 };
+    flt_t fixed_as_float { p ? static_cast<flt_value_t>(*p) : 0 };
     flt_t const *flt_p = expr.template get_p<flt_t>();
     
     if (!flt_p && p)
-        flt_p = &fixed;     // fixed point formatted as floating point
+        flt_p = &fixed_as_float;    // fixed point formatted as floating point
     else if (!flt_p)
     {
         // XXX should throw

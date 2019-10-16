@@ -186,6 +186,19 @@ struct FLOAT_HOST: core::kas_object<FLOAT_HOST<REF, VALUE, FMT>, REF>
     auto get_bin_parts(T *mantissa_p = {}, int mant_bits = HOST_MANT_BITS, bool truncate = false) const
         -> std::tuple<flag_t, int>;
 
+    // convert float to n-bit fixed
+    // generate diagnostic if float can't be converted to fixed
+    // generate warning if it can
+    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
+    auto as_fixed(T) const { return as_fixed_n(std::numeric_limits<T>::digits); }
+
+    template <typename T>
+    auto as_fixed()  const { return as_fixed(T()); }
+
+    // returns "err_msg_t" or "e_fixed_t"
+    // XXX no loc for error msg
+    ast::expr_t as_fixed_n(int n) const;
+
 private:
     value_type value;
 };
