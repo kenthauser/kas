@@ -403,6 +403,14 @@ public:
     auto get_fixed_p() const { return get_nested_p<e_fixed_t>(); }
     auto get_loc_p()   const { return get_nested_p<kas::parser::kas_loc>() ;  }
     //auto is_missing()  const { return false; }
+    
+    // empty: holds default type
+    bool empty() const
+    {
+        auto p = get_fixed_p();
+        return !(p && !*p);
+    }
+
 };
 
 static_assert (sizeof(expr_t) == sizeof(detail::expr_x3_variant)

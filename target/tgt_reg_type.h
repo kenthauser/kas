@@ -44,6 +44,12 @@ struct tgt_reg
     using base_t      = tgt_reg;
     using derived_t   = Derived;
 
+    // be sure bits fit into single `BASE_T` value
+    static_assert(VALUE_BITS > 0,
+                "target::tgt_reg: invalid definition for register value");
+    static_assert(std::numeric_limits<BASE_T>::digits >= (REG_C_BITS + VALUE_BITS),
+                "target::tgt_reg: invalid base type for register definition");
+    
     // actual types are needed for template instantiation (typedefs not allowed)
     using mcode_sz_t  = BASE_T;
     using reg_c_bits  = std::integral_constant<unsigned, REG_C_BITS>;
@@ -56,8 +62,7 @@ struct tgt_reg
     using reg_defn_idx_t   = uint8_t;
     using reg_name_idx_t   = uint8_t;
 
-// should calculate `T` from `BITS`
-
+    // should calculate `T` from `BITS`
     using reg_class_t      = BASE_T;
     using reg_value_t      = BASE_T;
     using hw_tst           = uint16_t;

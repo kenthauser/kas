@@ -120,13 +120,7 @@ namespace kas::m68k::parser
     BOOST_SPIRIT_DEFINE(moto_ss_p, mit_ss_p)
 
 
-#if 1
     auto const mit_indirect_arg = lit('@') >> ('(' > (mit_ss_p % ',') > ')');
-#else
-    // XXX parses, but doesn't xlate a2@(d2)@() -> a2@(d2)@(0)
-    auto const mit_indirect_arg = lit('@') >>  '(' >>
-                        ( (')' > repeat(1)[z_expr()]) | ((mit_ss_p % ',') > ')') );
-#endif
 
     struct moto_indir {
         template <typename Context>

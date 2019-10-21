@@ -52,10 +52,13 @@ private:
 template <typename Iter>
 struct kas_position_tagged_t 
 {
+    using value_type = typename std::iterator_traits<Iter>::value_type;
+
+
     // three constructors: default, from iter, from loc
     kas_position_tagged_t() = default;
 
-    kas_position_tagged_t(Iter&& first, Iter&& last, error_handler<Iter> const* handler)
+    kas_position_tagged_t(Iter first, Iter last, error_handler<Iter> const* handler)
         : first(std::move(first)), last(std::move(last)), handler(handler)
         {}
 
@@ -64,8 +67,7 @@ struct kas_position_tagged_t
             std::cout << "position_tagged: ctor(loc&): loc = " << loc.get();
             std::cout << " handler = " << handler << std::endl;
         }
-
-
+    
     // calculate & return `kas_loc`
     // NB: implementation at end of `error_reporting.h`
     operator kas_loc&() const;
@@ -74,21 +76,61 @@ struct kas_position_tagged_t
         this->loc = loc;
     }
 
-    // access underlying string.
+    // access underlying character array
     auto  begin() const { return first; }
     auto& end()   const { return last;  }
 
-    auto where() const
+    // convenience methods
+    operator std::basic_string<value_type>() const
+    {
+        return { first, last };
+    }
+
+    std::basic_string<value_type> where() const
     {
         // if inited from `loc` only `loc` is valid. 
+        // XXX should init first/last/handler.
         if (loc)
             return loc.where();
             
         // NB: if `first` & `last` not inited, range will be empty string
-        return std::string(first, last);
+        //return std::basic_string<value_type>(first, last);
+        return *this;
     }
-    
-//protected:
+
+    // XXX XXX XXX
+    // first == Iter() crashes parser
+
+    Iter set_first(Iter first)
+    {
+    #if 0
+        // init to empty
+        if (first == Iter())
+            this->last = first;
+    #endif
+        this->first = first;
+        loc = {};
+        return first;
+    }
+
+    Iter set_last(Iter last)
+    {
+        // XXX should this throw?
+        if (first != Iter())
+        {
+            this->last = last;
+            loc = {};
+        }
+        return last;
+    }
+
+    void set_handler(error_handler<Iter> const *handler) 
+    {
+        this->handler = handler;
+    }
+
+
+protected:
     Iter first;
     Iter last;
     error_handler<Iter> const *handler{};

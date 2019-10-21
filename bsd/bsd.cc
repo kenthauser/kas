@@ -9,6 +9,7 @@ namespace kas::bsd
         using namespace x3;
         using kas::parser::iterator_type;
         using kas::parser::stmt_context_type;
+
         // expression parsers
         BOOST_SPIRIT_INSTANTIATE(dot_parser_x3, iterator_type, expr_context_type)
         BOOST_SPIRIT_INSTANTIATE(sym_parser_x3, iterator_type, expr_context_type)
@@ -31,4 +32,15 @@ namespace kas::bsd
             
         return os << ": src = \"" << std::string(arg.begin(), arg.end()) << "\"]";
     }
+
+struct _xxx
+{
+    _xxx()
+    {
+        print_type_name{"bsd: int_"}(x3::int_);
+        print_type_name{"bsd: uint_"}.name<decltype(x3::uint_)>();
+        //print_type_name{"bsd: uint_"}.name<expression::e_fixed_p<e_fixed_t>>();
+    }
+
+} _xxx;
 }

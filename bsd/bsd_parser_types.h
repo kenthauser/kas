@@ -42,12 +42,12 @@ namespace kas::parser::detail
             , bsd::bsd_stmt_org
             > {};
 
-    // declare label definitions
+    // parsers for label statements 
     template <> struct label_ops_l<defn_fmt> : meta::list<
               bsd::parser::stmt_label_x3
             > {};
     
-    // parsers for non-label types
+    // parsers for non-label statements
     template <> struct stmt_ops_l<defn_fmt> : meta::list<
               bsd::parser::stmt_comma_x3
             , bsd::parser::stmt_space_x3

@@ -185,7 +185,7 @@ public:
         auto&& token = x3::_attr(ctx);
         
         // token parsed a single digit.
-        auto  n = *token.first - '0';
+        auto  n = *token.begin() - '0';
 
         // label definition advances label numbers
         labels[n].advance();

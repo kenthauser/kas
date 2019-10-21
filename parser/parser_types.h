@@ -25,22 +25,17 @@ using skipper_t = x3::ascii::blank_type;
 template <typename Iter> struct error_handler;
 
 // KAS ERROR type
+// NB: `kas_error_t` is exposed in `kas` namespace as `e_error_t`
+// XXX why?
 template <typename> struct kas_diag;
 using kas_error_t = core::ref_loc_t<kas_diag>;
 using kas_diag_t  = typename kas_error_t::object_t;
 
 using kas_position_tagged = kas_position_tagged_t<iterator_type>;
 
-struct kas_token : kas_position_tagged
-{
-    operator std::string() const
-    {
-        return { first, last };
-    }
-};
-
-// allow streaming of token;
-template <typename OS> OS& operator<<(OS&, kas_token const&);
+// parser token definition
+struct kas_token;
+struct token_defn;
 
 // test if T has `value` member or method
 template <typename T, typename = void>

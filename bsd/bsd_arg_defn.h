@@ -11,8 +11,6 @@ namespace kas::bsd
 // declare the "token" types (parsed, but not evaluated)
 using kas::parser::kas_token;
 
-//#define TRACE_TOKEN
-
 struct token_ident : kas_token
 {
     operator core::symbol_ref() const
@@ -154,9 +152,9 @@ struct bsd_arg : kas_token
     operator expr_t&&()
     {
         if (is_missing())
-            expr = ::kas::parser::kas_diag_t::error("Missing argument", *this);
+            expr = e_diag_t::error("Missing argument", *this);
         else if (!has_value())
-            expr = ::kas::parser::kas_diag_t::error("Invalid expression", *this);
+            expr = e_diag_t::error("Invalid expression", *this);
         return std::move(expr);
     }
 
@@ -169,6 +167,7 @@ struct bsd_arg : kas_token
         return {};
     }
 
+    // XXX returns `base_t` w/o kas_position_tagged
     template <typename T, typename = std::enable_if_t<!in<T>()>>
     auto get_p() const
     {

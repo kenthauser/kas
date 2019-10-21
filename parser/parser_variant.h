@@ -15,6 +15,7 @@
 
 namespace kas::parser
 {
+
 namespace detail
 {
     using namespace meta;

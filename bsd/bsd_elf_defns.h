@@ -63,8 +63,8 @@ namespace detail
     {
         static constexpr expression::e_fixed_t err {-1};
         
-        auto first = tok.first;
-        auto last  = tok.last;
+        auto  first = tok.begin();
+        auto& last  = tok.end();
 
         // if not skipping '@' character, (eg symbol) require "STT_* format"
         if (!skip_first && *first != 'S')

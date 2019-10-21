@@ -144,14 +144,14 @@ public:
     {
         // generate an entry in position cache
         x3::position_tagged x3_loc;
-        tag(x3_loc, ast.first, ast.last);
+        tag(x3_loc, ast.begin(), ast.end());
 
         // x3_handler allocates two entries per `position_tagged`
         loc_index_t loc = offset + (x3_loc.id_first >> 1);
 #ifdef TRACE_ERROR_HANDLER
         std::cout << "x3_error_handler::get_loc: kas_loc = " << loc;
         std::cout << ", id_first = " << x3_loc.id_first;
-        std::cout << ", src = " << escaped_str(std::string(ast.first, ast.last));
+        std::cout << ", src = " << escaped_str(std::string(ast));
         std::cout << std::endl;
 #endif
         return loc;

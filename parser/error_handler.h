@@ -164,10 +164,7 @@ public:
 
             // set loc if unset
             if (!ast.template get_p<parser::kas_loc>()) {
-                kas_position_tagged pos;
-                pos.first   = first;
-                pos.last    = last;
-                pos.handler = this;
+                kas_position_tagged pos(first, last, this);
                 get_loc(pos);
             }
         }
@@ -177,9 +174,9 @@ public:
     // This will catch all nodes inheriting from `kas_position_tagged`
     void annotate(kas_position_tagged& ast, Iter const& first, Iter const& last, std::true_type) const 
     {
-        ast.first   = first;
-        ast.last    = last;
-        ast.handler = this;
+        ast.set_first  (first);
+        ast.set_last   (last);
+        ast.set_handler(this);
     }
 
     // trampoline `kas_position_tagged::get_loc`. Include file issues
