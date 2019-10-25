@@ -54,7 +54,6 @@ namespace kas::parser::detail
             , bsd::parser::stmt_equ_x3
             , bsd::parser::stmt_org_x3
             > {};
-
 }
 
 

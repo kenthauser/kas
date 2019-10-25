@@ -1,0 +1,95 @@
+Desire: have all `expr` arguments be `kas_token`.
+
+
+Parser Tokens
+
+
+1. kas_token has `kas_position_tagged` base. And supports `operator std::string()`
+
+2. kas_token also needs pure `virtual expr_t operator() const`
+
+3. need template with value_t & parser_t to return x3 parser.
+
+4. how to handle `expr()` parser. Since derived types may have state (ie ref, or in
+   case of `token_local_ident` other values), can't just use `kas_token`. Probably
+   need new class of `expr, kas_token` tuple for expr. Solves problem of no 
+   `token` for integral types
+
+5. Probably need eval parser (instead of defer string eval) for reg_t, insn_t, e_fixed_t, etc.
+
+6. registers: the register value only is stored if `reg_t` (ie no location value).
+   just use "kas_token" base class for location
+
+7. expression:: must add "locations" when performing calculations
+
+******************
+
+Token elements:
+
+1. derived from `kas_position_tagged`
+
+2. has `operator expr_t() const` method
+
+3. has `value_type` template template
+
+4. has `parser_t`   paramater (typename?)
+
+5. has method to identify token type (string, bsd_at_string, bsd_at_num, missing, etc)
+
+6. bonus: token name
+
+
+for BSD: examples of current `token` usage:
+
+// parser @ "tokens" (used by ELF)
+auto const at_token_initial = omit[char_("@%#")];
+auto const at_ident = token<token_at_ident>[(at_token_initial >> !digit) > +bsd_charset];
+auto const at_num   = token<token_at_num>  [ at_token_initial >   uint_  > !bsd_charset];
+
+
+template <typename VALUE_T = void, typename FMT = void>
+XXX_token : kas_position_tagged
+{
+    static constexpr bool has_value = !std::is_void_v<VALUE_T>;
+
+    operator std::string() const
+    {
+        return { first, last };
+    }
+
+    operator expr_t() const 
+    {
+        if constexpr (has_value)
+        {
+            static constexpr inline FMT_T fmt;
+            if (expr.empty())
+                expr = fmt.gen_expr(*this);
+        }
+        return expr;
+    }
+
+private:
+    expr_t expr;
+}
+
+
+********************
+
+Since `kas_token` has an `expr` member, it can not be defined until after `expr_t` defined,
+which means after all component types have been defined. Also, a `x3::rule` which has
+`kas_token` as value-type can't be defined until `expr_t` defined.
+
+Solution: define `parser` as meta::list with elements:
+
+    1) "name" (a kas::k_string)
+    2) "parsed token type" (eg: core::addr_ref, or expr::e_fixed_t. defaults to void)
+    3) "x3::parser" (defaults to void, may be inferred from token_type, can be assigned using `[]`
+
+1. Refactor expr_parser to define parsers from tuple.
+
+2. Refactor expr_parser to expect/return `kas_token`. 
+
+3. Refactor `bsd_parser` to use `kas_token` as `bsd_arg`
+
+4. Refactor tgt_parser to use `kas_token`
+

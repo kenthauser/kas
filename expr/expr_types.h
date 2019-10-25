@@ -1,10 +1,11 @@
 #ifndef KAS_EXPR_TYPES_H
 #define KAS_EXPR_TYPES_H
 
+// `defn_utils` holds names of specialized types for `term_types_v` et. al.
 #include "kas/defn_utils.h"
 
+#include <meta/meta.hpp>
 #include <type_traits>
-#include <string>
 
 
 namespace kas {}

@@ -3,6 +3,7 @@
 
 #include "parser/parser_types.h"
 #include "bsd_symbol.h"
+#include "kas/kas_string.h"
 #include <ostream>
 
 namespace kas::bsd
@@ -11,6 +12,83 @@ namespace kas::bsd
 // declare the "token" types (parsed, but not evaluated)
 using kas::parser::kas_token;
 
+struct X_token_ident : kas::parser::token_defn_t<core::symbol_ref, KAS_STRING("IDENT")>
+{
+    virtual expr_t gen_expr(kas_token const& tok) const override
+    {
+        value_t ref = bsd_ident::get(tok);
+        ref.set_loc(tok);
+
+        return ref;
+    }
+};
+
+
+struct X_token_local_ident : kas::parser::token_defn_t<core::symbol_ref, KAS_STRING("L_IDENT")> 
+{
+    //operator core::symbol_ref() const
+    virtual expr_t gen_expr(kas_token const& tok) const override
+    {
+        unsigned n = 0;
+        if (auto p = value.get_fixed_p())
+            n = *p;
+        auto ref = bsd_local_ident::get(tok, n);
+        ref.set_loc(tok);
+#ifdef TRACE_TOKEN
+        std::cout << "token_local_ident: " << std::string(tok) << " -> ";
+        ref.print(std::cout);
+        std::cout << " local_loc = " << static_cast<::kas::parser::kas_loc const&>(tok).get();
+        std::cout << std::endl;
+#endif
+        return ref;
+    }
+};
+
+struct X_token_numeric_ident :  kas::parser::token_defn_t<core::symbol_ref, KAS_STRING("N_IDENT")>
+{
+    //operator core::symbol_ref() const
+    virtual expr_t gen_expr(kas_token const& tok) const override
+    {
+        auto iter = tok.begin();
+        auto& end = tok.end();
+
+        auto n = *iter++ - '0';
+        bool dir = (iter != end) && (*iter == 'f' || *iter == 'F'); 
+        auto ref = bsd_numeric_ident::get(tok, n, dir);
+        ref.set_loc(tok);
+#ifdef TRACE_TOKEN
+        std::cout << "token_numeric_ident: " << std::string(tok) << " -> ";
+        ref.print(std::cout);
+        std::cout << std::endl;
+#endif
+        return ref;
+    }
+};
+
+struct X_token_dot      : kas::parser::token_defn_t<core::symbol_ref, KAS_STRING("DOT")>
+{
+    //operator core::addr_ref() const
+    virtual expr_t gen_expr(kas_token const& tok) const override
+    { 
+        auto ref = core::core_addr_t::get_dot().ref(tok);
+#ifdef TRACE_TOKEN
+        std::cout << "token_dot: -> ";
+        ref.print(std::cout);
+        std::cout << std::endl;
+#endif
+        return ref;
+    }
+};
+
+struct X_token_at_ident : kas::parser::token_defn_t<void,  KAS_STRING("AT_IDENT")>
+{};
+struct X_token_at_num   : kas::parser::token_defn_t<unsigned, KAS_STRING("AT_NUM")> 
+{};
+struct X_token_missing  : kas::parser::token_defn_t<void,  KAS_STRING("MISSING")>
+{};
+ 
+
+#if 1
 struct token_ident : kas_token
 {
     operator core::symbol_ref() const
@@ -79,7 +157,8 @@ struct token_dot      : kas_token
 struct token_at_ident : kas_token {};
 struct token_at_num   : kas_token { unsigned value{}; };
 struct token_missing  : kas_token {};
- 
+
+#endif
 
 using token_types = meta::list<
               token_ident

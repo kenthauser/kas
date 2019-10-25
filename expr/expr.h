@@ -9,7 +9,6 @@
 #include "expr_variant.h"
 #include "parser/parser_config.h"
 
-
 namespace kas
 {
 namespace x3 = boost::spirit::x3;

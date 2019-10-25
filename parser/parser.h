@@ -1,9 +1,10 @@
 #ifndef KAS_PARSER_H
 #define KAS_PARSER_H
 
-// public interface to the expression parser
+// public interface to the statment parser
+// typically referenced in `kas_core/assemble.h`
 
-#include "parser_types.h"
+#include "expr/expr.h"
 #include "kas_error.h"
 #include "parser_stmt.h"
 #include "parser_variant.h"

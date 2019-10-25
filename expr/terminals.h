@@ -4,7 +4,6 @@
 #include "expr_types.h"         // get base type templates
 #include "literal_types.h"
 #include "error_messages_base.h"
-//#include "format_ieee754.h"
 
 #include "machine_types.h"      // get overrides
 #include "utility/reduce.h"

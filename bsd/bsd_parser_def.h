@@ -96,6 +96,39 @@ auto const at_token_initial = omit[char_("@%#")];
 auto const at_ident = token<token_at_ident>[(at_token_initial >> !digit) > +bsd_charset];
 auto const at_num   = token<token_at_num>  [ at_token_initial >   uint_  > !bsd_charset];
 
+// XXX XXX XXX
+
+// BSD has three types of symbols:
+// 1. standard ident -- bsd characters: X_tokenized above
+//    labels are LHS, idents are RHS
+//    NB: ident's namespace can be "richer" than label's 
+auto const X_ident = X_token<X_token_ident>[!digit >> +bsd_charset];
+auto const X_label = X_token<X_token_ident>[!digit >> +bsd_charset];
+
+// 2. local labels have format `n$` (eg: `99$`)
+//    these ident's scope restarts with each standard label
+auto const X_l_ident = X_token<X_token_local_ident>[uint_ >> '$' >> !bsd_charset];
+
+// 3. numeric labels are single digit followed by `b` or `f` (ie back or forward)
+//    don't allow c++ binary character to match (eg: 0b'100'1101)
+//    omit value, pick up from matched "source"
+auto const X_n_ident = X_token<X_token_numeric_ident>
+                    [omit[digit >> char_("bBfF") >> !lit('\'') >> !bsd_charset]];
+
+// parse `dot` as a `X_token`
+auto const X_dot_ident = X_token<X_token_dot>['.' >> !bsd_charset];
+
+// parse "nothing"  as "missing" `X_token`
+// NB: also used for pseudo-ops with no args as "dummy" arg
+auto const X_missing = X_token<X_token_missing>[eps];
+
+// parser @ "X_tokens" (used by ELF)
+auto const X_at_token_initial = omit[char_("@%#")];
+auto const X_at_ident = X_token<X_token_at_ident>[(X_at_token_initial >> !digit) > +bsd_charset];
+auto const X_at_num   = X_token<X_token_at_num>  [ X_at_token_initial >   uint_  > !bsd_charset];
+
+// XXX XXX XXX
+
 // 
 // expose dot and idents to `expr` parsers
 //

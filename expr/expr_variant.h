@@ -38,7 +38,6 @@
 //
 /////////////////////////////////////////////////////////////////////
 
-
 #include "expr_types.h"         // base templates for expressions
 #include "kas_core/core_types.h"
 #include "parser/parser_types.h"

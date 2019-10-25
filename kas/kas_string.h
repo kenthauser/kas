@@ -34,6 +34,8 @@ struct kas_string
 public:
     using type      = kas_string;
     using char_type = T;
+
+    // XXX (+1) ?
     static constexpr auto size = sizeof...(Cs);
 
 private:
