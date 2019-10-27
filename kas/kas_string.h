@@ -35,8 +35,11 @@ public:
     using type      = kas_string;
     using char_type = T;
 
-    // XXX (+1) ?
-    static constexpr auto size = sizeof...(Cs);
+    constexpr kas_string() {}
+
+    // include terminating null character 
+    // NB: kas_string<nullptr>::size returns zero
+    static constexpr auto size = sizeof...(Cs) + 1;
 
 private:
     static constexpr char_type str[] = { Cs..., 0 };
@@ -57,7 +60,10 @@ public:
 template <>
 struct kas_string<std::nullptr_t> : kas_string<>
 {
-    static constexpr auto value = nullptr;
+    constexpr kas_string() {}
+   
+    static constexpr char_type *value = nullptr;
+    static constexpr std::size_t size = 0;
 
     constexpr auto operator()() const { return value; }
     
@@ -132,7 +138,8 @@ using str_cat = meta::_t<detail::str_cat_impl<Strs...>>;
                 , KAS_STRING_GET_C((s))                           \
                 > 
 
-namespace detail {
+namespace detail
+{
 	template <typename T, typename, T...Cs>
 	struct do_make_string;
 

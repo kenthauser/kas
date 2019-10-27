@@ -12,7 +12,7 @@ namespace kas::bsd
 // declare the "token" types (parsed, but not evaluated)
 using kas::parser::kas_token;
 
-struct X_token_ident : kas::parser::token_defn_t<core::symbol_ref, KAS_STRING("IDENT")>
+struct X_token_ident : kas::parser::token_defn_t<KAS_STRING("IDENT"), core::symbol_ref>
 {
     virtual expr_t gen_expr(kas_token const& tok) const override
     {
@@ -23,8 +23,7 @@ struct X_token_ident : kas::parser::token_defn_t<core::symbol_ref, KAS_STRING("I
     }
 };
 
-
-struct X_token_local_ident : kas::parser::token_defn_t<core::symbol_ref, KAS_STRING("L_IDENT")> 
+struct X_token_local_ident : kas::parser::token_defn_t<KAS_STRING("L_IDENT"), core::symbol_ref> 
 {
     //operator core::symbol_ref() const
     virtual expr_t gen_expr(kas_token const& tok) const override
@@ -44,7 +43,7 @@ struct X_token_local_ident : kas::parser::token_defn_t<core::symbol_ref, KAS_STR
     }
 };
 
-struct X_token_numeric_ident :  kas::parser::token_defn_t<core::symbol_ref, KAS_STRING("N_IDENT")>
+struct X_token_numeric_ident :  kas::parser::token_defn_t<KAS_STRING("N_IDENT"), core::symbol_ref>
 {
     //operator core::symbol_ref() const
     virtual expr_t gen_expr(kas_token const& tok) const override
@@ -65,7 +64,7 @@ struct X_token_numeric_ident :  kas::parser::token_defn_t<core::symbol_ref, KAS_
     }
 };
 
-struct X_token_dot      : kas::parser::token_defn_t<core::symbol_ref, KAS_STRING("DOT")>
+struct X_token_dot      : kas::parser::token_defn_t<KAS_STRING("DOT"), core::symbol_ref>
 {
     //operator core::addr_ref() const
     virtual expr_t gen_expr(kas_token const& tok) const override
@@ -80,11 +79,12 @@ struct X_token_dot      : kas::parser::token_defn_t<core::symbol_ref, KAS_STRING
     }
 };
 
-struct X_token_at_ident : kas::parser::token_defn_t<void,  KAS_STRING("AT_IDENT")>
+struct X_token_at_ident : kas::parser::token_defn_t<KAS_STRING("AT_IDENT")>
 {};
-struct X_token_at_num   : kas::parser::token_defn_t<unsigned, KAS_STRING("AT_NUM")> 
+struct X_token_at_num   : kas::parser::token_defn_t<KAS_STRING("AT_NUM"), unsigned> 
 {};
-struct X_token_missing  : kas::parser::token_defn_t<void,  KAS_STRING("MISSING")>
+struct bsd_missing;
+struct X_token_missing  : kas::parser::token_defn_t<KAS_STRING("MISSING"), bsd_missing>
 {};
  
 

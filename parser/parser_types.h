@@ -35,7 +35,8 @@ using kas_position_tagged = kas_position_tagged_t<iterator_type>;
 
 // parser token definition
 struct kas_token;
-struct token_defn;
+template <typename NAME, typename VALUE = void, typename PARSER = void>
+struct token_defn_t;
 
 // test if T has `value` member or method
 template <typename T, typename = void>

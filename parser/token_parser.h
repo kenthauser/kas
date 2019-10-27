@@ -54,19 +54,19 @@ protected:
     std::type_index  defn_index {typeid(void)};
 };
 
-template <typename VALUE_T = void, typename NAME_STR = void, typename...Ts>
+// decalred in `parser_types.h`
+template <typename NAME, typename VALUE_T, typename PARSER>
 struct token_defn_t : token_defn
 {
-    using value_t = VALUE_T;
+    using name_t   = NAME;
+    using value_t  = VALUE_T;
+    using parser_T = PARSER;
 
     token_defn_t() : token_defn(token_defn_t()) {}
 
     const char *name() const override
     {
-        if constexpr (!std::is_void_v<NAME_STR>)
-            return NAME_STR();
-        else
-            return "TOKEN";
+        return NAME();
     }
 
     expr_t value;

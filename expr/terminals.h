@@ -4,14 +4,11 @@
 #include "expr_types.h"         // get base type templates
 #include "literal_types.h"
 #include "error_messages_base.h"
-
-#include "machine_types.h"      // get overrides
 #include "utility/reduce.h"
 
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/numeric.hpp>
 #include <boost/spirit/home/x3/string.hpp>
-
 
 namespace kas::expression
 {
@@ -126,15 +123,6 @@ namespace kas
     using expression::err_msg_t;
     using e_diag_t  = parser::kas_diag_t;
     //using expression::e_string_t;
-}
-
-
-// specialize std::arithmetic<> for `kas_float`
-// NB: perfectly legal to add full specializations to namespace `std`
-
-namespace std
-{
-// template <> is_arithemetic<float_host_t> : std::true_type {};
 }
 
 #endif

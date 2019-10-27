@@ -6,7 +6,9 @@
 #include "bsd_stmt.h"
 #include <boost/spirit/home/x3.hpp>
 
-namespace kas::bsd::parser
+namespace kas::bsd
+{
+namespace parser
 {
     using namespace kas::parser;
 
@@ -27,6 +29,17 @@ namespace kas::bsd::parser
     BOOST_SPIRIT_DECLARE(stmt_label_x3)
 }
 
+// declare the tokens which can are used as BSD args.
+using parser::token_defn_t;
+using defn_ident         = token_defn_t<KAS_STRING("IDENT")   , core::symbol_ref>;
+using defn_local_ident   = token_defn_t<KAS_STRING("L_IDENT") , core::symbol_ref>;
+using defn_numeric_ident = token_defn_t<KAS_STRING("N_IDENT") , core::symbol_ref>;
+using defn_dot           = token_defn_t<KAS_STRING("DOT")     , core::addr_ref>;
+using defn_at_num        = token_defn_t<KAS_STRING("AT_NUM")  , unsigned>;
+using defn_at_ident      = token_defn_t<KAS_STRING("AT_IDENT")>;
+using defn_missing       = token_defn_t<KAS_STRING("MISSING")>;
+
+}
 // parser public interface
 namespace kas::parser::detail
 {

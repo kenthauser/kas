@@ -93,3 +93,36 @@ Solution: define `parser` as meta::list with elements:
 
 4. Refactor tgt_parser to use `kas_token`
 
+*****
+
+Refactor plan:
+
+1) create `X_kas_token` for new style. Allow `kas_token` to remain unchanged. (Used as
+   base class for `tgt_arg_t`). Create metafunction to create `rule` from tuple.
+
+2) refactor `dot_parser_x3` et. al. to return `kas_token`. Should be compatible with expression
+   parser evaluator. Problem: SPIRIT_DECLARE instantiates & don't have defn of `expr_t`.
+   Initially just remove from `term_parsers_v` & delete `SPIRIT_DECLARES`
+
+   NB: `SPIRIT_DECLARE` seems to just declare function with `Attribute&` argument.
+
+3) create `tuples` for tokens. Create metafunction to create `rules`. Convert bsd_arg to
+    X_token. clean up compile errors.
+
+4) re-expose `dot_parser_x3` et. al. to `kas_token` variant. back to base operator.
+
+5) change `tgt_arg` etc to X_token. Including `tgt_reg_t`
+
+6) change fixed/float to `X_token`. Support combining `position_tag` in expr_op.
+
+7) refactor `terminals` etc defns to use tpls. 
+
+8) rename X_kas_token -> kas_token.
+
+...cleanup...
+
+9) refactor `boost::mpl::string<X>` comment strings to `KAS_STRING("X")`
+
+10) `using namespace parser` in parser sub-namespaces. Delete "x3 = ..." references.
+
+
