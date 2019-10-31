@@ -106,6 +106,13 @@ Refactor plan:
 
    NB: `SPIRIT_DECLARE` seems to just declare function with `Attribute&` argument.
 
+3) be aware of token slicing problems.
+    - If `parsed value` is int, init `kas_token._expr`
+    - If `parsed value` is x3::raw, use to override `kas_position`
+    - If `parsed value` is register, derive a `token_defn` instance for *each* register
+    * all other `parsed tokens` should use `string` to init value
+    
+
 3) create `tuples` for tokens. Create metafunction to create `rules`. Convert bsd_arg to
     X_token. clean up compile errors.
 

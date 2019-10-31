@@ -69,7 +69,8 @@ struct bsd_section_base :  opc_section
 
         // If `seg_name` look for trailing subsection arg,
         // otherwise process as `ELF` name, flags, etc...
-        if (seg_name) {
+        if (seg_name)
+        {
             sh_name = seg_name;
             // check for subsegment (trailing fixed arg)
             if (it != end) {
@@ -83,7 +84,10 @@ struct bsd_section_base :  opc_section
                 }
 
         // else, process as ELF segment pseudo-op
-        } else if (auto err_msg = proc_elf(it, end)) {
+        }
+
+        else if (auto err_msg = proc_elf(it, end))
+        {
             return {err_msg, *it};
         }
 
@@ -95,7 +99,8 @@ struct bsd_section_base :  opc_section
         // NB: test only if `sh_type` or `sh_flags` specified.
         // NB: `sh_type` & `sh_flags` overriden in ctor if reserved
         if (sh_type || sh_flags)
-            if (auto p = core::core_section::is_reserved(sh_name)) {
+            if (auto p = core::core_section::is_reserved(sh_name))
+            {
                 if (sh_type && sh_type != p->sh_type)
                     return {"Invalid section type", loc};
                 if (sh_flags && sh_flags != p->sh_flags)
@@ -119,13 +124,20 @@ struct bsd_section_base :  opc_section
     {
         // get segment name from first argument
         // NB: first arg may have been parsed as "symbol" or "string"
-        expr_t&& e = *it++;
-        if (auto p = e.template get_p<core::symbol_ref>()) {
+        auto& e = (*it++).expr();
+        if (auto p = e.template get_p<core::symbol_ref>())
+        {
             auto& sym = p->get();
             sh_name = sym.name();
-        } else if (auto p = e.template get_p<expression::e_string_t>()) {
+        }
+        
+        else if (auto p = e.template get_p<expression::e_string_t>())
+        {
             sh_name = p->get().c_str();
-        } else {
+        } 
+        
+        else
+        {
             return "Invalid section name";
         }
 
@@ -145,8 +157,8 @@ struct bsd_section_base :  opc_section
         if (it != end) {
             // increment it later
             auto value = -1;
-            if (auto p = it->template get_p<token_at_ident>())
-                value = parser::get_section_type(*p, true);
+            if (it->is_token_type(X_bsd_at_ident()))
+                value = parser::get_section_type(*it, true);
  
             if (value == -1)
                 return "Invalid section type";

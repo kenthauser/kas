@@ -12,6 +12,20 @@
 
 namespace kas::bsd
 {
+using parser::token_defn_t;
+// declare bsd_args as `token_defn_t` types
+// NB: std::vector<bsd_arg> is sequence of `kas_token` instances
+
+//using bsd_arg_t = kas_token;
+
+using X_bsd_ident         = token_defn_t<KAS_STRING("IDENT")   , core::symbol_ref>;
+using X_bsd_local_ident   = token_defn_t<KAS_STRING("L_IDENT") , core::symbol_ref>;
+using X_bsd_numeric_ident = token_defn_t<KAS_STRING("N_IDENT") , core::symbol_ref>;
+using X_bsd_dot           = token_defn_t<KAS_STRING("DOT")     , core::addr_ref>;
+using X_bsd_at_num        = token_defn_t<KAS_STRING("AT_NUM")  , unsigned>;
+using X_bsd_at_ident      = token_defn_t<KAS_STRING("AT_IDENT")>;
+using X_bsd_missing       = token_defn_t<KAS_STRING("MISSING")>;
+
 namespace detail
 {
     using bsd_pseudo_tags = meta::list<
@@ -30,9 +44,6 @@ namespace detail
 }
 
 using namespace kas::core::opc;
-
-using expression::e_fixed_t;
-
 
 struct bsd_stmt_pseudo : kas::parser::parser_stmt<bsd_stmt_pseudo>
 {
@@ -82,7 +93,7 @@ struct bsd_stmt_equ : kas::parser::parser_stmt<bsd_stmt_equ>
 
     opcode *gen_insn(opcode::data_t& data) 
     {
-        opc.proc_args(data, ident, value);
+        opc.proc_args(data, ident, value.expr());
         return &opc;
     }
     
@@ -99,7 +110,7 @@ struct bsd_stmt_equ : kas::parser::parser_stmt<bsd_stmt_equ>
     template <typename Context>
     void operator()(Context const& ctx);
     
-    bsd::token_ident ident;
+    core::symbol_ref ident;
     bsd_arg          value;
 };
 

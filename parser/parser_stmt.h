@@ -3,6 +3,7 @@
 
 #include "expr/expr.h"
 #include "kas_position.h"
+#include "token_parser.h"
 #include "stmt_print.h"
 #include "literal_parser.h"
 #include "kas_core/opcode.h"

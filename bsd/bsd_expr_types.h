@@ -12,12 +12,18 @@
 namespace kas::bsd::parser
 {
 namespace x3 = boost::spirit::x3;
+using namespace kas::parser;
 
 // don't need to annotate location, since parsed as "tokens"
-using dot_parser_x3 = x3::rule<struct _bsd_dot, core::addr_ref>;
+//using dot_parser_x3 = x3::rule<struct _bsd_dot, core::addr_ref>;
+// XXX should be token
+using dot_parser_x3 = x3::rule<struct _bsd_dot, parser::kas_token>;
+//using dot_parser_x3 = x3::rule<struct _bsd_dot, expr_t>;
 BOOST_SPIRIT_DECLARE(dot_parser_x3)
 
-using sym_parser_x3 = x3::rule<struct _bsd_sym, core::symbol_ref>;
+//using sym_parser_x3 = x3::rule<struct _bsd_sym, core::symbol_ref>;
+using sym_parser_x3 = x3::rule<struct _bsd_sym, parser::kas_token>;
+//using sym_parser_x3 = x3::rule<struct _bsd_sym, expr_t>;
 BOOST_SPIRIT_DECLARE(sym_parser_x3)
 }
 
@@ -31,7 +37,6 @@ template<typename = void> struct fmt_comment_str   : boost::mpl::string<';'> {};
 // BSD doesn't define new types to add, just parsers for `kas_core` types
 namespace kas::expression::detail
 {
-#if 1
 // NB: expr looks in reverse order of definition.
 //     Need `dot` to be searched before `sym` to
 //     prevent "." being parsed as symbol
@@ -39,7 +44,6 @@ template<> struct term_parsers_v<defn_fmt> : meta::list<
                          bsd::parser::sym_parser_x3
                        , bsd::parser::dot_parser_x3
                        > {};
-#endif
 }
 
 

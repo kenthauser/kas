@@ -72,7 +72,7 @@ namespace kas::core::opc
         OPC_INDEX();
         const char *name() const override { return "EQU"; }
 
-        void proc_args(data_t& data, symbol_ref&& ref, expr_t&& expr)
+        void proc_args(data_t& data, symbol_ref const& ref, expr_t const& expr)
         {
             auto& di = data.di();
 

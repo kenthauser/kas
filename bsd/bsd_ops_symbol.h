@@ -97,9 +97,9 @@ struct bsd_elf_type : opc_sym_type
         // eg: the following are equiv: @function, @2, STT_FUNC
         auto& loc = *++iter;
         auto value = -1;
-        if (iter->template get_p<token_at_ident>())
+        if (iter->is_token_type(X_bsd_at_ident()))
             value = parser::get_symbol_type(*iter, true);
-        else if (iter->template get_p<token_at_num>())
+        else if (iter->is_token_type(X_bsd_at_num()))
             value = *iter->get_fixed_p();
         else if (iter->template get_p<core::symbol_ref>())
             value = parser::get_symbol_type(*iter, false);

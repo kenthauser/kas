@@ -8,7 +8,12 @@
 
 namespace kas::bsd
 {
+#if 1
 
+using bsd_arg  = kas_token;
+using bsd_args = std::vector<bsd_arg>;
+
+#else
 // declare the "token" types (parsed, but not evaluated)
 using kas::parser::kas_token;
 
@@ -64,7 +69,7 @@ struct X_token_numeric_ident :  kas::parser::token_defn_t<KAS_STRING("N_IDENT"),
     }
 };
 
-struct X_token_dot      : kas::parser::token_defn_t<KAS_STRING("DOT"), core::symbol_ref>
+struct X_token_dot      : kas::parser::token_defn_t<KAS_STRING("DOT"), core::addr_ref>
 {
     //operator core::addr_ref() const
     virtual expr_t gen_expr(kas_token const& tok) const override
@@ -276,6 +281,7 @@ inline std::ostream& operator<<(std::ostream& os, T const& t)
 {
     return os << bsd_arg(t);
 }
+#endif
 
 }
 

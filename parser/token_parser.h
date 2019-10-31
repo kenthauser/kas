@@ -21,7 +21,7 @@ struct token_defn
         static_assert(std::is_base_of_v<token_defn, T>,
                     "token_defn::ctor: not initialized from derived type");
 
-        constexpr static T defn;
+        static T defn;
         defn_p = &defn;
     }
 
@@ -36,14 +36,14 @@ struct token_defn
     }
 
     template <typename T>
-    bool is_token_v(T = {}) const
+    bool is_token_type(T = {}) const
     {
         return defn_index == typeid(T);
     }
 
     // test if default token type
     // XXX should this be renamed: is_unnamed_token_v()
-    bool is_token_v() const
+    bool is_token_type() const
     {
         return !defn_p;
     }
@@ -54,7 +54,7 @@ protected:
     std::type_index  defn_index {typeid(void)};
 };
 
-// decalred in `parser_types.h`
+// declared in `parser_types.h`
 template <typename NAME, typename VALUE_T, typename PARSER>
 struct token_defn_t : token_defn
 {
@@ -77,22 +77,54 @@ struct kas_token : kas_position_tagged
 {
     // init from expr/position pair
     kas_token(expr_t e = {}, kas_position_tagged const& pos = {})
-        : expr(std::move(e)), kas_position_tagged(pos) {}
+        : _expr(std::move(e)), kas_position_tagged(pos) {}
 
     // init from "parser"
-    kas_token(token_defn& defn) : defn_p(&defn) {};
+    kas_token(token_defn& defn, kas_position_tagged const& pos = {})
+        : defn_p(&defn), kas_position_tagged{pos} {};
 
-    operator expr_t() const
+
+    auto const& expr() const
     {
         // covert string to expr if appropriate
-        if (defn_p && expr.empty())
-            expr = defn_p->gen_expr(*this);
-        return expr;
+        if (defn_p && _expr.empty())
+            _expr = defn_p->gen_expr(*this);
+        return _expr;
+    }
+
+    operator expr_t const&() const { return expr(); }
+
+    // provide hooks to `expr_t` methods
+    auto get_fixed_p() const
+    {
+        return expr().get_fixed_p();
+    }
+
+    template <typename T>
+    T const *get_p() const
+    {
+        return expr().get_p<T>();
+    }
+
+    template <typename T>
+    bool is_token_type(T t = {}) const
+    {
+        return defn_p && defn_p->is_token_type(t);
+    }
+
+    // XXX 
+    bool is_missing() const { return false; };
+
+    const char *name() const
+    {
+        if (defn_p)
+            return defn_p->name();
+        return "TOKEN";
     }
 
 private:
     token_defn const *defn_p {};
-    mutable expr_t expr;
+    mutable expr_t _expr;
 };
 
 // allow streaming of token;
@@ -101,10 +133,10 @@ template <typename OS> OS& operator<<(OS&, kas_token const&);
 // XXXXXXXXXXX
 // create an actual parser. We need context to complete location tagging
 // cribbed from x3::raw_directive
-template <typename TOK, typename Subject>
-struct X_kas_token_parser : x3::unary_parser<Subject, X_kas_token_parser<TOK, Subject>>
+template <typename TOK_DEFN, typename Subject>
+struct X_kas_token_parser : x3::unary_parser<Subject, X_kas_token_parser<TOK_DEFN, Subject>>
 {
-    using base_type = x3::unary_parser<Subject, X_kas_token_parser<TOK, Subject>>;
+    using base_type = x3::unary_parser<Subject, X_kas_token_parser<TOK_DEFN, Subject>>;
     using attribute_type = kas_token;
 
     X_kas_token_parser(Subject const& subject)
@@ -137,7 +169,7 @@ struct X_kas_token_parser : x3::unary_parser<Subject, X_kas_token_parser<TOK, Su
                 , rcontext, value))
         {
             auto& handler = x3::get<parser::error_handler_tag>(context).get();
-            TOK token(first, i, &handler);
+            attribute_type token(TOK_DEFN(), {first, i, &handler});
 #if 0
             print_type_name("token_parser::token_type").name<TOK>(std::cout); 
             //print_type_name("token_parser::subject::s_attr")
@@ -147,11 +179,11 @@ struct X_kas_token_parser : x3::unary_parser<Subject, X_kas_token_parser<TOK, Su
             print_type_name("token_parser::attribute ").name<Attribute>(std::cout);
             std::cout << "token_parser: matched: " << std::string(first, i);
             std::cout << std::endl;
-#endif
+            
             // store parsed value in token (except for strings)
             if constexpr (!std::is_same_v<decltype(value), x3::unused_type>)
                 token.value = value;
-            
+#endif            
             // consume parsed characters
             first = i;          // update first to just past parsed token
 
