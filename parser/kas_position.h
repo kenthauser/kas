@@ -131,6 +131,7 @@ struct kas_position_tagged_t
 
 
 protected:
+    friend struct kas_token;
     Iter first;
     Iter last;
     error_handler<Iter> const *handler{};

@@ -406,8 +406,10 @@ public:
     // empty: holds default type
     bool empty() const
     {
-        auto p = get_fixed_p();
-        return !(p && !*p);
+        // true iff expr() holds zero int.
+        if (auto p = get_fixed_p())
+            return !*p;
+        return false;
     }
 
 };

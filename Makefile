@@ -53,6 +53,7 @@ TEST_PARSE_ARGS = test/parse_tests
 TEST_EMIT_ARGS  = test/emit_tests
 
 #expr.o : CXXFLAGS += -DPRINT_EXPR_INFO
+expr.o : CXXFLAGS += -DEXPR_TRACE_EVAL
 #arm.o : CXXFLAGS += -DTRACE_ARG_SERIALIZE
 
 #kas_expr_test: kas_expr_test.o expr.o kas_core.o bsd.o m68k.o m68k_defns.o

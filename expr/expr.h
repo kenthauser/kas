@@ -8,6 +8,7 @@
 
 #include "expr_variant.h"
 #include "parser/parser_config.h"
+#include "parser/token_parser.h"
 
 namespace kas
 {
@@ -22,19 +23,20 @@ namespace expression::parser
     
     // NB: _DECLARE macro just declares a templated `parse_rule` function
     // NB: this rule is instantiated with standard context in `expr.cc`
-    using expr_type = x3::rule<class tag_expr, expr_t>;
+    //using expr_type = x3::rule<class tag_expr, expr_t>;
+    using expr_type = x3::rule<class tag_expr, kas_token>;
     BOOST_SPIRIT_DECLARE(expr_type)
     
     // Declare an "expression" parser hook.
     struct expr : x3::parser<expr>
     {
-        using attribute_type = expr_t;
+        using attribute_type = kas_token;
 
         template <typename Iterator, typename Context, typename Attribute>
         bool parse(Iterator& first, Iterator const& last,
                     Context const& context, x3::unused_type unused, Attribute& attr) const
         {
-            expr_t e;
+            attribute_type e;
             
             // need a standardized context for multi-file Instantiation
             auto& skipper  = x3::get<x3::skipper_tag>(context);
@@ -48,8 +50,8 @@ namespace expression::parser
             
             bool result = as_parser(expr_type()).parse(first, last, ctx, unused, e);
             
-            if (result)
-                x3::traits::move_to(e, attr);
+            //if (result)
+            //    x3::traits::move_to(e, attr);
             return result;
         }
     };

@@ -82,20 +82,21 @@ struct ref_loc : ref_loc_tag
     std::enable_if_t<std::is_same_v<U, parser::kas_loc>, U const*>
     get_p() const
     {
-        return loc ? &loc : nullptr;
+        return _loc ? &_loc : nullptr;
     }
 
 
     // return *mutable* reference to base type
     // NB: member template defers dependent name resolution until instantiation
     template <typename...Ts>
-    object_t& get(Ts&&...) const { return object_t::get(index, loc); }
+    object_t& get(Ts&&...) const { return object_t::get(index, loc()); }
 
     // define getter & setter for `loc`
-    parser::kas_loc const& get_loc() const { return loc; }
+    parser::kas_loc const& get_loc() const { return loc(); }
+    parser::kas_loc const& loc() const { return _loc; }
     ref_loc& set_loc(parser::kas_loc new_loc)
     {
-        loc = new_loc;
+        _loc = new_loc;
         return *this;
     }
 
@@ -110,7 +111,7 @@ private:
 
     // private ctor: `friend get_ref()` can use it.
     ref_loc(index_t index, parser::kas_loc loc = {})
-        : index(index), loc(loc) {}
+        : index(index), _loc(loc) {}
 
     template <typename OS>
     friend OS& operator<<(OS& os, ref_loc const& ref)
@@ -120,7 +121,7 @@ private:
     }
 
     index_t index{};
-    parser::kas_loc loc {};
+    parser::kas_loc _loc {};
 
     void _() { static_assert(sizeof(ref_loc) <= sizeof(void*)); };
 };
@@ -129,7 +130,7 @@ template <typename T, typename Index>
 template <typename OS>
 void ref_loc<T, Index>::print(OS& os) const
 {
-    auto loc_str = loc.where();
+    auto loc_str = loc().where();
     os << "[" << boost::typeindex::type_id<object_t>().pretty_name();
     os << ": " << index << " loc: " << loc_str << "]";
 }

@@ -73,7 +73,7 @@ namespace detail
             return {};
         }
 
-        // reduce entry to 2 quads. 
+        // reduce entry to 2 quads.
         op_data_t const *op_p;
         uint8_t          name_index[MAX_NAMES];
         uint8_t          op_cnt;
@@ -92,7 +92,7 @@ namespace detail
         using prec_fn = prec_t(*)(prec_t);
 
         // NB: all ARITY limitations are in `expr_op_eval` 
-        // NB: `MAX_ARITY` not actually inspected. Just comment.
+        // NB: `MAX_ARITY` is referenced in `oper_op_visitor`
         static constexpr auto MAX_ARITY = EVAL::MAX_ARITY;
 
         // construct & initialize
@@ -103,11 +103,12 @@ namespace detail
 
         // evaluate: forward to visitor
         template <typename...Ts>
-        expr_t operator()(kas_position_tagged const& loc, Ts&&...args) const noexcept;
+        parser::kas_token operator()(kas_position_tagged const& loc, Ts&&...args) const noexcept;
 
         // evalutate: money function
         template <std::size_t N>
-        expr_t eval(kas_position_tagged const& loc
+        parser::kas_token eval(kas_position_tagged const& op_loc
+                   , parser::kas_token const* const* tokens
                    , HASH_T hash
                    , EVAL::exec_arg_t<N>&& args
                    , std::size_t err        // index of first "kas_diag" arg
@@ -120,7 +121,6 @@ namespace detail
             pri2prec = fn;
             return old;
         }
-
 
         prec_t priority() const noexcept
         {

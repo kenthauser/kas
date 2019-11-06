@@ -46,10 +46,13 @@ kas_position_tagged_t<Iter>::operator kas_loc&() const
 template kas_position_tagged_t<iterator_type>::operator kas_loc&() const;
 #endif
 
-template <typename OS>
-OS& operator<<(OS& os, kas_token const& tok)
+void kas_token::print(std::ostream& os) const
 {
-    return os << "[token: src=\"" << std::string(tok) << "\"]";
+    os << "[" << name();
+    os << ": src=\"" << std::string(*this) << "\"";
+    if (!_expr.empty())
+        os << ", expr=" << _expr;
+    os << "]";
 }
 
 template std::ostream& operator<<(std::ostream&, kas_token const&);
