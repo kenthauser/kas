@@ -48,7 +48,7 @@ struct bsd_org : core::opc::opc_org
             return make_error(data, result);
 
         kas_token loc = args.front();
-        opc_org::proc_args(data, loc, std::move(args.front()));
+        opc_org::proc_args(data, loc, args.front().expr());
     }
 };
 
@@ -62,7 +62,7 @@ struct bsd_skip : core::opc::opc_skip
         
         // XXX refactor opc_skip
         kas_token loc = args.front();
-        opc_skip::proc_args(data, loc, std::move(args.front()));
+        opc_skip::proc_args(data, loc, args.front().expr());
     }
 };
 
@@ -90,7 +90,7 @@ struct bsd_fixed : T
 
         // process container
         for (auto& e : args)
-            size += proc_fn(std::move(e), e);      // pass arg & loc
+            size += proc_fn(std::move(e.expr()), e);      // pass arg & loc
 
         data.size = size;
     }

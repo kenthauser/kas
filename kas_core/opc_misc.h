@@ -65,7 +65,7 @@ namespace kas::core::opc
 
         const char *name() const override { return "ORG"; }
 
-        void proc_args(data_t& data, kas_loc loc, expr_t&& value
+        void proc_args(data_t& data, kas_loc loc, expr_t const& value
                         , uint8_t fill_size = {}, uint32_t fill_data = {})
         {
             // Be sure it's location tagged for deferred errors.
@@ -141,7 +141,7 @@ namespace kas::core::opc
         // using opcode<opc_skip>::opcode;
         const char *name() const override { return "SKIP"; }
 
-        void proc_args(data_t& data, kas_loc const& loc, expr_t&& skip, expr_t&& fill = {})
+        void proc_args(data_t& data, kas_loc const& loc, expr_t const& skip, expr_t const& fill = {})
         {
             static constexpr auto fill_default = 0;
 

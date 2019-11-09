@@ -45,6 +45,8 @@ namespace detail
 
 using namespace kas::core::opc;
 
+// NB: all `stmts` must be declared in `bsd_parser_types.h`
+
 struct bsd_stmt_pseudo : kas::parser::parser_stmt<bsd_stmt_pseudo>
 {
     // pseduos need out-of-line definations
@@ -158,17 +160,21 @@ template <typename Context>
 void bsd_stmt_label::operator()(Context const& ctx)
 {
     // set instruction "location" from parsed ident location
-    ident = x3::_attr(ctx);
-    this->set_loc(ident.get_loc());
+    auto& ident_tok = x3::_attr(ctx);
+    ident = *ident_tok.get_p(core::symbol_ref());
     x3::_val(ctx) = *this;
 }
 
 template <typename Context>
 void bsd_stmt_equ::operator()(Context const& ctx)
 {
-    auto& args = x3::_attr(ctx);
-    ident      = std::move(boost::fusion::at_c<0>(args));
-    value      = std::move(boost::fusion::at_c<1>(args));
+    auto& args      = x3::_attr(ctx);
+    auto& ident_tok = boost::fusion::at_c<0>(args);
+    auto& value_tok = boost::fusion::at_c<1>(args);
+
+    ident = *ident_tok.get_p(core::symbol_ref());
+    value = value_tok.expr();
+
     x3::_val(ctx) = *this;
 }
 
@@ -177,7 +183,8 @@ void bsd_stmt_org::operator()(Context const& ctx)
 {
     // .org pseudo-op passed container of args. Emulate.
     v_args = bsd_args();
-    v_args.push_back(std::move(x3::_attr(ctx)));
+    auto& org_tok = x3::_attr(ctx);     // single token: expr
+    v_args.push_back(org_tok);          // `org` pseudo-op need single op
     x3::_val(ctx) = *this;
 }
 

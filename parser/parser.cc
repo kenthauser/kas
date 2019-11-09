@@ -1,7 +1,7 @@
 #include "parser.h"
 #include "parser_config.h"
 #include "error_handler.h"
-//#include "parser_def.h"
+#include "parser_def.h"
 //#include "stmt_print.h"
 //#include "utility/print_object.h"
 
@@ -10,7 +10,7 @@
 namespace kas::parser
 {
  // XXX
- //   BOOST_SPIRIT_INSTANTIATE(stmt_x3, iterator_type, stmt_context_type)
+    BOOST_SPIRIT_INSTANTIATE(stmt_x3, iterator_type, stmt_context_type)
 
 std::string kas_loc::where() const
 {

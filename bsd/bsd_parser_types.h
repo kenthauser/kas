@@ -6,6 +6,18 @@
 #include "bsd_stmt.h"
 #include <boost/spirit/home/x3.hpp>
 
+// declare bsd "statements". Can't include `bsd_stmt.h` because can't 
+// define "statments" until all supporting types defined (by eg this file).
+#if 0
+namespace kas::bsd
+{
+    struct bsd_stmt_pseudo;
+    struct bsd_stmt_label;
+    struct bsd_stmt_equ;
+    struct bsd_stmt_org;
+}
+#endif
+
 namespace kas::bsd::parser
 {
 using namespace kas::parser;
@@ -27,6 +39,7 @@ using stmt_label_x3 = x3::rule<class _tag_lbl, bsd::bsd_stmt_label>;
 BOOST_SPIRIT_DECLARE(stmt_label_x3)
 
 }
+
 // parser public interface
 namespace kas::parser::detail
 {

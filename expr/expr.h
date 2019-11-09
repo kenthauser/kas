@@ -5,7 +5,6 @@
 //
 // Define the expression variant: `expr_t`
 // Declare the interface to the expression parser
-
 #include "expr_variant.h"
 #include "parser/parser_config.h"
 #include "parser/token_parser.h"

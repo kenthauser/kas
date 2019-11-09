@@ -43,7 +43,8 @@ struct bsd_common :  opc_common
         // optional third argument is required alignment
         // must be fixed, defaults to zero
         short align{};          // default
-        if (++iter != args.end()) {
+        if (++iter != args.end())
+        {
             if (auto p = iter->get_fixed_p())
                 align = *p;
             else 
@@ -73,7 +74,7 @@ struct bsd_sym_binding :  opc_sym_binding
 
         for (auto& e : args) {
             //std::cout << "sym_binding: " << e << " -> " << binding << std::endl;
-            proc_fn(std::move(e), e);      // pass arg & loc
+            proc_fn(e, e);      // pass arg & loc
         }
     }
 };
@@ -125,7 +126,8 @@ struct bsd_elf_size : opc_sym_size
             return make_error(data, "symbol required", *iter);
 
         ++iter;
-        opc_sym_size::proc_args(data, sym_p->get(), std::move(*iter), *iter);
+        // args are `sym&, value const&, loc const&
+        opc_sym_size::proc_args(data, sym_p->get(), iter->expr(), *iter);
     }
 };
 

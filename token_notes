@@ -97,16 +97,16 @@ Solution: define `parser` as meta::list with elements:
 
 Refactor plan:
 
-1) create `X_kas_token` for new style. Allow `kas_token` to remain unchanged. (Used as
+*1) create `X_kas_token` for new style. Allow `kas_token` to remain unchanged. (Used as
    base class for `tgt_arg_t`). Create metafunction to create `rule` from tuple.
 
-2) refactor `dot_parser_x3` et. al. to return `kas_token`. Should be compatible with expression
+*2) refactor `dot_parser_x3` et. al. to return `kas_token`. Should be compatible with expression
    parser evaluator. Problem: SPIRIT_DECLARE instantiates & don't have defn of `expr_t`.
    Initially just remove from `term_parsers_v` & delete `SPIRIT_DECLARES`
 
    NB: `SPIRIT_DECLARE` seems to just declare function with `Attribute&` argument.
 
-3) be aware of token slicing problems.
+*3) be aware of token slicing problems.
     - If `parsed value` is int, init `kas_token._expr`
     - If `parsed value` is x3::raw, use to override `kas_position`
     - If `parsed value` is register, derive a `token_defn` instance for *each* register
@@ -118,18 +118,20 @@ Refactor plan:
 
 4) re-expose `dot_parser_x3` et. al. to `kas_token` variant. back to base operator.
 
-5) change `tgt_arg` etc to X_token. Including `tgt_reg_t`
+*5) change `tgt_arg` etc to X_token. Including `tgt_reg_t`
 
-6) change fixed/float to `X_token`. Support combining `position_tag` in expr_op.
+*6) change fixed/float to `X_token`. Support combining `position_tag` in expr_op.
 
 7) refactor `terminals` etc defns to use tpls. 
 
-8) rename X_kas_token -> kas_token.
+8) refactor `boost::mpl::string<X>` comment strings to `KAS_STRING("X")`
 
-...cleanup...
+9) `using namespace parser` in parser sub-namespaces. Delete "x3 = ..." references.
 
-9) refactor `boost::mpl::string<X>` comment strings to `KAS_STRING("X")`
+10) convert bsd/m68k to use X_token & compile & run. Attend to `reg` & `insn` parsers
 
-10) `using namespace parser` in parser sub-namespaces. Delete "x3 = ..." references.
+11) rename X_kas_token -> kas_token. port changes to `z80` and `arm`
+
+12) rename X_token_parser -> token_parser. update `z80` & `arm`.
 
 

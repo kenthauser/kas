@@ -128,11 +128,12 @@ namespace kas::core::opc
         
         auto gen_proc_one(data_t& data, short binding)
         {
-            return [&,binding=binding](expr_t&& e, kas_loc const &loc) -> std::size_t
+            return [&,binding=binding](auto& e, kas_loc const &loc) -> std::size_t
                 {
                     auto sym_ref_p = e.template get_p<symbol_ref>();
                     
-                    if (sym_ref_p) {
+                    if (sym_ref_p)
+                    {
                         sym_ref_p->get().set_binding(binding);
                        // std::cout << "opc_sym_binding: " << *sym_ref_p;
                        // std::cout << ": " << sym_ref_p->get().name() << " -> " << binding << std::endl;
@@ -206,13 +207,13 @@ namespace kas::core::opc
 
         const char *name() const override { return "SIZE"; }
 
-        void proc_args(data_t& data, core_symbol_t& sym, expr_t&& value, kas_loc const& loc)
+        void proc_args(data_t& data, core_symbol_t& sym, expr_t const& value, kas_loc const& loc)
         {
             //std::cout << "opc_sym_size: " << sym.name() << " -> " << value << std::endl;
 
             // copy expr to persistent memory
             auto& di = data.di();
-            *di++ = std::move(value);
+            *di++ = value;
             if (auto msg = sym.size(di.last()))
                 return make_error(data, msg, loc);
                 

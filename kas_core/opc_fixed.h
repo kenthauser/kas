@@ -60,7 +60,7 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
     using NAME = m_name<sizeof(T), KAS_STRING("INT")>;
     
     template <typename CI>
-    static op_size_t proc_one(CI& ci, expr_t&& e, kas_loc const& loc)
+    static op_size_t proc_one(CI& ci, expr_t const& e, kas_loc const& loc)
     {
         // if fixed argument, check if it fits
         std::cout << "opc_size::proc_one: " << e << std::endl;
@@ -73,9 +73,10 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
                 // XXX
                 //*ci++ = (expr_t)parser::kas_diag::error("Invalid argument", e.get_loc_p());
             }
-        } else {
+        } else
+        {
             // not fixed -- resolve at emit
-            *ci++ = std::move(e);
+            *ci++ = e;
         }
         
         // always fixed size

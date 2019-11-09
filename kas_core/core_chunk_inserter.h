@@ -56,12 +56,12 @@ struct chunk_inserter_t<Inserter, T, meta::list<CHUNK_VT, XT...>>
     }
 
     // write expression as integral value or expression
-    auto& operator= (expr_t&& e)
+    auto& operator= (expr_t const& e)
     {
         if (auto p = e.get_fixed_p())
             *this = *p;
         else
-            add_expr(std::move(e));
+            add_expr(e);
         return *this;
     }
 
@@ -87,7 +87,7 @@ struct chunk_inserter_t<Inserter, T, meta::list<CHUNK_VT, XT...>>
         auto index = chunk->template get_wr_index<U>(full);
         if (index < 0)
             // type didn't fit, so flush & try again...
-            // XXX comma sequence
+            // NB: comma sequence
             return flush(), get_wr_ptr<U>();
 
         if (full) {
@@ -129,10 +129,10 @@ private:
     }
 
     // element incompatible with chunk. flush & add expr_t to underlying queue
-    void add_expr (expr_t&& e)
+    void add_expr (expr_t const& e)
     {
         flush();
-        *di++ = std::move(e);
+        *di++ = e;
     }
 
     // return reference to (open) chunk to write data

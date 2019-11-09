@@ -97,12 +97,17 @@ struct kas_token : kas_position_tagged
         : defn_p(&defn.get()), kas_position_tagged{pos} {};
 
 
-    auto const& expr() const
+    auto& expr()
     {
         // covert string to expr if appropriate
         if (defn_p && _expr.empty())
             defn_p->gen_expr(_expr, *this);
         return _expr;
+    }
+
+    auto& expr() const
+    {
+        return const_cast<kas_token&>(*this).expr();
     }
 
     // XXX creates ambiguity with drived types

@@ -13,14 +13,14 @@ namespace kas::bsd
         // expression parsers
         BOOST_SPIRIT_INSTANTIATE(dot_parser_x3, iterator_type, expr_context_type)
         BOOST_SPIRIT_INSTANTIATE(sym_parser_x3, iterator_type, expr_context_type)
-#if 0
+        
         // stmt parsers
         BOOST_SPIRIT_INSTANTIATE(stmt_comma_x3, iterator_type, stmt_context_type)
         BOOST_SPIRIT_INSTANTIATE(stmt_space_x3, iterator_type, stmt_context_type)
         BOOST_SPIRIT_INSTANTIATE(stmt_equ_x3  , iterator_type, stmt_context_type)
         BOOST_SPIRIT_INSTANTIATE(stmt_org_x3  , iterator_type, stmt_context_type)
-        BOOST_SPIRIT_INSTANTIATE(stmt_label_x3, iterator_type, stmt_context_type)
-#endif
+  //      BOOST_SPIRIT_INSTANTIATE(stmt_label_x3, iterator_type, stmt_context_type)
+
     }
 #if 0
     // define bsd_arg printer

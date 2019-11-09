@@ -153,10 +153,10 @@ struct fixed_inserter_t
         return *this;
     }
 
-    auto& operator= (expr_t&& e)
+    auto& operator= (expr_t const& e)
     {
         p = nullptr;
-        *ci++ = std::move(e);
+        *ci++ = e;
         return *this;
     }
 
