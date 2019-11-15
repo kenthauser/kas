@@ -89,8 +89,8 @@ struct bsd_fixed : T
         core::opcode::op_size_t size{}; 
 
         // process container
-        for (auto& e : args)
-            size += proc_fn(std::move(e.expr()), e);      // pass arg & loc
+        for (auto& tok : args)
+            size += proc_fn(tok.expr(), tok);      // pass arg & loc
 
         data.size = size;
     }

@@ -68,8 +68,8 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
             if (expression::expr_fits().ufits<T>(*p) == core_fits::yes)
                 *ci++ = *p; 
             else {
-                //std::cout << "opc_size: doesn't fit, value = " << *p;
-                //std::cout << " sizeof(T) == " << sizeof(T) << std::endl;
+                std::cout << "opc_size: doesn't fit, value = " << *p;
+                std::cout << " sizeof(T) == " << sizeof(T) << std::endl;
                 // XXX
                 //*ci++ = (expr_t)parser::kas_diag::error("Invalid argument", e.get_loc_p());
             }
@@ -115,9 +115,9 @@ struct opc_float : opc_data<opc_float<NBits>, expression::e_float_t>
     static constexpr unsigned size_one  = words_one * (32/8);
 
     template <typename CI>
-    static op_size_t proc_one(CI& ci, expr_t&& e, kas_loc const& loc)
+    static op_size_t proc_one(CI& ci, expr_t const& e, kas_loc const& loc)
     {
-        *ci++ = std::move(e);
+        *ci++ = e;
         return size_one;
     }
 
@@ -147,7 +147,7 @@ struct opc_string : opc_data<opc_string<ZTerm, char_type>, char_type>
     using string_t = typename expression::e_string<>::type;
 
     template <typename CI>
-    static op_size_t proc_one(CI& ci, expr_t&& e, kas_loc const& loc)
+    static op_size_t proc_one(CI& ci, expr_t const& e, kas_loc const& loc)
     {
         std::size_t size = 0;
 

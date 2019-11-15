@@ -168,6 +168,11 @@ x3::rule<class bin_op, op_expr_pair_t>  bin_op = "bin_op";
 x3::rule<class pfx_op, op_expr_pair_t>  pfx_op = "pfx_op";
 //x3::rule<class sfx_op, sfx_expr_pair_t> sfx_op = "sfx_op";
 
+// create `paren_op` rule so that parenthesis are added to parsed token
+struct _tag_paren : annotate_on_success {};
+auto const paren_op  = x3::rule<_tag_paren, X_token_t> {"paren"} = 
+                            '(' > inner > ')';
+
 // Declare primary/unary/binary subpressions
 
 //XXX
@@ -184,7 +189,8 @@ auto const pfx_op_def = pfx_op_x3 >  term;
 
 // Combine above subexpressions into full expression parsing
 // NB: enabling sfx_op screws up "MISSING" parsing.
-auto const term_def = p_expr | pfx_op /* | sfx_op */ | ('(' > inner > ')');
+//auto const term_def = p_expr | pfx_op /* | sfx_op */ | ('(' > inner > ')');
+auto const term_def = p_expr | pfx_op /* | sfx_op */ | paren_op;
 auto const inner_def = (term > *bin_op)[shunting_yard()];
 auto const expr_def = inner;
 
@@ -196,8 +202,8 @@ BOOST_SPIRIT_DEFINE(p_expr, bin_op, pfx_op)
 ///////////////////////////////////////////////////////////////////////////
 
 // annonate only operator locations
-struct bin_op : kas::parser::annotate_on_success {};
-struct pfx_op : kas::parser::annotate_on_success {};
+//struct bin_op : kas::parser::annotate_on_success {};
+//struct pfx_op : kas::parser::annotate_on_success {};
 //struct sfx_op : kas::parser::annotate_on_success {};
 
 // error handling only for outermost expression

@@ -101,10 +101,10 @@ public:
     template <typename Context>
     static void set_last(Context const& ctx)
     {
-        auto& ident = x3::_attr(ctx);
-        last() = ident;
+        auto& tok = x3::_attr(ctx);
+        last() = tok;
         sym_table().clear();
-        x3::_val(ctx) = ident;
+        x3::_val(ctx) = tok;
     }
     
     static auto get(kas_token const& token, unsigned n)

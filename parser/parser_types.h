@@ -38,6 +38,7 @@ struct kas_token;
 template <typename NAME, typename VALUE = void, typename PARSER = void>
 struct token_defn_t;
 
+// XXX move to generic `has_value_t` header in `kas`
 // test if T has `value` member or method
 template <typename T, typename = void>
 struct has_value : std::false_type {};

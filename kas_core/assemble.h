@@ -129,7 +129,7 @@ private:
 
         // trace source file operations
         src.set_trace(out);
- #ifdef XXX
+ #ifndef XXX
         // create parser object
         auto stmt_stream = parser::kas_parser(parser::stmt_x3(), src);
          

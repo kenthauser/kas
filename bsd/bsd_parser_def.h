@@ -167,7 +167,7 @@ auto const local_label   = (l_ident >> ':')[XXX_eval];
 auto const numeric_label = (token<kas_token>[omit[digit]] >> ':')[bsd_numeric_ident()];
 
 // parse labels as `symbol_ref`
-auto const all_labels = rule<class _, core::symbol_ref> {} =
+auto const all_labels = rule<class _, kas_token> {} =
             ident_label | local_label | numeric_label;
 
 // create label instruction (exposed to top parser) 
@@ -181,9 +181,15 @@ BOOST_SPIRIT_DEFINE(stmt_label)
 // BSD Assembler Instruction Definitions
 //////////////////////////////////////////////////////////////////////////
 
+using X_e_fixed = token_defn_t<KAS_STRING("BSD_E_FIXED"), e_fixed_t>;
+auto const p_expr_def = X_token<X_e_fixed>[int_];
+//auto const p_expr_def = X_token<X_e_fixed>[c_fixed_p];
+
 // location tag "expressions". (tokens are already tagged)
-struct _tag_expr : kas::parser::annotate_on_success {};
-auto const expr_arg   = rule<_tag_expr, bsd_arg>{} = expr();
+// XXX 2019/11/13 tagging screws up token value (???)
+//struct _tag_expr : kas::parser::annotate_on_success {};
+auto const expr_arg   = rule<class _tag_expr, bsd_arg>{} = expr();
+//auto const expr_arg   = rule<class _tag_expr, bsd_arg>{} = p_expr_def;
 
 // space_arg is tagged expr_arg or any *tokens* except missing
 // NB: need named rule for expectation error message
@@ -231,11 +237,11 @@ stmt_org_x3    stmt_org     {"bsd_org"  };
 
 BOOST_SPIRIT_DEFINE(stmt_comma, stmt_space, stmt_equ, stmt_org)
 
-struct _tag_com : kas::parser::annotate_on_success{};
-struct _tag_spc : kas::parser::annotate_on_success{};
-struct _tag_equ : kas::parser::annotate_on_success{};
-struct _tag_org : kas::parser::annotate_on_success{};
-struct _tag_lbl : kas::parser::annotate_on_success{};
+//struct _tag_com : kas::parser::annotate_on_success{};
+//struct _tag_spc : kas::parser::annotate_on_success{};
+//struct _tag_equ : kas::parser::annotate_on_success{};
+//struct _tag_org : kas::parser::annotate_on_success{};
+//struct _tag_lbl : kas::parser::annotate_on_success{};
 }
 
 #endif

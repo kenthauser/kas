@@ -29,7 +29,7 @@ namespace detail
 
 
         template <typename CI>
-        static op_size_t proc_one(CI& ci, expr_t&& e, kas_loc const& loc)
+        static op_size_t proc_one(CI& ci, expr_t const& e, kas_loc const& loc)
         {
             // if fixed, emit `bytes` into stream
             if (auto p = e.get_fixed_p()) {
@@ -38,7 +38,7 @@ namespace detail
             }
              
             // if variable, emit expression & calculate size later
-            *ci++ = std::move(e);
+            *ci++ = e;
             return { 1, leb_t::max_size() };
         }
        

@@ -1,8 +1,129 @@
-Desire: have all `expr` arguments be `kas_token`.
+Desire: have all parsed arguments be `kas_token`.
 
 
-Parser Tokens
+*** Parser Token: `kas_token` ***
 
+1. kas_token has `kas_position_tagged` base. Thus supports `operator std::string()`
+
+2. kas_token has `expr()` method.  NB: would be nice to have `operator expr_t`
+    --> implies `kas_token` has `expr_t` member (private)
+
+3. kas_token has `raw_expr()` method which is like `expr()` but does not "ref_loc" tag
+    expressions. Designed for use `expr_eval` methods, specifically the `core_expr` and
+    `reg_set` expressions which can generate many intermediate results (which do not
+    require location tagging). 
+
+4. kas_token can be specialized or generic. Specialized `tokens` can take "parsed" data 
+    (from base `kas_position_tagged`) to initialize `expr_t` private member.
+
+5. kas_token can be copied (requirement of x3), and thus must not have virtual members.
+    kas_token must be specilized by private member holding pointer to virtual type.
+    member is nullptr inited as "generic". 
+
+6. kas_token has `name()` method: "generic" name or "specialized" name.
+
+7. kas_token has `is_token_type` (arguments: specialized type or typeid) to test
+    if token is specific type (eg: @function)
+
+8. kas_token has `print()` method & ostream support
+
+9. ctors:
+        - default() (required by x3)
+        - ctor(expr, poisition) for parsing `ints`; result of expression_parser operations
+        - ctor(specialized_p, position), for parsing specialized tokens
+            NB: only pointer to `specialized_p` is retained. Thus `specialized_p` needs 
+                to point to statically allocated object
+
+
+*** Parsers for Parser Token ***
+
+1. All argument parsers (ie except `insn` parsers) should return `kas_token` instance.
+    defined parsers: (ie character sequence, numeric sequence, missing) should use 
+    x3 parser `kas_token_parser` created by `kas_token_x3<...>`.
+
+2. Specialized parsers (eg `reg_parser`) should return `kas_token`. Specialization
+    instances generated as required. `kas_token_parser` not used.
+
+3. kas_token_parser is an `x3` unary parser hooked into base `x3` mechanisms. 
+    `kas_token_parser` uses an x3 `parser` argument to generate a `kas_token`. If
+    the x3 parser returns an integral value, the `kas_token` private `expr_t` value
+    is initialized to parsed value. Otherwise, the parser is treated as a `raw` parser
+    and the `kas_poisition_tagged` base value is set to parsed value & `expr_t` is zero.
+
+### describe default values, declaration etc etc ###
+
+
+*** Specializion type for `kas_token`: `token_defn`
+
+1. `token_defn` is abstract virtual type. Three virtual methods
+    - `get()`       return static reference to derived type
+    - `name()`      return name for `print()`
+    - `gen_expr()`  update kas_token private `expr_t` according to specialization
+
+2. `token_defn` typically defined via tuple: `NAME, VALUE_T = void, PARSER = void`.
+    If PARSER not defined, must be declared during `definition`. eg:
+
+// eg: bsd_arg defns...
+
+struct token_local_ident : kas_token
+{
+    uint32_t value;
+    operator core::symbol_ref() const
+    {
+        auto ref = bsd_local_ident::get(*this, value);
+        ref.set_loc(*this);
+#ifdef TRACE_TOKEN
+        std::cout << "token_local_ident: " << std::string(*this) << " -> ";
+        ref.print(std::cout);
+        std::cout << " local_loc = " << static_cast<::kas::parser::kas_loc const&>(*this).get();
+        std::cout << std::endl;
+#endif
+        return ref;
+    }
+};
+
+struct token_numeric_ident : kas_token
+{
+    operator core::symbol_ref() const
+    {
+        auto n = *first - '0';
+        auto p = std::next(first);
+        bool dir = (p != last) && (*p == 'f' || *p == 'F'); 
+        auto ref = bsd_numeric_ident::get(*this, n, dir);
+        ref.set_loc(*this);
+#ifdef TRACE_TOKEN
+        std::cout << "token_numeric_ident: " << std::string(*this) << " -> ";
+        ref.print(std::cout);
+        std::cout << std::endl;
+#endif
+        return ref;
+    }
+};
+
+struct token_dot      : kas_token 
+{
+    operator core::addr_ref() const
+    { 
+        auto ref = core::core_addr_t::get_dot().ref(*this);
+#ifdef TRACE_TOKEN
+        std::cout << "token_dot: -> ";
+        ref.print(std::cout);
+        std::cout << std::endl;
+#endif
+        return ref;
+    }
+};
+
+// parser @ "tokens" (used by ELF)
+auto const at_token_initial = omit[char_("@%#")];
+auto const at_ident = token<token_at_ident>[(at_token_initial >> !digit) > +bsd_charset];
+auto const at_num   = token<token_at_num>  [ at_token_initial >   uint_  > !bsd_charset];
+auto const missing = X_token<X_bsd_missing>[eps];
+
+
+
+
+****** orig
 
 1. kas_token has `kas_position_tagged` base. And supports `operator std::string()`
 

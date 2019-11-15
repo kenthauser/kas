@@ -198,9 +198,9 @@ struct opc_data : opcode
 
         // move fixed-inserter into lambda context
         // NB: if `loc` not provided, don't pass args that could generate errors...
-        return [bi=std::move(bi)](expr_t&& e, kas_loc const &loc = {}) mutable -> op_size_t
+        return [bi=std::move(bi)](expr_t const& e, kas_loc const &loc = {}) mutable -> op_size_t
             {
-                return derived_t::proc_one(bi, std::move(e), loc);
+                return derived_t::proc_one(bi, e, loc);
             };
     }
 
@@ -217,8 +217,8 @@ struct opc_data : opcode
 
         // loop to move data from `parsed` expressions to `opc` data
         // NB: no loc for errors...so don't pass error values!
-        for (auto&& e : c)
-            size += fn(std::move(e), kas_loc());
+        for (auto const& e : c)
+            size += fn(e, kas_loc());
 
         // accumulated size
         data.size = size;

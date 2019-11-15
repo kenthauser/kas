@@ -125,7 +125,10 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
             if (zero_fns[dem_type-1](args[1]))
             {
             #if 1
-                return {kas::parser::kas_diag_t::error("Divide by zero", op_loc), op_loc, *tokens[1]};
+                // XXX `op_loc` is zero?
+                std::cout << "expr_op::eval: Divide by zero" << std::endl;
+                //return {kas::parser::kas_diag_t::error("Divide by zero", op_loc), op_loc, *tokens[1]};
+                return {kas::parser::kas_diag_t::error("Divide by zero", *tokens[1]), *tokens[1]};
             #else
                 auto& err = kas::parser::kas_diag_t::error("Divide by zero", op_loc);
                 std::cout << "eval: err = " << expr_t(err) << std::endl;
@@ -140,7 +143,7 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
 
     // evaluate 
     auto e = it->second(std::move(args));
-    set_loc(e, op_loc);
+    //set_loc(e, op_loc);
 
     // ARITY > 1 : loc is from first arg to last
     if constexpr (N > 1)
@@ -178,7 +181,7 @@ parser::kas_token expr_op::operator()(kas_position_tagged const& loc, Ts&&...arg
     auto vis = expr_op_visitor{*this, loc, {&args...}};
     
     // NB: can't take address of r-values. Thus, don't std::forward<> args
-    auto result = boost::apply_visitor(vis)(args.expr()...);
+    auto result = boost::apply_visitor(vis)(args.raw_expr()...);
 
 #ifdef EXPR_TRACE_EVAL
     std::cout << "result: " << result << std::endl;
