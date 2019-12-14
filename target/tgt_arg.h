@@ -1,7 +1,7 @@
 #ifndef KAS_TARGET_TGT_ARG_H
 #define KAS_TARGET_TGT_ARG_H
 
-#include "parser/token_parser.h"
+#include "parser/kas_token.h"
 
 namespace kas::tgt
 {

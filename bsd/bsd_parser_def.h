@@ -50,6 +50,7 @@
 #include "bsd_symbol.h"
 #include "pseudo_ops_def.h"
 
+#include "parser/kas_token.h"
 #include "parser/token_parser.h"
 #include "parser/annotate_on_success.hpp"
 
@@ -94,41 +95,7 @@ auto const missing = X_token<X_bsd_missing>[eps];
 // parser @ "tokens" (used by ELF)
 auto const at_token_initial = omit[char_("@%#")];
 auto const at_ident = X_token<X_bsd_at_ident>[(at_token_initial >> !digit) > +bsd_charset];
-auto const at_num   = X_token<X_bsd_at_num>  [ at_token_initial >   uint_  > !bsd_charset];
-#if 0
-// XXX XXX XXX
-
-// BSD has three types of symbols:
-// 1. standard ident -- bsd characters: X_tokenized above
-//    labels are LHS, idents are RHS
-//    NB: ident's namespace can be "richer" than label's 
-auto const X_ident = X_token<X_token_ident>[!digit >> +bsd_charset];
-auto const X_label = X_token<X_token_ident>[!digit >> +bsd_charset];
-
-// 2. local labels have format `n$` (eg: `99$`)
-//    these ident's scope restarts with each standard label
-auto const X_l_ident = X_token<X_token_local_ident>[uint_ >> '$' >> !bsd_charset];
-
-// 3. numeric labels are single digit followed by `b` or `f` (ie back or forward)
-//    don't allow c++ binary character to match (eg: 0b'100'1101)
-//    omit value, pick up from matched "source"
-auto const X_n_ident = X_token<X_token_numeric_ident>
-                    [omit[digit >> char_("bBfF") >> !lit('\'') >> !bsd_charset]];
-
-// parse `dot` as a `X_token`
-auto const X_dot_ident = X_token<X_token_dot>['.' >> !bsd_charset];
-
-// parse "nothing"  as "missing" `X_token`
-// NB: also used for pseudo-ops with no args as "dummy" arg
-auto const X_missing = X_token<X_token_missing>[eps];
-
-// parser @ "X_tokens" (used by ELF)
-auto const X_at_token_initial = omit[char_("@%#")];
-auto const X_at_ident = X_token<X_token_at_ident>[(X_at_token_initial >> !digit) > +bsd_charset];
-auto const X_at_num   = X_token<X_token_at_num>  [ X_at_token_initial >   uint_  > !bsd_charset];
-
-// XXX XXX XXX
-#endif
+auto const at_num   = X_token<X_bsd_at_num>  [(at_token_initial >>  uint_) > !bsd_charset];
 
 // 
 // expose dot and idents to `expr` parsers
@@ -211,16 +178,16 @@ auto const comma_args = rule<class _, bsd::bsd_args> {}
 
 // NB: `comma_ops` have comma separated args. `space_ops` have space separated 
 // Parse actual statements
-auto const raw_stmt_comma = rule<class _, bsd_stmt_pseudo> {} =
+auto const raw_stmt_comma = rule<class _tag_comma, bsd_stmt_pseudo> {} =
                     (comma_op_x3 > comma_args)[bsd_stmt_pseudo()];
-auto const raw_stmt_space = rule<class _, bsd_stmt_pseudo> {} =
+auto const raw_stmt_space = rule<class _tag_space, bsd_stmt_pseudo> {} =
                     (space_op_x3 > space_args)[bsd_stmt_pseudo()];
         
 // don't allow missing on "=" statements
-auto const raw_stmt_org = rule<class _, bsd_stmt_org> {} =
+auto const raw_stmt_org = rule<class _org, bsd_stmt_org> {} =
                     ((omit[dot_ident] >> '=') > space_arg)[bsd_stmt_org()];
 
-auto const raw_stmt_equ = rule<class _, bsd_stmt_equ> {} =
+auto const raw_stmt_equ = rule<class _tag_eque, bsd_stmt_equ> {} =
                     ((label           >> '=') > space_arg)[bsd_stmt_equ()];
 
 // add extra parser rule to get tagging.
@@ -237,11 +204,11 @@ stmt_org_x3    stmt_org     {"bsd_org"  };
 
 BOOST_SPIRIT_DEFINE(stmt_comma, stmt_space, stmt_equ, stmt_org)
 
-//struct _tag_com : kas::parser::annotate_on_success{};
-//struct _tag_spc : kas::parser::annotate_on_success{};
-//struct _tag_equ : kas::parser::annotate_on_success{};
-//struct _tag_org : kas::parser::annotate_on_success{};
-//struct _tag_lbl : kas::parser::annotate_on_success{};
+struct _tag_comma : kas::parser::annotate_on_success{};
+struct _tag_space : kas::parser::annotate_on_success{};
+struct _tag_equ   : kas::parser::annotate_on_success{};
+struct _tag_org   : kas::parser::annotate_on_success{};
+struct _tag_lbl   : kas::parser::annotate_on_success{};
 }
 
 #endif

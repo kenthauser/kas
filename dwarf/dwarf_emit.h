@@ -97,14 +97,14 @@ struct emit_opc
         //std::cout << " " << std::string(DEFN()) << ": arg = " << expr_t(arg) << std::endl;
         do_fixed_emit<OP>(std::forward<Arg>(arg));
     }
-
+#ifdef XXX
     // XXX handle const char * strings.
     void operator()(NAME, const char *name)
     {
         auto str = expression::e_string_t::add(name);
         do_fixed_emit<typename NAME::op>(str);
     }
-
+#endif
     // emit other ops (eg labels)
     template <typename OPCODE, typename...Ts,
             typename = std::enable_if_t<std::is_base_of_v<opcode, OPCODE>>>

@@ -10,7 +10,7 @@
 // It is hard for me to intuit what is supposed to happen
 // when someone who happens to have an alpha & omega (or even an 8-bit
 // latin-1 character) on their keyboard feels compelled to place
-// such between quotations & feed the result to the assembler.
+// such between quotation marks & feed the result to the assembler.
 // </EDITORIAL>
 
 // The c++11 language has five different string formats:
@@ -375,7 +375,7 @@ namespace kas::expression::parser
             >> suffix;
     };
 
-    e_fixed_parser<e_fixed_t> c_fixed_p = "fixed parser (c-rules)";
+    //e_fixed_parser<e_fixed_t> c_fixed_p = "fixed parser (c-rules)";
 
     // not `no_case` because 'LL' (or 'll') suffix cannot be 'Ll' nor 'lL'
     auto const c_fixed_p_def = lexeme[
@@ -405,8 +405,8 @@ namespace kas::expression::parser
         | parse_str(lit("U"),  decode_char_seq{4, true })
         ];
 
-    BOOST_SPIRIT_DEFINE(c_fixed_p)
-    BOOST_SPIRIT_DEFINE(c_string_p)
+    //BOOST_SPIRIT_DEFINE(c_fixed_p)
+    //BOOST_SPIRIT_DEFINE(c_string_p)
 }
 
 

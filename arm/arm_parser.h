@@ -39,7 +39,7 @@
 
 #include "expr/expr.h"              // expression public interface
 #include "parser/annotate_on_success.hpp"
-#include "parser/token_parser.h"
+#include "parser/kas_token.h"
 
 #include <boost/spirit/home/x3.hpp>
 #include <boost/fusion/include/std_pair.hpp>

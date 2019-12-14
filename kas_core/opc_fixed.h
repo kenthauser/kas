@@ -144,27 +144,33 @@ struct opc_string : opc_data<opc_string<ZTerm, char_type>, char_type>
 
     using NAME = m_name<ZTerm::value, KAS_STRING("STR")>;
 
-    using string_t = typename expression::e_string<>::type;
-
     template <typename CI>
     static op_size_t proc_one(CI& ci, expr_t const& e, kas_loc const& loc)
     {
         std::size_t size = 0;
-
+        print_type_name{"opc_string"}.name<e_string_t>();
+#if 0
         // XXX need to add support for additional e_string<> types...
         // XXX coordinate with kas_string definitions...
-        if (auto p = e.template get_p<string_t>()) {
-            auto& ks = p->get();
-            size += ks.size() + ZTerm::value;
-            for (auto& c : ks)
-                *ci++ = c;
-            if (ZTerm::value)
+        if constexpr (!std::is_void_v<e_string_t>)
+        {
+            if (auto p = e.template get_p<e_string_t>())
+            {
+                auto& ks = p->get();
+                size += ks.size() + ZTerm::value;
+                for (auto& c : ks)
+                    *ci++ = c;
+                if (ZTerm::value)
+                    *ci++ = 0;
+            } 
+            else
+            {
+                // XXX express all others args as nullptr...
                 *ci++ = 0;
-        } else {
-            // XXX express all others args as nullptr...
-            *ci++ = 0;
-            size += 1;
+                size += 1;
+            }
         }
+#endif
         return size;
     }
 

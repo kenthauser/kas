@@ -1,3 +1,6 @@
+    .word   -e
+    .word   e + 2
+    .word   e - f
     .byte   1
     .word   2, 3
     .long   4, 5, 999999

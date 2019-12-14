@@ -12,12 +12,10 @@
 #include "operators.h"              // defines expression operations
 #include "parser/parser.h"
 
-// XXX why are these included here
-#include "c_int_parser.h"
-#include "c_float_parser.h"
-
 #include "parser/error_handler_base.h"
 #include "parser/annotate_on_success.hpp"
+#include "parser/token_parser.h"
+#include "parser/combine_parsers.h"
 
 #include <boost/spirit/home/x3.hpp>
 
@@ -30,12 +28,8 @@ namespace ascii = boost::spirit::x3::ascii;
 // Shunting yard algorithm (see Wikipedia) to resolve operator precedence
 //////////////////////////////////////////////////////////////////////////
     
-//using X_token_t = expr_t;
-using X_token_t = kas_token;
-
 struct shunting_yard
 {
-    
     template <typename Context>
     void operator()(Context const& ctx) const
     {
@@ -109,7 +103,7 @@ struct shunting_yard
     private:
         // `opers` vector holds `op_tokens_pair_t` instances
         std::vector<OPER_T>    opers;
-        std::vector<X_token_t> tokens;
+        std::vector<kas_token> tokens;
     };
 };
 
@@ -118,12 +112,12 @@ struct shunting_yard
 //  Expression Parser Definition
 //////////////////////////////////////////////////////////////////////////
 
-x3::rule<class tag_expr, X_token_t> expr  = "expr";
-x3::rule<class inner   , X_token_t> inner = "expr_inner";
-x3::rule<class term    , X_token_t> term  = "term";
+x3::rule<class tag_expr, kas_token> expr  = "expr";
+x3::rule<class inner   , kas_token> inner = "expr_inner";
+x3::rule<class term    , kas_token> term  = "term";
 
 // default implementation of quoted string parser
-quoted_string_parser<std::string> qs = "quoted string";
+detail::dflt_string_p<std::string> qs;// = "quoted string";
 auto const qs_def = x3::lexeme['"' >> *(x3::char_ - '"') >> '"' ];
 BOOST_SPIRIT_DEFINE(qs)
 
@@ -133,78 +127,76 @@ BOOST_SPIRIT_DEFINE(qs)
 struct op_expr_pair_t : kas_position_tagged
 {
     op_expr_pair_t() = default;
-    op_expr_pair_t(expr_op const *op, X_token_t const& e)
+    op_expr_pair_t(expr_op const *op, kas_token const& e)
             : oper(op), token(e) {}
 
     // hook into `expr_op` evalution machinery
     template <typename...Ts>
-    X_token_t operator()(Ts&&...args) const
+    kas_token operator()(Ts&&...args) const
     {
-        // `*this` is for `kas_position_tagged`
+        // `*this` is for operator location
         return (*oper)(*this, std::forward<Ts>(args)...);
     }
 
     // evaluate `pfx_op` and `sfx_op` pairs
-    operator X_token_t()
+    operator kas_token()
     {
         return (*oper)(*this, token);
     }
     
     expr_op const *oper;
-    X_token_t  token;
+    kas_token      token;
 };
 
 // reverse arg order for suffix pairs
 struct sfx_expr_pair_t : op_expr_pair_t
 {
     sfx_expr_pair_t() = default;
-    sfx_expr_pair_t(X_token_t e, expr_op const *op)
+    sfx_expr_pair_t(kas_token e, expr_op const *op)
         : op_expr_pair_t(op, e) {}
 };
 
 // rules for primary expressions & operator "pairs"
-x3::rule<class p_expr, X_token_t>          p_expr = "p_expr";
+x3::rule<class p_expr, kas_token>       p_expr = "p_expr";
 x3::rule<class bin_op, op_expr_pair_t>  bin_op = "bin_op";
 x3::rule<class pfx_op, op_expr_pair_t>  pfx_op = "pfx_op";
 //x3::rule<class sfx_op, sfx_expr_pair_t> sfx_op = "sfx_op";
 
+#if 0
+// XXX rule creates new context which causes link errors...
 // create `paren_op` rule so that parenthesis are added to parsed token
 struct _tag_paren : annotate_on_success {};
-auto const paren_op  = x3::rule<_tag_paren, X_token_t> {"paren"} = 
+auto const paren_op  = x3::rule<_tag_paren, kas_token> {"paren"} = 
                             '(' > inner > ')';
+#else
+auto const paren_op = '(' > inner > ')';
+#endif
 
 // Declare primary/unary/binary subpressions
 
-//XXX
-#if 1
-using X_e_fixed = token_defn_t<KAS_STRING("E_FIXED"), e_fixed_t>;
-//auto const p_expr_def = X_token<X_e_fixed>[int_];
-auto const p_expr_def = X_token<X_e_fixed>[c_fixed_p];
-#else
-auto const p_expr_def = term_op_p();
-#endif
+auto inline term_op_p()
+{
+    // test parsers in reverse order (eg: try `dot` before `float` before `fixed`)
+    using parser_tuple = meta::apply<meta::quote<std::tuple>, meta::reverse<term_parsers>>;
+    return combine_parsers(parser_tuple());
+}
+
 auto const bin_op_def = bin_op_x3 >> term;
 auto const pfx_op_def = pfx_op_x3 >  term;
 //auto const sfx_op_def = term > sfx_op_x3;
 
 // Combine above subexpressions into full expression parsing
 // NB: enabling sfx_op screws up "MISSING" parsing.
-//auto const term_def = p_expr | pfx_op /* | sfx_op */ | ('(' > inner > ')');
-auto const term_def = p_expr | pfx_op /* | sfx_op */ | paren_op;
+auto const term_def = term_op_p() | pfx_op /* | sfx_op */ | paren_op;
 auto const inner_def = (term > *bin_op)[shunting_yard()];
 auto const expr_def = inner;
 
 BOOST_SPIRIT_DEFINE(expr, inner, term)
-BOOST_SPIRIT_DEFINE(p_expr, bin_op, pfx_op)
+BOOST_SPIRIT_DEFINE(bin_op, pfx_op)
 
 ///////////////////////////////////////////////////////////////////////////
 // Annotation and Error handling
 ///////////////////////////////////////////////////////////////////////////
-
-// annonate only operator locations
-//struct bin_op : kas::parser::annotate_on_success {};
-//struct pfx_op : kas::parser::annotate_on_success {};
-//struct sfx_op : kas::parser::annotate_on_success {};
 
 // error handling only for outermost expression
 struct tag_expr : kas::parser::error_handler_base {};

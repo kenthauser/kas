@@ -49,7 +49,6 @@
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 #include <boost/spirit/home/x3/support/utility/lambda_visitor.hpp>
 
-#include <array>
 #include <ostream>
 
 namespace kas::expression::ast
@@ -63,7 +62,7 @@ namespace detail
 
     // test for ref-loc-t wrapped types
     template <typename T, typename = void>
-    struct is_ref_loc_wrapped: std::is_base_of<core::ref_loc_tag, T> {};
+    using is_ref_loc_wrapped = std::is_base_of<core::ref_loc_tag, T>;
     
     // alias to get `object_t` from T
     template <typename T>
@@ -90,8 +89,6 @@ namespace detail
     template <typename LIST, typename T>
     using decay_in = meta::in<LIST, std::decay_t<T>>;
 
-    // XXX cannot reduce below 4* because of std::string...???
-    //static constexpr std::size_t expr_max_size_t = 8 * sizeof(void*);
 #if 1
     // XXX use std::void_t<>
     template <typename T, typename = void>
@@ -213,7 +210,7 @@ struct expr_t : detail::expr_x3_variant
                                             std::remove_reference_t<T>
                                      >>>
     expr_t(T&& value) : expr_t(value, true) {}
-
+#if 1
     // 2. floating point types that can be converted to `e_float_t`
     template <typename T
             , typename FLT_T = std::enable_if_t<
@@ -225,7 +222,7 @@ struct expr_t : detail::expr_x3_variant
                                 std::remove_reference_t<T>
                          >>>
     expr_t(T&& value, FLT_T = {}) : expr_t(FLT_T::add(std::forward<T>(value))) {}
-
+#endif
 
     // 3. wrapped ctor types
     // NB: only accept lvalues as `unwrapped` instances must by permanently allocated
@@ -372,28 +369,26 @@ public:
 
     // method `get_p` maps to `get_if` for std::variant
     template <typename T>
-    std::enable_if_t<meta::in<variant_types, T>::value, T*>
-    get_p()
+    constexpr T* get_p()
     {
-        return boost::get<T>(this);
-    }
-
-    // check wrapped types
-    template <typename T>
-    std::enable_if_t<meta::in<unwrapped, T>::value, T*>
-    get_p()
-    {
-        // if associated ref_loc_t found, return pointer to object
-        if (auto p = boost::get<detail::wrap<T>>(this))
-            return &p->get();
-        return nullptr;
+        // check primary types (including wrapped types)
+        if constexpr (meta::in<variant_types, T>::value)
+            return boost::get<T>(this);
+      
+        // check unwrapped types
+        if constexpr (meta::in<unwrapped, T>::value)
+            if (auto p = boost::get<detail::wrap<T>>(this))
+                return &p->get();
+        
+        // no match
+        return {}; 
     }
 
     // const `get_p`: use mutable method, but return const ptr
     template <typename T>
-    T const *get_p() const
+    constexpr T const *get_p() const
     {
-        return const_cast<expr_t *>(this)->get_p<T>();
+        return const_cast<expr_t&>(*this).get_p<T>();
     }
 
     // XXX need to refactor `get_fixed_p` so it can handle integral
@@ -410,6 +405,12 @@ public:
         if (auto p = get_fixed_p())
             return !*p;
         return false;
+    }
+
+    void set_loc(parser::kas_position_tagged const& pos)
+    {
+        //parser::kas_position_tagged pos(loc);
+        std::cout << "expr::set_loc: loc = \"" << std::string(pos) << "\"" << std::endl;
     }
 
 };

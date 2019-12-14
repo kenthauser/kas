@@ -14,8 +14,12 @@ namespace kas::parser
 
 std::string kas_loc::where() const
 {
-    auto w = error_handler_type::raw_where(loc);
-    return { w.second.begin(), w.second.end() };
+    if (*this)
+    {
+        auto w = error_handler_type::raw_where(loc);
+        return { w.second.begin(), w.second.end() };
+    }
+    return {};
 }
 
 #if 0
@@ -51,7 +55,7 @@ void kas_token::print(std::ostream& os) const
     os << "[" << name();
     os << ": src=\"" << std::string(*this) << "\"";
     if (!_expr.empty())
-        os << ", expr=" << _expr;
+        os << ", expr=" << expr();
     os << "]";
 }
 

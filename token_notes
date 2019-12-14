@@ -35,6 +35,12 @@ Desire: have all parsed arguments be `kas_token`.
                 to point to statically allocated object
 
 
+*** Parser Definitions ***
+
+NB: x3::int_parser: takes arg <T>
+NB: x3::real_parser: takes arg <T>
+
+
 *** Parsers for Parser Token ***
 
 1. All argument parsers (ie except `insn` parsers) should return `kas_token` instance.

@@ -35,8 +35,6 @@ using kas_position_tagged = kas_position_tagged_t<iterator_type>;
 
 // parser token definition
 struct kas_token;
-template <typename NAME, typename VALUE = void, typename PARSER = void>
-struct token_defn_t;
 
 // XXX move to generic `has_value_t` header in `kas`
 // test if T has `value` member or method
@@ -47,6 +45,12 @@ template <typename T>
 struct has_value<T, std::void_t<decltype(T::value)>>
                  : std::true_type {};
 
+}
+
+namespace kas
+{
+    using parser::kas_token;
+    //using parser::kas_position_tagged;
 }
 
 namespace kas::expression::detail

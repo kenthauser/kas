@@ -130,9 +130,12 @@ template <typename T, typename Index>
 template <typename OS>
 void ref_loc<T, Index>::print(OS& os) const
 {
-    auto loc_str = loc().where();
+    os << "XXX ref_loc::print ";
     os << "[" << boost::typeindex::type_id<object_t>().pretty_name();
-    os << ": " << index << " loc: " << loc_str << "]";
+    auto& l = loc();
+    if (l)
+        os << ": " << index << " loc: " << l.where();
+    os << "]" << std::flush;
 }
 }
 #endif

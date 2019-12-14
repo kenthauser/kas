@@ -11,14 +11,23 @@
 namespace kas {}
 namespace kas::expression
 {
+// forward declare various types
 
-// open print namespace used for extensions
+// open print namespace used for `print` extensions
 namespace print {}
+
+// Forward declare operator precedence type & default to c-language rules
+namespace precedence
+{
+    struct precedence_c;
+}
 
 // open detail namespace for configuration types
 namespace detail
 {
     using namespace meta;
+
+    // *** Declare expression variant types & operations configuration hooks ****
 
     // Declare expression terminal element definition:
     // Separate defns for types and parsers
@@ -36,55 +45,41 @@ namespace detail
 
     // accumulate program options
     template <typename = void> struct options_types_v : list<> {};
-}
 
-// Forward declare template for fixed, floating, and string types
-// NB: The `float` & `string` defaults are `kas_object` types & thus
-// NB: can't be defined before `*_types.h` includes complete.
-// NB: Declare templates here & define defaults in `terminals.h`
-template<typename = void> struct e_fixed   { using type = int32_t;  };
-template<typename = void> struct e_float;
-template<typename = void> struct e_string;
+    // *** Declare base type configuration hooks ****
 
-// Forward declare float "host value"
-template<typename = void> struct float_value;
+    // Forward declare template for fixed, floating, and string types
+    // NB: The `float` & `string` defaults are `kas_object` types & thus
+    // NB: can't be defined before `*_types.h` includes complete.
+    // NB: Declare templates here & define defaults in `terminals.h`
+    template<typename = void> struct e_fixed : meta::id<int32_t> {};
+    template<typename = void> struct e_float;
+    template<typename = void> struct e_string;
 
-// Forward declare base type for holding floating point types
-template<typename = void> struct float_host;
+    // declare info about processor targeted by assembler
+    template<typename = void> struct e_data : meta::id< int32_t> {};
+    template<typename = void> struct e_addr : meta::id<uint32_t> {};
+    template<typename = void> struct err_msg;
 
-// Forward declare template for formatting `floating` args
-// NB: default to IEEE interchange formats. Addition formats
-// NB: (eg "extended") supported by derived types.
-template<typename = void> struct float_fmt;
+    // *** Declare operator precidence configuration hooks ****
 
-// Forward declare templates for fixed, floating, and string parsers
-// These templates are instantiated with a single expression type argument
-// NB can't default "type", because that would instantiate e_* templates
-template<typename E_FIXED,  typename = void> struct fixed_p;
-template<typename E_FLOAT,  typename = void> struct float_p;
-template<typename E_STRING, typename = void> struct string_p;
+    template<typename = void> struct e_precedence : id<precedence::precedence_c> {};
+    
+    // *** Declare base type parsers and format hooks ***
 
-// declare info about processor targeted by assembler
-template<typename = void> struct e_data_t  { using type =  int32_t; };
-template<typename = void> struct e_addr_t  { using type = uint32_t; };
-template<typename = void> struct err_msg;
+    // Forward declare templates for fixed, floating, and string parsers
+    // These templates are instantiated with a single expression type argument
+    // NB can't default "type", because that would instantiate e_* templates
+    template<typename = void> struct fixed_p;
+    template<typename = void> struct float_p;
+    template<typename = void> struct string_p;
+    
+    // Forward declare templates for floating point configuration
+    template<typename = void> struct float_value;
+    template<typename = void> struct float_fmt;
 
-// Forward declare operator precedence type & default to c-language rules
-namespace precedence
-{
-    struct precedence_c;
-}
-template<typename = void> struct e_precedence { using type = precedence::precedence_c; };
-
-// Declare expression operator type.
-// `expr_op` is used in x3 grammar, so it needs to be
-// default-constructable & cheap to copy. Use pimpl idiom.
-
-// declare exprssion variant & namespace
-// XXX this should probaby be moved to "expr.h"
-namespace ast
-{
-    struct expr_t;
+    // Forward declare `kas` object used to hold string object 
+    template<typename = void> struct string_value;
 }
 
 //
@@ -142,7 +137,16 @@ struct is_zero<T, std::void_t<typename T::is_zero>> : T::is_zero {};
 
 }
 
-// XXX can't import into namespace `kas` without errors. 
-using kas::expression::ast::expr_t;
+// declare exprssion variant & namespace
+namespace kas::expression::ast
+{
+    struct expr_t;
+}
+
+// expose expr_t to global namespace
+namespace kas
+{
+    using expression::ast::expr_t;
+}
 
 #endif

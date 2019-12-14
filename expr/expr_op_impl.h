@@ -21,9 +21,6 @@
 #include "expr_op_types.h"
 #include "parser/kas_error.h"
 
-#include "utility/string_mpl.h"
-#include "utility/print_type_name.h"
-
 namespace kas::expression::detail
 {
 
@@ -61,25 +58,6 @@ struct expr_op_visitor
     std::array<result_type const *, expr_op::MAX_ARITY> tokens;
 };
 
-template <typename T, typename = void>
-struct has_set_loc : std::false_type {};
-
-template <typename T>
-struct has_set_loc<T, std::void_t<decltype(&std::remove_reference_t<T>::set_loc)>>
-                    : std::true_type {};
-
-void set_loc(expr_t& e, kas_position_tagged const& loc)
-{
-    // don't "dereference" ref_loc_t<> containers
-    e.base_type::apply_visitor(x3::make_lambda_visitor<void>(
-        [&loc](auto& node) -> 
-            std::enable_if_t<has_set_loc<decltype(node)>::value>
-                { node.set_loc(loc); },
-        [&loc](auto& node) ->
-            std::enable_if_t<!has_set_loc<decltype(node)>::value>
-                {}
-     ));
-}
 
 template <typename> struct zero_fn_t;
 
@@ -112,6 +90,7 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
 
     // test if args match operator
     auto it = ops.find(hash);
+
     if (it == ops.end())
         return {kas::parser::kas_diag_t::error("Invalid expression", op_loc), op_loc};
         
@@ -126,7 +105,6 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
             {
             #if 1
                 // XXX `op_loc` is zero?
-                std::cout << "expr_op::eval: Divide by zero" << std::endl;
                 //return {kas::parser::kas_diag_t::error("Divide by zero", op_loc), op_loc, *tokens[1]};
                 return {kas::parser::kas_diag_t::error("Divide by zero", *tokens[1]), *tokens[1]};
             #else
@@ -141,10 +119,10 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
             }
     }
 
-    // evaluate 
+    // evaluate (function pointer retrieved from hash table)
     auto e = it->second(std::move(args));
-    //set_loc(e, op_loc);
 
+    // set token location pointer from input tokens
     // ARITY > 1 : loc is from first arg to last
     if constexpr (N > 1)
         return { e, *tokens[0], *tokens[N-1] };
@@ -155,6 +133,7 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
     // XXX: unary suffix not yet supported
 }
 
+#ifdef EXPR_TRACE_EVAL
 namespace 
 {
     template <typename T, typename...Ts>
@@ -168,6 +147,8 @@ namespace
         }
     }
 }
+#endif
+
 template <typename...Ts>
 parser::kas_token expr_op::operator()(kas_position_tagged const& loc, Ts&&...args) const noexcept 
 {

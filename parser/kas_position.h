@@ -42,7 +42,7 @@ struct kas_loc
     operator bool() const { return loc; }
 
     // used in error_handler::where & for ostream
-    auto get() const { return loc; }    // XXX delete?
+    auto get() const { return loc; }
     std::string where() const;
 
 private:
@@ -83,21 +83,19 @@ struct kas_position_tagged_t
     // convenience methods
     operator std::basic_string<value_type>() const
     {
-        return { first, last };
+        return where();
     }
 
     std::basic_string<value_type> where() const
     {
-        // if inited from `loc` only `loc` is valid. 
-        // XXX should init first/last/handler.
-        if (loc)
-            return loc.where();
-            
-        // NB: if `first` & `last` not inited, range will be empty string
-        //return std::basic_string<value_type>(first, last);
-        return *this;
-    }
+        // if `` not set, use `loc`
+        if (!handler)
+            loc.where();
 
+        return { first, last };
+    }
+#if 1
+    // XXX last use, old `kas_token_parser` (used for junk)
     // XXX XXX XXX
     // first == Iter() crashes parser
 
@@ -128,7 +126,7 @@ struct kas_position_tagged_t
     {
         this->handler = handler;
     }
-
+#endif
 
 protected:
     friend struct kas_token;

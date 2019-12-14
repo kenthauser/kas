@@ -8,6 +8,9 @@
 // each `expr_op_eval` instance evaluates a single `operator, args...` tuple
 
 #include "expr.h"
+#include "kas_core/core_symbol.h"
+#include "kas_core/core_addr.h"
+#include "kas_core/core_expr_type.h"
 
 namespace kas::expression::detail
 {
@@ -16,17 +19,17 @@ struct expr_op_eval
 {
     // args are stored in tuple
     template <std::size_t N>
-    using exec_arg_t = std::array<void const *, N>;
+    using exec_arg_t = std::array<void *, N>;
 
 private:
     // Methods used to instantiate all of the opcode methods.
     // Types passed are all "bare" types without qualifiers
     // Args passed are all "void *", dereferenced to `T&` for evaluation
     template <typename OP, typename...Ts, std::size_t...Is>
-    static decltype(auto)
+    static expr_t
     do_exec(exec_arg_t<sizeof...(Ts)>&& args, std::index_sequence<Is...>)
     {
-        return OP{}(*static_cast<Ts *>(const_cast<void *>(std::get<Is>(args)))...);
+        return OP{}(*static_cast<Ts *>(std::get<Is>(args))...);
     }
     
     // evaluate OP with casted & dereferenced `void *` pointers
@@ -144,11 +147,6 @@ using HASH_T = unsigned;
 template <typename T>
 constexpr auto expr_index = meta::find_index<expr_types, std::decay_t<T>>::value + 1;
 
-constexpr static unsigned hash(unsigned N = 0)
-{
-    return N;
-}
-
 template <typename T, typename...Ts>
 constexpr static HASH_T hash(HASH_T N = 0)
 {
@@ -159,7 +157,10 @@ constexpr static HASH_T hash(HASH_T N = 0)
     if constexpr (((sizeof...(Ts) + 1) * H_SHIFT) > HASH_BITS)
         static_assert(sizeof...(Ts) == 0, "Invalid Hash for ARITY");
 
+    // fold current `T` into hash
     N = (N << H_SHIFT) + expr_index<T>;
+
+    // recurse as required
     if constexpr (sizeof...(Ts) == 0)
         return N;
     else

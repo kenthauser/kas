@@ -7,7 +7,7 @@
 // Declare the interface to the expression parser
 #include "expr_variant.h"
 #include "parser/parser_config.h"
-#include "parser/token_parser.h"
+#include "parser/kas_token.h"
 
 namespace kas
 {

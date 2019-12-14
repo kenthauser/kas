@@ -60,7 +60,7 @@ namespace {
             std::cout << "total types: " << variant_types::size();
             std::cout << ", largest type ("  << sizeof_<largest>::value;
             print_type_name{")"}.name<largest>();
-            std::cout << "sizeof(expr_t) = " << sizeof(expr_t) << std::endl;
+            std::cout << "sizeof(expr_t) = " << sizeof(kas::expr_t) << std::endl;
             
             std::cout << std::endl;
             flt_info<float>      ("float      ");
@@ -69,6 +69,11 @@ namespace {
 
             std::cout << std::endl;
             print_expr_ops();
+            
+            auto& sym = kas::core::core_addr_t().add();
+
+            kas::expr_t e = sym + 4;
+            std::cout << "xyz: sym + 4 = " << e << std::endl;
         }
 
         template <typename T>

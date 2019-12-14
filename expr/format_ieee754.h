@@ -12,7 +12,7 @@
 #include "expr/literal_types.h"
 
 
-namespace kas::expression
+namespace kas::expression::detail
 {
 // declare "interchange" formatter
 template <typename Derived, typename FLT>

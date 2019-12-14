@@ -7,6 +7,7 @@
 
 #include "parser.h"                 // parser public interface
 #include "parser_variant.h"         // variant of all stmt types
+#include "combine_parsers.h"
 #include "error_handler_base.h"
 #include "annotate_on_success.hpp"
 
@@ -115,7 +116,8 @@ auto const junk_tuple   = make_value_tuple(parse_junk, stmt_parsers());
 
 auto const statement_def =
 #if 1
-            reduce_tuple(std::bit_or<>{}, stmt_tuple)
+            //reduce_tuple(std::bit_or<>{}, stmt_tuple)
+            combine_parsers(stmt_tuple)
 #else
             ( bsd::parser::stmt_comma_x3() > end_of_line )
           | ( bsd::parser::stmt_space_x3() > end_of_line )
@@ -125,7 +127,9 @@ auto const statement_def =
           //| ( z80::parser::z80_stmt_x3  () > end_of_line )
           //| ( arm::parser::arm_stmt_x3  () > end_of_line )
 #endif
-  //        | reduce_tuple(std::bit_or<>{}, label_tuple)
+          //| reduce_tuple(std::bit_or<>{}, label_tuple)
+          | combine_parsers(label_tuple)
+          //| combine_parsers(std::tuple<>())
           | end_of_input
           | junk
           ;

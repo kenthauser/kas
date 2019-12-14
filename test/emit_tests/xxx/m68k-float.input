@@ -3,7 +3,7 @@
 
 ; 0. constants used
 
-fp_short:
+::fp_short:
     fabs.d   #7.5/2, fp6   ; 5 = double (64-bit float)
     fabs.d   #7.5/1.5, fp6   ; 5 = double (64-bit float)
 

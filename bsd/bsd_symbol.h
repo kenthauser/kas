@@ -18,7 +18,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 #include "kas_core/core_symbol.h"
-#include "parser/token_parser.h"
+#include "parser/kas_token.h"
 
 #include <boost/spirit/home/x3.hpp>
 #include <map>

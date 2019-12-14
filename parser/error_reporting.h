@@ -45,8 +45,10 @@ std::string escaped_str(T&& in)
 {
     std::string output;
 
-    for (auto& c : in) {
-        switch (c) {
+    for (auto&& c : in)
+    {
+        switch (c)
+        {
             case L'\t':
                 output.append("[\\t]");
                 break;
@@ -66,7 +68,9 @@ template <typename OS>
 void kas_diag<REF>::print(OS& os) const
 {
     auto where = this->loc().where();
-    os << level_msg() << message << " : " << escaped_str(where);
+    if (where.empty())
+        where = "*** untagged ***";
+    os << level_msg() << message << " : \"" << escaped_str(where) << "\"";
 }
 
 

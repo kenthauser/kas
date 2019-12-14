@@ -90,7 +90,7 @@ public:
     core_expr(core_addr_t   const& addr) : plus{addr} {}
 
     // copy ctor (copy & allocate)
-    core_expr(core_expr const& other);
+    //core_expr(core_expr const& other);
     
     // forward declare copy assignment operator
     core_expr& operator=(core_expr const&);
@@ -107,6 +107,14 @@ public:
     core_expr& operator-(core_symbol_t  const&);
     core_expr& operator-(core_addr_t    const&);
     core_expr& operator-(e_fixed_t);
+
+    // add hooks for `ref_loc_t` wrapped objects
+    core_expr& operator+(symbol_ref ref) { return *this + ref.get(); }; 
+    core_expr& operator+(addr_ref   ref) { return *this + ref.get(); }; 
+    core_expr& operator+(expr_ref   ref) { return *this + ref.get(); }; 
+    core_expr& operator-(symbol_ref ref) { return *this - ref.get(); }; 
+    core_expr& operator-(addr_ref   ref) { return *this - ref.get(); }; 
+    core_expr& operator-(expr_ref   ref) { return *this - ref.get(); }; 
 
     // specialize for allowed types (eg e_fixed_t, kas_loc)
     // XXX modify to `get_p(T)` to simplify specialization
@@ -178,29 +186,32 @@ private:
     static inline core::kas_clear _c{base_t::obj_clear};
 };
 
+#if 1
+// XXX move to impl
+
 static_assert (!std::is_constructible_v<core_expr_t, float>);
 static_assert ( std::is_constructible_v<core_expr_t, int>);
 static_assert ( std::is_constructible_v<core_expr_t, core_symbol_t const&>);
-//static_assert ( std::is_constructible_v<core_expr_t, symbol_ref>);
-
+static_assert ( std::is_constructible_v<core_expr_t, core_addr_t   const&>);
+#endif
 
 // hook `core_expr_t` expressions into type system...
 // ...test if possible to implicitly construct `core_expr` from first type
 // ...and if second type can then be added/subtracted from `core_expr_t`
-
+#if 1
 // expr operator+ expr ==> core_expr_t&
 template <typename T, typename U,
-          typename = std::enable_if_t<std::is_convertible_v<T, core_expr_t>>>
-auto operator+(T const& t, U&& u)
+          typename = std::enable_if_t<std::is_constructible_v<core_expr_t, T>>>
+auto operator+(T&& t, U&& u)
         -> decltype(std::declval<core_expr_t&>().operator+(std::forward<U>(u)))
-{ return core_expr_t::add(t).operator+(std::forward<U>(u)); }
+{ return core_expr_t::add(std::forward<T>(t)).operator+(std::forward<U>(u)); }
 
 // expr operator- expr ==> core_expr_t&
 template <typename T, typename U,
-          typename = std::enable_if_t<std::is_convertible_v<T, core_expr_t>>>
-auto operator-(T const& t, U&& u)
+          typename = std::enable_if_t<std::is_constructible_v<core_expr_t, T>>>
+auto operator-(T&& t, U&& u)
         -> decltype(std::declval<core_expr_t&>().operator-(std::forward<U>(u)))
-{ return core_expr_t::add(t).operator-(std::forward<U>(u)); }
+{ return core_expr_t::add(std::forward<T>(t)).operator-(std::forward<U>(u)); }
 
 // operator-()
 template <typename U>
@@ -208,5 +219,6 @@ auto operator-(U&& u)
         -> decltype(std::declval<core_expr_t&>().operator-(std::forward<U>(u)))
 { return core_expr_t::add(0).operator-(std::forward<U>(u)); }
 
+#endif
 }
 #endif

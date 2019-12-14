@@ -174,9 +174,14 @@ public:
     // This will catch all nodes inheriting from `kas_position_tagged`
     void annotate(kas_position_tagged& ast, Iter const& first, Iter const& last, std::true_type) const 
     {
+    #ifndef XXX
+        // splice ast
+        ast = { first, last, this };
+    #else
         ast.set_first  (first);
         ast.set_last   (last);
         ast.set_handler(this);
+    #endif
     }
 
     // trampoline `kas_position_tagged::get_loc`. Include file issues

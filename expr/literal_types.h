@@ -34,6 +34,78 @@
 namespace kas::expression::detail
 {
 
+
+template <typename REF, typename VALUE, typename FMT>
+struct float_host_ieee: core::kas_object<float_host_ieee<REF, VALUE, FMT>, REF>
+{
+    using base_t = core::kas_object<float_host_ieee<REF, VALUE, FMT>, REF>;
+
+    // IEEE is based on 32-bits groups, so organize mantissa into 32-bit segments
+    // most significant is first. 
+    using emits_value = std::true_type;     // XXX for `expr_fits`
+    using value_type  = VALUE;
+    using fmt         = FMT;
+    using mantissa_t  = std::uint32_t;
+
+    // if host not `ieee` format, need to implement appropriate `get_flags` & `get_bin_parts` 
+    static constexpr auto HOST_MANT_BITS = std::numeric_limits<value_type>::digits;
+    
+    // info on floating point value
+    struct flag_t
+    {
+        uint8_t is_neg  : 1;
+        uint8_t is_zero : 1;
+        uint8_t is_inf  : 1;
+        uint8_t is_nan  : 1;
+        uint8_t subnorm : 1;
+    };
+    
+    constexpr float_host_ieee(value_type value = {}) : value(value) {}
+
+    // operator() extracts value
+    value_type const& operator()() const
+    {
+        return value;
+    }
+
+    // allow standard expression operations on type 
+    operator value_type const&() const
+    {
+        return (*this)();
+    }
+
+//protected:
+    // identify special values
+    flag_t get_flags() const;
+
+    // get_bin_parts: the floating-point "money" function
+    //
+    // convert floating point to fixed format, with rounding
+    //
+    // round mantissa to "n-bits" & store in provided array.
+    // Return flags & (unbiased) exponent
+
+    template <typename T>
+    auto get_bin_parts(T *mantissa_p = {}, int mant_bits = HOST_MANT_BITS, bool truncate = false) const
+        -> std::tuple<flag_t, int>;
+
+    // convert float to n-bit fixed
+    // generate diagnostic if float can't be converted to fixed
+    // generate warning if it can
+    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
+    auto as_fixed(T) const { return as_fixed_n(std::numeric_limits<T>::digits); }
+
+    template <typename T>
+    auto as_fixed()  const { return as_fixed(T()); }
+
+    // returns "err_msg_t" or "e_fixed_t"
+    // XXX no loc for error msg
+    ast::expr_t as_fixed_n(int n) const;
+
+private:
+    value_type value;
+};
+
 template <typename REF>
 struct kas_string_t : core::kas_object<kas_string_t<REF>, REF>
 {
@@ -59,7 +131,7 @@ struct kas_string_t : core::kas_object<kas_string_t<REF>, REF>
 
 private:
     // create utf-8 std::string
-    // XXX move to support .cc file
+    // XXX move to `_impl` header
     std::string& get_str() const
     {
         if (c_str_.empty()) {
@@ -129,111 +201,15 @@ private:
     value_type value {};
     static inline core::kas_clear _c{base_t::obj_clear};
 };
-
-#define FLOAT_HOST float_host_ieee
-
-template <typename REF, typename VALUE, typename FMT>
-struct FLOAT_HOST: core::kas_object<FLOAT_HOST<REF, VALUE, FMT>, REF>
-{
-    using base_t = core::kas_object<FLOAT_HOST<REF, VALUE, FMT>, REF>;
-
-    // IEEE is based on 32-bits groups, so organize mantissa into 32-bit segments
-    // most significant is first. 
-    using emits_value = std::true_type;     // XXX for `expr_fits`
-    using value_type  = VALUE;
-    using fmt         = FMT;
-    using mantissa_t  = std::uint32_t;
-
-    // if host not `ieee` format, need to implement appropriate `get_flags` & `get_bin_parts` 
-    static constexpr auto HOST_MANT_BITS = std::numeric_limits<value_type>::digits;
-    
-    // info on floating point value
-    struct flag_t
-    {
-        uint8_t is_neg  : 1;
-        uint8_t is_zero : 1;
-        uint8_t is_inf  : 1;
-        uint8_t is_nan  : 1;
-        uint8_t subnorm : 1;
-    };
-    
-    constexpr FLOAT_HOST(value_type value = {}) : value(value) {}
-
-    // operator() extracts value
-    value_type const& operator()() const
-    {
-        return value;
-    }
-
-    // allow standard expression operations on type 
-    operator value_type const&() const
-    {
-        return value;
-    }
-
-//protected:
-    // identify special values
-    flag_t get_flags() const;
-
-    // get_bin_parts: the floating-point "money" function
-    //
-    // convert floating point to fixed format, with rounding
-    //
-    // round mantissa to "n-bits" & store in provided array.
-    // Return flags & (unbiased) exponent
-
-    template <typename T>
-    auto get_bin_parts(T *mantissa_p = {}, int mant_bits = HOST_MANT_BITS, bool truncate = false) const
-        -> std::tuple<flag_t, int>;
-
-    // convert float to n-bit fixed
-    // generate diagnostic if float can't be converted to fixed
-    // generate warning if it can
-    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
-    auto as_fixed(T) const { return as_fixed_n(std::numeric_limits<T>::digits); }
-
-    template <typename T>
-    auto as_fixed()  const { return as_fixed(T()); }
-
-    // returns "err_msg_t" or "e_fixed_t"
-    // XXX no loc for error msg
-    ast::expr_t as_fixed_n(int n) const;
-
-private:
-    value_type value;
-};
-#if 0
-// overload with type that requires ieee_754 host format
-template <typename REF, typename VALUE, typename FMT>
-struct float_host_ieee : float_host<REF, VALUE, FMT>
-{
-    static_assert(std::numeric_limits<VALUE>::is_iec559);
-    
-    using base_t = float_host<REF, VALUE, FMT>;
-   
-    // inherit constructor
-    using base_t::base_t;
-
-    // expose protected methods after proper operation verified
-    using base_t::get_flags;
-    using base_t::get_bin_parts;
-
-    // expose methods used by `ref_loc_t`
-    using base_t::get;
-};
-
-#endif
-#undef FLOAT_HOST
-
 }
 #if 1
 namespace kas::expression
 {
 // decalare
 // XXX 
-using kas_bigint_host = core::ref_loc_t<detail::bigint_host_t>;
+//using kas_bigint_host = core::ref_loc_t<detail::bigint_host_t>;
 using kas_string      = core::ref_loc_t<detail::kas_string_t>;
 }
 #endif
-
 #endif
+

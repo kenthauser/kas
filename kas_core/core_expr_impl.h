@@ -201,26 +201,16 @@ core_expr<REF>::core_expr(expr_t const& e)
 #endif
     
 template <typename REF>
-core_expr<REF>::core_expr(core_expr const& other)
-{
-    std::memcpy(this, &this->add(other.fixed), sizeof(*this));
-    plus  = other.plus;
-    minus = other.minus;
-}
-
-template <typename REF>
 auto core_expr<REF>::operator= (core_expr const& other) -> core_expr&
 {
-    plus.clear();
-    plus.insert(plus.end(), other.plus.begin(), other.plus.end());
-    
-    minus.clear();
-    minus.insert(minus.end(), other.minus.begin(), other.minus.end());
+    // allocate new `core_expr` instance & populate with current values
+    auto& n = this->add(other.fixed);
+    n.plus.insert (n.plus.end() , other.plus.begin() , other.plus.end());
+    n.minus.insert(n.minus.end(), other.minus.begin(), other.minus.end());
 
-    fixed = other.fixed;
-    error = other.error;
-    reloc_cnt = -1;
-    return *this;
+    n.error = other.error;
+    n.reloc_cnt = -1;
+    return n;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -544,7 +534,7 @@ bool core_expr<REF>::expr_term::flatten(core_expr& e, bool is_minus)
 
     // We have a `const` pointer.
     // copy elements to `expr`
-    auto other = p->get();
+    auto& other = p->get();
     if (!is_minus)
         e.operator+(std::move(other));
     else
@@ -580,6 +570,8 @@ void core_expr<REF>::print(OS& os) const
         if (e.empty())
             os << " (deleted)";
     };
+    
+    std::cout << "core_expr::print" << std::endl;
 
     if (reloc_cnt < 0) {
         os << "cx[" << index() << "](" << fixed;
@@ -616,7 +608,8 @@ template auto core_expr<expr_ref>::operator-(core_symbol_t const& sym) -> core_e
 template auto core_expr<expr_ref>::operator-(core_addr_t const& addr) -> core_expr&;
 template auto core_expr<expr_ref>::operator-(core_expr const& other) -> core_expr&;
 
-template core_expr<expr_ref>::core_expr(core_expr const&);
+//template core_expr<expr_ref>::core_expr(core_expr const&);
+template core_expr<expr_ref>& core_expr<expr_ref>::operator=(core_expr const&);
 template expr_offset_t core_expr<expr_ref>::get_offset(core_expr_dot const* dot_ptr);
 template short core_expr<expr_ref>::calc_num_relocs() const;
 
