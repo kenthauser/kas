@@ -20,12 +20,12 @@ namespace kas::parser
 // create an actual parser. We need context to complete location tagging
 // cribbed from x3::raw_directive
 template <typename TOK_DEFN, typename Subject>
-struct X_kas_token_parser : x3::unary_parser<Subject, X_kas_token_parser<TOK_DEFN, Subject>>
+struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, Subject>>
 {
-    using base_type = x3::unary_parser<Subject, X_kas_token_parser<TOK_DEFN, Subject>>;
+    using base_type = x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, Subject>>;
     using attribute_type = kas_token;
 
-    X_kas_token_parser(Subject const& subject)
+    kas_token_parser(Subject const& subject)
         : base_type(subject) {}
 
     template <typename Iterator, typename Context
@@ -81,7 +81,7 @@ struct X_kas_token_parser : x3::unary_parser<Subject, X_kas_token_parser<TOK_DEF
 
 }
 //
-#if 1
+
 namespace boost::spirit::x3::extension
 {
 
@@ -89,7 +89,7 @@ template <typename TOK>
 struct as_parser<TOK, std::enable_if_t<std::is_base_of_v<kas::parser::token_defn_base, TOK>>>
 {
     using parser_t   = typename TOK::parser_t;
-    using Derived    = kas::parser::X_kas_token_parser<TOK, parser_t>;
+    using Derived    = kas::parser::kas_token_parser<TOK, parser_t>;
     using type       = Derived const;       // NB: not reference
     using value_type = Derived;             // XXX should this be `kas_token`
 
@@ -100,38 +100,23 @@ struct as_parser<TOK, std::enable_if_t<std::is_base_of_v<kas::parser::token_defn
 };
 
 }
-#endif
 
 namespace kas::parser
 {
 
-#if 1
 template <typename TOK
         , typename = std::enable_if_t<std::is_base_of_v<token_defn_base, TOK>>>
-struct X_kas_token_x3
+struct kas_token_x3
 {
-#if 1
     template <typename Subject>
-    X_kas_token_parser<TOK, typename x3::extension::as_parser<Subject>::value_type>
+    kas_token_parser<TOK, typename x3::extension::as_parser<Subject>::value_type>
     operator[](Subject const& subject) const
     {
         return { as_parser(subject) };
     }
-
-    // XXX need to return default if [] not used
-#else
-    template <typename Subject>
-    auto operator[](Subject const& ) const
-    {
-        // need to add "subject" to parser type
-        return p;
-    }
-#endif
 };
 
-template <typename T> static const X_kas_token_x3<T> X_token = {};
-// XXXXXXXXXXX
-#endif
+template <typename T> static const kas_token_x3<T> token = {};
 
 }
 

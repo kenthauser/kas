@@ -11,9 +11,8 @@
 #include "error_handler_base.h"
 #include "annotate_on_success.hpp"
 
-//#include "machine_parsers.h"
-//#include "utility/make_type_over.h"
 #include "parser_src.h"
+#include "token_parser.h"
 
 
 #include <boost/spirit/home/x3.hpp>
@@ -40,52 +39,10 @@ auto stmt_separator = detail::stmt_separator_p<
 
 // parse to comment, separator, or end-of-line
 auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
-      stmt_comment > *(x3::omit[x3::char_] - x3::eol) > (x3::eol | x3::eoi)
+      stmt_comment >> x3::omit[*(x3::char_ - x3::eol)] >> -x3::eol
     | stmt_separator
     | x3::eol
     ;
-
-// parser to recognize end-of-input
-struct _tag_eoi : annotate_on_success {};
-auto const end_of_input = x3::rule<_tag_eoi, stmt_eoi> { "eoi" } = x3::eoi;
-
-// parse invalid content to end-of-line or comment
-struct token_junk: kas_token
-{
-    operator kas_diag_t const& ()
-    {
-        if (!diag_p)
-            diag_p = &kas_diag_t::warning("Junk following statement, ignored", *this);
-        
-        std::cout << diag_p->ref() << std::endl;
-        return *diag_p;
-    }
-
-    operator stmt_error()
-    {
-        kas_diag_t const& diag = *this;
-        std::cout << "token_junk: stmt_error: " << diag.ref() << std::endl; 
-        return diag;
-    }
-
-    ~token_junk()
-    {
-        std::cout << "token_junk destroyed";
-
-        if (diag_p)
-            std::cout << ": " << diag_p->ref();
-        std::cout << std::endl;
-
-        if (this->handler)
-            std::cout << "token_junk: parsed data: " << *this << std::endl;
-
-    }
-
-    kas_diag_t const *diag_p {};
-};
-
-auto const junk = token<token_junk>[+x3::omit[x3::char_ - stmt_eol]];
-auto end_of_line = x3::rule<class _junk> { "eol" } = stmt_eol | junk;
 
 //////////////////////////////////////////////////////////////////////////
 //  Parser List Support Methods
@@ -93,53 +50,25 @@ auto end_of_line = x3::rule<class _junk> { "eol" } = stmt_eol | junk;
 //      * handle empty list case
 //////////////////////////////////////////////////////////////////////////
 
-// lambda functions: parse label only & parse to end-of-line
-auto const parse_lbl  = [](auto p) { return p; };
-auto const parse_eol  = [](auto p) { return p > end_of_line; };
-auto const parse_junk = [](auto p) { return p >> x3::omit[junk] >> stmt_eol; };
+// lambda function: parse to end-of-line
+auto const parse_eol  = [](auto p) { return p > stmt_eol; };
 
-template <typename F, typename...Ts>
-auto make_value_tuple(F&& fn, meta::list<Ts...>&&)
-{
-    return std::make_tuple(fn(Ts())...);
-}
 using label_parsers =  all_defns<detail::label_ops_l>;
 using stmt_parsers  =  all_defns<detail::stmt_ops_l>;
-
-using XXX_stmt_tuple_t = meta::apply<meta::quote<std::tuple>, stmt_parsers>;
-//auto const XXX_stmt_tuple = reduce_tuple(std::bit_or<>(), XXX_stmt_tuple_t());
-
-//auto const stmt_tuple   = make_value_tuple(parse_eol, stmt_parsers()); 
-auto const label_tuple  = make_value_tuple(parse_lbl , label_parsers()); 
-auto const stmt_tuple   = make_value_tuple(parse_eol , stmt_parsers()); 
-auto const junk_tuple   = make_value_tuple(parse_junk, stmt_parsers()); 
-
-auto const statement_def =
-#if 1
-            //reduce_tuple(std::bit_or<>{}, stmt_tuple)
-            combine_parsers(stmt_tuple)
-#else
-            ( bsd::parser::stmt_comma_x3() > end_of_line )
-          | ( bsd::parser::stmt_space_x3() > end_of_line )
-          | ( bsd::parser::stmt_equ_x3  () > end_of_line )
-          | ( bsd::parser::stmt_org_x3  () > end_of_line )
-          //| ( m68k::parser::m68k_stmt_x3  () > end_of_line )
-          //| ( z80::parser::z80_stmt_x3  () > end_of_line )
-          //| ( arm::parser::arm_stmt_x3  () > end_of_line )
-#endif
-          //| reduce_tuple(std::bit_or<>{}, label_tuple)
-          | combine_parsers(label_tuple)
-          //| combine_parsers(std::tuple<>())
-          | end_of_input
-          | junk
-          ;
-
 
 x3::rule<class _stmt, stmt_t> const statement = "statement";
 stmt_x3 stmt { "stmt" };
 
 // insn is statment (after skipping blank or commented lines)
 auto const stmt_def  = *stmt_eol > statement;
+
+// require statements to extend to end-of-line (or separator)
+// not required for labels
+auto const statement_def =
+            combine_parsers(stmt_parsers(), parse_eol)
+          | combine_parsers(label_parsers())
+          ;
+
 
 BOOST_SPIRIT_DEFINE(stmt, statement)
 
@@ -150,19 +79,50 @@ BOOST_SPIRIT_DEFINE(stmt, statement)
 // annotation is performed `per-parser`. only error-handling is here.
 
 // parser to find point to restart scan after error
-auto const resync = *(x3::char_ - stmt_eol) > stmt_eol;
+auto const resync = *(x3::char_ - stmt_eol) >> -stmt_eol;
 
-struct resync_base
+struct stmt_invalid
 {
-
     template <typename Iterator, typename Exception, typename Context>
     auto on_error(Iterator& first , Iterator const& last
                 , Exception const& exc, Context const& context)
     {
-        std::cout << "resync_base:: src = \"";
+        // save first "error" iter
+        auto first_unparsed = first;
+
+        // skip to next line
+        parse(first, last, resync);
+        
+        // NB: `first` now points at end-of-instruction
+        // generate & record error message
+        base.on_error(first_unparsed, first, exc, context);
+
+        // continue and parse next instruction
+        // "first" updated to next instruction -- re-parse from there
+        return x3::error_handler_result::retry;
+    }
+
+private:
+    // parser base error handler
+    kas::parser::error_handler_base base;
+};
+
+struct stmt_junk
+{
+    template <typename Iterator, typename Exception, typename Context>
+    auto on_error(Iterator& first , Iterator const& last
+                , Exception const& exc, Context const& context)
+    {
+        std::cout << "stmt_junk:: src = \"";
         std::cout << parser_src::escaped_str(std::string{first, last}.substr(0, 60));
         std::cout << "\"..." << std::endl;
         
+        print_type_name{"context"}.name<Context>();
+
+        auto& error_diag = x3::get<error_diag_tag>(context).get();
+        print_type_name{"error_diag"}(error_diag);
+
+
         // generate & record error message
         base.on_error(first, last, exc, context);
 
@@ -198,9 +158,8 @@ private:
 
 // XXX undef of statement screws up parser 
 //struct _tag_stmt : annotate_on_success {};
-struct _stmt : resync_base {};
-struct _junk : resync_base {};
-
+struct _tag_stmt : stmt_invalid {};
+struct _junk : stmt_junk    {};
 // interface to statement parser
 
 }

@@ -13,6 +13,8 @@
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 #include <boost/spirit/home/x3/support/utility/lambda_visitor.hpp>
 
+#include <typeinfo>
+
 namespace kas::parser
 {
 
@@ -38,7 +40,7 @@ struct stmt_t : detail::parser_variant
     stmt_t(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
 
     // instantiate `stmt_t` from error
-    stmt_t(kas_error_t err) : stmt_t{stmt_error(err)} {}
+    stmt_t(kas_diag_t const& err) : stmt_t{stmt_error(err)} {}
     
     std::string src() const
     {

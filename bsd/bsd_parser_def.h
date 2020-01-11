@@ -59,7 +59,6 @@
 namespace kas::bsd::parser
 {
 using namespace boost::spirit::x3;
-using kas::parser::token;
 
 // allowed characters in a BSD identifier (NB: can't begin with digit)
 const auto bsd_charset = char_("a-zA-Z_.0-9");
@@ -72,30 +71,30 @@ const auto bsd_charset = char_("a-zA-Z_.0-9");
 // 1. standard ident -- bsd characters: tokenized above
 //    labels are LHS, idents are RHS
 //    NB: ident's namespace can be "richer" than label's 
-auto const ident = X_token<X_bsd_ident>[!digit >> +bsd_charset];
-auto const label = X_token<X_bsd_ident>[!digit >> +bsd_charset];
+auto const ident = token<tok_bsd_ident>[!digit >> +bsd_charset];
+auto const label = token<tok_bsd_ident>[!digit >> +bsd_charset];
 
 // 2. local labels have format `n$` (eg: `99$`)
 //    these ident's scope restarts with each standard label
-auto const l_ident = X_token<X_bsd_local_ident>[uint_ >> '$' >> !bsd_charset];
+auto const l_ident = token<tok_bsd_local_ident>[uint_ >> '$' >> !bsd_charset];
 
 // 3. numeric labels are single digit followed by `b` or `f` (ie back or forward)
 //    don't allow c++ binary character to match (eg: 0b'100'1101)
 //    omit value, pick up from matched "source"
-auto const n_ident = X_token<X_bsd_numeric_ident>
+auto const n_ident = token<tok_bsd_numeric_ident>
                     [omit[digit >> char_("bBfF") >> !lit('\'') >> !bsd_charset]];
 
 // parse `dot` as a `token`
-auto const dot_ident = X_token<X_bsd_dot>['.' >> !bsd_charset];
+auto const dot_ident = token<tok_bsd_dot>['.' >> !bsd_charset];
 
 // parse "nothing"  as "missing" `token`
 // NB: also used for pseudo-ops with no args as "dummy" arg
-auto const missing = X_token<X_bsd_missing>[eps];
+auto const missing = token<tok_bsd_missing>[eps];
 
 // parser @ "tokens" (used by ELF)
 auto const at_token_initial = omit[char_("@%#")];
-auto const at_ident = X_token<X_bsd_at_ident>[(at_token_initial >> !digit) > +bsd_charset];
-auto const at_num   = X_token<X_bsd_at_num>  [(at_token_initial >>  uint_) > !bsd_charset];
+auto const at_ident = token<tok_bsd_at_ident>[(at_token_initial >> !digit) > +bsd_charset];
+auto const at_num   = token<tok_bsd_at_num>  [(at_token_initial >>  uint_) > !bsd_charset];
 
 // 
 // expose dot and idents to `expr` parsers
@@ -131,11 +130,11 @@ auto const ident_label   = (label   >> ':')[set_last];
 auto const local_label   = (l_ident >> ':')[XXX_eval];
 
 // for numeric: parse digit as token to get location tagging
-auto const numeric_label = (token<kas_token>[omit[digit]] >> ':')[bsd_numeric_ident()];
+auto const numeric_label = (token<tok_bsd_local_ident>[omit[digit]] >> ':')[bsd_numeric_ident()];
 
 // parse labels as `symbol_ref`
 auto const all_labels = rule<class _, kas_token> {} =
-            ident_label | local_label | numeric_label;
+            ident_label | local_label ;// XXX| numeric_label;
 
 // create label instruction (exposed to top parser) 
 // NB: location tagged at top level
@@ -149,8 +148,8 @@ BOOST_SPIRIT_DEFINE(stmt_label)
 //////////////////////////////////////////////////////////////////////////
 
 using X_e_fixed = token_defn_t<KAS_STRING("BSD_E_FIXED"), e_fixed_t>;
-auto const p_expr_def = X_token<X_e_fixed>[int_];
-//auto const p_expr_def = X_token<X_e_fixed>[c_fixed_p];
+auto const p_expr_def = token<X_e_fixed>[int_];
+//auto const p_expr_def = token<X_e_fixed>[c_fixed_p];
 
 // location tag "expressions". (tokens are already tagged)
 // XXX 2019/11/13 tagging screws up token value (???)

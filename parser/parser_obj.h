@@ -74,8 +74,14 @@ public:
     static auto& skipper_ctx()
     {
         static auto const skipper = as_parser(skipper_t{});
-        static auto const ctx = x3::make_context<x3::skipper_tag>(skipper);
+        static auto const ctx     = x3::make_context<x3::skipper_tag>(skipper);
         return ctx;
+    }
+
+    template <typename...Ts>
+    auto parse(Ts&&...ts)
+    {
+        return PARSER{}.parse(std::forward<Ts>(ts)...);
     }
 
 private:
@@ -128,13 +134,13 @@ auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
         return err;
     }
 #endif
-
+#if 0
     if (obj_p->diag)
     {
         std::cout << "kas_parser: diag = " << obj_p->diag << std::endl;
         ast = stmt_error(obj_p->diag);
     }
-
+#endif
     return ast;
 }
 

@@ -231,7 +231,14 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 12. make `err_msg` derived form multiple base types
 
+*************************
 
+1. Fix copy-ctor assignment ctor in core_expr
+
+2. refactor "junk" parsing in `parser/parser_def.h`. Use expectation failure to 
+    parse "junk following statement" and "invalid statement". Refactor `kas_parser`
+    (in parser_obj.h) to expose ast & parser. Refactor "resync_base" to use hooks &
+    perform "accept", "retry", etc
 
 
 

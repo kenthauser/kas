@@ -97,8 +97,8 @@ struct shunting_yard
             return !empty() && opers.back().oper->priority() <= priority;
         }
 
-        bool   empty()  const { return opers.empty();  }
-        auto&  result()       { return tokens.back();  }
+        bool   empty()  const { return opers.empty(); }
+        auto&  result()       { return tokens.back(); }
 
     private:
         // `opers` vector holds `op_tokens_pair_t` instances
@@ -130,7 +130,7 @@ struct op_expr_pair_t : kas_position_tagged
     op_expr_pair_t(expr_op const *op, kas_token const& e)
             : oper(op), token(e) {}
 
-    // hook into `expr_op` evalution machinery
+    // for `bin_op`, hook into `expr_op` evalution machinery
     template <typename...Ts>
     kas_token operator()(Ts&&...args) const
     {
@@ -169,6 +169,7 @@ struct _tag_paren : annotate_on_success {};
 auto const paren_op  = x3::rule<_tag_paren, kas_token> {"paren"} = 
                             '(' > inner > ')';
 #else
+// XXX create "tag" lambda for update...
 auto const paren_op = '(' > inner > ')';
 #endif
 

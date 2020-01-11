@@ -8,15 +8,6 @@
 
 // declare bsd "statements". Can't include `bsd_stmt.h` because can't 
 // define "statments" until all supporting types defined (by eg this file).
-#if 0
-namespace kas::bsd
-{
-    struct bsd_stmt_pseudo;
-    struct bsd_stmt_label;
-    struct bsd_stmt_equ;
-    struct bsd_stmt_org;
-}
-#endif
 
 namespace kas::bsd::parser
 {

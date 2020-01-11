@@ -191,8 +191,9 @@ public:
         labels[n].advance();
 
         // lookup & return
-        auto sym_p = lookup(n, false); 
-        x3::_val(ctx) = sym_p->ref(token);
+        auto sym_p = lookup(n, false);
+        // XXX need kas_loc
+        x3::_val(ctx) = sym_p->ref();
     }
 
     static auto get(kas_token const& token, unsigned n, bool fwd)

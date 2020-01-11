@@ -152,12 +152,11 @@ struct bsd_section_base :  opc_section
         if (auto err = proc_elf_flags(flags_p))
             return err;
 
-        // next arg is "type", if present
-        // XXX eg @progbits
+        // next arg is "type", if present (eg @progbits)
         if (it != end) {
             // increment it later
             auto value = -1;
-            if (it->is_token_type(X_bsd_at_ident()))
+            if (it->is_token_type(tok_bsd_at_ident()))
                 value = parser::get_section_type(*it, true);
  
             if (value == -1)
@@ -187,7 +186,7 @@ struct bsd_section_base :  opc_section
                 return "Invalid section group";
         }
 
-        // XXX unsure what "linkage" is
+        // XXX unsure what "linkage" is/does
         if (it != end) {
             if (auto p = it++->get_fixed_p())
                 kas_linkage = *p;
