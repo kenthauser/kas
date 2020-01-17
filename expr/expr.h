@@ -6,7 +6,7 @@
 // Define the expression variant: `expr_t`
 // Declare the interface to the expression parser
 #include "expr_variant.h"
-#include "parser/parser_config.h"
+#include "parser/parser_context.h"
 #include "parser/kas_token.h"
 
 namespace kas
@@ -37,18 +37,9 @@ namespace expression::parser
         {
             attribute_type tok;
             
-            // need a standardized context for multi-file Instantiation
-            auto& skipper  = x3::get<x3::skipper_tag>(context);
-            auto& ehandler = x3::get<kas::parser::error_handler_tag>(context);
-            auto& diag     = x3::get<kas::parser::error_diag_tag>(context);
-            
-            // rebuild context
-            auto skipper_ctx = x3::make_context<x3::skipper_tag>(skipper);
-            auto diag_ctx    = x3::make_context<error_diag_tag>(diag, skipper_ctx);
-            expr_context_type ctx = x3::make_context<error_handler_tag>(ehandler, diag_ctx);
-           
             // parse input in "standard" context
-            bool result = x3::as_parser(expr_type()).parse(first, last, ctx, unused, tok);
+            kas_context ctx(context);
+            bool result = x3::as_parser(expr_type()).parse(first, last, ctx(), unused, tok);
             
             // if parsed correctly, update attribute from parsed value
             if (result)

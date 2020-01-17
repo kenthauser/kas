@@ -62,8 +62,7 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
                 e = value;
                 
             // get the error handler object
-            auto& handler = x3::get<parser::error_handler_tag>(context).get();
-            
+            auto& handler = x3::get<parser::error_handler_tag>(context); 
             // create "token" of `TOK_DEFN` type with parsed location
             attribute_type tok(TOK_DEFN(), e, {first, i, &handler});
             

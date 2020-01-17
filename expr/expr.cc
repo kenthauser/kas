@@ -5,6 +5,7 @@
 #include "expr_parser_def.h"
 #include "expr_print_impl.h"
 #include "expr_op_impl.h"
+#include "parser/parser_context.h"
 
 namespace kas::expression::parser
 {

@@ -42,9 +42,13 @@ template <typename Iter> struct listing_line;
 template <typename Iter>
 struct emit_listing : emit_base
 {
+    using diag_map_key_t   = parser::kas_loc;
+    using diag_map_value_t = typename parser::kas_diag_t::index_t;
+    using diag_map_t       = std::map<diag_map_key_t, diag_map_value_t>;
+
     // save ostream. init `emit_base` with `put` & `put_diag`
     emit_listing(std::ostream& out) : out(out), emit_base(fmt) {}
-
+    
     // public interface: push listing after insn
     void gen_listing(core_expr_dot const& dot, parser::kas_loc loc);
 
@@ -103,6 +107,9 @@ private:
         };
     }
 
+    // "map" diagnostics by "loc"
+    
+
     friend listing_line<Iter>;
     emit_formatted fmt{ put(), put_diag(), put_reloc() };
     std::array<std::vector<std::string>, NUM_EMIT_FMT> buffers;
@@ -111,6 +118,12 @@ private:
     std::map<size_t, Iter> current_pos;
     parser::kas_loc::index_t prev_loc {};
     std::ostream& out;
+
+    using diag_iter_t = typename diag_map_t::iterator;
+    diag_map_t  *diag_map_p {};
+    diag_iter_t diag_iter;
+    diag_iter_t const *diag_map_end_p {};
+    
 };
 
 template <typename Iter>

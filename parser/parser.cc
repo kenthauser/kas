@@ -1,7 +1,7 @@
 #include "parser.h"
-#include "parser_config.h"
 #include "error_handler.h"
 #include "parser_def.h"
+#include "parser_context.h"
 //#include "stmt_print.h"
 //#include "utility/print_object.h"
 

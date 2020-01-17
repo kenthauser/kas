@@ -5,6 +5,7 @@
 #include "kas_position.h"
 
 #include "error_handler.h"
+#include "parser_obj.h"
 
 #include <boost/spirit/home/x3/directive/expect.hpp>
 #include <boost/spirit/home/x3/core/action.hpp>
@@ -67,8 +68,8 @@ error_handler_base::on_error(
         which = iter->second;
 
     std::string message = "Expecting: " + which;
-    auto& error_handler = x3::get<error_handler_tag>(context).get();
-    auto& diag          = x3::get<error_diag_tag   >(context).get();
+    auto& error_handler = x3::get<error_handler_tag>(context);
+    auto& diag          = x3::get<error_diag_tag   >(context);
 
     // XXX where is Iterator (x3/directive/expect.hpp)
     // error_handler(x.where(), message);
@@ -90,7 +91,7 @@ error_handler_base::on_error(
     std::cout << "on_error: msg = " << message << std::endl;
 
     error_handler.tag(loc, err_first, err_last);
-    diag = parser::kas_diag_t::error(message, loc).ref();
+    diag.diag = parser::kas_diag_t::error(message, loc).ref();
 
     //std::cout << "on_error: diag = " << diag.message << std::endl;
     return x3::error_handler_result::fail;

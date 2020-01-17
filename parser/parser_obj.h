@@ -1,7 +1,8 @@
 #ifndef KAS_PARSER_PARSER_OBJ_H
 #define KAS_PARSER_PARSER_OBJ_H
 
-#include "parser.h"
+#include "parser_types.h"
+#include "parser_context.h"
 #include "error_handler.h"
 #include "parser_stmt.h"
 #include "parser_variant.h"
@@ -23,13 +24,13 @@ namespace detail
 {
 using Iter = kas::parser::iterator_type;
 
-
-template <typename PARSER>
 struct kas_parser 
 {
     using value_type = stmt_t;
-
+    
 private:
+    using parse_fn_t = bool (*)(kas_parser& obj, Iter&, Iter const&);
+
     // access parser via begin/end `iter` pair.
     struct iter_t : std::iterator<std::input_iterator_tag, value_type>
     {
@@ -66,51 +67,52 @@ private:
 
 public:
     // ctor
-    kas_parser(PARSER const&, parser_src& src) : src(src) {} 
+    template <typename PARSER>
+    kas_parser(PARSER const&, parser_src& src)
+        : src(src)
+        , context{kas_context(*this, src.e_handler())}
+    {
+        parse_fn = [](kas_parser& obj, Iter& iter, Iter const& end)
+            {
+                return PARSER{}.parse(iter, end, obj.context(), skipper_t{}, obj.value);
+            };
+    } 
 
     auto begin()        { return iter_t{this}; }
     auto end()   const  { return iter_t{};     }
 
-    static auto& skipper_ctx()
+    auto parse(Iter& iter, Iter const& end)
     {
-        static auto const skipper = as_parser(skipper_t{});
-        static auto const ctx     = x3::make_context<x3::skipper_tag>(skipper);
-        return ctx;
+        //print_type_name{"context"}(context());
+        return parse_fn(*this, iter, end);
     }
 
-    template <typename...Ts>
-    auto parse(Ts&&...ts)
-    {
-        return PARSER{}.parse(std::forward<Ts>(ts)...);
-    }
+    kas_error_t         diag;
+    value_type          value;
 
 private:
+    parse_fn_t          parse_fn;
     parser_src&         src;
-    error_diag_type     diag;
-
-    // NB: c++ constructs items in order declared;
-    // x3::make_context requires l-values;
-    std::reference_wrapper<error_handler_type> err_ref  {src.e_handler()};
-    std::reference_wrapper<kas_error_t>        diag_ref {diag};
-    diag_context_type   diag_ctx = x3::make_context<error_diag_tag>(diag_ref, skipper_ctx());
-    error_context_type  context  = x3::make_context<error_handler_tag>(err_ref, diag_ctx); 
+    kas_context         context;
 };
 
+
 // extract statement from current input.
-template <typename PARSER>
-auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
+//template <typename PARSER>
+//auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
+auto inline kas_parser::iter_t::operator*() -> value_type
 {
     auto& src = obj_p->src;
     
     // save `iter` before parssing to check for error
     auto before = src.iter();
     
-    value_type ast;
     obj_p->diag = {};
     bool success{};
     try
     {
-        success = PARSER{}.parse(src.iter(), src.last(), obj_p->context, skipper_t{}, ast);
+        std::cout << "parsing:: " << std::string(src.iter(), src.last()).substr(0, 60) << std::endl;
+        success = obj_p->parse(src.iter(), src.last());
     }
     catch (std::exception const& e)
     {
@@ -141,12 +143,11 @@ auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
         ast = stmt_error(obj_p->diag);
     }
 #endif
-    return ast;
+    return obj_p->value;
 }
 
 
 }
 using detail::kas_parser;
-
 }
 #endif

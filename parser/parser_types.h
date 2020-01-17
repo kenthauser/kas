@@ -11,6 +11,12 @@ namespace kas::parser
 {
 namespace x3 = boost::spirit::x3;
 
+namespace detail
+{
+    template <typename = void> struct label_ops_l : meta::list<> {};
+    template <typename = void> struct stmt_ops_l  : meta::list<> {};
+}
+
 
 // KAS ITERATOR Type
 using iterator_type = std::string::const_iterator;
@@ -24,12 +30,21 @@ using skipper_t = x3::ascii::blank_type;
 // KAS extension for multiple files
 template <typename Iter> struct error_handler;
 
+// handler stored in context
+using error_handler_type = error_handler<iterator_type>;
+
+// tag used to get our error handler from the context
+struct error_handler_tag;
+
 // KAS ERROR type
 // NB: `kas_error_t` is exposed in `kas` namespace as `e_error_t`
 // XXX why?
 template <typename> struct kas_diag;
 using kas_error_t = core::ref_loc_t<kas_diag>;
 using kas_diag_t  = typename kas_error_t::object_t;
+
+// forward declare `position_tagged` template & type
+template <typename Iter> struct kas_position_tagged_t;
 
 using kas_position_tagged = kas_position_tagged_t<iterator_type>;
 
