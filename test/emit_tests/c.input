@@ -14,7 +14,7 @@ e:
     .word   2,3/0, ,4
     .word   2, e, f, e - f
     ; XXX must refactor core_expr to get loc
-    ;.byte   e - f + 300
+    .byte   e - f + 300
     .byte   3/(3-3)
     .byte   1
     .long   e

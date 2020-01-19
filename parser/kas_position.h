@@ -41,6 +41,10 @@ struct kas_loc
     // test if `loc` is set
     operator bool() const { return loc; }
 
+    // test ordering
+    bool operator< (kas_loc const& o) const { return loc < o.loc; }
+
+
     // used in error_handler::where & for ostream
     auto get() const { return loc; }
     std::string where() const;

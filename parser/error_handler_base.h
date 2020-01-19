@@ -91,9 +91,8 @@ error_handler_base::on_error(
     std::cout << "on_error: msg = " << message << std::endl;
 
     error_handler.tag(loc, err_first, err_last);
-    diag.diag = parser::kas_diag_t::error(message, loc).ref();
+    diag.err_idx = parser::kas_diag_t::error(message, loc).ref();
 
-    //std::cout << "on_error: diag = " << diag.message << std::endl;
     return x3::error_handler_result::fail;
 }
 }

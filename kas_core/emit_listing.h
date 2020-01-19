@@ -42,12 +42,23 @@ template <typename Iter> struct listing_line;
 template <typename Iter>
 struct emit_listing : emit_base
 {
-    using diag_map_key_t   = parser::kas_loc;
-    using diag_map_value_t = typename parser::kas_diag_t::index_t;
+    using diag_map_key_t   = typename parser::kas_loc::index_t;
+    using diag_map_value_t = parser::kas_diag_t const *;
     using diag_map_t       = std::map<diag_map_key_t, diag_map_value_t>;
 
     // save ostream. init `emit_base` with `put` & `put_diag`
-    emit_listing(std::ostream& out) : out(out), emit_base(fmt) {}
+    emit_listing(std::ostream& out) : out(out), emit_base(fmt)
+    {
+        // find all "warning" & lower diagnostics & create ordered list
+        auto pred = [](auto& obj) { return obj.level >= parser::kas_diag_enum::WARNING; };
+        auto add  = [this](auto& obj) { diag_map.emplace(obj.loc().get(), &obj); };
+        parser::kas_diag_t::for_each_if(add, pred);
+
+        // init iterators into warnings map
+        diag_iter = diag_map.begin();
+        diag_end  = diag_map.end();
+    }
+
     
     // public interface: push listing after insn
     void gen_listing(core_expr_dot const& dot, parser::kas_loc loc);
@@ -120,9 +131,9 @@ private:
     std::ostream& out;
 
     using diag_iter_t = typename diag_map_t::iterator;
-    diag_map_t  *diag_map_p {};
+    diag_map_t  diag_map {};
     diag_iter_t diag_iter;
-    diag_iter_t const *diag_map_end_p {};
+    diag_iter_t diag_end {};
     
 };
 
@@ -167,6 +178,7 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
     line.set_force_addr(buffers[EMIT_ADDR]);
     line.append_reloc(relocs);
     line.append_diag(diagnostics);
+    line.append_warnings(diagnostics);
     buffers = {};
 
     // emit this insn
@@ -194,6 +206,7 @@ struct listing_line
     void gen_equ(data_type  const&);
     void set_force_addr(data_type const&);
     void append_diag(diag_type&);
+    void append_warnings(diag_type&);
     void append_reloc(reloc_type&);
     Iter emit_line(Iter first, Iter last);
 private:
@@ -267,6 +280,20 @@ void listing_line<Iter>::gen_equ(data_type const& equ)
 template <typename Iter>
 void listing_line<Iter>::append_diag(diag_type& new_diags)
 {
+    diagnostics.splice(diagnostics.end(), new_diags);
+}
+
+template <typename Iter>
+void listing_line<Iter>::append_warnings(diag_type& new_diags)
+{
+    while(e.diag_iter != e.diag_end)
+    {
+        auto [key, ptr] = *e.diag_iter;
+        if (e.prev_loc < key)
+            break;
+        new_diags.push_back(ptr->index());
+        ++e.diag_iter;
+    }
     diagnostics.splice(diagnostics.end(), new_diags);
 }
 

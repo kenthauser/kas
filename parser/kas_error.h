@@ -48,6 +48,7 @@ struct kas_diag : core::kas_object<kas_diag<REF>, REF>
     using base_t = core::kas_object<kas_diag<REF>, REF>;
     using base_t::index;
     using base_t::for_each;
+    using base_t::for_each_if;
     
     // XXX enable DUMP
     using NAME = KAS_STRING("kas_diag");
@@ -74,7 +75,7 @@ struct kas_diag : core::kas_object<kas_diag<REF>, REF>
     // allow tagging of "new" errors
     static auto& last()
     {
-        return get(base_t::num_objects());
+        return base_t::get(base_t::num_objects());
     }
 
     template <typename OS> void print(OS& os) const;

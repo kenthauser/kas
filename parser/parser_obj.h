@@ -83,12 +83,15 @@ public:
 
     auto parse(Iter& iter, Iter const& end)
     {
-        //print_type_name{"context"}(context());
+        auto& ctx = x3::get<error_diag_tag>(context());
+        std::cout << "parse: obj = " << this << ", ctx = " << &ctx << std::endl;
         return parse_fn(*this, iter, end);
     }
 
-    kas_error_t         diag;
-    value_type          value;
+    // parser instance variables
+    kas_error_t         err_idx {};
+    const char *        err_msg {};
+    value_type          value   {};
 
 private:
     parse_fn_t          parse_fn;
@@ -96,24 +99,28 @@ private:
     kas_context         context;
 };
 
-
 // extract statement from current input.
-//template <typename PARSER>
-//auto inline kas_parser<PARSER>::iter_t::operator*() -> value_type
 auto inline kas_parser::iter_t::operator*() -> value_type
 {
     auto& src = obj_p->src;
     
-    // save `iter` before parssing to check for error
+    // save `iter` before parsing to check for error
     auto before = src.iter();
     
-    obj_p->diag = {};
-    bool success{};
     try
     {
-        std::cout << "parsing:: " << std::string(src.iter(), src.last()).substr(0, 60) << std::endl;
-        success = obj_p->parse(src.iter(), src.last());
+        if (obj_p->parse(src.iter(), src.last()))
+            return obj_p->value;
     }
+
+    // hook for "reparse". Apparently x3 steps on return value
+    // after "reparsing", so come in thru side door.
+    catch (Iter& next)
+    {
+        src.iter() = next;
+        return obj_p->value;
+    }
+
     catch (std::exception const& e)
     {
         auto exec_name = typeid(e).name();
@@ -124,26 +131,22 @@ auto inline kas_parser::iter_t::operator*() -> value_type
     if (src.iter() == before)
     {
         // need "can't parse anything" diag
+        std::cout << "kas_parser: nothing parsed" << std::endl;
         src.iter() = src.last();
-        success = false;
     }
-#if 0  
-    if (!success)
+    else if (!obj_p->err_idx)
     {
-        // create an error insn
-        stmt_error err{ parser::kas_diag::last() };
-        src.e_handler().tag(err, before, src.iter());
-        return err;
+        kas_position_tagged loc { before, src.iter(), &src.e_handler() };
+        obj_p->err_idx = kas_diag_t::error("Invalid instruction", loc).ref();
     }
-#endif
-#if 0
-    if (obj_p->diag)
-    {
-        std::cout << "kas_parser: diag = " << obj_p->diag << std::endl;
-        ast = stmt_error(obj_p->diag);
-    }
-#endif
-    return obj_p->value;
+        
+    stmt_error err(obj_p->err_idx);
+
+    // clear errors before next instruction
+    obj_p->err_idx = {};
+    obj_p->err_msg = {};
+
+    return err;
 }
 
 
