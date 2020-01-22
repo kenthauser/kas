@@ -130,7 +130,7 @@ public:
             this->obj_loc = loc;
     }
 
-    auto loc() const
+    auto& loc() const
     {
         return obj_loc;
     }

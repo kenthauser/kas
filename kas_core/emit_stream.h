@@ -30,7 +30,7 @@ struct emit_stream
             , uint8_t width
             , uint8_t offset
             , core_symbol_t const& sym
-            , emit_value_t addend
+            , emit_value_t& addend
             ) = 0;
     virtual void put_section_reloc(
               e_chan_num num
@@ -38,7 +38,7 @@ struct emit_stream
             , uint8_t width
             , uint8_t offset
             , core_section const& section
-            , emit_value_t addend
+            , emit_value_t& addend
             ) = 0;
 
     // emit diagnostics

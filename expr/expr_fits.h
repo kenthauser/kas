@@ -78,7 +78,7 @@ namespace kas::expression
         virtual result_t disp(expr_t const& e, fits_min_t min, fits_max_t max, int delta) const
         {
             if (auto p = e.get_fixed_p())
-                return no;      // constants are not offsets
+                return (*this)(*p + delta, min, max);   // just signed constant
             return maybe;       // constants know nothing else of offsets...
         }
 

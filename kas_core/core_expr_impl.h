@@ -319,9 +319,10 @@ void core_expr<REF>::flatten()
 
 template <typename REF>
 template <typename BASE_T, typename RELOC_T>
-void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc) const
+void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& diag) const
 {
-    auto do_emit = [&base](auto& reloc, expr_term const *term_p = {}, bool pc_rel = false)
+    auto do_emit = [&base, &diag]
+                    (auto& reloc, expr_term const *term_p = {}, bool pc_rel = false)
     {
         reloc.sym_p     = {};
         reloc.section_p = {};
@@ -337,7 +338,7 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc) const
         else
             reloc.reloc.flags &=~ core_reloc::RFLAGS_PC_REL;
     
-        reloc.emit(base);
+        reloc.emit(base, diag);
     };
 
     calc_num_relocs();      // needed??

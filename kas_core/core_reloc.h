@@ -107,18 +107,20 @@ struct deferred_reloc_t
 
     // complete construction of object
     void operator()(expr_t const&);
-    void operator()(core_symbol_t const&);
-    void operator()(core_expr_t   const&);
-    void operator()(core_addr_t   const&);
+    void operator()(core_symbol_t const&, kas_loc const *);
+    void operator()(core_expr_t   const&, kas_loc const *);
+    void operator()(core_addr_t   const&, kas_loc const *);
 
     // emit relocs & apply to base value
-    void emit(emit_base& base);
-    void apply_reloc(emit_base& base, int64_t& addend);
+    void emit(emit_base& base, parser::kas_error_t&);
+    void put_reloc  (emit_base&, parser::kas_error_t&, core_section const&);
+    void put_reloc  (emit_base&, parser::kas_error_t&, core_symbol_t  const&);
+    void apply_reloc(emit_base&, parser::kas_error_t&);
 
     // return true if `relocs` emited OK
     static bool done(emit_base& base);
     
-    reloc_info_t const *get_info(emit_base& base) const;
+    const char *get_info(emit_base& base, reloc_info_t const**) const;
     reloc_op_t  const *get_ops (uint8_t) const;
 
     core_reloc          reloc;
@@ -126,9 +128,10 @@ struct deferred_reloc_t
     core_symbol_t const *sym_p       {};
     core_expr_t   const *core_expr_p {};
     core_section  const *section_p   {};
-    parser::kas_loc const *loc_p       {};
+    parser::kas_loc const *loc_p     {};
     uint8_t             width       {};     // XXX refactor out.
     uint8_t             offset      {};
+    bool                using_rela  {false};
 };
 
 }

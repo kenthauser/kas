@@ -394,7 +394,7 @@ public:
     // XXX need to refactor `get_fixed_p` so it can handle integral
     // XXX types larger than `e_fixed_t`. For instance, a `std::size_t`
     // XXX instance of `expr_t` returns nullptr for `get_fixed_p`
-    auto get_fixed_p() const { return get_nested_p<e_fixed_t>(); }
+    auto get_fixed_p() const { return get_p<e_fixed_t>(); }
     auto get_loc_p()   const { return get_nested_p<kas::parser::kas_loc>() ;  }
     //auto is_missing()  const { return false; }
     

@@ -133,7 +133,8 @@ public:
     e_fixed_t const *get_p(e_fixed_t const&) const;
 
     // backend interface: expr can have multiple relocs
-    template <typename BASE_T, typename RELOC_T> void emit(BASE_T&, RELOC_T&) const;
+    template <typename BASE_T, typename RELOC_T>
+    void emit(BASE_T&, RELOC_T&, parser::kas_error_t&) const;
 
     // interface for `core_fits`: implemented in `core_expr_fits.h`
     short num_relocs() const { return reloc_cnt; }

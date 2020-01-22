@@ -127,7 +127,7 @@ auto deferred_reloc_t::get_ops(uint8_t reloc_op) const -> reloc_op_t const *
 
 
 
-auto deferred_reloc_t::get_info(emit_base& base) const -> reloc_info_t const *
+const char *deferred_reloc_t::get_info(emit_base& base, reloc_info_t const** info_pp) const
 {
     // get type of `reloc` hash key & declare map
     using key_t = decltype(std::declval<core_reloc>().key());
@@ -144,13 +144,19 @@ auto deferred_reloc_t::get_info(emit_base& base) const -> reloc_info_t const *
 
     // if unknown "op", return not found
     if (!get_ops(reloc.reloc))
-        return nullptr;
+    {
+        return "internal configuration: unknown relocation operation";
+    }
         
     // convert `reloc` to target machine `info`
     auto iter = map_p->find(reloc.key());       // lookup current relocation
 
     // return pointer to info if found
-    return iter != map_p->end() ? iter->second : nullptr;
+    if (iter == map_p->end())
+        return "Invalid relocation";
+
+    *info_pp = iter->second;
+    return {};
 }
 
 // complete construction of `reloc`
@@ -162,13 +168,16 @@ void deferred_reloc_t::operator()(expr_t const& e)
     // use `if tree` to initialize relocation
     // don't need `apply_visitor` as most types don't relocate
     if (auto p = e.get_fixed_p())
+    {
+        // just update "fixed" value
         addend += *p;
+    }
     else if (auto p = e.template get_p<core_symbol_t>())
-        (*this)(*p);
+        (*this)(*p, loc_p);
     else if (auto p = e.template get_p<core_expr_t>())
-        (*this)(*p);
+        (*this)(*p, loc_p);
     else if (auto p = e.template get_p<core_addr_t>())
-        (*this)(*p);
+        (*this)(*p, loc_p);
     else
     {
         std::cout << "deferred_reloc_t::operator(): unsupported type" << std::endl;
@@ -176,8 +185,9 @@ void deferred_reloc_t::operator()(expr_t const& e)
 }
 
 // symbols can `vary`. Sort by type of symbol
-void deferred_reloc_t::operator()(core_symbol_t const& value)
+void deferred_reloc_t::operator()(core_symbol_t const& value, kas_loc const *loc_p)
 {
+    this->loc_p = loc_p;
     // see if resolved symbol
     if (auto p = value.addr_p())
         (*this)(*p);
@@ -191,28 +201,31 @@ void deferred_reloc_t::operator()(core_symbol_t const& value)
         sym_p = &value;
 }
 
-void deferred_reloc_t::operator()(core_addr_t const& value)
+void deferred_reloc_t::operator()(core_addr_t const& value, kas_loc const *loc_p)
 {
+    this->loc_p = loc_p;
     addend   +=  value.offset()();
     section_p = &value.section();
 }
 
-void deferred_reloc_t::operator()(core_expr_t const& value)
+void deferred_reloc_t::operator()(core_expr_t const& value, kas_loc const *loc_p)
 {
+    this->loc_p = loc_p;
+    
     if (auto p = value.get_fixed_p())
         addend += *p;
     else
         core_expr_p = &value;
 }
 
-void deferred_reloc_t::emit(emit_base& base)
+void deferred_reloc_t::emit(emit_base& base, parser::kas_error_t& diag)
 {
     // if symbol, reinterpret before emitting
     if (sym_p)
     {
         auto& sym = *sym_p;
         sym_p = {};
-        (*this)(sym);
+        (*this)(sym, loc_p);
     }
 
     // if no width specified by reloc, use current width
@@ -229,36 +242,64 @@ void deferred_reloc_t::emit(emit_base& base)
             reloc.flags &=~ core_reloc::RFLAGS_PC_REL;
         }
    
-    // get pointer to machine-specific info matching `reloc`
-    auto info_p = get_info(base);
-
-    bool use_rela = false;
-//    use_rela = true;
-    int64_t base_addend = {};
-    if (!use_rela)
-    {
-        base_addend = addend;
-        addend = {};
-    }
-   
     // emit relocations to backend
     if (section_p)
-        base.put_section_reloc(*this, info_p, *section_p, addend);
+        put_reloc(base, diag, *section_p);
     else if (sym_p)
-        base.put_symbol_reloc(*this, info_p, *sym_p, addend);
+        put_reloc(base, diag, *sym_p);
     else if (core_expr_p)
-        core_expr_p->emit(base, *this);
-    else if (addend)
-        base_addend = addend;
-    addend = {};
+        core_expr_p->emit(base, *this, diag);
 
-    // if "base_addend", apply relocation to base
-    if (base_addend)
-        apply_reloc(base, base_addend);
+    // if "addend", apply as relocation to base
+    if (addend)
+        apply_reloc(base, diag);
+}
+
+void deferred_reloc_t::put_reloc(emit_base& base, parser::kas_error_t& diag 
+                                , core_section const& section)
+{
+    // get pointer to machine-specific info matching `reloc`
+    reloc_info_t const *info_p {};
+    auto msg = get_info(base, &info_p);
+    if (msg)
+    {
+#if 0
+        parser::kas_loc *loc_p = {};
+        if (sym_p)
+            loc_p = &sym_p->loc();
+        else if (section_p)
+            loc_p = &section_p->loc();
+        else if (core_expr_p)
+            loc_p = &core_expr_p->loc();
+#endif
+        if (!loc_p)
+            std::cout << "deferred_reloc_t::put_reloc: no `loc` for error" << std::endl;
+        else
+            diag = e_diag_t::error(msg, *loc_p).ref();
+    }
+    else
+        base.put_section_reloc(*this, info_p, section, addend);
+}
+
+void deferred_reloc_t::put_reloc(emit_base& base, parser::kas_error_t& diag 
+                                , core_symbol_t const& sym)
+{
+    // get pointer to machine-specific info matching `reloc`
+    reloc_info_t const *info_p {};
+    auto msg = get_info(base, &info_p);
+    if (msg)
+    {
+        if (!loc_p)
+            std::cout << "deferred_reloc_t::put_reloc: no `loc` for error" << std::endl;
+        else
+            diag = parser::kas_diag_t::error(msg, *loc_p).ref();
+    }
+    else
+        base.put_symbol_reloc(*this, info_p, sym, addend);
 }
 
 // Apply `reloc_fn`: deal with offsets & width deltas
-void deferred_reloc_t::apply_reloc(emit_base& base, int64_t& addend)
+void deferred_reloc_t::apply_reloc(emit_base& base, parser::kas_error_t& diag)
 {
     auto read_subfield = [&](int64_t data) -> std::tuple<int64_t, uint64_t, uint8_t>
         {
@@ -319,11 +360,32 @@ void deferred_reloc_t::apply_reloc(emit_base& base, int64_t& addend)
 
     // apply `update_fn` on value
     value = ops.update_fn(value, addend);
+    addend = {};        // consumed
 
     // if `write_fn` update extracted data
     if (ops.write_fn)
         value = ops.write_fn(data, value);
 
+    // make sure fixed value is in range
+    expression::expr_fits fits;
+    if (fits.disp_sz(base.width, value, 0) != fits.yes)
+    {
+        auto msg = "base relocation out-of-range for object format";
+#if 0
+        parser::kas_loc *loc_p = {};
+        if (sym_p)
+            loc_p = &sym_p->loc();
+        else if (section_p)
+            loc_p = &section_p->loc();
+        else if (core_expr_p)
+            loc_p = &core_expr_p->loc();
+#endif
+        if (!loc_p)
+            std::cout << "deferred_reloc_t::apply_reloc: no `loc` for error" << std::endl;
+        else
+            diag = e_diag_t::error(msg, *loc_p).ref();
+    }
+        
     // insert new `data` as subfield
     base.data = write_subfield(base.data, value, mask, shift);
 };

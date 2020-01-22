@@ -122,12 +122,12 @@ public:
                 , int64_t& data
                 ) 
     {
-        static constexpr auto use_rel_a = true;
+        static constexpr auto use_rel_a = false;
         
         if (num != core::EMIT_DATA)
             return;
 
-        if (data || use_rel_a)
+        if (use_rel_a)
             es_data_p->put_reloc_a(reloc, sym_num, data);
         else
             es_data_p->put_reloc(reloc, sym_num);
@@ -139,7 +139,7 @@ public:
                 , uint8_t width
                 , uint8_t offset
                 , core::core_symbol_t const& sym
-                , int64_t addend
+                , int64_t& addend
                 ) override
     {
         auto sym_num = sym.sym_num();
@@ -154,7 +154,7 @@ public:
                 , uint8_t width
                 , uint8_t offset
                 , core::core_section const& section
-                , int64_t addend 
+                , int64_t& addend 
                 ) override
     {
         auto sym_num = es_data::core2es(section).sym_num;

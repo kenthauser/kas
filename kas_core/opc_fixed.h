@@ -64,16 +64,25 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
     {
         // if fixed argument, check if it fits
         std::cout << "opc_size::proc_one: " << e << std::endl;
-        if (auto p = e.get_fixed_p()) {
+        if (auto p = e.get_fixed_p())
+        {
+            // if fits in "chunk", save as data
             if (expression::expr_fits().ufits<T>(*p) == core_fits::yes)
                 *ci++ = *p; 
-            else {
-                std::cout << "opc_size: doesn't fit, value = " << *p;
-                std::cout << " sizeof(T) == " << sizeof(T) << std::endl;
-                // XXX
-                //*ci++ = (expr_t)parser::kas_diag::error("Invalid argument", e.get_loc_p());
+            else
+            {
+                // must mark diagnostic here, as numbers don't carry `loc`
+                *ci++ = e_diag_t::error("Value out-of-range", loc);
             }
-        } else
+        } 
+#ifdef XXX
+        // missing not allowed
+        else if (token == TOK_MISSING)
+        {
+            *c++ = e_diag_t::error("Missing value", loc);
+        }
+#endif
+        else
         {
             // not fixed -- resolve at emit
             *ci++ = e;

@@ -72,12 +72,15 @@ void emit_base::emit_obj_code()
     // width must be set to emit
     assert_width();
 
-    // emit pending RELOCs. 
+    // emit pending RELOCs.
+    parser::kas_error_t diag;
     for (auto p = relocs.begin(); p != reloc_p; ++p)
-        p->emit(*this);
+        p->emit(*this, diag);
 
     // if relocs completed w/o error, emit base value
-    if (deferred_reloc_t::done(*this))
+    if (diag)
+        (*this)(diag.get());
+    else
         stream.put_uint(e_chan, width, data);
     set_defaults();
 }
@@ -109,68 +112,82 @@ void emit_base::operator()(expr_t const& e)
     auto fixed_p = e.get_fixed_p();
 
     if (fixed_p)
-        data = *fixed_p;        
+        put_fixed(*fixed_p);
     else
-        add_reloc()(e);
-    emit_obj_code();    
+    {
+        auto loc_p = e.get_loc_p();   
+        std::cout << "emit_base::operator(): value = " << e << " loc_p = " << loc_p << std::endl;
+        if (auto p = e.get_p<symbol_ref>())
+            std::cout << "emit_base::operator(): symbol = " << *p << std::endl;
+
+        e.apply_visitor(
+            x3::make_lambda_visitor<void>
+                ([this, &loc_p](auto const& value)
+                    { return (*this)(value, loc_p); }
+            ));
+    }
 }
 
 // handle `diag`: emit error into error stream
-void emit_base::operator()(parser::kas_diag_t const& diag)
+void emit_base::operator()(parser::kas_diag_t const& diag, kas_loc const *loc_p)
 {
     stream.put_diag(e_chan, width, diag);
     set_defaults();
 }
 
 // handle "internal" methods as relocatable
-void emit_base::operator()(core_addr_t const& addr)
+void emit_base::operator()(core_addr_t const& addr, kas_loc const *loc_p)
 {
     // add relocation & emit
-    add_reloc()(addr);
+    add_reloc()(addr, loc_p);
     emit_obj_code();    
-    //stream.put_section_reloc(e_chan, r(width), addr.section(), data);
 }
 
 
-void emit_base::operator()(core_symbol_t const& sym)
+void emit_base::operator()(core_symbol_t const& sym, kas_loc const *loc_p)
 {
     // add relocation & emit
-    add_reloc()(sym);
+    add_reloc()(sym, loc_p);
     emit_obj_code();    
-    //stream.put_symbol_reloc(e_chan, r(width), sym, data);
 }
 
-void emit_base::operator()(core_expr_t const& expr)
+void emit_base::operator()(core_expr_t const& expr, kas_loc const *loc_p)
 {
     // add relocation & emit
-    add_reloc()(expr);
+    add_reloc()(expr, loc_p);
     emit_obj_code();    
-    //expr.emit(*this);
 }
+
+template <typename T>
+void emit_base::operator()(T const& e, kas_loc const *loc_p)
+{
+    std::cout << "emit_base: unsupported expression: " << expr_t(e) << std::endl;
+}
+
 
 void emit_base::put_section_reloc(deferred_reloc_t const& r, reloc_info_t const *info_p
-                     , core_section const& section, int64_t addend)
+                     , core_section const& section, int64_t& addend)
 {
     if (!info_p)
     {
         std::cout << "no info for reloc: code = " << +r.reloc.reloc;
         std::cout << " bits = " << +r.reloc.bits << std::endl;
+        // ** put diag **
         return;
     }
 
     stream.put_section_reloc(e_chan, *info_p, r.width, r.offset, section, addend);
 }
 void emit_base::put_symbol_reloc (deferred_reloc_t const& r, reloc_info_t const *info_p
-                     , core_symbol_t  const& symbol, int64_t addend)
+                     , core_symbol_t  const& symbol, int64_t& addend)
 {
     if (!info_p)
     {
         std::cout << "no info for reloc: code = " << +r.reloc.reloc;
         std::cout << " bits = " << +r.reloc.bits << std::endl;
+        // ** put diag **
         return;
     }
-
-        // ** put diag **
 
     stream.put_symbol_reloc(e_chan, *info_p, r.width, r.offset, symbol, addend);
 }

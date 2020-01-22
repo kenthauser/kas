@@ -132,7 +132,7 @@ void ref_loc<T, Index>::print(OS& os) const
 {
     os << "XXX ref_loc::print ";
     os << "[" << boost::typeindex::type_id<object_t>().pretty_name();
-    auto& l = loc();
+    auto& l = _loc;     // just look at `ref_loc_t` loc
     if (l)
         os << ": " << index << " loc: " << l.where();
     os << "]" << std::flush;

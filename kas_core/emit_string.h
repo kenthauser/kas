@@ -138,7 +138,7 @@ namespace kas::core
                 , uint8_t width
                 , uint8_t offset
                 , core_section const& section
-                , int64_t addend
+                , int64_t& addend
                 ) override
         {
 
@@ -158,7 +158,7 @@ namespace kas::core
                 , uint8_t width
                 , uint8_t offset
                 , core_symbol_t const& sym
-                , int64_t addend 
+                , int64_t& addend 
                 ) override
         {
             // only external symbols resolve here

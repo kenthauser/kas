@@ -244,8 +244,9 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 4. allow blank lines
 
-5. error expressions emit as "xx" with diagnostic
+*5. error expressions emit as "xx" with diagnostic
 
 6. unsupported relocations emit as errors
 
-7. 
+7. back-end object relocation absorbs "addend" if rela
+

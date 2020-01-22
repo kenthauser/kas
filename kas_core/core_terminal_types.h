@@ -53,14 +53,15 @@ template <>
 template <typename OS>
 void core::addr_ref::print(OS& os) const
 {
-    os << "[addr: " << index << " loc: " << loc().get() << "]";
+    //os << "[addr: " << index << " loc: " << loc().get() << "]";
+    os << "[addr: " << index << " _loc: " << _loc.get() << "]";
 }
 
 template <>
 template <typename OS>
 void core::symbol_ref::print(OS& os) const
 {
-    os << "[sym: " << index << " loc: " << loc().get() << "]";
+    os << "[sym: " << index << " _loc: " << _loc.get() << "]";
 }
 
 }

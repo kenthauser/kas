@@ -104,10 +104,14 @@ private:
 
     // driven entry-points from stream operators above 
     void operator()(expr_t const& e);
-    void operator()(core_addr_t const&);
-    void operator()(core_symbol_t const&);
-    void operator()(core_expr_t const&);
-    void operator()(parser::kas_diag_t const&);
+    void operator()(core_addr_t const&, kas_loc const * = {});
+    void operator()(core_symbol_t const&, kas_loc const * = {});
+    void operator()(core_expr_t const&, kas_loc const * = {});
+    void operator()(parser::kas_diag_t const&, kas_loc const * = {});
+
+    // unsupported
+    template <typename T>
+    void operator()(T const&, kas_loc const * = {});
     
     // set width & emit object code
     void put_fixed(int64_t value, uint8_t obj_width = {});
@@ -120,9 +124,9 @@ private:
 
     // emit relocations (used by `core_reloc`)
     void put_section_reloc(deferred_reloc_t const&, reloc_info_t const *info_p
-                         , core_section const& section, int64_t addend);
+                         , core_section const& section, int64_t& addend);
     void put_symbol_reloc (deferred_reloc_t const&, reloc_info_t const *info_p
-                         , core_symbol_t  const& symbol, int64_t addend);
+                         , core_symbol_t  const& symbol, int64_t& addend);
     
     // manipulators to configure data stream
     void set_width(std::size_t w);

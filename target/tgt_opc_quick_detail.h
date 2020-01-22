@@ -131,7 +131,7 @@ struct quick_stream : core::emit_stream
             , uint8_t width
             , uint8_t offset
             , core::core_symbol_t const& sym
-            , int64_t addend
+            , int64_t& addend
             ) override
     {
         set_error(__FUNCTION__);
@@ -143,7 +143,7 @@ struct quick_stream : core::emit_stream
             , uint8_t width
             , uint8_t offset
             , core::core_section const& section
-            , int64_t addend
+            , int64_t& addend
             ) override
     {
         set_error(__FUNCTION__);
