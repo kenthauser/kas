@@ -154,6 +154,12 @@ public:
     // just declare because don't know "expression::e_fixed_t" yet.
     e_fixed_t const* get_fixed_p() const;
 
+    // use OBJ to hold `loc`
+    void set_loc(parser::kas_loc const& loc)
+    {
+        this->set_obj_loc(loc);
+    }
+
 private:
     friend core_fits;
 
@@ -187,19 +193,15 @@ private:
     static inline core::kas_clear _c{base_t::obj_clear};
 };
 
-#if 1
-// XXX move to impl
-
 static_assert (!std::is_constructible_v<core_expr_t, float>);
 static_assert ( std::is_constructible_v<core_expr_t, int>);
 static_assert ( std::is_constructible_v<core_expr_t, core_symbol_t const&>);
 static_assert ( std::is_constructible_v<core_expr_t, core_addr_t   const&>);
-#endif
 
 // hook `core_expr_t` expressions into type system...
 // ...test if possible to implicitly construct `core_expr` from first type
 // ...and if second type can then be added/subtracted from `core_expr_t`
-#if 1
+
 // expr operator+ expr ==> core_expr_t&
 template <typename T, typename U,
           typename = std::enable_if_t<std::is_constructible_v<core_expr_t, T>>>
@@ -219,7 +221,5 @@ template <typename U>
 auto operator-(U&& u)
         -> decltype(std::declval<core_expr_t&>().operator-(std::forward<U>(u)))
 { return core_expr_t::add(0).operator-(std::forward<U>(u)); }
-
-#endif
 }
 #endif

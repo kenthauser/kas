@@ -572,8 +572,6 @@ void core_expr<REF>::print(OS& os) const
             os << " (deleted)";
     };
     
-    std::cout << "core_expr::print" << std::endl;
-
     if (reloc_cnt < 0) {
         os << "cx[" << index() << "](" << fixed;
         for (auto const& elem : plus)

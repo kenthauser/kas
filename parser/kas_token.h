@@ -56,12 +56,6 @@ struct kas_token : kas_position_tagged
 
         // set `loc` for wrapped types
         e.set_loc(*this);
-
-        if (auto p = e.get_p<core::symbol_ref>())
-        {
-            std::cout << "kas_token::expr() -> " << *p << std::endl;
-            p->set_loc(*this);
-        }
         return e;
     }
 

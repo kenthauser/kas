@@ -153,7 +153,7 @@ namespace detail
 #endif
 
     // primary template handles types that have no nested `get_p` member:
-    template <typename, typename = e_fixed_t, typename = void>
+    template <typename, typename = int, typename = void>
     struct has_get_template : std::false_type {};
 
     // specialization recognizes types that do have a nested `get_p` member:
@@ -244,7 +244,6 @@ private:
     expr_t(e_fixed_t value, bool) : base_t(value) {}
     
 private:
-#if 0
     // method to call visitor with `type` or `unwrapped` type
     // if `unwrapped` type has `value_type`, use actual value
     // (eg. floating points are too big to be put in variant directly)
@@ -257,43 +256,6 @@ private:
 
         return e.base_t::apply_visitor(
                     x3::make_lambda_visitor<RT>(
-            [&v](auto&& node)
-                -> std::enable_if_t<detail::is_ref_loc_value_v<decltype(node)>, RT>
-                {
-                    return v(node.get()());
-                },
-            [&v](auto&& node)
-                -> std::enable_if_t<detail::is_ref_loc_v<decltype(node)>, RT>
-                {
-                    return v(std::forward<decltype(node)>(node).get());
-                },
-            [&v](auto&& node)
-                -> std::enable_if_t<detail::is_non_ref_loc_v<decltype(node)>, RT>
-                {
-                    return v(std::forward<decltype(node)>(node));
-                }
-            ));
-    }
-#else
-    // method to call visitor with `type` or `unwrapped` type
-    // if `unwrapped` type has `value_type`, use actual value
-    // (eg. floating points are too big to be put in variant directly)
-    template <typename T, typename F>
-    static auto do_visitor(T&& e, F&& v)
-        -> decltype(e.base_t::apply_visitor(std::declval<F>()))
-    {
-        // if `ref_loc_t` type, call visitor with `wrapped` object
-        using RT = typename std::decay_t<F>::result_type;
-
-        return e.base_t::apply_visitor(
-                    x3::make_lambda_visitor<RT>(
-        #if 0
-            [&v](auto&& node)
-                -> std::enable_if_t<detail::decay_in<wrapped, decltype(node)>::value, RT>
-                {
-                    return v(node.get()());
-                },
-        #endif
             [&v](auto&& node)
                 -> std::enable_if_t<detail::decay_in<wrapped, decltype(node)>::value, RT>
                 {
@@ -307,14 +269,14 @@ private:
             ));
     }
 
-#endif
-    // recursively perform get_p<> on variant node to retrive `const *`
+    // perform get_p<> on variant node to retrive `const *`
     template <typename T, typename = void>
     T const *get_nested_p() const
     {
         using RT = T const*;
 
-        return apply_visitor(x3::make_lambda_visitor<RT>(
+        return base_t::apply_visitor(x3::make_lambda_visitor<RT>(
+            // shortcut for `get_fixed_p`
             [](T const& node) -> RT
                 {
                     return &node;
@@ -337,23 +299,6 @@ private:
                 }
             ));
     }
-#if 0
-    // true if variant holds an integral type
-    template <typename T>
-    bool is_integral() const
-    {
-        return apply_visitor(x3::make_lambda_visitor<bool>(
-            [](auto& node) -> std::enable_if_t<
-                          std::is_integral_v<decltype(node)>
-                        , bool>
-                { return true; },
-            [](auto& node) -> std::enable_if_t<
-                          !std::is_integral_v<decltype(node)>
-                        , bool>
-                { return false; }
-         ));
-    }
-#endif
 public:
     // use common routine for const/mutable
     template <typename F>
@@ -391,13 +336,35 @@ public:
         return const_cast<expr_t&>(*this).get_p<T>();
     }
 
-    // XXX need to refactor `get_fixed_p` so it can handle integral
-    // XXX types larger than `e_fixed_t`. For instance, a `std::size_t`
-    // XXX instance of `expr_t` returns nullptr for `get_fixed_p`
-    auto get_fixed_p() const { return get_p<e_fixed_t>(); }
-    auto get_loc_p()   const { return get_nested_p<kas::parser::kas_loc>() ;  }
-    //auto is_missing()  const { return false; }
+    // utility methods which operate on data in the variant
+    auto get_fixed_p() const
+    {
+        return get_nested_p<e_fixed_t>();
+    }
+
+    auto get_loc_p()   const
+    {
+        return get_nested_p<kas::parser::kas_loc>();
+    }
     
+    void set_loc(parser::kas_loc const& loc)
+    {
+        // perform `set_loc` if node has method.
+
+        // ugly (verbose) declaration, but simple SFINAE usage
+        // reference is better match than `const` reference for mutable method
+        return base_t::apply_visitor(x3::make_lambda_visitor<void>(
+            [&loc](auto& node)
+                    -> decltype(
+                std::declval<std::remove_reference_t<decltype(node)>>().set_loc(loc)
+                               )
+            {
+                node.set_loc(loc);
+            },
+            [](auto const& node) {}
+            ));
+    }
+
     // empty: holds default type
     bool empty() const
     {
@@ -406,13 +373,6 @@ public:
             return !*p;
         return false;
     }
-
-    void set_loc(parser::kas_position_tagged const& pos)
-    {
-        //parser::kas_position_tagged pos(loc);
-        std::cout << "expr::set_loc: loc = \"" << std::string(pos) << "\"" << std::endl;
-    }
-
 };
 
 static_assert (sizeof(expr_t) == sizeof(detail::expr_x3_variant)

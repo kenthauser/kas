@@ -40,7 +40,7 @@ struct kas_object
     using derived_t   = Derived;
     using ref_loc_t   = Ref;
     using index_t     = meta::_t<detail::get_index_t<Ref>>;
-    using object_t    = derived_t;      // XXX better name for derived_t
+    using object_t    = derived_t;
 
     // for `expr_fits`
     using emits_value = std::true_type;     // object holds value
@@ -59,7 +59,6 @@ struct kas_object
 
 
 protected:
-    // XXX core_section::final
     static auto& obstack()
     {
         static auto deque_ = new std::deque<Derived, Allocator<Derived>>;
@@ -67,6 +66,7 @@ protected:
     }
 
 public:
+    // NB: index not inited. Use `add` to create permanent object
     kas_object(parser::kas_loc loc = {}) : obj_loc(loc) {}
 
     // create instance (in deque)
@@ -80,59 +80,37 @@ public:
     }
     
     // lookup instance (using index)
-    static derived_t& get(index_t n, parser::kas_loc loc = {})
+    static derived_t& get(index_t n)
     {
         if (n == 0) {
             std::string name = boost::typeindex::type_id<derived_t>().pretty_name();
             throw std::logic_error(name + ": access object zero");
         }
-        auto& s = obstack()[n - 1];
-        if (!s.obj_loc)
-            s.obj_loc = loc;
-        return s;
+        return obstack()[n - 1];
     }
 
-    // return index to use with `get`
+    // getters for instance variables
     auto index() const { return obj_index; }
-#if 0
-    template <typename T>
-    T const* get_p(T const&) const
+    auto& loc()  const { return obj_loc;   }
+
+    // setter for loc: not normally used
+    // special for `core_expr`
+    void set_obj_loc (parser::kas_loc const& loc)
     {
-        return nullptr;
+        obj_loc = loc;
     }
 
-    auto get_p(parser::kas_loc const&) const
-    {
-        return &obj_loc;
-    }
-#endif
     // use friend function to create reference
     // NB: only define if `Ref` type defined as non-void
     template <typename U = Ref, typename = std::enable_if_t<!std::is_same_v<U, void>>>
     Ref ref(parser::kas_loc loc = {}) const
     { 
-        set_loc(loc);
-        return get_ref(derived(), Ref{});
-        //return get_ref(*static_cast<derived_t const *>(this), Ref{});
-        //auto& obj = const_cast<derived_t>(derived());
-        //return get_ref(obj, obj.loc);
+        return get_ref(derived(), loc);
     } 
 
     static auto num_objects()
     {
         return obstack().size();
-    }
-
-    // XXX mutable loc for ref()
-    void set_loc(parser::kas_loc loc) const
-    {
-        if (!this->obj_loc)
-            this->obj_loc = loc;
-    }
-
-    auto& loc() const
-    {
-        return obj_loc;
     }
 
 protected:
@@ -143,7 +121,6 @@ protected:
     // derived objects
     // (via for example: `using base_t::for_each;`)
     //
-
 
     // object iterators (NB: not normally exposed)
     static auto begin() { return obstack().begin(); }
@@ -217,19 +194,14 @@ public:
     static void obj_clear()
     {
         //print_type_name{"kas_object: clear"}.name<derived_t>();
-        obstack().clear();
         derived_t::clear();
+        obstack().clear();
     }
 
     static inline kas_clear _c{obj_clear};
 private:
-    friend          ref_loc_t;
-    index_t         obj_index {};
-   
-    // holds location where object created or first referenced
-    // NB: mutable so can be set by `ref_loc_t`
-    mutable parser::kas_loc obj_loc {};
-
+    index_t         obj_index {};       // index into obstack (+1)
+    parser::kas_loc obj_loc;            // location where first seen
 };
 
 }

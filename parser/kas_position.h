@@ -98,39 +98,6 @@ struct kas_position_tagged_t
 
         return { first, last };
     }
-#if 1
-    // XXX last use, old `kas_token_parser` (used for junk)
-    // XXX XXX XXX
-    // first == Iter() crashes parser
-
-    Iter set_first(Iter first)
-    {
-    #if 0
-        // init to empty
-        if (first == Iter())
-            this->last = first;
-    #endif
-        this->first = first;
-        loc = {};
-        return first;
-    }
-
-    Iter set_last(Iter last)
-    {
-        // XXX should this throw?
-        if (first != Iter())
-        {
-            this->last = last;
-            loc = {};
-        }
-        return last;
-    }
-
-    void set_handler(error_handler<Iter> const *handler) 
-    {
-        this->handler = handler;
-    }
-#endif
 
 protected:
     friend struct kas_token;

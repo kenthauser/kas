@@ -50,7 +50,7 @@ struct kas_diag : core::kas_object<kas_diag<REF>, REF>
     using base_t::for_each;
     using base_t::for_each_if;
     
-    // XXX enable DUMP
+    // enable DUMP
     using NAME = KAS_STRING("kas_diag");
     using base_t::dump;
 
@@ -78,6 +78,12 @@ struct kas_diag : core::kas_object<kas_diag<REF>, REF>
         return base_t::get(base_t::num_objects());
     }
 
+    // diagnostics have fixed location
+    REF ref(parser::kas_loc loc = {}) const
+    {
+        return get_ref(*this, this->loc());
+    }
+
     template <typename OS> void print(OS& os) const;
 
     // named constructors
@@ -94,8 +100,8 @@ struct kas_diag : core::kas_object<kas_diag<REF>, REF>
     static auto& info  (Args&&...args)
             { return base_t::add(kas_diag_enum::INFO, std::forward<Args>(args)...); }
 
-
-// private:
+    
+//private:
     kas_diag_enum level {};
     std::string message;
     static inline core::kas_clear _c{base_t::obj_clear};

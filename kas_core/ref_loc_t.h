@@ -18,7 +18,6 @@
 
 #include "expr/expr_types.h"
 #include "parser/kas_position.h"
-//#include "parser/parser_config.h"
 
 #include <meta/meta.hpp>
 #include <boost/type_index.hpp>
@@ -37,7 +36,17 @@ template <typename T, typename Index = void> struct ref_loc;
 template <template <typename> class T, typename Index = void>
 using ref_loc_t = ref_loc<meta::quote<T>, Index>;
 
+namespace detail
+{
+    // support calling object `set_loc` if defined
+    template <typename object, typename = void>
+    struct has_set_loc : std::false_type {};
 
+    template <typename T>
+    struct has_set_loc<T, std::void_t<
+            decltype(std::declval<T>().set_loc(parser::kas_loc()))
+            >> : std::true_type {};
+}
 
 struct ref_loc_tag {};
 
@@ -48,70 +57,85 @@ struct ref_loc : ref_loc_tag
     using type     = ref_loc;
 
     using index_t  = meta::if_<std::is_void<Index>, index_default, Index>;
-
-    // XXX doesn't eval obj_t. But doesn't hurt.
     using object_t = meta::_t<meta::id<meta::invoke<T, ref_loc>>>;
 
     ref_loc() = default;
 
-    // create object_t instance & return "reference"
+    // public ctor: create object_t instance & return "reference"
     template <typename...Ts>
     static ref_loc add(Ts&&...args)
     {
-        return object_t::add(std::forward<Ts>(args)...).ref();
+        auto& obj = object_t::add(std::forward<Ts>(args)...);
+        return obj.ref(obj.loc());
     }
 
     // get `emits_value` from base type
     using emits_value = meta::_t<meta::defer<expression::emits_value, object_t>>;
 
     // basic tests for `ref`
-    //bool empty() const { return !index; }
+    // 1) empty & 2) equivalence
     operator bool() const { return index; }
     bool operator== (ref_loc const& other) const
         { return index && (index == other.index); }
-    
-    // XXX modify object call to `get_p(T)` to simplify specialization
-    
-    // specialize `get_p` for allowed types (eg e_fixed_t, kas_loc)
-    template <typename U>
-    std::enable_if_t<!std::is_same_v<U, parser::kas_loc>, U const*>
-    get_p() const { return nullptr; }
 
-    // use SFINAE to specialize for `kas_loc`
-    template <typename U>
-    std::enable_if_t<std::is_same_v<U, parser::kas_loc>, U const*>
-    get_p() const
-    {
-        return _loc ? &_loc : nullptr;
-    }
-
-
-    // return *mutable* reference to base type
-    // NB: member template defers dependent name resolution until instantiation
-    template <typename...Ts>
-    object_t& get(Ts&&...) const { return object_t::get(index, loc()); }
-
-    // define getter & setter for `loc`
-    parser::kas_loc const& get_loc() const { return loc(); }
-    parser::kas_loc const& loc() const { return _loc; }
-    ref_loc& set_loc(parser::kas_loc new_loc)
-    {
+    // getters for object and loc + setter for loc
+    // NB: return *mutable* reference to base type
+    object_t& get() const { return object_t::get(index); }
+    auto&     loc() const { return _loc; }
+    void  set_loc(parser::kas_loc new_loc)
+    {  
         _loc = new_loc;
-        return *this;
+
+        // also set `object` loc if setter is defined (only `core_expr`)
+        if constexpr (detail::has_set_loc<object_t>::value)
+            get().set_loc(new_loc);
     }
+
+    // support `expr_variant` get_p/set methods to retrieve/set values
+    // entrypoint from `expr_variant`
+    //template <typename U>
+    //U const *get_p(U, void * = {}) const { return get_p<U>(); }
+   
+    // actual `get_p` dispactch
+    template <typename U>
+    U const *get_p() const { return get_p(U{}); }
 
     template <typename OS> void print(OS& os) const;
+    
+    // define getter & setter for `loc`
+    parser::kas_loc const& get_loc() const { return loc(); }
+
 
 private:
     // declare friend function to access ctor
-    friend ref_loc get_ref(object_t const& obj, ref_loc const&)
+    friend ref_loc get_ref(object_t const& obj, parser::kas_loc const& loc)
     {
-        return { obj.index(), obj.loc() };
+        return { obj.index(), loc };
     }
 
     // private ctor: `friend get_ref()` can use it.
     ref_loc(index_t index, parser::kas_loc loc = {})
         : index(index), _loc(loc) {}
+
+    // specialize `get_p` for allowed types (eg e_fixed_t, kas_loc)
+    // NB: template declaration allows additional specifications per-type
+    parser::kas_loc const *get_p(parser::kas_loc) const
+    {
+        return _loc ? &_loc : nullptr;
+    }
+
+#if  0
+    // NB: `e_fixed_t` defined after this template. So get value via side door
+    template <typename U = object_t
+            , typename RT = decltype(std::declval<object_t>().get_fixed_p())>
+    RT get_p(std::remove_cv_t<std::remove_pointer_t<RT>>) const
+    {
+        return get().get_fixed_p();
+    }
+#endif
+    // default: return nullptr
+    template <typename U>
+    auto get_p(U const&) const { return nullptr; }
 
     template <typename OS>
     friend OS& operator<<(OS& os, ref_loc const& ref)
@@ -126,15 +150,13 @@ private:
     void _() { static_assert(sizeof(ref_loc) <= sizeof(void*)); };
 };
 
+// default printer: print type name & instance variables
 template <typename T, typename Index>
 template <typename OS>
 void ref_loc<T, Index>::print(OS& os) const
 {
-    os << "XXX ref_loc::print ";
     os << "[" << boost::typeindex::type_id<object_t>().pretty_name();
-    auto& l = _loc;     // just look at `ref_loc_t` loc
-    if (l)
-        os << ": " << index << " loc: " << l.where();
+    os << ": " << index << " loc: " << _loc.get();
     os << "]" << std::flush;
 }
 }

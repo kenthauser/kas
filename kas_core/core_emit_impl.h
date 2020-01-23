@@ -117,6 +117,8 @@ void emit_base::operator()(expr_t const& e)
     {
         auto loc_p = e.get_loc_p();   
         std::cout << "emit_base::operator(): value = " << e << " loc_p = " << loc_p << std::endl;
+        if (loc_p)
+            std::cout << "emit_base::operator() where = " << loc_p->where() << std::endl;
         if (auto p = e.get_p<symbol_ref>())
             std::cout << "emit_base::operator(): symbol = " << *p << std::endl;
 

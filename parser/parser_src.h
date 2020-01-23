@@ -95,10 +95,19 @@ public:
         for (auto& c : where) {
             switch (c) {
                 case '\t':
-                    output.append("[\\t]");
+                    output.append("\\t");
                     break;
                 case '\n':
-                    output.append("[\\n]");
+                    output.append("\\n");
+                    break;
+                case '\r':
+                    output.append("\\r");
+                    break;
+                case '\"':
+                    output.append("\\\"");
+                    break;
+                case '\\':
+                    output.append("\\");
                     break;
                 default:
                     output.push_back(c);

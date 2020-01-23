@@ -41,7 +41,7 @@ struct expr_op_visitor
                      , "expression exceeds expr_op::MAX_ARITY");
 
         // scan args for `e_error_t` 
-        constexpr auto err   = Err_Index<Ts...>::value;
+        constexpr auto err = Err_Index<Ts...>::value;
 
         // divide_by_zero needs type_index of denominator for ARITY of 2
         // NB: make sure list has at least two types
@@ -118,6 +118,9 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
             #endif
             }
     }
+
+    if (op_loc.where().empty())
+        std::cout << "op_loc is not set" << std::endl;
 
     // evaluate (function pointer retrieved from hash table)
     auto e = it->second(std::move(args));
