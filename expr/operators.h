@@ -6,6 +6,8 @@
 #include "expr_op_types.h"
 #include "kas/defn_utils.h"
 #include "kas/kas_string.h"
+//#include "parser/token_defn.h"
+#include "parser/token_parser.h"
 
 // type to instantiate definitions and perform string parsing
 #include "parser/sym_parser.h"
@@ -59,6 +61,7 @@ template <> struct bin_ops_v<defn_expr> : list<
     > {};
 
 // Unary op fields: NAME, OP, ALIASES...
+// NB: all priority `PRI_PFX` / `PRI_SFX` 
 template <> struct pfx_ops_v<defn_expr> : list<
       list<STR("-"), std::negate<>>
     , list<STR("+"), op_uplus>
@@ -81,7 +84,7 @@ using gen_types = transform<
 
 using bin_types = gen_types<bin_ops_v, int_<2>>;
 using pfx_types = gen_types<pfx_ops_v, int_<1>, int_<PRI_PFX>, bool_<false>>;
-//using sfx_types = gen_types<sfx_ops_v, int_<1>, int_<PRI_SFX>, bool_<false>>;
+using sfx_types = gen_types<sfx_ops_v, int_<1>, int_<PRI_SFX>, bool_<false>>;
 
 // since bin_type/pfx_type/sfx_types share same type, need to share NAMES
 // use `sym_parser_t` meta_functions to retrieve needed types
@@ -102,7 +105,7 @@ namespace
 // create parsers from lists
 static const auto bin_ops = parser::sym_parser_t<expr_op_defn, bin_types, void, NAMES>();
 static const auto pfx_ops = parser::sym_parser_t<expr_op_defn, pfx_types, void, NAMES>();
-//static const auto sfx_ops = parser::sym_parser_t<expr_op_defn, sfx_types, void, NAMES>();
+static const auto sfx_ops = parser::sym_parser_t<expr_op_defn, sfx_types, void, NAMES>();
 }
 
 //
@@ -110,10 +113,22 @@ static const auto pfx_ops = parser::sym_parser_t<expr_op_defn, pfx_types, void, 
 //
 namespace kas::expression::parser
 {
+
+// declare parsed "tokens"
+using tok_oper_bin = token_defn_t<KAS_STRING("OP_BIN"), expr_op>;
+using tok_oper_pfx = token_defn_t<KAS_STRING("OP_PFX"), expr_op>;
+using tok_oper_sfx = token_defn_t<KAS_STRING("OP_SFX"), expr_op>;
+
+// declare "parsers"
 // NB: x3_oper is "raw" parser, not requiring "x3::lexeme[(&) >> !x3::graphic]"
 auto const bin_op_x3 = x3::no_case[detail::bin_ops.x3_raw()];
 auto const pfx_op_x3 = x3::no_case[detail::pfx_ops.x3_raw()];
-//auto const sfx_op_x3 = x3::no_case[detail::sfx_ops.x3_raw()];
+auto const sfx_op_x3 = x3::no_case[detail::sfx_ops.x3_raw()];
+
+// associate parsers & tokens
+auto const tok_bin_op = parser::token<tok_oper_bin>[bin_op_x3];
+auto const tok_pfx_op = parser::token<tok_oper_pfx>[pfx_op_x3];
+auto const tok_sfx_op = parser::token<tok_oper_sfx>[sfx_op_x3];
 }
 #endif
 

@@ -41,7 +41,7 @@ namespace detail
     // see bop_traits/pfx_traits/etc in `operators.h` for format
     template <typename = void> struct bin_ops_v : list<> {};
     template <typename = void> struct pfx_ops_v : list<> {};
-    //template <typename = void> struct sfx_ops_v : list<> {};
+    template <typename = void> struct sfx_ops_v : list<> {};
 
     // accumulate program options
     template <typename = void> struct options_types_v : list<> {};

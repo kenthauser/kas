@@ -321,9 +321,10 @@ template <typename REF>
 template <typename BASE_T, typename RELOC_T>
 void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& diag) const
 {
-    auto do_emit = [&base, &diag]
+    auto do_emit = [&base, &diag, loc_p=reloc.loc_p]
                     (auto& reloc, expr_term const *term_p = {}, bool pc_rel = false)
     {
+        reloc.loc_p     = loc_p;
         reloc.sym_p     = {};
         reloc.section_p = {};
         if (term_p && term_p->symbol_p)
@@ -427,11 +428,30 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
         do_emit(reloc, &p);
     }
 
-    // need a `plus` for every `minus`
-    if (pc_rel_cnt || minus_cnt)
+    // edge cases: some object formats support subtracting symbols.
+    // test if there are any.
+
+    while(pc_rel_cnt--)
     {
-        std::cout << "core_expr<REF>::emit: insufficient plus terms: " << expr_t(*this) << std::endl;
-        return;
+        RELOC_T m_reloc { {K_REL_SUB, reloc.reloc.bits}, 0, reloc.offset };
+        do_emit(m_reloc, nullptr, true);
+    }
+    
+    if (minus_cnt)
+    {
+        for (auto& m : minus)
+        {
+            if (m.p)
+                continue;
+            if (m.addr_p && &m.addr_p->section() == section_p)
+                continue;
+
+            // here need to emit `minus` relocation
+            // same width & offset
+            RELOC_T m_reloc { {K_REL_SUB, reloc.reloc.bits}, 0, reloc.offset };
+            
+            do_emit(m_reloc, &m);
+        }
     }
 
     // if addend, must emit at least once (fixed data)

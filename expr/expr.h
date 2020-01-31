@@ -23,7 +23,7 @@ namespace expression::parser
     
     // NB: _DECLARE macro just declares a templated `parse_rule` function
     // NB: this rule is instantiated with standard context in `expr.cc`
-    using expr_type = x3::rule<class tag_expr, kas_token>;
+    using expr_type = x3::rule<class _, kas_token>;
     BOOST_SPIRIT_DECLARE(expr_type)
     
     // Declare an "expression" parser hook.

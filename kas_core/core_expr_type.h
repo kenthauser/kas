@@ -30,6 +30,7 @@
 
 #include "kas_object.h"
 #include "parser/kas_error.h"
+#include "parser/token_defn.h"
 #include <list>
 
 namespace kas::core
@@ -38,6 +39,9 @@ namespace kas::core
 using expression::ast::expr_t;
 using expression::e_fixed_t;
 struct core_fits;
+
+// define core_expr instance as token
+using tok_core_expr = parser::token_defn_t<KAS_STRING("CORE_EXPR"), core_expr_t>;
 
 template <typename Ref>
 struct core_expr : kas_object<core_expr<Ref>, Ref>
@@ -50,6 +54,8 @@ struct core_expr : kas_object<core_expr<Ref>, Ref>
 private:
     struct expr_term
     {
+        using token_t = tok_core_expr;
+
         // if more types added -- expand `flatten()`
         expr_term(core_symbol_t const& sym);
         expr_term(core_addr_t   const& addr);
@@ -67,7 +73,6 @@ private:
         core_symbol_t        const *symbol_p {};
         expr_t          const *value_p  {};
         core_addr_t          const *addr_p   {};
-        parser::kas_loc loc {};
 
         // set by `core_expr::get_offset()` to tag offsets
         // NB: mutable values set in `expr_term::offset()`
@@ -116,14 +121,14 @@ public:
     core_expr& operator-(addr_ref   ref) { return *this - ref.get(); }; 
     core_expr& operator-(expr_ref   ref) { return *this - ref.get(); }; 
 
-    // specialize for allowed types (eg e_fixed_t, kas_loc)
-    // XXX modify to `get_p(T)` to simplify specialization
+    // specialize for allowed types (eg e_fixed_t)
     template <typename T>
     T const* get_p() const
     {
         return this->get_p(T{});
     }
    
+    // imperfect match: not found
     template <typename T>
     auto get_p(T const&) const
     {
@@ -153,12 +158,6 @@ public:
 
     // just declare because don't know "expression::e_fixed_t" yet.
     e_fixed_t const* get_fixed_p() const;
-
-    // use OBJ to hold `loc`
-    void set_loc(parser::kas_loc const& loc)
-    {
-        this->set_obj_loc(loc);
-    }
 
 private:
     friend core_fits;

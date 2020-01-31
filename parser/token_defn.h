@@ -24,10 +24,16 @@ struct token_defn_base
     // get token name
     virtual const char *name() const = 0;
     
+    // get expression value `index`
+    virtual unsigned index() const = 0;
+    
+    // declare method to access `data_p` as derived pointer
+    virtual void const *gen_data_p(kas_token const&) const = 0;
+
     // calculate "expr" from token's "raw" and/or "expr" values
     // default: don't modify `kas_token` expr value
     virtual void gen_expr(expr_t& e, kas_token const&) const {};
-    
+
     // test if token is particular type
     token_defn_base const *is_token_type(std::type_info const& info) const
     {
@@ -36,6 +42,7 @@ struct token_defn_base
         return info == typeid(t) ? this : nullptr;
     }
 };
+
 
 // XXX new comment
 // `token_defn_t` is currently a "final" type (eg: `get` method *must* be overridden)
@@ -49,18 +56,14 @@ struct token_defn_t : token_defn_base
 {
     using base_t   = token_defn_base;
     using name_t   = NAME;
-    using value_t  = VALUE_T;       // NB: default if `unused_type`
-    using parser_t = PARSER;
+    using value_t  = VALUE_T;       // NB: value held by token
+    using parser_t = PARSER;        // NB: iff parser is `type`
 
-    struct token_defn_parser
-    {
-        template <typename T>
-        token_defn_parser(T parser)
-        {
-            auto p = x3::as_parser(parser);
+    using type     = token_defn_t;  // for MPL usage
 
-        }
-    };
+    token_defn_t() = default;
+    
+    token_defn_t(kas_token const& token) : token_p(&token) {}
 
     // true iff can generate `parser` from `token_defn_t`
     using has_parser = meta::bool_<!std::is_void_v<VALUE_T> && !std::is_void_v<PARSER>>;
@@ -72,15 +75,31 @@ struct token_defn_t : token_defn_base
         return defn;
     }
 
+    // defined in `kas_parser` (after `expr_t` defined)
+    unsigned index() const override;
+    
     const char *name() const override
     {
         return NAME();
     }
-    
+
+    // method to retrieve & cast token `data` pointer
+    // using `bound` instance of `token_defn_t`
+    VALUE_T const *operator()() const;
+
+private:
+    friend kas_token;       // forward declared in `parser_types.h`
+
+    // declare method to access `data_p` as derived pointer
+    // define out-of-line to access `e_fixed_t`
+    void const *gen_data_p(kas_token const& tok) const override;
+
     // specialize template out-of-line to supply non-default method
     // alternatively: derive subclass & "override"
     // NB: subclass normally needs to "override" `get` as well.
-    void gen_expr(expr_t& e, kas_token const& pos) const override {}
+    void gen_expr(expr_t& e, kas_token const& tok) const override;
+    
+    kas_token const *token_p {};
 };
 
 }

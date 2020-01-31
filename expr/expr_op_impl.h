@@ -128,7 +128,14 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
     // set token location pointer from input tokens
     // ARITY > 1 : loc is from first arg to last
     if constexpr (N > 1)
+    {
+        std::cout << "expr_op::eval:";
+        std::cout << " from " << tokens[0]->where();
+        std::cout << " to " << tokens[N-1]->where();
+        std::cout << std::endl;
+
         return { e, *tokens[0], *tokens[N-1] };
+    }
     // unary prefix : loc is op + arg
     if constexpr (N == 1)
         return { e, op_loc,  *tokens[0] };

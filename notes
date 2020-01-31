@@ -250,3 +250,4 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 7. back-end object relocation absorbs "addend" if rela
 
+8. tokens store pointers to objects

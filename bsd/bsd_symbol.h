@@ -46,17 +46,16 @@ private:
     }
 
 public:
-    static auto get(kas_token const& token)
+    static auto &get(kas_token const& token)
     {
         std::string ident = token;
         auto& sym_p       = sym_table()[ident];
 
-        if (!sym_p) {
-            // insert took place. create the symbol.
+        // if new symbol, create & insert in local table
+        if (!sym_p)
             sym_p = &symbol_type::add(ident, core::STB_TOKEN);
-        }
 
-        return sym_p->ref(token);
+        return *sym_p;
     }
 
 private:

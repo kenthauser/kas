@@ -81,14 +81,16 @@ struct ref_loc : ref_loc_tag
     // getters for object and loc + setter for loc
     // NB: return *mutable* reference to base type
     object_t& get() const { return object_t::get(index); }
-    auto&     loc() const { return _loc; }
+    //auto&     loc() const { return _loc; }
     void  set_loc(parser::kas_loc new_loc)
     {  
         _loc = new_loc;
 
+#if 0
         // also set `object` loc if setter is defined (only `core_expr`)
         if constexpr (detail::has_set_loc<object_t>::value)
             get().set_loc(new_loc);
+#endif
     }
 
     // support `expr_variant` get_p/set methods to retrieve/set values
@@ -101,10 +103,9 @@ struct ref_loc : ref_loc_tag
     U const *get_p() const { return get_p(U{}); }
 
     template <typename OS> void print(OS& os) const;
-    
-    // define getter & setter for `loc`
-    parser::kas_loc const& get_loc() const { return loc(); }
 
+    // define getter & setter for `loc`
+    parser::kas_loc const& get_loc() const { return _loc; }
 
 private:
     // declare friend function to access ctor

@@ -33,42 +33,36 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
     bool parse(Iterator& first, Iterator const& last
                 , Context const& context, RContext const& rcontext, Attribute& attr) const
     {
+        // if parsing string, save location, not token `value_t`
         using raw_string = std::basic_string<typename Iterator::value_type>;
         using s_attr = typename x3::traits::attribute_of<Subject, Context>::type;
         using subject_attribute_type = std::conditional_t<
                         std::is_same_v<raw_string, s_attr>, x3::unused_type, s_attr>;
 
-        subject_attribute_type value;
         x3::skip_over(first, last, context);
         Iterator i = first;
 
+        std::cout << "tok_parser: checking: ";
         print_type_name{TOK_DEFN::name_t::value}.name<s_attr>();
-
-        // remove skipper (implicit lexeme)
-        auto const& skipper = x3::get<x3::skipper_tag>(context);
-
-        using unused_skipper_type = 
-                    x3::unused_skipper<typename std::remove_reference_t<decltype(skipper)>>;
-        unused_skipper_type unused_skipper(skipper);
-
+        
+        subject_attribute_type value;
+        kas_context ctx(context);
         if (this->subject.parse(
                   i, last
-                , x3::make_context<x3::skipper_tag>(unused_skipper, context)
+                , ctx.token_ctx()
                 , rcontext, value))
         {
-            // store parsed value in token (except for strings)
-            expr_t e;
-            if constexpr (!std::is_same_v<decltype(value), x3::unused_type>)
-                e = value;
-                
-            // get the error handler object
-            auto& handler = x3::get<parser::error_handler_tag>(context); 
             // create "token" of `TOK_DEFN` type with parsed location
-            attribute_type tok(TOK_DEFN(), e, {first, i, &handler});
+            auto& handler = x3::get<parser::error_handler_tag>(context); 
+            attribute_type tok(TOK_DEFN(), {first, i, &handler});
             
+            // store parsed value in token (except for strings)
+            if constexpr (!std::is_same_v<decltype(value), x3::unused_type>)
+                tok.set(value);
+                
             // save token as parsed value
             x3::traits::move_to(tok, attr);
-            
+
             // consume parsed characters
             first = i;          // update first to just past parsed token
 
@@ -84,6 +78,7 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
 namespace boost::spirit::x3::extension
 {
 
+// create parser when `PARSER` is specified as type
 template <typename TOK>
 struct as_parser<TOK, std::enable_if_t<std::is_base_of_v<kas::parser::token_defn_base, TOK>>>
 {
@@ -102,7 +97,7 @@ struct as_parser<TOK, std::enable_if_t<std::is_base_of_v<kas::parser::token_defn
 
 namespace kas::parser
 {
-
+// create parser when parser is specified as expression
 template <typename TOK
         , typename = std::enable_if_t<std::is_base_of_v<token_defn_base, TOK>>>
 struct kas_token_x3
@@ -115,7 +110,8 @@ struct kas_token_x3
     }
 };
 
-template <typename T> static const kas_token_x3<T> token = {};
+// convenience method to define parser for `token_defn_t`
+template <typename T> const kas_token_x3<T> token;
 
 }
 

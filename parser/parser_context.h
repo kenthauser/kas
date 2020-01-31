@@ -17,7 +17,25 @@ namespace detail
     struct kas_parser;
 }
 
+#define NEW_SKIPPER
+
 using error_diag_type = detail::kas_parser;
+
+#if 0
+    struct phrase_parse_context
+    {c
+        typedef decltype(
+            make_context<skipper_tag>(as_parser(std::declval<Skipper>())))
+        type;
+        using unused_skipper_type = 
+                    x3::unused_skipper<typename std::remove_reference_t<decltype(skipper)>>;
+        unused_skipper_type unused_skipper(skipper);
+
+#endif
+
+using skipper_type = std::remove_reference_t<decltype(as_parser(std::declval<skipper_t>()))>;
+using no_skipper_type = x3::unused_skipper<skipper_type>;
+#ifndef NEW_SKIPPER
 
 // The Phrase Parse Context
 using skipper_context_type = x3::phrase_parse_context<skipper_t>::type;
@@ -36,20 +54,73 @@ using error_context_type    = x3::context<
                                 , diag_context_type
                                 >;
 
+#else
+
+// Combined Diag & Phrase Parse Context
+using diag_context_type   = x3::context<
+                                  error_diag_tag
+                                , error_diag_type
+                                >;
+
+// Combined Error Handler and Diag Context
+using error_context_type    = x3::context<
+                                  error_handler_tag
+                                , error_handler_type
+                                , diag_context_type
+                                >;
+
+#endif
+using new_skipper_context_type  = x3::context<
+                                  x3::skipper_tag
+                                , skipper_type
+                                , error_context_type
+                                >;
+
+using no_skipper_context_type  =  x3::context<
+                                  x3::skipper_tag
+                                , const no_skipper_type
+                                , error_context_type
+                                >;
+
+#ifndef NEW_SKIPPER
+
 using kas_context_type  = error_context_type;
 using stmt_context_type = error_context_type;
-
+using token_context_type = new_skipper_context_type;
 // Combined Error Handler and Phrase Parse Context
 using expr_context_type = stmt_context_type;
+
+#else
+using kas_context_type  = new_skipper_context_type;
+using stmt_context_type = new_skipper_context_type;
+using token_context_type = no_skipper_context_type;
+// Combined Error Handler and Phrase Parse Context
+//using expr_context_type = token_context_type;
+using expr_context_type = kas_context_type;
+#endif
+
 
 struct kas_context
 {
 private:
+#ifndef NEW_SKIPPER
     static skipper_context_type& ctx_skipper()
     {
         static auto const skipper = x3::as_parser(skipper_t{});
         static auto       ctx     = x3::make_context<x3::skipper_tag>(skipper);
         return ctx;
+    }
+#endif
+    static skipper_type const& skipper()
+    {
+        static auto  const _skipper = x3::as_parser(skipper_t{});
+        return _skipper;
+    }
+
+    static no_skipper_type const& no_skipper()
+    {
+        static const no_skipper_type _no_skipper{skipper()};
+        return _no_skipper;
     }
 
 public:
@@ -62,20 +133,44 @@ public:
         , ehandler(x3::get<error_handler_tag>(ctx))
         {}
 
-    auto& operator()() const
+    kas_context_type const& operator()() const
     {
+    #if 0
+        print_type_name{"skipper"}.name<decltype(skipper())>();
+        print_type_name{"old context"}.name<error_context_type>();
+        print_type_name{"new context"}.name<new_skipper_context_type>();
+    #endif
         return context;
+    }
+
+    no_skipper_context_type const& token_ctx() const
+    {
+    #if 0
+        print_type_name{"skipper"}.name<decltype(skipper())>();
+        print_type_name{"old context"}.name<error_context_type>();
+        print_type_name{"new context"}.name<new_skipper_context_type>();
+    #endif
+        return tok_ctx;
     }
 
 private:
     // NB: data members are initialized in declaration order
     error_diag_type&    diag;
     error_handler_type& ehandler;
-
+#ifndef NEW_SKIPPER
     diag_context_type   ctx_diag    { x3::make_context<error_diag_tag>(diag
                                         , ctx_skipper()) };
     error_context_type  context     { x3::make_context<error_handler_tag>(ehandler
                                         , ctx_diag) };
+#else
+    diag_context_type   ctx_diag    { x3::make_context<error_diag_tag>(diag) };
+    error_context_type  ctx_error   { x3::make_context<error_handler_tag>(ehandler
+                                        , ctx_diag) };
+    new_skipper_context_type  context     { x3::make_context<x3::skipper_tag>(skipper()
+                                        , ctx_error) };
+    no_skipper_context_type  tok_ctx { x3::make_context<x3::skipper_tag>(no_skipper()
+                                        , ctx_error) };
+#endif
 };
 }
 

@@ -182,6 +182,21 @@ struct expr_t : detail::expr_x3_variant
     using wrapped         = detail::wrapped;
     using unwrapped       = detail::unwrapped;
 
+    // find `index` for plain, wrapped, and unwrapped types
+    // NB: invalid is zero. others are (actual index+1)
+    template <typename T>
+    std::enable_if_t<!meta::in<unwrapped, T>::value, unsigned>
+    static constexpr index()
+    {
+        return meta::find_index<variant_types, T>::value + 1;
+    }
+    template <typename T>
+    std::enable_if_t<meta::in<unwrapped, T>::value, unsigned>
+    static constexpr index()
+    {
+        return index<detail::wrap<T>>();
+    }
+
     // XXX deprecated
     using unwrapped_types = meta::concat<detail::plain, detail::unwrapped>;
 

@@ -7,7 +7,6 @@
 // Implement the `shunting yard` algorithm to process precedence
 //
 
-
 #include "expr.h"                   // defines ast & parser terminals
 #include "operators.h"              // defines expression operations
 #include "parser/parser.h"
@@ -65,17 +64,17 @@ struct shunting_yard
 
     // implement shunting yard stack opersations
     // extract `tokens` from pair & push on separate stack
-    // leave `opers` in position-tagged container
-    template <typename OPER_T>
+    // leave `opers` in container (with execution methods)
+    template <typename OPER_PAIR_T>
     struct shunting_stack
     {
         template <typename U>
         shunting_stack(U&& initial) : tokens{ std::forward<U>(initial) } {}
 
-        void push(OPER_T&& t)
+        void push(OPER_PAIR_T&& t)
         {
             // split pair onto two stacks: tokens & operators
-            tokens.push_back(std::move(t.token));
+            tokens.push_back(std::move(t.second));
             opers.push_back(std::move(t));
         }
 
@@ -91,10 +90,13 @@ struct shunting_yard
             opers.pop_back();       // remove consumed object
         }
 
-        bool operator<=(OPER_T const& node) const
+        bool operator<=(OPER_PAIR_T const& node) const
         {
-            auto priority = node.oper->priority();
-            return !empty() && opers.back().oper->priority() <= priority;
+            auto get_priority = [](auto& node)
+                { return tok_oper_bin(node.first)()->priority(); };
+
+            auto priority = get_priority(node);
+            return !empty() && get_priority(opers.back()) <= priority;
         }
 
         bool   empty()  const { return opers.empty(); }
@@ -102,8 +104,8 @@ struct shunting_yard
 
     private:
         // `opers` vector holds `op_tokens_pair_t` instances
-        std::vector<OPER_T>    opers;
-        std::vector<kas_token> tokens;
+        std::vector<OPER_PAIR_T> opers;
+        std::vector<kas_token>   tokens;
     };
 };
 
@@ -112,101 +114,96 @@ struct shunting_yard
 //  Expression Parser Definition
 //////////////////////////////////////////////////////////////////////////
 
-x3::rule<class tag_expr, kas_token> expr  = "expr";
-x3::rule<class inner   , kas_token> inner = "expr_inner";
-x3::rule<class term    , kas_token> term  = "term";
-
-// default implementation of quoted string parser
-detail::dflt_string_p<std::string> qs;// = "quoted string";
-auto const qs_def = x3::lexeme['"' >> *(x3::char_ - '"') >> '"' ];
-BOOST_SPIRIT_DEFINE(qs)
-
 // Parse operator expression pairs into a struct before evaluating.
-// This allows the parsed struct to be position_tagged for
-// error reporting.
-struct op_expr_pair_t : kas_position_tagged
+// Pairs are oper/token for binary & pfx. Pair is token/oper for sfx.
+struct op_expr_pair_t
 {
-    op_expr_pair_t() = default;
-    op_expr_pair_t(expr_op const *op, kas_token const& e)
-            : oper(op), token(e) {}
-
     // for `bin_op`, hook into `expr_op` evalution machinery
     template <typename...Ts>
-    kas_token operator()(Ts&&...args) const
+    kas_token operator()(Ts&&...args) 
     {
-        // `*this` is for operator location
-        return (*oper)(*this, std::forward<Ts>(args)...);
+        if (auto oper_p = tok_oper_bin(first)())
+            return (*oper_p)(first, std::forward<Ts>(args)...);
+        
+        return bad_oper();
     }
 
     // evaluate `pfx_op` and `sfx_op` pairs
-    operator kas_token()
+    operator kas_token() 
     {
-        return (*oper)(*this, token);
+        // check for prefix unary op
+        if (auto oper_p = tok_oper_pfx(first)())
+            return (*oper_p)(first, second);
+        // check for suffix unary op
+        if (auto oper_p = tok_oper_sfx(second)())
+            return (*oper_p)(second, first);
+        
+        // internal logic error
+        return bad_oper();
     }
+
+private:
+    kas_token bad_oper() const
+    {
+        std::string msg{"Internal::invalid operator: "};
+        msg += first.name();
+        msg += ", ";
+        msg += second.name();
     
-    expr_op const *oper;
-    kas_token      token;
+        throw std::logic_error{msg};
+    }
+
+public:
+   kas_token   first, second;
 };
 
-// reverse arg order for suffix pairs
-struct sfx_expr_pair_t : op_expr_pair_t
+// rules for expressions and terminals
+expr_type                         expr   = "expr";
+x3::rule<class _inner, kas_token> inner  = "inner";
+x3::rule<class _term , kas_token> term   = "term";
+
+// rules to parse operators
+x3::rule<class bin_op, op_expr_pair_t> bin_op = "bin_op";
+x3::rule<class pfx_op, op_expr_pair_t> pfx_op = "pfx_op";
+x3::rule<class sfx_op, op_expr_pair_t> sfx_op = "sfx_op";
+
+// Declare primary/unary/binary subpressions
+auto const bin_op_def = tok_bin_op >> term;
+auto const pfx_op_def = tok_pfx_op >  term;
+auto const sfx_op_def = term > sfx_op_x3;
+BOOST_SPIRIT_DEFINE(bin_op, pfx_op, sfx_op)
+
+// Parser "terminal" expressions
+auto inline term_op_p()
 {
-    sfx_expr_pair_t() = default;
-    sfx_expr_pair_t(kas_token e, expr_op const *op)
-        : op_expr_pair_t(op, e) {}
-};
-
-// rules for primary expressions & operator "pairs"
-x3::rule<class p_expr, kas_token>       p_expr = "p_expr";
-x3::rule<class bin_op, op_expr_pair_t>  bin_op = "bin_op";
-x3::rule<class pfx_op, op_expr_pair_t>  pfx_op = "pfx_op";
-//x3::rule<class sfx_op, sfx_expr_pair_t> sfx_op = "sfx_op";
+    // test parsers in reverse order (eg: try `dot` before `float` before `fixed`)
+    return combine_parsers(meta::reverse<term_parsers>());
+}
 
 #if 0
 // XXX rule creates new context which causes link errors...
 // create `paren_op` rule so that parenthesis are added to parsed token
 struct _tag_paren : annotate_on_success {};
-auto const paren_op  = x3::rule<_tag_paren, kas_token> {"paren"} = 
+auto const paren_op  = x3::rule<_tag_paren, kas_token> {"paren"} =
                             '(' > inner > ')';
 #else
 // XXX create "tag" lambda for update...
 auto const paren_op = '(' > inner > ')';
 #endif
 
-// Declare primary/unary/binary subpressions
-
-auto inline term_op_p()
-{
-    // test parsers in reverse order (eg: try `dot` before `float` before `fixed`)
-    using parser_tuple = meta::apply<meta::quote<std::tuple>, meta::reverse<term_parsers>>;
-    return combine_parsers(parser_tuple());
-}
-
-auto const bin_op_def = bin_op_x3 >> term;
-auto const pfx_op_def = pfx_op_x3 >  term;
-//auto const sfx_op_def = term > sfx_op_x3;
 
 // Combine above subexpressions into full expression parsing
 // NB: enabling sfx_op screws up "MISSING" parsing.
-auto const term_def = term_op_p() | pfx_op /* | sfx_op */ | paren_op;
+auto const term_def  = term_op_p() | pfx_op /* | sfx_op */ | paren_op;
 auto const inner_def = (term > *bin_op)[shunting_yard()];
-auto const expr_def = inner;
+auto const expr_def  = inner;
 
 BOOST_SPIRIT_DEFINE(expr, inner, term)
-BOOST_SPIRIT_DEFINE(bin_op, pfx_op)
-
-///////////////////////////////////////////////////////////////////////////
-// Annotation and Error handling
-///////////////////////////////////////////////////////////////////////////
-
-// error handling only for outermost expression
-struct tag_expr : kas::parser::error_handler_base {};
 }
 
 // boost::spirit boilerplate for parsing pairs
 #include <boost/fusion/include/adapt_struct.hpp>
 
-BOOST_FUSION_ADAPT_STRUCT(kas::expression::parser::op_expr_pair_t , oper, token)
-BOOST_FUSION_ADAPT_STRUCT(kas::expression::parser::sfx_expr_pair_t, token, oper)
+BOOST_FUSION_ADAPT_STRUCT(kas::expression::parser::op_expr_pair_t, first, second)
 
 #endif

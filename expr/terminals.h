@@ -113,8 +113,21 @@ using expr_terminals = list<tok_fixed, tok_float, tok_string>;
 using detail::term_types;
 using detail::term_parsers;
 using tok_fixed_t = meta::at_c<term_parsers, 0>;
+
+// find token to hold type T
+// default to none
+template <typename T, typename = void>
+struct token_t : meta::id<void> {};
+
+// use member type `token_t` as value
+template <typename T>
+struct token_t<T, std::void_t<typename T::token_t>> : T::token_t {};
+
+// specialize default types
+template <> struct token_t<e_fixed_t> : detail::tok_fixed {};
 }
 #endif
+
 
 namespace kas
 {
