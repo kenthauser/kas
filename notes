@@ -250,4 +250,16 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 7. back-end object relocation absorbs "addend" if rela
 
-8. tokens store pointers to objects
+*8. tokens store pointers to objects
+
+9. first expression is index [2]
+
+10. `RELOC:` message shows `rela` value for `rel` relocation
+
+11. addr format not same for `addr` & `RELOC`
+
+12. missing not flagged
+
+13. `.long e` has relocation address `0000_0000X`, not `*`
+
+*14. end listing with symbol table (just use dump)

@@ -122,6 +122,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
 #if 1
     kas::core::emit_listing<iterator_type> listing(parse_out);
     obj.emit(listing);
+    kas::core::core_symbol_t::dump(parse_out);
 #endif
 #if 0
     kas::elf::elf_emit elf_obj(ELFCLASS32, ELFDATA2MSB, EM_68K); 

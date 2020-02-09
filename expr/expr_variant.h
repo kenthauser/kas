@@ -184,19 +184,20 @@ struct expr_t : detail::expr_x3_variant
 
     // find `index` for plain, wrapped, and unwrapped types
     // NB: invalid is zero. others are (actual index+1)
-    template <typename T, typename U = std::remove_reference_t<T>>
-    std::enable_if_t<!meta::in<unwrapped, U>::value, unsigned>
-    static constexpr index()
+    template <typename T>
+    static constexpr unsigned index()
     {
-        return meta::find_index<variant_types, U>::value + 1;
-    }
-    template <typename T, typename U = std::remove_reference_t<T>>
-    std::enable_if_t<meta::in<unwrapped, U>::value, unsigned>
-    static constexpr index()
-    {
-        return index<detail::wrap<U>>();
-    }
+        using U = std::remove_cv_t<std::remove_reference_t<T>>;
 
+        if constexpr (meta::in<variant_types, U>::value)
+            return meta::find_index<variant_types, U>::value + 1;
+        if constexpr (meta::in<unwrapped, U>::value)
+            return index(detail::wrap<U>());
+        if constexpr (std::is_integral_v<U> && sizeof(e_fixed_t) <= sizeof(U))
+            return index<e_fixed_t>();
+        return {};
+    }
+    
     template <typename T>
     static constexpr auto index(T) 
     {
