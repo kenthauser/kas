@@ -184,17 +184,23 @@ struct expr_t : detail::expr_x3_variant
 
     // find `index` for plain, wrapped, and unwrapped types
     // NB: invalid is zero. others are (actual index+1)
-    template <typename T>
-    std::enable_if_t<!meta::in<unwrapped, T>::value, unsigned>
+    template <typename T, typename U = std::remove_reference_t<T>>
+    std::enable_if_t<!meta::in<unwrapped, U>::value, unsigned>
     static constexpr index()
     {
-        return meta::find_index<variant_types, T>::value + 1;
+        return meta::find_index<variant_types, U>::value + 1;
     }
-    template <typename T>
-    std::enable_if_t<meta::in<unwrapped, T>::value, unsigned>
+    template <typename T, typename U = std::remove_reference_t<T>>
+    std::enable_if_t<meta::in<unwrapped, U>::value, unsigned>
     static constexpr index()
     {
-        return index<detail::wrap<T>>();
+        return index<detail::wrap<U>>();
+    }
+
+    template <typename T>
+    static constexpr auto index(T) 
+    {
+        return index<T>();
     }
 
     // XXX deprecated
@@ -241,16 +247,19 @@ struct expr_t : detail::expr_x3_variant
 
     // 3. wrapped ctor types
     // NB: only accept lvalues as `unwrapped` instances must by permanently allocated
-    template <typename T, typename = std::enable_if_t<meta::in<unwrapped, T>::value>>
+    template <typename T
+            , typename U = std::remove_reference_t<T>
+            , typename   = std::enable_if_t<meta::in<unwrapped, U>::value>>
     expr_t(T const& t) : base_t(t.ref()) {}
 
     // 4. not integral, not floating point, nor wrapped: forward to base_t
     template <typename T
             , typename U = std::decay_t<T>  // remove const && ref
             , typename   = std::enable_if_t<
-                             !meta::in<unwrapped, U>::value &&
-                             !std::is_integral_v<U>         &&
-                             !std::is_floating_point_v<U>
+                                !meta::in<unwrapped, U>::value
+                             && !std::is_integral_v<U>        
+                             && !std::is_floating_point_v<U>
+                            // && std::is_constructible_v<base_t, U>
                             >>
     expr_t(T&& value) : base_t(std::forward<T>(value)) {}
 

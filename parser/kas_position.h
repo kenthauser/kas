@@ -44,9 +44,8 @@ struct kas_loc
     // test ordering
     bool operator< (kas_loc const& o) const { return loc < o.loc; }
 
-
-    // used in error_handler::where & for ostream
-    auto get() const { return loc; }
+    // used in error_handler::where and for ostream
+    auto const& get() const { return loc; }
     std::string where() const;
 
 private:
@@ -58,28 +57,34 @@ struct kas_position_tagged_t
 {
     using value_type = typename std::iterator_traits<Iter>::value_type;
 
-
-    // three constructors: default, from iter, from loc
+    // four constructors: default, from iter, from loc, from pair of instances
     kas_position_tagged_t() = default;
 
     kas_position_tagged_t(Iter first, Iter last, error_handler<Iter> const* handler)
-        : first(std::move(first)), last(std::move(last)), handler(handler)
-        {}
+        : first(std::move(first)), last(std::move(last)), handler(handler) {}
 
-    kas_position_tagged_t(kas_loc const& loc) : loc(loc.get())
-        {
-            std::cout << "position_tagged: ctor(loc&): loc = " << loc.get();
-            std::cout << " handler = " << handler << std::endl;
-        }
-    
+    kas_position_tagged_t(kas_loc const& loc) : loc(loc.get()) {} 
+
+    kas_position_tagged_t(kas_position_tagged_t const& pos_first
+                        , kas_position_tagged_t const& pos_last)
+                    : kas_position_tagged_t(pos_first)
+    {
+        // handle `end` if specified
+        if (!loc && !handler)
+            *this = pos_last;
+        else if (pos_last.handler)
+            last = pos_last.last;
+    }
+
     // calculate & return `kas_loc`
     // NB: implementation at end of `error_reporting.h`
     operator kas_loc&() const;
+
     void set_loc(kas_loc const& loc)
     {
         this->loc = loc;
     }
-
+    
     // access underlying character array
     auto  begin() const { return first; }
     auto& end()   const { return last;  }
@@ -92,7 +97,7 @@ struct kas_position_tagged_t
 
     std::basic_string<value_type> where() const
     {
-        // if `` not set, use `loc`
+        // if handler not set, use `loc`
         if (!handler)
             loc.where();
 
@@ -100,7 +105,6 @@ struct kas_position_tagged_t
     }
 
 protected:
-    friend struct kas_token;
     Iter first;
     Iter last;
     error_handler<Iter> const *handler{};

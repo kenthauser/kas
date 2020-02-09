@@ -41,10 +41,10 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
 
         x3::skip_over(first, last, context);
         Iterator i = first;
-
+#if 0
         std::cout << "tok_parser: checking: ";
         print_type_name{TOK_DEFN::name_t::value}.name<s_attr>();
-        
+#endif   
         subject_attribute_type value;
         kas_context ctx(context);
         if (this->subject.parse(

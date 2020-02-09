@@ -52,7 +52,7 @@ TEST_EXPR_ARGS  = test/expr_tests
 TEST_PARSE_ARGS = test/parse_tests
 TEST_EMIT_ARGS  = test/emit_tests
 
-#expr.o : CXXFLAGS += -DPRINT_EXPR_INFO
+expr.o : CXXFLAGS += -DPRINT_EXPR_INFO
 expr.o : CXXFLAGS += -DEXPR_TRACE_EVAL
 #arm.o : CXXFLAGS += -DTRACE_ARG_SERIALIZE
 

@@ -46,9 +46,6 @@ namespace kas { namespace core
         {
             using value_type = T; 
 
-            // doesn't participate in expression evaluation
-            using not_expression_type = void;
-
             union
             {
                 CHUNK_BASE_TYPE _base;

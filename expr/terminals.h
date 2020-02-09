@@ -120,11 +120,16 @@ template <typename T, typename = void>
 struct token_t : meta::id<void> {};
 
 // use member type `token_t` as value
+// NB: `token_defn` instances are meta::traits
 template <typename T>
 struct token_t<T, std::void_t<typename T::token_t>> : T::token_t {};
 
 // specialize default types
-template <> struct token_t<e_fixed_t> : detail::tok_fixed {};
+template <> struct token_t<e_fixed_t>  : detail::tok_fixed {};
+template <> struct token_t<e_float_t>  : detail::tok_float {};
+template <> struct token_t<e_string_t> : detail::tok_string {};
+template <> struct token_t<typename detail::float_value<>::type>
+                                       : detail::tok_float {};
 }
 #endif
 

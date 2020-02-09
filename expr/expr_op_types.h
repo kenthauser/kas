@@ -99,20 +99,25 @@ namespace detail
         expr_op(expr_op_defn const& defn)
                 : defn_p(&defn)
                 , ops(defn.op_p, defn.op_p + defn.op_cnt)
-                {};
+                {
+#ifdef EXPR_TRACE_EVAL
+                    std::cout << "expr_op: adding " << +defn.op_cnt;
+                    std::cout << " arg tuples for " << defn_p->name() << std::endl;
+#endif
+                };
 
         // evaluate: forward to visitor
         template <typename...Ts>
-        parser::kas_token operator()(kas_position_tagged const& loc, Ts&&...args) const noexcept;
+        parser::kas_token
+        operator()(kas_position_tagged const& loc, Ts&&...args) const noexcept;
 
         // evalutate: money function
         template <std::size_t N>
-        parser::kas_token eval(kas_position_tagged const& op_loc
+        parser::kas_token
+        eval(kas_position_tagged const& op_loc
                    , parser::kas_token const* const* tokens
                    , HASH_T hash
                    , EVAL::exec_arg_t<N>&& args
-                   , std::size_t err        // index of first "kas_diag" arg
-                   , std::size_t dem        // index of expr_type of denominator
                    ) const noexcept;
 
         static auto set_prec_fn(prec_fn fn)

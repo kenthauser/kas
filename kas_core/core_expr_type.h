@@ -29,8 +29,8 @@
 // The `core_fits` type fully supports branch offsets.
 
 #include "kas_object.h"
-#include "parser/kas_error.h"
 #include "parser/token_defn.h"
+#include "parser/kas_error.h"
 #include <list>
 
 namespace kas::core
@@ -51,10 +51,12 @@ struct core_expr : kas_object<core_expr<Ref>, Ref>
     // enforced by static_assert in `core_expr::get<e_fixed_t>`
     using base_t       = kas_object<core_expr<Ref>, Ref>;
     using base_t::index;
+    
+    // token type to hold `core_expr`
+    using token_t = tok_core_expr;
 private:
     struct expr_term
     {
-        using token_t = tok_core_expr;
 
         // if more types added -- expand `flatten()`
         expr_term(core_symbol_t const& sym);

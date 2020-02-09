@@ -12,118 +12,93 @@ namespace kas::parser
 
 struct kas_token : kas_position_tagged
 {
-    //kas_token() = default;
-
-    // create "default" token from (optional) expr/position pair
-    kas_token(expr_t e, kas_position_tagged const& pos = {})
-        : _expr(std::move(e)), kas_position_tagged(pos)
-    {}
-
-    // init used by token_parser: create non-default token
-    kas_token(token_defn_base const& defn
-            , expr_t e
-            , kas_position_tagged const& pos = {}
-            )
-        : defn_p(&defn.get()), _expr(std::move(e)), kas_position_tagged(pos)
-    {}
-
-    // init from expression and pair of position tags (used by expr evaluation)
-    kas_token(expr_t e
-            , kas_position_tagged const& pos
-            , kas_position_tagged const& pos_end
-            )
-        : kas_token(e, pos)
-    {
-        // update "poisition_tagged" from `begin` to `end`
-        if (!handler)
-            kas_position_tagged(*this) = pos_end;
-        else if (pos_end.handler)
-            last = pos_end.last;
-    }
+    // X3 requires default constructible types
+    kas_token() = default;
     
-    // create "default" token from position pair
-    kas_token(kas_position_tagged const& pos = {})
-        : kas_position_tagged(pos)
-    {}
-
-    // init used by token_parser: create non-default token
+    // ctor used by token_parser: create non-default token
     kas_token(token_defn_base const& defn
             , kas_position_tagged const& pos = {}
             )
-        : defn_p(&defn.get()), kas_position_tagged(pos)
-    {}
+        : defn_p(&defn.get()), kas_position_tagged(pos) {}
 
-    // init from pair of position tags (used by expr evaluation)
-    kas_token(kas_position_tagged const& pos
-            , kas_position_tagged const& pos_end
-            )
-        : kas_token(pos)
+    // ctor used by expression evaluation
+    // metafunction `expression::token_t` maps value types -> token types
+    template <typename T
+            , typename U   = std::remove_reference_t<T>
+            , typename TOK = meta::_t<expression::token_t<U>>
+            , typename     = std::enable_if_t<!std::is_void_v<TOK>>
+            >
+    kas_token(T&& obj) : defn_p{&TOK().get()}
     {
-        // update "poisition_tagged" from `begin` to `end`
-        if (!handler)
-            kas_position_tagged(*this) = pos_end;
-        else if (pos_end.handler)
-            last = pos_end.last;
+        if constexpr (std::is_integral_v<U>)
+            _expr = obj;
+        else
+            data_p = &obj;
+
+        // diagnostics have location already tagged
+        if constexpr (std::is_same_v<U, kas_diag_t>)
+            tag(obj.loc());
+    }
+
+    void tag(kas_position_tagged const& pos
+           , kas_position_tagged const& pos_end = {})
+    {
+        static_cast<kas_position_tagged&>(*this) = {pos, pos_end};
     }
 
     // set data or expression depending on argument
-    void set(void const* p)
+    void set(void const *p)
     {
         data_p = p;
         _expr  = {};
     }
-    
+
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
     std::enable_if_t<sizeof(T) <= sizeof(e_fixed_t)>
     set(T fixed)
     {
         _expr = fixed;
-        data_p = _expr.get_fixed_p();
     }
     
     // get `expr()` from token_defn.
-    // used for "intermediate" expressions. Don't generate 'parser::loc'
-    auto& raw_expr()
+    auto const& expr() const
     {
-        // set data pointer first
-        if (defn_p && !data_p)
-            data_p = defn_p->gen_data_p(*this);
         // covert string to expr if appropriate
         if (defn_p && _expr.empty())
             defn_p->gen_expr(_expr, *this);
+        
         return _expr;
     }
 
-    // gernerate location tagged expression
-    auto& expr()
-    {
-        auto& e = raw_expr();
-
-        if (auto p = e.get_loc_p())
-            std::cout << "kas_token::expr (pre): " << p->where() << std::endl;
-        // set `loc` for wrapped types
-        e.set_loc(*this);
-        if (auto p = e.get_loc_p())
-            std::cout << "kas_token::expr (set): " << p->where() << std::endl;
-        return e;
+    // NB: return `void *` pointer as value (for expression evaluation)
+    // mutable pointer required for `core_expr` & `reg_set` expression
+    // evaluations. All tokens are transient & `void *` symantics seem natural.
+    void *operator()() const
+    { 
+        // if not `impl` implementation, local pointers can vary
+        if (defn_p)
+        {
+            if (defn_p->is_fixed())
+                data_p = _expr.get_fixed_p();
+            else if (!data_p)
+                data_p = defn_p->gen_data_p(*this);
+        }
+        return const_cast<void *>(data_p);
     }
-
-    auto const& expr() const
-    {
-        return const_cast<kas_token&>(*this).expr();
-    }
-
-    // return void * pointer to value (for expression evaluation)
-    auto operator()() const { return data_p; }
-
-    // XXX creates ambiguity with drived types
-    //operator expr_t const&() const { return expr(); }
 
     // provide hooks to `expr_t` methods
     auto get_fixed_p() const
     {
         // fixed values are not location tagged.
         return expr().get_fixed_p();
+    }
+
+    // get expression variant index (+1)
+    unsigned index() const
+    {
+        if (defn_p)
+            return defn_p->index();
+        return {};
     }
 
     template <typename T>
@@ -161,9 +136,11 @@ struct kas_token : kas_position_tagged
     void print(std::ostream& os) const;
 
 private:
+    // `_expr` & `data_p` hold side effects from text->value conversion
+    // thus mark mutable
+    mutable expr_t         _expr; 
+    mutable void const    *data_p {};   // allow conversion from string to object
     token_defn_base const *defn_p {};
-    void            const *data_p {};
-    expr_t                 _expr;
 };
 
 // allow streaming of token;
@@ -174,7 +151,14 @@ template <typename OS> OS& operator<<(OS& os, kas_token const& tok)
 }
 
 // define `token_defn_t` methods which access `kas_token` methods
-// or require `expr_t` definition
+// or require `e_fixed_t` or `expr_t` definition
+template <typename NAME, typename VALUE_T, typename PARSER>
+bool token_defn_t<NAME, VALUE_T, PARSER>::
+            is_fixed() const 
+{ 
+    return std::is_same_v<e_fixed_t, VALUE_T>;
+}
+   
 template <typename NAME, typename VALUE_T, typename PARSER>
 unsigned token_defn_t<NAME, VALUE_T, PARSER>::
             index() const 
@@ -187,31 +171,33 @@ template <typename NAME, typename VALUE_T, typename PARSER>
 void token_defn_t<NAME, VALUE_T, PARSER>::
             gen_expr(expr_t& e, kas_token const& tok) const
 {
-    // integral types already stored in expr
-    if constexpr (std::is_integral_v<VALUE_T> &&
-                  sizeof(VALUE_T) <= sizeof(e_fixed_t))
-    {
-        /* expr already holds value */
-    }
+    // get pointer to value
+    auto p = (*this)(&tok);
 
     // wrapped types need to be location tagged
-    else if constexpr (meta::in<expr_t::unwrapped, VALUE_T>())
-    {
-        e = static_cast<VALUE_T const *>(tok())->ref(tok);
-    }
-
-    // variant types can directly initialize expression
-    else if constexpr (meta::in<expr_t::variant_types, VALUE_T>())
-    {
-        e = *static_cast<VALUE_T const *>(tok());
-    }
-
-#if 1
-    else
-    {
-        throw std::logic_error{"token_defn_t::gen_expr(): not an expression"};
-    }
+    if constexpr (meta::in<expr_t::unwrapped, VALUE_T>::value)
+        e = p->ref(tok);
+#if 0
+    // XXX expr_t allows `expr_op` to `fail` ctor even with following
+    else if constexpr (std::is_constructible_v<expr_t, decltype(*p)>)
+        e = *p;
 #endif
+}
+
+template <typename NAME, typename VALUE_T, typename PARSER>
+VALUE_T const *token_defn_t<NAME, VALUE_T, PARSER>::
+            operator()(kas_token const *p) const
+{
+    // require a token_p
+    if (!p)
+        p = token_p;
+    if (!p)
+        throw std::logic_error{"token_defn_t::operator(): null token"};
+
+    // require matching token type
+    if (!p->is_token_type(*this))
+        return {};
+    return static_cast<VALUE_T const *>((*p)());
 }
 
 template <typename NAME, typename VALUE_T, typename PARSER>
@@ -223,18 +209,6 @@ void const *token_defn_t<NAME, VALUE_T, PARSER>::
     else
         return nullptr;
 }
-
-
-#if 1
-template <typename NAME, typename VALUE_T, typename PARSER>
-VALUE_T const *token_defn_t<NAME, VALUE_T, PARSER>::operator()() const
-{
-    if (token_p && token_p->is_token_type(*this))
-        return static_cast<VALUE_T const *>((*token_p)());
-    std::cout << "token_defn_t::operator(): no match" << std::endl;
-    return {};
-}
-#endif
 }
 
 #endif

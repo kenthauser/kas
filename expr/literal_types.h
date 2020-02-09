@@ -115,10 +115,6 @@ struct kas_string_t : core::kas_object<kas_string_t<REF>, REF>
 
     using base_t::index;
         
-    // doesn't participate in expression evaluation
-    using not_expression_type = void;
-
-
     // access ctor thru static `base_t::add` method
     kas_string_t(uint8_t ch_size = 1, uint8_t unicode = false)
         : ch_size_(ch_size), unicode_(unicode) {}

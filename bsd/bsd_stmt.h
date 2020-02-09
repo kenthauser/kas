@@ -158,7 +158,7 @@ void bsd_stmt_equ::operator()(Context const& ctx)
     auto& value_tok = boost::fusion::at_c<1>(args);
 
     ident = *ident_tok.get_p(core::symbol_ref());
-    value = value_tok.expr();
+    value = value_tok;
 
     x3::_val(ctx) = *this;
 }

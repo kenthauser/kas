@@ -29,14 +29,18 @@ namespace kas::parser
 struct tagged_msg
 {
     tagged_msg() = default;
-    tagged_msg(const char *msg, kas_position_tagged const& pos)
-        : msg(msg), pos_p(&pos) {}
+    tagged_msg(std::string msg, kas_position_tagged const& pos)
+        : msg(std::move(msg)), pos_p(&pos) {}
 
-    operator bool() const { return msg; }
+    operator bool() const { return !msg.empty(); }
 
-    const char *msg{};
+    std::string msg;
     kas_position_tagged const *pos_p{};
 };
+
+// define kas_diag instance as token
+using tok_kas_diag = parser::token_defn_t<KAS_STRING("KAS_DIAG"), kas_diag_t>;
+
 
 
 // ******* assembler diagnostic constructor ************
@@ -49,13 +53,12 @@ struct kas_diag : core::kas_object<kas_diag<REF>, REF>
     using base_t::index;
     using base_t::for_each;
     using base_t::for_each_if;
+
+    using token_t = tok_kas_diag;
     
     // enable DUMP
     using NAME = KAS_STRING("kas_diag");
     using base_t::dump;
-
-    // doesn't participate in expression evaluation
-    using not_expression_type = void;
 
     kas_diag(kas_diag_enum level
            , std::string message

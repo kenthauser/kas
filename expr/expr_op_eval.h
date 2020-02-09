@@ -12,6 +12,8 @@
 #include "kas_core/core_addr.h"
 #include "kas_core/core_expr_type.h"
 
+using expr_op_return = kas::parser::kas_token;
+
 namespace kas::expression::detail
 {
 
@@ -26,7 +28,7 @@ private:
     // Types passed are all "bare" types without qualifiers
     // Args passed are all "void *", dereferenced to `T&` for evaluation
     template <typename OP, typename...Ts, std::size_t...Is>
-    static expr_t
+    static decltype(auto) 
     do_exec(exec_arg_t<sizeof...(Ts)>&& args, std::index_sequence<Is...>)
     {
         return OP{}(*static_cast<Ts *>(std::get<Is>(args))...);
@@ -35,9 +37,10 @@ private:
     // evaluate OP with casted & dereferenced `void *` pointers
     // NB: third template arg for SFINAE support.
     template <typename OP, typename...Ts
-            , typename = decltype(std::declval<OP>()(std::declval<Ts>()...))
-           >
-    static expr_t gen_fn(exec_arg_t<sizeof...(Ts)>&& args)
+            , typename RT = decltype(std::declval<OP>()(std::declval<Ts>()...))
+            , typename    = std::enable_if_t<std::is_constructible_v<expr_op_return, RT>>>
+    static expr_op_return
+    gen_fn(exec_arg_t<sizeof...(Ts)>&& args)
     {
         using indexes = std::make_index_sequence<sizeof...(Ts)>;
         return do_exec<OP, Ts...>(std::move(args), indexes());
@@ -57,13 +60,13 @@ public:
     //
 
     template <std::size_t N>
-    expr_t operator()(exec_arg_t<N>&& args) const
+    auto operator()(exec_arg_t<N>&& args) const
     {
         return fn(std::move(args));
     }
 
     template <typename...Ts>
-    expr_t operator()(Ts*...args) const
+    auto operator()(Ts*...args) const
     {
         exec_arg_t<sizeof...(Ts)> arg_tuple{args...};
         return (*this)(std::move(arg_tuple));
@@ -95,9 +98,11 @@ private:
     // store and dispach by argment arity via union
     union fn_ptrs
     {
+        using RT = expr_op_return;
+        
         // declare pointer to fn accepting `exec_arg_t`
         template <std::size_t N>
-        using exec_fn_t = expr_t (*)(exec_arg_t<N>&&);
+        using exec_fn_t = RT (*)(exec_arg_t<N>&&);
 
         constexpr fn_ptrs(void * = {})    : raw ()  {}
         constexpr fn_ptrs(exec_fn_t<1> p) : fn_1(p) {}
@@ -105,7 +110,7 @@ private:
         constexpr fn_ptrs(exec_fn_t<3> p) : fn_3(p) {}
 
         template <std::size_t N>
-        expr_t operator()(exec_arg_t<N>&& args) const
+        RT operator()(exec_arg_t<N>&& args) const
         {
             if constexpr (N == 1)
                 return fn_1(std::move(args));
@@ -130,22 +135,8 @@ private:
 };
 
 
-// types which participate in expressions
-template <typename T, typename = void>
-struct is_expr_type : std::true_type {};
-
-template <typename T>
-struct is_expr_type<T, std::void_t<typename T::not_expression_type>>
-                    : std::false_type {};
-
-
-using expr_types = filter<typename expr_t::unwrapped_types, quote<is_expr_type>>;
-
 // functions to generate a "HASH" to identify type tuple
 using HASH_T = unsigned;
-
-template <typename T>
-constexpr auto expr_index = meta::find_index<expr_types, std::decay_t<T>>::value + 1;
 
 template <typename T, typename...Ts>
 constexpr static HASH_T hash(HASH_T N = 0)
@@ -158,7 +149,7 @@ constexpr static HASH_T hash(HASH_T N = 0)
         static_assert(sizeof...(Ts) == 0, "Invalid Hash for ARITY");
 
     // fold current `T` into hash
-    N = (N << H_SHIFT) + expr_index<T>;
+    N = (N << H_SHIFT) + expr_t::index<T>();
 
     // recurse as required
     if constexpr (sizeof...(Ts) == 0)
@@ -173,8 +164,23 @@ constexpr static auto hash_fn(meta::list<Ts...>)
     return hash<Ts...>();
 }
 
-// generate list of TERMS for [OP, ARITY] 
+// XXX quick & dirty equivalent fn. needs to be refactored
+static HASH_T hash(kas_token const * const *tokens, std::size_t n)
+{
+    // sanity check for HASH / ARITY
+    constexpr auto H_SHIFT = 8;
 
+    HASH_T hash {};
+    while (n--)
+    {
+        hash <<= H_SHIFT;
+        hash += (*tokens++)->index();
+    }
+    return hash;
+}
+
+// generate list of TERMS for [OP, ARITY] 
+using expr_types = concat<typename expr_t::plain, typename expr_t::unwrapped>;
 template <typename OP, typename ARITY>
 using expr_op_terms = filter<
                  cartesian_product<repeat_n<ARITY, expr_types>>
