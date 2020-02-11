@@ -55,6 +55,7 @@ private:
         static auto _handlers = new std::deque<x3_handler>;
         return *_handlers;
     }
+    
 
     // map kas_loc to error_handler index
     // store "index" & "offset" for each handler
@@ -70,6 +71,13 @@ private:
         return *_map;
     }
 
+public:
+    static auto &get_handler(hdl_index_t idx)
+    {
+        return handlers()[idx-1];
+    }
+
+private:
     // retrieve current error handler
     // NB: not valid if empty!
     auto& top() const
@@ -89,7 +97,7 @@ private:
         if (!m.empty()) {
             // retrieve last LOC from previous handler
             auto& info = top();
-            auto& prev = handlers()[info.idx-1];
+            auto& prev = get_handler(info.idx);
             last_loc   = prev.get_last_loc();
         }
         
@@ -100,7 +108,7 @@ private:
         ++last_loc;
         
         // set new offset
-        auto offset = handlers()[idx-1].set_next_loc(last_loc);
+        auto offset = get_handler(idx).set_next_loc(last_loc);
 
         // create new segment map entry
         m.emplace_hint(m.end(), last_loc, kas_loc_segment_info{idx, offset});
@@ -136,7 +144,6 @@ public:
         if (prev)
             push(prev);
     }
-
 
     // record iterator locations to allow later retrieval
     template <typename AST>
@@ -193,7 +200,7 @@ public:
     // get beginning of file for listing
     static auto initial(hdl_index_t idx)
     {
-        return handlers()[idx-1].first();
+        return get_handler(idx).first();
     }
 
     // retrieve boost::iter_range from appropriate error handler
@@ -211,7 +218,7 @@ public:
         std::cout << "error_handler::info: idx = " << info.idx;
         std::cout << " offset = " << info.offset << std::endl;
 #endif
-        auto& handler = handlers()[info.idx-1];
+        auto& handler = get_handler(info.idx);
         return std::make_pair(info.idx, handler.get_src(loc_idx - info.offset));
     }
 
@@ -220,7 +227,7 @@ public:
                           , std::string const& message, bool print_line = false)
     {
         auto w = raw_where(loc);
-        auto handler = handlers()[w.first-1];
+        auto handler = get_handler(w.first);
         return handler(err_out, w.second.begin(), w.second.end(), message, print_line);
     }
 

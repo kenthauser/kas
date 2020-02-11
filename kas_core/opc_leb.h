@@ -29,16 +29,21 @@ namespace detail
 
 
         template <typename CI>
-        static op_size_t proc_one(CI& ci, expr_t const& e, kas_loc const& loc)
+        static op_size_t proc_one(CI& ci, kas_token const& tok)
         {
+            // confirm token represents a `value` token, not `syntax` token
+            if (!tok.index())
+                *ci++ = e_diag_t::error("Invalid value", tok);
+
             // if fixed, emit `bytes` into stream
-            if (auto p = e.get_fixed_p()) {
+            else if (auto p = tok.get_fixed_p()) {
                 auto fn = [&ci](auto n) { *ci++ = n; };
                 return leb_t::write(fn, *p);
             }
              
             // if variable, emit expression & calculate size later
-            *ci++ = e;
+            else
+                *ci++ = tok.expr();
             return { 1, leb_t::max_size() };
         }
        

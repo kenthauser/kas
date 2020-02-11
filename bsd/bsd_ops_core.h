@@ -23,7 +23,7 @@ struct bsd_align : core::opc::opc_align
     void proc_args(data_t& data, bsd_args&& args, short n = 0)
     {
         // copy location_tagged value
-        kas_token loc = args.front();
+        parser::kas_position_tagged loc = args.front();
         if (auto result = validate_min_max(args, !n, !n))
             return make_error(data, result);
 
@@ -47,8 +47,7 @@ struct bsd_org : core::opc::opc_org
         if (auto result = validate_min_max(args, 1, 1))
             return make_error(data, result);
 
-        kas_token loc = args.front();
-        opc_org::proc_args(data, loc, args.front().expr());
+        opc_org::proc_args(data, args.front());
     }
 };
 
@@ -60,9 +59,8 @@ struct bsd_skip : core::opc::opc_skip
         if (auto result = validate_min_max(args, 1, 2))
             return make_error(data, result);
         
-        // XXX refactor opc_skip
-        kas_token loc = args.front();
-        opc_skip::proc_args(data, loc, args.front().expr());
+        args.emplace_back();        // add `fill` if not specified
+        opc_skip::proc_args(data, args[0], args[1]);
     }
 };
 
@@ -90,7 +88,11 @@ struct bsd_fixed : T
 
         // process container
         for (auto& tok : args)
-            size += proc_fn(tok.expr(), tok);      // pass arg & loc
+        {
+            if (tok_bsd_missing(tok))
+                tok = e_diag_t::error("Missing value", tok);
+            size += proc_fn(tok);
+        }
 
         data.size = size;
     }

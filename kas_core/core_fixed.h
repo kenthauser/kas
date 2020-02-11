@@ -27,7 +27,8 @@
 namespace kas::core::opc
 {
 
-namespace detail {
+namespace detail
+{
     using fixed_t   = typename opc::opcode::data_t::fixed_t;
     using op_size_t = typename opc::opcode::data_t::op_size_t;
 
@@ -198,9 +199,9 @@ struct opc_data : opcode
 
         // move fixed-inserter into lambda context
         // NB: if `loc` not provided, don't pass args that could generate errors...
-        return [bi=std::move(bi)](expr_t const& e, kas_loc const &loc = {}) mutable -> op_size_t
+        return [bi=std::move(bi)](kas_token const& tok) mutable -> op_size_t
             {
-                return derived_t::proc_one(bi, e, loc);
+                return derived_t::proc_one(bi, tok);
             };
     }
 

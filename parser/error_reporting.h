@@ -40,26 +40,31 @@ namespace kas::parser
 {
 namespace x3 = boost::spirit::x3;
 
+// works for `T` is a std::basic_string
 template <typename T>
-std::string escaped_str(T&& in)
+auto escaped_str(std::basic_string<T> const& in)
 {
-    std::string output;
+    std::basic_string<T> output{"\""};
 
     for (auto&& c : in)
     {
         switch (c)
         {
-            case L'\t':
+            case '\t':
                 output.append("[\\t]");
                 break;
-            case L'\n':
+            case '\n':
                 output.append("[\\n]");
+                break;
+            case '\"':
+                output.append("\\\"");
                 break;
             default:
                 output.push_back(c);
                 break;
         }
     }
+    output.append("\"");
     return output;
 }
 
@@ -68,9 +73,9 @@ template <typename OS>
 void kas_diag<REF>::print(OS& os) const
 {
     auto where = this->loc().where();
-    if (where.empty())
+    if (!this->loc())
         where = "*** untagged ***";
-    os << level_msg() << message << " : \"" << escaped_str(where) << "\"";
+    os << level_msg() << message << " : \"" << where << "\"";
 }
 
 
@@ -102,7 +107,7 @@ public:
     {
 #ifdef TRACE_ERROR_HANDLER
         std::cout << "x3_error_handler::tag:";
-        std::cout << " src = " << escaped_str(std::string(first, last));
+        std::cout << " src = " << {first, last};
         std::cout << std::endl;
         std::cout << "x3_error_handler::tag:";
         std::cout << " position = " << position_max() << " AST = ";
@@ -197,7 +202,8 @@ private:
 
     void print_err_msg(std::ostream& err_out, std::size_t line) const;
     void print_line(std::ostream& err_out, Iterator line_start, Iterator last) const;
-    void print_indicator(std::ostream& err_out, Iterator& line_start, Iterator last, char ind) const;
+    void print_indicator(std::ostream& err_out, Iterator& line_start, Iterator last
+                        , char ind, char last_ind = {}) const;
     void skip_whitespace(Iterator& err_pos, Iterator last) const;
     void skip_non_whitespace(Iterator& err_pos, Iterator last) const;
     Iterator get_line_start(Iterator first, Iterator pos) const;
@@ -236,11 +242,13 @@ void x3_error_handler<Iterator>::print_line(std::ostream& err_out, Iterator star
 }
 
 template <typename Iterator>
-void x3_error_handler<Iterator>::print_indicator(std::ostream& err_out, Iterator& start, Iterator last, char ind) const
+void x3_error_handler<Iterator>::print_indicator(std::ostream& err_out
+            , Iterator& start, Iterator last
+            , char ind, char last_ind) const
 {
-    for (; start != last; ++start)
+    for (; start != last; )
     {
-        auto c = *start;
+        auto c = *start++;
         if (c == '\r' || c == '\n')
             break;
 
@@ -249,6 +257,10 @@ void x3_error_handler<Iterator>::print_indicator(std::ostream& err_out, Iterator
             if (tab_position)
                 err_out << std::string(tab_position, ind);
             tab_position = tabs;
+        }
+        else if (start == last && last_ind)
+        {
+            err_out << last_ind;
         }
         else
         {
@@ -347,7 +359,7 @@ void x3_error_handler<Iterator>::operator()(std::ostream& err_out,
     Iterator err_first, Iterator err_last, std::string const& error_message, bool show_line) const
 {
     Iterator first = pos_cache.first();
-    Iterator last = pos_cache.last();
+    Iterator last  = pos_cache.last();
 
     // make sure err_pos does not point to white space
     skip_whitespace(err_first, last);
@@ -358,7 +370,11 @@ void x3_error_handler<Iterator>::operator()(std::ostream& err_out,
     if (show_line)
         print_line(err_out, start, last);
 
-    print_indicator(err_out, start, err_first, ' ');
+    char last_char{};
+    if (err_first == err_last)
+        last_char = '^';
+
+    print_indicator(err_out, start, err_first, ' ', last_char);
     print_indicator(err_out, start, err_last, '~');
     err_out << " <<-- Here" << std::endl;
 
@@ -367,6 +383,7 @@ void x3_error_handler<Iterator>::operator()(std::ostream& err_out,
 
 }
 
+// create permanent `loc` in handler's table
 template <typename Iter>
 kas_position_tagged_t<Iter>::operator kas_loc&() const
 {
@@ -375,7 +392,27 @@ kas_position_tagged_t<Iter>::operator kas_loc&() const
     return loc;
 }
 
+// lookup handler/first/last given `loc`
+template <typename Iter>
+void kas_position_tagged_t<Iter>::
+    init() const
+{
+    auto w = error_handler<Iter>::raw_where(loc);
+    //handler = &error_handler<Iter>::get_handler(w.first);
+    first   = w.second.begin();
+    last    = w.second.end();
+}
 
+template <typename Iter>
+auto kas_position_tagged_t<Iter>::
+    where() const -> std::basic_string<value_type>
+    {
+        // if handler not set, use `loc`
+        if (!handler)
+            return loc.where();
+        //return { first, last };
+        return escaped_str<value_type>({first, last});
+    }
 }
 
 #endif

@@ -63,8 +63,7 @@ struct kas_diag : core::kas_object<kas_diag<REF>, REF>
     kas_diag(kas_diag_enum level
            , std::string message
            , parser::kas_loc loc = {})
-        : level(level), message(std::move(message)), base_t(loc)
-        {}
+        : level(level), message(std::move(message)), base_t(loc) {}
 
     kas_diag(kas_diag_enum level, tagged_msg const& msg)
         : kas_diag(level, msg.msg, *msg.pos_p) {}

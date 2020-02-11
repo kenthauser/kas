@@ -154,14 +154,20 @@ template <typename OS> OS& operator<<(OS& os, kas_token const& tok)
 
 // define `token_defn_t` methods which access `kas_token` methods
 // or require `e_fixed_t` or `expr_t` definition
+
 template <typename NAME, typename VALUE_T, typename PARSER>
 bool token_defn_t<NAME, VALUE_T, PARSER>::
             is_fixed() const 
 {
-    
     return std::is_integral_v<VALUE_T> && (sizeof(e_fixed_t) <= sizeof(VALUE_T));
 }
    
+template <typename NAME, typename VALUE_T, typename PARSER>
+token_defn_t<NAME, VALUE_T, PARSER>::operator bool() const
+{
+    return token_p && token_p->is_token_type<token_defn_t>();
+}
+
 template <typename NAME, typename VALUE_T, typename PARSER>
 unsigned token_defn_t<NAME, VALUE_T, PARSER>::
             index() const 

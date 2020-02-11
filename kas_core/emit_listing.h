@@ -102,10 +102,8 @@ private:
     {
         return [&](e_chan_num num, std::size_t width, parser::kas_diag_t const& diag)
         {
-            if (num == EMIT_DATA) {
-                std::string xxx(width * 2, 'x');
-                buffers[EMIT_DATA].push_back(std::move(xxx));
-            }
+            if (num == EMIT_DATA)
+                buffers[EMIT_DATA].push_back(fmt.fmt_diag(width));
             diagnostics.push_back(diag.index());
         };
     }
@@ -150,7 +148,7 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
         return;
 
     if (loc.get() < prev_loc)
-        throw std::logic_error{"Backwards listing: src = \"" + std::string(loc.where()) + "\""};
+        throw std::logic_error{"Backwards listing: src = " + loc.where()};
     prev_loc = loc.get();
 
     // unpack location into file_num/first/last
@@ -231,7 +229,7 @@ template <typename Iter>
 void listing_line<Iter>::gen_addr(core_expr_dot const& dot)
 {
     if (addr_field.empty())
-        addr_field = e.fmt.fmt_addr(4, dot);
+        addr_field = e.fmt.fmt_addr(dot);
 }
 
 template <typename Iter>
@@ -320,14 +318,6 @@ Iter listing_line<Iter>::emit_line(Iter first, Iter last)
         if (!data_overflow.empty())
             do_emit(next, next);
 
-    // output pending relocations
-    for (; !relocs.empty(); relocs.pop_front())
-    {
-        // select column
-        out << std::string(addr_size, ' ');
-        out << "[RELOC: " << relocs.front() << "]" << std::endl;
-    }
-
     // output pending diagnostics
     for (; !diagnostics.empty(); diagnostics.pop_front())
     {
@@ -339,6 +329,14 @@ Iter listing_line<Iter>::emit_line(Iter first, Iter last)
             parser::error_handler<Iter>::err_message(out, diag.loc(), message);
         else 
             out << message << std::endl;
+    }
+
+    // output pending relocations
+    for (; !relocs.empty(); relocs.pop_front())
+    {
+        // select column
+        out << std::string(addr_size, ' ');
+        out << "[RELOC: " << relocs.front() << "]" << std::endl;
     }
 
     // tail recursion for rest of source

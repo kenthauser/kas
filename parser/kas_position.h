@@ -84,32 +84,31 @@ struct kas_position_tagged_t
     {
         this->loc = loc;
     }
+
+    bool tagged() const { return loc || handler; }
     
     // access underlying character array
-    auto  begin() const { return first; }
-    auto& end()   const { return last;  }
+    auto  begin() const { if (!handler) init(); return first; }
+    auto& end()   const { if (!handler) init(); return last;  }
 
     // convenience methods
     operator std::basic_string<value_type>() const
     {
         return where();
     }
+    
+    std::basic_string<value_type> where() const;
 
-    std::basic_string<value_type> where() const
-    {
-        // if handler not set, use `loc`
-        if (!handler)
-            loc.where();
-
-        return { first, last };
-    }
-
-protected:
-    Iter first;
-    Iter last;
-    error_handler<Iter> const *handler{};
+private:
+    // mutable: can init from `loc`
+    // NB: `handler` not reinited, only iterators
+    void init() const;
+    mutable Iter first;
+    mutable Iter last;
+    mutable error_handler<Iter> const *handler{};
     
 private:
+    // mutable: record when `position_tagged` is stored
     mutable kas_loc loc;
 };
 

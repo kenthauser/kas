@@ -60,11 +60,16 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
     using NAME = m_name<sizeof(T), KAS_STRING("INT")>;
     
     template <typename CI>
-    static op_size_t proc_one(CI& ci, expr_t const& e, kas_loc const& loc)
+    static op_size_t proc_one(CI& ci, kas_token const& tok)
     {
+        std::cout << "opc_size::proc_one: " << tok << std::endl;
+        
+        // confirm token represents a `value` token, not `syntax` token
+        if (!tok.index())
+            *ci++ = e_diag_t::error("Invalid value", tok);
+
         // if fixed argument, check if it fits
-        std::cout << "opc_size::proc_one: " << e << std::endl;
-        if (auto p = e.get_fixed_p())
+        else if (auto p = tok.get_fixed_p())
         {
             // if fits in "chunk", save as data
             if (expression::expr_fits().ufits<T>(*p) == core_fits::yes)
@@ -72,32 +77,24 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
             else
             {
                 // must mark diagnostic here, as numbers don't carry `loc`
-                *ci++ = e_diag_t::error("Value out-of-range", loc);
+                *ci++ = e_diag_t::error("Value out-of-range", tok);
             }
         } 
-#ifdef XXX
-        // missing not allowed
-        else if (token == TOK_MISSING)
-        {
-            *c++ = e_diag_t::error("Missing value", loc);
-        }
-#endif
+
+        // not fixed -- resolve at emit
         else
-        {
-            // not fixed -- resolve at emit
-            *ci++ = e;
-        }
+            *ci++ = tok.expr();
         
         // always fixed size
         return sizeof(T);
     }
         
-    static void emit_one(emit_base& base, expr_t const& value, core_expr_dot const *dot_p)
+    static void emit_one(emit_base& base
+                       , expr_t const& value
+                       , core_expr_dot const *dot_p
+                       )
     {
         // evaluate expression & emit
-#if 0
-        std::cout << "opc_fixed::emit_one: " << value << std::endl;
-#endif
         base << set_size(sizeof(value_type));
         base << value;
     
@@ -124,15 +121,18 @@ struct opc_float : opc_data<opc_float<NBits>, expression::e_float_t>
     static constexpr unsigned size_one  = words_one * (32/8);
 
     template <typename CI>
-    static op_size_t proc_one(CI& ci, expr_t const& e, kas_loc const& loc)
+    static op_size_t proc_one(CI& ci, kas_token const& tok)
     {
-        *ci++ = e;
+        *ci++ = tok.expr();
         return size_one;
     }
 
     static constexpr unsigned sizeof_diag = size_one;
     
-    static void emit_one(emit_base& base, expr_t const& value, core_expr_dot const *dot_p)
+    static void emit_one(emit_base& base
+                       , expr_t const& value
+                       , core_expr_dot const *dot_p
+                       )
     {
         // evaluate expression & emit
 #if 0
@@ -154,7 +154,7 @@ struct opc_string : opc_data<opc_string<ZTerm, char_type>, char_type>
     using NAME = m_name<ZTerm::value, KAS_STRING("STR")>;
 
     template <typename CI>
-    static op_size_t proc_one(CI& ci, expr_t const& e, kas_loc const& loc)
+    static op_size_t proc_one(CI& ci, kas_token const& tok)
     {
         std::size_t size = 0;
         print_type_name{"opc_string"}.name<e_string_t>();

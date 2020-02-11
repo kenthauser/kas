@@ -16,6 +16,10 @@ namespace kas::core
         const core_section *section_p{};
         std::size_t *position_p{};
         const char *suffix_p {};
+        
+        static constexpr int DIGITS_PER_BLOCK       = 4;
+        static constexpr int DIGIT_BLOCK_SEPERATOR  = '_';
+        static constexpr int DIGITS_PER_ADDR        = 6;
 
         emit_formatted(decltype(put) put, decltype(emit_diag) diag, decltype(emit_reloc) reloc) :
                 put(put), emit_diag(diag), emit_reloc(reloc)
@@ -32,15 +36,14 @@ namespace kas::core
             auto *p = std::end(buf);
             *--p = 0;   // null terminate buffer
 
-            if (suffix) {
+            if (suffix)
+            {
                 p -= std::strlen(suffix);
                 std::strcpy(p, suffix);
             }
 
             n *= 2;     // two hex digits per byte
 
-            static constexpr int DIGITS_PER_BLOCK = 4;
-            static constexpr int DIGIT_BLOCK_SEPERATOR = '_';
             for (int i = DIGITS_PER_BLOCK; n--; --i)
             {
                 if (!i && DIGITS_PER_BLOCK)
@@ -54,22 +57,47 @@ namespace kas::core
             return p;   // NB: not dangling -- ctor for std::string
         }
 
-        std::string fmt_addr(uint8_t n, core_expr_dot const& dot) const
+        std::string fmt_diag(unsigned n) const
         {
-            auto offset = dot.offset()();
-            auto suffix = section_suffix(dot.section());
-            return fmt_hex(n, offset, suffix);
+            char out[sizeof(long long) * 3];
+            auto p = std::end(out);
+            *--p = 0;       // zero terminate
+            n *= 2;         // type digits per byte
+
+            for (int i = DIGITS_PER_BLOCK; n--; --i)
+            {
+                if (!i && DIGITS_PER_BLOCK)
+                {
+                    *--p = DIGIT_BLOCK_SEPERATOR;
+                    i = DIGITS_PER_BLOCK;
+                }
+                *--p = 'x';
+            }
+            return p;   // NB: not dangling -- ctor for std::string
         }
 
-        std::string fmt_addr(uint8_t n, core_addr_t const& addr, unsigned long delta = 0) const
+        template <typename T>
+        std::string fmt_addr(core_section const& section
+                           , T const& offset
+                           , long delta = {}) const
         {
-            auto offset = addr.offset();
-            auto suffix = section_suffix(addr.section());
-            return fmt_hex(n, offset() + delta, suffix);
+            auto suffix = section_suffix(section);
+            return fmt_hex((DIGITS_PER_ADDR+1)/2, offset() + delta, suffix);
+        }
+
+        std::string fmt_addr(core_expr_dot const& dot) const
+        {
+            return fmt_addr(dot.section(), dot.offset());
+        }
+
+        std::string fmt_addr(core_addr_t const& addr, long delta = 0) const
+        {
+            return fmt_addr(addr.section(), addr.offset(), delta);
         }
 
         void put_uint (e_chan_num num, uint8_t width, emit_value_t data) override
         {
+            const char *sfx = suffix_p ? suffix_p : "ABS";
             put(num, fmt_hex(width, data, suffix_p));
             if (num == EMIT_DATA)
                 *position_p += width;
@@ -141,8 +169,8 @@ namespace kas::core
                 , int64_t& addend
                 ) override
         {
-
             // offsets are emitted via `put_int`.
+            // use suffix `?` if multiple relocations at same address
             if (!suffix_p)
                 suffix_p = emit_formatted::section_suffix(section);
             else
@@ -162,6 +190,7 @@ namespace kas::core
                 ) override
         {
             // only external symbols resolve here
+            // use suffix `X` if multiple relocations at same address
             if (!suffix_p)
                 suffix_p = "*";
             else
@@ -181,6 +210,7 @@ namespace kas::core
             emit_diag(num, width, diag);
             if (num == EMIT_DATA)
                 *position_p += width;
+            suffix_p = {};
         }
 
         void set_section(core_section const& section) override

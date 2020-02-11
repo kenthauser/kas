@@ -12,14 +12,16 @@ namespace kas::parser
  // XXX
     BOOST_SPIRIT_INSTANTIATE(stmt_x3, iterator_type, stmt_context_type)
 
+// XXX std::string is wrong return type
 std::string kas_loc::where() const
 {
     if (*this)
     {
         auto w = error_handler_type::raw_where(loc);
-        return { w.second.begin(), w.second.end() };
+        //return { w.second.begin(), w.second.end() };
+        return escaped_str<char>({w.second.begin(), w.second.end()});
     }
-    return {};
+    return escaped_str<char>({});
 }
 
 #if 0
@@ -53,7 +55,7 @@ template kas_position_tagged_t<iterator_type>::operator kas_loc&() const;
 void kas_token::print(std::ostream& os) const
 {
     os << "[" << name();
-    os << ": src=\"" << std::string(*this) << "\"";
+    os << ": src= " << this->where();
     if (!_expr.empty())
         os << ", expr=" << expr();
     os << "]";

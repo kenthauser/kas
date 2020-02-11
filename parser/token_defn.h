@@ -33,6 +33,7 @@ struct token_defn_base
     // calculate "expr" from token's `data_p` value
     virtual void gen_expr(expr_t& e, kas_token const&) const {};
 
+    // return info about underlying token
     virtual bool is_fixed() const = 0;
 
     // test if token is particular type
@@ -76,6 +77,9 @@ struct token_defn_t : token_defn_base
         return defn;
     }
 
+    // true if bound instance of this type
+    operator bool() const;
+    
     // true iff token is `e_fixed_t`
     // NB: `e_fixed_t` undefined: use out-of-line definition
     bool is_fixed() const override;

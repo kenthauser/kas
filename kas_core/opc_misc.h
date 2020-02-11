@@ -65,18 +65,14 @@ namespace kas::core::opc
 
         const char *name() const override { return "ORG"; }
 
-        void proc_args(data_t& data, kas_loc loc, expr_t const& value
+        void proc_args(data_t& data, kas_token const& tok
                         , uint8_t fill_size = {}, uint32_t fill_data = {})
         {
-            // Be sure it's location tagged for deferred errors.
-            if (!loc)
-                throw std::runtime_error("opc_org: value not location tagged");
-            
             // fixed: error location for deferred errors
-            data.fixed.loc = loc;
+            data.fixed.loc = tok;
             data.size = fill_size;
             auto& di  = data.di();
-            *di++     = std::move(value);
+            *di++     = tok.expr();
             *di++     = fill_data;
         }
 
@@ -141,20 +137,19 @@ namespace kas::core::opc
         // using opcode<opc_skip>::opcode;
         const char *name() const override { return "SKIP"; }
 
-        void proc_args(data_t& data, kas_loc const& loc, expr_t const& skip, expr_t const& fill = {})
+        void proc_args(data_t& data, kas_token const& skip, kas_token const& fill = {})
         {
-            static constexpr auto fill_default = 0;
-
             auto skip_p = skip.get_fixed_p();
             if (!skip_p)
-                return make_error(data, "fixed skip value required", loc);
+                return make_error(data, "fixed skip value required", skip);
 
             auto fill_p = fill.get_fixed_p();
             
             if (!fill_p)
-                return make_error(data, "fill value must be constant", loc);
+                return make_error(data, "fill value must be constant", fill);
 
             data.size = *skip_p;
+            data.fixed.fixed = *fill_p;
         }
 
         void fmt(data_t const& data, std::ostream& os) const override
