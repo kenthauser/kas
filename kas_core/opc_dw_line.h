@@ -21,8 +21,9 @@ struct opc_dw_file : opcode
                     ::kas::parser::kas_position_tagged loc)
 	{
 		data.fixed.fixed = index;
-		if (index == 0) {
-			auto& sym = core_symbol_t::add(name, STB_LOCAL, STT_FILE);
+		if (index == 0)
+        {
+			auto& sym = core_symbol_t::add(name, loc, STB_LOCAL, STT_FILE);
 #ifdef ENFORCE_FILE_FIRST_LOCAL
 			auto err = sym.set_file_symbol();
 			if (err)

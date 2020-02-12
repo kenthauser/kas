@@ -21,7 +21,7 @@ auto& gen_cie_32(T& emit)
     using dl_addr_t = typename DL_STATE::dl_addr_t;
 
     auto& bgn_cie  = core_addr_t::get_dot();
-    auto& end_cie  = core_symbol_t::add("");//, core::STB_INTERNAL);
+    auto& end_cie  = core_symbol_t::add();
     
     // section length (not including section length field)
     emit(UWORD(), end_cie - bgn_cie - UWORD::size);

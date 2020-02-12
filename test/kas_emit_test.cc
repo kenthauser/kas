@@ -78,7 +78,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
                     if (loc)
                     {
                         auto where = loc.where();
-                        parse_out << "in  : " << src.escaped_str(where) << std::endl;
+                        parse_out << "in  : " << where << std::endl;
                     }
                     parse_out << "raw : " << insn.raw() << std::endl;
                     parse_out << "fmt : " << insn.fmt() << '\n' << std::endl;

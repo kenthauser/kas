@@ -137,9 +137,8 @@ private:
         {
             if (out)
             {
-                auto where = stmt.src();
-                *out << "in :  " << src.escaped_str(where) << std::endl;
-                *out << "out:  " << stmt                   << std::endl;
+                *out << "in :  " << stmt.src() << std::endl;
+                *out << "out:  " << stmt       << std::endl;
             }
         
             try
@@ -160,7 +159,7 @@ private:
                 // print diagnostic message
                 std::ostream& diag = out ? *out : std::cout; 
                 diag << "\n\nInternal error: " << exc_name << ": " << e.what() << std::endl;
-                diag << "while processing: " << src.escaped_str(stmt.src()) << std::endl;
+                diag << "while processing: " << stmt.src() << std::endl;
             }
             
             if (out)

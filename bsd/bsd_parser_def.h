@@ -122,19 +122,16 @@ BOOST_SPIRIT_DEFINE(dot_parser)
 // local labels restart each time standard label defined.
 auto set_last = [](auto& ctx) { bsd_local_ident::set_last(ctx); };
 
-// XXX probably an X3 bug, but fixes eval
-auto XXX_eval = [](auto& ctx) { x3::_val(ctx) = x3::_attr(ctx); };
-
 // label format: ident followed by ':'
-auto const ident_label   = (label   >> ':')[set_last];
-auto const local_label   = (l_ident >> ':')[XXX_eval];
+auto const ident_label = (label >> ':')[set_last];
+auto const local_label = l_ident >> ':';
 
 // for numeric: parse digit as token to get location tagging
-auto const numeric_label = (token<tok_bsd_local_ident>[omit[digit]] >> ':')[bsd_numeric_ident()];
+auto const numeric_label = token<tok_bsd_local_ident>[digit >> ':'];
 
 // parse labels as `symbol_ref`
 auto const all_labels = rule<class _, kas_token> {} =
-            ident_label | local_label ;// XXX| numeric_label;
+            ident_label | local_label | numeric_label;
 
 // create label instruction (exposed to top parser) 
 // NB: location tagged at top level
@@ -186,7 +183,7 @@ auto const raw_stmt_space = rule<class _tag_space, bsd_stmt_pseudo> {} =
 auto const raw_stmt_org = rule<class _org, bsd_stmt_org> {} =
                     ((omit[dot_ident] >> '=') > space_arg)[bsd_stmt_org()];
 
-auto const raw_stmt_equ = rule<class _tag_eque, bsd_stmt_equ> {} =
+auto const raw_stmt_equ = rule<class _tag_equ, bsd_stmt_equ> {} =
                     ((label           >> '=') > space_arg)[bsd_stmt_equ()];
 
 // add extra parser rule to get tagging.

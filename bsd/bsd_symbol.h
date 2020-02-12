@@ -46,14 +46,15 @@ private:
     }
 
 public:
-    static auto &get(kas_token const& token)
+    static auto& get(kas_token const& token)
     {
         std::string ident = token;
         auto& sym_p       = sym_table()[ident];
 
         // if new symbol, create & insert in local table
+        // `name`, `location`, and `type`
         if (!sym_p)
-            sym_p = &symbol_type::add(ident, core::STB_TOKEN);
+            sym_p = &symbol_type::add(ident, token, core::STB_TOKEN);
 
         return *sym_p;
     }
@@ -82,7 +83,7 @@ struct bsd_local_ident
 private:
     static auto& sym_table()
     {
-        static auto _symtab = new std::map<int, value_type>;
+        static auto _symtab = new std::map<unsigned, value_type>;
         return *_symtab;
     }
 
@@ -101,22 +102,25 @@ public:
     static void set_last(Context const& ctx)
     {
         auto& tok = x3::_attr(ctx);
-        last() = tok;
-        sym_table().clear();
-        x3::_val(ctx) = tok;
+        last() = tok;           // save as string
+        sym_table().clear();    // new set of local labels
+        x3::_val(ctx) = tok;    // return value is token
     }
     
-    static auto get(kas_token const& token, unsigned n)
+    static auto& get(kas_token const& token)
     {
-        auto& sym_p  = sym_table()[n];
+        auto p = token.get_fixed_p();
+        auto& sym_p  = sym_table()[*p];
 
-        if (!sym_p) {
+        if (!sym_p)
+        {
             // insert took place. create the symbol.
-            auto ident = last() + ":" + std::to_string(n);
-            sym_p = &symbol_type::add(ident, core::STB_INTERNAL);
+            // `ident` is name stored in symbol table. not used by kas
+            auto ident = last() + ":" + std::to_string(*p);
+            sym_p = &symbol_type::add(ident, token, core::STB_INTERNAL);
         }
 
-        return sym_p->ref(token);
+        return *sym_p;
    }
 
 private:
@@ -133,7 +137,7 @@ private:
 //
 // "numeric" identifiers: "[0-9][bf]"
 //
-// a set of ten forward and backward identifers to single digit
+// a set of ten forward and backward identifers as single digit
 // numeric label
 //
 
@@ -145,10 +149,11 @@ struct bsd_numeric_ident
 private:
     struct numeric_label
     {
-        value_type syms[2];
+        value_type syms[2]; // backward, forward
         unsigned count;     // used to generate symbol name
 
-        void advance() {
+        void advance()
+        {
             syms[0] = syms[1];
             syms[1] = {};    // create empty symbol
             ++count;
@@ -157,48 +162,41 @@ private:
 
     static inline std::array<numeric_label, 10> labels;
 
-    static auto lookup(unsigned n, bool fwd)
+public:
+    static auto& get(kas_token const& token)
     {
-        auto& l = labels[n];
-        auto& sym_p = l.syms[fwd];
+        // determine lookup type by examining parsed string
+        std::string s = token;
 
-        if (!sym_p) {
-            // first reference:: allocate new symbol
-            auto ident = std::to_string(n) + ":" + std::to_string(l.count);
-            sym_p = &symbol_type::add(ident, core::STB_INTERNAL);
+        // first character is label number (0-9)
+        unsigned n = s[0] - '0';    // convert ascii -> N
+        auto& l = labels[n];
+
+        // second character is fwd/back/label
+        bool   fwd{};
+       
+        switch (s[1])
+        {
+            case 'f': case 'F': fwd = true;  break;
+            case 'b': case 'B': fwd = false; break;
+            default:
+                l.advance();        // label definition
+                fwd = false;
+                break;
         }
 
-        return sym_p;
-    }
+        // retrieve appropriate symbol pointer
+        auto& sym_p = l.syms[fwd];
 
-public:
+        // if first reference:: allocate new symbol
+        if (!sym_p)
+        {
+            // symbol table name, not used by kas
+            auto ident = std::to_string(n) + ":" + std::to_string(l.count);
+            sym_p = &symbol_type::add(ident, token, core::STB_INTERNAL);
+        }
 
-    // two ways to lookup numeric symbol:
-    //  - operator() method for label definition
-    //  - get() method for token lookup
-
-    template <typename Context>
-    void operator()(Context const& ctx) const
-    {
-        // attribute is "kas_token"
-        auto&& token = x3::_attr(ctx);
-        
-        // token parsed a single digit.
-        auto  n = *token.begin() - '0';
-
-        // label definition advances label numbers
-        labels[n].advance();
-
-        // lookup & return
-        auto sym_p = lookup(n, false);
-        // XXX need kas_loc
-        x3::_val(ctx) = sym_p->ref();
-    }
-
-    static auto get(kas_token const& token, unsigned n, bool fwd)
-    {
-        auto   sym_p = lookup(n, fwd);
-        return sym_p->ref(token);
+        return *sym_p;
     }
 
 private:

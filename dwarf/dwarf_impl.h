@@ -16,11 +16,13 @@ auto gen_dwarf_32_header(T& emit)
     using core::core_symbol_t;
     using core::opc::opc_label;
 
-    auto bgn_ref  = core_symbol_t::add("dwarf_bgn", core::STB_INTERNAL).ref();
-    auto end_ref  = core_symbol_t::add("dwarf_end", core::STB_INTERNAL).ref();
+    // symbols have name but no location
+    parser::kas_loc loc{};
+    auto bgn_ref  = core_symbol_t::add("dwarf_bgn", loc, core::STB_INTERNAL).ref();
+    auto end_ref  = core_symbol_t::add("dwarf_end", loc, core::STB_INTERNAL).ref();
     
-    auto bhdr_ref = core_symbol_t::add("dwarf_bhdr", core::STB_INTERNAL).ref();
-    auto ehdr_ref = core_symbol_t::add("dwarf_ehdr", core::STB_INTERNAL).ref(); 
+    auto bhdr_ref = core_symbol_t::add("dwarf_bhdr", loc, core::STB_INTERNAL).ref();
+    auto ehdr_ref = core_symbol_t::add("dwarf_ehdr", loc, core::STB_INTERNAL).ref(); 
 
     // section length (not including section length field)
     emit(opc_label(), bgn_ref);

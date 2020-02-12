@@ -48,7 +48,7 @@ template <> struct parser_type_l<defn_fmt> : meta::list<
 
 // parsers for label statements 
 template <> struct label_ops_l<defn_fmt> : meta::list<
-//          bsd::parser::stmt_label_x3
+          bsd::parser::stmt_label_x3
         > {};
 
 // parsers for non-label statements

@@ -52,10 +52,15 @@ private:
 
 public:
     // default: unnamed internal symbols (used by dwarf, etc)
-    core_symbol(std::string name = {}, int8_t binding = STB_INTERNAL, int8_t type = STT_NOTYPE)
+    core_symbol(std::string name = {}
+              , parser::kas_loc loc  = {}
+              , int8_t binding = STB_INTERNAL
+              , int8_t type = STT_NOTYPE
+              )
             : s_name(std::move(name))
             , s_binding(binding)
             , s_type(type)
+            , base_t(loc)
             {}
     
     // setters to modify symbol
