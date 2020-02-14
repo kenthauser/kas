@@ -63,6 +63,9 @@ struct token_defn_t : token_defn_base
 
     using type     = token_defn_t;  // for MPL usage
 
+    // define for tokens parsed by `name`
+    static kas_token (*parser)(kas_token const&);
+
     token_defn_t() = default;
     
     token_defn_t(kas_token const& token) : token_p(&token) {}
@@ -102,16 +105,10 @@ struct token_defn_t : token_defn_base
 private:
     friend kas_token;       // forward declared in `parser_types.h`
 
-    // declare method to access `data_p` as derived pointer
-    // define out-of-line to access `e_fixed_t`
+    // declare method to generate `data_p` from `string`
     void const *gen_data_p(kas_token const& tok) const override;
-#if 0
-    // specialize template out-of-line to supply non-default method
-    // alternatively: derive subclass & "override"
-    // NB: subclass normally needs to "override" `get` as well.
-    void gen_expr(expr_t& e, kas_token const& tok) const override;
-#endif
-    // for "bound" instance
+    
+    // for "bound" instance (in python parlance)
     kas_token const *token_p {};
 };
 

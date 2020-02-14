@@ -4,6 +4,7 @@
 #include "expr/expr_types.h"
 #include "kas_core/core_types.h"
 #include "parser/parser_types.h"
+#include "bsd_arg_defn.h"
 //#include "expr/literal_types.h"
 
 #include <boost/spirit/home/x3.hpp>
@@ -37,6 +38,7 @@ namespace kas::expression::detail
 //     prevent "." being parsed as symbol
 template<> struct term_parsers_v<defn_fmt> : meta::list<
                          bsd::parser::sym_parser_x3
+                         //bsd::tok_bsd_ident
                        , bsd::parser::dot_parser_x3
                        > {};
 }

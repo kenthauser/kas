@@ -93,7 +93,7 @@ struct shunting_yard
         bool operator<=(OPER_PAIR_T const& node) const
         {
             auto get_priority = [](auto& node)
-                { return tok_oper_bin(node.first)()->priority(); };
+                { return TOK_OPER_BIN(node.first)()->priority(); };
 
             auto priority = get_priority(node);
             return !empty() && get_priority(opers.back()) <= priority;
@@ -122,7 +122,7 @@ struct op_expr_pair_t
     template <typename...Ts>
     kas_token operator()(Ts&&...args) 
     {
-        if (auto oper_p = tok_oper_bin(first)())
+        if (auto oper_p = TOK_OPER_BIN(first)())
             return (*oper_p)(first, std::forward<Ts>(args)...);
         
         return bad_oper();
@@ -132,10 +132,10 @@ struct op_expr_pair_t
     operator kas_token() 
     {
         // check for prefix unary op
-        if (auto oper_p = tok_oper_pfx(first)())
+        if (auto oper_p = TOK_OPER_PFX(first)())
             return (*oper_p)(first, second);
         // check for suffix unary op
-        if (auto oper_p = tok_oper_sfx(second)())
+        if (auto oper_p = TOK_OPER_SFX(second)())
             return (*oper_p)(second, first);
         
         // internal logic error
@@ -180,16 +180,7 @@ auto inline term_op_p()
     return combine_parsers(meta::reverse<term_parsers>());
 }
 
-#if 0
-// XXX rule creates new context which causes link errors...
-// create `paren_op` rule so that parenthesis are added to parsed token
-struct _tag_paren : annotate_on_success {};
-auto const paren_op  = x3::rule<_tag_paren, kas_token> {"paren"} =
-                            '(' > inner > ')';
-#else
-// XXX create "tag" lambda for update...
 auto const paren_op = '(' > inner > ')';
-#endif
 
 
 // Combine above subexpressions into full expression parsing

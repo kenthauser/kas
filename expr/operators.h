@@ -115,9 +115,9 @@ namespace kas::expression::parser
 {
 
 // declare parsed "tokens"
-using tok_oper_bin = token_defn_t<KAS_STRING("OP_BIN"), expr_op>;
-using tok_oper_pfx = token_defn_t<KAS_STRING("OP_PFX"), expr_op>;
-using tok_oper_sfx = token_defn_t<KAS_STRING("OP_SFX"), expr_op>;
+using TOK_OPER_BIN = token_defn_t<KAS_STRING("OP_BIN"), expr_op>;
+using TOK_OPER_PFX = token_defn_t<KAS_STRING("OP_PFX"), expr_op>;
+using TOK_OPER_SFX = token_defn_t<KAS_STRING("OP_SFX"), expr_op>;
 
 // declare "parsers"
 // NB: x3_oper is "raw" parser, not requiring "x3::lexeme[(&) >> !x3::graphic]"
@@ -126,9 +126,9 @@ auto const pfx_op_x3 = x3::no_case[detail::pfx_ops.x3_raw()];
 auto const sfx_op_x3 = x3::no_case[detail::sfx_ops.x3_raw()];
 
 // associate parsers & tokens
-auto const tok_bin_op = parser::token<tok_oper_bin>[bin_op_x3];
-auto const tok_pfx_op = parser::token<tok_oper_pfx>[pfx_op_x3];
-auto const tok_sfx_op = parser::token<tok_oper_sfx>[sfx_op_x3];
+auto const tok_bin_op = parser::token<TOK_OPER_BIN>[bin_op_x3];
+auto const tok_pfx_op = parser::token<TOK_OPER_PFX>[pfx_op_x3];
+auto const tok_sfx_op = parser::token<TOK_OPER_SFX>[sfx_op_x3];
 }
 #endif
 

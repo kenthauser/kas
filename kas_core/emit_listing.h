@@ -46,6 +46,13 @@ struct emit_listing : emit_base
     using diag_map_value_t = parser::kas_diag_t const *;
     using diag_map_t       = std::map<diag_map_key_t, diag_map_value_t>;
 
+    // accumulate "listing" in `listing_line` instance
+    listing_line<Iter>& get_line()
+    {
+        static listing_line<Iter> line{out, *this};
+        return line;
+    }
+    
     // save ostream. init `emit_base` with `put` & `put_diag`
     emit_listing(std::ostream& out) : out(out), emit_base(fmt)
     {
@@ -68,6 +75,11 @@ struct emit_listing : emit_base
         // dot always specified for listing
         insn.emit(*this, dot_p);
         gen_listing(*dot_p, insn.loc());
+    }
+
+    ~emit_listing()
+    {
+        //get_line().flush();
     }
 
 private:
@@ -132,56 +144,7 @@ private:
     diag_map_t  diag_map {};
     diag_iter_t diag_iter;
     diag_iter_t diag_end {};
-    
 };
-
-template <typename Iter>
-void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc loc)
-{
-    // accumulate listing into `line`
-    static listing_line<Iter> line(out, *this);
-    
-    //std::cout << "emit_listing: loc = " << loc.get() << std::endl;
-
-    // don't generate listing for internally generated insns
-    if (!loc)
-        return;
-
-    if (loc.get() < prev_loc)
-        throw std::logic_error{"Backwards listing: src = " + loc.where()};
-    prev_loc = loc.get();
-
-    // unpack location into file_num/first/last
-    auto where = parser::error_handler<Iter>::raw_where(loc);
-    auto idx   = where.first;
-    auto first = where.second.begin();
-    auto last  = where.second.end();
-
-    //auto src = std::string(first,last);
-    //std::cout << "emit_listing: idx = " << idx << " src = [" << parser::parser_src::escaped_str(src) << "]" << std::endl;
-    
-    
-    // get iter to where in the source file we left off
-    auto& prev = prev_it(idx)->second;
-
-    //auto prev_src = std::string(prev, first);
-    //std:: cout << "emit_listing: prev = [" << parser::parser_src::escaped_str(prev_src) << "]" << std::endl;
-    // emit all before this insn
-    prev = line.emit_line(prev, first);
-
-    // collect object code for this insn
-    line.gen_addr(dot);
-    line.gen_data(buffers[EMIT_DATA]);
-    line.gen_equ (buffers[EMIT_EXPR]);
-    line.set_force_addr(buffers[EMIT_ADDR]);
-    line.append_reloc(relocs);
-    line.append_diag(diagnostics);
-    line.append_warnings(diagnostics);
-    buffers = {};
-
-    // emit this insn
-    prev = line.emit_line(prev, last);
-}
 
 template <typename Iter>
 struct listing_line
@@ -198,6 +161,7 @@ struct listing_line
     listing_line(std::ostream& out, emit_listing<Iter> &e) : e(e), out(out) {}
 
     void emit(Iter first, Iter last);
+    //void flush() { emit_line(prev, {}); }
 
     void gen_addr(core_expr_dot const& dot);
     void gen_data(data_type const&, bool last = false);
@@ -224,6 +188,46 @@ private:
     reloc_type relocs;
     std::ostream& out;
 };
+
+template <typename Iter>
+void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc loc)
+{
+    // accumulate listing into `line`
+    auto& line = get_line();
+    
+    //std::cout << "emit_listing: loc = " << loc.get() << std::endl;
+
+    // don't generate listing for internally generated insns
+    if (!loc)
+        return;
+
+    if (loc.get() < prev_loc)
+        throw std::logic_error{"Backwards listing: src = " + loc.where()};
+    prev_loc = loc.get();
+
+    // unpack location into file_num/first/last
+    auto where = parser::error_handler<Iter>::raw_where(loc);
+    auto idx   = where.first;
+    auto first = where.second.begin();
+    auto last  = where.second.end();
+
+    // get iter to where in the source file we left off
+    auto& prev = prev_it(idx)->second;
+    prev = line.emit_line(prev, first);
+
+    // collect object code for this insn
+    line.gen_addr(dot);
+    line.gen_data(buffers[EMIT_DATA]);
+    line.gen_equ (buffers[EMIT_EXPR]);
+    line.set_force_addr(buffers[EMIT_ADDR]);
+    line.append_reloc(relocs);
+    line.append_diag(diagnostics);
+    line.append_warnings(diagnostics);
+    buffers = {};
+
+    // emit this insn
+    prev = line.emit_line(prev, last);
+}
 
 template <typename Iter>
 void listing_line<Iter>::gen_addr(core_expr_dot const& dot)

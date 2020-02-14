@@ -41,7 +41,7 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
 
         x3::skip_over(first, last, context);
         Iterator i = first;
-#if 0
+#ifdef TOKEN_TRACE
         std::cout << "tok_parser: checking: ";
         print_type_name{TOK_DEFN::name_t::value}.name<s_attr>();
 #endif   
@@ -72,31 +72,6 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
     }           
 };
 
-}
-//
-
-namespace boost::spirit::x3::extension
-{
-
-// create parser when `PARSER` is specified as type
-template <typename TOK>
-struct as_parser<TOK, std::enable_if_t<std::is_base_of_v<kas::parser::token_defn_base, TOK>>>
-{
-    using parser_t   = typename TOK::parser_t;
-    using Derived    = kas::parser::kas_token_parser<TOK, parser_t>;
-    using type       = Derived const;       // NB: not reference
-    using value_type = Derived;             // XXX should this be `kas_token`
-
-    static type call(TOK const&)
-    {
-        return x3::as_parser(parser_t());
-    }
-};
-
-}
-
-namespace kas::parser
-{
 // create parser when parser is specified as expression
 template <typename TOK
         , typename = std::enable_if_t<std::is_base_of_v<token_defn_base, TOK>>>
@@ -106,12 +81,50 @@ struct kas_token_x3
     kas_token_parser<TOK, typename x3::extension::as_parser<Subject>::value_type>
     operator[](Subject const& subject) const
     {
-        return { as_parser(subject) };
+        return { x3::as_parser(subject) };
     }
 };
 
 // convenience method to define parser for `token_defn_t`
 template <typename T> const kas_token_x3<T> token;
+
+}
+
+// extend `x3` to parse tokens
+
+namespace boost::spirit::x3::extension
+{
+
+// create parser when `PARSER` is specified as type
+template <typename TOK>
+struct as_parser<TOK, std::enable_if_t<std::is_base_of_v<kas::parser::token_defn_base, TOK>>>
+{
+    using Iter      = std::iterator_traits<kas::parser::iterator_type>;
+    using string    = std::basic_string<typename Iter::value_type>;
+    using kas_token = kas::parser::kas_token;
+
+    // `void` if no parser `type` defined for token
+    using parser_t   = typename TOK::parser_t;
+
+    using Derived    = kas::parser::kas_token_parser<TOK, parser_t>;
+    //using Derived    = unary_parser<as_parser<string>, kas_token>;
+    using type       = Derived const;       // NB: not reference
+    using value_type = Derived;             // XXX should this be `kas_token`
+
+    std::enable_if_t<!std::is_void_v<parser_t>, type>
+    static call(TOK const& tok)
+    {
+        print_type_name{"kas_token::as_parser::Derived"}.name<Derived>();
+        return x3::as_parser(parser_t());
+    }
+#if 0
+    std::enable_if_t<std::is_void_v<parser_t>, kas_token>
+    static call(TOK const& tok)
+    {
+        return TOK::parser(tok);
+    }
+#endif
+};
 
 }
 

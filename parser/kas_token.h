@@ -124,10 +124,10 @@ struct kas_token : kas_position_tagged
     {
         return is_token_type<T>();
     }
-
+#if 1
     // XXX 
     bool is_missing() const { return false; };
-
+#endif
     const char *name() const
     {
         return defn_p ? defn_p->name() : "TOKEN";
