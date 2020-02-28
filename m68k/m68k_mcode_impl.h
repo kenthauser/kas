@@ -7,6 +7,7 @@
 namespace kas::m68k
 {
 
+// determine size of immediate arg
 uint8_t m68k_mcode_t::sz(stmt_info_t info) const
 {
     if (info.arg_size != OP_SIZE_VOID)

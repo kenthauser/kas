@@ -19,5 +19,6 @@ e:
     .byte   1
     .long   e
     .long   f - e
+    .globl  f
 f:
     .long   3, e, f, f - e

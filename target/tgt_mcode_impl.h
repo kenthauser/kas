@@ -68,7 +68,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-        size(ARGS_T& args
+        fits(ARGS_T& args
            , stmt_info_t const& info
            , opc::op_size_t& size
            , expr_fits const& fits
@@ -131,6 +131,7 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
 
     // 1. apply args & emit relocs as required
     // now that have selected machine code match, there must be validator for each arg
+    
     // Insert args into machine code "base" value
     // if base code has "relocation", emit it
     auto val_iter = vals().begin();

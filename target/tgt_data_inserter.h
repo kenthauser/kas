@@ -4,8 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 // When the `tgt` opcode & arguments are serialized, a sequence
-// of "16-bit words", "32-bit words", and "expressions" are generated
-// based on opcode & arguments. The fixed arguments (either 16-bit or 32-bit)
+// of "8/16/32-bit words" and "expressions" are generated
+// based on opcode & arguments. The fixed arguments (8-bit, 16-bit or 32-bit)
 // are stored in "core::chunks". When an "expression" needs to be stored,
 // instead of ending the current "chunk", an "expression" is stored in the
 // `core::opcode` expression list, and the current "chunk" remains ready to 
@@ -29,22 +29,6 @@
 //  T* operator()(expr_t&&, mode)
 //  T* operator()(int i   , mode)
 //
-#if 0
-XXX This is obsolete
-// where `mode` describes information to be stored. Supported values are:
-//
-//  M_SIZE_EXPR     // store expression. returns nullptr
-//
-//  M_SIZE_NONE     // no data stored. return pointer to previous word
-//  M_SIZE_ZERO
-//
-//  M_SIZE_LONG     // 32-bit word. Stored big-endian. Return pointer to most-significant word
-//  M_SIZE_UWORD    // unsigned 16-bit word. return pointer to word
-//  M_SIZE_SWORD:   // signed 16-bit word.
-//                         - if fits in 16-bits, return pointer to word
-//                         - if doesn't fit, store as expression
-//
-#endif
 // NB: it is "writers" resposibility to note if `M_SIZE_SWORD` returned nullptr
 // so that it can be read back as `M_SIZE_AUTO`.
 
@@ -90,8 +74,29 @@ struct tgt_data_inserter_t
     }
 
     // make sure `n` bytes available in current "segment" (fixed or chunk)
-    void reserve(unsigned bytes)
+    void reserve(unsigned bytes, unsigned alignment = {})
     {
+        // align block
+        if (alignment)
+        {
+            // if writing in `fixed` area, handle alignment directly
+            alignment /= sizeof(value_type);    // bytes->words
+            if (n == 0)
+                ci.align(alignment);
+            else if (n < alignment)
+            {
+                // align `fixed` buffer
+                auto skip = (alignment - n) % alignment;
+                if (skip)
+                {
+                    p += skip;
+                    n -= skip;
+                }
+            } 
+            else
+                n = 0;  // done with fixed
+        }
+
         // convert to chunks
         auto chunks = (bytes + sizeof(value_type) - 1)/sizeof(value_type);
         
@@ -102,7 +107,7 @@ struct tgt_data_inserter_t
     }
 
     // insert fixed or expression
-    value_type* operator()(expr_t&&e, int size = 0)
+    value_type* operator()(expr_t const& e, int size = 0)
     {
         std::cout << "insert_expr: " << e << " size = " << size << std::endl;
         if (size)
@@ -110,7 +115,7 @@ struct tgt_data_inserter_t
                 return (*this)(*ip, size);
 
         // insert expression after chunk
-        *di++ = std::move(e);
+        *di++ = e;
         return nullptr;
     }
 
@@ -145,9 +150,23 @@ struct tgt_data_inserter_t
         return (*this)(value_type());
     }
 
+    template <typename T>
+    T *write(T const& data = {})
+    {
+        // make sure room in current chunk
+        reserve(sizeof(T), alignof(T));
+        void *raw_p = skip_fixed(sizeof(T));
+
+        // the `reserve` makes sure raw_p is properly aligned
+        auto wp = static_cast<T *>(raw_p);
+        *wp = data;         // save data
+        return wp;          // return pointer
+    }
+
 private:
     value_type* insert_fixed(emit_value_t i, int size);
     value_type* insert_one(value_type i);
+    value_type* skip_fixed(unsigned size) { return p; } // XXX
     
     Inserter& di;
     chunk_inserter_t ci;
@@ -243,7 +262,7 @@ struct tgt_data_reader_t
     }
 
     // make sure `n` words available in current "chunk"
-    void reserve(unsigned bytes)
+    void reserve(unsigned bytes, unsigned alignment = 0)
     {
         // convert to chunks
         auto chunks = (bytes + sizeof(value_type) - 1)/sizeof(value_type);
@@ -299,6 +318,18 @@ struct tgt_data_reader_t
         return n == 0 && chunk_it.empty();
     }
 
+    template <typename T>
+    T *read(T const& dummy = {})
+    {
+        // make sure room in current chunk
+        reserve(sizeof(T), alignof(T));
+        void *raw_p = skip_fixed(sizeof(T));
+
+        // the `reserve` makes sure raw_p is properly aligned
+        auto wp = static_cast<T *>(raw_p);
+        return wp;          // return pointer
+    }
+
 
 private:
     // get next word
@@ -310,6 +341,8 @@ private:
         }
         return chunk_it.get_p();
     }
+
+    value_type *skip_fixed(unsigned) { return p; } // XXX
 
     Iter it;
     chunk_reader_t chunk_it;

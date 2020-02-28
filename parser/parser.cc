@@ -5,6 +5,8 @@
 //#include "stmt_print.h"
 //#include "utility/print_object.h"
 
+#include "kas_token_impl.h"
+
 #include <boost/spirit/home/x3/support/utility/lambda_visitor.hpp>
 
 namespace kas::parser

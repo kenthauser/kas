@@ -180,7 +180,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
 
         // all const args: can select best opcode & calculate size
         if (matching_mcode_p)
-            matching_mcode_p->size(args, info, data.size, fits, trace);
+            matching_mcode_p->fits(args, info, data.size, fits, trace);
         else
             matching_mcode_p = insn.eval(ok, args, info, data.size, fits, trace);
 
@@ -222,7 +222,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
                     , ARGS_T& args
                     , bool& ok_for_quick
                     , TRACE_T *trace
-                    ) const -> kas_error_t
+                    ) -> kas_error_t
 {
 #if 0
     // if no opcodes, then result is HW_TST
@@ -237,7 +237,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
     for (auto& arg : args)
     {
         // if not supported, return error
-        if (auto diag = arg.ok_for_target(get_info()))
+        if (auto diag = arg.ok_for_target(derived().get_info()))
             return diag;
 
         // test if constant    

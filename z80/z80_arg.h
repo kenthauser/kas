@@ -13,7 +13,7 @@ namespace kas::z80
 enum z80_arg_mode : uint8_t
 {
 // Standard Modes
-      MODE_NONE             // 0 when parsed: indicates missing: always zero
+      MODE_NONE             // 0 when parsed: indicates missing arg: always zero
     , MODE_ERROR            // 1 set error message
     , MODE_DIRECT           // 2 direct address (Z80: also accepted for immediate arg. sigh)
     , MODE_INDIRECT         // 3 indirect address
@@ -37,13 +37,18 @@ enum z80_arg_mode : uint8_t
     , NUM_ARG_MODES
 };
 
+// declare `token_reg`
 
 // `REG_T` & `REGSET_T` args also allow `MCODE_T` to lookup types
-struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, z80_reg_t, z80_reg_set>
+struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, void, z80_reg_t, z80_reg_set_t>
 {
-    // inherit default & error ctors
+    // inherit basic ctors
     using base_t::base_t;
-    using error_msg = typename base_t::error_msg;
+    //using error_msg = typename base_t::error_msg;
+    
+    // XXX slated for removal
+    using arg_writeback_t = std::uint16_t *;
+    
 
     // declare size of immed args
     static constexpr tgt::tgt_immed_info sz_info [] =
@@ -53,7 +58,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, z80_reg_t, z80_reg_se
         };
 
     // special processing for `IX`, `IY`
-    void emit(core::emit_base& base, uint8_t sz, unsigned bytes) const;
+//XXX    void emit(core::emit_base& base, uint8_t sz, unsigned bytes) const;
     const char *set_mode(unsigned mode);
 
     template <typename OS> void print(OS&) const;
@@ -67,7 +72,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, z80_reg_t, z80_reg_se
 
     // these are static because only 1 prefix allowed per instruction
     static inline uint8_t prefix;
-    static inline bool has_prefix;
+    static inline bool    has_prefix;
 };
 
 }

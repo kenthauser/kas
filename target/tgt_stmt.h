@@ -65,7 +65,7 @@ public:
 
     // method validate args. Principally for target & address mode
     template <typename ARGS_T, typename TRACE>
-    kas_error_t validate_args(insn_t const&, ARGS_T&, bool& args_arg_const, TRACE * = {}) const;
+    kas_error_t validate_args(insn_t const&, ARGS_T&, bool& args_arg_const, TRACE * = {});
 
     // method to validate mcode. Principally for `stmt_info_t` validation
     // default: not `stmt_info_t`
@@ -81,7 +81,7 @@ public:
     {
         p_obj(args);
     }
-
+    
     // X3 method to initialize instance
     template <typename Context>
     void operator()(Context const& ctx)
@@ -89,7 +89,7 @@ public:
         auto& x3_args = x3::_attr(ctx);
         insn_p        = boost::fusion::at_c<0>(x3_args);
         args          = boost::fusion::at_c<1>(x3_args);
-        x3::_val(ctx) = *this;
+        x3::_val(ctx) = derived();
     
 #if 0
         // XXX Revisit `taging` later
@@ -101,7 +101,7 @@ public:
         error_handler.tag(*this, where.begin(), where.end());
 #endif
     }
-    
+
     insn_t const      *insn_p;
     std::vector<arg_t> args;
 };

@@ -119,11 +119,6 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     kas::core::core_fragment::dump(out);
     kas::dwarf::dl_data::dump(out);
 #endif
-#if 1
-    kas::core::emit_listing<iterator_type> listing(parse_out);
-    obj.emit(listing);
-    kas::core::core_symbol_t::dump(parse_out);
-#endif
 #if 0
     kas::elf::elf_emit elf_obj(ELFCLASS32, ELFDATA2MSB, EM_68K); 
     obj.emit(elf_obj);
@@ -131,6 +126,11 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     auto elf_path = sub_path_ext(input_path.c_str(), "elf");
     std::ofstream elf_out(elf_path, std::ios_base::binary);
     elf_obj.write(elf_out);
+#endif
+#if 1
+    kas::core::emit_listing<iterator_type> listing(parse_out);
+    obj.emit(listing);
+    kas::core::core_symbol_t::dump(parse_out);
 #endif
 #if 0
     kas::core::core_symbol::dump(out);

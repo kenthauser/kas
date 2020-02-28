@@ -232,8 +232,9 @@ struct expr_t : detail::expr_x3_variant
                                             std::remove_reference_t<T>
                                      >>>
     expr_t(T&& value) : expr_t(value, true) {}
-#if 1
+#if 0
     // 2. floating point types that can be converted to `e_float_t`
+    // XXX try using base type detail::e_float<>
     template <typename T
             , typename FLT_T = std::enable_if_t<
                             !std::is_void_v<e_float_t>

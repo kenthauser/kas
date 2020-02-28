@@ -23,7 +23,7 @@ namespace kas::m68k
 using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t, unsigned, 32>;
 
 // info: accumulate info from parsing insn not captured in `args`
-// bitfields don't zero-init. use support type
+// NB: bitfields don't zero-init. use support type
 struct m68k_stmt_info_t : detail::alignas_t<m68k_stmt_info_t, uint16_t>
 {
     using base_t::base_t;
@@ -64,7 +64,7 @@ struct m68k_stmt_t : tgt::tgt_stmt<m68k_stmt_t, m68k_insn_t, m68k_arg_t>
     template <typename ARGS_T, typename TRACE>
     kas_error_t validate_args(insn_t const&, ARGS_T&, bool& args_arg_const, TRACE * = {}) const;
 
-    // method to validate mcode. Principally for argument match
+    // method to validate mcode. Principally for `stmt_info_t` validation
     const char *validate_mcode(mcode_t const *mcode_p) const;
 
     // utility method to test if floating-point insn

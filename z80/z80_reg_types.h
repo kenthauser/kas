@@ -19,28 +19,33 @@
 namespace kas::z80 
 {
 
+// define `z80_reg` types as tokens
+using tok_z80_reg    = parser::token_defn_t<KAS_STRING("Z80_REG"), struct z80_reg_t>;
+
 // Declare Register "Classes" for Z80
 enum { RC_NONE, RC_GEN, RC_DBL, RC_IDX, RC_SP, RC_AF, RC_I, RC_R, RC_CC, NUM_RC };
 
 // Z80 register type definition is regular
-struct z80_reg_set;
 struct z80_reg_t : tgt::tgt_reg<z80_reg_t>
 {
     using hw_tst         = hw::hw_tst;
     using reg_defn_idx_t = uint8_t;
-    using reg_set_t      = z80_reg_set;
+    using token_t        = tok_z80_reg;
     
     using base_t::base_t;       // use inherited ctors
 };
 
 // reg_set holds [register + offset] values
-struct z80_reg_set : tgt::tgt_reg_set<z80_reg_set, z80_reg_t>
+template <typename Ref>
+struct z80_reg_set : tgt::tgt_reg_set<z80_reg_set<Ref>, z80_reg_t, Ref>
 {
+    using base_t = tgt::tgt_reg_set<z80_reg_set<Ref>, z80_reg_t, Ref>;
     using base_t::base_t;
 };
 
 // alias the "reference" used for for register_set type
-using z80_rs_ref = typename z80_reg_set::ref_loc_t;
+using z80_rs_ref    = core::ref_loc_t<z80_reg_set>;
+using z80_reg_set_t = typename z80_rs_ref::object_t;
 }
 
 // declare X3 parser for `reg_t`
@@ -49,7 +54,7 @@ namespace kas::z80::parser
     namespace x3 = boost::spirit::x3;
     
     // declare parser for Z80 register tokens
-    using z80_reg_x3 = x3::rule<struct X_reg, z80_reg_t>;
+    using z80_reg_x3 = x3::rule<struct X_reg, kas::parser::kas_token>;
     BOOST_SPIRIT_DECLARE(z80_reg_x3)
 }
 

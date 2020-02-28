@@ -59,7 +59,7 @@ auto eval_insn_list
     for (auto op_iter = insn.mcodes.begin(); bitmask; ++op_iter, ++index)
     {
         bool op_is_ok = bitmask & 1;    // test if current was OK
-        bitmask >>= 1;                  // set up for next:b 
+        bitmask >>= 1;                  // set up for next 
         if (!op_is_ok)                  // loop if not ok
             continue;
 
@@ -80,7 +80,7 @@ auto eval_insn_list
         op_size_t size;
        
         // NB: size `binds` info & may modify global arg
-        auto result = (*op_iter)->size(args, stmt_info, size, fits, trace);
+        auto result = (*op_iter)->fits(args, stmt_info, size, fits, trace);
 
         if (result == fits.no)
         {
@@ -175,7 +175,7 @@ auto eval_insn_list
             op_size_t size;
             
             // NB: size `binds` info. modifies passed arg.
-            mcode_p->size(args, stmt_info, size, fits, nullptr);
+            mcode_p->fits(args, stmt_info, size, fits, nullptr);
         }
     }
 

@@ -84,7 +84,7 @@ namespace detail
                                  , e_float_t
                                  , meta::invoke<detail::float_p<>::type, e_float_t>>;
     using tok_string = parser::token_defn_t<KAS_STRING("E_STRING")
-                                 , e_float_t
+                                 , e_string_t
                                  , meta::invoke<detail::string_p<>::type, e_string_t>>;
 
 using expr_terminals = list<tok_fixed, tok_float, tok_string>;
@@ -142,7 +142,6 @@ namespace kas
     using expression::e_string_t;
     using expression::err_msg_t;
     using e_diag_t  = parser::kas_diag_t;
-    //using expression::e_string_t;
 }
 
 #endif

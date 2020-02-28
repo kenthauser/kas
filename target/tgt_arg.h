@@ -1,14 +1,21 @@
 #ifndef KAS_TARGET_TGT_ARG_H
 #define KAS_TARGET_TGT_ARG_H
 
-#include "parser/kas_token.h"
+#include "parser/token_defn.h"
 
 namespace kas::tgt
 {
 
-using kas::parser::kas_token; 
-struct token_missing  : kas_token {};
-    
+// define "tokens" to hold parsed target CPU args
+using parser::token_defn_t;
+using parser::kas_token;
+
+// forward declare writeback pointer
+namespace opc { namespace detail
+{
+    struct arg_serial_t;
+}}
+
 // declare immediate information type
 struct tgt_immed_info
 {
@@ -17,22 +24,32 @@ struct tgt_immed_info
     uint8_t mask    {};
 };
 
-
 // NB: the `REG_T` & `REGSET_T` also to allow lookup of type names
-template <typename Derived, typename MODE_T, typename REG_T, typename REGSET_T = void>
+template <typename Derived
+        , typename MODE_T           // register mode definitions
+        , typename STMT_INFO_T      // stmt immed size info (or void)
+        , typename REG_T            // target register type
+        , typename REGSET_T = void  // target register set (or offset) type
+        >
 struct tgt_arg_t : kas_token
 {
-    using base_t     = tgt_arg_t;
-    using derived_t  = Derived;
-    using arg_mode_t = MODE_T;
+    using base_t        = tgt_arg_t;
+    using derived_t     = Derived;
+    using arg_mode_t    = MODE_T;
+
+    // if `STMT_INFO_T` is void, use default type
+    using stmt_info_t   = meta::if_<std::is_void<STMT_INFO_T>
+                                  , struct tgt_stmt_info_t
+                                  , STMT_INFO_T
+                                  >;
 
     // allow lookup of `reg_t` & `regset_t`
     using reg_t    = REG_T;
     using regset_t = REGSET_T;
-
-    // writeback data for arg update
-    // NB: default should be void, but c++17 doesn't allow
-    using arg_wb_info = uint8_t;
+    
+    // define reg & reg_set as tokens
+    using reg_tok = meta::_t<expression::token_t<REG_T>>;
+    using rs_tok  = meta::_t<expression::token_t<REGSET_T>>;
 
     using op_size_t = core::opc::opcode::op_size_t;
 
@@ -41,26 +58,27 @@ struct tgt_arg_t : kas_token
     static constexpr auto MODE_ERROR = arg_mode_t::MODE_ERROR;
 
     // x3 parser requires default constructable
-    tgt_arg_t() : _mode(MODE_NONE) {}
+    tgt_arg_t(kas_token const& tok = {}) : kas_token(tok) {}
 
     // error from const char *msg
-    tgt_arg_t(const char *err, expr_t e = {})
-            : _mode(MODE_ERROR), expr(e)
+    tgt_arg_t(const char *err, kas_token const& token = {})
+            : _mode(MODE_ERROR), tok(token)
     {
         // create a `diag` instance
         auto& diag = parser::kas_diag_t::error(err, *this);
         this->err  = diag.ref();
     }
+    
     // error from `kas_error_t`
     tgt_arg_t(parser::kas_error_t err) : _mode(MODE_ERROR), err(err) {}
 
     // ctor(s) for default parser
-    tgt_arg_t(std::pair<expr_t, MODE_T> const& p) : tgt_arg_t(p.second, p.first) {}
-    tgt_arg_t(std::pair<MODE_T, expr_t> const& p) : tgt_arg_t(p.first, p.second) {}
+    tgt_arg_t(std::pair<kas_token, MODE_T> const& p) : tgt_arg_t(p.second, p.first) {}
+    tgt_arg_t(std::pair<MODE_T, kas_token> const& p) : tgt_arg_t(p.first, p.second) {}
 
 protected:
     // declare primary constructor
-    tgt_arg_t(arg_mode_t mode, expr_t const& e);
+    tgt_arg_t(arg_mode_t mode, kas_token const& tok);
 
     // CRTP casts
     auto constexpr& derived() const
@@ -72,12 +90,14 @@ public:
     // arg mode: default getter/setter
     auto mode() const { return _mode; }
 
-    // error message for invalid `mode`. msg used by ctor only.
-    const char *set_mode(unsigned mode)
-    { 
-        _mode = static_cast<arg_mode_t>(mode);
-        return {};
-    }
+#if 1
+    const char *set_mode(unsigned mode);
+#else
+#endif
+    // save & restore arg "state" when evaluating mcodes. Default to just "mode".
+    using arg_state = arg_mode_t;
+    arg_state get_state() const                 { return derived().mode();   };
+    void      set_state(arg_state const& state) { derived().set_mode(state); }; 
 
     // for validate_min_max: default implmentation
     bool is_missing() const { return _mode == MODE_NONE; }
@@ -86,7 +106,7 @@ public:
     // NB: `register` case is allowed because `expr` is zero
     bool is_const () const
     {
-        return expr.get_fixed_p();
+        return tok.get_fixed_p();
     }
 
     bool is_immed () const
@@ -130,7 +150,7 @@ public:
 
     // information about argument sizes
     // default:: single size immed arg, size = data_size, no float
-    static constexpr tgt_immed_info sz_info[] = { sizeof(expression::e_data_t<>) };
+    static constexpr tgt_immed_info sz_info[] = { sizeof(expression::detail::e_data<>) };
 
     auto& immed_info(uint8_t sz) const
     {
@@ -141,26 +161,17 @@ public:
         return derived_t::sz_info[sz];
     }
 
-    // serialize methods
-    template <typename Inserter, typename ARG_INFO>
-    bool serialize(Inserter& inserter, uint8_t sz, ARG_INFO *info_p);
+    // serialize methods (use templated args instead of including all required headers)
+    template <typename Inserter, typename WB_INFO>
+    bool serialize(Inserter& inserter, stmt_info_t const& info, WB_INFO *wb_p);
     
-    template <typename Reader, typename ARG_INFO>
-    void extract(Reader& reader, uint8_t sz, ARG_INFO const *, arg_wb_info *);
+    template <typename Reader>
+    void extract(Reader& reader, uint8_t sz, opc::detail::arg_serial_t *);
 
-    // emit immediate value
-    void emit_immed(core::emit_base& base, uint8_t sz ) const;
+    // emit args as addresses or immediate args
+    void emit      (core::emit_base& base, uint8_t sz) const;
+    void emit_immed(core::emit_base& base, uint8_t sz) const;
     void emit_flt  (core::emit_base& base, uint8_t sz, uint8_t fmt) const;
-
-    // get/set state during relax: default is `mode` with no `info`
-    struct arg_state
-    {
-        arg_mode_t  mode;
-        arg_wb_info info;
-    };
-        
-    arg_state get_state() const             { return { mode(), 0 }; }
-    void set_state(arg_state  const& state) { set_mode(state.mode); }
 
     parser::kas_error_t set_error(const char *msg)
     {
@@ -178,7 +189,7 @@ public:
     static void reset()  {}
     
     // common member variables
-    expr_t      expr {};
+    parser::kas_token tok; 
     reg_t       reg  {}; 
     parser::kas_error_t err; 
 
@@ -189,7 +200,8 @@ private:
         return os;
     }
 
-    arg_mode_t _mode {};
+    opc::detail::arg_serial_t *wb_serial_p {};    // writeback pointer into serialized data
+    arg_mode_t _mode          { MODE_NONE };
 };
 
 }

@@ -25,7 +25,7 @@ namespace kas::m68k
     using m68k_base_t = std::uint16_t;
 }
 
-namespace kas::expression
+namespace kas::expression::detail
 {
     // M68K defines non-standard `extended` & `packed` formats
     template <> struct float_fmt<void> { using type = m68k::m68k_format_float; };
@@ -33,13 +33,10 @@ namespace kas::expression
     //?template <> struct e_float<void>   { using type = void; }; 
     
     // M68K is baased on 16-bit instructions & 32-bit addresses
-    template <> struct e_data_t <void> { using type = m68k::m68k_base_t; };
-    template <> struct e_addr_t <void> { using type = std::uint32_t;     };
-}
+    template <> struct e_data <void> { using type = m68k::m68k_base_t; };
+    template <> struct e_addr <void> { using type = std::uint32_t;     };
 
-// expose terminals to expression subsystem
-namespace kas::expression::detail
-{
+    // expose terminals to expression subsystem
     // m68k types for expression variant
     template <> struct term_types_v<defn_cpu> :
         meta::list<
@@ -47,11 +44,13 @@ namespace kas::expression::detail
             , m68k::m68k_rs_ref     // m68k register-set reference
             > {};
 
+#if 0
     // parsers for directly parsed types
     template <> struct term_parsers_v<defn_cpu> :
         meta::list<
               m68k::parser::m68k_reg_x3
             > {};
+#endif
 }
 
 

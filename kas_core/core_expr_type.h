@@ -96,10 +96,8 @@ public:
     core_expr(core_symbol_t const& sym)  : plus{sym } {}
     core_expr(core_addr_t   const& addr) : plus{addr} {}
 
-    // copy ctor (copy & allocate)
-    //core_expr(core_expr const& other);
-    
     // forward declare copy assignment operator
+    // NB: needed to create mutable object from const
     core_expr& operator=(core_expr const&);
     
     // `core_expr` can only operate on specific types

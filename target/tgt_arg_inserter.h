@@ -36,7 +36,8 @@ namespace kas::tgt::opc::detail
 //              Generally calculated by `validator`
 //              
 
-struct arg_info_t
+// declare meta-data value stored when serialized
+struct arg_serial_t
 {
     using value_t = uint16_t;
     static constexpr std::size_t MODE_FIELD_SIZE = 5;
@@ -47,18 +48,29 @@ struct arg_info_t
     value_t has_data  : 1;                  // additional data stored
     value_t has_expr  : 1;                  // data stored as expression
     value_t xtra_info : 3;                  // undefined arg data: must be const
+
+    // update saved mode
+    void operator()(unsigned n) { cur_mode = n; }
 };
 
 // store as many infos as will fit in `mcode` word
+// if `mcode` smaller than `arg_serial_t`, use larger size
 template <typename MCODE_T>
-struct tgt_arg_info : kas::detail::alignas_t<tgt_arg_info<MCODE_T>, typename MCODE_T::mcode_size_t>
+struct tgt_arg_serial_data_t
 {
     // make sure `arg_mode_t` can fit in subfield
-    static_assert(MCODE_T::arg_t::arg_mode_t::NUM_ARG_MODES <= (1<< arg_info_t::MODE_FIELD_SIZE)
-                , "too many `arg_mode` enums");
+    static_assert(MCODE_T::arg_t::arg_mode_t::NUM_ARG_MODES
+                    <= (1<< arg_serial_t::MODE_FIELD_SIZE)
+                        , "too many `arg_mode` enums");
 
-    // public interface: where & how many
-    constexpr static auto ARGS_PER_INFO = sizeof(typename MCODE_T::mcode_size_t)/sizeof(arg_info_t);
+    
+    // determine number of `chunks` per info
+    // minimum 1 `arg_serial_t` per chunk
+    constexpr static auto _ARGS_PER_MCODE =
+            sizeof(typename MCODE_T::mcode_size_t) / sizeof(arg_serial_t);
+
+    constexpr static auto ARGS_PER_CHUNK = _ARGS_PER_MCODE ? _ARGS_PER_MCODE : 1;
+    
     auto begin()
     {
         return std::begin(info);
@@ -66,7 +78,7 @@ struct tgt_arg_info : kas::detail::alignas_t<tgt_arg_info<MCODE_T>, typename MCO
 
 private:
     // create "args_per_info" items 
-    arg_info_t  info[ARGS_PER_INFO];
+    arg_serial_t  info[ARGS_PER_CHUNK];
 };
 
 //#define TRACE_ARG_SERIALIZE
@@ -74,8 +86,8 @@ private:
 template <typename MCODE_T, typename Inserter>
 void insert_one (Inserter& inserter
                , unsigned n
-               , detail::arg_info_t *p
-               , typename MCODE_T::arg_t& arg
+               , typename MCODE_T::arg_t& arg   // ref to parsed instance
+               , arg_serial_t *p                // ptr to serialized instance 
                , typename MCODE_T::stmt_info_t const& info
                , typename MCODE_T::fmt_t const&  fmt
                , typename MCODE_T::val_t const  *val_p
@@ -108,18 +120,17 @@ void insert_one (Inserter& inserter
 
 
 // deserialize arguments: for format, see above
-template <typename MCODE_T, typename Reader, typename WB_Info>
+template <typename MCODE_T, typename Reader>
 void extract_one(Reader& reader
                     , unsigned n
-                    , WB_Info& wb_info
                     , typename MCODE_T::arg_t& arg
+                    , arg_serial_t *p
                     , uint8_t sz
-                    , typename MCODE_T::fmt_t const& fmt
-                    , typename MCODE_T::val_t const *val_p
-                    , typename MCODE_T::mcode_size_t   *code_p
+                    , typename MCODE_T::fmt_t const&  fmt
+                    , typename MCODE_T::val_t const  *val_p
+                    , typename MCODE_T::mcode_size_t *code_p
                     )
 {
-    auto p = wb_info.info_p;
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "\n[read_one:  mode = " << std::dec << std::setw(2) << +p->init_mode;
     std::cout << " bits: " << +p->has_reg  << "/" << +p->has_data << "/" << +p->has_expr;
@@ -131,20 +142,14 @@ void extract_one(Reader& reader
         fmt.extract(n, code_p, arg, val_p);
 
     // extract additional info as required
-    // NB: extract may look at arg mode. Set to mode when serialized
+    // NB: extract may look at arg mode. Set to mode value when serialized
     arg.set_mode(p->init_mode);
-    arg.extract(reader, sz, p, &wb_info.arg_wb_p);
+    arg.extract(reader, sz, p);
     
     // update mode to current value
     arg.set_mode(p->cur_mode);
 
 #ifdef TRACE_ARG_SERIALIZE
-    if (wb_info.arg_wb_p)
-    {
-        std::cout << " arg_wb: " << wb_info.arg_wb_p;
-        if constexpr (!std::is_same_v<decltype(wb_info.arg_wb_p), void *>)
-            std::cout << " = " << *wb_info.arg_wb_p; 
-    }
     std::cout << " -> " << arg << "] ";;
 #endif
 }

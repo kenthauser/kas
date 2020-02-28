@@ -16,6 +16,8 @@
 // `tgt_reg` utilizes the CRTP template pattern to simplify modifications.
 // No code bloat as only a single register implementation per target
 
+// registers also need to be expressed as tokens
+#include "parser/token_defn.h"
 
 namespace kas::tgt
 {

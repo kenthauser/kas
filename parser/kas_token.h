@@ -40,6 +40,8 @@ struct kas_token : kas_position_tagged
             tag(obj.loc());
     }
 
+    kas_token(expr_t& e);
+    
     void tag(kas_position_tagged const& pos
            , kas_position_tagged const& pos_end = {})
     {
@@ -59,7 +61,14 @@ struct kas_token : kas_position_tagged
     {
         _expr = fixed;
     }
-    
+#if 0
+    // allow tagged values as tokens
+    template <typename T>
+    set(core::ref_loc_t<T> const& ref)
+    {
+
+    }
+#endif
     // get `expr()` from token_defn.
     auto const& expr() const
     {
@@ -69,6 +78,9 @@ struct kas_token : kas_position_tagged
         
         return _expr;
     }
+
+    // allow conversion from `token` to `expr`
+    //operator expr_t const&() const { return expr(); }
 
     // NB: return `void *` pointer as value (for expression evaluation)
     // mutable pointer required for `core_expr` & `reg_set` expression
@@ -136,6 +148,9 @@ struct kas_token : kas_position_tagged
     void print(std::ostream& os) const;
 
 private:
+    template <typename T, typename HAS_LOC>
+    void init(T const&, HAS_LOC);
+
     // `_expr` & `data_p` hold side effects from text->value conversion
     // thus mark mutable
     mutable expr_t         _expr; 
@@ -149,6 +164,7 @@ template <typename OS> OS& operator<<(OS& os, kas_token const& tok)
     tok.print(os);
     return os;
 }
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 

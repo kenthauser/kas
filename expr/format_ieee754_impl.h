@@ -12,7 +12,7 @@
 #include "expr/format_ieee754.h"
 
 
-namespace kas::expression
+namespace kas::expression::detail
 {
 // implement "interchange" formats
 // IEEE "single" format (32-bits)

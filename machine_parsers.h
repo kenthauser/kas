@@ -4,9 +4,7 @@
 // includes for parser variant
 // included in "parser/parser_variant.h"
 
-// NB: includes should listed be in reverse canonical order
-
-//#include "m68k/m68k_parser_types.h"
+#include "z80/z80_parser_types.h"
 #include "bsd/bsd_parser_types.h"
 
 #endif

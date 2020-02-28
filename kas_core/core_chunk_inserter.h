@@ -55,6 +55,12 @@ struct chunk_inserter_t<Inserter, T, meta::list<CHUNK_VT, XT...>>
         // XXX
     }
 
+    // make sure properly aligned for `n`
+    void align(unsigned n)
+    {
+        // XXX
+    }
+
     // write expression as integral value or expression
     auto& operator= (expr_t const& e)
     {

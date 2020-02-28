@@ -62,7 +62,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
         }
         
         // don't bother to trace, know mcode matches
-        mcode.size(args, mcode.sz(stmt_info), data.size, expression::expr_fits{});
+        mcode.fits(args, stmt_info, data.size, expression::expr_fits{});
 
         // serialize format (for resolved instructions)
         // 1) mcode index
@@ -71,7 +71,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
         
         auto inserter = base_t::tgt_data_inserter(data);
         inserter(mcode.index);
-        tgt_insert_args(inserter, mcode, std::move(args), stmt_info);
+        tgt_insert_args(inserter, mcode, args, stmt_info);
         return this;
     }
     
@@ -132,12 +132,8 @@ struct tgt_opc_general : MCODE_T::opcode_t
         auto& info   = args.info;
 
         // calculate instruction size
-        mcode.size(args, info, data.size, fits, this->trace);
+        mcode.fits(args, info, data.size, fits, this->trace);
       
-        // if resolved, write back new sizes
-        if (data.size.is_relaxed())
-            args.update();
-        
         return data.size;
     }
 
@@ -153,7 +149,8 @@ struct tgt_opc_general : MCODE_T::opcode_t
         auto  args   = base_t::serial_args(reader, mcode);
         auto& info   = args.info;
 
-        info.bind(mcode);       // XXX verify needed. List performs & general uses modified `info`
+        // XXX verify needed. List performs & general uses modified `info` 
+        info.bind(mcode); 
         mcode.emit(base, args, info);
     }
 };

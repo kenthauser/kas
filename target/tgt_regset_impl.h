@@ -70,8 +70,8 @@ auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, core_expr_t const& r
     if (!_expr)
 #endif
     {
-        //auto& expr = _value + r;
-        auto& expr = core_expr_t::add(r) + _value;
+        auto& expr = _value + r;
+        //auto& expr = core_expr_t::add(r) + _value;
         _expr = &expr;
     }
     else if (op == '+')

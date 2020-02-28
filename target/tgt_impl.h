@@ -28,7 +28,7 @@ namespace kas::tgt
     
     // instantiate reg routines referenced from expression parsers
     // XXX need to refactor: warning about `typedef not permitted`
-    template const char *reg_t::name() const;
+    //template const char *reg_t::name() const;
 
     // instantiate reg_set routines referenced from expression parsers
     // NB: error if `regset_t` is `void`

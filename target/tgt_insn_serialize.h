@@ -1,6 +1,8 @@
 #ifndef KAS_TARGET_TGT_INSN_SERIALIZE_H
 #define KAS_TARGET_TGT_INSN_SERIALIZE_H
 
+///////////////////////////////////////////////////////////////////
+// 
 // Serialize the `insn` and `args`
 //
 // Method: store arguments *in* opcode fields (ie mode/register), followed
@@ -76,9 +78,11 @@ void tgt_insert_args(Inserter& inserter
                     , typename MCODE_T::stmt_info_t stmt_info
                     )
 {
-    using arg_t = typename MCODE_T::arg_t;
-    using mcode_size_t = typename MCODE_T::mcode_size_t;
-    constexpr auto ARGS_PER_INFO = detail::tgt_arg_info<MCODE_T>::ARGS_PER_INFO;
+    using arg_t                 = typename MCODE_T::arg_t;
+    using mcode_size_t          = typename MCODE_T::mcode_size_t;
+    using tgt_arg_serial_data_t = detail::tgt_arg_serial_data_t<MCODE_T>;
+
+    constexpr auto ARGS_PER_CHUNK = tgt_arg_serial_data_t::ARGS_PER_CHUNK;
    
     // insert base "code" (a appropriately sized zero) & use pointer for arg inserter
     //std::cout << "tgt_insert:args: stmt_info = " << std::hex << stmt_info.value() << std::endl;
@@ -91,7 +95,7 @@ void tgt_insert_args(Inserter& inserter
     auto val_iter_end = vals.end();
 
     unsigned n = 0;
-    detail::arg_info_t *p;
+    detail::arg_serial_t *p;
 
     // save arg_mode & info about extensions (constants or expressions)
     for (auto& arg : args)
@@ -101,16 +105,16 @@ void tgt_insert_args(Inserter& inserter
 
         // need `arg_info` scrach area. create one for modulo numbered args
         // (creates one for first argument)
-        if (auto idx_n = n % ARGS_PER_INFO) 
+        if (auto idx_n = n % ARGS_PER_CHUNK) 
         {
             // not modulo -- just increment
             ++p;
         } 
         else
         {
-            // insert new arg_info
-            auto& info = detail::tgt_arg_info<MCODE_T>::cast(inserter(0, sizeof(mcode_size_t)));
-            p = info.begin();
+            // insert new arg_info (NB: zero is identical big/little endian)
+            auto chunk_p = inserter.write(tgt_arg_serial_data_t{});
+            p = chunk_p->begin();
         }
 
         // do work: pass validator if present
@@ -124,11 +128,11 @@ void tgt_insert_args(Inserter& inserter
             val_p = {};
 
         // if validator present, be sure it can hold type
-        // XXX only required for "LIST" format.
+        // NB: only required for "LIST" format.
         if (val_p)
         {
             expr_fits fits{};
-            if (val_p->ok(arg, sz, fits) != fits.yes)
+            if (val_p->ok(arg, stmt_info, fits) != fits.yes)
                 val_p = nullptr;
         }
 
@@ -141,22 +145,11 @@ void tgt_insert_args(Inserter& inserter
                   << " val = " << val_name
                   << std::endl;
 #endif
-        detail::insert_one<MCODE_T>(inserter, n, p, arg, sz, fmt, val_p, code_p);
+        detail::insert_one<MCODE_T>(inserter, n, arg, p, stmt_info, fmt, val_p, code_p);
         ++n;
     }
-
-    // if non-modulo number of args, flag end in `arg_info` area
-    if (auto idx_n = n % ARGS_PER_INFO)
-        p[idx_n].init_mode = arg_t::MODE_NONE;
+    // NB: non-modulo args at end are inited to zero (ie MODE_NONE)
 }
-
-// pointers into `data` area to modify/restore args
-template <typename MCODE_T>
-struct tgt_writeback
-{
-    detail::arg_info_t                      *info_p;
-    typename MCODE_T::arg_t::arg_writeback_t arg_wb_p {};
-};
 
 // deserialize arguments: for format, see above
 template <typename READER_T, typename MCODE_T>
@@ -166,24 +159,22 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
     // add extra `static_arg` as an end-of-list flag.
     // NB: make c[], not std::array to prevent re-instatantion
     // of common read/write routines (eg: `eval_list`)
-    constexpr auto ARGS_PER_INFO = detail::tgt_arg_info<MCODE_T>::ARGS_PER_INFO;
-    using  mcode_size_t = typename MCODE_T::mcode_size_t;
-    using  arg_t        = typename MCODE_T::arg_t;
-    using  arg_info     = detail::tgt_arg_info<MCODE_T>; 
-    using  stmt_info_t  = typename MCODE_T::stmt_info_t;
-    using  arg_wb_t     = typename arg_t::arg_writeback_t;
-    using  wb_t         = tgt_writeback<MCODE_T>;
+    using  mcode_size_t          = typename MCODE_T::mcode_size_t;
+    using  arg_t                 = typename MCODE_T::arg_t;
+    using  tgt_arg_serial_data_t = detail::tgt_arg_serial_data_t<MCODE_T>;
+    using  stmt_info_t           = typename MCODE_T::stmt_info_t;
     
+    constexpr auto ARGS_PER_CHUNK = tgt_arg_serial_data_t::ARGS_PER_CHUNK;
     static arg_t   static_args[MCODE_T::MAX_ARGS+1];
-    static wb_t    static_info[MCODE_T::MAX_ARGS+1];
 
     // initialize static array (default constructs to empty)
+    // NB: probably better to just bzero memory
+    //std::memset(static_args, 0, sizeof(static_args));
     for (auto& arg : static_args) arg = {};
     arg_t::reset();
 
-    // get working pointers into static arrays
+    // get working pointer into static array
     auto arg_p  = std::begin(static_args);
-    auto wb_p   = std::begin(static_info);
 
     // get "opcode" info
     auto code_p     = reader.get_fixed_p(m_code.code_size());
@@ -197,8 +188,8 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
     auto val_iter_end = vals.end();
 
     // read until end flag: eg: MODE_NONE or reader.empty()
-    detail::arg_info_t *p;
-    for (unsigned n = 0; true ;++n, ++arg_p, ++wb_p)
+    detail::arg_serial_t *p;
+    for (unsigned n = 0; true ;++n, ++arg_p, ++p)
     {
 
         // last static_arg is end-of-list flag, should never reach it.
@@ -207,16 +198,19 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
 
         //std::cout << std::endl;
         
-        // deserialize `arg_info` if needed (get `ARGS_PER_INFO` at a time...)
-        if ((n % ARGS_PER_INFO) == 0)
+        // deserialize `arg_info` if needed (get `ARGS_PER_CHUNK` at a time...)
+        if ((n % ARGS_PER_CHUNK) == 0)
         {
             if (reader.empty())
                 break;
             
             // get pointer to array of `arg_info_t`
-            auto info_p = &arg_info::cast(reader.get_fixed_p(sizeof(mcode_size_t)));
-            // get first in this array
-            p = info_p->begin();
+            // "reserve" insures sufficiently sized & aligned block
+            reader.reserve(sizeof(tgt_arg_serial_data_t));
+
+            // retrieve array & get pointer to first element
+            auto chunk_p = reader.read(tgt_arg_serial_data_t{});
+            p = chunk_p->begin();
         } 
         else
         {
@@ -226,11 +220,10 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
         }
 
         // do the work (more args than validators occurs in `list` format)
-        *wb_p = { p };              // default construct `arg_writeback_t`
         if (val_iter != val_iter_end)
-            detail::extract_one<MCODE_T>(reader, n, *wb_p, *arg_p, sz, fmt, &*val_iter++, code_p);
+            detail::extract_one<MCODE_T>(reader, n, *arg_p, p, sz, fmt, &*val_iter++, code_p);
         else
-            detail::extract_one<MCODE_T>(reader, n, *wb_p, *arg_p, sz, fmt, nullptr, code_p);
+            detail::extract_one<MCODE_T>(reader, n, *arg_p, p, sz, fmt, nullptr, code_p);
 
         // std::cout << std::hex;
         // std::cout << "read_arg  : mode = " << (int)p->arg_mode << " p_mode = " << arg_p->mode;
@@ -238,59 +231,8 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
         // std::cout << " arg = " << *arg_p;
     }
     
-    return std::make_tuple(code_p, static_args, static_info);
+    return std::make_tuple(code_p, static_args);
 }
 
-// update opcode with new mode
-template <typename MCODE_T>
-inline void tgt_arg_update(
-        unsigned n,                         // arg index
-        typename MCODE_T::arg_t& arg,       // argument reference
-        void    *wb_handle                  // opaque value generated in `read_args`
-        )
-{
-    auto wb_info = static_cast<tgt_writeback<MCODE_T> *>(wb_handle);
-
-    auto& arg_wb = wb_info[n];
-
-    std::cout << "tgt_arg_update: arg = " << arg;
-    std::cout << " mode update: " << +arg_wb.info_p->cur_mode;
-    std::cout << " -> " << +arg.mode();
-    std::cout << std::endl;
-    arg_wb.info_p->cur_mode = arg.mode();
-    //if (auto p = arg_wb.arg_wb_p)
-    //    arg.update(p);
-
-#if 0
-    constexpr auto ARGS_PER_INFO = detail::tgt_arg_info<MCODE_T>::ARGS_PER_INFO;
-    using arg_info_t   = detail::tgt_arg_info<MCODE_T>; 
-    auto info_p = static_cast<arg_info_t**>(update_handle);
-    // get format & validator
-    auto& fmt  = m_code.fmt();
-    auto& vals = m_code.vals();
-    auto val_iter     = vals.begin();
-    auto val_iter_end = vals.end();
-
-    if (n < vals.size())
-        std::advance(val_iter, n);
-    else
-        std::advance(val_iter, vals.size());
-
-    // update saved `arg.mode`...
-    auto p = info_p[n/ARGS_PER_INFO]->begin() + (n%ARGS_PER_INFO);
-#if 0
-    std::cout << "arg_update: " << arg;
-    std::cout << " " << (int)p.arg_mode << " -> " << arg.mode << std::endl;
-#endif
-    p->arg_mode = arg.mode();    // so we know next time.
-
-    // ...and update the saved data 
-    // do work: pass validator if present
-    if (val_iter != val_iter_end)
-        fmt.insert(n, code_p, arg, &*val_iter);
-    else
-        fmt.insert(n, code_p, arg, nullptr);
-#endif
-}
 }
 #endif

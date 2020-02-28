@@ -124,10 +124,6 @@ struct tgt_opc_list : MCODE_T::opcode_t
         // evaluate with new `fits`
         insn.eval(ok, args, info, data.size, fits, this->trace);
 
-        // if size resolved, update args
-        if (data.size.is_relaxed())
-            args.update();          // write-back new modes
-
         // save new "OK"
         fixed.fixed = ok.to_ulong();
         return data.size;

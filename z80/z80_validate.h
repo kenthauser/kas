@@ -26,19 +26,13 @@ struct val_reg : tgt::opc::tgt_val_reg<val_reg, z80_mcode_t>
     using base_t::base_t;
 };
 
-struct val_range : tgt::opc::tgt_val_range<val_range, z80_mcode_t>
-{
-    using base_t::base_t;
-};
-
-
 // validate (HL), (IX+n), (IY+n), and optionally 8-bit general registers
 struct val_reg_gen: z80_mcode_t::val_t
 {
     constexpr val_reg_gen() {}
 
     // test argument against validation
-    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -76,7 +70,7 @@ struct val_reg_gen: z80_mcode_t::val_t
     }
     
     // registers by themselves have no size. But IX/IY offsets do
-    fits_result size(z80_arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t& insn_size) const override
+    fits_result size(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits, op_size_t& insn_size) const override
     {
         switch (arg.mode())
         {
@@ -130,7 +124,7 @@ struct val_reg_idx: z80_mcode_t::val_t
 {
     constexpr val_reg_idx(int16_t r_class = -1) : r_class(r_class) {}
 
-    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -200,7 +194,7 @@ struct val_indir_idx: z80_mcode_t::val_t
 {
     constexpr val_indir_idx() {}
 
-    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -251,7 +245,7 @@ struct val_indir_bc_de : val_reg
     constexpr val_indir_bc_de() : val_reg(RC_DBL) {}
 
     // test argument against validation
-    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
     {
         if (arg.mode() != MODE_REG_INDIR)
             return fits.no;
@@ -281,7 +275,7 @@ struct val_jrcc : val_reg
     constexpr val_jrcc() : val_reg(RC_CC) {}
 
     // test argument against validation
-    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
     {
         if (arg.mode() != MODE_REG)
             return fits.no;
@@ -297,13 +291,13 @@ struct val_restart : z80_mcode_t::val_t
 {
     constexpr val_restart() {}
 
-    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
     {
         // range is only for direct args
         if (arg.mode() != MODE_DIRECT)
             return fits.no;
         
-        auto p = arg.expr.get_fixed_p();
+        auto p = arg.get_fixed_p();
 
         // require fixed argument
         if (!p)
@@ -318,20 +312,22 @@ struct val_restart : z80_mcode_t::val_t
 
     unsigned get_value(z80_arg_t& arg) const override
     {
-        if (auto p = arg.expr.get_fixed_p())
+        if (auto p = arg.get_fixed_p())
             return *p >> 3;
         return 0;
     }
     
     void set_arg(z80_arg_t& arg, unsigned value) const override
     {
-        arg.expr = value << 3;
+        // XXX wrong. need something else
+        //arg.tok = value << 3;
     }
-    
+#if 0    
     bool all_saved(z80_arg_t& arg) const override
     {
         return true;
     }
+#endif
 };
 
 // 16-bit indirect (memory) or 8-bit indirect (I/O)
@@ -339,7 +335,7 @@ struct val_indir : z80_mcode_t::val_t
 {
     constexpr val_indir(uint16_t size) : _size(size) {}
 
-    fits_result ok(z80_arg_t& arg, uint8_t sz, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
     {
         if (arg.mode() != MODE_INDIRECT)
             return fits.no;
@@ -347,14 +343,14 @@ struct val_indir : z80_mcode_t::val_t
         if (_size >= 2)
             return fits.yes;
 
-        return fits.ufits_sz(arg.expr, _size); 
+        return fits.ufits_sz(arg.expr(), _size); 
     }
 
     // immediates may be inserted in opcode, or added data
-    fits_result size(z80_arg_t& arg, uint8_t sz, expr_fits const& fits, op_size_t& insn_size) const override
+    fits_result size(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits, op_size_t& insn_size) const override
     {
         insn_size += _size;
-        return ok(arg, sz, fits);
+        return ok(arg, info, fits);
     }
 
     uint16_t _size;
@@ -370,10 +366,12 @@ using _val_gen = meta::list<NAME, T, meta::int_<Ts>...>;
 template <typename NAME, int...Ts>
 using _val_reg = _val_gen<NAME, val_reg, Ts...>;
 
+// specialize generic validators
+using val_range   = tgt::opc::tgt_val_range<z80_mcode_t>;
+
 
 // register-class and register-specific validations
-VAL_REG(REG         , RC_GEN);
-// Named Registers
+VAL_REG(REG         , RC_GEN); // Named Registers
 VAL_REG(REG_A       , RC_GEN, 7);
 VAL_REG(REG_C       , RC_GEN, 1);
 VAL_REG(REG_I       , RC_I);
@@ -403,12 +401,13 @@ VAL_GEN(INDIR_BC_DE , val_indir_bc_de);
 VAL_GEN(INDIR_IDX   , val_indir_idx);
 
 VAL_GEN(JR_CC       , val_jrcc);
-VAL_GEN(DIRECT      , val_range, 2, 0, 0xffff);
+VAL_GEN(DIRECT      , val_range, 0, 0xffff, 0, 2);
 
-VAL_GEN(IMMED_8     , val_range, 1, -(1<< 7), (1<< 8)-1);
-VAL_GEN(IMMED_16    , val_range, 2, -(1<<15), (1<<16)-1);
-VAL_GEN(IMMED_IM    , val_range, 0, 0, 2);
-VAL_GEN(BIT_NUM     , val_range, 0, 0, 7);
+VAL_GEN(IMMED_8     , val_range, -(1<< 7), (1<< 8)-1, 0, 1);
+VAL_GEN(IMMED_16    , val_range, -(1<<15), (1<<16)-1, 0, 2);
+
+VAL_GEN(IMMED_IM    , val_range, 0, 2);
+VAL_GEN(BIT_NUM     , val_range, 0, 2);
 VAL_GEN(IMMED_RST   , val_restart);
 
 }

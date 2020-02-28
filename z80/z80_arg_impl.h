@@ -71,8 +71,9 @@ const char *z80_arg_t::set_mode(unsigned mode)
     return {};
 }
 
-// size is from validator
-void z80_arg_t::emit(core::emit_base& base, uint8_t sz, unsigned bytes) const
+#if 0
+// sz is from validator
+void z80_arg_t::emit(core::emit_base& base, uint8_t sz) const
 {
     // IX/IY offsets are emitted by base code. don't double emit
     switch (mode())
@@ -86,8 +87,9 @@ void z80_arg_t::emit(core::emit_base& base, uint8_t sz, unsigned bytes) const
         case MODE_REG_OFFSET_IY:
             return;
     }
-    base_t::emit(base, sz, bytes);
+    // XXX base_t::emit(base, sz, bytes);
 }
+#endif
 
 template <typename OS>
 void z80_arg_t::print(OS& os) const
@@ -96,13 +98,13 @@ void z80_arg_t::print(OS& os) const
     {
         case MODE_DIRECT:
         case MODE_IMMED_QUICK:
-            os << expr;
+            os << tok;
             break;
         case MODE_INDIRECT:
-            os << "(" << expr << ")";
+            os << "(" << tok << ")";
             break;
         case MODE_IMMEDIATE:
-            os << "#" << expr;
+            os << "#" << tok;
             break;
         case MODE_REG:
         case MODE_REG_IX:
@@ -118,13 +120,13 @@ void z80_arg_t::print(OS& os) const
         case MODE_REG_OFFSET_IY:
             // print (ix-N) iff (N == fixed && N < 0)
             // else print (ix+N)
-            if (auto p = expr.get_fixed_p())
+            if (auto p = tok.get_fixed_p())
                 if (*p < 0)
                 {
                     os << "(" << reg << std::dec << *p << ")";
                     break;
                 }
-            os << "(" << reg << "+" << expr << ")";
+            os << "(" << reg << "+" << tok << ")";
             break;
         case MODE_ERROR:
             if (err)

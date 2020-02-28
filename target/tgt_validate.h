@@ -298,14 +298,14 @@ struct tgt_val_range : MCODE_T::val_t
         {
             case arg_mode_t::MODE_IMMEDIATE:
             case arg_mode_t::MODE_IMMED_QUICK:
-                if (auto p = arg.expr.get_fixed_p())
+                if (auto p = arg.expr().get_fixed_p())
                 {
                     // if zero is mapped, block it.
                     if (!*p && zero)
                         return fits.no;
                     return fits.fits(*p, min, max);
                 }
-                return fits.fits(arg.expr, min, max);
+                return fits.fits(arg.expr(), min, max);
             default:
                 return fits.no;
         }
@@ -325,7 +325,7 @@ struct tgt_val_range : MCODE_T::val_t
         arg.set_mode(_size ? arg_mode_t::MODE_IMMEDIATE : arg_mode_t::MODE_IMMED_QUICK);
         
         // calclulate value to insert in machine code
-        auto p = arg.expr.get_fixed_p();
+        auto p = arg.expr().get_fixed_p();
         auto n = p ? *p : 0;
         return n == zero ? 0 : n;
     }
@@ -333,7 +333,8 @@ struct tgt_val_range : MCODE_T::val_t
     void set_arg(arg_t& arg, unsigned value) const override
     {
         // calculate expression value from machine code
-        arg.expr = value ? value : zero;
+        //arg.expr = value ? value : zero;
+        arg.set(value);     // XXX token change
         arg.set_mode(_size ? arg_mode_t::MODE_IMMEDIATE : arg_mode_t::MODE_IMMED_QUICK);
     }
     

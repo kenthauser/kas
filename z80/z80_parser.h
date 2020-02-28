@@ -7,73 +7,57 @@
 
 #include "z80_parser_types.h"
 
-#include "expr/expr.h"              // expression public interface
-#include "parser/annotate_on_success.hpp"
+#include "parser/token_defn.h"
+#include "parser/kas_token.h"
+#include "parser/token_parser.h"
 
-#include <boost/spirit/home/x3.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 
 namespace kas::z80::parser
 {
-    namespace x3 = boost::spirit::x3;
-    using namespace x3;
-    using namespace kas::parser;
+#if 0
+// using tok_missing = core::tok_missing;
+#else
+// create a missing arg token & parser
+using TOK_MISSING      = kas::parser::token_defn_t<KAS_STRING("Z80_MISSING")>;
+auto const tok_missing = kas::parser::token<TOK_MISSING>[x3::eps];
+#endif
 
-    // X3 parser rules: convert "parsed" args to location-stampped args
-    
-    // NB: X3 only performs type conversions via ctors with single args.
-    // However, including 'boost/fusion/std_pair.hpp" allows pairs to be parsed
-    // Thus, parse args as "expr / mode" pair & pass that to `arg_t` ctor
+// Define Z80 Instruction Argument parser.
 
-    // parse args into "value, mode" pair. 
-    using z80_parsed_arg_t = std::pair<expr_t, z80_arg_mode>;
-    x3::rule<class _,   z80_parsed_arg_t>  z80_parsed_arg = "z80_parsed_arg";
-    
-    auto const z80_parsed_arg_def =
-              '(' > expr() > ')' > attr(MODE_INDIRECT) 
-            | '#' > expr() >       attr(MODE_IMMEDIATE)
-            | expr()       >       attr(MODE_DIRECT)
-            ;
+// NB: X3 only performs type conversions via ctors with single args.
+// However, including 'boost/fusion/std_pair.hpp" allows pairs to be parsed.
+// Thus, parse args as "token / mode" pair & pass that to `arg_t` ctor
 
-    // convert "parsed pair" into arg via `tgt_arg_t` ctor
-    x3::rule<class _tag_z80_arg, z80_arg_t>  z80_arg        = "z80_arg";
-    x3::rule<class _tag_missing, z80_arg_t>  z80_missing    = "z80_missing";
-   
-    auto const z80_arg_def     = z80_parsed_arg;
-    auto const z80_missing_def = eps;      // need location tagging
+using z80_parsed_arg_t = std::pair<kas_token, z80_arg_mode>;
+auto const z80_arg = x3::rule<class _, z80_parsed_arg_t> {"z80_arg"}
+        = '(' > expr() > ')' > x3::attr(MODE_INDIRECT) 
+        | '#' > expr() >       x3::attr(MODE_IMMEDIATE)
+        | expr()       >       x3::attr(MODE_DIRECT)
+        ;
 
+// parse comma separated arg-list (NB: use single `tok_missing` for empty list)
+auto const z80_args = x3::rule<class _, std::vector<z80_arg_t>> {"z80_args"}
+       = z80_arg % ','              // allow comma seperated list of args
+       | x3::repeat(1)[tok_missing] // no args: MODE_NONE, but location tagged
+       ;
 
-    BOOST_SPIRIT_DEFINE(z80_parsed_arg, z80_arg, z80_missing)
+// Define Z80 Instruction parser. 
+// Declared in `z80_parser.h`. Instantiated in `z80.cc`
 
-    // an z80 instruction is "opcode" followed by comma-separated "arg_list"
-    // "no arguments" -> location tagged, default contructed `z80_arg`
-    
-    rule<class _z80_args, std::vector<z80_arg_t>> const z80_args = "z80_args";
+// NB: Z80 only allows a single index register to be parsed per instruction.
+// Enforce by storing index `prefix` as static. Declare static function
+// `z80_arg_t::reset` to clear prefix before parsing args
 
-    auto const z80_args_def
-           = z80_arg % ','              // allow comma seperated list of args
-           | repeat(1)[z80_missing]     // no args: MODE_NONE, but location tagged
-           ;
+auto reset_args = [](auto& ctx) { z80_arg_t::reset(); };
 
-    BOOST_SPIRIT_DEFINE(z80_args)
+// Define statement rule (ie: `z80_insn` with vector of `z80_arg_t`s -> `z80_stmt_t`)
+auto const z80_stmt_def = 
+        (z80_insn_x3() > x3::eps[reset_args] > z80_args)[z80_stmt_t()];
 
-    // Z80: clear the index reg prefix
-    auto reset_args = [](auto& ctx) { z80_arg_t::reset(); };
-
-    // need two rules to get tagging 
-    auto const raw_z80_stmt = rule<class _, z80_stmt_t> {} = 
-                        (z80_insn_x3() > eps[reset_args] > z80_args)[z80_stmt_t()];
-
-    // Parser interface
-    z80_stmt_x3 z80_stmt {"z80_stmt"};
-    auto const z80_stmt_def = raw_z80_stmt;
-
-    BOOST_SPIRIT_DEFINE(z80_stmt)
-    
-    // tag location for each argument
-    struct _tag_z80_arg  : kas::parser::annotate_on_success {};
-    struct _tag_missing  : kas::parser::annotate_on_success {};
-    struct _tag_z80_stmt : kas::parser::annotate_on_success {}; 
+// c++ magic for external linkage
+z80_stmt_x3 z80_stmt {"z80_stmt"};
+BOOST_SPIRIT_DEFINE(z80_stmt)
 }
 
 #endif

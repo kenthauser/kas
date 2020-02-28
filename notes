@@ -233,7 +233,7 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 *************************
 
-1. Fix copy-ctor assignment ctor in core_expr
+*1. Fix copy-ctor assignment ctor in core_expr (fixed by deleting)
 
 *2. refactor "junk" parsing in `parser/parser_def.h`. Use expectation failure to 
     parse "junk following statement" and "invalid statement". Refactor `kas_parser`
@@ -275,3 +275,15 @@ Plan 10/2: First fix floating point emit/warning/etc
 *19. make 'empty' errors print ^ not ~~~
 
 *20. make `where` print escaped & quoted
+
+21. kas_token(expr&) constructor not implemented
+
+22. core_expr copy assignment ctor declared, but not implemented
+
+23. tgt_data_inserter skip/reserve not complete, implemented
+
+24. default `mcode_t::sz` implementation needed
+
+
+
+

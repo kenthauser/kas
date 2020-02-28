@@ -130,7 +130,7 @@ struct tgt_mcode_t
     std::pair<const char *, int> validate_args (ARGS_T& args, stmt_info_t const& info, std::ostream *trace = {}) const;
 
     template <typename ARGS_T>
-    fits_result size(ARGS_T& args, stmt_info_t const& info, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
+    fits_result fits(ARGS_T& args, stmt_info_t const& info, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
 
     template <typename ARGS_T>
     void emit(core::emit_base&, ARGS_T&&, stmt_info_t const& info) const;
@@ -155,6 +155,7 @@ struct tgt_mcode_t
     
     // machine code arranged as words: big-endian array (ie highest order words first)
     auto code(stmt_info_t const& stmt_info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
+    uint8_t sz(stmt_info_t info) const;
     stmt_info_t extract_info(mcode_size_t const *) const;
 
     void print(std::ostream&) const;

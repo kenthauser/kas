@@ -13,18 +13,17 @@
 // define error_message type
 #include "z80_error_messages.h"
 
-namespace kas::expression
-{
-    // override default `kas` types in `expr_types.h`
-    // undefined addresses are 16-bits
-    template <> struct e_data_t <void> { using type = std::uint8_t;   };
-    template <> struct e_addr_t <void> { using type = std::uint16_t;  };
-    template <> struct err_msg_t<void> { using type = z80::error_msg; };
-}
-
 // expose terminals to expression subsystem
 namespace kas::expression::detail
 {
+    // override default `kas` types in `expr_types.h`
+    // undefined addresses are 16-bits
+    template <> struct e_data <void> { using type = std::uint8_t;   };
+    template <> struct e_addr <void> { using type = std::uint16_t;  };
+    template <> struct err_msg<void> { using type = z80::error_msg; };
+
+    //template <> struct e_float<void> : meta::id<void> {};
+
     // types for expression variant
     template <> struct term_types_v<defn_cpu> :
         meta::list<

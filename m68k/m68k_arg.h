@@ -76,17 +76,20 @@ struct token_reg : kas_token {};
 
 struct token_missing  : kas_token {};
 
-// forward declare type
-struct m68k_stmt_info_t;
-
 // `REG_T` & `REGSET_T` args allow `MCODE_T` to lookup types
-struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t, m68k_arg_mode, m68k_reg_t, m68k_reg_set_t>
+// forward declare `m68k_stmt_info_t` from m68k_stmt.h
+struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
+                                 , m68k_arg_mode
+                                 , struct m68k_stmt_info_t
+                                 , m68k_reg_t
+                                 , m68k_reg_set_t
+                                 >
 {
-    // inherit basic ctors
-    using base_t::base_t;
-    
     // `extension_t` updated during evalaution along with mode
     using arg_writeback_t = m68k_extension_t *;
+    
+    // inherit basic ctors
+    using base_t::base_t;
     
     // direct, immediate, register pair, or bitfield
     m68k_arg_t(m68k_arg_mode mode, expr_t e = {}, expr_t outer = {})
