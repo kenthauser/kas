@@ -1,5 +1,5 @@
-#ifndef KAS_Z80_Z80_PARSER_DEFS_H
-#define KAS_Z80_Z80_PARSER_DEFS_H
+#ifndef KAS_Z80_Z80_PARSER_TYPES_H
+#define KAS_Z80_Z80_PARSER_TYPES_H
 
 // Boilerplate to allow `statement parser` to accept tgt insns
 //
@@ -7,7 +7,6 @@
 
 // get target stmt definitions
 #include "z80_stmt.h"
-#include "parser/parser_stmt.h"
 
 // Declare reg_t, insn_t & stmt_t parsers
 namespace kas::z80::parser
@@ -35,7 +34,7 @@ namespace kas::parser::detail
             > {};
 
     // statements parsed by parser
-    template <> struct parser_stmt_l<defn_cpu> :
+    template <> struct stmt_ops_l<defn_cpu> :
         meta::list<
               z80::parser::z80_stmt_x3
             > {};

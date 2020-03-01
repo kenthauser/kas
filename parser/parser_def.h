@@ -56,11 +56,15 @@ auto const parse_eol  = [](auto p) { return p > stmt_eol; };
 using label_parsers =  all_defns<detail::label_ops_l>;
 using stmt_parsers  =  all_defns<detail::stmt_ops_l>;
 
-x3::rule<class _stmt, stmt_t> const statement = "statement";
+x3::rule<class _stmt    , typename stmt_t::base_t> const statement   = "statement";
+x3::rule<class _tag_stmt, stmt_t> const tagged_stmt = "tagged stmt";
 stmt_x3 stmt { "stmt" };
 
 // insn is statment (after skipping blank or commented lines)
-auto const stmt_def  = *stmt_eol > statement;
+// NB: parse "statement" separately because X3 sees `variant` base
+// class in `stmt_t` & slices away `kas_position_tagged` base class.
+// Solution: have "statment" perform variant operaion & tag afterwords
+auto const stmt_def  = *stmt_eol > tagged_stmt;
 
 // require statements to extend to end-of-line (or separator)
 // not required for labels
@@ -69,8 +73,10 @@ auto const statement_def =
           | combine_parsers(label_parsers())
           ;
 
+auto const tagged_stmt_def = statement;
 
-BOOST_SPIRIT_DEFINE(stmt, statement)
+
+BOOST_SPIRIT_DEFINE(stmt, statement, tagged_stmt)
 
 ///////////////////////////////////////////////////////////////////////////
 // Annotation and Error handling
@@ -146,9 +152,8 @@ private:
     kas::parser::error_handler_base base;
 };
 
-struct _tag_stmt : stmt_invalid {};
+struct _tag_stmt : annotate_on_success {};
 struct _stmt     : stmt_junk    {};
-// interface to statement parser
 
 }
 

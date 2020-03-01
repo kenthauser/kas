@@ -48,15 +48,4 @@ using z80_rs_ref    = core::ref_loc_t<z80_reg_set>;
 using z80_reg_set_t = typename z80_rs_ref::object_t;
 }
 
-// declare X3 parser for `reg_t`
-namespace kas::z80::parser
-{
-    namespace x3 = boost::spirit::x3;
-    
-    // declare parser for Z80 register tokens
-    using z80_reg_x3 = x3::rule<struct X_reg, kas::parser::kas_token>;
-    BOOST_SPIRIT_DECLARE(z80_reg_x3)
-}
-
-
 #endif

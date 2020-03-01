@@ -13,6 +13,17 @@
 // define error_message type
 #include "z80_error_messages.h"
 
+// declare X3 parser for `reg_t`
+namespace kas::z80::parser
+{
+    namespace x3 = boost::spirit::x3;
+    
+    // declare parser for Z80 register tokens
+    using z80_reg_x3 = x3::rule<struct X_reg, kas::parser::kas_token>;
+    BOOST_SPIRIT_DECLARE(z80_reg_x3)
+}
+
+
 // expose terminals to expression subsystem
 namespace kas::expression::detail
 {
@@ -35,6 +46,7 @@ namespace kas::expression::detail
     template <> struct term_parsers_v<defn_cpu> :
         meta::list<
               z80::parser::z80_reg_x3
+        //       z80::tok_z80_reg 
             > {};
 }
 

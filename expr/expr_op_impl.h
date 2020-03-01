@@ -70,6 +70,39 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
                     , EVAL::exec_arg_t<N>&& args
                     ) const noexcept 
 {
+    // set token location pointer from input tokens
+    auto tag = [this, op_loc, tokens](kas_position_tagged &loc)
+        {
+            // ARITY > 1 : loc is from first arg to last
+            if constexpr (N > 1)
+            {
+#ifdef EXPR_TRACE_EVAL
+                std::cout << "expr_op::eval:";
+                std::cout << " from " << tokens[0]->where();
+                std::cout << " to " << tokens[N-1]->where();
+                std::cout << std::endl;
+#endif
+                loc = {*tokens[0], *tokens[N-1]};
+            }
+
+            // unary operation: tag according to operation type
+            if constexpr (N == 1)
+            {
+                switch (priority())
+                {
+                    case PRI_PFX:
+                        loc = {op_loc, *tokens[0]};
+                        break;
+                    case PRI_SFX:
+                        loc = {*tokens[0], op_loc};
+                        break;
+                    default:
+                        loc = op_loc;
+                        break;
+                }
+            }
+        };
+
     // test if args match operator
     auto it = ops.find(hash);
     if (it == ops.end())
@@ -80,7 +113,10 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
             if (tokens[i]->index() == Err_Index)
                 return *tokens[i];
 
-        return kas::parser::kas_diag_t::error("Invalid expression", op_loc);
+        // error location is just 
+        kas_position_tagged loc;
+        tag(loc);
+        return kas::parser::kas_diag_t::error("Invalid expression", loc);
     }   
     
     // look for divide by zero if ARITY == 2
@@ -97,7 +133,9 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
 
     // evaluate (function pointer retrieved from hash table)
     kas_token tok = it->second(std::move(args));
-
+#if 1
+    tag(tok);
+#else
     // set token location pointer from input tokens
     // ARITY > 1 : loc is from first arg to last
     if constexpr (N > 1)
@@ -127,7 +165,7 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
                 break;
         }
     }
-    
+#endif
     return tok;
 }
 

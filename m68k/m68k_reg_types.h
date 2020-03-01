@@ -6,8 +6,8 @@
 // m68k register patterns:
 //
 // Each "register value" (as used in m68k.c) consists of a
-// three-item tuple < reg_class(ex RX_DATA), reg_num(eg 0), tst(eg: hw::index_full)
-// 1) reg_class    ranges from 0..9. `reg_arg_validate`
+// three-item tuple < reg_class(ex RC_DATA), reg_num(eg 0), tst(eg: hw::index_full)
+// 1) reg_class    ranges from 0..15 `reg_arg_validate` (4-bits)
 // 2) The reg_num  ranges from 0..7 for eg data register; has 12-bit value for move.c
 // 3) tst          16-bit hw_tst constexpr value
 //
@@ -25,18 +25,18 @@
 
 // Observations:
 // - Only a single alias is permitted.
-// - No more hand two register definitions can have the same name
-// - The "second" register definition index cannot be zero (because defition
+// - No more than two register definitions can have the same name
+// - The "second" register definition index cannot be zero (because definition
 //   zero is processed first, it will always be a "first" definition). Thus
 //   a index of zero can be used to tell second definition is not present.
 // - KAS_STRING register name definitions should always prepend '%'. A simple +1
 //   can be used to remove it.
 // currently, for M68K there are ~100-120 register definitions
 
-// RC_PC & RC_ZPC both have a single member. Can be merged into RC_CPU
+// RC_PC & RC_ZPC both have a single member. Can be merged into RC_CPU ???
 
-// Also note: `m68k_reg`    is an expression type
-//            `m68k_regset` is an expression type
+// Also note: `m68k_reg`    is an expression variant type
+//            `m68k_regset` is an expression variant type
 //            `m68k_reg`    needs to export parser to `expr`
 
 #include "expr/expr_types.h"
@@ -98,8 +98,8 @@ enum
     , REG_CPU_ACC_EXT23
 };
 
-// name fp control registers for easy access
-// values match `fmove.l`
+// name fp control registers
+// NB: values match `fmove.l`
 enum
 {
       REG_FPCTRL_IAR = 1    // FP Instruction Address Register
@@ -114,7 +114,6 @@ enum
 ////////////////////////////////////////////////////////////////////////////
 
 // some assemblers require format such as `%d0`, some require `d0` some allow both
-// XXX the prefix is `%` & should be delcared here
 enum m68k_reg_prefix { PFX_NONE, PFX_ALLOW, PFX_REQUIRE };
 
 // 4-bit class, 12-bit value

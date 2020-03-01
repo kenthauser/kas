@@ -5,10 +5,10 @@
 // Parse Z80 instruction using Zilog syntax
 //////////////////////////////////////////////////////////////////////////
 
-#include "z80_parser_types.h"
+#include "parser/parser.h"
 
-#include "parser/token_defn.h"
-#include "parser/kas_token.h"
+//#include "parser/token_defn.h"
+//#include "parser/kas_token.h"
 #include "parser/token_parser.h"
 
 #include <boost/fusion/include/std_pair.hpp>
@@ -46,8 +46,8 @@ auto const z80_args = x3::rule<class _, std::vector<z80_arg_t>> {"z80_args"}
 // Declared in `z80_parser.h`. Instantiated in `z80.cc`
 
 // NB: Z80 only allows a single index register to be parsed per instruction.
-// Enforce by storing index `prefix` as static. Declare static function
-// `z80_arg_t::reset` to clear prefix before parsing args
+// Enforce by storing index `prefix` as static. Invoke static method 
+// `z80_arg_t::reset()` to clear prefix before parsing args
 
 auto reset_args = [](auto& ctx) { z80_arg_t::reset(); };
 

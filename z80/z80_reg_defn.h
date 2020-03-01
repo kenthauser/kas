@@ -31,7 +31,7 @@ using reg_l = meta::list<
     , reg<REG_STR("af"), RC_AF, 3>
 
     // HL is also an index register
-    //, reg<REG_STR("ix"), RC_IDX, 0>
+    //, reg<REG_STR("hl"), RC_IDX, 0>
     , reg<REG_STR("ix"), RC_IDX, 0xdd>
     , reg<REG_STR("iy"), RC_IDX, 0xfd>
 
@@ -50,6 +50,7 @@ using reg_l = meta::list<
     , reg<REG_STR("m") , RC_CC, 7>
     >;
 
+// allow af-prime to be specified w/o apostrophe
 using reg_aliases_l = meta::list<
       meta::list<REG_STR("af"), REG_STR("af'")>
     >;

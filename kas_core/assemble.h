@@ -133,6 +133,7 @@ private:
         // create parser object
         auto stmt_stream = parser::kas_parser(parser::stmt_x3(), src);
          
+        // `stmt_stream` iterator returns objects, not references
         for (auto&& stmt : stmt_stream)
         {
             if (out)

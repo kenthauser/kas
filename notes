@@ -284,6 +284,6 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 24. default `mcode_t::sz` implementation needed
 
-
+25. symbol expressions not allowed (error on `_`)
 
 

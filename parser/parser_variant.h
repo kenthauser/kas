@@ -29,43 +29,68 @@ namespace detail
     using parser_variant = apply<quote<x3::variant>, all_types_l>;
 }
 
-struct stmt_t : detail::parser_variant
+//struct stmt_t : detail::parser_variant, kas_position_tagged
+struct stmt_t : kas_position_tagged
 {
     using base_t = detail::parser_variant;
+#if 0
     using base_t::base_t;
-    using base_t::operator=;
-
-    // not sure why base_t::base_t is insufficient
     template <typename...Ts>
     stmt_t(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
+#else
+    stmt_t() = default;
+    stmt_t(base_t&& var) : var(std::move(var)) {}
+    template <typename T,
+              typename = std::enable_if_t<meta::in<detail::all_types_l
+                                      , std::remove_reference_t<T>>::value>>
+    stmt_t(T&& s) : var(std::forward<T>(s)) {}
+    //stmt_t(stmt_t const&) = default;
+    //template <typename...Ts>
+    //stmt_t(Ts&&...args) : var(std::forward<Ts>(args)...) {}
+
+    base_t var;
+
+#endif
+    //stmt_t() = default;
+    //stmt_t(detail::parser_variant var) : var{std::move(var)} {}
 
     // instantiate `stmt_t` from error
-    stmt_t(kas_diag_t const& err) : stmt_t{stmt_error(err)} {}
-    
+   // stmt_t(kas_diag_t const& err) : stmt_t({stmt_error(err)}) {}
+   //stmt_t(stmt_error err) : var(std::move(err)) {}
+    //stmt_t(stmt_error err) : stmt_t(err) {};
     std::string src() const
     {
+        return this->where();
+    #if 0
         return apply_visitor(x3::make_lambda_visitor<std::string>(
-            [](auto&& node)
+            [this](auto&& node)
             {
+            #if 0
                 kas_loc const& loc = node;
                 if (loc)
                     return loc.where();
+            #else
+                return this->where();
+
+            #endif
                 
                 std::string result{"UNTAGGED: "};
                 result += typeid(node).name();
                 return result;
             }
             ));
+    #endif
     }
 
     core::core_insn operator()()
     {
-        return apply_visitor(x3::make_lambda_visitor<core::core_insn>(
-            [](auto&& node) -> core::core_insn
+        return var.apply_visitor(x3::make_lambda_visitor<core::core_insn>(
+        //return apply_visitor(x3::make_lambda_visitor<core::core_insn>(
+            [this](auto&& node) -> core::core_insn
             {
                 static core::opc::opc_error error;
 
-                core::core_insn insn{node};     // get loc
+                core::core_insn insn{*this};     // get loc
 
                 // if valid insn, get opc_index
                 if (auto op_p = node.gen_insn(insn.data))
@@ -89,7 +114,8 @@ struct stmt_t : detail::parser_variant
 
     void print(std::ostream& os) const
     {
-        this->apply_visitor(x3::make_lambda_visitor<void>(
+        var.apply_visitor(x3::make_lambda_visitor<void>(
+        //apply_visitor(x3::make_lambda_visitor<void>(
             [&os](auto&& node)
             { 
                 print_obj pobj{os};
@@ -104,6 +130,9 @@ struct stmt_t : detail::parser_variant
         stmt.print(os);
         return os;
     }
+
+private:
+    //detail::parser_variant var;
 };
 }
 

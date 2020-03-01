@@ -148,9 +148,6 @@ using X_e_fixed = token_defn_t<KAS_STRING("BSD_E_FIXED"), e_fixed_t>;
 auto const p_expr_def = token<X_e_fixed>[int_];
 //auto const p_expr_def = token<X_e_fixed>[c_fixed_p];
 
-// location tag "expressions". (tokens are already tagged)
-// XXX 2019/11/13 tagging screws up token value (???)
-//struct _tag_expr : kas::parser::annotate_on_success {};
 auto const expr_arg   = rule<class _tag_expr, bsd_arg>{} = expr();
 //auto const expr_arg   = rule<class _tag_expr, bsd_arg>{} = p_expr_def;
 
@@ -169,42 +166,25 @@ auto const space_args = rule<class _, bsd::bsd_args> {}
         = space_arg >> (+space_arg | *(',' > space_arg))
         | repeat(1)[missing];
 
+// NB: no arguments is parsed as [missing]
 auto const comma_args = rule<class _, bsd::bsd_args> {}
         = comma_arg % ',';
 
 // NB: `comma_ops` have comma separated args. `space_ops` have space separated 
 // Parse actual statements
-auto const raw_stmt_comma = rule<class _tag_comma, bsd_stmt_pseudo> {} =
-                    (comma_op_x3 > comma_args)[bsd_stmt_pseudo()];
-auto const raw_stmt_space = rule<class _tag_space, bsd_stmt_pseudo> {} =
-                    (space_op_x3 > space_args)[bsd_stmt_pseudo()];
-        
-// don't allow missing on "=" statements
-auto const raw_stmt_org = rule<class _org, bsd_stmt_org> {} =
-                    ((omit[dot_ident] >> '=') > space_arg)[bsd_stmt_org()];
+auto const stmt_comma_def = (comma_op_x3 > comma_args)[bsd_stmt_pseudo()];
+auto const stmt_space_def = (space_op_x3 > space_args)[bsd_stmt_pseudo()]; 
 
-auto const raw_stmt_equ = rule<class _tag_equ, bsd_stmt_equ> {} =
-                    ((label           >> '=') > space_arg)[bsd_stmt_equ()];
+auto const stmt_equ_def   = ((label           >> '=') > space_arg)[bsd_stmt_equ()];
+auto const stmt_org_def   = ((omit[dot_ident] >> '=') > space_arg)[bsd_stmt_org()];
 
-// add extra parser rule to get tagging.
-auto const stmt_comma_def = raw_stmt_comma;
-auto const stmt_space_def = raw_stmt_space;
-auto const stmt_equ_def   = raw_stmt_equ;
-auto const stmt_org_def   = raw_stmt_org;
-
-// interface to top-level parser
+// instantiate top-level parsers
 stmt_comma_x3  stmt_comma   {"bsd_comma"};
 stmt_space_x3  stmt_space   {"bsd_space"};
 stmt_equ_x3    stmt_equ     {"bsd_equ"  };
 stmt_org_x3    stmt_org     {"bsd_org"  };
 
 BOOST_SPIRIT_DEFINE(stmt_comma, stmt_space, stmt_equ, stmt_org)
-
-struct _tag_comma : kas::parser::annotate_on_success{};
-struct _tag_space : kas::parser::annotate_on_success{};
-struct _tag_equ   : kas::parser::annotate_on_success{};
-struct _tag_org   : kas::parser::annotate_on_success{};
-struct _tag_lbl   : kas::parser::annotate_on_success{};
 }
 
 #endif

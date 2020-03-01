@@ -112,6 +112,7 @@ private:
 
         // create new segment map entry
         m.emplace_hint(m.end(), last_loc, kas_loc_segment_info{idx, offset});
+
 #undef TRACE_ERROR_HANDLER
 #ifdef TRACE_ERROR_HANDLER
         std::cout << "error_handler: entered segment " << m.size();
@@ -164,6 +165,9 @@ public:
     template <typename AST>
     void annotate(AST& ast, Iter const& first, Iter const& last, std::false_type) const
     {
+#ifdef TRACE_ERROR_HANDLER
+        std::cout << "error_handler::annotate: false_type" << std::endl;
+#endif
         // XXX add support for `set_loc()` types (eg: ref_loc_t)
         if constexpr (std::is_base_of<core::ref_loc_tag, AST>())
         {
@@ -181,6 +185,9 @@ public:
     // This will catch all nodes inheriting from `kas_position_tagged`
     void annotate(kas_position_tagged& ast, Iter const& first, Iter const& last, std::true_type) const 
     {
+#ifdef TRACE_ERROR_HANDLER
+        std::cout << "error_handler::annotate: true_type" << std::endl;
+#endif
     #ifndef XXX
         // splice ast
         ast = { first, last, this };
