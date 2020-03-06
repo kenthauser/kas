@@ -76,12 +76,6 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
             // ARITY > 1 : loc is from first arg to last
             if constexpr (N > 1)
             {
-#ifdef EXPR_TRACE_EVAL
-                std::cout << "expr_op::eval:";
-                std::cout << " from " << tokens[0]->where();
-                std::cout << " to " << tokens[N-1]->where();
-                std::cout << std::endl;
-#endif
                 loc = {*tokens[0], *tokens[N-1]};
             }
 
@@ -105,6 +99,11 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
 
     // test if args match operator
     auto it = ops.find(hash);
+#ifdef EXPR_TRACE_EVAL
+    std::cout << "expr_op::eval: oper = " << op_loc.where();
+    std::cout << ", hash = " << std::hex << hash;
+    std::cout << ", supported = " << std::boolalpha << (it != ops.end()) << std::endl;
+#endif
     if (it == ops.end())
     {
         // propogate error if previously detected

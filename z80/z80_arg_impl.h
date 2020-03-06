@@ -30,10 +30,10 @@ const char *z80_arg_t::set_mode(unsigned mode)
 
     // check for prefix based on `reg`
     // NB: prefix for HL is zero
-    if (reg.kind(RC_IDX) == RC_IDX)
+    if (reg_p->kind(RC_IDX) == RC_IDX)
         is_prefix = true;
     if (is_prefix)
-        new_prefix = reg.value(RC_IDX);
+        new_prefix = reg_p->value(RC_IDX);
   
     // insns with multiple index registers must all be same
     if (is_prefix && has_prefix && new_prefix != prefix)
@@ -109,12 +109,12 @@ void z80_arg_t::print(OS& os) const
         case MODE_REG:
         case MODE_REG_IX:
         case MODE_REG_IY:
-            os << reg;
+            os << *reg_p;
             break;
         case MODE_REG_INDIR:
         case MODE_REG_INDIR_IX:
         case MODE_REG_INDIR_IY:
-            os << "(" << reg << ")";
+            os << "(" << *reg_p << ")";
             break;
         case MODE_REG_OFFSET_IX:
         case MODE_REG_OFFSET_IY:
@@ -123,10 +123,10 @@ void z80_arg_t::print(OS& os) const
             if (auto p = tok.get_fixed_p())
                 if (*p < 0)
                 {
-                    os << "(" << reg << std::dec << *p << ")";
+                    os << "(" << *reg_p << std::dec << *p << ")";
                     break;
                 }
-            os << "(" << reg << "+" << tok << ")";
+            os << "(" << *reg_p << "+" << tok << ")";
             break;
         case MODE_ERROR:
             if (err)

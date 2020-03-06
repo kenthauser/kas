@@ -88,12 +88,9 @@ protected:
 
 public:
     // arg mode: default getter/setter
-    auto mode() const { return _mode; }
-
-#if 1
+    auto        mode() const { return _mode; }
     const char *set_mode(unsigned mode);
-#else
-#endif
+
     // save & restore arg "state" when evaluating mcodes. Default to just "mode".
     using arg_state = arg_mode_t;
     arg_state get_state() const                 { return derived().mode();   };
@@ -190,7 +187,12 @@ public:
     
     // common member variables
     parser::kas_token tok; 
+#if 0
     reg_t       reg  {}; 
+#else
+    reg_t    const *reg_p    {};
+    regset_t const *regset_p {};
+#endif
     parser::kas_error_t err; 
 
 private:

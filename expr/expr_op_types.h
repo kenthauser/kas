@@ -101,8 +101,13 @@ namespace detail
                 , ops(defn.op_p, defn.op_p + defn.op_cnt)
                 {
 #ifdef EXPR_TRACE_EVAL
-                    std::cout << "expr_op: adding " << +defn.op_cnt;
+                    std::cout << "expr_op: adding " << std::dec << +defn.op_cnt;
                     std::cout << " arg tuples for " << defn_p->name() << std::endl;
+#if 1
+                    for (auto& d : ops)
+                        std::cout << std::hex << d.first << ", ";
+                    std::cout << std::endl;
+#endif
 #endif
                 };
 

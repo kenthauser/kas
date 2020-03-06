@@ -28,55 +28,44 @@ tgt_arg_t<Derived, M, I, R, RS>
     
     // accumulate error
     const char *msg   {};
-
-#if 1
+#if 0
     auto reg_as_tok = reg_tok(tok);
     if (reg_as_tok)
         reg = *reg_as_tok();
     
     // `regset_t` can be void, so code slightly differently
-    regset_t *rs_p  {};
+    regset_t const *rs_p  {};
     if constexpr (!std::is_void_v<rs_tok>)
     {
         auto rs_as_tok = rs_tok(tok);
         if (rs_as_tok)
             rs_p = rs_as_tok();
     }
-
     if (rs_p)
-        std::cout << "tgt_arg::ctor: regset loc = " << rs_p->loc() << std::endl;
+        std::cout << "tgt_arg::ctor: regset src = " << tok.where() << std::endl;
 
 #else
-    // see if `reg` or `regset` in expr
-    reg_t *reg_p = expr.template get_p<reg_t>();
-    if (reg_p)
-    {
-        reg = *reg_p;
-        expr = {};
-    }
+    // extract regset & register-set values
+    reg_p = reg_tok(tok)();
 
     // `regset_t` can be void, so code slightly differently
-    regset_t *rs_p  {};
-    if constexpr (!std::is_void_v<regset_t>)
-        rs_p = expr.template get_p<regset_t>();
-
-    if (rs_p)
-        std::cout << "tgt_arg::ctor: regset loc = " << rs_p->loc() << std::endl;
+    if constexpr (!std::is_void_v<rs_tok>)
+        regset_p = rs_tok(tok)(); 
 #endif
 
     // big switch to evaluate DIRECT/INDIRECT/IMMEDIATE
     switch (mode)
     {
     case arg_mode_t::MODE_DIRECT:
-        if (reg_as_tok)
+        if (reg_p)
             mode = arg_mode_t::MODE_REG;
-        else if (rs_p)
+        else if (regset_p)
             mode = arg_mode_t::MODE_REGSET;
         break;
     
     case arg_mode_t::MODE_IMMEDIATE:
         // immediate must be non-register expression
-        if (reg_as_tok || rs_p)
+        if (reg_p || regset_p)
             msg = err_msg_t::ERR_argument;
         break;
 #if 0
@@ -104,14 +93,14 @@ tgt_arg_t<Derived, M, I, R, RS>
 #endif
     case arg_mode_t::MODE_INDIRECT:
         // check for register indirect
-        if (reg_as_tok)
+        if (reg_p)
         {
             mode = arg_mode_t::MODE_REG_INDIR;
             break;
         }
         
         // if not reg or regset, just indirect expression
-        else if (!rs_p)
+        else if (!regset_p)
             break;
         
         // indirect regset. must be `MODE_REG_OFFSET`
@@ -120,22 +109,22 @@ tgt_arg_t<Derived, M, I, R, RS>
         
         // FALLSTHRU
     default:
-#if 0
+#if 1
         // INDIRECT regset or non-standard mode. Check for RS_OFFSET
         // NB: must wrap regset test in `constexpr if`
-        if constexpr (!std::is_void<regset_t>::value)
+        if constexpr (!std::is_void_v<regset_t>)
         {
             // need better interface to `RS_OFFSET`
-            if (rs_p && rs_p->kind() == -regset_t::RS_OFFSET)
+            if (reg_p && regset_p->kind() == -regset_t::RS_OFFSET)
             {
-                reg  = rs_p->reg();
-                expr = rs_p->offset();
+                reg_p  = regset_p->reg_p();
+                // XXX expr = rs_p->offset();
                 break;
             }
         }
         
         // reg-sets must be DIRECT or RS_OFFSET. 
-        if (rs_p)
+        if (regset_p)
             msg = err_msg_t::ERR_argument;
 #endif   
         break;
@@ -263,10 +252,10 @@ bool tgt_arg_t<Derived, M, I, R, RS>
     // here the `has_reg` bit may be set spuriously
     // (happens when no appropriate validator present)
     // don't save if no register present
-    if (!reg.valid())
+    if (!reg_p)
         wb_p->has_reg = false;
     if (wb_p->has_reg)
-        inserter(std::move(reg));
+        inserter(std::move(*reg_p));
     
     // get size of expression
     if (wb_p->has_data)
@@ -293,7 +282,7 @@ void tgt_arg_t<Derived, M, I, R, RS>
         auto p = reader.get_expr().template get_p<reg_t>();
         if (!p)
             throw std::logic_error{"tgt_arg_t::extract: has_reg"};
-        reg = *p;
+        reg_p = p;
     } 
     
     // read expression. Check for register
@@ -304,7 +293,7 @@ void tgt_arg_t<Derived, M, I, R, RS>
         // if expression holds register, process
         if (auto r_tok = reg_tok(tok))
         {
-            reg = *r_tok(); // wierd syntax
+            reg_p = r_tok(); // wierd syntax
             tok = {};
         }
     }
@@ -417,14 +406,14 @@ void tgt_arg_t<Derived, M, I, R, RS>
             os << "#" << tok;
             break;
         case arg_mode_t::MODE_REG:
-            os << reg;
+            os << *reg_p;
             break;
         case arg_mode_t::MODE_REG_INDIR:
-            os << reg << "@";
+            os << *reg_p << "@";
             break;
 #if 0
         case arg_mode_t::MODE_REG_OFFSET:
-            os << reg << "@(" << tok << ")";
+            os << *reg_p << "@(" << tok << ")";
             break;
 #endif
         case arg_mode_t::MODE_ERROR:
@@ -438,7 +427,8 @@ void tgt_arg_t<Derived, M, I, R, RS>
             break;
         default:
             os << "[MODE:"  << std::dec << +mode();
-            os << ",REG="   << reg;
+            if (reg_p)
+                os << ",REG="   << *reg_p;
             os << ",TOK="   << tok << "]";
             break;
     }

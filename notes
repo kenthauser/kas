@@ -286,4 +286,6 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 25. symbol expressions not allowed (error on `_`)
 
+26. tgt_stmt::validate_args doesn't error on "diag" args
+
 

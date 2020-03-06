@@ -245,7 +245,7 @@ struct tgt_val_reg : MCODE_T::val_t
             return fits.no;
         
         // here validating if mode of arg matches. validate if REG class matches desired
-       if (arg.reg.kind(r_class) != r_class)
+       if (arg.reg_p->kind(r_class) != r_class)
             return fits.no;
 
         // here reg-class matches. Test reg-num if specified
@@ -254,7 +254,7 @@ struct tgt_val_reg : MCODE_T::val_t
             return fits.yes;
 
         // not default: look up actual rc_value
-        if (arg.reg.value(r_class) == r_num)
+        if (arg.reg_p->value(r_class) == r_num)
             return fits.yes;
 
         return fits.no;
@@ -262,7 +262,7 @@ struct tgt_val_reg : MCODE_T::val_t
 
     unsigned get_value(arg_t& arg) const override
     {
-        return arg.reg.value(r_class);
+        return arg.reg_p->value(r_class);
     }
     
     void set_arg(arg_t& arg, unsigned value) const override
@@ -270,9 +270,9 @@ struct tgt_val_reg : MCODE_T::val_t
         auto reg_class = derived().value2reg(value);
         
         if (!is_single_register())
-            arg.reg = reg_t(reg_class, value);
+            arg.reg_p = &reg_t::get(reg_class, value);
         else
-            arg.reg = reg_t(reg_class, r_num);
+            arg.reg_p = &reg_t::get(reg_class, r_num);
     }
 
     reg_value_t r_num;

@@ -21,6 +21,7 @@ struct tgt_reg_set : core::kas_object<Derived, Ref>
     using reg_t      = Reg_t;
     using rs_value_t = int32_t;     // NB: e_fixed_t
     using core_expr_t = typename core::core_expr_t;
+    using token_t = parser::token_defn_t<KAS_STRING("REGSET"), Derived>;
 #if 0
     // this `Reg_t` member type simplifies global operator definitions
     static_assert(std::is_same_v<Derived, typename reg_t::reg_set_t>
@@ -75,8 +76,11 @@ public:
     tgt_reg_set(reg_t const& r, char op = '=');
 
     // need mutable operators only
+    // range ops
     auto& operator- (derived_t const& r)     { return binop('-', r); }
     auto& operator/ (derived_t const& r)     { return binop('/', r); }
+
+    // offset ops
     auto& operator+ (core_expr_t const& r)   { return binop('+', r); }
     auto& operator- (core_expr_t const& r)   { return binop('-', r); }
     auto& operator+ (int r)                  { return binop('+', r); }
@@ -93,7 +97,7 @@ public:
     // NB: expr_t definition not complete. Work around...
     template <typename OFFSET_T = expr_t>
     OFFSET_T offset() const;
-    auto reg() const { return ops.front().second; }
+    auto reg_p() const { return &ops.front().second; }
 
     template <typename OS> void print(OS&) const;
     
@@ -101,8 +105,8 @@ public:
     derived_t& binop(const char op, derived_t const& r);
     derived_t& binop(const char op, core_expr_t const& r);
     derived_t& binop(const char op, int r);
-private:
 
+private:
     // state is list of reg-set ops
     using reg_set_op = std::pair<char, reg_t>;
     std::vector<reg_set_op> ops;
@@ -116,51 +120,38 @@ private:
     static inline core::kas_clear _c{base_t::obj_clear};
 };
 
-//}
-
 // hook regset into type system.
-// NB: must be done in "kas" namespace so template is found
-//namespace kas
-//{
 
 // Declare operators to catch "reg op reg" to evaluate register sets
 // NB: Allocate a "kas-object" instance of regset & proceed with evaluation
-template <typename L, typename R, typename RS = typename L::reg_set_t>
-inline auto operator- (L const& l, R const& r)
+template <typename L, typename R, typename RS = typename L::regset_t>
+auto operator- (L const& l, R const& r)
     -> decltype(std::declval<RS>().operator-(r))
 {
     // XXX the `+` here makes offset work, probably breaks "range"
     return RS::add(l, '+').operator-(r);
 }
-template <typename L, typename R, typename RS = typename L::reg_set_t>
-inline auto operator/ (L const& l, R const& r)
+template <typename L, typename R, typename RS = typename L::regset_t>
+auto operator/ (L const& l, R const& r)
     -> decltype(std::declval<RS>().operator/(r))
 {
     return RS::add(l).operator/(r);
 }
 
 // Declare operators to handle displacements (Reg +/- expr, expr + Reg)
-template <typename L, typename R, typename RS = typename L::reg_set_t>
-inline auto operator+ (L const& l, R const& r)
+template <typename L, typename R, typename RS = typename L::regset_t>
+auto operator+ (L const& l, R const& r)
       -> decltype(std::declval<RS>().operator+(r))
 {
     return RS::add(l, '+').operator+(r);
 }
 
-#if 0
-template <typename L, typename R, typename RS = typename L::reg_set_t>
-inline auto operator- (L const& l, R const& r)
-    -> decltype(std::declval<RS>().operator+(r))
-{
-    return RS::add(l, '+').operator+(-r);
-}
-template <typename R, typename RS = typename R::reg_set_t>
-inline auto operator+ (expr_t& l, R const& r)
-    -> decltype(std::declval<RS>().operator+(l))
+template <typename L, typename R, typename RS = typename R::regset_t>
+auto operator+ (L const& l, R const& r)
+      -> decltype(std::declval<RS>().operator+(l))
 {
     return RS::add(r, '+').operator+(l);
 }
-#endif
 }
 
 #endif

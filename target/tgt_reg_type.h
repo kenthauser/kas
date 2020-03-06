@@ -38,6 +38,7 @@ struct tgt_reg_defn;
 //
 
 template <typename Derived
+        , typename REGSET = void
         , typename BASE_T = uint16_t
         , unsigned REG_C_BITS = 8
         , unsigned VALUE_BITS = std::numeric_limits<BASE_T>::digits - REG_C_BITS> 
@@ -45,6 +46,7 @@ struct tgt_reg
 {
     using base_t      = tgt_reg;
     using derived_t   = Derived;
+    using regset_t    = REGSET;
 
     // be sure bits fit into single `BASE_T` value
     static_assert(VALUE_BITS > 0,
@@ -69,7 +71,11 @@ struct tgt_reg
     using reg_value_t      = BASE_T;
     using hw_tst           = uint16_t;
 
-    static constexpr auto MAX_REG_ALIASES = 1;
+    // default: allow a single alias 
+    // default: allow two different reg defns to have same name
+    // example: SP can be an general register & also name a control register
+    static constexpr auto MAX_REG_ALIASES    = 1;
+    static constexpr auto MAX_REG_NAME_DEFNS = 2;
 
     // default: return name unaltered
     static const char *format_name(const char *n, unsigned i = 0)
@@ -88,10 +94,26 @@ private:
     defn_t const&        select_defn(int reg_class = -1) const;
 
 public:
+    // unfortunate name; record base of definitions
     static void set_insns(decltype(insns) _insns, unsigned _cnt)
     {
         insns     = _insns;
         insns_cnt = _cnt;
+    }
+
+    using LOOKUP_FN = derived_t const *(*)(const char *);
+    static auto lookup(const char *name)
+    {
+        return lookup_fn(name);
+    }
+
+    template <typename PARSER>
+    static void set_lookup(PARSER parser)
+    {
+        static auto parser_p = parser;
+        static auto do_lookup = [](const char *name) -> derived_t const *
+            { return *parser_p->find(name); };
+        lookup_fn = do_lookup;
     }
 
     // used in X3 expression
@@ -99,13 +121,15 @@ public:
 
     // create new register from class/data pair
     // NB: used primarily for disassembly
-    tgt_reg(reg_defn_idx_t reg_class, uint16_t value);
+    //tgt_reg(reg_defn_idx_t reg_class, uint16_t value);
+    static derived_t const& get(reg_defn_idx_t reg_class, uint16_t value);
 
     // used to initialize `tgt_reg` structures
     template <typename T> void add(T const& d, reg_defn_idx_t n);
 
     // used to verify instance is a register
-    bool valid() const { return reg_0_index; }
+    //bool valid() const { return reg_0_index; }
+    bool valid() const { return defns[0]; }
     
     // methods to examine register
     uint16_t const  kind(int reg_class = -1)  const;
@@ -121,6 +145,7 @@ public:
 
 private:
     static reg_defn_idx_t find_data(reg_defn_idx_t rc, uint16_t rv);
+    static inline LOOKUP_FN lookup_fn;
     const char *validate_msg() const;
 
     template <typename OS>
@@ -129,12 +154,15 @@ private:
         d.print(os); 
         return os;
     }
-
+#if 0
     // reg_ok is really a bool. 
     reg_defn_idx_t  reg_0_index {};
     reg_defn_idx_t  reg_0_ok    {};
     reg_defn_idx_t  reg_1_index {};
     reg_defn_idx_t  reg_1_ok    {};
+#else
+    std::array<reg_defn_idx_t, MAX_REG_NAME_DEFNS> defns;
+#endif
 };
 
 }

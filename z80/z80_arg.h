@@ -71,6 +71,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, void, z80_reg_t, z80_
     }
 
     // these are static because only 1 prefix allowed per instruction
+    // NB: HL can be a "prefix" register with zero prefix code, thus two bools
     static inline uint8_t prefix;
     static inline bool    has_prefix;
 };

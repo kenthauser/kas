@@ -1,6 +1,17 @@
 #ifndef KAS_TARGET_TGT_REG_TRAIT_H
 #define KAS_TARGET_TGT_REG_TRAIT_H
 
+////////////////////////////////////////////////////////////////////////////
+//
+// Define a MPL function to create a sequence of registers (eg: a0->a15)
+//
+// called: make_reg_seq<CALLABLE, NAME_BASE, REG_COUNT, BASE_COUNT = 0>
+//
+// CALLABLE invoked for each register with list<NAME_N, N>
+//
+// return list<> of CALLABLEs
+//
+////////////////////////////////////////////////////////////////////////////
 
 #include "kas/kas_string.h"     // need KAS_STRING: `i2list`
 #include <meta/meta.hpp>

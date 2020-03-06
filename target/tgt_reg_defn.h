@@ -6,16 +6,6 @@
 // constexpr definition of target register
 //
 ////////////////////////////////////////////////////////////////////////////
-//
-// Also define a MPL function to create a sequence of registers (eg: a0->a15)
-//
-// called: make_reg_seq<CALLABLE, NAME_BASE, REG_COUNT, BASE_COUNT = 0>
-//
-// CALLABLE invoked for each register with list<NAME_N, N>
-//
-// return list<> of CALLABLEs
-//
-////////////////////////////////////////////////////////////////////////////
 
 #include "kas_core/kas_object.h"
 #include "parser/sym_parser.h"
@@ -23,8 +13,6 @@
 
 namespace kas::tgt
 {
-
-
 // declare constexpr definition of register generated at compile-time
 template <typename Reg_t>
 struct tgt_reg_defn
@@ -38,7 +26,7 @@ struct tgt_reg_defn
     static constexpr auto MAX_REG_NAMES = Reg_t::MAX_REG_ALIASES + 1;
 
     // type definitions for `parser::sym_parser_t`
-    // NB: ctor NAMES index list will include aliases 
+    // NB: ctor NAMES index list will include aliases
     using NAME_LIST = meta::list<meta::int_<0>>;
 
     template <typename...NAMES, typename N, typename REG_C, typename REG_V, typename REG_TST>
@@ -58,7 +46,7 @@ struct tgt_reg_defn
     {
         if (n < MAX_REG_NAMES)
             if (auto idx = names[n])
-                return names_base[idx-1];
+                return names_base[idx-1] + i;
         return {};
     }
 
@@ -141,7 +129,10 @@ struct tgt_reg_adder
     tgt_reg_adder(PARSER) : defns(PARSER::sym_defns)
     {
         OBJECT_T::set_insns(PARSER::sym_defns, PARSER::sym_defns_cnt);
+        OBJECT_T::set_lookup(PARSER::parser);
+
         DEFN_T::names_base = meta::front<typename PARSER::all_types_defns>::value;
+
 #if 0
         // XLATE_LIST meta-fn doesn't work properly
         auto p = DEFN_T::names_base;
