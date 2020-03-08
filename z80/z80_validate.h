@@ -286,6 +286,21 @@ struct val_jrcc : val_reg
         return fits.yes;
     }
 };
+
+// extend `tgt_val_range` to allow MODE_DIRECT for bit operations
+struct val_range : tgt::opc::tgt_val_range<z80_mcode_t> 
+{
+    using base_t = tgt_val_range<z80_mcode_t>;
+    using base_t::base_t;
+
+    fits_result ok(arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
+    {
+        if (arg.mode() == arg_mode_t::MODE_DIRECT)
+            return base_t::range_ok(arg, info, fits);
+        return base_t::ok(arg, info, fits);
+    }
+};
+
 // validate RST instruction: require multiple of 8, rante 0..0x38
 struct val_restart : z80_mcode_t::val_t
 {
@@ -366,10 +381,6 @@ using _val_gen = meta::list<NAME, T, meta::int_<Ts>...>;
 template <typename NAME, int...Ts>
 using _val_reg = _val_gen<NAME, val_reg, Ts...>;
 
-// specialize generic validators
-using val_range   = tgt::opc::tgt_val_range<z80_mcode_t>;
-
-
 // register-class and register-specific validations
 VAL_REG(REG         , RC_GEN); // Named Registers
 VAL_REG(REG_A       , RC_GEN, 7);
@@ -407,7 +418,7 @@ VAL_GEN(IMMED_8     , val_range, -(1<< 7), (1<< 8)-1, 0, 1);
 VAL_GEN(IMMED_16    , val_range, -(1<<15), (1<<16)-1, 0, 2);
 
 VAL_GEN(IMMED_IM    , val_range, 0, 2);
-VAL_GEN(BIT_NUM     , val_range, 0, 2);
+VAL_GEN(BIT_NUM     , val_range, 0, 7);
 VAL_GEN(IMMED_RST   , val_restart);
 
 }

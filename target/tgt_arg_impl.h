@@ -115,7 +115,7 @@ tgt_arg_t<Derived, M, I, R, RS>
         if constexpr (!std::is_void_v<regset_t>)
         {
             // need better interface to `RS_OFFSET`
-            if (reg_p && regset_p->kind() == -regset_t::RS_OFFSET)
+            if (regset_p && regset_p->kind() == -regset_t::RS_OFFSET)
             {
                 reg_p  = regset_p->reg_p();
                 // XXX expr = rs_p->offset();

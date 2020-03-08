@@ -17,13 +17,17 @@ namespace kas::parser
 // XXX std::string is wrong return type
 std::string kas_loc::where() const
 {
+    return escaped_str<char>(src());
+}
+
+std::string kas_loc::src() const
+{
     if (*this)
     {
         auto w = error_handler_type::raw_where(loc);
-        //return { w.second.begin(), w.second.end() };
-        return escaped_str<char>({w.second.begin(), w.second.end()});
+        return { w.second.begin(), w.second.end() };
     }
-    return escaped_str<char>({});
+    return {};
 }
 
 #if 0

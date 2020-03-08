@@ -32,7 +32,7 @@ brwcnt		=	7
     ld  a,b
     bit 6,(iy-4)
 1:    
-    jr  1b
+    jr 1b 
     
 binit: 
 ; link the buffers together
@@ -543,4 +543,3 @@ bputw:
 	call	blkput
 	pop	bc		; restore data to write
 	jr	1$
-

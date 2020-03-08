@@ -122,7 +122,7 @@ struct tgt_data_inserter_t
     // insert data via pointer
     value_type* operator()(value_type *code_p, int size)
     {
-        std::cout << "insert(): " << *code_p << " size = " << size << std::endl;
+        std::cout << "insert(): " << +*code_p << " size = " << size << std::endl;
         reserve(size);
 
         auto p = insert_one(*code_p);
@@ -221,7 +221,7 @@ auto tgt_data_inserter_t<VALUE_T, EMIT_VALUE_T>::insert_fixed(emit_value_t i, in
 template <typename VALUE_T, typename EMIT_VALUE_T>
 auto tgt_data_inserter_t<VALUE_T, EMIT_VALUE_T>::insert_one(value_type i) -> value_type *
 {
-    std::cout << "insert_one: " << std::hex << i << std::endl;
+    std::cout << "insert_one: " << std::hex << +i << std::endl;
     // save one word in fixed area if room
     if (n)
     {

@@ -112,13 +112,13 @@ struct kas_token : kas_position_tagged
             return defn_p->index();
         return {};
     }
-
+#if 1
     template <typename T>
     T const *get_p(T const& = {}) const
     {
         return expr().get_p<T>();
     }
-
+#endif
     // test for token type: `void` tests for generic `kas_token`
     template <typename T = void>
     token_defn_base const * is_token_type() const

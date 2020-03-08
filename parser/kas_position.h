@@ -47,6 +47,7 @@ struct kas_loc
     // used in error_handler::where and for ostream
     auto const& get() const { return loc; }
     std::string where() const;
+    std::string src()   const;
 
 private:
     index_t loc;
@@ -94,7 +95,9 @@ struct kas_position_tagged_t
     // convenience methods
     operator std::basic_string<value_type>() const
     {
-        return where();
+        if (handler)
+            return { first, last };
+        return loc.src();
     }
     
     std::basic_string<value_type> where() const;

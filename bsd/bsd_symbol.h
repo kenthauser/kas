@@ -9,8 +9,8 @@
 //
 // The `bsd_ident` is the interface between the parser & `core_symbol` type.
 //
-// The "symbol table" lookups by name are done in this module. After creation
-// `core_symbol` entries are accessed via a `symbol_ref` object.
+// The "symbol table" lookups by name are done in this module. After lookup,
+// symbol entries are accessed via the `core::core_symbol_t` object.
 //
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -27,6 +27,11 @@ namespace kas::bsd
 {
 namespace x3 = boost::spirit::x3;
 using ::kas::parser::kas_token;
+
+// non-charset value to be used as internal symbol part 'separator':
+// inserted between the "parts" of local symbols in symbol table, 
+// but not used in symbol lookup.  can be either character or string
+static constexpr auto bsd_sym_sep_str = '-';
 
 //
 // "normal" identifers: eg: "[alpha][alphanum*]"
@@ -46,15 +51,15 @@ private:
     }
 
 public:
-    static auto& get(kas_token const& token)
+    static auto& get(kas_token const& tok)
     {
-        std::string ident = token;
-        auto& sym_p       = sym_table()[ident];
+        std::string name = tok;
+        auto& sym_p      = sym_table()[name];
 
         // if new symbol, create & insert in local table
         // `name`, `location`, and `type`
         if (!sym_p)
-            sym_p = &symbol_type::add(ident, token, core::STB_TOKEN);
+            sym_p = &symbol_type::add(name, tok, core::STB_TOKEN);
 
         return *sym_p;
     }
@@ -109,15 +114,15 @@ public:
     
     static auto& get(kas_token const& token)
     {
-        auto p = token.get_fixed_p();
-        auto& sym_p  = sym_table()[*p];
+        auto  p     = token.get_fixed_p();
+        auto& sym_p = sym_table()[*p];
 
         if (!sym_p)
         {
-            // insert took place. create the symbol.
-            // `ident` is name stored in symbol table. not used by kas
-            auto ident = last() + ":" + std::to_string(*p);
-            sym_p = &symbol_type::add(ident, token, core::STB_INTERNAL);
+            // insert required. create the symbol.
+            // calculate name stored in symbol table. not used by kas
+            auto name = last() + bsd_sym_sep_str + std::to_string(*p);
+            sym_p = &symbol_type::add(name, token, core::STB_INTERNAL);
         }
 
         return *sym_p;
@@ -126,7 +131,6 @@ public:
 private:
     static void clear()
     {
-        //std::cout << "bsd_local_ident: clear" << std::endl;
         last(true);
         sym_table().clear();
     }
@@ -163,37 +167,36 @@ private:
     static inline std::array<numeric_label, 10> labels;
 
 public:
-    static auto& get(kas_token const& token)
+    static auto& get(kas_token const& tok)
     {
         // determine lookup type by examining parsed string
-        std::string s = token;
+        auto p = tok.begin();
 
         // first character is label number (0-9)
-        unsigned n = s[0] - '0';    // convert ascii -> N
+        unsigned n = *p++ - '0';    // convert ascii -> N
         auto& l = labels[n];
 
         // second character is fwd/back/label
         bool   fwd{};
-       
-        switch (s[1])
+        switch (*p)
         {
             case 'f': case 'F': fwd = true;  break;
             case 'b': case 'B': fwd = false; break;
             default:
-                l.advance();        // label definition
+                l.advance();        // new label definition
                 fwd = false;
                 break;
         }
 
-        // retrieve appropriate symbol pointer
+        // retrieve reference to appropriate symbol pointer
         auto& sym_p = l.syms[fwd];
 
         // if first reference:: allocate new symbol
         if (!sym_p)
         {
-            // symbol table name, not used by kas
-            auto ident = std::to_string(n) + ":" + std::to_string(l.count);
-            sym_p = &symbol_type::add(ident, token, core::STB_INTERNAL);
+            // generate symbol table name, not used for symbol lookup
+            auto name = std::to_string(n) + bsd_sym_sep_str + std::to_string(l.count);
+            sym_p = &symbol_type::add(name, tok, core::STB_INTERNAL);
         }
 
         return *sym_p;
@@ -202,9 +205,7 @@ public:
 private:
     static void clear()
     {
-        //std::cout << "bsd_numeric_ident: clear" << std::endl;
-        for (auto& label : labels)
-            label = {};
+        labels = {};
     }
 
     static inline core::kas_clear _c{clear};

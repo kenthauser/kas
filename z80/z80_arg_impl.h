@@ -30,7 +30,7 @@ const char *z80_arg_t::set_mode(unsigned mode)
 
     // check for prefix based on `reg`
     // NB: prefix for HL is zero
-    if (reg_p->kind(RC_IDX) == RC_IDX)
+    if (reg_p && reg_p->kind(RC_IDX) == RC_IDX)
         is_prefix = true;
     if (is_prefix)
         new_prefix = reg_p->value(RC_IDX);

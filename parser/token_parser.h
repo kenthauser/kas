@@ -52,6 +52,10 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
                 , ctx.token_ctx()
                 , rcontext, value))
         {
+#ifdef TOKEN_TRACE
+        std::cout << " -> matched " << std::string(first, i) << std::endl;
+#endif
+
             // create "token" of `TOK_DEFN` type with parsed location
             auto& handler = x3::get<parser::error_handler_tag>(context); 
             attribute_type tok(TOK_DEFN(), {first, i, &handler});

@@ -291,6 +291,19 @@ struct tgt_val_range : MCODE_T::val_t
     constexpr tgt_val_range(int32_t min, int32_t max, int8_t zero = 0, int8_t size = 0)
                             : min(min), max(max), zero(zero), _size(size) {}
 
+    fits_result range_ok(arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const
+    {
+        if (auto p = arg.expr().get_fixed_p())
+        {
+            // if zero is mapped, block it.
+            if (!*p && zero)
+                return fits.no;
+            return fits.fits(*p, min, max);
+        }
+        return fits.fits(arg.expr(), min, max);
+
+    }
+
     fits_result ok(arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
     {
         // range is only for immediate args
@@ -298,14 +311,7 @@ struct tgt_val_range : MCODE_T::val_t
         {
             case arg_mode_t::MODE_IMMEDIATE:
             case arg_mode_t::MODE_IMMED_QUICK:
-                if (auto p = arg.expr().get_fixed_p())
-                {
-                    // if zero is mapped, block it.
-                    if (!*p && zero)
-                        return fits.no;
-                    return fits.fits(*p, min, max);
-                }
-                return fits.fits(arg.expr(), min, max);
+                return range_ok(arg, info, fits);
             default:
                 return fits.no;
         }

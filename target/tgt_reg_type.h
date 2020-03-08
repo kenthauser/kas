@@ -93,6 +93,9 @@ private:
     static defn_t const& get_defn(reg_defn_idx_t n);
     defn_t const&        select_defn(int reg_class = -1) const;
 
+    // access parser to convert name->reg_t (for `get` method)`
+    static inline derived_t const *(*lookup)(const char *);
+    
 public:
     // unfortunate name; record base of definitions
     static void set_insns(decltype(insns) _insns, unsigned _cnt)
@@ -101,19 +104,13 @@ public:
         insns_cnt = _cnt;
     }
 
-    using LOOKUP_FN = derived_t const *(*)(const char *);
-    static auto lookup(const char *name)
+    // record x3 parser instance to convert name -> derived_t
+    template <typename PARSER_P>
+    static void set_lookup(PARSER_P p)
     {
-        return lookup_fn(name);
-    }
-
-    template <typename PARSER>
-    static void set_lookup(PARSER parser)
-    {
-        static auto parser_p = parser;
-        static auto do_lookup = [](const char *name) -> derived_t const *
+        static auto parser_p = p;
+        lookup = [](const char *name) -> derived_t const *
             { return *parser_p->find(name); };
-        lookup_fn = do_lookup;
     }
 
     // used in X3 expression
@@ -145,7 +142,6 @@ public:
 
 private:
     static reg_defn_idx_t find_data(reg_defn_idx_t rc, uint16_t rv);
-    static inline LOOKUP_FN lookup_fn;
     const char *validate_msg() const;
 
     template <typename OS>

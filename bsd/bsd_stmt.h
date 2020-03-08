@@ -54,7 +54,7 @@ struct bsd_stmt_label : kas::parser::parser_stmt<bsd_stmt_label>
 
     opcode *gen_insn(opcode::data_t& data)
     {
-        opc.proc_args(data, std::move(ident));
+        opc.proc_args(data, std::move(ident_p->ref()));
         return &opc;
     }
     
@@ -65,13 +65,14 @@ struct bsd_stmt_label : kas::parser::parser_stmt<bsd_stmt_label>
     
     void print_args(print_obj const& fn) const
     {
-        fn(ident);
+        fn(ident_p->ref());
     }
 
     template <typename Context>
     void operator()(Context const& ctx);
     
-    core::symbol_ref ident;
+    //core::symbol_ref ident;
+    core::core_symbol_t *ident_p;
 };
 
 struct bsd_stmt_equ : kas::parser::parser_stmt<bsd_stmt_equ>
@@ -146,7 +147,11 @@ void bsd_stmt_label::operator()(Context const& ctx)
 {
     // set instruction "location" from parsed ident location
     auto& ident_tok = x3::_attr(ctx);
+#if 0
     ident = *ident_tok.get_p(core::symbol_ref());
+#else
+    ident_p = static_cast<decltype(ident_p)>(ident_tok());
+#endif
     x3::_val(ctx) = *this;
 }
 

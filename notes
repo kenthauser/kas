@@ -288,4 +288,6 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 26. tgt_stmt::validate_args doesn't error on "diag" args
 
+27. label parsing sub-optimal. Don't know why so many "rules" are required.
+
 
