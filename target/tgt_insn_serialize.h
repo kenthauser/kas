@@ -84,18 +84,19 @@ void tgt_insert_args(Inserter& inserter
 
     constexpr auto ARGS_PER_CHUNK = tgt_arg_serial_data_t::ARGS_PER_CHUNK;
    
-    // insert base "code" (a appropriately sized zero) & use pointer for arg inserter
-    //std::cout << "tgt_insert:args: stmt_info = " << std::hex << stmt_info.value() << std::endl;
+    // insert base "code" (or zero from `insn_t::list_mcode`)
+    // modify `mcode` to store `stmt_info` before writing
     auto code_p = inserter(m_code.code(stmt_info).data(), m_code.code_size());
 
-    auto& fmt         = m_code.fmt();
-    auto  sz          = m_code.sz(stmt_info);
-    auto& vals        = m_code.vals();
+    // retrieve formatters and validators to write args into code (as appropriate)
+    auto& fmt         = m_code.fmt();           // arg formatting instructions
+    auto  sz          = m_code.sz(stmt_info);   // byte/word/long, etc
+    auto& vals        = m_code.vals();          // arg validation list
     auto val_iter     = vals.begin();
     auto val_iter_end = vals.end();
 
-    unsigned n = 0;
-    detail::arg_serial_t *p;
+    unsigned n = 0;                             // arg index
+    detail::arg_serial_t *p;                    // current arg info data chunk
 
     // save arg_mode & info about extensions (constants or expressions)
     for (auto& arg : args)
@@ -105,14 +106,14 @@ void tgt_insert_args(Inserter& inserter
 
         // need `arg_info` scrach area. create one for modulo numbered args
         // (creates one for first argument)
-        if (auto idx_n = n % ARGS_PER_CHUNK) 
+        if (n % ARGS_PER_CHUNK) 
         {
-            // not modulo -- just increment
+            // not modulo -- just increment to next
             ++p;
         } 
         else
         {
-            // insert new arg_info (NB: zero is identical big/little endian)
+            // insert new arg_info (NB: in host format)
             auto chunk_p = inserter.write(tgt_arg_serial_data_t{});
             p = chunk_p->begin();
         }
@@ -136,9 +137,9 @@ void tgt_insert_args(Inserter& inserter
                 val_p = nullptr;
         }
 
+#if 0
         if (!val_p)
             val_name = "*NONE*";
-#if 0
         std::cout << "tgt_insert_args: " << +n 
                   << " mode = " << +arg.mode() 
                   << " arg = " << arg 
@@ -148,7 +149,11 @@ void tgt_insert_args(Inserter& inserter
         detail::insert_one<MCODE_T>(inserter, n, arg, p, stmt_info, fmt, val_p, code_p);
         ++n;
     }
-    // NB: non-modulo args at end are inited to zero (ie MODE_NONE)
+    // NB: non-modulo args at end are inited to zero
+    // if MODE_NONE != zero, flag end of args
+    if constexpr (arg_t::MODE_NONE != 0 && ARGS_PER_CHUNK != 1)
+        if (n % ARGS_PER_CHUNK)
+            p[1].init_mode = arg_t::MODE_NONE;
 }
 
 // deserialize arguments: for format, see above

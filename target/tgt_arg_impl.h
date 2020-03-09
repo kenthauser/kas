@@ -48,7 +48,7 @@ tgt_arg_t<Derived, M, I, R, RS>
     // extract regset & register-set values
     reg_p = reg_tok(tok)();
 
-    // `regset_t` can be void, so code slightly differently
+    // `rs_tok` can be void, so code slightly differently
     if constexpr (!std::is_void_v<rs_tok>)
         regset_p = rs_tok(tok)(); 
 #endif

@@ -31,7 +31,7 @@
 //
 // NB: it is "writers" resposibility to note if `M_SIZE_SWORD` returned nullptr
 // so that it can be read back as `M_SIZE_AUTO`.
-
+//
 ////////////////////////////////////////////////////////////////////////////////
 // 
 // `tgt_data_reader` has methods to read back data stored with `tgt_data_inserter`
@@ -74,36 +74,53 @@ struct tgt_data_inserter_t
     }
 
     // make sure `n` bytes available in current "segment" (fixed or chunk)
+    // can optionally specify required alignment of data
     void reserve(unsigned bytes, unsigned alignment = {})
     {
-        // align block
+        // validate alignment (convert to chunks)
         if (alignment)
         {
-            // if writing in `fixed` area, handle alignment directly
-            alignment /= sizeof(value_type);    // bytes->words
+            // NB: alignment & value_type are powers-of-two
+            alignment /= sizeof(value_type);    // bytes->chunks
+            if (alignment == 1)
+                alignment = 0;
+        }
+        
+        // align block if required
+        if (alignment)
+        {
+            // if writing in `chunk` area: forward alignment requirement
             if (n == 0)
                 ci.align(alignment);
-            else if (n < alignment)
-            {
-                // align `fixed` buffer
-                auto skip = (alignment - n) % alignment;
-                if (skip)
-                {
-                    p += skip;
-                    n -= skip;
-                }
-            } 
+            
+            // else writing in `fixed` area: handle alignment directly
             else
-                n = 0;  // done with fixed
+            {
+                std::cout << "insert: fixed area alignment: n = " << +n;
+                if (n >= alignment)
+                {
+                    // align `fixed` buffer
+                    auto skip = (n - alignment) % alignment;
+                    if (skip)
+                    {
+                        p += skip;
+                        n -= skip;
+                    }
+                } 
+                else
+                    n = 0;  // done with fixed
+                std::cout << " -> " << +n << std::endl;
+            }
         }
 
-        // convert to chunks
+        // convert reservation request to chunks
         auto chunks = (bytes + sizeof(value_type) - 1)/sizeof(value_type);
-        
+       
+        // check if room in fixed
+        if (n < chunks)
+            n = 0;      // no room
         if (n == 0)
             ci.reserve(chunks);
-        else if (n < chunks)
-            n = 0;
     }
 
     // insert fixed or expression
@@ -122,7 +139,10 @@ struct tgt_data_inserter_t
     // insert data via pointer
     value_type* operator()(value_type *code_p, int size)
     {
-        std::cout << "insert(): " << +*code_p << " size = " << size << std::endl;
+        std::cout << "insert(): ";
+        for (auto n = 0; n < size; ++n)
+            std::cout << +code_p[n] << " ";
+        std::cout << "size = " << size << std::endl;
         reserve(size);
 
         auto p = insert_one(*code_p);
@@ -150,23 +170,41 @@ struct tgt_data_inserter_t
         return (*this)(value_type());
     }
 
+    // write in chunks as host endian, aligned appropriately
     template <typename T>
     T *write(T const& data = {})
     {
         // make sure room in current chunk
+        std::cout << "insert::write(): size = " << sizeof(T); 
+        std::cout << " alignof = " << alignof(T) << std::endl;
+        
         reserve(sizeof(T), alignof(T));
-        void *raw_p = skip_fixed(sizeof(T));
-
-        // the `reserve` makes sure raw_p is properly aligned
-        auto wp = static_cast<T *>(raw_p);
-        *wp = data;         // save data
-        return wp;          // return pointer
+        
+        // allocate memory & move into place
+        constexpr auto chunks = sizeof(T)/sizeof(value_type);
+        void *raw_p = skip(chunks);             // returns base pointer
+        std::memcpy(raw_p, &data, sizeof(T));
+        return static_cast<T *>(raw_p);         // return pointer
     }
 
 private:
     value_type* insert_fixed(emit_value_t i, int size);
     value_type* insert_one(value_type i);
-    value_type* skip_fixed(unsigned size) { return p; } // XXX
+    value_type* skip(unsigned chunks)
+    {
+        // dispatch: local/container/error
+        if (!n)
+            return ci.skip(chunks);
+        else if (n >= chunks)
+        {
+            auto s = p;
+            n -= chunks;
+            p += chunks;
+            return s;
+        }
+        else
+            throw std::logic_error{"tgt_data_inserter::skip no room for data"}; 
+    }
     
     Inserter& di;
     chunk_inserter_t ci;
@@ -323,7 +361,7 @@ struct tgt_data_reader_t
     {
         // make sure room in current chunk
         reserve(sizeof(T), alignof(T));
-        void *raw_p = skip_fixed(sizeof(T));
+        void *raw_p = skip(sizeof(T));
 
         // the `reserve` makes sure raw_p is properly aligned
         auto wp = static_cast<T *>(raw_p);
@@ -342,7 +380,10 @@ private:
         return chunk_it.get_p();
     }
 
-    value_type *skip_fixed(unsigned) { return p; } // XXX
+    value_type *skip(unsigned bytes)
+    {
+        return {};
+    }
 
     Iter it;
     chunk_reader_t chunk_it;

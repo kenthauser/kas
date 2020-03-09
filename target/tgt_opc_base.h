@@ -109,13 +109,18 @@ protected:
         stmt_info_t    info;
         void          *wb_handle;       // opaque writeback handle
     };
-
-    // XXX is function front-end required with c++17
+#if 1
+    // XXX is function front-end required with c++17 ??
     template <typename READER_T>
     static auto serial_args(READER_T& reader, MCODE_T const& mcode)
     {
         return serial_args_t<READER_T>(reader, mcode); 
     }
+#else
+    // c++17 deduction guide, doesn't work
+    template <typename READER_T>
+    serial_args(READER_T&, MCODE_T const&) -> serial_args<READER_T>;
+#endif
 };
 }
 #endif

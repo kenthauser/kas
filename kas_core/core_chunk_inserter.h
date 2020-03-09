@@ -55,10 +55,28 @@ struct chunk_inserter_t<Inserter, T, meta::list<CHUNK_VT, XT...>>
         // XXX
     }
 
-    // make sure properly aligned for `n`
+    // make sure properly aligned for `n` chunk type
     void align(unsigned n)
     {
         // XXX
+    }
+
+    // allocate memory for `n` chunks in current chunk
+    value_type *skip(unsigned n)
+    {
+        auto& chunk  = get_wr_chunk();
+        last_write_p = chunk.end();
+    #if 0
+        if (chunk.add(t))
+        {
+            // here chunk is full.
+            // convert boost::variant<type> to a `full` type
+            // NB: should just change variant `tag`, not copy data
+            *chunk_p = std::move(chunk.full_t());
+            chunk_p = nullptr;
+        }
+    #endif
+        return last_write_p;
     }
 
     // write expression as integral value or expression
@@ -96,7 +114,8 @@ struct chunk_inserter_t<Inserter, T, meta::list<CHUNK_VT, XT...>>
             // NB: comma sequence
             return flush(), get_wr_ptr<U>();
 
-        if (full) {
+        if (full)
+        {
              // if full, re-type chunk as "full"
             *chunk_p = std::move(chunk->full_t());
 
@@ -167,13 +186,11 @@ private:
     {
         last_write_p = nullptr;
         chunk_p      = nullptr;
-        n            = 0;
     }
     
     expr_t     *chunk_p {};
     CHUNK_VT   *last_write_p {};
     Inserter&   di;
-    short       n {};       // XXX count in fixed area
 };
 
 // T too big for any chunk_t
