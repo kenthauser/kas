@@ -149,6 +149,7 @@ void tgt_insert_args(Inserter& inserter
         detail::insert_one<MCODE_T>(inserter, n, arg, p, stmt_info, fmt, val_p, code_p);
         ++n;
     }
+    
     // NB: non-modulo args at end are inited to zero
     // if MODE_NONE != zero, flag end of args
     if constexpr (arg_t::MODE_NONE != 0 && ARGS_PER_CHUNK != 1)
@@ -172,10 +173,7 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
     constexpr auto ARGS_PER_CHUNK = tgt_arg_serial_data_t::ARGS_PER_CHUNK;
     static arg_t   static_args[MCODE_T::MAX_ARGS+1];
 
-    // initialize static array (default constructs to empty)
-    // NB: probably better to just bzero memory
-    //std::memset(static_args, 0, sizeof(static_args));
-    for (auto& arg : static_args) arg = {};
+    // reset per-insn arg state
     arg_t::reset();
 
     // get working pointer into static array
@@ -196,26 +194,22 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
     detail::arg_serial_t *p;
     for (unsigned n = 0; true ;++n, ++arg_p, ++p)
     {
-
         // last static_arg is end-of-list flag, should never reach it.
         if (arg_p == std::end(static_args))
             throw std::runtime_error {"tgt_read_args: MAX_ARGS exceeded"};
 
-        //std::cout << std::endl;
-        
+        // init arg (to MODE_NONE)
+        *arg_p = {};
+
         // deserialize `arg_info` if needed (get `ARGS_PER_CHUNK` at a time...)
         if ((n % ARGS_PER_CHUNK) == 0)
         {
             if (reader.empty())
                 break;
             
-            // get pointer to array of `arg_info_t`
-            // "reserve" insures sufficiently sized & aligned block
-            reader.reserve(sizeof(tgt_arg_serial_data_t));
-
-            // retrieve array & get pointer to first element
-            auto chunk_p = reader.read(tgt_arg_serial_data_t{});
-            p = chunk_p->begin();
+            // retrieve array `arg_info_t` & get pointer to first element
+            auto arg_info_p = reader.read(tgt_arg_serial_data_t{});
+            p = arg_info_p->begin();
         } 
         else
         {

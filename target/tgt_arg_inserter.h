@@ -43,10 +43,10 @@ struct arg_serial_t
     static constexpr std::size_t MODE_FIELD_SIZE = 5;
 
     value_t init_mode : MODE_FIELD_SIZE;    // mode when serialized
-    value_t cur_mode  : MODE_FIELD_SIZE;    // current mode
     value_t has_reg   : 1;                  // register stored
     value_t has_data  : 1;                  // additional data stored
     value_t has_expr  : 1;                  // data stored as expression
+    value_t cur_mode  : MODE_FIELD_SIZE;    // current mode
     value_t xtra_info : 3;                  // undefined arg data: must be const
 
     // update saved mode
@@ -135,7 +135,6 @@ void extract_one(Reader& reader
     std::cout << "\n[read_one:  mode = " << std::dec << std::setw(2) << +p->init_mode;
     std::cout << " bits: " << +p->has_reg  << "/" << +p->has_data << "/" << +p->has_expr;
 #endif
-
     // extract arg from machine code (dependent on validator)
     // extract info from `opcode`
     if (val_p)

@@ -38,7 +38,7 @@ struct tgt_mcode_size_t
     static constexpr auto MAX_MCODE_WORDS = 2;
 
     //using mcode_size_t = void;          // must specify machine code size
-    using mcode_size_t  = uint8_t;
+    using mcode_size_t  = uint8_t;        // XXX default to `expr_data_t` ?
     using mcode_idx_t   = uint8_t;
     using defn_idx_t    = uint8_t;
     using name_idx_t    = uint8_t;

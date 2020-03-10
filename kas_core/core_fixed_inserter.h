@@ -235,17 +235,14 @@ private:
     tpl operator()(chunk::e_chunk_full<T> const& e)
     {
         // completely full chunk: all elements are data
-        static constexpr auto N = chunk::CHUNKS_PER_BLOCK<T>;
-        return { e.chunks, sizeof(T), N };
+        return { e.begin(), sizeof(T), e.count() };
     }
 
     template <typename T, typename = void>
     tpl operator()(chunk::e_chunk<T> const& e)
     {
         // partially full chunk: last element holds count
-        static constexpr auto N = chunk::CHUNKS_PER_BLOCK<T>;
-        auto count = e[N-1];
-        return { e.chunks, sizeof(T), count };
+        return { e.begin(), sizeof(T), e.count() };
     }
 
     Iter&       it;

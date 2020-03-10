@@ -299,9 +299,45 @@ struct tgt_data_reader_t
         p = data.fixed.begin<value_type>();
     }
 
-    // make sure `n` words available in current "chunk"
+    // make sure `n` aligned bytes available in current "chunk"
     void reserve(unsigned bytes, unsigned alignment = 0)
     {
+        // validate alignment (convert to chunks)
+        if (alignment)
+        {
+            // NB: alignment & value_type are powers-of-two
+            alignment /= sizeof(value_type);    // bytes->chunks
+            if (alignment == 1)
+                alignment = 0;
+        }
+        
+        // align block if required
+        if (alignment)
+        {
+            // if writing in `chunk` area: forward alignment requirement
+            if (n == 0)
+                chunk_it.align(alignment);
+            
+            // else writing in `fixed` area: handle alignment directly
+            else
+            {
+                std::cout << "reader: fixed area alignment: n = " << +n;
+                if (n >= alignment)
+                {
+                    // align `fixed` buffer
+                    auto skip = (n - alignment) % alignment;
+                    if (skip)
+                    {
+                        p += skip;
+                        n -= skip;
+                    }
+                } 
+                else
+                    n = 0;  // done with fixed
+                std::cout << " -> " << +n << std::endl;
+            }
+        }
+
         // convert to chunks
         auto chunks = (bytes + sizeof(value_type) - 1)/sizeof(value_type);
 
@@ -332,46 +368,35 @@ struct tgt_data_reader_t
             t = (*this)(t, sizeof(T));
     }
 
-
-    // get *mutable* pointer to chunk data
-    // used to get pointer to stored machine-code.
-    // NB: assume size is positive multiple of sizeof(value_type)
-    value_type* get_fixed_p(int size = sizeof(value_type))
-    {
-        // get pointer to first word.
-        reserve(size);
-        auto p = next_word_p();
-
-        // read & discard additional words
-        auto chunks = size/sizeof(value_type);
-        
-        while(--chunks)
-            next_word_p();
-
-        return p;
-    }
-
     bool empty() const
     {
         return n == 0 && chunk_it.empty();
     }
 
-    template <typename T>
-    T *read(T const& dummy = {})
+    // get mutable pointer to chunk data array of words
+    // primary use case: get pointer to stored machine-code.
+    // NB: assume size is multiple of sizeof(value_type)
+    value_type* get_fixed_p(int bytes = sizeof(value_type))
     {
-        // make sure room in current chunk
+        reserve(bytes);
+        return skip(bytes);
+    }
+
+    // read arbitrary type from data stream
+    template <typename T>
+    T *read(T = {})
+    {
+        // require properly aligned & sized memory block
+        // "consume" data & cast pointer to memory block
         reserve(sizeof(T), alignof(T));
         void *raw_p = skip(sizeof(T));
-
-        // the `reserve` makes sure raw_p is properly aligned
-        auto wp = static_cast<T *>(raw_p);
-        return wp;          // return pointer
+        return static_cast<T *>(raw_p);
     }
 
 
 private:
     // get next word
-    value_type*  next_word_p()
+    value_type* next_word_p()
     {
         if (n > 0) {
             n--;
@@ -382,7 +407,17 @@ private:
 
     value_type *skip(unsigned bytes)
     {
-        return {};
+        // convert bytes -> chunks
+        auto chunks = bytes / sizeof(value_type);
+
+        if (n > 0)
+        {
+            auto s = p;
+            n -= chunks;
+            p += chunks;
+            return s;
+        }
+        return chunk_it.get_p(chunks);
     }
 
     Iter it;

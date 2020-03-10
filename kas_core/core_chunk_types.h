@@ -1,11 +1,8 @@
 #ifndef KAS_CORE_CHUNK_TYPE_H
 #define KAS_CORE_CHUNK_TYPE_H
 
-#if 0
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/push_back.hpp>
-#endif
+
+
 
 #include "utility/print_type_name.h"
 #include <meta/meta.hpp>
@@ -48,64 +45,68 @@ struct e_chunk_tag {};
 template <typename T>
 struct e_chunk_full : e_chunk_tag
 {
-    using value_type = T; 
+    using value_type = T;
+    using iter_type  = T*;
+    
+    auto begin()       { return std::begin(chunks); }
+    auto begin() const { return std::begin(chunks); }
+    auto end()         { return std::end(chunks); }
+    auto end()   const { return std::end(chunks); }
 
-    union
+    static auto constexpr count() { return CHUNKS_PER_BLOCK<T>; }
+    
+    // NB: align/reserve/advance are `static` so that they
+    // can be used on `full` or `partial` chunks.
+
+    // true if need new block, otherwise `it` is advanced
+    static bool align(unsigned n, iter_type& it, iter_type& bgn)
     {
-        CHUNK_BASE_TYPE _base;
-        T chunks[CHUNKS_PER_BLOCK<T>];
-    };
+        auto idx = std::distance(bgn, it);
+        auto i = calc_align(n, idx);
+        if (i < 0)
+            return true;    // need new block
+        if (i != 0)
+            std::advance(it, i);
+        return false;
+    }
+    
+    // true if doesn't fit
+    static bool reserve(unsigned n, iter_type& it, iter_type& end)
+    {
+        auto room = std::distance(it, end);
+        return n > room;
+    }
 
-    T const& operator[](size_t n) const { return chunks[n]; }
-    T&       operator[](size_t n)       { return chunks[n]; }
-
-    value_type *begin()       { return std::begin(chunks); }
-    value_type *end()         { return std::end(chunks); }
+    static bool advance(unsigned n, iter_type& it, iter_type& end)
+    { 
+        auto room = std::distance(it, end);
+        std::advance(it, n);
+        if (n < room)
+            return false;
+        if (n == room)
+            return true;
+        throw std::logic_error{"chunk_t::advance: past end of chunk"};
+    }
 
     template <typename OS>
     void print(OS& os) const
     {
-        detail::print_chunk(os, chunks, CHUNKS_PER_BLOCK<T>);
+        detail::print_chunk(os, begin(), count());
     }
-
-    template <typename U>
-    U const* get_rd_addr(T*& it) const
+protected:
+    // chunks to advance to "align" pointer.
+    // value < 0: need new block
+    static int calc_align(unsigned n, unsigned idx)
     {
-        return get_aligned_ptr<U>(it, this->end());
+        int i = (n - idx) % n;
+        if ((i + idx) >= count())
+            return -1;      // no room
+        return i;
     }
 
-private:
-    // get pointer to aligned & allocated storage for type `U`
-    // if no such location remains in buffer, return  nullptr
-    // otherwise advance `s` past read/write location
-    // NB: `U` must be a multiple of `T` (static_assert enforced)
-    template <typename U>
-    U* get_aligned_ptr(T*& s, T const* e) const
-    {
-        static_assert(std::is_integral<U>::value);
-        static_assert(sizeof(U) >= sizeof(T));
-        static_assert((sizeof(U) % sizeof(T)) == 0);
-        static_assert(sizeof(U) <= sizeof(chunks));
-
-        size_t room{(e-s) * sizeof(T)};
-        void *ptr = s;
-
-        if (!std::align(alignof(U), sizeof(U), ptr, room))
-            return nullptr;
-
-        s = ptr;
-        s += sizeof(U)/sizeof(T);
-
-        return ptr;
-    }
+    T chunks[CHUNKS_PER_BLOCK<T>];
 };
 
-// special case U == T
-// template <typename T> template <>
-// inline auto e_chunk_full<T>::get_aligned_ptr<T>(T*& s, T const*) -> T*
-// {
-//     return s++;
-// }
 
 // create partial chunk block: derive from full chunk type...
 template <typename T>
@@ -114,62 +115,77 @@ struct e_chunk : e_chunk_full<T>
     using full_type = e_chunk_full<T>;
     using full_type::chunks;
 
+private:
     // use last location to hold count of filled chunks
-    static constexpr unsigned index = CHUNKS_PER_BLOCK<T> - 1;
+    static constexpr unsigned _chk_idx = full_type::count() - 1;
+    auto& index()       { return chunks[_chk_idx]; };
+    auto  index() const { return chunks[_chk_idx]; };
 
-    e_chunk() : full_type() { chunks[index] = 0; }
+public:
+    // construct empty chunk
+    e_chunk() : full_type() { index() = 0; }
+
+    // access "full chunk" base class
+    full_type& full_t()     { return *this; }
+
+    // overwrite interface functions
+    // NB: end() is next write location
+    using full_type::begin;
+    auto end() const   { return begin() + count(); }
+    auto end()         { return begin() + count(); }
+
+    auto count() const { return index(); };
+
+    //
+    // methods to facilitate writing to chunks
+    //
+    // NB: routines return `true` if need to be converted to "full" type
+    //
 
     bool add(T const& t)
     {
-        auto n = chunks[index];
+        auto n = index();
         chunks[n++] = t;
 
         // if chunk is full, don't overwrite last element with index...
-        if (n == CHUNKS_PER_BLOCK<T>)
+        if (n == full_type::count())
             return true;
 
-        // not full, just update accounting update accounting
-        chunks[index] = n;
+        // not full, update accounting
+        index() = n;
         return false;
     }
 
-    // write needs index, not address, because chunk might need to
-    // be re-written as full chunk before data is stored
-    template <typename U>
-    int get_wr_index(bool& full)
+    bool align(unsigned n)
     {
-        print_type_name{"wr_index: chunk_t"}.name<T>();
-        print_type_name{"wr_index: dest_t"}.name<U>();
-        std::cout << "wr_index: index = " << chunks[index] << std::endl;
-
-        auto it = &chunks[chunks[index]];
-        if (!this->template get_aligned_ptr<U>(it, full_type::end()))
-            return -1;
-
-        // NB: write happens in return function, so last chunk
-        //     is still available as scratch
-        full = (it == full_type::end());
-        chunks[index] = it - begin();
-
-        std::cout << "wr_index: full: " << full;
-        std::cout << " index = " << chunks[index];
-        std::cout << " wr_index = " << chunks[index] - sizeof(U)/sizeof(T);
-        std::cout << std::endl;
-
-        return chunks[index] - (sizeof(U)/sizeof(T));
+        auto i = full_type::calc_align(n, index());
+        if (i < 0)
+            return true;        // if no room in current block
+        index() += i;
+        return false;
+    }
+    
+    bool reserve(unsigned n)
+    {
+        n += index();
+        return n > full_type::count();
     }
 
-    // access full chunk base class
-    full_type& full_t() { return *this; }
+    bool advance(unsigned n)
+    { 
+        index() += n;
+        if (index() < full_type::count())
+            return false;
+        if (index() == full_type::count())
+            return true;
+        throw std::logic_error{"chunk_t::advance: past end of chunk"};
+    }
 
     template <typename OS>
     void print(OS& os) const
     {
-        detail::print_chunk(os, chunks, chunks[index]);
+        detail::print_chunk(os, begin(), index());
     }
-
-    using full_type::begin;
-    decltype(auto) end()        { return begin() + chunks[index]; }
 };
 
 
@@ -185,8 +201,7 @@ namespace detail
                         >
                     >;
 
-}
-}
+}}
 using chunk::detail::chunk_types;
 }}
 

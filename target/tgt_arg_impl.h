@@ -251,10 +251,11 @@ bool tgt_arg_t<Derived, M, I, R, RS>
     
     // here the `has_reg` bit may be set spuriously
     // (happens when no appropriate validator present)
+    // NB: all validators always save registers directly
     // don't save if no register present
     if (!reg_p)
         wb_p->has_reg = false;
-    if (wb_p->has_reg)
+    else if (wb_p->has_reg)
         inserter(std::move(*reg_p));
     
     // get size of expression

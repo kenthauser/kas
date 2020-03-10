@@ -49,36 +49,6 @@ struct chunk_inserter_t<Inserter, T, meta::list<CHUNK_VT, XT...>>
     // hold underlying `expr` inserter
     explicit chunk_inserter_t(Inserter& di) : di(di) {}
 
-    // make sure at least `n` spots remain in current `chunk`
-    void reserve(unsigned n)
-    {
-        // XXX
-    }
-
-    // make sure properly aligned for `n` chunk type
-    void align(unsigned n)
-    {
-        // XXX
-    }
-
-    // allocate memory for `n` chunks in current chunk
-    value_type *skip(unsigned n)
-    {
-        auto& chunk  = get_wr_chunk();
-        last_write_p = chunk.end();
-    #if 0
-        if (chunk.add(t))
-        {
-            // here chunk is full.
-            // convert boost::variant<type> to a `full` type
-            // NB: should just change variant `tag`, not copy data
-            *chunk_p = std::move(chunk.full_t());
-            chunk_p = nullptr;
-        }
-    #endif
-        return last_write_p;
-    }
-
     // write expression as integral value or expression
     auto& operator= (expr_t const& e)
     {
@@ -101,34 +71,34 @@ struct chunk_inserter_t<Inserter, T, meta::list<CHUNK_VT, XT...>>
         return *this;
     }
 
-    // return aligned pointer to allocated memory
-    template <typename U>
-    U* get_wr_ptr()
+    // make sure at least `n` spots remain in current `chunk`
+    void reserve(unsigned n)
     {
-        auto chunk = &get_wr_chunk();
-        bool full  = false;
-
-        auto index = chunk->template get_wr_index<U>(full);
-        if (index < 0)
-            // type didn't fit, so flush & try again...
-            // NB: comma sequence
-            return flush(), get_wr_ptr<U>();
-
-        if (full)
-        {
-             // if full, re-type chunk as "full"
-            *chunk_p = std::move(chunk->full_t());
-
-            // get pointer to new "chunk" location
-            chunk = &boost::get<chunk_type::full_type>(*chunk_p);
-
-            // now full, so need new chunk next time
-            chunk_p = nullptr;
-        }
-        last_write_p = &chunk[index];
-        return reinterpret_cast<U*>(last_write_p);
+        // end chunk if not enough room
+        auto& chunk = get_chunk();
+        if (chunk.reserve(n))
+            flush();
     }
 
+    // make sure properly aligned for `n` chunk type
+    void align(unsigned n)
+    {
+        auto& chunk = get_chunk();
+        if (chunk.align(n))
+            flush();
+    }
+
+    // allocate memory for `n` chunks in current chunk
+    value_type *skip(unsigned n)
+    {
+        // record address to write to
+        auto& chunk  = get_chunk();
+        last_write_p = chunk.end();
+        if (chunk.advance(n))
+            mark_as_full();     // if writing fills chunk
+        return last_write_p;
+    }
+    
     // iterator extension to obtain location of last write
     auto last_p() const { return last_write_p; }
 
@@ -142,15 +112,10 @@ private:
     // add element to chunk. flush if full.
     void add_element (value_type t)
     {
-        auto& chunk  = get_wr_chunk();
-        last_write_p = chunk.end();
-        if (chunk.add(t)) {
-            // here chunk is full.
-            // convert boost::variant<type> to a `full` type
-            // NB: should just change variant `tag`, not copy data
-            *chunk_p = std::move(chunk.full_t());
-            chunk_p = nullptr;
-        }
+        auto& chunk = get_chunk();
+        last_write_p = chunk.end();     // save address for `last_p()`
+        if (chunk.add(t))
+            mark_as_full();
     }
 
     // element incompatible with chunk. flush & add expr_t to underlying queue
@@ -161,7 +126,7 @@ private:
     }
 
     // return reference to (open) chunk to write data
-    auto& get_wr_chunk()
+    auto& get_chunk()
     {
         // need (local) iterator extension which allows `last()`
         // to return reference to last write. True for `forward iterators`
@@ -172,24 +137,36 @@ private:
                         >::value
                     , "required (local) inserter extension not present");
 
-        if (!chunk_p) {
+        if (!chunk_p)
+        {
             // insert empty chunk & remember where
-            *di++ = chunk_type{};
-            chunk_p = &di.last();
+            *di++    = chunk_type{};
+            expr_p   = &di.last();
+            chunk_p  = &boost::get<chunk_type>(*expr_p);
         }
 
         // access variant data directly
-        return boost::get<chunk_type>(*chunk_p);
+        return *chunk_p;
     }
 
+    // current chunk is full -- close it
+    void mark_as_full()
+    {
+        // convert boost::variant<type> to a `full` type
+        // NB: should just change variant `tag`, not copy data
+        *expr_p = std::move(chunk_p->full_t());
+        chunk_p = {};       // flag no chunk
+    }
+
+    // done writing to not-filled block
     void flush()
     {
-        last_write_p = nullptr;
-        chunk_p      = nullptr;
+        chunk_p = {};
     }
     
-    expr_t     *chunk_p {};
-    CHUNK_VT   *last_write_p {};
+    chunk_type *chunk_p {};
+    expr_t     *expr_p;         // pointer to chunk-as-expr
+    data_type  *last_write_p;   // last written-to address in chunk
     Inserter&   di;
 };
 
@@ -212,6 +189,8 @@ namespace detail
         using value_type = VT;
         using data_type  = CHUNK_VT;
         using chunk_type = CHUNK_T;
+        using full_type  = typename chunk_type::full_type;
+
 
         _chunk_reader_t(Iter& it, std::size_t cnt)
             : it(it), cnt(cnt) {}
@@ -242,17 +221,33 @@ namespace detail
             return *chunk_p++;
         }
 
-        value_type* get_p()
+        value_type* get_p(unsigned n = 1)   // get pointer to `n` chunks
         {
             if (!is_chunk())
                 throw std::runtime_error("chunk_reader_t: get_p() not in block");
-            return chunk_p++;
+            auto p = chunk_p;
+            chunk_p += n;
+            return p;
         }
     
         // make sure at least `n` spots remain in current `chunk`
         void reserve(unsigned n)
         {
-            // XXX
+            if (!is_chunk())
+                throw std::runtime_error("chunk_reader_t: reserve() not in block");
+
+            if (full_type::reserve(n, chunk_p, chunk_end))
+                chunk_p = chunk_end;        // if no room, flag chunk empty
+        }
+
+        // align iterator for host-format type
+        void align(unsigned n)
+        {
+            if (!is_chunk())
+                throw std::runtime_error("chunk_reader_t: align() not in block");
+
+            if (full_type::align(n, chunk_p, chunk_begin))
+                chunk_p = chunk_end;        // if no room, flag chunk empty
         }
 
 
@@ -260,20 +255,24 @@ namespace detail
         std::enable_if_t<!std::is_void<CT>::value, bool>
         is_chunk ()
         {
-            using full_type = typename chunk_type::full_type;
-
-            if (chunk_p == chunk_end) {
+            if (chunk_p == chunk_end)
+            {
                 if (empty())
                     return false;
 
-                if (auto p = it->template get_p<chunk_type>()) {
-                    chunk_p   = p->begin();
-                    chunk_end = p->end();
+                // peek at expression queue & see if a `chunk` type
+                if (auto p = it->template get_p<chunk_type>())
+                {
+                    chunk_begin = chunk_p = p->begin();
+                    chunk_end   = p->end();
                     --cnt;
                     ++it;
-                } else if (auto full_p = it->template get_p<full_type>()) {
-                    chunk_p   = full_p->begin();
-                    chunk_end = full_p->end();
+                }
+                // ...or a full-chunk type
+                else if (auto p = it->template get_p<full_type>())
+                {
+                    chunk_begin = chunk_p = p->begin();
+                    chunk_end   = p->end();
                     --cnt;
                     ++it;
                 }
@@ -289,8 +288,9 @@ namespace detail
             return false;
         }
 
-        CHUNK_VT       *chunk_p {};
-        CHUNK_VT const *chunk_end {};
+        CHUNK_VT *chunk_p {};
+        CHUNK_VT *chunk_begin {};
+        CHUNK_VT *chunk_end {};
 
         Iter& it;
         std::size_t cnt;
