@@ -23,21 +23,6 @@ using CHUNK_TYPES     = meta::list<uint8_t, uint16_t, uint32_t>;
 template <typename T>
 constexpr auto CHUNKS_PER_BLOCK = sizeof(CHUNK_BASE_TYPE)/sizeof(T);
 
-namespace detail
-{
-    template <typename OS, typename T>
-    void print_chunk(OS& os, T const* p, size_t n = 0)
-    {
-        os << "{";
-        while (n--)
-        {
-            os << std::hex << (unsigned)*p++;
-            if (n) os << ", ";
-        }
-        os << "}";
-    }
-}
-
 // tag to identify `chunk type`
 struct e_chunk_tag {};
 
@@ -88,11 +73,8 @@ struct e_chunk_full : e_chunk_tag
         throw std::logic_error{"chunk_t::advance: past end of chunk"};
     }
 
-    template <typename OS>
-    void print(OS& os) const
-    {
-        detail::print_chunk(os, begin(), count());
-    }
+    template <typename OS> void print(OS& os) const;
+
 protected:
     // chunks to advance to "align" pointer.
     // value < 0: need new block
@@ -181,12 +163,38 @@ public:
         throw std::logic_error{"chunk_t::advance: past end of chunk"};
     }
 
-    template <typename OS>
-    void print(OS& os) const
-    {
-        detail::print_chunk(os, begin(), index());
-    }
+    template <typename OS> void print(OS& os) const;
 };
+
+//
+// Declare print methods 
+//
+
+template <typename OS, typename T>
+void print_chunk(OS& os, T const* p, size_t n = 0)
+{
+    os << "{";
+    while (n--)
+    {
+        os << std::hex << (unsigned)*p++;
+        if (n) os << ", ";
+    }
+    os << "}";
+}
+
+template <typename T>
+template <typename OS>
+void e_chunk_full<T>::print(OS& os) const
+{
+    print_chunk(os, begin(), count());
+}
+
+template <typename T>
+template <typename OS>
+void e_chunk<T>::print(OS& os) const
+{
+    print_chunk(os, begin(), count());
+}
 
 
 namespace detail

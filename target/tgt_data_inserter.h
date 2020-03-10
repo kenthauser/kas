@@ -137,18 +137,18 @@ struct tgt_data_inserter_t
     }
 
     // insert data via pointer
-    value_type* operator()(value_type *code_p, int size)
+    value_type* operator()(value_type *code_p, int count = 1)
     {
         std::cout << "insert(): ";
-        for (auto n = 0; n < size; ++n)
+        for (auto n = 0; n < count; ++n)
             std::cout << +code_p[n] << " ";
-        std::cout << "size = " << size << std::endl;
-        reserve(size);
+        std::cout << "size = " << count << std::endl;
+        reserve(count * sizeof(value_type));
 
         auto p = insert_one(*code_p);
-        while (size > sizeof(value_type))
+        while (count > sizeof(value_type))
         {
-            size -= sizeof(value_type);
+            count -= sizeof(value_type);
             insert_one(*++code_p);
         }
         return p;
@@ -410,7 +410,7 @@ private:
         // convert bytes -> chunks
         auto chunks = bytes / sizeof(value_type);
 
-        if (n > 0)
+        if (n)
         {
             auto s = p;
             n -= chunks;
