@@ -214,7 +214,7 @@ struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set<Ref>, m68k_reg_t, Ref>
 };
 
 // register set is wrapped object. Never "parsed" directly, but "calculated" from operators
-using m68k_rs_ref    = core::ref_loc_t<m68k_reg_set>;
+using m68k_rs_ref    = core::ref_loc_tpl<m68k_reg_set>;
 using m68k_reg_set_t = typename m68k_rs_ref::object_t;
 }
 

@@ -61,14 +61,7 @@ struct kas_token : kas_position_tagged
     {
         _expr = fixed;
     }
-#if 0
-    // allow tagged values as tokens
-    template <typename T>
-    set(core::ref_loc_t<T> const& ref)
-    {
-
-    }
-#endif
+    
     // get `expr()` from token_defn.
     auto const& expr() const
     {
@@ -201,7 +194,7 @@ void token_defn_t<NAME, VALUE_T, PARSER>::
 
     // wrapped types need to be location tagged
     if constexpr (meta::in<expr_t::unwrapped, VALUE_T>::value)
-        e = p->ref(tok);
+        e = { *p, tok };
 #if 0
     // XXX expr_t allows `expr_op` to `fail` ctor even with following
     else if constexpr (std::is_constructible_v<expr_t, decltype(*p)>)

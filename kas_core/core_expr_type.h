@@ -113,7 +113,7 @@ public:
     core_expr& operator-(core_addr_t    const&);
     core_expr& operator-(e_fixed_t);
 
-    // add hooks for `ref_loc_t` wrapped objects
+    // add hooks for `ref_loc` wrapped objects
     core_expr& operator+(symbol_ref ref) { return *this + ref.get(); }; 
     core_expr& operator+(addr_ref   ref) { return *this + ref.get(); }; 
     core_expr& operator+(expr_ref   ref) { return *this + ref.get(); }; 

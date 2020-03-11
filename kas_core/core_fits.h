@@ -122,7 +122,7 @@ namespace kas::core
             return is_value_type ? maybe : no;
         }
 
-        // unwrap reference wrappers (std:: & core::ref_loc_t)
+        // unwrap reference wrappers (std:: & core::ref_loc)
         template <typename T>
         result_t operator()(std::reference_wrapper<T> const& ref, fits_min_t min, fits_max_t max) const
         {

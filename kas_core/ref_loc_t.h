@@ -1,9 +1,9 @@
 #ifndef KAS_CORE_REF_LOC_T_H
 #define KAS_CORE_REF_LOC_T_H
 
-// ref_loc_t
+// ref_loc
 // 
-// The `ref_loc_t` is a handle to a `kas_object` derived instance.
+// The `ref_loc` is a handle to a `kas_object` derived instance.
 // The `ref_loc` instance holds the index of the actual instance
 // as well as the location where it was parsed. The `ref_loc_t` is
 // designed to be used as a handle to types being stored in the expression
@@ -34,7 +34,21 @@ template <typename T, typename Index = void> struct ref_loc;
 
 // declare "convience" template: take `template` instead of `type`
 template <template <typename> class T, typename Index = void>
-using ref_loc_t = ref_loc<meta::quote<T>, Index>;
+using ref_loc_tpl = ref_loc<meta::quote<T>, Index>;
+
+// declare "convience" template: take `type` for type
+namespace detail
+{
+    template <typename T>
+    struct pass_t
+    {
+        template <typename...Ts>
+        using invoke = T;
+    };
+}
+
+template <typename T, typename Index = void>
+using ref_loc_t = ref_loc<detail::pass_t<T>, Index>;
 
 namespace detail
 {
@@ -60,6 +74,9 @@ struct ref_loc : ref_loc_tag
     using object_t = meta::_t<meta::id<meta::invoke<T, ref_loc>>>;
 
     ref_loc() = default;
+
+    ref_loc(object_t const& obj, parser::kas_loc loc = {})
+        : index(obj.index()), _loc(loc) {}
 
     // public ctor: create object_t instance & return "reference"
     template <typename...Ts>
@@ -156,9 +173,9 @@ template <typename T, typename Index>
 template <typename OS>
 void ref_loc<T, Index>::print(OS& os) const
 {
-    os << "[" << boost::typeindex::type_id<object_t>().pretty_name();
+    os << "["  << boost::typeindex::type_id<object_t>().pretty_name();
     os << ": " << index << " loc: " << _loc.get();
-    os << "]" << std::flush;
+    os << "]"  << std::flush;
 }
 }
 #endif

@@ -25,9 +25,9 @@ template <typename> struct core_symbol;
 template <typename> struct core_addr;
 template <typename> struct core_expr;
 
-using symbol_ref  = ref_loc_t<core_symbol>;
-using addr_ref    = ref_loc_t<core_addr>;
-using expr_ref    = ref_loc_t<core_expr>;
+using symbol_ref  = ref_loc_tpl<core_symbol>;
+using addr_ref    = ref_loc_tpl<core_addr>;
+using expr_ref    = ref_loc_tpl<core_expr>;
 
 using core_symbol_t = typename symbol_ref::object_t;
 using core_addr_t   = typename addr_ref::object_t;

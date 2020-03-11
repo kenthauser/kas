@@ -168,7 +168,7 @@ public:
 #ifdef TRACE_ERROR_HANDLER
         std::cout << "error_handler::annotate: false_type" << std::endl;
 #endif
-        // XXX add support for `set_loc()` types (eg: ref_loc_t)
+        // XXX add support for `set_loc()` types (eg: ref_loc)
         if constexpr (std::is_base_of<core::ref_loc_tag, AST>())
         {
             print_type_name("annotate::set_loc").name<AST>(std::cout);

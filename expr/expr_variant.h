@@ -8,13 +8,13 @@
 // expression interface variant
 //
 // The `expr_t` class is a wrapper over the actual variant. The wrapper
-// provides support for the `ref_loc_t` wrapper which is used to wrap
+// provides support for the `ref_loc` wrapper which is used to wrap
 // non-copyable (eg: symbols) and large (eg: core_expr) types into a
 // single word. When `visitiing` or `assigning` a variant with a wrapped
-// type, the `ref_loc_t` wrapper is automatically added or removed.
+// type, the `ref_loc` wrapper is automatically added or removed.
 //
 // The `expr_t` variant is initialzed from meta::list `term_types`.
-// The types which are wrapped in `ref_loc_t` should be listed as
+// The types which are wrapped in `ref_loc` should be listed as
 // wrapped types. The wrapped types don't need to be defined, just declared.
 //
 // Facilities provied:
@@ -22,9 +22,9 @@
 // Additional (extended) variant methods are provided by `expr_t`:
 //
 //  get_p<>() [const]:      return pointer to variant type
-//         (extension:)     return pointer to `ref_loc_t` wrapped type
+//         (extension:)     return pointer to `ref_loc` wrapped type
 //
-//  apply_visitor() [const]; apply visitor to `ref_loc_t` wrapped type, or
+//  apply_visitor() [const]; apply visitor to `ref_loc` wrapped type, or
 //                          variant type if not wrapped
 //
 //  get_fixed_p() const:    return pointer to fixed value, if present
@@ -252,7 +252,8 @@ struct expr_t : detail::expr_x3_variant
     template <typename T
             , typename U = std::remove_reference_t<T>
             , typename   = std::enable_if_t<meta::in<unwrapped, U>::value>>
-    expr_t(T const& t) : base_t(t.ref()) {}
+    expr_t(T const& t, kas::parser::kas_loc loc = {} )
+            : base_t(detail::T2Ref<U>(t, loc)) {}
 
     // 4. not integral, not floating point, nor wrapped: forward to base_t
     template <typename T
@@ -277,7 +278,7 @@ private:
     static auto do_visitor(T&& e, F&& v)
         -> decltype(e.base_t::apply_visitor(std::declval<F>()))
     {
-        // if `ref_loc_t` type, call visitor with `wrapped` object
+        // if `ref_loc` type, call visitor with `wrapped` object
         using RT = typename std::decay_t<F>::result_type;
 
         return e.base_t::apply_visitor(

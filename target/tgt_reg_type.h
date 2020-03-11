@@ -8,7 +8,7 @@
 // are used in the `expression` subsystem, use the PIMPL method to prevent
 // having to include complete definition everywhere.
 //
-// This implementation allows for mulitple unrelated registers to have the
+// This implementation allows for multiple unrelated registers to have the
 // same name. This occurs frequently when, for instance the "PC" register
 // has one meaning when used in effective address calculations, and another
 // meaning when accessed as a "special" register.
@@ -77,6 +77,8 @@ struct tgt_reg
     static constexpr auto MAX_REG_ALIASES    = 1;
     static constexpr auto MAX_REG_NAME_DEFNS = 2;
 
+    using map_key = std::pair<reg_class_t, reg_value_t>;
+
     // default: return name unaltered
     static const char *format_name(const char *n, unsigned i = 0)
     {
@@ -85,8 +87,14 @@ struct tgt_reg
         return {};
     }
 
+    // CRTP casts
+    auto& derived() const
+        { return *static_cast<derived_t const*>(this); }
+    auto& derived()
+        { return *static_cast<derived_t*>(this); }
 
-private:
+
+protected:
     static inline defn_t const  *insns;
     static inline reg_defn_idx_t insns_cnt;
 
@@ -96,6 +104,18 @@ private:
     // access parser to convert name->reg_t (for `get` method)`
     static inline derived_t const *(*lookup)(const char *);
     
+    static auto& obstack()
+    {
+        static auto deque_ = new std::deque<derived_t>;
+        return *deque_;
+    }
+
+    static auto& defn_map()
+    {
+        static auto map_ = new std::map<map_key, derived_t const *>;
+        return *map_;
+    }
+
 public:
     // unfortunate name; record base of definitions
     static void set_insns(decltype(insns) _insns, unsigned _cnt)
@@ -116,13 +136,28 @@ public:
     // used in X3 expression
     tgt_reg() = default;
 
+    // actual ctor for static instances
+    tgt_reg(const char *name, reg_name_idx_t idx) : _idx(idx) {}
+
+    // use to create `reg_t` instances
+    static derived_t& create(const char *name)
+    {
+        auto& s = obstack();
+        return s.emplace_back(name, s.size()+1);
+    }
+
+    static derived_t& get(reg_name_idx_t idx)
+    {
+        return obstack()[idx-1];
+    }
+
     // create new register from class/data pair
     // NB: used primarily for disassembly
     //tgt_reg(reg_defn_idx_t reg_class, uint16_t value);
     static derived_t const& get(reg_defn_idx_t reg_class, uint16_t value);
 
     // used to initialize `tgt_reg` structures
-    template <typename T> void add(T const& d, reg_defn_idx_t n);
+    template <typename T> void add_defn(T const& d, reg_defn_idx_t n);
 
     // used to verify instance is a register
     //bool valid() const { return reg_0_index; }
@@ -139,6 +174,8 @@ public:
     {
         os << name();
     }
+
+    auto index() const { return _idx; }
 
 private:
     static reg_defn_idx_t find_data(reg_defn_idx_t rc, uint16_t rv);
@@ -158,6 +195,9 @@ private:
     reg_defn_idx_t  reg_1_ok    {};
 #else
     std::array<reg_defn_idx_t, MAX_REG_NAME_DEFNS> defns;
+
+    // can't have more `registers` than names
+    reg_name_idx_t  _idx;
 #endif
 };
 

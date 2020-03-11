@@ -102,18 +102,27 @@ template <typename Derived, typename RS, typename B, unsigned C, unsigned V>
 auto tgt_reg<Derived, RS, B, C, V>::
     get(reg_defn_idx_t rc, uint16_t rv) -> derived_t const&
 {
+#if 0
     auto defn = find_data(rc, rv);      // 1-based index
     if (!defn)
         throw std::logic_error{"tgt_reg::find_data: register not found"};
     return *lookup(insns[defn].name());
+#else
+    map_key key{rc, rv};
+    return *defn_map().at(key);
+#endif
 }
 
 template <typename Derived, typename RS, typename B, unsigned C, unsigned V>
 template <typename T>
 auto tgt_reg<Derived, RS, B, C, V>::
-    add(T const& d, reg_defn_idx_t n) -> void
+    add_defn(T const& d, reg_defn_idx_t n) -> void
 {
     //std::cout << "tgt_reg: adding: " << d;
+    // add to lookup "map"
+    map_key key{d.reg_class, d.reg_num};
+    defn_map().emplace(key, &derived());
+
     if (!defns[0]) 
     {
         defns[0] = n + 1;

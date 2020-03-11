@@ -31,7 +31,7 @@ struct z80_reg_set : tgt::tgt_reg_set<z80_reg_set<Ref>, z80_reg_t, Ref>
 };
 
 // alias the "reference" used for for register_set type
-using z80_rs_ref    = core::ref_loc_t<z80_reg_set>;
+using z80_rs_ref    = core::ref_loc_tpl<z80_reg_set>;
 using z80_reg_set_t = typename z80_rs_ref::object_t;
 
 
@@ -51,6 +51,7 @@ struct z80_reg_t : tgt::tgt_reg<z80_reg_t, z80_reg_set_t>
     using base_t::base_t;       // use inherited ctors
 };
 
+using z80_reg_ref = core::ref_loc_t<z80_reg_t>;
 }
 
 #endif

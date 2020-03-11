@@ -40,7 +40,7 @@ struct error_handler_tag;
 // NB: `kas_error_t` is exposed in `kas` namespace as `e_error_t`
 // XXX why?
 template <typename> struct kas_diag;
-using kas_error_t = core::ref_loc_t<kas_diag>;
+using kas_error_t = core::ref_loc_tpl<kas_diag>;
 using kas_diag_t  = typename kas_error_t::object_t;
 
 // forward declare `position_tagged` template & type

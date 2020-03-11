@@ -203,8 +203,8 @@ namespace kas::expression
 {
 // decalare
 // XXX 
-//using kas_bigint_host = core::ref_loc_t<detail::bigint_host_t>;
-using kas_string      = core::ref_loc_t<detail::kas_string_t>;
+//using kas_bigint_host = core::ref_loc_tpl<detail::bigint_host_t>;
+using kas_string      = core::ref_loc_tpl<detail::kas_string_t>;
 }
 #endif
 #endif

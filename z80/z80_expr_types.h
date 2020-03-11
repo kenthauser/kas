@@ -38,7 +38,8 @@ namespace kas::expression::detail
     // types for expression variant
     template <> struct term_types_v<defn_cpu> :
         meta::list<
-              z80::z80_reg_t      // z80 register
+              //z80::z80_reg_t      // z80 register
+              z80::z80_reg_ref
             , z80::z80_rs_ref     // z80 register set: index_reg + offset
             > {};
 

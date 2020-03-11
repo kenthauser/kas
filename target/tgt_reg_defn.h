@@ -162,8 +162,9 @@ struct tgt_reg_adder
             auto canonical = Reg_t::format_name(p->name());
             if (!x3.find(canonical))
             {
-                // create instance
-                auto obj_p = &obstack.emplace_back();
+                // create instance (numbering instances from 1)
+                //auto obj_p = &obstack.emplace_back(obstack.size() + 1);
+                auto obj_p = &OBJECT_T::create(canonical);
 
                 // add all names
                 for (unsigned i = 0; true; ++i)
@@ -175,7 +176,7 @@ struct tgt_reg_adder
                     //std::cout << "reg_adder: adding " << name << std::endl;
                     x3.add(Reg_t::format_name(name), obj_p);
 
-                    // see if alternate name
+                    // see if alternate names
                     name = Reg_t::format_name(name, 1); 
                     if (name)
                     {
@@ -184,7 +185,8 @@ struct tgt_reg_adder
                     }
                 }
             }
-            x3.at(canonical)->add(*p, n);
+            
+            x3.at(canonical)->add_defn(*p, n);
         }
     }
 

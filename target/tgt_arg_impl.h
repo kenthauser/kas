@@ -256,7 +256,8 @@ bool tgt_arg_t<Derived, M, I, R, RS>
     if (!reg_p)
         wb_p->has_reg = false;
     else if (wb_p->has_reg)
-        inserter(std::move(*reg_p));
+        //inserter(std::move(*reg_p));
+        inserter(reg_p->index());
     
     // get size of expression
     if (wb_p->has_data)
@@ -357,7 +358,7 @@ std::enable_if_t<!std::is_void_v<expression::e_float_t>>
 void tgt_arg_t<Derived, arg_mode_t, reg_t, regset_t>
             ::emit_flt(core::emit_base& base, uint8_t bytes, uint8_t flt_fmt) const
 {
-    // get floating point `object` format (from `ref_loc_t`)
+    // get floating point `object` format (from `ref_loc`)
     using flt_t       = typename expression::e_float_t::object_t;
     using flt_value_t = typename flt_t::value_type;
 

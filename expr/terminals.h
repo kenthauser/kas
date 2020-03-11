@@ -53,7 +53,7 @@ namespace detail
     //using float_host_t  = _t<bind_back<quote<float_host_ieee>, float_value_t, float_fmt_t>>;
     template <typename REF>
     using float_host_t  = float_host_ieee<REF, float_value_t, float_fmt_t>;
-    using kas_float     = _t<core::ref_loc_t<float_host_t>>;
+    using kas_float     = _t<core::ref_loc_tpl<float_host_t>>;
 
     // set type default values
     template <typename> struct e_float  : meta::id<kas_float> {};
