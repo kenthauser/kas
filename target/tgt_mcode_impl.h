@@ -75,9 +75,6 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
            , std::ostream *trace) const
     -> fits_result
 {
-    // apply `mcode` constraints to info
-    info.bind(derived());
-
     // hook into validators
     auto& val_c = vals();
     auto  val_p = val_c.begin();
@@ -125,8 +122,8 @@ template <typename ARGS_T>
 void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         emit(core::emit_base& base, ARGS_T&& args, stmt_info_t const& info) const
 {
-    // 0. get base machine code data
-    auto machine_code = derived().code(info);
+    // 0. generate base machine code data
+    auto machine_code = derived().code(info).data();
     auto code_p       = machine_code.data();
 
     // 1. apply args & emit relocs as required
@@ -150,9 +147,11 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         base << *code_p++;
 
     // 3. emit arg information
+    auto sz = info.sz(*this);
     for (auto& arg : args)
-        arg.emit(base, info);
+        arg.emit(base, sz);
 }
+
 
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::

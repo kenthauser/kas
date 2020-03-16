@@ -1,28 +1,26 @@
 #ifndef KAS_M68K_M68K_FORMATS_DEFN_H
 #define KAS_M68K_M68K_FORMATS_DEFN_H
 
-//
 // Generate the "formatters" used to insert/extract arguments
 // into the `machine-code` binary.
 //
 // The `formatters` are named as follows:
 //
 // 1. The name "base" (usually FMT_) indicates the "machine_code" virtual type to use.
-//    (these are named in `formats_opc`
+//    (these are named in `formats_opc`)
 //
 // 2. Following the "base", underscores are used to separate inserter for each argument.
 //    Thus `FMT_a1_a2_a3` inserts three arguments, coded `a1`, `a2`, and `a3`.
 //
 // 3. For the M68K, most insertions are 3-bits register numbers, or 6-bit register/mode
 //    combinations. For register args, the convention is to use 0-15 to represent shifts in
-//    the first word, and 16-31 to represent shifts in the second word. For the 6-bit variants
-//    the convention is to add `rm` to the shift, yielding eg: `0rm`, `28rm`
+//    the first word, and 16-31 to represent shifts in the second word. For the 6-bit
+//    variants, the convention is to add `rm` to the shift, yielding eg: `0rm`, `28rm`
 //
 // 4. Inserters which aren't regular use irregular naming. eg: coldfire ACCx uses
 //    `9b2` for a two-bit field shifted 9. '020 CAS2 uses `CAS2` for a one-off formater.
-//
-// 
-//
+
+
 #include "m68k_formats_impl.h"
 #include "m68k_formats_opc.h"
 

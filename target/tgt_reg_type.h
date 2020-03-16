@@ -38,6 +38,7 @@ struct tgt_reg_defn;
 //
 
 template <typename Derived
+        , typename NAME
         , typename REGSET = void
         , typename BASE_T = uint16_t
         , unsigned REG_C_BITS = 8
@@ -140,7 +141,7 @@ public:
     tgt_reg(const char *name, reg_name_idx_t idx) : _idx(idx) {}
 
     // use to create `reg_t` instances
-    static derived_t& create(const char *name)
+    static derived_t& add(const char *name)
     {
         auto& s = obstack();
         return s.emplace_back(name, s.size()+1);
@@ -154,7 +155,7 @@ public:
     // create new register from class/data pair
     // NB: used primarily for disassembly
     //tgt_reg(reg_defn_idx_t reg_class, uint16_t value);
-    static derived_t const& get(reg_defn_idx_t reg_class, uint16_t value);
+    static derived_t const& find(reg_defn_idx_t reg_class, uint16_t value);
 
     // used to initialize `tgt_reg` structures
     template <typename T> void add_defn(T const& d, reg_defn_idx_t n);

@@ -42,7 +42,7 @@ using tok_z80_reg = parser::token_defn_t<KAS_STRING("Z80_REG"), z80_reg_t>;
 enum { RC_NONE, RC_GEN, RC_DBL, RC_IDX, RC_SP, RC_AF, RC_I, RC_R, RC_CC, NUM_RC };
 
 // Z80 register type definition is regular
-struct z80_reg_t : tgt::tgt_reg<z80_reg_t, z80_reg_set_t>
+struct z80_reg_t : tgt::tgt_reg<z80_reg_t, KAS_STRING("Z80"), z80_reg_set_t>
 {
     using hw_tst         = hw::hw_tst;
     using reg_defn_idx_t = uint8_t;
@@ -51,6 +51,7 @@ struct z80_reg_t : tgt::tgt_reg<z80_reg_t, z80_reg_set_t>
     using base_t::base_t;       // use inherited ctors
 };
 
+// add to `expr` expression types
 using z80_reg_ref = core::ref_loc_t<z80_reg_t>;
 }
 

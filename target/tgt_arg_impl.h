@@ -21,37 +21,20 @@ namespace kas::tgt
 
 template <typename Derived, typename M, typename I, typename R, typename RS>
 tgt_arg_t<Derived, M, I, R, RS>
-        ::tgt_arg_t(arg_mode_t mode, kas_token const& tok) : tok(tok) 
+        ::tgt_arg_t(arg_mode_t mode, kas_token const& tok) : kas_position_tagged_t(tok) 
 {
     //std::cout << "arg_t::ctor mode = " << +mode << " expr = " << expr;
     //std::cout << " *this::loc = " << static_cast<parser::kas_loc>(*this) << std::endl;
     
     // accumulate error
     const char *msg   {};
-#if 0
-    auto reg_as_tok = reg_tok(tok);
-    if (reg_as_tok)
-        reg = *reg_as_tok();
     
-    // `regset_t` can be void, so code slightly differently
-    regset_t const *rs_p  {};
-    if constexpr (!std::is_void_v<rs_tok>)
-    {
-        auto rs_as_tok = rs_tok(tok);
-        if (rs_as_tok)
-            rs_p = rs_as_tok();
-    }
-    if (rs_p)
-        std::cout << "tgt_arg::ctor: regset src = " << tok.where() << std::endl;
-
-#else
     // extract regset & register-set values
     reg_p = reg_tok(tok)();
 
     // `rs_tok` can be void, so code slightly differently
     if constexpr (!std::is_void_v<rs_tok>)
         regset_p = rs_tok(tok)(); 
-#endif
 
     // big switch to evaluate DIRECT/INDIRECT/IMMEDIATE
     switch (mode)
@@ -60,13 +43,26 @@ tgt_arg_t<Derived, M, I, R, RS>
         if (reg_p)
             mode = arg_mode_t::MODE_REG;
         else if (regset_p)
-            mode = arg_mode_t::MODE_REGSET;
+        {
+            // see if `regset` holds register set or offset
+            if (regset_p->kind() >= 0)
+            {
+                // `regset` convert to expression
+                mode = arg_mode_t::MODE_REGSET;
+                expr = tok.expr();
+                regset_p = {};
+                break;
+            }
+        } 
+        else
+            expr = tok.expr();
         break;
     
     case arg_mode_t::MODE_IMMEDIATE:
         // immediate must be non-register expression
         if (reg_p || regset_p)
             msg = err_msg_t::ERR_argument;
+        expr = tok.expr();
         break;
 #if 0
     case arg_mode_t::MODE_REGSET:
@@ -101,32 +97,31 @@ tgt_arg_t<Derived, M, I, R, RS>
         
         // if not reg or regset, just indirect expression
         else if (!regset_p)
+        {
+            expr = tok.expr();
             break;
-        
+        }
         // indirect regset. must be `MODE_REG_OFFSET`
-        // Errors out if `rs_p` not RS_OFFSET
-        mode = arg_mode_t::MODE_REG_OFFSET;
-        
-        // FALLSTHRU
-    default:
-#if 1
-        // INDIRECT regset or non-standard mode. Check for RS_OFFSET
-        // NB: must wrap regset test in `constexpr if`
+        // Errors out if `regset_p` not RS_OFFSET
         if constexpr (!std::is_void_v<regset_t>)
         {
             // need better interface to `RS_OFFSET`
-            if (regset_p && regset_p->kind() == -regset_t::RS_OFFSET)
+            if (regset_p && regset_p->is_offset())
             {
-                reg_p  = regset_p->reg_p();
-                // XXX expr = rs_p->offset();
+                mode     = arg_mode_t::MODE_REG_OFFSET;
+                reg_p    = regset_p->reg_p();
+                expr     = regset_p->offset();
+                regset_p = {};
                 break;
             }
         }
         
-        // reg-sets must be DIRECT or RS_OFFSET. 
-        if (regset_p)
-            msg = err_msg_t::ERR_argument;
-#endif   
+        // if not offset, error
+        msg = err_msg_t::ERR_argument;
+        break;
+        
+    default:
+        // some other parsed "mode", evaluated in derived().set_mode()
         break;
     }
 
@@ -138,7 +133,7 @@ tgt_arg_t<Derived, M, I, R, RS>
     if (msg)
     {
         err = kas::parser::kas_diag_t::error(msg, *this).ref();
-        set_mode(arg_mode_t::MODE_ERROR);
+        derived().set_mode(arg_mode_t::MODE_ERROR);
     }
 }
 
@@ -157,10 +152,10 @@ const char *tgt_arg_t<Derived, M, I, R, RS>
 // calculate size (for inserter)
 template <typename Derived, typename M, typename I, typename R, typename RS>
 int tgt_arg_t<Derived, M, I, R, RS>
-            ::size(uint8_t sz, expression::expr_fits const *, bool *is_signed) const
+            ::size(uint8_t sz, expression::expr_fits const *, bool *is_signed_p) const
 {
     // default to unsigned
-    if (is_signed) *is_signed = false;
+    if (is_signed_p) *is_signed_p = false;
 
     switch (mode())
     {
@@ -172,47 +167,30 @@ int tgt_arg_t<Derived, M, I, R, RS>
             return 0;
         case arg_mode_t::MODE_DIRECT:
         case arg_mode_t::MODE_INDIRECT:
-            return sizeof (typename expression::detail::e_addr<>::type);
+            return sizeof (expression::e_addr_t);
         case arg_mode_t::MODE_REGSET:
-#if 0
-        ////
-            if constexpr (!std::is_void<regset_t>::value_t)
-                return sizeof(typename regset_t::value_t);
-            return 0;
-#endif
-        // assume non-standard modes are a single word data
-        default:
+            return sizeof(expression::e_data_t);
+
+        // assume non-standard modes are a single signed word
         case arg_mode_t::MODE_REG_OFFSET:
-            if (is_signed) *is_signed = true;
-            return sizeof(typename expression::detail::e_data<>::type);
+        default:
+            if (is_signed_p) *is_signed_p = true;
+            return sizeof(expression::e_data_t);
 
         case arg_mode_t::MODE_IMMEDIATE:
-    #if 0
-            std::cout << "tgt_arg_t::size: immediate: " << std::showpoint << expr << std::endl;
-
-            // special processing if `floating-point` support
-            if constexpr (!std::is_void<expression::e_float_t>())
-            {
-                // if float as immed, check if floating or fixed format
-                if (!derived().immed_info(sz).flt_fmt)
-                    // if fixed format immed, check if floating value
-                    if (auto p = expr.template get_p<expression::e_float_t>())
-                    {
-                        std::cout << "tgt_arg_t::size: immediate float" << std::endl;
-                        auto n = derived().immed_info(sz).sz_bytes;
-
-                        auto msg = expression::ieee754<expression::e_float_t>().ok_for_fixed(*p, n * 8);
-                        if (msg)
-                            set_error(msg);
-                        else
-                            parser::kas_diag_t::warning(err_msg_t::ERR_flt_fixed);
-                    }
-            }
-#endif
-            if (is_signed) *is_signed = true;
+            if (is_signed_p) *is_signed_p = true;
             return derived().immed_info(sz).sz_bytes;
     }
 }
+
+// true if extension data needed for 
+template <typename Derived, typename M, typename I, typename R, typename RS>
+auto tgt_arg_t<Derived, M, I, R, RS>
+                ::has_data() const -> bool
+{ 
+    return derived().size(0) && !expr.empty();
+}
+
 
 // save argument in serialized format
 // NB: `serialize` can trash `arg` instance. 
@@ -220,19 +198,19 @@ int tgt_arg_t<Derived, M, I, R, RS>
 template <typename Derived, typename M, typename I, typename R, typename RS>
 template <typename Inserter, typename WB>
 bool tgt_arg_t<Derived, M, I, R, RS>
-            ::serialize(Inserter& inserter, stmt_info_t const& info, WB *wb_p)
+            ::serialize(Inserter& inserter, uint8_t sz, WB *wb_p)
 {
-    auto save_expr = [&](auto size) -> bool
+    auto save_expr = [&](auto sz) -> bool
         {
+            auto bytes = derived().size(sz);          // extension bytes
+
             // suppress writes of zero size or zero value
-            auto p = tok.get_fixed_p();
-            if ((p && !*p) || !size)
+            auto p = get_fixed_p();
+            if ((p && !*p) || !bytes)
             {
                 wb_p->has_data = false;     // supress write 
                 return false;               // and no expression.
             }
-            wb_p->has_data = true;    
-
 #if 0
         // XXX 2020/02/18: `typename e_float_t...` fails because `e_float_t`
         // XXX is `void`, inside constexpr `!is_void` if. Find another solution.
@@ -245,8 +223,7 @@ bool tgt_arg_t<Derived, M, I, R, RS>
                     fmt::ok_for_fixed(tok.expr(), sz * 8);
             }
 #endif
-            // NB: can't `std::move`: tok.expr() returns const&
-            return !inserter(tok.expr(), size);
+            return !inserter(std::move(expr), bytes);
         };
     
     // here the `has_reg` bit may be set spuriously
@@ -256,12 +233,11 @@ bool tgt_arg_t<Derived, M, I, R, RS>
     if (!reg_p)
         wb_p->has_reg = false;
     else if (wb_p->has_reg)
-        //inserter(std::move(*reg_p));
         inserter(reg_p->index());
     
     // get size of expression
     if (wb_p->has_data)
-        return save_expr(info.sz());
+        return save_expr(sz);
 
     // no-reg. no-data. no-expr.
     return false;
@@ -280,24 +256,23 @@ void tgt_arg_t<Derived, M, I, R, RS>
     
     if (serial_p->has_reg)
     {
-        // register stored as expression
-        auto p = reader.get_expr().template get_p<reg_t>();
-        if (!p)
-            throw std::logic_error{"tgt_arg_t::extract: has_reg"};
-        reg_p = p;
+        // register stored as index
+        auto reg_idx = reader.get_fixed(sizeof(typename reg_t::reg_name_idx_t));
+        reg_p = &reg_t::get(reg_idx);
     } 
     
     // read expression. Check for register
     if (serial_p->has_expr)
     {
-        tok = reader.get_expr();
-
+        expr = reader.get_expr();
+#if 0
         // if expression holds register, process
         if (auto r_tok = reg_tok(tok))
         {
             reg_p = r_tok(); // wierd syntax
             tok = {};
         }
+#endif
     }
 
     // here has data, but not expression
@@ -307,7 +282,7 @@ void tgt_arg_t<Derived, M, I, R, RS>
         int  bytes = this->size(sz, {}, &is_signed);
         if (is_signed)
             bytes = -bytes;
-        tok = (e_fixed_t)reader.get_fixed(bytes);
+        expr = (e_fixed_t)reader.get_fixed(bytes);
     }
 
     // save write-back pointer to serialized data
@@ -315,11 +290,36 @@ void tgt_arg_t<Derived, M, I, R, RS>
 }
 
 // default implementation for `emit` argument.
-// most likely needs to be overridden for all processor types
+// sizeof data emitted must match `size()`
 template <typename Derived, typename M, typename I, typename R, typename RS>
-void tgt_arg_t<Derived, M, I, R, RS>
-            ::emit(core::emit_base& base, uint8_t sz) const
-{}
+auto tgt_arg_t<Derived, M, I, R, RS>
+            ::emit(core::emit_base& base, uint8_t sz) const -> void
+{
+    switch (mode())
+    {
+        case arg_mode_t::MODE_NONE:
+        case arg_mode_t::MODE_ERROR:
+        case arg_mode_t::MODE_IMMED_QUICK:
+        case arg_mode_t::MODE_REG:
+        case arg_mode_t::MODE_REG_INDIR:
+            break;
+        case arg_mode_t::MODE_DIRECT:
+        case arg_mode_t::MODE_INDIRECT:
+            base << core::set_size(sizeof(expression::e_addr_t));
+            base << expr;
+            break;
+        case arg_mode_t::MODE_REGSET:
+        case arg_mode_t::MODE_REG_OFFSET:
+            base << core::set_size(sizeof(expression::e_data_t));
+            base << expr;
+            break;
+        case arg_mode_t::MODE_IMMEDIATE:
+            emit_immed(base, sz);
+            break;
+        default:
+            break;
+    }
+}
 
 // default immediate arg `emit` routine
 template <typename Derived, typename M, typename I, typename R, typename RS>
@@ -327,7 +327,7 @@ void tgt_arg_t<Derived, M, I, R, RS>
             ::emit_immed(core::emit_base& base, uint8_t sz) const
 {
     auto& info = immed_info(sz);
-    
+#if 0 
     // process floating point types if supported
     if constexpr (!std::is_void_v<e_float_t>)
     {
@@ -349,7 +349,8 @@ void tgt_arg_t<Derived, M, I, R, RS>
         }
 #endif
     }
-    base << core::set_size(info.sz_bytes) << tok.expr();
+#endif
+    base << core::set_size(info.sz_bytes) << expr;
 }
 #if 0
 // immediate arg floating point `emit` routine
@@ -398,14 +399,14 @@ void tgt_arg_t<Derived, M, I, R, RS>
     switch (mode())
     {
         case arg_mode_t::MODE_DIRECT:
-            os << tok;
+            os << expr;
             break;
         case arg_mode_t::MODE_INDIRECT:
-            os << "(" << tok << ")";
+            os << expr << "@";
             break;
         case arg_mode_t::MODE_IMMEDIATE:
         case arg_mode_t::MODE_IMMED_QUICK:
-            os << "#" << tok;
+            os << "#" << expr;
             break;
         case arg_mode_t::MODE_REG:
             os << *reg_p;
@@ -413,11 +414,12 @@ void tgt_arg_t<Derived, M, I, R, RS>
         case arg_mode_t::MODE_REG_INDIR:
             os << *reg_p << "@";
             break;
-#if 0
         case arg_mode_t::MODE_REG_OFFSET:
-            os << *reg_p << "@(" << tok << ")";
+            if constexpr (!std::is_void_v<rs_tok>)
+                os << *reg_p << "@(" << expr << ")";
+            else
+                os << "Internal: tgt_arg_t::print:: Invalid MODE_REG_OFFSET";
             break;
-#endif
         case arg_mode_t::MODE_ERROR:
             if (err)
                 os << err;
@@ -430,8 +432,10 @@ void tgt_arg_t<Derived, M, I, R, RS>
         default:
             os << "[MODE:"  << std::dec << +mode();
             if (reg_p)
-                os << ",REG="   << *reg_p;
-            os << ",TOK="   << tok << "]";
+                os << ",REG=" << *reg_p;
+            if (!expr.empty())
+                os << ",EXPR=" << expr;
+            os << "]";
             break;
     }
 }

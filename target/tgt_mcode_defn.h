@@ -136,6 +136,7 @@ struct tgt_mcode_defn
     auto  name() const { return  names_base[name_index - 1];  }
     auto& fmt()  const { return *fmts_base [fmt_index   - 1]; }
     auto& vals() const { return  val_c_base[val_c_index - 1]; }
+    auto  sz()   const { return  info.sz();                   }
 
     // don't inline diag function
     void print(std::ostream& os) const;

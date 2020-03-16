@@ -164,7 +164,7 @@ struct tgt_reg_adder
             {
                 // create instance (numbering instances from 1)
                 //auto obj_p = &obstack.emplace_back(obstack.size() + 1);
-                auto obj_p = &OBJECT_T::create(canonical);
+                auto obj_p = &OBJECT_T::add(canonical);
 
                 // add all names
                 for (unsigned i = 0; true; ++i)

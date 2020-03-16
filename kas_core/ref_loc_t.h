@@ -76,7 +76,11 @@ struct ref_loc : ref_loc_tag
     ref_loc() = default;
 
     ref_loc(object_t const& obj, parser::kas_loc loc = {})
-        : index(obj.index()), _loc(loc) {}
+        : index(obj.index()), _loc(loc)
+        {
+            if (!index)
+                throw std::logic_error{"ref_loc::ctor: transient object"};
+        }
 
     // public ctor: create object_t instance & return "reference"
     template <typename...Ts>

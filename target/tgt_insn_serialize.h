@@ -90,7 +90,7 @@ void tgt_insert_args(Inserter& inserter
 
     // retrieve formatters and validators to write args into code (as appropriate)
     auto& fmt         = m_code.fmt();           // arg formatting instructions
-    auto  sz          = m_code.sz(stmt_info);   // byte/word/long, etc
+    auto  sz          = stmt_info.sz(m_code);   // byte/word/long, etc
     auto& vals        = m_code.vals();          // arg validation list
     auto val_iter     = vals.begin();
     auto val_iter_end = vals.end();
@@ -127,7 +127,7 @@ void tgt_insert_args(Inserter& inserter
         }
         else
             val_p = {};
-
+#if 0
         // if validator present, be sure it can hold type
         // NB: only required for "LIST" format.
         if (val_p)
@@ -136,7 +136,7 @@ void tgt_insert_args(Inserter& inserter
             if (val_p->ok(arg, stmt_info, fits) != fits.yes)
                 val_p = nullptr;
         }
-
+#endif
 #if 0
         if (!val_p)
             val_name = "*NONE*";
@@ -146,7 +146,7 @@ void tgt_insert_args(Inserter& inserter
                   << " val = " << val_name
                   << std::endl;
 #endif
-        detail::insert_one<MCODE_T>(inserter, n, arg, p, stmt_info, fmt, val_p, code_p);
+        detail::insert_one<MCODE_T>(inserter, n, arg, p, sz, fmt, val_p, code_p);
         ++n;
     }
     
@@ -182,7 +182,7 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
     // get "opcode" info
     auto code_p     = reader.get_fixed_p(m_code.code_size());
     auto stmt_info  = m_code.extract_info(code_p);
-    auto sz         = m_code.sz(stmt_info);
+    auto sz         = stmt_info.sz(m_code);
 
     // read & decode arguments until empty
     auto& fmt         = m_code.fmt();

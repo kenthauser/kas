@@ -86,18 +86,12 @@ struct bsd_local_ident
     using value_type  = typename bsd_ident::value_type;
 
 private:
-    static auto& sym_table()
+    static inline std::map<unsigned, value_type> local_table;
+    static constexpr auto initial = "[initial]";
+    
+    static auto& last()
     {
-        static auto _symtab = new std::map<unsigned, value_type>;
-        return *_symtab;
-    }
-
-    static auto& last(bool reset = false)
-    {
-        static std::string _last = "[initial]";
-        if (reset)
-            _last = "[initial]";
-
+        static std::string _last = initial;
         return _last;
     }
 
@@ -108,21 +102,21 @@ public:
     {
         auto& tok = x3::_attr(ctx);
         last() = tok;           // save as string
-        sym_table().clear();    // new set of local labels
+        local_table.clear();    // new set of local labels
         x3::_val(ctx) = tok;    // return value is token
     }
     
     static auto& get(kas_token const& token)
     {
         auto  p     = token.get_fixed_p();
-        auto& sym_p = sym_table()[*p];
+        auto& sym_p = local_table[*p];
 
         if (!sym_p)
         {
-            // insert required. create the symbol.
+            // insert occurred. create the symbol.
             // calculate name stored in symbol table. not used by kas
             auto name = last() + bsd_sym_sep_str + std::to_string(*p);
-            sym_p = &symbol_type::add(name, token, core::STB_INTERNAL);
+            sym_p = &symbol_type::add(name, token, STB_LOCAL);
         }
 
         return *sym_p;
@@ -131,8 +125,8 @@ public:
 private:
     static void clear()
     {
-        last(true);
-        sym_table().clear();
+        last() = initial;
+        local_table.clear();
     }
 
     static inline core::kas_clear _c{clear};

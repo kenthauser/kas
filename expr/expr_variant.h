@@ -247,13 +247,11 @@ struct expr_t : detail::expr_x3_variant
     expr_t(T&& value, FLT_T = {}) : expr_t(FLT_T::add(std::forward<T>(value))) {}
 #endif
 
-    // 3. wrapped ctor types
-    // NB: only accept lvalues as `unwrapped` instances must by permanently allocated
+    // 3. wrapped ctor types: wrap `T` into appropriate reference object
     template <typename T
-            , typename U = std::remove_reference_t<T>
-            , typename   = std::enable_if_t<meta::in<unwrapped, U>::value>>
-    expr_t(T const& t, kas::parser::kas_loc loc = {} )
-            : base_t(detail::T2Ref<U>(t, loc)) {}
+            , typename   = std::enable_if_t<meta::in<unwrapped, T>::value>>
+    expr_t(T const& t, kas::parser::kas_loc loc = {})
+            : base_t(detail::wrap<T>(t, loc)) {}
 
     // 4. not integral, not floating point, nor wrapped: forward to base_t
     template <typename T

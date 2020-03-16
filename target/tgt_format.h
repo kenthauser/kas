@@ -49,7 +49,11 @@ struct tgt_format
         }
 
         virtual void extract(mcode_size_t const* op, arg_t& arg, val_t const * val_p) const 
-            {}                                                            
+        {
+            // default: invoke `set_arg` with zero value
+            if (val_p) val_p->set_arg(arg, 0);
+        }
+
         
         virtual void emit_reloc(emit_base& base, mcode_size_t* op, arg_t& arg, val_t const * val_p) const
             {}
@@ -172,7 +176,7 @@ struct tgt_fmt_generic : MCODE_T::fmt_t::fmt_impl
              code &= ~(MASK << SHIFT);
              code |= (value & MASK) << SHIFT;
         op[WORD]   = code;
-        return true;
+        return !arg.has_data();
     }
 
     void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const override

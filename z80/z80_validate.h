@@ -26,7 +26,7 @@ struct val_reg : tgt::opc::tgt_val_reg<val_reg, z80_mcode_t>
     using base_t::base_t;
 };
 
-// validate (HL), (IX+n), (IY+n), and optionally 8-bit general registers
+// validate 8-bit general registers, plus (HL), (IX+n), (IY+n)
 struct val_reg_gen: z80_mcode_t::val_t
 {
     constexpr val_reg_gen() {}
@@ -40,8 +40,14 @@ struct val_reg_gen: z80_mcode_t::val_t
             break;
 
         case MODE_REG:
-            // register args are coded as.mode() = MODE_REG
+            // register args are coded as mode() == MODE_REG
             if (arg.reg_p->kind(RC_GEN) == RC_GEN)
+                return fits.yes;
+            break;
+
+        // allow (HL)
+        case MODE_REG_INDIR:
+            if (arg.reg_p->kind(RC_IDX) == RC_IDX)
                 return fits.yes;
             break;
 
@@ -49,22 +55,7 @@ struct val_reg_gen: z80_mcode_t::val_t
         case MODE_REG_INDIR_IY:
         case MODE_REG_OFFSET_IX:
         case MODE_REG_OFFSET_IY:
-            // only 1 type of prefix register allowed per instruction
-            //std::cout << "val_reg_gen: reg = " << arg.reg << " pfx = " << +arg.prefix << std::endl;
-            if (arg.reg_p->value() != arg.prefix)
-                break;
             return fits.yes;
-                
-        case MODE_REG_INDIR:
-            // allow (HL)
-            //std::cout << "val_reg_gen: reg (HL) = " << arg.reg << " pfx = " << +arg.prefix << std::endl;
-            if (arg.reg_p->kind(RC_DBL) != RC_DBL)
-                break;
-            if (arg.prefix)
-                break;                      // can't mix (HL) & IX/IY
-            if (arg.reg_p->value() == 2)       // HL
-                return fits.yes;
-            break;
         }
         return fits.no;
     }
@@ -80,7 +71,7 @@ struct val_reg_gen: z80_mcode_t::val_t
             case MODE_REG_INDIR_IY:
             case MODE_REG_OFFSET_IX:
             case MODE_REG_OFFSET_IY:
-                insn_size += 1;
+                insn_size += 1;         // single byte offset
                 break;
         }
         return fits.yes;
@@ -100,16 +91,30 @@ struct val_reg_gen: z80_mcode_t::val_t
                 return arg.reg_p->value(RC_GEN);
         }
     }
+
+    bool has_data(z80_arg_t& arg) const override
+    {
+        switch (arg.mode())
+        {
+            case MODE_REG_INDIR_IX:
+            case MODE_REG_INDIR_IY:
+            case MODE_REG_OFFSET_IX:
+            case MODE_REG_OFFSET_IY:
+                return true;
+            default:
+                return false;
+        }
+    }
     
     void set_arg(z80_arg_t& arg, unsigned value) const override
     {
         // set reg to general register, HL, IX, or IY as appropriate
         if (value != 6)
-            arg.reg_p = &z80_reg_t::get(RC_GEN, value);
+            arg.reg_p = &z80_reg_t::find(RC_GEN, value);
         else if (arg.prefix)
-            arg.reg_p = &z80_reg_t::get(RC_IDX, arg.prefix);
+            arg.reg_p = &z80_reg_t::find(RC_IDX, arg.prefix);
         else
-            arg.reg_p = &z80_reg_t::get(RC_DBL, 2);
+            arg.reg_p = &z80_reg_t::find(RC_DBL, 2);
         
         //std::cout << "val_reg_gen::set: value = " << +value;
         //std::cout << " -> reg = " << arg.reg << std::endl;
@@ -120,9 +125,9 @@ struct val_reg_gen: z80_mcode_t::val_t
 // 16-bit double registers BC, DE, HL have values 0, 1, 2
 // double register value of `3` overloaded as either AF or SP.
 // Specify "class" (RC_AF, RC_SP) enable DBL registers and specify overload
-struct val_reg_idx: z80_mcode_t::val_t
+struct val_reg_dbl: z80_mcode_t::val_t
 {
-    constexpr val_reg_idx(int16_t r_class = -1) : r_class(r_class) {}
+    constexpr val_reg_dbl(int16_t r_class = -1) : r_class(r_class) {}
 
     fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
     {
@@ -177,20 +182,20 @@ struct val_reg_idx: z80_mcode_t::val_t
     void set_arg(z80_arg_t& arg, unsigned value) const override
     {
         if (arg.mode() != MODE_REG)
-            arg.reg_p = &z80_reg_t::get(RC_IDX, arg.prefix);
+            arg.reg_p = &z80_reg_t::find(RC_IDX, arg.prefix);
         else if (value != 3)
-            arg.reg_p = &z80_reg_t::get(RC_DBL, (uint16_t)value);
+            arg.reg_p = &z80_reg_t::find(RC_DBL, (uint16_t)value);
         else if (r_class == RC_AF)
-            arg.reg_p = &z80_reg_t::get(RC_AF, 3);
+            arg.reg_p = &z80_reg_t::find(RC_AF, 3);
         else
-            arg.reg_p = &z80_reg_t::get(RC_SP, 3);
+            arg.reg_p = &z80_reg_t::find(RC_SP, 3);
     }
 
     int16_t r_class;
 };
 
 // Indirect jmps: Allow (HL), (IX), (IY)
-struct val_indir_idx: z80_mcode_t::val_t
+struct val_indir_idx : z80_mcode_t::val_t
 {
     constexpr val_indir_idx() {}
 
@@ -234,9 +239,9 @@ struct val_indir_idx: z80_mcode_t::val_t
     void set_arg(z80_arg_t& arg, unsigned value) const override
     {
         if (arg.mode() == MODE_REG_INDIR)
-            arg.reg_p = &z80_reg_t::get(RC_DBL, 2);
+            arg.reg_p = &z80_reg_t::find(RC_DBL, 2);
         else
-            arg.reg_p = &z80_reg_t::get(RC_IDX, arg.prefix);
+            arg.reg_p = &z80_reg_t::find(RC_IDX, arg.prefix);
     }
 };
     
@@ -265,7 +270,7 @@ struct val_indir_bc_de : val_reg
     void set_arg(z80_arg_t& arg, unsigned value) const override
     {
         // value is zero or 1
-        arg.reg_p = &z80_reg_t::get(RC_DBL, value);
+        arg.reg_p = &z80_reg_t::find(RC_DBL, value);
     }
 };
 
@@ -327,6 +332,7 @@ struct val_restart : z80_mcode_t::val_t
 
     unsigned get_value(z80_arg_t& arg) const override
     {
+        arg.set_mode(MODE_IMMED_QUICK);
         if (auto p = arg.get_fixed_p())
             return *p >> 3;
         return 0;
@@ -358,7 +364,7 @@ struct val_indir : z80_mcode_t::val_t
         if (_size >= 2)
             return fits.yes;
 
-        return fits.ufits_sz(arg.expr(), _size); 
+        return fits.ufits_sz(arg.expr, _size); 
     }
 
     // immediates may be inserted in opcode, or added data
@@ -399,11 +405,12 @@ VAL_REG(CC          , RC_CC);
 VAL_REG(INDIR_SP    , RC_SP,  3, MODE_REG_INDIR);
 VAL_REG(INDIR_C     , RC_GEN, 1, MODE_REG_INDIR);
 
+VAL_REG(REG_IDX     , RC_IDX);     // allows HL, IX, IY
+
 // validations which require method
 VAL_GEN(REG_GEN     , val_reg_gen);     // allows (HL), (IX+n), (IY+n) and 8-bit general registers
-VAL_GEN(REG_IDX     , val_reg_idx);     // allows HL, IX, IY
-VAL_GEN(REG_DBL_SP  , val_reg_idx, RC_SP);  // IDX + SP
-VAL_GEN(REG_DBL_AF  , val_reg_idx, RC_AF);  // IDX + AF
+VAL_GEN(REG_DBL_SP  , val_reg_dbl, RC_SP);  // IDX + SP
+VAL_GEN(REG_DBL_AF  , val_reg_dbl, RC_AF);  // IDX + AF
 
 VAL_GEN(INDIR       , val_indir, 2);    // 16-bit indirect
 VAL_GEN(INDIR_8     , val_indir, 1);    // 8-bit indirect (I/O instructions)

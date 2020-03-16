@@ -46,10 +46,6 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, void, z80_reg_t, z80_
     using base_t::base_t;
     //using error_msg = typename base_t::error_msg;
     
-    // XXX slated for removal
-    using arg_writeback_t = std::uint16_t *;
-    
-
     // declare size of immed args
     static constexpr tgt::tgt_immed_info sz_info [] =
         {
@@ -61,6 +57,9 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, void, z80_reg_t, z80_
 //XXX    void emit(core::emit_base& base, uint8_t sz, unsigned bytes) const;
     const char *set_mode(unsigned mode);
 
+    // calculate size of extension data for argument (based on MODE & reg/expr values)
+    int size(uint8_t sz, expression::expr_fits const *fits_p = {}, bool *is_signed = {}) const;
+    
     template <typename OS> void print(OS&) const;
     
     // manage the "prefix"
@@ -72,6 +71,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, void, z80_reg_t, z80_
 
     // these are static because only 1 prefix allowed per instruction
     // NB: HL can be a "prefix" register with zero prefix code, thus two bools
+    // eg: "add ix,ix" & "add hl,hl" allowed. but "add ix,hl" not allowed
     static inline uint8_t prefix;
     static inline bool    has_prefix;
 };

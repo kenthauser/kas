@@ -280,7 +280,7 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 22. core_expr copy assignment ctor declared, but not implemented
 
-23. tgt_data_inserter skip/reserve not complete, implemented
+*23. tgt_data_inserter skip/reserve not complete, implemented
 
 24. default `mcode_t::sz` implementation needed
 
@@ -290,4 +290,4 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 27. label parsing sub-optimal. Don't know why so many "rules" are required.
 
-
+28. FMT_LIST alias with FMT_X ???

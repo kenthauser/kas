@@ -17,11 +17,15 @@ namespace kas::tgt
 // from parsed stmt except for `name` and `args`
 struct tgt_stmt_info_t
 {
-    static constexpr uint8_t value() { return 0; }
-    static constexpr uint8_t sz()    { return 0; }
+    static constexpr uint8_t value() { return 0; }  // no value to store
 
+    // calculate size for insn
     template <typename MCODE_T>
-    void bind(MCODE_T const&) const {}
+    static constexpr uint8_t sz(MCODE_T const& mc) 
+    {
+        // default: retrieve size from definition
+        return mc.defn().sz();
+    }
 
     void print(std::ostream& os) const
     {
@@ -90,16 +94,6 @@ public:
         insn_p        = boost::fusion::at_c<0>(x3_args);
         args          = boost::fusion::at_c<1>(x3_args);
         x3::_val(ctx) = derived();
-    
-#if 0
-        // XXX Revisit `taging` later
-        // XXX `where` from context begins "after" this parse
-        // XXX could get `begin` from `insn_p` if it were tagged.
-        // NB: where is a boost::iter_range
-        auto& where = x3::get<x3::where_context_tag>(ctx);
-        auto& error_handler = x3::get<parser::error_handler_tag>(ctx).get();
-        error_handler.tag(*this, where.begin(), where.end());
-#endif
     }
 
     insn_t const      *insn_p;

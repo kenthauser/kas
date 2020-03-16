@@ -52,15 +52,14 @@ struct tgt_opc_list : MCODE_T::opcode_t
         // 2) dummy base opcode (store stmt_info & some arg_info)
         // 3) serialized args
 
-        auto& fixed   = data.fixed;
         auto inserter = base_t::tgt_data_inserter(data);
-        inserter.reserve(-1);       // skip fixed area
+        inserter.reserve(0);       // skip fixed area
         
         inserter(insn.index);
         tgt_insert_args(inserter, mcode, std::move(args), stmt_info);
         
         // store OK bitset in fixed area
-        fixed.fixed = ok.to_ulong();
+        data.fixed.fixed = ok.to_ulong();
         return this;
     }
 
@@ -73,15 +72,15 @@ struct tgt_opc_list : MCODE_T::opcode_t
         //  2) dummy word to hold args
         //  3) serialized args
 
-        auto& fixed = data.fixed;
-        bitset_t ok(fixed.fixed);
+        bitset_t ok(data.fixed.fixed);
 
         auto  reader = base_t::tgt_data_reader(data);
-        reader.reserve(-1);
+        reader.reserve(0);      // skip fixed area
 
         auto& insn =  insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         auto& mc   = *insn.list_mcode_p;
         auto  args =  base_t::serial_args(reader, mc);
+        auto  info =  args.info;        // stmt_info
 
         // print OK bits & name...
         os << ok.to_string().substr(ok.size() - insn.mcodes.size()) << " " << insn.name;
@@ -95,7 +94,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
         }
         
         // ...finish with `info`
-        std::cout << " ; info: " << args.info;
+        std::cout << " ; info: " << info;
     }
 
     op_size_t calc_size(data_t& data, core::core_fits const& fits) const override
@@ -106,42 +105,45 @@ struct tgt_opc_list : MCODE_T::opcode_t
         // format:
         //  0) fixed area: OK bitset in host order
         //  1) insn index
-        //  2) dummy word to hold stmt_info & (first) args
+        //  2) dummy word to hold args
         //  3) serialized args
 
-        auto& fixed = data.fixed;
-        bitset_t ok(fixed.fixed);
+        bitset_t ok(data.fixed.fixed);
 
         auto  reader = base_t::tgt_data_reader(data);
-        reader.reserve(-1);
+        reader.reserve(0);      // skip fixed area
 
-        auto& insn = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
-        
+        auto& insn =  insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         auto& mc   = *insn.list_mcode_p;
         auto  args =  base_t::serial_args(reader, mc);
         auto  info =  args.info;        // stmt_info
-        
-        // evaluate with new `fits`
+
+           // evaluate with new `fits`
         insn.eval(ok, args, info, data.size, fits, this->trace);
 
         // save new "OK"
-        fixed.fixed = ok.to_ulong();
+        data.fixed.fixed = ok.to_ulong();
         return data.size;
     }
 
     void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *dot_p) const override
     {
-        // deserialize data
-        auto& fixed = data.fixed;
-        bitset_t ok(fixed.fixed);
-        
-        auto  reader = base_t::tgt_data_reader(data);
-        reader.reserve(-1);
+        // deserialize insn data
+        // format:
+        //  0) fixed area: OK bitset in host order
+        //  1) insn index
+        //  2) dummy word to hold args
+        //  3) serialized args
 
-        auto& insn       = insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
-        auto& list_mc    = *insn.list_mcode_p;
-        auto  args       = serial_args(reader, list_mc);
-        auto  stmt_info  = args.info;
+        bitset_t ok(data.fixed.fixed);
+
+        auto  reader = base_t::tgt_data_reader(data);
+        reader.reserve(0);      // skip fixed area
+
+        auto& insn =  insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
+        auto& mc   = *insn.list_mcode_p;
+        auto  args =  base_t::serial_args(reader, mc);
+        auto  info =  args.info;        // stmt_info
 
         // "find first set" in bitset
         auto index = 0;
@@ -151,11 +153,10 @@ struct tgt_opc_list : MCODE_T::opcode_t
             else
                 bitmask >>= 1;
        
-        // extract mcode & emit
-        auto& mc = *insn.mcodes[index];
-        auto code = mc.code(stmt_info);
-        stmt_info.bind(mc);
-        mc.emit(base, args, stmt_info);
+        // select first `machine code` that matches
+        auto& selected_mc = *insn.mcodes[index];
+        auto code = selected_mc.code(info);
+        selected_mc.emit(base, args, info);
     }
 };
 }

@@ -88,7 +88,7 @@ void insert_one (Inserter& inserter
                , unsigned n
                , typename MCODE_T::arg_t& arg   // ref to parsed instance
                , arg_serial_t *p                // ptr to serialized instance 
-               , typename MCODE_T::stmt_info_t const& info
+               , uint8_t sz
                , typename MCODE_T::fmt_t const&  fmt
                , typename MCODE_T::val_t const  *val_p
                , typename MCODE_T::mcode_size_t *code_p
@@ -97,7 +97,7 @@ void insert_one (Inserter& inserter
     // write arg data into machine code if possible (dependent on validator)
     // returns false if no validator
     bool completely_saved = fmt.insert(n, code_p, arg, val_p);
-#define TRACE_ARG_SERIALIZE
+//#define TRACE_ARG_SERIALIZE
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "write_one: " << arg << ": completely_saved = " << std::boolalpha << completely_saved;
     std::cout << " has_validator = " << bool(val_p) << std::endl;
@@ -108,7 +108,7 @@ void insert_one (Inserter& inserter
     p->cur_mode = p->init_mode = arg.mode();
     p->has_reg  = !val_p;           // if no validator, check for register
     p->has_data = !completely_saved;
-    p->has_expr = arg.serialize(inserter, info, p);
+    p->has_expr = arg.serialize(inserter, sz, p);
 
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "write_one: " << arg;

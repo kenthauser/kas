@@ -15,7 +15,7 @@ namespace kas::z80
 
 using expression::e_fixed_t;
 
-#if 1
+#if 0
 // determine size of immediate arg
 uint8_t z80_mcode_t::sz(stmt_info_t info) const
 {
@@ -62,20 +62,7 @@ void z80_mcode_t::emit(
             fmt().emit_reloc(n, base, code_p, arg, val_p);
         ++n;
     }
-#if 0
-    // 2. emit base code
-    auto words = code_size()/sizeof(mcode_size_t);
-    while (words--)
-        base << *code_p++;
-
-    // 3. emit arg information
-    for (auto& arg : args)
-        arg.emit(base, info);
-   
-    // XXX
-    using expression::expr_fits;
-#endif
-
+    
     // 2. prefix (if defined) emitted first
     auto pfx = z80_arg_t::prefix;
     if (pfx)
@@ -84,7 +71,7 @@ void z80_mcode_t::emit(
     // 3. then first word of opcode
     base << *code_p;
 
-    // 4. if prefix, must emit offset before anything else
+    // 4. if prefix, must emit offset next
     if (pfx)
     {
         // look for IX/IY arg
@@ -101,16 +88,16 @@ void z80_mcode_t::emit(
                 case MODE_REG_IY:
                     break;      
                 
-                // IX/IY with zero offset
+                // IX/IY indirect with zero offset
                 case MODE_REG_INDIR_IX:
                 case MODE_REG_INDIR_IY:
                     base << core::set_size(1) << 0;
                     break;
                 
-                // IX/IY with offset
+                // IX/IY indirect with offset
                 case MODE_REG_OFFSET_IX:
                 case MODE_REG_OFFSET_IY:
-                    base << core::set_size(1) << arg.expr();
+                    base << core::set_size(1) << arg.expr;
                     break;
             }
             break;  // found IX/IY -> exit `for` loop
@@ -121,34 +108,10 @@ void z80_mcode_t::emit(
     if (code_size() > sizeof(mcode_size_t))
         base << *++code_p;
 
-#if 1
-    // 6. emit arg information
+    // 6. emit arg data
+    auto sz = info.sz(*this); 
     for (auto& arg : args)
-        arg.emit(base, info.sz());
-#else
-
-    // emit additional arg data
-    // hook into validators
-    auto& val_c = defn().vals();
-    auto  val_p = val_c.begin();
-
-    // for `size` call
-    auto fits = core::core_fits(dot_p);
-    
-    for (auto& arg : args)
-    {
-        op_size_t size;
-#ifdef XXX
-        // arg needs "size" to emit properly
-        val_p->size(arg, sz(), fits, size);
-        if (size())
-            arg.emit(base, sz(), size());
-#endif
-        // next validator
-        ++val_p; 
-    } // for
-#endif
-
+        arg.emit(base, sz);
 }
 
 }

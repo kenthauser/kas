@@ -80,7 +80,6 @@ constexpr auto m68k_as_mask(unsigned value, unsigned bit, BITS...bits)
 }
 
 template <typename SFX, unsigned DFLT = OP_SIZE_VOID, unsigned...SIZES>
-//using m68k_sz = meta::int_<(SFX::value | (1 << DFLT)) | ... | (1 << SIZES)>;
 using m68k_sz = meta::int_<m68k_as_mask(SFX::value, DFLT, SIZES...)>;
 
 // test if `SZ` represents multiple SZs (eg not just BYTE, WORD, or LONG)

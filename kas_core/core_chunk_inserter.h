@@ -72,11 +72,15 @@ struct chunk_inserter_t<Inserter, T, meta::list<CHUNK_VT, XT...>>
     }
 
     // make sure at least `n` spots remain in current `chunk`
+    // reserve of zero means skip to beginning of chunk
     void reserve(unsigned n)
     {
         // end chunk if not enough room
         auto& chunk = get_chunk();
-        if (chunk.reserve(n))
+
+        if (!n && !chunk.empty())
+            flush();
+        else if (chunk.reserve(n))
             flush();
     }
 
@@ -231,10 +235,15 @@ namespace detail
         }
     
         // make sure at least `n` spots remain in current `chunk`
+        // `n` == 0 means start new chunk
         void reserve(unsigned n)
         {
             if (!is_chunk())
                 throw std::runtime_error("chunk_reader_t: reserve() not in block");
+
+            // if not at beginning chunk, open new one
+            if (!n && chunk_p != chunk_begin)
+                chunk_p = chunk_end;
 
             if (full_type::reserve(n, chunk_p, chunk_end))
                 chunk_p = chunk_end;        // if no room, flag chunk empty

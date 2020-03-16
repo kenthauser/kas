@@ -149,8 +149,6 @@ struct tgt_opc_general : MCODE_T::opcode_t
         auto  args   = base_t::serial_args(reader, mcode);
         auto& info   = args.info;
 
-        // XXX verify needed. List performs & general uses modified `info` 
-        info.bind(mcode); 
         mcode.emit(base, args, info);
     }
 };

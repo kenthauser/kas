@@ -77,6 +77,7 @@ struct tgt_data_inserter_t
     // can optionally specify required alignment of data
     void reserve(unsigned bytes, unsigned alignment = {})
     {
+        //std::cout << "inserter: reserve: size = " << +bytes << ", align = " << +alignment << std::endl;
         // validate alignment (convert to chunks)
         if (alignment)
         {
@@ -96,7 +97,7 @@ struct tgt_data_inserter_t
             // else writing in `fixed` area: handle alignment directly
             else
             {
-                std::cout << "insert: fixed area alignment: n = " << +n;
+                //std::cout << "insert: fixed area alignment: n = " << +n;
                 if (n >= alignment)
                 {
                     // align `fixed` buffer
@@ -109,24 +110,27 @@ struct tgt_data_inserter_t
                 } 
                 else
                     n = 0;  // done with fixed
-                std::cout << " -> " << +n << std::endl;
+                //std::cout << " -> " << +n << std::endl;
             }
         }
 
         // convert reservation request to chunks
+        // NB: bytes of `zero` means start new chunk
         auto chunks = (bytes + sizeof(value_type) - 1)/sizeof(value_type);
        
         // check if room in fixed
-        if (n < chunks)
+        if (n && !chunks)
+            n = 0;
+        else if (n < chunks)
             n = 0;      // no room
-        if (n == 0)
+        else if (n == 0)
             ci.reserve(chunks);
     }
 
     // insert fixed or expression
     value_type* operator()(expr_t const& e, int size = 0)
     {
-        std::cout << "insert_expr: " << e << " size = " << size << std::endl;
+        //std::cout << "insert_expr: " << e << " size = " << size << std::endl;
         if (size)
             if (auto ip = e.get_fixed_p())
                 return (*this)(*ip, size);
@@ -139,10 +143,12 @@ struct tgt_data_inserter_t
     // insert data via pointer
     value_type* operator()(value_type *code_p, int count = 1)
     {
+#if 0
         std::cout << "insert(): ";
         for (auto n = 0; n < count; ++n)
             std::cout << +code_p[n] << " ";
         std::cout << "size = " << count << std::endl;
+ #endif
         reserve(count * sizeof(value_type));
 
         auto p = insert_one(*code_p);
@@ -175,8 +181,8 @@ struct tgt_data_inserter_t
     T *write(T const& data = {})
     {
         // make sure room in current chunk
-        std::cout << "insert::write(): size = " << sizeof(T); 
-        std::cout << " alignof = " << alignof(T) << std::endl;
+        //std::cout << "insert::write(): size = " << sizeof(T); 
+        //std::cout << " alignof = " << alignof(T) << std::endl;
         
         reserve(sizeof(T), alignof(T));
         
@@ -238,7 +244,7 @@ auto tgt_data_inserter_t<VALUE_T, EMIT_VALUE_T>::insert_fixed(emit_value_t i, in
     if (size < 0)
         size = -size;
 
-    std::cout << "insert_fixed: " << std::hex << i << " size = " << size << std::endl;
+    //std::cout << "insert_fixed: " << std::hex << i << " size = " << size << std::endl;
 
     // convert bytes to chunks
     auto chunks = (size + sizeof(value_type) - 1)/sizeof(value_type);
@@ -259,7 +265,7 @@ auto tgt_data_inserter_t<VALUE_T, EMIT_VALUE_T>::insert_fixed(emit_value_t i, in
 template <typename VALUE_T, typename EMIT_VALUE_T>
 auto tgt_data_inserter_t<VALUE_T, EMIT_VALUE_T>::insert_one(value_type i) -> value_type *
 {
-    std::cout << "insert_one: " << std::hex << +i << std::endl;
+    //std::cout << "insert_one: " << std::hex << +i << std::endl;
     // save one word in fixed area if room
     if (n)
     {
@@ -302,6 +308,7 @@ struct tgt_data_reader_t
     // make sure `n` aligned bytes available in current "chunk"
     void reserve(unsigned bytes, unsigned alignment = 0)
     {
+        //std::cout << "reader: reserve: size = " << +bytes << ", align = " << +alignment << std::endl;
         // validate alignment (convert to chunks)
         if (alignment)
         {
@@ -321,7 +328,7 @@ struct tgt_data_reader_t
             // else writing in `fixed` area: handle alignment directly
             else
             {
-                std::cout << "reader: fixed area alignment: n = " << +n;
+                //std::cout << "reader: fixed area alignment: n = " << +n;
                 if (n >= alignment)
                 {
                     // align `fixed` buffer
@@ -334,7 +341,7 @@ struct tgt_data_reader_t
                 } 
                 else
                     n = 0;  // done with fixed
-                std::cout << " -> " << +n << std::endl;
+                //std::cout << " -> " << +n << std::endl;
             }
         }
 
@@ -342,7 +349,9 @@ struct tgt_data_reader_t
         auto chunks = (bytes + sizeof(value_type) - 1)/sizeof(value_type);
 
         // reserve in `fixed` or `chunk` space
-        if (n == 0)
+        if (chunks == 0 && n)
+            n = 0;
+        else if (n == 0)
             chunk_it.reserve(chunks);
         else if (n < chunks)
             n = 0;

@@ -131,6 +131,7 @@ struct val_am : m68k_mcode_t::val_t
         return result;
     }
 
+    // return 6-bit mode+reg value
     unsigned get_value(m68k_arg_t& arg) const override
     {
         // return MODE+REG as 6-bits
@@ -139,6 +140,7 @@ struct val_am : m68k_mcode_t::val_t
         return (mode << 3) + reg;
     }
 
+    // interpret 6-bit mode+reg value
     void set_arg(m68k_arg_t& arg, unsigned value) const override
     {
         // need set mode of some sort...

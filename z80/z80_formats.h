@@ -1,10 +1,28 @@
-#ifndef KAS_Z80_Z80_FORMAT_DEFN_H
-#define KAS_Z80_Z80_FORMAT_DEFN_H
+#ifndef KAS_Z80_Z80_FORMATS_DEFN_H
+#define KAS_Z80_Z80_FORMATS_DEFN_H
 
 // Declare Z80 argument inserters.
-// See `target/tgt_format.h` for naming convention.
 
-#include "z80_format_opc.h"
+// Generate the "formatters" used to insert/extract arguments
+// into the `machine-code` binary.
+//
+// The `formatters` are named as follows:
+//
+// 1. The name "base" (usually FMT_) indicates the "machine_code" virtual type to use.
+//    (these are named in `formats_opc`)
+//
+// 2. Following the "base", underscores are used to separate inserter for each argument.
+//    Thus `FMT_a1_a2_a3` inserts three arguments, coded `a1`, `a2`, and `a3`.
+//
+// 3. For the M68K, most insertions are 3-bits register numbers, or 6-bit register/mode
+//    combinations. For register args, the convention is to use 0-15 to represent shifts in
+//    the first word, and 16-31 to represent shifts in the second word. For the 6-bit
+//    variants, the convention is to add `rm` to the shift, yielding eg: `0rm`, `28rm`
+//
+// 4. Inserters which aren't regular use irregular naming. eg: coldfire ACCx uses
+//    `9b2` for a two-bit field shifted 9. '020 CAS2 uses `CAS2` for a one-off formater.
+
+#include "z80_formats_opc.h"
 
 namespace kas::z80::opc
 {
@@ -60,7 +78,8 @@ using arg2_1w4b2  = fmt_arg<2, gen_1w4b2>;
 // conventional name for format used by `OPC_LIST`
 // NB: VALIDATORs are REG_GEN, REG_GEN
 // NB: purposefully make unique (arg order doesn't match move)
-struct FMT_LIST     : fmt_list, arg1_0b3, arg2_3b3 {};
+//struct FMT_LIST     : fmt_list, arg1_0b3, arg2_3b3 {};
+struct FMT_LIST    : fmt_list {};
 
 // conventional name for `no-args` formatter
 struct FMT_X       : fmt_gen {};

@@ -14,12 +14,12 @@
 // ELF requires first local symbol be the one-and-only `STT_FILE` symbol.
 // Compilers generally just emit a `.file` symbol first to comply.
 // Assembler can force compilance using a `static` pointer, but can be overkill
-// Define `ENFORCE_FILE_FIRSTT_LOCAL` to use static pointer method
-#define ENFORCE_FILE_FIRST_LOCAL
-#undef  ENFORCE_FILE_FIRST_LOCAL
+// Define `ENFORCE_FILE_FIRST_LOCAL` to use static pointer method
+//#define ENFORCE_FILE_FIRST_LOCAL
 
 namespace kas::core
 {
+// elf defines `bindings` greater than zero. declare internal values < 0
 static constexpr int8_t STB_TOKEN    = -1;  // initial binding when parsed
 static constexpr int8_t STB_UNKN     = -2;  // initial binding when value accessed
 static constexpr int8_t STB_INTERNAL = -3;  // used internally: never exported

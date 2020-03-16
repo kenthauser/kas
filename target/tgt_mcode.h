@@ -18,7 +18,7 @@ template <typename MCODE_T> struct tgt_defn_adder;
 template <typename MCODE_T> struct tgt_opc_base;
 template <typename MOCDE_T> struct tgt_mcode_sizes;
 template <typename MCODE_T> struct tgt_size;
-
+template <typename MCODE_T> struct tgt_fmt_opc_gen;
 }
 // instruction per-size run-time object
 // NB: not allocated if info->hw_tst fails, unless no
@@ -37,15 +37,21 @@ struct tgt_mcode_size_t
     static constexpr auto MAX_ARGS        = 2;
     static constexpr auto MAX_MCODE_WORDS = 2;
 
-    //using mcode_size_t = void;          // must specify machine code size
-    using mcode_size_t  = uint8_t;        // XXX default to `expr_data_t` ?
+    // default defn_info: just hold size (or nothing)
+    struct defn_info_t
+    {
+        uint8_t sz() const { return value; }
+        uint8_t value;
+    };
+
+    // set default code size to `e_data_t`
+    using mcode_size_t  = expression::e_data_t;
     using mcode_idx_t   = uint8_t;
     using defn_idx_t    = uint8_t;
     using name_idx_t    = uint8_t;
     using fmt_idx_t     = uint8_t;
     using val_idx_t     = uint8_t;
     using val_c_idx_t   = uint8_t;
-    using defn_info_t   = uint8_t;
 };
 
 template <typename MCODE_T> struct tgt_size { };
@@ -90,7 +96,7 @@ struct tgt_mcode_t
     using mcode_sizes_t = opc::tgt_mcode_sizes  <MCODE_T>;
 
     // declare "default" fomatter
-    using fmt_default  = void;                      // must be specified per-arch
+    using fmt_default  = opc::tgt_fmt_opc_gen   <MCODE_T>;
     
     // declare "default" code size_fn
     using code_size_t  = void;      // specified in `MCODE_T` if needed
@@ -155,7 +161,6 @@ struct tgt_mcode_t
     
     // machine code arranged as words: big-endian array (ie highest order words first)
     auto code(stmt_info_t const& stmt_info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
-    uint8_t sz(stmt_info_t info) const;
     stmt_info_t extract_info(mcode_size_t const *) const;
 
     void print(std::ostream&) const;

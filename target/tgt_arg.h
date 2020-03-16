@@ -31,7 +31,7 @@ template <typename Derived
         , typename REG_T            // target register type
         , typename REGSET_T = void  // target register set (or offset) type
         >
-struct tgt_arg_t : kas_token
+struct tgt_arg_t : parser::kas_position_tagged
 {
     using base_t        = tgt_arg_t;
     using derived_t     = Derived;
@@ -58,11 +58,11 @@ struct tgt_arg_t : kas_token
     static constexpr auto MODE_ERROR = arg_mode_t::MODE_ERROR;
 
     // x3 parser requires default constructable
-    tgt_arg_t(kas_token const& tok = {}) : kas_token(tok) {}
+    tgt_arg_t(kas_token const& tok = {}) : kas_position_tagged_t(tok) {}
 
     // error from const char *msg
     tgt_arg_t(const char *err, kas_token const& token = {})
-            : _mode(MODE_ERROR), tok(token)
+            : _mode(MODE_ERROR), kas_position_tagged_t(token)
     {
         // create a `diag` instance
         auto& diag = parser::kas_diag_t::error(err, *this);
@@ -98,12 +98,20 @@ public:
 
     // for validate_min_max: default implmentation
     bool is_missing() const { return _mode == MODE_NONE; }
+    
+    // for `inserter`: true if arg info not stored in opcode
+    bool has_data() const;
 
     // helper method for evaluation of insn: default implementation
     // NB: `register` case is allowed because `expr` is zero
     bool is_const () const
     {
-        return tok.get_fixed_p();
+        return expr.get_fixed_p();
+    }
+
+    auto get_fixed_p() const
+    {
+        return expr.get_fixed_p();
     }
 
     bool is_immed () const
@@ -160,7 +168,7 @@ public:
 
     // serialize methods (use templated args instead of including all required headers)
     template <typename Inserter, typename WB_INFO>
-    bool serialize(Inserter& inserter, stmt_info_t const& info, WB_INFO *wb_p);
+    bool serialize(Inserter& inserter, uint8_t sz, WB_INFO *wb_p);
     
     template <typename Reader>
     void extract(Reader& reader, uint8_t sz, opc::detail::arg_serial_t *);
@@ -186,13 +194,9 @@ public:
     static void reset()  {}
     
     // common member variables
-    parser::kas_token tok; 
-#if 0
-    reg_t       reg  {}; 
-#else
+    expr_t          expr     {}; 
     reg_t    const *reg_p    {};
     regset_t const *regset_p {};
-#endif
     parser::kas_error_t err; 
 
 private:

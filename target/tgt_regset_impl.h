@@ -58,20 +58,9 @@ auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, core_expr_t const& r
     // if expression is fixed, treat as an int arg.
     if (auto p = r.get_fixed_p())
         return binop(op, *p);
-#if 0    
-    // allocate persistent `core_expr` if first
-    if (!_expr && op == '-')
-    {
-        auto& expr = _value - r;
-        _expr = &expr;
-    }
-    else if (!_expr)
-#else
     if (!_expr)
-#endif
     {
         auto& expr = _value + r;
-        //auto& expr = core_expr_t::add(r) + _value;
         _expr = &expr;
     }
     else if (op == '+')
@@ -85,19 +74,19 @@ auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, core_expr_t const& r
 }
 
 template <typename Derived, typename Reg_t, typename Ref>
-auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, int r)
+auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, int value)
     -> derived_t&
 {
     if (kind() != -RS_OFFSET)
         _error = RS_ERROR_INVALID_CLASS;
 
     if (op == '-')
-        r = -r;
+        value = -value;
     
     if (_expr)
-        _expr->operator+(r);
+        _expr->operator+(value);
     else
-        _value += r;
+        _value += value;
     
     return derived();
 }
@@ -118,7 +107,8 @@ auto tgt_reg_set<Derived, Reg_t, Ref>::value(bool reverse) const -> rs_value_t
     rs_value_t mask = 0;
 
     // structured bindings can't be captured. Name everything
-    auto get_mask = [dir=dir, mask_bits=mask_bits, &mask, this](auto from, auto to) -> rs_value_t
+    auto get_mask = [dir=dir, mask_bits=mask_bits, &mask, this](auto from, auto to)
+                        -> rs_value_t
     {
         // validate arguments
         auto to_bitnum   = derived().reg_bitnum(*to);

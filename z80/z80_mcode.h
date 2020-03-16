@@ -8,7 +8,7 @@ namespace kas::z80
 {
 
 // all z80 instructions have a specified "size" of operand
-enum m68k_op_size_t
+enum z80_op_size_t
 {
       OP_SIZE_WORD
     , OP_SIZE_BYTE
@@ -16,20 +16,7 @@ enum m68k_op_size_t
 };
 
 
-// override defaults for various sizes
-struct z80_mcode_size_t : tgt::tgt_mcode_size_t
-{
-    using mcode_size_t = uint8_t;
-};
-
-// forward declare z80 default mcode arg formatter
-namespace opc
-{
-    struct FMT_X;
-}
-
-
-struct z80_mcode_t : tgt::tgt_mcode_t<z80_mcode_t, z80_stmt_t, error_msg, z80_mcode_size_t>
+struct z80_mcode_t : tgt::tgt_mcode_t<z80_mcode_t, z80_stmt_t, error_msg>
 {
     using BASE_NAME = KAS_STRING("Z80");
 
@@ -37,25 +24,16 @@ struct z80_mcode_t : tgt::tgt_mcode_t<z80_mcode_t, z80_stmt_t, error_msg, z80_mc
     using base_t::base_t;
 
     //
-    // override default types
-    //
-
-    // XXX prefer `void` as default. Pickup in `opc` subsystem
-    using fmt_default = opc::FMT_X;
-
-    //
     // override default methods
     //
-#if 1 
-    // determine size of immediate arg
-    uint8_t sz(stmt_info_t info) const;
-#endif
+    
     // prefix is part of `base` machine code size calculation
     // not part of `arg` size calculation
     auto base_size() const
     {
         // NB: sizeof(mcode_size_t) == sizeof(emitted prefix) == 1
-        return code_size() + arg_t::prefix != 0;
+        // 2020/03/14 KBH: w/o cast, method returns `bool` under clang?!? (per lldb)
+        return code_size() + int(arg_t::prefix != 0);
     }
 
     // z80: base code & displacement interspersed in output

@@ -61,9 +61,10 @@ template kas_position_tagged_t<iterator_type>::operator kas_loc&() const;
 void kas_token::print(std::ostream& os) const
 {
     os << "[" << name();
-    os << ": src= " << this->where();
+    if (static_cast<kas_loc>(*this))
+        os << " src=" << this->where();
     if (!_expr.empty())
-        os << ", expr=" << expr();
+        os << " expr=" << expr();
     os << "]";
 }
 

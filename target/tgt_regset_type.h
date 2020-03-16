@@ -92,6 +92,8 @@ public:
     // return RC_* for regset class.
     // NB: negative value indicates error index
     int16_t kind() const;
+    
+    bool is_offset() const { return kind() == -RS_OFFSET; }
 
     // these methods only valid for `RC_OFFSET`
     // NB: expr_t definition not complete. Work around...

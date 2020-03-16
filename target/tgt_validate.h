@@ -91,8 +91,8 @@ struct tgt_validate
 
     // insert & extract values from opcode
     virtual unsigned get_value(arg_t& arg)           const { return {}; }
+    virtual bool     has_data (arg_t& arg)           const { return true; }
     virtual void     set_arg  (arg_t& arg, unsigned) const {}
-    
     // NB: literal types can't define dtors
     // virtual ~tgt_validate() = default;
 };
@@ -267,12 +267,10 @@ struct tgt_val_reg : MCODE_T::val_t
     
     void set_arg(arg_t& arg, unsigned value) const override
     {
-        auto reg_class = derived().value2reg(value);
-        
         if (!is_single_register())
-            arg.reg_p = &reg_t::get(reg_class, value);
+            arg.reg_p = &reg_t::find(r_class, value);
         else
-            arg.reg_p = &reg_t::get(reg_class, r_num);
+            arg.reg_p = &reg_t::find(r_class, r_num);
     }
 
     reg_value_t r_num;
@@ -293,14 +291,14 @@ struct tgt_val_range : MCODE_T::val_t
 
     fits_result range_ok(arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const
     {
-        if (auto p = arg.expr().get_fixed_p())
+        if (auto p = arg.get_fixed_p())
         {
             // if zero is mapped, block it.
             if (!*p && zero)
                 return fits.no;
             return fits.fits(*p, min, max);
         }
-        return fits.fits(arg.expr(), min, max);
+        return fits.fits(arg.expr, min, max);
 
     }
 
@@ -331,7 +329,7 @@ struct tgt_val_range : MCODE_T::val_t
         arg.set_mode(_size ? arg_mode_t::MODE_IMMEDIATE : arg_mode_t::MODE_IMMED_QUICK);
         
         // calclulate value to insert in machine code
-        auto p = arg.expr().get_fixed_p();
+        auto p = arg.get_fixed_p();
         auto n = p ? *p : 0;
         return n == zero ? 0 : n;
     }
@@ -339,8 +337,7 @@ struct tgt_val_range : MCODE_T::val_t
     void set_arg(arg_t& arg, unsigned value) const override
     {
         // calculate expression value from machine code
-        //arg.expr = value ? value : zero;
-        arg.set(value);     // XXX token change
+        arg.expr = value ? value : zero;
         arg.set_mode(_size ? arg_mode_t::MODE_IMMEDIATE : arg_mode_t::MODE_IMMED_QUICK);
     }
     

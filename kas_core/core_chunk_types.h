@@ -163,6 +163,11 @@ public:
         throw std::logic_error{"chunk_t::advance: past end of chunk"};
     }
 
+    bool empty() const
+    {
+        return index() == 0;
+    }
+
     template <typename OS> void print(OS& os) const;
 };
 

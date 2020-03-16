@@ -172,11 +172,15 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
 
     // XXX force list or general during debug
     //matching_mcode_p = {};      // XXX force list for all
-    //ok_for_quick   = {};      // XXX don't use quick
+    ok_for_quick   = {};      // XXX don't use quick
 
+    std::cout << "quick format: " << std::boolalpha << ok_for_quick;
+    std::cout << ", single match: " << !!matching_mcode_p << std::endl;
+    
     if (ok_for_quick)
     {
         expression::expr_fits fits;
+
 
         // all const args: can select best opcode & calculate size
         if (matching_mcode_p)

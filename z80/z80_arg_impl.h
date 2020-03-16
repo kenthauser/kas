@@ -24,6 +24,12 @@ const char *z80_arg_t::set_mode(unsigned mode)
                 return MODE_REG_OFFSET_IX + is_iy;
             return mode;
         };
+
+    auto set_prefix = [this](auto pfx)
+        {
+            reg_p = &z80_reg_t::find(RC_IDX, pfx);
+            this->prefix = pfx;
+        };
     
     bool    is_prefix {};
     uint8_t new_prefix{};
@@ -56,12 +62,12 @@ const char *z80_arg_t::set_mode(unsigned mode)
         case MODE_REG_IX:
         case MODE_REG_INDIR_IX:
         case MODE_REG_OFFSET_IX:
-            prefix = 0xdd;
+            set_prefix(0xdd);
             break;
         case MODE_REG_IY:
         case MODE_REG_INDIR_IY:
         case MODE_REG_OFFSET_IY:
-            prefix = 0xfd;
+            set_prefix(0xfd);
             break;
         default:
             break;
@@ -70,26 +76,25 @@ const char *z80_arg_t::set_mode(unsigned mode)
     base_t::set_mode(mode);
     return {};
 }
-
-#if 0
-// sz is from validator
-void z80_arg_t::emit(core::emit_base& base, uint8_t sz) const
+int z80_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_signed) const
 {
-    // IX/IY offsets are emitted by base code. don't double emit
     switch (mode())
     {
-        default:
-            break;
-        
+        case MODE_REG_IX:
+        case MODE_REG_IY:
+            return 0;
+        // can be zero (eg "ex (sp),ix") or 1 (eg "ld a,(ix)")
+        // return minimum
         case MODE_REG_INDIR_IX:
         case MODE_REG_INDIR_IY:
+            return 0;
         case MODE_REG_OFFSET_IX:
         case MODE_REG_OFFSET_IY:
-            return;
+            return 1;
+        default:
+            return base_t::size(sz, fits_p, is_signed);
     }
-    // XXX base_t::emit(base, sz, bytes);
 }
-#endif
 
 template <typename OS>
 void z80_arg_t::print(OS& os) const
@@ -98,13 +103,13 @@ void z80_arg_t::print(OS& os) const
     {
         case MODE_DIRECT:
         case MODE_IMMED_QUICK:
-            os << tok;
+            os << std::dec << expr;
             break;
         case MODE_INDIRECT:
-            os << "(" << tok << ")";
+            os << "(" << std::dec << expr << ")";
             break;
         case MODE_IMMEDIATE:
-            os << "#" << tok;
+            os << "#" << std::dec << expr;
             break;
         case MODE_REG:
         case MODE_REG_IX:
@@ -118,15 +123,13 @@ void z80_arg_t::print(OS& os) const
             break;
         case MODE_REG_OFFSET_IX:
         case MODE_REG_OFFSET_IY:
-            // print (ix-N) iff (N == fixed && N < 0)
-            // else print (ix+N)
-            if (auto p = tok.get_fixed_p())
+            if (auto p = get_fixed_p())
                 if (*p < 0)
                 {
                     os << "(" << *reg_p << std::dec << *p << ")";
                     break;
                 }
-            os << "(" << *reg_p << "+" << tok << ")";
+            os << "(" << *reg_p << "+" << std::dec << expr << ")";
             break;
         case MODE_ERROR:
             if (err)
@@ -138,7 +141,7 @@ void z80_arg_t::print(OS& os) const
             os << "*NONE*";
             break;
         default:
-            os << "** INVALID: " << +mode() << " **";
+            os << "** INVALID: mode = " << +mode() << " **";
             break;
     }
 }
