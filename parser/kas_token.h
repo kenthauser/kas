@@ -31,7 +31,7 @@ struct kas_token : kas_position_tagged
     kas_token(T&& obj) : defn_p{&TOK().get()}
     {
         if constexpr (std::is_integral_v<U>)
-            _expr = obj;
+            _fixed = obj;
         else
             data_p = &obj;
 
@@ -52,22 +52,27 @@ struct kas_token : kas_position_tagged
     void set(void const *p)
     {
         data_p = p;
-        _expr  = {};
+        _fixed = {};
     }
 
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
     std::enable_if_t<sizeof(T) <= sizeof(e_fixed_t)>
     set(T fixed)
     {
-        _expr = fixed;
+        _fixed = fixed;
     }
     
     // get `expr()` from token_defn.
     auto const& expr() const
     {
         // covert string to expr if appropriate
-        if (defn_p && _expr.empty())
-            defn_p->gen_expr(_expr, *this);
+        if (_expr.empty())
+        {
+            if (defn_p)
+                defn_p->gen_expr(_expr, *this);
+            else
+                _expr = _fixed;
+        }
         
         return _expr;
     }
@@ -139,6 +144,9 @@ struct kas_token : kas_position_tagged
     }
     
     void print(std::ostream& os) const;
+    
+    // should be private
+    mutable e_fixed_t      _fixed {};
 
 private:
     template <typename T, typename HAS_LOC>
@@ -146,7 +154,7 @@ private:
 
     // `_expr` & `data_p` hold side effects from text->value conversion
     // thus mark mutable
-    mutable expr_t         _expr; 
+    mutable expr_t         _expr;
     mutable void const    *data_p {};   // allow conversion from string to object
     token_defn_base const *defn_p {};
 };
@@ -223,7 +231,7 @@ void const *token_defn_t<NAME, VALUE_T, PARSER>::
             gen_data_p(kas_token const& tok) const
 {
     if constexpr (std::is_integral_v<VALUE_T> && sizeof(VALUE_T) <= sizeof(e_fixed_t))
-        return tok.get_fixed_p();
+        return &tok._fixed;
     else
         return nullptr;
 }

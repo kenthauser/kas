@@ -106,17 +106,16 @@ public:
         x3::_val(ctx) = tok;    // return value is token
     }
     
-    static auto& get(kas_token const& token)
+    static auto& get(unsigned n, kas_token const& tok)
     {
-        auto  p     = token.get_fixed_p();
-        auto& sym_p = local_table[*p];
+        auto& sym_p = local_table[n];
 
         if (!sym_p)
         {
             // insert occurred. create the symbol.
             // calculate name stored in symbol table. not used by kas
-            auto name = last() + bsd_sym_sep_str + std::to_string(*p);
-            sym_p = &symbol_type::add(name, token, STB_LOCAL);
+            auto name = last() + bsd_sym_sep_str + std::to_string(n);
+            sym_p = &symbol_type::add(name, tok, STB_LOCAL);
         }
 
         return *sym_p;
@@ -147,6 +146,7 @@ struct bsd_numeric_ident
 private:
     struct numeric_label
     {
+        // NB: `value_type` is pointer to symbol
         value_type syms[2]; // backward, forward
         unsigned count;     // used to generate symbol name
 

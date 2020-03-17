@@ -11,28 +11,20 @@ namespace kas::parser
 template <> void const *bsd::tok_bsd_ident
         ::gen_data_p(kas_token const& tok) const
 {
-    std::cout << "tok_bsd_ident::gen_data_p() token = " << tok << std::endl;
-    auto& sym = bsd::bsd_ident::get(tok);
-    std::cout << "tok_bsd_ident:: sym = " << expr_t(sym) << std::endl;
-    return &sym;
+    return &bsd::bsd_ident::get(tok);
 }
 
 template <> void const *bsd::tok_bsd_local_ident
         ::gen_data_p(kas_token const& tok) const
 {
-    std::cout << "tok_bsd_local_ident::gen_data_p() token = " << tok << std::endl;
-    auto& sym = bsd::bsd_local_ident::get(tok);
-    std::cout << "tok_bsd_local_ident:: sym = " << expr_t(sym) << std::endl;
-    return &sym;
+    // XXX form: references `tok_fixed`
+    return &bsd::bsd_local_ident::get(tok._fixed, tok);
 }
 
 template <> void const *bsd::tok_bsd_numeric_ident
         ::gen_data_p(kas_token const& tok) const
 {
-    std::cout << "tok_bsd_numeric_ident::gen_data_p() token = " << tok << std::endl;
-    auto& sym = bsd::bsd_numeric_ident::get(tok);
-    std::cout << "tok_bsd_numeric_ident:: sym = " << expr_t(sym) << std::endl;
-    return &sym;
+    return &bsd::bsd_numeric_ident::get(tok);
 }
 
 }
