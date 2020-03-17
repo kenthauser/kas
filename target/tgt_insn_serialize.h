@@ -127,7 +127,7 @@ void tgt_insert_args(Inserter& inserter
         }
         else
             val_p = {};
-#if 0
+#if 1
         // if validator present, be sure it can hold type
         // NB: only required for "LIST" format.
         if (val_p)

@@ -78,8 +78,8 @@ using arg2_1w4b2  = fmt_arg<2, gen_1w4b2>;
 // conventional name for format used by `OPC_LIST`
 // NB: VALIDATORs are REG_GEN, REG_GEN
 // NB: purposefully make unique (arg order doesn't match move)
-//struct FMT_LIST     : fmt_list, arg1_0b3, arg2_3b3 {};
-struct FMT_LIST    : fmt_list {};
+struct FMT_LIST     : fmt_list, arg1_0b3, arg2_3b3 {};
+//struct FMT_LIST    : fmt_list {};
 
 // conventional name for `no-args` formatter
 struct FMT_X       : fmt_gen {};

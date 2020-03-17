@@ -102,7 +102,6 @@ auto const at_num   = token<tok_bsd_at_num>  [(at_token_initial >>  uint_) > !bs
 
 sym_parser_x3 sym_parser {"sym"};
 
-// XXX sym_parser_def is `expr_t`
 auto const sym_parser_def = ident | l_ident | n_ident;
 BOOST_SPIRIT_DEFINE(sym_parser)
 
