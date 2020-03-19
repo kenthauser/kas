@@ -50,7 +50,7 @@ using arg1_3b3 = fmt_arg<1, gen_3b3>;
 using arg2_0b3 = fmt_arg<2, gen_0b3>;
 using arg2_3b3 = fmt_arg<2, gen_3b3>;
 
-using arg1_3b2 = fmt_arg<1, gen_1w3b2>;
+using arg1_3b2 = fmt_arg<1, gen_3b2>;
 using arg2_3b2 = fmt_arg<2, gen_3b2>;
 
 using arg1_4b2  = fmt_arg<1, gen_4b2>;

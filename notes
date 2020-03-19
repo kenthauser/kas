@@ -290,4 +290,10 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 27. label parsing sub-optimal. Don't know why so many "rules" are required.
 
-28. FMT_LIST alias with FMT_X ???
+28. 1: jr 1b -> deleted: need some "seen this pass" magic
+
+29. listing address & "equ" size
+
+30. "common size of zero" error message not location tagged
+
+31. EQU symbols recorded as STB_TOKENS

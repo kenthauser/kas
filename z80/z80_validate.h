@@ -290,6 +290,17 @@ struct val_jrcc : val_reg
             return fits.no;
         return fits.yes;
     }
+    
+    unsigned get_value(z80_arg_t& arg) const override
+    {
+        // get CC value
+        return arg.reg_p->value(RC_CC);
+    }
+    
+    void set_arg(z80_arg_t& arg, unsigned value) const override
+    {
+        arg.reg_p = &z80_reg_t::find(RC_CC, value);
+    }
 };
 
 // extend `tgt_val_range` to allow MODE_DIRECT for bit operations

@@ -1,6 +1,16 @@
 #ifndef KAS_TARGET_TGT_OPC_BRANCH_H
 #define KAS_TARGET_TGT_OPC_BRANCH_H
 
+// Select format for a "branch"
+//
+// Many processors have different formats for "branch" instructions,
+// depending on the branch distance. The machine-code and branch
+// offset formats are determined by examining the offset during relax
+// in the `size` method. The `size` of the resulting machine code is
+// stored in `size`, which is the "state" of the opcode.
+//
+// ** OVERRIDE METHODS **
+//
 
 #include "target/tgt_opc_base.h"
 
@@ -31,6 +41,53 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     using NAME = str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_BRANCH")>;
     const char *name() const override { return NAME::value; }
 
+    // methods to override
+    static constexpr auto max_insn = sizeof(expression::e_data_t);
+    static constexpr auto max_addr = sizeof(expression::e_addr_t);
+
+    virtual void do_initial_size(data_t&            data
+                               , mcode_t const&     mcode
+                               , expr_t const&      dest
+                               , stmt_info_t const& info) const
+    {
+        // MIN: allow deletion of insn
+        static constexpr auto MIN_SIZE = 0;
+        // MAX: one word insn + branch as full size address word
+        static constexpr auto MAX_SIZE = sizeof(expression::e_data_t) + 
+                                         sizeof(expression::e_addr_t);
+        data.size = { MIN_SIZE, MAX_SIZE };
+    }
+
+
+    virtual void do_calc_size(data_t&                data
+                            , mcode_t const&         mcode
+                            , mcode_size_t          *code_p
+                            , expr_t const&          dest
+                            , stmt_info_t const&     info
+                            , core::core_fits const& fits) const 
+    {
+        // default: set min -> max
+        data.size.min = data.size.max;
+    }
+
+
+    virtual void do_emit     (data_t const&          data
+                            , core::emit_base&       base
+                            , mcode_t const&         mcode
+                            , mcode_size_t          *code_p
+                            , expr_t const&          dest
+                            , stmt_info_t const&     info) const
+    {
+        // default: emit opcode words + displacement from end of insn
+        auto words = mcode.code_size()/sizeof(mcode_size_t);
+        while (words--)
+            base << *code_p++;
+        static constexpr core::core_reloc reloc { core::K_REL_ADD, 0, true };
+        base << core::set_size(max_addr) << core::emit_reloc(reloc, -max_addr) << dest << 0;
+    }
+
+
+    // generic methods
     core::opcode *gen_insn(
                  // results of "validate" 
                    insn_t const&  insn
@@ -57,25 +114,31 @@ struct tgt_opc_branch : MCODE_T::opcode_t
             *trace << std::endl;
         }
         
-        // don't bother to trace, know mcode matches
-        //mcode.size(args, mcode.sz(stmt_info), data.size, expression::expr_fits{});
-
-        // serialize format (for resolved instructions)
+        // serialize format (for branch instructions)
         // 1) mcode index
         // 2) mcode binary data
-        // 3) serialized args
+        // 3) destination 
         
         auto inserter = base_t::tgt_data_inserter(data);
         inserter(mcode.index);
         auto machine_code = mcode.code(stmt_info);
         auto code_p       = machine_code.data();
-        inserter(*code_p);      // one word
-        inserter(std::move(args.front().expr));
 
-        //inserter(std::move(args.front()), M_SIZE_AUTO);
-        data.size = {0, 6};     // ranges from deleted to long branch/jmp
+        // Insert args into machine code "base" value
+        auto val_iter = mcode.vals().begin();
+        unsigned n = 0;
+        for (auto& arg : args)
+            mcode.fmt().insert(n++, code_p, arg, &*val_iter++);
+
+        // retrieve destination address (always last)
+        auto& dest = args.back().expr;
+        
+        // calculate initial insn size
+        do_initial_size(data, mcode, dest, stmt_info);
+
+        inserter(*code_p);                  // insert machine code: one word
+        inserter(std::move(dest));          // save destination address
         return this;
-
     }
     
     void fmt(data_t const& data, std::ostream& os) const override
@@ -96,9 +159,9 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         os << mcode.defn().name();
         
         // ...print opcode...
-        os << std::hex << " " << std::setw(mcode.code_size()) << *code_p;
+        os << std::hex << " " << std::setw(mcode.code_size()) << +*code_p;
 
-        // ...and args
+        // ...destination...
         os << " : " << dest;
 
         // ...and info
@@ -118,18 +181,8 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto& dest   = reader.get_expr();
         
         auto  info   = mcode.extract_info(code_p);
-        info.bind(mcode);
 
-        // get "final" validator (dest always last arg)
-        auto& vals    = mcode.defn().vals();
-        auto  arg_cnt = vals.size();
-        auto  val_p   = typename mcode_t::val_c_t::iter(vals, arg_cnt - 1);
-
-        arg_t arg(arg_mode_t::MODE_DIRECT, dest);
-        auto  ok = val_p->size(arg, info, fits, data.size);
-        if (ok == fits.yes)
-            *code_p |= arg.mode() - arg_mode_t::MODE_BRANCH_BYTE + 1;
-        
+        do_calc_size(data, mcode, code_p, dest, info, fits);
         return data.size; 
     }
 
@@ -140,19 +193,9 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto  code_p = reader.get_fixed_p(mcode.code_size());
         auto& dest   = reader.get_expr();
         
-        // extract `info` from code_p
         auto  info   = mcode.extract_info(code_p);
-        info.bind(mcode);
-
-        // extract `branch mode` from code_p
-        using arg_mode_t = typename mcode_t::arg_mode_t;
-        auto mode = static_cast<arg_mode_t>((*code_p & 7) + arg_mode_t::MODE_BRANCH_BYTE - 1);
-
-        // generate "args"
-        arg_t args[] = {{mode, dest}};
-
-        // emit
-        mcode.emit(base, args, info);
+        
+        do_emit(data, base, mcode, code_p, dest, info);
     }
 };
 }

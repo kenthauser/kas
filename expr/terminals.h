@@ -7,6 +7,8 @@
 #include "utility/reduce.h"
 #include "parser/token_defn.h"
 
+#include "c_int_parser.h"
+
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/numeric.hpp>
 #include <boost/spirit/home/x3/string.hpp>
@@ -21,9 +23,14 @@ namespace mpl = boost::mpl;
 
 namespace detail 
 {
+#if 1
     // Default `int` parser
     template <typename T>
     struct dflt_fixed_p : x3::int_parser<T> {};
+#else
+    template <typename T>
+    struct dflt_fixed_p : literal::c_int_rule<T> {};
+#endif
 
     // Define default `float` & `string` parsers
     // x3 strict parser requires decimal point
