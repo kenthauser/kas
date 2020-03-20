@@ -167,14 +167,9 @@ public:
     }
 
     // convenience method: pass msg & `loc`
-    void make_error(insn_data& data, const char *msg, kas::parser::kas_loc const& loc)
+    void make_error(insn_data& data, std::string&& msg, kas::parser::kas_loc const& loc)
     {
-        return make_error(data, kas_diag_t::error(msg).ref(loc));
-    }
-
-    void make_error(insn_data& data, std::string const& msg, kas::parser::kas_loc const& loc)
-    {
-        return make_error(data, msg.c_str(), loc);
+        return make_error(data, kas_diag_t::error(std::move(msg), loc));
     }
 
     template <typename REF, typename = std::enable_if_t<std::is_base_of_v<ref_loc_tag, REF>>>

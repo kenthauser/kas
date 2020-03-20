@@ -40,6 +40,9 @@ const char *core_symbol<Ref>::set_value(expression::ast::expr_t& value, int8_t t
     if (auto err = set_type(type))
         return err;
 
+    if (binding() < 0)          // equ's are not just "Tokens"
+        set_binding(STB_LOCAL);
+
     if (s_addr_p)
         return "Symbol previously defined";
 

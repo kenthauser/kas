@@ -15,16 +15,6 @@
 
 namespace kas::core
 {
-// define metafunction traits for address & data fields default sizes
-// traits are evaluated in `kas_core.cc` and stored in `sizeof` variables
-template <typename = void> struct core_addr_size_trait : meta::id<uint32_t> {};
-template <typename = void> struct core_data_size_trait : meta::id<uint32_t> {};
-
-// convenience sizeof variables for `emit`
-extern const uint8_t sizeof_addr_t;
-extern const uint8_t sizeof_data_t;
-
-
 // alias a couple of types from ::kas::parser namespace
 //using kas_pos = ::kas::parser::kas_position_tagged;
 using kas_loc = ::kas::parser::kas_loc;

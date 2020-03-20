@@ -3,6 +3,7 @@
 
 #include "z80_mcode.h"
 #include "z80_opc_branch.h"
+#include "z80_opc_djnz.h"
 #include "target/tgt_format.h"
 
 namespace kas::z80::opc
@@ -22,7 +23,6 @@ using fmt_list = tgt::opc::tgt_fmt_opc_list<z80_mcode_t>;
 
 
 // declare Z80 specific opcode formats
-using fmt_djnz = fmt_gen;
 
 // branch opcode format
 struct fmt_jr : virtual z80_mcode_t::fmt_t
@@ -33,6 +33,17 @@ struct fmt_jr : virtual z80_mcode_t::fmt_t
         return opc;
     }
 };
+
+// DJNZ insn
+struct fmt_djnz : virtual z80_mcode_t::fmt_t
+{
+    virtual opcode_t& get_opc() const override 
+    {
+        static z80_opc_djnz opc; 
+        return opc;
+    }
+};
+
 
 }
 

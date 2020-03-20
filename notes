@@ -292,8 +292,17 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 28. 1: jr 1b -> deleted: need some "seen this pass" magic
 
-29. listing address & "equ" size
+*29. listing address & "equ" size
 
-30. "common size of zero" error message not location tagged
+*30. "common size of zero" error message not location tagged
 
-31. EQU symbols recorded as STB_TOKENS
+*31. EQU symbols recorded as STB_TOKENS
+
+32. only `rela` relocations should list addend
+
+33. should `.lcomm` symbols show bss address
+
+34. fix `get_p` & expr() mess in `kas_token`
+
+35. ld a,#DATALEN -> Z80_Gen: DATALEN not evaluated as constant
+

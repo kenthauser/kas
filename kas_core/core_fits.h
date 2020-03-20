@@ -38,10 +38,6 @@ test: addr.offset.max <= dot.offset.max?
 
 namespace kas::core
 {
-    // get `core_addr_size_t` from metafunction configuration
-    using addr_size_t = meta::_t<core_addr_size_trait<>>;
-    using data_size_t = meta::_t<core_data_size_trait<>>;
-
     struct core_fits : expression::expr_fits
     {
         using expr_fits::operator();

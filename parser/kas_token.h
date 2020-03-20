@@ -63,22 +63,20 @@ struct kas_token : kas_position_tagged
     }
     
     // get `expr()` from token_defn.
-    auto const& expr() const
+    auto& expr()
     {
         // covert string to expr if appropriate
         if (_expr.empty())
-        {
             if (defn_p)
                 defn_p->gen_expr(_expr, *this);
-            else
-                _expr = _fixed;
-        }
         
         return _expr;
     }
 
-    // allow conversion from `token` to `expr`
-    //operator expr_t const&() const { return expr(); }
+    auto const& expr() const
+    {
+        return const_cast<kas_token&>(*this).expr();
+    }
 
     // NB: return `void *` pointer as value (for expression evaluation)
     // mutable pointer required for `core_expr` & `reg_set` expression
@@ -89,7 +87,7 @@ struct kas_token : kas_position_tagged
         if (defn_p)
         {
             if (defn_p->is_fixed())
-                data_p = _expr.get_fixed_p();
+                data_p = &_fixed;
             else if (!data_p)
                 data_p = defn_p->gen_data_p(*this);
         }
@@ -112,10 +110,18 @@ struct kas_token : kas_position_tagged
     }
 #if 1
     template <typename T>
-    T const *get_p(T const& = {}) const
+    T *get_p(T const& = {})
     {
         return expr().get_p<T>();
     }
+
+    template <typename T>
+    T const *get_p(T const& = {}) const
+    {
+        return const_cast<kas_token&>(*this).get_p<T>();
+    }
+
+
 #endif
     // test for token type: `void` tests for generic `kas_token`
     template <typename T = void>
@@ -191,7 +197,7 @@ unsigned token_defn_t<NAME, VALUE_T, PARSER>::
 {
     return expr_t::index<VALUE_T>();
 }
-    
+
 // convert "tokens" to "expressions"
 template <typename NAME, typename VALUE_T, typename PARSER>
 void token_defn_t<NAME, VALUE_T, PARSER>::
@@ -203,11 +209,10 @@ void token_defn_t<NAME, VALUE_T, PARSER>::
     // wrapped types need to be location tagged
     if constexpr (meta::in<expr_t::unwrapped, VALUE_T>::value)
         e = { *p, tok };
-#if 0
-    // XXX expr_t allows `expr_op` to `fail` ctor even with following
-    else if constexpr (std::is_constructible_v<expr_t, decltype(*p)>)
+    // XXX not correct, but...
+    //else if constexpr (std::is_constructible<expr_t, VALUE_T>)
+    else if constexpr(meta::in<expr_t::plain, VALUE_T>::value)
         e = *p;
-#endif
 }
 
 template <typename NAME, typename VALUE_T, typename PARSER>
@@ -223,18 +228,28 @@ VALUE_T const *token_defn_t<NAME, VALUE_T, PARSER>::
     // require matching token type
     if (!p->is_token_type(*this))
         return {};
-    return static_cast<VALUE_T const *>((*p)());
+
+    void *data_p;
+    if (is_fixed())
+        data_p = &p->_fixed;     // XXX not friend...
+    else
+        data_p = (*p)();
+    return static_cast<VALUE_T const *>(data_p);
 }
 
+#if 1
 template <typename NAME, typename VALUE_T, typename PARSER>
 void const *token_defn_t<NAME, VALUE_T, PARSER>::
             gen_data_p(kas_token const& tok) const
 {
+    std::cout << "token_defn_t::gen_data_p()" << std::endl;
+    print_type_name{"token_defn_t::gen_data_p()"}.name<VALUE_T>();
     if constexpr (std::is_integral_v<VALUE_T> && sizeof(VALUE_T) <= sizeof(e_fixed_t))
         return &tok._fixed;
     else
         return nullptr;
 }
+#endif
 }
 
 #endif

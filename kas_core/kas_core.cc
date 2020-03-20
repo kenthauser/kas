@@ -43,15 +43,6 @@ namespace kas {
 
 namespace kas::core
 {
-    // instantiate the sizeof constants
-    const uint8_t sizeof_addr_t = sizeof(typename core_addr_size_trait<>::type);
-    const uint8_t sizeof_data_t = sizeof(typename core_data_size_trait<>::type);
-
-    // instantiate `core_addr` references
-
-    //decltype(core_insn::data)        core_insn::data;
-
-    
     std::ostream& operator<<(std::ostream& os, core_symbol_t const& s)
     {
         return os << "[ident " << s.index() - 1 << ":" << s.name() << "]";

@@ -34,6 +34,7 @@ void emit_base::set_width(std::size_t w)
 void emit_base::set_chan(e_chan_num chan)
 {
     e_chan = chan;
+    width  = sizeof(expression::e_addr_t);  // default size for non-data channels
 }
 
 deferred_reloc_t& emit_base::add_reloc(core_reloc r, int64_t addend, uint8_t offset)

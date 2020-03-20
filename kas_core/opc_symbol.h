@@ -72,12 +72,12 @@ struct opc_equ : opcode
     OPC_INDEX();
     const char *name() const override { return "EQU"; }
 
-    void proc_args(data_t& data, symbol_ref const& ref, expr_t const& expr)
+    void proc_args(data_t& data, symbol_ref const& ref, kas_token const& tok)
     {
         auto& di = data.di();
 
         data.fixed.sym = ref;
-        *di++ = std::move(expr);
+        *di++ = tok.expr();
         auto& label = ref.get();
         if (auto msg = label.set_value(di.last()))
             make_error(data, "EQU previously defined as different type", ref);
@@ -95,9 +95,10 @@ struct opc_equ : opcode
 
     void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
     {
-        // use `core_data_size_t` to size (listing) output
+        // use `sizeof addr` to size (listing) output
+        // sizeof_addr always larger than sizeof_data
         auto iter = data.iter();
-        base << core::set_size(sizeof_data_t) << emit_expr << *iter;
+        base << emit_expr << *iter;
     }
 };
 
@@ -119,6 +120,13 @@ struct opc_common : opcode
     {
         data.fixed.sym.get().print(os);
     }
+#if 0 
+    // XXX emits relocations, doesn't modify listing
+    void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
+    {
+        base << emit_addr << data.fixed.sym.get();
+    }
+#endif
 };
 
 struct opc_sym_binding : opcode
@@ -236,8 +244,8 @@ struct opc_sym_size : opcode
     {
         auto iter = data.iter();
 
-        // use `core_data_size_t` to size (listing) output
-        base << core::set_size(sizeof_data_t) << emit_expr;
+        // use `core_addr_size_t` to size (listing) output
+        base << core::set_size(sizeof(expression::e_addr_t)) << emit_expr;
         
         auto& sym = core_symbol_t::get(data.fixed.fixed); 
         if (data.cnt)

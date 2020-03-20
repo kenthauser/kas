@@ -82,7 +82,9 @@ namespace kas::core
                            , long delta = {}) const
         {
             auto suffix = section_suffix(section);
-            return fmt_hex((DIGITS_PER_ADDR+1)/2, offset() + delta, suffix);
+            static constexpr auto ADDR_DIGITS = 
+                std::min(sizeof(expression::e_addr_t) * 2, (size_t)DIGITS_PER_ADDR * 2);
+            return fmt_hex((ADDR_DIGITS+1)/2, offset() + delta, suffix);
         }
 
         std::string fmt_addr(core_expr_dot const& dot) const

@@ -31,7 +31,7 @@ using ::kas::parser::kas_token;
 // non-charset value to be used as internal symbol part 'separator':
 // inserted between the "parts" of local symbols in symbol table, 
 // but not used in symbol lookup.  can be either character or string
-static constexpr auto bsd_sym_sep_str = '-';
+static constexpr auto bsd_sym_sep_str = '.';
 
 //
 // "normal" identifers: eg: "[alpha][alphanum*]"
@@ -113,8 +113,8 @@ public:
         if (!sym_p)
         {
             // insert occurred. create the symbol.
-            // calculate name stored in symbol table. not used by kas
-            auto name = last() + bsd_sym_sep_str + std::to_string(n);
+            // generate name stored in symbol table. not used by kas
+            auto name = last() + bsd_sym_sep_str + std::to_string(n) + '$';
             sym_p = &symbol_type::add(name, tok, STB_LOCAL);
         }
 

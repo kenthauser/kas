@@ -63,6 +63,8 @@ void kas_token::print(std::ostream& os) const
     os << "[" << name();
     if (static_cast<kas_loc>(*this))
         os << " src=" << this->where();
+    if (_fixed)
+        os << " fixed=" << +_fixed;
     if (!_expr.empty())
         os << " expr=" << expr();
     os << "]";

@@ -71,7 +71,6 @@ struct bsd_stmt_label : kas::parser::parser_stmt<bsd_stmt_label>
     template <typename Context>
     void operator()(Context const& ctx);
     
-    //core::symbol_ref ident;
     core::core_symbol_t *ident_p;
 };
 
@@ -81,7 +80,7 @@ struct bsd_stmt_equ : kas::parser::parser_stmt<bsd_stmt_equ>
 
     opcode *gen_insn(opcode::data_t& data) 
     {
-        opc.proc_args(data, ident, value.expr());
+        opc.proc_args(data, *ident_p, value);
         return &opc;
     }
     
@@ -92,14 +91,14 @@ struct bsd_stmt_equ : kas::parser::parser_stmt<bsd_stmt_equ>
     
     void print_args(print_obj const& fn) const
     {
-        fn(ident, value);
+        fn(*ident_p, value);
     }
 
     template <typename Context>
     void operator()(Context const& ctx);
     
-    core::symbol_ref ident;
-    bsd_arg          value;
+    core::core_symbol_t *ident_p;
+    bsd_arg              value;
 };
 
 struct bsd_stmt_org : kas::parser::parser_stmt<bsd_stmt_org>
@@ -147,11 +146,7 @@ void bsd_stmt_label::operator()(Context const& ctx)
 {
     // set instruction "location" from parsed ident location
     auto& ident_tok = x3::_attr(ctx);
-#if 0
-    ident = *ident_tok.get_p(core::symbol_ref());
-#else
-    ident_p = static_cast<decltype(ident_p)>(ident_tok());
-#endif
+    ident_p = ident_tok.get_p(core::core_symbol_t());
     x3::_val(ctx) = *this;
 }
 
@@ -162,8 +157,8 @@ void bsd_stmt_equ::operator()(Context const& ctx)
     auto& ident_tok = boost::fusion::at_c<0>(args);
     auto& value_tok = boost::fusion::at_c<1>(args);
 
-    ident = *ident_tok.get_p(core::symbol_ref());
-    value = value_tok;
+    ident_p = ident_tok.get_p(core::core_symbol_t());
+    value   = value_tok;
 
     x3::_val(ctx) = *this;
 }
