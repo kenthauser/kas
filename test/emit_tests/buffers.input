@@ -31,8 +31,10 @@ brwcnt		=	7
 ; routines to initially link the buffers together
     ld  a,b
     bit 6,(iy-4)
-1:    
-    jr 1b 
+
+1:  jr 1b 
+1:  jr 1f
+1:
     
 binit: 
 ; link the buffers together

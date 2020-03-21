@@ -124,7 +124,8 @@ private:
     {
         return [&](e_chan_num num, std::size_t width, std::string const& msg)
         {
-            relocs.push_back(std::move(msg));
+            if (num == EMIT_DATA)
+                relocs.push_back(std::move(msg));
         };
     }
 
@@ -163,7 +164,7 @@ struct listing_line
     void emit(Iter first, Iter last);
     //void flush() { emit_line(prev, {}); }
 
-    void gen_addr(core_expr_dot const& dot);
+    void gen_addr(data_type const&, core_expr_dot const& dot);
     void gen_data(data_type const&, bool last = false);
     void gen_equ(data_type  const&);
     void set_force_addr(data_type const&);
@@ -216,7 +217,7 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
     prev = line.emit_line(prev, first);
 
     // collect object code for this insn
-    line.gen_addr(dot);
+    line.gen_addr(buffers[EMIT_ADDR], dot);
     line.gen_data(buffers[EMIT_DATA]);
     line.gen_equ (buffers[EMIT_EXPR]);
     line.set_force_addr(buffers[EMIT_ADDR]);
@@ -230,10 +231,15 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
 }
 
 template <typename Iter>
-void listing_line<Iter>::gen_addr(core_expr_dot const& dot)
+void listing_line<Iter>::gen_addr(data_type const& addr, core_expr_dot const& dot)
 {
     if (addr_field.empty())
-        addr_field = e.fmt.fmt_addr(dot);
+    {
+        if (!addr.empty())
+            addr_field = addr.front();
+        else
+            addr_field = e.fmt.fmt_addr(dot);
+    }
 }
 
 template <typename Iter>

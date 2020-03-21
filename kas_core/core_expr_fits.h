@@ -241,7 +241,8 @@ auto core_fits::operator()
     std::cout << "core_fits: (disp) core_addr: " << expr_t(addr);
     std::cout << " min/max = " << std::dec << min << "/" << max;
     std::cout << " delta = " << delta;
-    std::cout << " fuzz = " << fuzz << std::endl;
+    std::cout << " fuzz = " << fuzz;
+    std::cout << std::endl;
 #endif
     if (!dot_p)
         return maybe;
@@ -252,14 +253,18 @@ auto core_fits::operator()
     // initial `fuzz` just checks sections
     if (fuzz < 0)
         return maybe;
-#if 0
+    
+    if (max == 0 && dot_p->seen_this_pass(addr))
+        return no;
+
+#if 1
     std::cout << "addr frag = " << *addr.frag_p;
-    std::cout << " dot frag = " << *dot.frag_p;
-    std::cout << " base_delta = " << dot.base_delta;
+    std::cout << " dot frag = " << *dot_p->frag_p;
+    std::cout << " base_delta = " << dot_p->base_delta;
     std::cout << std::endl;
     std::cout << "addr offset = " << addr.offset();
-    std::cout << " dot offset = " << dot.offset();
-    std::cout << " cur delta = "  << dot.cur_delta;
+    std::cout << " dot offset = " << dot_p->offset();
+    std::cout << " cur delta = "  << dot_p->cur_delta;
     std::cout << std::endl;
 #endif
     expr_offset_t offset = dot_p->rebase(addr) - dot_p->offset() - delta;

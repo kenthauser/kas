@@ -56,8 +56,6 @@ struct opc_label : opcode
 
     void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
     {
-        base << emit_addr << 0;
-
         // XXX override filler pattern
         static constexpr uint16_t filler = 0;
 
@@ -120,13 +118,14 @@ struct opc_common : opcode
     {
         data.fixed.sym.get().print(os);
     }
-#if 0 
-    // XXX emits relocations, doesn't modify listing
+    
     void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
     {
-        base << emit_addr << data.fixed.sym.get();
+        // show symbol location in address field of listing
+        auto& sym = data.fixed.sym.get();
+        base << emit_addr << sym;
+        //base << emit_expr << sym.size();
     }
-#endif
 };
 
 struct opc_sym_binding : opcode

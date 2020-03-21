@@ -300,7 +300,7 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 32. only `rela` relocations should list addend
 
-33. should `.lcomm` symbols show bss address
+*33. `.lcomm` symbols should show bss address
 
 34. fix `get_p` & expr() mess in `kas_token`
 

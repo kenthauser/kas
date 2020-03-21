@@ -189,7 +189,8 @@ public:
         if (!sym_p)
         {
             // generate symbol table name, not used for symbol lookup
-            auto name = std::to_string(n) + bsd_sym_sep_str + std::to_string(l.count);
+            auto cnt = l.count + fwd;
+            auto name = std::to_string(n) + bsd_sym_sep_str + std::to_string(cnt);
             sym_p = &symbol_type::add(name, tok, core::STB_INTERNAL);
         }
 
