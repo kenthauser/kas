@@ -26,7 +26,6 @@ when `dot` not in a frag with expr, just sum addr.offset();
 when `dot` in frag is before `addr`, just sum addr.offset();
 when `dot` is at or past `addr`, need to apply min_delta
 
-
 how to tell is dot is past addr?
 test: addr.offset.max <= dot.offset.max?
 
@@ -73,7 +72,7 @@ namespace kas::core
 
         virtual result_t disp(expr_t const& e, fits_min_t min, fits_max_t max, int delta) const override
         {
-            std::cout << "core_fits: disp: " << e;
+            std::cout << ": " << e;
             std::cout << " min/max = " << min << "/" << max;
             std::cout << ", delta: " << delta;
             std::cout << ", fuzz: "  << fuzz  << std::endl;
@@ -152,32 +151,11 @@ namespace kas::core
             return no;
         }
 
-#if 0
-        result_t operator()(expression::detail::kas_string_t const& e, fits_min_t min, fits_max_t max) const
-        {
-            fits_max_t n;
-            switch (e.ch_size())
-            {
-                default:
-                case 1:
-                    n = std::numeric_limits<uint8_t>::max();
-                    break;
-                case 2:
-                    n = std::numeric_limits<uint16_t>::max();
-                    break;
-                case 4:
-                    n = std::numeric_limits<uint32_t>::max();
-                    break;
-            }
-            return (*this)(n, min, max);
-        }
-#endif
-
         // catch non-core-expr deltas
         template <typename T>
         result_t operator()(T const&, fits_min_t, fits_max_t, int) const
         {
-            print_type_name{"core_fits: (delta)"}.name<T>();
+            print_type_name{"core_fits: (delta) unsupported"}.name<T>();
             return no;
         }
 
@@ -213,21 +191,33 @@ namespace kas::core
         //
 
         template <typename T>
-        result_t operator()(offset_t<T> offset, fits_min_t min, fits_max_t max) const
+        result_t operator()(offset_t<T> const& offset, fits_min_t min, fits_max_t max, int disp) const
         {
-            //std::cout << "fits (" << offset << ", " << min << ", " << max << ")" << std::endl;
-            auto min_result = (*this)(offset.min, min, max);
+            std::cout << "core_fits (offset) (" << offset << ", " << min << ", " << max << ", " << disp << ")" << std::endl;
+            // require `min` to be in range: NB: min can only increase
 
-            if (min_result == no)
+            // require special test for `min == 0` (ie insn deletion)
+            // ...test for offset == { 0, disp }, ie this insn (delete if so)
+            if (min == 0)
+            {
+                if (offset.min != 0) 
+                    return no;
+                if (offset.max == disp)     // just this insn
+                    return yes;
+                return maybe;
+            }
+            else if ((offset.min + disp) < min)
                 return no;
 
             // check max w/o fuzz
-            auto max_result = (*this)(offset.max, min, max);
+            auto max_result = (*this)(offset.max - disp, min, max);
+            std::cout << "max_result -> " << +max_result << std::endl;
             if (max_result == yes)
                 return yes;
 
             // check max with fuzz
-            max_result = (*this)(offset.max, min, max+fuzz);
+            max_result = (*this)(offset.max - disp, min, max+fuzz);
+            std::cout << "max_result (fuzz) -> " << +max_result << std::endl;
 
             if (max_result == yes)
                 return maybe;

@@ -110,6 +110,7 @@ struct deferred_reloc_t
     void operator()(core_symbol_t const&, kas_loc const *);
     void operator()(core_expr_t   const&, kas_loc const *);
     void operator()(core_addr_t   const&, kas_loc const *);
+    void operator()(parser::kas_diag_t const&, kas_loc const *);
 
     // emit relocs & apply to base value
     void emit(emit_base& base, parser::kas_error_t&);
@@ -128,6 +129,7 @@ struct deferred_reloc_t
     core_symbol_t const *sym_p       {};
     core_expr_t   const *core_expr_p {};
     core_section  const *section_p   {};
+    parser::kas_diag_t const *diag_p {};
     parser::kas_loc const *loc_p     {};
     uint8_t             width       {};     // XXX refactor out.
     uint8_t             offset      {};

@@ -178,6 +178,8 @@ void deferred_reloc_t::operator()(expr_t const& e)
         (*this)(*p, loc_p);
     else if (auto p = e.template get_p<core_addr_t>())
         (*this)(*p, loc_p);
+    else if (auto p = e.template get_p<parser::kas_diag_t>())
+        (*this)(*p, loc_p);
     else
     {
         std::cout << "deferred_reloc_t::operator(): unsupported type" << std::endl;
@@ -206,6 +208,12 @@ void deferred_reloc_t::operator()(core_addr_t const& value, kas_loc const *loc_p
     this->loc_p = loc_p;
     addend   +=  value.offset()();
     section_p = &value.section();
+}
+
+void deferred_reloc_t::operator()(parser::kas_diag_t const& value, kas_loc const *loc_p)
+{
+    this->loc_p = loc_p;
+    diag_p      = &value;
 }
 
 void deferred_reloc_t::operator()(core_expr_t const& value, kas_loc const *loc_p)
@@ -249,6 +257,8 @@ void deferred_reloc_t::emit(emit_base& base, parser::kas_error_t& diag)
         put_reloc(base, diag, *sym_p);
     else if (core_expr_p)
         core_expr_p->emit(base, *this, diag);
+    else if (diag_p)
+        diag = *diag_p;
 
     // if "addend", apply as relocation to base
     if (addend)

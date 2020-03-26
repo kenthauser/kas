@@ -97,7 +97,7 @@ const char *core_symbol<Ref>::make_error(const char *msg)
     s_binding = STB_GLOBAL;
     s_type    = STT_ERROR; 
 #endif
-    s_value_p = new expr_t(parser::kas_diag_t::error(msg, s_loc));
+    s_value_p = new expr_t(parser::kas_diag_t::error(msg, this->loc()));
     return msg;
 }
 

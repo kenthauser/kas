@@ -200,6 +200,7 @@ core_expr<REF>::core_expr(expr_t const& e)
 }
 #endif
     
+// asignment constructor
 template <typename REF>
 auto core_expr<REF>::operator= (core_expr const& other) -> core_expr&
 {
@@ -208,7 +209,6 @@ auto core_expr<REF>::operator= (core_expr const& other) -> core_expr&
     n.plus.insert (n.plus.end() , other.plus.begin() , other.plus.end());
     n.minus.insert(n.minus.end(), other.minus.begin(), other.minus.end());
 
-    n.error = other.error;
     n.reloc_cnt = -1;
     return n;
 }
@@ -296,17 +296,22 @@ void core_expr<REF>::flatten()
 
     //std::cout << "core_expr<REF>::flatten: reduce: " << expr_t(*this) << std::endl;
     // Reduce trees. Look for same plus/minus symbols/addresses
-    for (auto& p : plus) {
+    for (auto& p : plus)
+    {
         if (p.addr_p)
+        {
             for (auto& m : minus)
-                if (m.addr_p == p.addr_p) {
+                if (m.addr_p == p.addr_p)
+                {
                     m.erase();
                     p.erase();
                     break;
                 }
-        if (p.symbol_p)
+        }
+        else if (p.symbol_p)
             for (auto& m : minus)
-                if (m.symbol_p == p.symbol_p) {
+                if (m.symbol_p == p.symbol_p)
+                {
                     m.erase();
                     p.erase();
                     break;
@@ -327,13 +332,31 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
         reloc.loc_p     = loc_p;
         reloc.sym_p     = {};
         reloc.section_p = {};
-        if (term_p && term_p->symbol_p)
-            reloc.sym_p = term_p->symbol_p;
-        else if (term_p && term_p->addr_p)
+        
+        // interpret expr_term as addr, symbol, or error
+        if (term_p)
         {
-            reloc.addend   +=  term_p->addr_p->offset()();
-            reloc.section_p = &term_p->addr_p->section();
+            if (term_p->symbol_p)
+            {
+                reloc.sym_p = term_p->symbol_p;
+            }
+            else if (term_p->addr_p)
+            {
+                reloc.addend   +=  term_p->addr_p->offset()();
+                reloc.section_p = &term_p->addr_p->section();
+            }
+            else if (term_p->value_p)
+            {
+                // not symbol nor addr -> error term
+                // if value_p is not error, create one
+                auto p = term_p->value_p->template get_p<parser::kas_diag_t>();
+                if (!p)
+                    p = &parser::kas_diag_t::error("Invalid expression", *loc_p);
+                diag = *p;
+
+            }
         }
+
         if (pc_rel)
             reloc.reloc.flags |=  core_reloc::RFLAGS_PC_REL;
         else
@@ -342,7 +365,8 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
         reloc.emit(base, diag);
     };
 
-    calc_num_relocs();      // needed??
+    calc_num_relocs();      // pair terms, look for error
+    
 
     //std::cout << "core_expr<REF>::emit: " << expr_t(*this) << " fixed = " << fixed << std::endl;
     // build "new" reloc for expression
@@ -354,6 +378,7 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
     unsigned pc_rel_cnt = !!(reloc.reloc.flags & core_reloc::RFLAGS_PC_REL);
     unsigned minus_cnt  = {};
 
+    // convert minus terms to pc-relative if possible
     for (auto& m : minus)
     {
         // if paired, ignore
@@ -515,9 +540,9 @@ bool core_expr<REF>::expr_term::flatten(core_expr& e, bool is_minus)
     // NB:: this will never match an EQU
     if (symbol_p && !addr_p)
         addr_p   = symbol_p->addr_p();
-
+    
     // if `addr_p`, node is flat.
-    if (addr_p || !value_p)
+    if (addr_p)
         return true;
 
     // Here have `value_p`. Interpret expression & splice into `core_expr`
@@ -527,29 +552,32 @@ bool core_expr<REF>::expr_term::flatten(core_expr& e, bool is_minus)
     // //std::cout << "flatten node: " << /* expr_t(_sym) << */ std::endl;
 
     // handle `e_fixed_t` values
-    if (auto p = value_p->get_fixed_p()) {
+    if (auto p = value_p->get_fixed_p())
+    {
         e.fixed += is_minus ? -*p : *p;
         this->erase();
         return true;
     }
 
     // handle `core_symbol` values -- overwrite node
-    if (auto p = value_p->get_p<symbol_ref>()) {
+    if (auto p = value_p->get_p<symbol_ref>())
+    {
         *this = p->get();
         return false;   // not done. flatten again.
     }
 
     // handle `core_addr *` values -- overwrite node
-    if (auto p = value_p->get_p<addr_ref>()) {
+    if (auto p = value_p->get_p<addr_ref>())
+    {
         *this = p->get();
         return true;    // addr_p set. done.
     }
 
     // `core_expr` is final supported type. All others are error.
     auto p = value_p->get_p<expr_ref>();
-    if (!p) {
-        // identify error node: `value_p && !symbol_p`
-        symbol_p = {};
+    if (!p)
+    {
+        // error node: `value_p && !symbol_p`
         return true;
     }
 

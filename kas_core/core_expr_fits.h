@@ -71,7 +71,7 @@ short core_expr<REF>::calc_num_relocs() const
         reloc_cnt  = std::count_if(plus.begin(),  plus.end(),  unpaired);
         reloc_cnt += std::count_if(minus.begin(), minus.end(), unpaired);
     }
-    //std::cout << "core_expr<REF>::num_relocs --> " << reloc_cnt << std::endl;
+    //std::cout << "core_expr::num_relocs --> " << reloc_cnt << std::endl;
     return reloc_cnt;
 }
 
@@ -234,42 +234,45 @@ bool core_expr<REF>::disp_ok(core_expr_dot const& dot) const
 //
 
 auto core_fits::operator()
-    (core_addr_t const& addr, fits_min_t min, fits_max_t max, int delta) const
+    (core_addr_t const& addr, fits_min_t min, fits_max_t max, int disp) const
     -> result_t
 {
 #if 1
     std::cout << "core_fits: (disp) core_addr: " << expr_t(addr);
     std::cout << " min/max = " << std::dec << min << "/" << max;
-    std::cout << " delta = " << delta;
+    std::cout << " disp = " << disp;
     std::cout << " fuzz = " << fuzz;
     std::cout << std::endl;
 #endif
-    if (!dot_p)
-        return maybe;
-
-    if (&addr.section() != &dot_p->section())
-        return no;
-
-    // initial `fuzz` just checks sections
-    if (fuzz < 0)
-        return maybe;
-    
-    if (max == 0 && dot_p->seen_this_pass(addr))
-        return no;
-
 #if 1
     std::cout << "addr frag = " << *addr.frag_p;
     std::cout << " dot frag = " << *dot_p->frag_p;
     std::cout << " base_delta = " << dot_p->base_delta;
+    std::cout << " seen = " << std::boolalpha << dot_p->seen_this_pass(addr);
     std::cout << std::endl;
     std::cout << "addr offset = " << addr.offset();
     std::cout << " dot offset = " << dot_p->offset();
     std::cout << " cur delta = "  << dot_p->cur_delta;
     std::cout << std::endl;
 #endif
-    expr_offset_t offset = dot_p->rebase(addr) - dot_p->offset() - delta;
-    std::cout << "core_fits: (disp): offset = " << offset << std::endl;
-    return (*this)(offset, min, max);
+    if (!dot_p)
+        return maybe;
+
+    // initial `fuzz`: just check sections
+    if (fuzz < 0)
+    {
+        if (&addr.section() != &dot_p->section())
+            return no;
+        return maybe;
+    }    
+    
+    // special test for `jr .`: must not delete jr backwards
+    if (min == 0 && dot_p->seen_this_pass(addr))
+        return no;
+
+    expr_offset_t offset = dot_p->rebase(addr) - dot_p->offset();
+    std::cout << "core_fits: offset = " << offset << ", disp = " << disp << std::endl;
+    return (*this)(offset, min, max, disp);
 }
 
 
@@ -332,7 +335,7 @@ auto core_fits::operator()
     if (!dot_p)
         return maybe;
 
-#if 0
+#if 1
     std::cout << "\nfits (" <<  min << ", " << max << "): ";
     std::cout << "\nexpr = " << expr_t(e) << " offset = " << e.get_offset(dot_p);
     std::cout << " dot_offset = " << dot_p->dot_offset();

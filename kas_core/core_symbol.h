@@ -80,9 +80,6 @@ public:
     static auto const  file() { return file_sym_p; }
 #endif
 
-    // getter/setter for position (just mutable reference)
-    operator parser::kas_loc const& () const { return s_loc; }
-
     // getters for symbol inspection
     auto const  addr_p()     const { return s_addr_p;     }
     auto        kind()       const { return s_type;       }
@@ -94,6 +91,7 @@ public:
     // special getter for `value_p`. If value is undefined, 
     // change symbol binding from `TOKEN` so symbol is emitted.
     expr_t const* value_p() const;
+    e_fixed_t *get_fixed_p() const;
 
     // elf getters/setters
     auto sym_num()    const { return s_symnum; }
@@ -124,7 +122,6 @@ private:
         { sym.print(os); return os; }
 #endif       
     std::string  s_name;
-    parser::kas_loc s_loc     {};   // XXX moved to kas_object
     typename addr_ref::object_t   *s_addr_p     {};
     expr_t      *s_value_p    {};
     expr_t      *e_size_p     {};   // size as expr pointer

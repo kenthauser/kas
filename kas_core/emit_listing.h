@@ -56,12 +56,11 @@ struct emit_listing : emit_base
     // save ostream. init `emit_base` with `put` & `put_diag`
     emit_listing(std::ostream& out) : out(out), emit_base(fmt)
     {
-        // find all "warning" & lower diagnostics & create ordered list
-        auto pred = [](auto& obj) { return obj.level >= parser::kas_diag_enum::WARNING; };
+        // create ordered list of diagnostics
         auto add  = [this](auto& obj) { diag_map.emplace(obj.loc().get(), &obj); };
-        parser::kas_diag_t::for_each_if(add, pred);
+        parser::kas_diag_t::for_each(add);
 
-        // init iterators into warnings map
+        // init iterators into diagnostics map
         diag_iter = diag_map.begin();
         diag_end  = diag_map.end();
     }
@@ -114,9 +113,8 @@ private:
     {
         return [&](e_chan_num num, std::size_t width, parser::kas_diag_t const& diag)
         {
-            if (num == EMIT_DATA)
-                buffers[EMIT_DATA].push_back(fmt.fmt_diag(width));
-            diagnostics.push_back(diag.index());
+            buffers[num].push_back(fmt.fmt_diag(width));
+//            diagnostics.push_back(diag.index());
         };
     }
 

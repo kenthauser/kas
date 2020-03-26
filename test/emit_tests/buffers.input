@@ -21,7 +21,7 @@ bheadorg	=	0
 bheadhi		=	1
 bheadlow	=	2
 bheadcnt	=	3
-brworg		=	4
+brworg		=	4 
 brwhi		=	5
 brwlow		=	6
 brwcnt		=	7
@@ -30,11 +30,14 @@ brwcnt		=	7
 
 ; routines to initially link the buffers together
     ld  a,b
-    bit 6,(iy-4)
+    bit 6,(iy-brwcnt)
 
+    jr 1b 
 1:  jr 1b 
 1:  jr 1f
-1:
+    jr 1f
+    jr 1f
+1:  jr 1f
     
 binit: 
 ; link the buffers together

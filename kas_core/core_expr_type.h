@@ -57,7 +57,6 @@ struct core_expr : kas_object<core_expr<Ref>, Ref>
 private:
     struct expr_term
     {
-
         // if more types added -- expand `flatten()`
         expr_term(core_symbol_t const& sym);
         expr_term(core_addr_t   const& addr);
@@ -72,9 +71,9 @@ private:
         void erase()          { symbol_p = {}; addr_p = {}; value_p = {}; }
 
         // instance variables
-        core_symbol_t        const *symbol_p {};
-        expr_t          const *value_p  {};
-        core_addr_t          const *addr_p   {};
+        core_symbol_t  const *symbol_p {};
+        expr_t         const *value_p  {};
+        core_addr_t    const *addr_p   {};
 
         // set by `core_expr::get_offset()` to tag offsets
         // NB: mutable values set in `expr_term::offset()`
@@ -182,10 +181,9 @@ private:
     short calc_num_relocs() const;
 
     // elements: operands and the constant
-    sym_list_t plus;
-    sym_list_t minus;
-    e_fixed_t fixed {};
-    parser::kas_error_t  error {};
+    sym_list_t  plus;
+    sym_list_t  minus;
+    e_fixed_t   fixed {};
 
     // side effect of `num_relocs`
     mutable short reloc_cnt{-1};

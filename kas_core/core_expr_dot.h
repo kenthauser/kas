@@ -115,7 +115,7 @@ struct core_expr_dot
     auto offset() const
     {
         auto base = frag_p->base_addr();
-        return base + dot_offset();
+        return base + dot_offset;
     }
 
     // methods used by `insn_container` to
@@ -157,18 +157,23 @@ struct core_expr_dot
 
     bool seen_this_pass(core_fragment const *expr_frag_p, addr_offset_t const *p) const
     {
+        // since can't org backwards, frags are allocated in order.
+        // ...older frag means has seen
         if (*expr_frag_p < *frag_p)
             return true;
 
+        // ...newer frag means hasn't seen
         if (expr_frag_p != frag_p)
             return false;
         
+        // ...in same frag, there are two invariants:
         // 1. first invariant: max is always increasing. Thus if `dot`.max has
         //      exceeded corrected `addr` max, we've seen it.
         // 2. second invariant: `min` <= `max`. Thus `min` can't increase w/o
         //      an increase in `max`. 
-    
-        return (p->max + cur_delta.max) < dot_offset.max;
+        // since an emitted insn has non-zero size, only need to test max
+        
+        return p->max <= (dot_offset.max + cur_delta.max);
     }
 
     bool seen_this_pass(core_addr_t const& addr) const
@@ -201,6 +206,7 @@ struct core_expr_dot
     void advance(OP_SIZE_T const& new_size, OP_SIZE_T const& old_size)
     {
         dot_offset += new_size;
+        
         // NB: be careful with unsigned arithmetic
         cur_delta  += new_size;
         cur_delta  -= old_size;

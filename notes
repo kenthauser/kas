@@ -306,3 +306,14 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 35. ld a,#DATALEN -> Z80_Gen: DATALEN not evaluated as constant
 
+*36. emitting an error value (ie divide-by-zero) uses loc from evaluation, not arg.
+    should probably just emit as `xxxx` w/o message
+
+*37. error as regset(offset) value is treated as zero
+
+*38. invalid equ's should display "=xxxx", not address
+
+39. create a.out object
+
+
+
