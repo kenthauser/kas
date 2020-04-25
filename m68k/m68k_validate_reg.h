@@ -178,7 +178,7 @@ struct val_reg : m68k_mcode_t::val_t
             return fits.no;
 
         // here validating MODE_REG arg matches. validate if REG class matches desired
-       auto& reg = arg.reg;
+       auto& reg = *arg.reg_p;
        if (reg.kind() != r_class)
             return fits.no;
 
@@ -201,7 +201,7 @@ struct val_reg : m68k_mcode_t::val_t
         if (r_class <= RC_ADDR)
             return (r_class << 3) + arg.reg_num;
 
-        return arg.reg.value(r_class);
+        return arg.reg_p->value(r_class);
     }
 
     void set_arg(m68k_arg_t& arg, unsigned value) const override
@@ -218,7 +218,7 @@ struct val_reg : m68k_mcode_t::val_t
         }
         else
         {
-            arg.reg = m68k_reg_t(r_class, value);
+            arg.reg_p = &m68k_reg_t::find(r_class, value);
             arg.set_mode(MODE_REG);
         }
     }

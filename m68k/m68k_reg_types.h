@@ -116,6 +116,39 @@ enum
 // some assemblers require format such as `%d0`, some require `d0` some allow both
 enum m68k_reg_prefix { PFX_NONE, PFX_ALLOW, PFX_REQUIRE };
 
+// forward declare CRTP register type
+struct m68k_reg_t;
+
+// reg_set holds [register + offset] values
+template <typename Ref>
+struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set<Ref>, m68k_reg_t, Ref>
+{
+    using base_t = tgt::tgt_reg_set<m68k_reg_set<Ref>, m68k_reg_t, Ref>;
+    using base_t::base_t;
+};
+
+// alias the "reference" used for for register_set type
+using m68k_rs_ref    = core::ref_loc_tpl<m68k_reg_set>;
+using m68k_reg_set_t = typename m68k_rs_ref::object_t;
+
+
+// define `m68k_reg` types as tokens
+using tok_m68k_reg = parser::token_defn_t<KAS_STRING("M68K_REG"), m68k_reg_t>;
+
+// M68K register type definition is regular
+struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t, KAS_STRING("M68K"), m68k_reg_set_t>
+{
+    using hw_tst         = hw::hw_tst;
+    using reg_defn_idx_t = uint8_t;
+    using token_t        = tok_m68k_reg;
+    
+    using base_t::base_t;       // use inherited ctors
+};
+
+// add to `expr` expression types
+using m68k_reg_ref = core::ref_loc_t<m68k_reg_t>;
+
+#if 0
 // 4-bit class, 12-bit value
 struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t, uint16_t, 4, 12>
 {
@@ -216,9 +249,11 @@ struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set<Ref>, m68k_reg_t, Ref>
 // register set is wrapped object. Never "parsed" directly, but "calculated" from operators
 using m68k_rs_ref    = core::ref_loc_tpl<m68k_reg_set>;
 using m68k_reg_set_t = typename m68k_rs_ref::object_t;
+
+
+#endif
 }
-
-
+#if 0
 // declare X3 parser for `reg_t`
 namespace kas::m68k::parser
 {
@@ -228,6 +263,6 @@ namespace kas::m68k::parser
     using m68k_reg_x3 = x3::rule<struct X_reg, m68k_reg_t>;
     BOOST_SPIRIT_DECLARE(m68k_reg_x3)
 }
-
+#endif
 
 #endif

@@ -11,14 +11,12 @@
 // `elf_header_t` defined as the largest coresponding ELF header type.
 // This facilitates EI_CLASS conversions in `elf_convert`.
 
-
 #include <cstdint>
 
 namespace kas::elf
 {
 // declare placeholder types for each ELF structure
 // NB: declare as largest version of each structure
-// XXX 2018/08/28: compilation hangs if ELF64 symbols...
 using Elf_Ehdr = struct Elf32_Ehdr;
 using Elf_Shdr = struct Elf32_Shdr;
 using Elf_Sym  = struct Elf32_Sym;
@@ -26,7 +24,7 @@ using Elf_Rel  = struct Elf32_Rel;
 using Elf_Rela = struct Elf32_Rela;
 using Elf_Phdr = struct Elf32_Phdr;
 
-// declare each ELF data type in terms of basic types
+// declare each ELF data type in terms of c++ standard types
 using Elf32_Addr    = std::uint32_t;
 using Elf32_Off     = std::uint32_t;
 using Elf32_Half    = std::uint16_t;
@@ -171,7 +169,7 @@ struct Elf64_Rela {
 };
 
 
-// ELF Program Table (Not used by assembler)
+// ELF Program Table
 struct Elf32_Phdr {
     using elf_header_t = Elf32_Phdr;
     Elf32_Word      p_type;

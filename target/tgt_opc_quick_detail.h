@@ -8,7 +8,7 @@
 
 namespace kas::tgt::opc::detail
 {
-// find place for utility
+// XXX find place for utility
 constexpr uint8_t log2(std::size_t n)
 {
     return (n < 2) ? 1 : 1 + log2(n/2);
@@ -127,8 +127,7 @@ struct quick_stream : core::emit_stream
     // emit reloc
     void put_symbol_reloc(
               e_chan_num num
-            , core::reloc_info_t const& info
-            , uint8_t width
+            , elf::kas_reloc_info const& info
             , uint8_t offset
             , core::core_symbol_t const& sym
             , int64_t& addend
@@ -139,8 +138,7 @@ struct quick_stream : core::emit_stream
     
     void put_section_reloc(
               e_chan_num num
-            , core::reloc_info_t const& info
-            , uint8_t width
+            , elf::kas_reloc_info const& info
             , uint8_t offset
             , core::core_section const& section
             , int64_t& addend
@@ -155,12 +153,6 @@ struct quick_stream : core::emit_stream
         set_error(__FUNCTION__);
     };
 
-    // XXX emit temp diagnostic message (type not known)
-    void put_str(e_chan_num num, uint8_t, std::string const&) override
-    {
-        set_error(__FUNCTION__);
-    }
-    
     // current section interface
     void set_section(core::core_section const&) override
     {

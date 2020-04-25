@@ -130,6 +130,22 @@ namespace kas::expression
             return no;
         }
 
+        // fits with value sz argument
+        template <typename T>
+        auto fits_sz(T&& e, unsigned sz) const
+        {
+            switch (sz)
+            {
+                case 1: return fits<int8_t> (std::forward<T>(e));
+                case 2: return fits<int16_t>(std::forward<T>(e));
+                case 4: return fits<int32_t>(std::forward<T>(e));
+                case 8: return fits<int64_t>(std::forward<T>(e));
+                
+                default:
+                    throw std::logic_error(__FUNCTION__);
+            }
+        }
+
         // ufits with value sz argument
         template <typename T>
         auto ufits_sz(T&& e, unsigned sz) const

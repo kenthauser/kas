@@ -1,24 +1,25 @@
 #ifndef KAS_ELF_ELF_CORE_SYMBOL_H
 #define KAS_ELF_ELF_CORE_SYMBOL_H
 
-#include "elf_file.h"
+//#include "elf_file.h"
 
-namespace kas::elf
+namespace kas::core
 {
 
-uint32_t es_symbol::add(core::core_symbol_t& s)
+void elf_stream::add_sym(core_symbol_t& s) const
 {
-    Elf64_Sym sym {};
+    // generate a ELF host format symbol
+    elf::Elf64_Sym sym {};
 
     // copy basic attributes of core_symbol to elf_symbol
     auto st_type = s.kind();
     auto st_bind = s.binding();
     sym.st_size  = s.size();
     sym.st_other = s.visibility() & 3; 
-    sym.st_name  = sym_string.put(s.name());
 
     // use specific encoding based on symbol type
-    switch (st_type) {
+    switch (st_type)
+    {
         default:
             break;
         case STT_FILE:
@@ -37,33 +38,45 @@ uint32_t es_symbol::add(core::core_symbol_t& s)
         st_type = STT_OBJECT;
 
     // XXX not correct for value_p != ABS
-    if (auto p = s.addr_p()) {
+    // XXX value_p can hold any `expr_t` value, not just FIXED & ADDR
+    if (auto p = s.addr_p())
+    {
         // NB: es_data is friends with core_section.
-        auto& data   = es_data::core2es(p->frag_p->section());
-        sym.st_shndx = data.section.index();
+        auto& data   = core2es_data(p->frag_p->section());
+        sym.st_shndx = data.index;
         sym.st_value = p->frag_p->base_addr()() + (*p->offset_p)();
-    } else if (auto p = s.value_p()) {
+    } 
+    else if (auto p = s.value_p())
+    {
         auto fixed_p = p->get_fixed_p();
         sym.st_value = fixed_p ? *fixed_p : 0;
         sym.st_shndx = SHN_ABS;
     }
 
-    // converted core::symbol values into `ELF`. Now construct symbol
     sym.st_info  = ELF64_ST_INFO(st_bind, st_type); 
-   
-    put(cvt().cvt(sym), s_header.sh_entsize);
 
-    // return symbol number && increment symbol count
-    s.sym_num(++sym_num);
-
-    // set `sh_info` to one past last local symbol
-    if (st_bind == STB_LOCAL)
-        s_header.sh_info = sym_num + 1;
-    
-    return sym_num;
+    // converted core::symbol values into `ELF`. Now insert symbol
+    s.set_sym_num(object.symtab_p->add(sym, s.name()));
 }
 
-bool es_symbol::should_emit_local(core::core_symbol_t& s) const
+// create a `STT_SECTION` symbol for a data section
+void elf_stream::add_sym(core_section& s) const
+{
+    // get reference to corresponding ELF data secdtion
+    auto& data = core2es_data(s);
+
+    // create symbol & initialize non-default fields 
+    elf::Elf64_Sym sym{};
+
+    sym.st_info  = ELF64_ST_INFO(STB_LOCAL, STT_SECTION);
+    sym.st_shndx = data.index;
+
+    // NB: name is convenience for debugging (and may be omitted)
+    data.sym_num = object.symtab_p->add(sym, data.name);
+}
+
+
+bool elf_stream::should_emit_local(core_symbol_t& s) const
 {
     // suppress symbols with "Local" names
     bool suppress_local_names = true;
@@ -83,7 +96,7 @@ bool es_symbol::should_emit_local(core::core_symbol_t& s) const
 }
 
 
-bool es_symbol::should_emit_non_local(core::core_symbol_t& s) const
+bool elf_stream::should_emit_non_local(core_symbol_t& s) const
 {
     // don't allow skipped LOCAL's to sneek thru
     return s.binding() != STB_LOCAL;

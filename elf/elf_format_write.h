@@ -1,0 +1,125 @@
+#ifndef KAS_ELF_ELF_FORMAT_WRITE_H
+#define KAS_ELF_ELF_FORMAT_WRITE_H
+
+#include "elf_format.h"
+#include "elf_section.h"
+#include "elf_convert.h"
+#include "elf_section_sym.h"
+
+namespace kas::elf
+{
+
+// XXX develop as part of elf object for now
+void elf_object::write(std::ostream& os)
+{
+    // write a std::pair<void const *, std::size> pair
+    auto do_write = [](auto& os, std::pair<void const *, std::size_t>d)
+        {
+            auto p = static_cast<const char *>(d.first);
+            os.write(p, d.second);
+        };
+    
+    // generate "target" symbols
+    symtab_p->generate_target(*this);
+
+    // create section_name section, if needed
+    if (!sh_string_p)
+        sh_string_p = new es_string(*this, ".shstrtab");
+
+    // initialize section names (as required)
+    for (auto& p : section_ptrs)
+    {
+        if (!p->s_header.sh_name)
+            p->s_header.sh_name = sh_string_p->put(p->name);
+    };
+
+    
+    // initialize ELF header section indexes (+1 for initial zero section)
+    e_hdr.e_shnum      = section_ptrs.size() + 1;
+    e_hdr.e_shstrndx   = sh_string_p->index;
+
+    // clear ph_entsize if no program headers (seems customary, but not required...)
+    if (e_hdr.e_phnum == 0)
+        e_hdr.e_phentsize = 0;
+
+    // calculate physical offsets
+    auto offset = e_hdr.e_ehsize;
+
+    for (auto& p : section_ptrs)
+    {
+        std::cout << "sections: name = " << p->name << ", offset = " << offset << std::endl;
+        // calculate padding needed to align section data
+#ifdef XXX
+        if (p->s_header.sh_type != SHT_NOBITS)
+        {
+            p->padding = cvt.padding(p->s_header.sh_addralign, offset);
+            offset += p->padding;
+        }
+#endif
+        // record offsets in section
+        p->s_header.sh_offset = offset;
+        p->s_header.sh_size   = p->position();  // XXX misuse of method?
+        
+        // NO_BITS sections don't occupy space
+        if (p->s_header.sh_type != SHT_NOBITS)
+            offset += p->s_header.sh_size;
+    };
+#if 0
+    // align section headers after data
+    auto h_alignment = cvt.header_align<Elf64_Shdr>();
+    auto h_padding   = cvt.padding(h_alignment, offset);
+    header.e_shoff   = offset + h_padding;
+#else
+    e_hdr.e_shoff = offset;
+#endif
+#if 1
+    // now write data: first elf_header
+    //os.write((const char *)cvt.cvt(header), header.e_ehsize);
+    do_write(os, cvt(e_hdr));
+    // next write data: section data
+    for (auto& p : section_ptrs)
+    {
+        if (p->s_header.sh_type == SHT_NOBITS)
+            continue;
+        if (p->padding)
+            os.write(cvt.zero, p->padding);
+        if (p->position())
+            os.write(p->begin(), p->position());
+    };
+#endif
+#if 0
+
+    // next write data: section headers
+    // align if needed
+    if (h_padding)
+        os.write(cvt.zero, h_padding);
+#endif
+#if 1
+    // first is zero entry
+    std::cout << "e_shentsize " << +e_hdr.e_shentsize << std::endl;
+    os.write(cvt.zero, e_hdr.e_shentsize);
+#endif
+#if 1
+    // followed by actual section headers
+    for (auto& p : section_ptrs)
+    {
+        do_write(os, cvt(p->s_header));
+    };
+    
+#endif
+    std::cout << "sections: " << std::endl;
+    for (auto& p : section_ptrs)
+    {
+        //std::cout << (p - &section_ptrs[0]) << ":"
+        std::cout << " name = " << p->name;
+        std::cout << " sh_name = " << (sh_string_p->data.data() + p->s_header.sh_name);
+        std::cout << " sh_offset = " << p->s_header.sh_offset;
+        std::cout << " sh_size = "  << p->s_header.sh_size;
+        std::cout << std::endl;
+    }
+    os.flush();     // push to device
+}
+
+}
+
+#endif

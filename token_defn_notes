@@ -1,0 +1,202 @@
+2019/11/15
+
+
+Notes on token & parser definitions
+
+token definition
+
+Token is defined as type (from `token_defn` template)
+
+Allows `token` to have identity (ie name), possibly value function & possibly parser.
+
+*** 1. gen_expr
+
+Tokens need a (virtual) method to generate a value (ie `gen_expr`) if the
+type has a value & is parsed as string. 
+
+This method must be defined once (as part of token definition). It must also show
+as `undefined` if referenced in a separate compilation module.
+
+*** 2. parser
+
+Each token needs an `as_parser` type/method.
+
+Implement with `token_parser_defn` type. ctor is templated & stores fn pointer
+to generate parser. 
+
+`as_parser` method returns `token_parser_defn` () as parser.
+
+
+****
+
+****************************************************************
+
+
+template<typename NAME, typename VALULE_T = x3::unused_type, typename PARSER = void>
+struct token_defn_t;
+
+
+expr terminals list: list<NAME, RESULT_TYPE, quoted<PARSER>>
+
+
+-> Declares: `token_defn_t` 
+
+
+
+
+
+Should "token" hold a static "parser". Thus `term_parsers_v` would hold `tokens`.
+
+NB: this fails for `reg` types.
+NB: existing: one `label` & one `symbol` parser. New scheme would allocate
+            three each (normal, local, numberic). Probably an improvement...
+
+****************
+
+Token definition actions:
+
+1) define a `meta::tuple` with <name, value> pair
+
+2) if (non-int) value returned, specialize `token_defn::gen_expr`
+
+3) define `token_parser = token_x3<token_defn>[x3_parser]`
+// NB: token_x3[] syntax is really just `as_token_parser(x)`.
+// XXX: room for improvement
+
+****************
+
+token_defn: need `parser` method. Returns parser object.
+
+NB: elegant method was above my abilities (and maybe not possible). Note that
+    skipper may be needed to parse sequences. Thus it may not be possible to
+    generate a simple `bool parser(Iter& first, Iter const& last, Attribute&)`
+    method. For now punt an use the `token_x3` syntax solution
+
+currently `token<T>` object is static const. `const` is OK, but probably needs 
+    static member to hold "parser".
+
+*****************
+
+need to add as_parser<kas_token> to x3::extension namespace. 
+
+eg: http://talesofcpp.fusionfenix.com/post-8/true-story-i-will-always-find-you
+
+Probably want to store "raw" parser. Then iff int, reparse value.
+
+*****************
+
+NB: Very difficult to create a "type" to hold parser instance as function pointer.
+Most (all?) parsers are templated member functions. Thus even if was able to 
+factor out template types (Iter&, Context const&, Attribute&), still need 
+parser "instance" for call. 
+
+Solution: Model solution on `BOOST_SPIRIT_DECLARE/DEFINE/INSTANTIATE`
+
+Use preprocessor to create new "struct", store member as "_defn" (or something),
+& reference the actual parser.
+
+example:
+
+// create base template
+template <typename DEFN = void> defn_parser;
+
+// 
+template<> defn_parser<DEFN> { stuff };
+
+
+// create default parser
+template <DEFN>
+template <typename...Ts>
+as_parser<kas_token> defn_parser<DEFN>::parse(Ts&&...)
+{
+    ....
+}
+
+// specialized parser created by macro
+
+template<>
+template<typename...Ts>
+as_parser<kas_token defn_parser<SPECIAL>::parser(Ts&&...)
+{
+    ....
+}
+
+NB: another indirectd may be required (I don't think the above specialization is accepted)
+
+*******************
+
+2019/11/19
+
+Way forward:
+
+1) Put as_parser<kas_token> into x3::extension namespace
+
+2) Require "parsers" used in expr_defn's to be types (eg: x3::int_ or x3::rule's).
+    Have "reduce parser" run return types thru `as_parser<kas_token>`
+
+*3) Extend `reduce parser` to return no-match  if no parsers passed
+
+*4) Change default value-type of `token_defn` to x3::unused_type
+
+5) refactor to three primary includes: kas_token.h, kas_token_defn.h, kas_token_parser.h
+        -> also need appropriate impl files.
+
+6) Define `token_defn::get_expr()` functions.
+
+7) Consider the `tgt_reg` problem: need to return parser. NB: `token_defn` has `get` 
+    virtual function to return `defn` instance. Possiblity: since each register instance
+    is static, allocate defn_pointer per instance. At least good for first pass.
+
+8) Redefine "missing" as token type.
+
+9) redefine appropriate `core::opcode` methods to expect tokens. NB: could screw up
+    elf & dwarf methods which emit `exprs`
+
+************************
+
+2020/01/23
+
+Consider integrating sym_parser with tokens.
+
+1. Fixes `op_loc` no-location problem.
+
+2. Fixes `register` parser issues.
+
+*******************************************************************
+
+One posible solution: make kas_token virtual
+
+Adds `vtable pointer` to type, but removes `defn_p` pointer. Wash.
+
+Add `void * value` pointer. (result of sym_parser: reg_p, op_p, insn_p, etc)
+
+Derived type could use `operator()` to get pointer. Would need `get` or some
+similar method for generic. But generic would probably use `expr`.
+
+One problem: `get` or `operator()` would need to return different types for
+different types. One solution: delete base class & define derived (non-virtual). 
+Don't know if this is legal. At worst define base class to return nullptr &
+override in derived.
+
+Need to deal with "parsing token definition" issue.
+
+Fatal problem: can't copy virtual objects & x3 likes to copy.
+
+*******************************************************************
+
+Next possible solution: make existing `defn_p` more "virtual"
+
+Problem: defn_p->operator() can only have one type.
+
+Solution 1: token.get<T>() which is unconstrained.
+Solution 2: T::get(token) static method which would need to be defined.
+
+token.get() would return `void *`
+token.id()  would return typeid of derived type
+
+Maybe possible to call `token_defn::get(token)` & have right thing happen
+also token_defn::id(token) true on match
+
+Need to deal with "parsing token definition" issue.
+
+

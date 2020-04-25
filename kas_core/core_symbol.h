@@ -94,9 +94,10 @@ public:
     e_fixed_t *get_fixed_p() const;
 
     // elf getters/setters
-    auto sym_num()    const { return s_symnum; }
-    void sym_num(uint32_t num);
+    auto sym_num     ()            const { return s_symnum; }
+    void set_sym_num(uint32_t num);
 
+    // utility methods
     unsigned const size() const;
     const char *size(expr_t& new_size);
     const char *size(uint32_t new_size);
@@ -129,7 +130,7 @@ private:
     uint8_t      s_align      {};   // alignment for `comm` symbols
     // binding is mutable to allow `value_p` getter to mark symbol as referenced
     mutable int8_t  s_binding;      // set by ctor
-    int8_t       s_type;            // set by ctor:e 
+    int8_t       s_type;            // set by ctor
     int8_t       s_visibility {};   // used by back end
 
     mutable uint32_t s_symnum {};   // assigned by "back end"
@@ -173,7 +174,7 @@ void core_symbol<REF>::dump(OS& os)
         if (s.s_align)
             os << " align = "   <<  +s.s_align;
         if (s.s_symnum)
-            os << " sym_num = " <<  s.s_symnum;
+            os << " elf_num = " <<  s.s_symnum;
         os << std::endl;
     };
 

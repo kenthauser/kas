@@ -62,7 +62,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
         }
         
         // don't bother to trace, know mcode matches
-        mcode.fits(args, stmt_info, data.size, expression::expr_fits{});
+        mcode.size(args, stmt_info, data.size, expression::expr_fits{});
 
         // serialize format (for resolved instructions)
         // 1) mcode index
@@ -131,8 +131,8 @@ struct tgt_opc_general : MCODE_T::opcode_t
         auto  args   = base_t::serial_args(reader, mcode);
         auto& info   = args.info;
 
-        // calculate instruction size
-        mcode.fits(args, info, data.size, fits, this->trace);
+        // calulate instruction size
+        mcode.size(args, info, data.size, fits, this->trace);
       
         return data.size;
     }

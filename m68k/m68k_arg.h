@@ -80,9 +80,9 @@ struct token_missing  : kas_token {};
 // forward declare `m68k_stmt_info_t` from m68k_stmt.h
 struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
                                  , m68k_arg_mode
-                                 , struct m68k_stmt_info_t
                                  , m68k_reg_t
                                  , m68k_reg_set_t
+                                 , struct m68k_stmt_info_t
                                  >
 {
     // `extension_t` updated during evalaution along with mode
@@ -92,8 +92,8 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     using base_t::base_t;
     
     // direct, immediate, register pair, or bitfield
-    m68k_arg_t(m68k_arg_mode mode, expr_t e = {}, expr_t outer = {})
-            :  outer(std::move(outer)), base_t(mode, std::move(e))
+    m68k_arg_t(m68k_arg_mode mode, kas_token e = {}, kas_token outer = {})
+            :  outer(outer.expr()), base_t(mode, e)
             {}
 
     // indirect & index values are constructed in `m68k_parser_support.h`

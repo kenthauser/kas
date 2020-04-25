@@ -53,10 +53,10 @@ bool m68k_arg_t::serialize (Inserter& inserter, m68k_stmt_info_t const& info, AR
     if (info_p->has_reg || mode() != MODE_IMMED_QUICK)
         info_p->has_data = true;
     
-    if (!reg.valid())
+    if (!reg_p)
         info_p->has_reg = false;
     if (info_p->has_reg)
-        inserter(std::move(reg));
+        inserter(*reg_p);
     
     switch (mode())
     {
@@ -139,10 +139,9 @@ void m68k_arg_t::extract(Reader& reader, m68k_stmt_info_t const& info, ARG_INFO 
     if (info_p->has_reg)
     {
         // register stored as expression
-        auto p = reader.get_expr().template get_p<m68k_reg_t>();
-        if (!p)
+        reg_p = reader.get_expr().template get_p<m68k_reg_t>();
+        if (!reg_p)
             throw std::logic_error{"m68k_arg_t::extract: has_reg"};
-        reg = *p;
     } 
     
     // need to special case INDEX to match code above

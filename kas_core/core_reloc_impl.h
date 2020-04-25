@@ -5,10 +5,10 @@
 
 namespace kas::core
 {
-
+#if 0
 // XXX M68K relocations here for now
 
-constexpr reloc_info_t m68k_elf_relocs[] =
+constexpr elf::kas_reloc_info m68k_elf_relocs[] =
 {
     {  0 , "R_68K_NONE"     , { K_REL_NONE      ,  0, 0 }}
   , {  1 , "R_68K_32"       , { K_REL_ADD       , 32, 0 }}
@@ -33,11 +33,11 @@ constexpr reloc_info_t m68k_elf_relocs[] =
   , { 20 , "R_68K_GLOB_DAT" , { K_REL_GLOB_DAT  , 32, 0 }}
   , { 21 , "R_68K_JMP_SLOT" , { K_REL_JMP_SLOT  , 32, 0 }}
 };
-
-
+#endif
+#if 0
 static const auto R_OPT_ARM_NC = 1;
 
-constexpr reloc_info_t arm_elf_relocs[] =
+constexpr elf::kas_reloc_info arm_elf_relocs[] =
 {
     {  0 , "R_ARM_NONE"         , { K_REL_NONE      ,  0, 0 }}
   , { 20 , "R_ARM_COPY"         , { K_REL_COPY      , 32, 0 }}
@@ -95,7 +95,15 @@ int64_t write_4_12(int64_t data, int64_t value)
     return data | (value & mask);
 }
 
-
+#if 0
+// XXX move to ARM
+enum arm_reloc_t : uint8_t
+{
+      ARM_REL_MOVW  = NUM_KAS_RELOC
+    , ARM_REL_MOVT
+    , NUM_ARM_RELOC
+};
+#endif
 
 constexpr reloc_op_t kas_reloc_ops [] =
 {
@@ -104,7 +112,8 @@ constexpr reloc_op_t kas_reloc_ops [] =
    , { K_REL_COPY   , reloc_op_t::update_set }
    , { ARM_REL_MOVW , reloc_op_t::update_add, write_4_12, read_4_12 }
 };
-
+#endif
+#if 0
 auto deferred_reloc_t::get_ops(uint8_t reloc_op) const -> reloc_op_t const *
 {
     using vector_t = std::vector<reloc_op_t const *>;
@@ -124,16 +133,16 @@ auto deferred_reloc_t::get_ops(uint8_t reloc_op) const -> reloc_op_t const *
         return (*vec_p)[reloc_op];
     return {};
 }
+#endif
 
-
-
-const char *deferred_reloc_t::get_info(emit_base& base, reloc_info_t const** info_pp) const
+#if 0
+const char *deferred_reloc_t::get_info(emit_base& base, elf::kas_reloc_info const** info_pp) const
 {
     // get type of `reloc` hash key & declare map
-    using key_t = decltype(std::declval<core_reloc>().key());
-    using map_t = std::map<key_t, reloc_info_t const *>;
+    using key_t = decltype(std::declval<elf::kas_reloc>().key());
+    using map_t = std::map<key_t, elf::kas_reloc_info const *>;
 
-    // create `std::map` of `core_reloc` -> `reloc_info_t` relationship
+    // create `std::map` of `kas_reloc` -> `elf::kas_reloc_info` relationship
     static map_t *map_p;
     if (!map_p)
     {
@@ -143,7 +152,7 @@ const char *deferred_reloc_t::get_info(emit_base& base, reloc_info_t const** inf
     }
 
     // if unknown "op", return not found
-    if (!get_ops(reloc.reloc))
+    if (!get_ops(reloc.action))
     {
         return "internal configuration: unknown relocation operation";
     }
@@ -158,7 +167,7 @@ const char *deferred_reloc_t::get_info(emit_base& base, reloc_info_t const** inf
     *info_pp = iter->second;
     return {};
 }
-
+#endif
 // complete construction of `reloc`
 void deferred_reloc_t::operator()(expr_t const& e)
 {
@@ -243,11 +252,11 @@ void deferred_reloc_t::emit(emit_base& base, parser::kas_error_t& diag)
     // absorb section_p if PC_REL && matches
     // NB: could be done in `add`, but `deferred_reloc_t` doesn't know `base`
     if (section_p == &base.get_section())
-        if (reloc.flags & core_reloc::RFLAGS_PC_REL)
+        if (reloc.flags & elf::kas_reloc::RFLAGS_PC_REL)
         {
             section_p    = {};
             addend      -= base.position();
-            reloc.flags &=~ core_reloc::RFLAGS_PC_REL;
+            reloc.flags &=~ elf::kas_reloc::RFLAGS_PC_REL;
         }
    
     // emit relocations to backend
@@ -269,8 +278,8 @@ void deferred_reloc_t::put_reloc(emit_base& base, parser::kas_error_t& diag
                                 , core_section const& section)
 {
     // get pointer to machine-specific info matching `reloc`
-    reloc_info_t const *info_p {};
-    auto msg = get_info(base, &info_p);
+    elf::kas_reloc_info const *info_p {};
+    auto msg = base.elf_reloc_p->get_info(reloc, &info_p);
     if (msg)
     {
 #if 0
@@ -295,8 +304,8 @@ void deferred_reloc_t::put_reloc(emit_base& base, parser::kas_error_t& diag
                                 , core_symbol_t const& sym)
 {
     // get pointer to machine-specific info matching `reloc`
-    reloc_info_t const *info_p {};
-    auto msg = get_info(base, &info_p);
+    elf::kas_reloc_info const *info_p {};
+    auto msg = base.elf_reloc_p->get_info(reloc, &info_p);
     if (msg)
     {
         if (!loc_p)
@@ -362,7 +371,7 @@ void deferred_reloc_t::apply_reloc(emit_base& base, parser::kas_error_t& diag)
     auto value = data;
     
     // retrieve reloc methods
-    auto& ops = *get_ops(reloc.reloc);
+    auto& ops = base.elf_reloc_p->get_ops(reloc);
     
     // if `read_fn` extract addend from `data`
     if (ops.read_fn)

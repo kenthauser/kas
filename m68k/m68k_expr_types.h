@@ -12,6 +12,20 @@
 // define error_message type
 #include "m68k_error_messages.h"
 
+// declare X3 parser for `reg_t`
+namespace kas::m68k::parser
+{
+    namespace x3 = boost::spirit::x3;
+    
+    // declare parser for Z80 register tokens
+    using m68k_reg_x3 = x3::rule<struct X_reg, kas::parser::kas_token>;
+    BOOST_SPIRIT_DECLARE(m68k_reg_x3)
+}
+
+
+
+
+// XXX is this namespace needed??
 // forward declare m68k types
 namespace kas::m68k
 {
@@ -44,7 +58,7 @@ namespace kas::expression::detail
             , m68k::m68k_rs_ref     // m68k register-set reference
             > {};
 
-#if 0
+#if 1
     // parsers for directly parsed types
     template <> struct term_parsers_v<defn_cpu> :
         meta::list<

@@ -25,6 +25,7 @@ namespace kas::core
 // forward declare manipulators
 struct set_size;
 struct emit_reloc;
+struct emit_disp;
 struct emit_data;
 
 struct emit_base
@@ -32,7 +33,7 @@ struct emit_base
     using result_type  = void;       // for apply_visitor
     using emit_value_t = typename emit_stream::emit_value_t;
     
-    emit_base(emit_stream& stream) : stream(stream) {}
+    emit_base(emit_stream& stream) : stream(stream) {} 
 
     // Entry point to create instruction output
     // NB: `dot_p` not to be used to calculate size (via `fits`).
@@ -98,6 +99,7 @@ private:
     // friend manipulators
     friend set_size;
     friend emit_reloc;
+    friend emit_disp;
     friend emit_data;
     friend deferred_reloc_t;
     //friend emit_reloc_t;
@@ -120,19 +122,20 @@ private:
     void emit_obj_code();
 public:
     void set_chan (e_chan_num);
+    elf::elf_reloc_t const *elf_reloc_p {};
 private:
 
     // emit relocations (used by `core_reloc`)
-    void put_section_reloc(deferred_reloc_t const&, reloc_info_t const *info_p
+    void put_section_reloc(deferred_reloc_t const&, elf::kas_reloc_info const *info_p
                          , core_section const& section, int64_t& addend);
-    void put_symbol_reloc (deferred_reloc_t const&, reloc_info_t const *info_p
+    void put_symbol_reloc (deferred_reloc_t const&, elf::kas_reloc_info const *info_p
                          , core_symbol_t  const& symbol, int64_t& addend);
     
     // manipulators to configure data stream
     void set_width(std::size_t w);
 
     // utility methods
-    deferred_reloc_t& add_reloc(core_reloc r = {}, int64_t addend = {}, uint8_t offset = {});
+    deferred_reloc_t& add_reloc(elf::kas_reloc r = {}, int64_t addend = {}, uint8_t offset = {});
 
     void assert_width() const;      
     void set_defaults();
@@ -194,7 +197,7 @@ struct emit_reloc
     using emit_value_t = typename emit_base::emit_value_t;
 
 
-    emit_reloc(core_reloc r, emit_value_t addend = {}, uint8_t offset = {})
+    emit_reloc(elf::kas_reloc r, emit_value_t addend = {}, uint8_t offset = {})
         : reloc(r), addend(addend), offset(offset) {}
     
     // expect relocatable expression.
@@ -215,9 +218,43 @@ private:
     emit_base *base_p;
     deferred_reloc_t *r {};
 
-    core_reloc reloc;
+    elf::kas_reloc     reloc;
     emit_value_t  addend;
-    uint8_t    offset;
+    uint8_t       offset;
+};
+
+// emit relocation for displacement from current location (with size & offset)
+struct emit_disp
+{
+    using emit_value_t = typename emit_base::emit_value_t;
+    
+    // declare size in bytes, offset from current location
+    emit_disp(uint8_t size, emit_value_t addend = {}, emit_value_t offset = {})
+        : size(size), addend(addend), offset(offset) {}
+
+    // expect relocatable expression.
+    auto& operator<<(expr_t const& e)
+    {
+        (*r_p)(e);
+        return *base_p << 0;
+    }
+
+private:
+    friend auto operator<<(emit_base& base, emit_disp r)
+    {
+        elf::kas_reloc reloc { elf::K_REL_ADD
+                             , static_cast<uint8_t>(r.size * 8)
+                             , true };
+        base.set_width(r.size);
+        r.base_p = &base;
+        r.r_p    = &base.add_reloc(reloc, r.addend, r.offset);
+        return r;
+    }
+
+    emit_base *base_p;
+    deferred_reloc_t *r_p;
+    emit_value_t addend, offset;
+    uint8_t      size;
 };
 
 

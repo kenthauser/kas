@@ -52,18 +52,6 @@ namespace detail
         else
             return t;
     }
-
-    // In Apple version 10.0.1, `data()` in zero-length array is no longer constexpr
-    // redefine `array` until understand if error in implementation
-    template <typename T, std::size_t N> 
-    struct k_array : std::array<T, N> {};
-    
-    template <typename T>
-    struct k_array<T, 0> : std::array<T, 0>
-    {
-        const T _z_data [1];
-        constexpr T const* data() const { return _z_data; }
-    };
 }
 
 // base template: for when `CTOR` specified
@@ -79,7 +67,7 @@ struct init_from_list<T, meta::list<Ts...>, void, CTOR_ARG>
 {
     // NB: use std::array<> for support of zero-length arrays
     static constexpr auto size = sizeof...(Ts);
-    static constexpr detail::k_array<T, size> data { detail::value_of(Ts())... };
+    static constexpr std::array<T, size> data { detail::value_of(Ts())... };
     static constexpr auto value = data.data();
 };
     

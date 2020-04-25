@@ -1,9 +1,9 @@
 #ifndef KAS_ENDIAN_H
 #define KAS_ENDIAN_H
 
-// from cppreference.com : propoased for c++20
+// from cppreference.com : proposed for c++20
 
-namespace std
+namespace std 
 {
 enum class endian
 {

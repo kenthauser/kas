@@ -1,42 +1,53 @@
-#ifndef KAS_M68K_M68K_ELF_H
-#define KAS_M68K_M68K_ELF_H
+#ifndef KAS_ELF_M68K_M68K_ELF_H
+#define KAS_ELF_M68K_M68K_ELF_H
 
-#include "elf/emit_elf.h"
-#include "binutil/include/m68k.h"
+#include "elf/elf_format_elf.h"
 
-namespace kas::m68k
+namespace kas::elf::m68k
 {
 
-struct m68k_elf : elf::emit_elf
+// M68K relocations 
+constexpr kas_reloc_info m68k_elf_relocs[] =
 {
-    using namespace elf;
+    {  0 , "R_68K_NONE"     , { K_REL_NONE      ,  0, 0 }}
+  , {  1 , "R_68K_32"       , { K_REL_ADD       , 32, 0 }}
+  , {  2 , "R_68K_16"       , { K_REL_ADD       , 16, 0 }}
+  , {  3 , "R_68K_8"        , { K_REL_ADD       ,  8, 0 }}
+  , {  4 , "R_68K_32PC"     , { K_REL_ADD       , 32, 1 }}
+  , {  5 , "R_68K_16PC"     , { K_REL_ADD       , 16, 1 }}
+  , {  6 , "R_68K_8PC"      , { K_REL_ADD       ,  8, 1 }}
+  , {  7 , "R_68K_GOT32"    , { K_REL_GOT       , 32, 1 }}
+  , {  8 , "R_68K_GOT16"    , { K_REL_GOT       , 16, 1 }}
+  , {  9 , "R_68K_GOT8"     , { K_REL_GOT       ,  8, 1 }}
+  , { 10 , "R_68K_GOT32O"   , { K_REL_GOT       , 32, 0 }}
+  , { 11 , "R_68K_GOT16O"   , { K_REL_GOT       , 16, 0 }}
+  , { 12 , "R_68K_GOT8O"    , { K_REL_GOT       ,  8, 0 }}
+  , { 13 , "R_68K_PLT32"    , { K_REL_PLT       , 32, 1 }}
+  , { 14 , "R_68K_PLT16"    , { K_REL_PLT       , 16, 1 }}
+  , { 15 , "R_68K_PLT8"     , { K_REL_PLT       ,  8, 1 }}
+  , { 16 , "R_68K_PLT32O"   , { K_REL_PLT       , 32, 0 }}
+  , { 17 , "R_68K_PLT16O"   , { K_REL_PLT       , 16, 0 }}
+  , { 18 , "R_68K_PLT8O"    , { K_REL_PLT       ,  8, 0 }}
+  , { 19 , "R_68K_COPY"     , { K_REL_COPY      , 32, 0 }}
+  , { 20 , "R_68K_GLOB_DAT" , { K_REL_GLOB_DAT  , 32, 0 }}
+  , { 21 , "R_68K_JMP_SLOT" , { K_REL_JMP_SLOT  , 32, 0 }}
+};
 
-    m68k_elf() : emit_elf(m68k_reloc_type, ELFCLASS32, ELFDATA2MSB, EM_68K)
+struct m68k_elf : elf32_format<std::endian::big>
+{
+    using base_t = elf32_format<std::endian::big>;
+    using elf_use_rela = std::false_type;
+
+    m68k_elf()
+        : base_t(relocs, EM_68K)
     {
         // base.set_machine(xxx)
 
     }
 
-    // convert generic ELF reloc to `R_68K_*` reloc
-    static uint32_t m68k_reloc_type(RELOC_TYPE t, unsigned n)
-    {
-        static const uint32_t reloc_t[][4] = {
-              { R_68K_NONE, R_68K_8, R_68K_16, R_68K_32 }
-            , { R_68K_NONE, R_68K_PC8, R_68K_PC16, R_68K_PC32 }
-            , { R_68K_NONE, R_68K_GOT8, R_68K_GOT16, R_68K_GOT32 }
-            , { R_68K_NONE, R_68K_GOT8O, R_68K_GOT16O, R_68K_GOT32O }
-            , { R_68K_NONE, R_68K_PLT8, R_68K_PLT16, R_68K_PLT32 }
-            , { R_68K_NONE, R_68K_PLT8O, R_68K_PLT16O, R_68K_PLT32O }
-            };
-
-        // XXX can rework with c++17 std::extent in the future
-        if (n > 3)
-            return R_68K_NONE;
-        auto p = &reloc_t[t][n];
-        if (p >= std::end(reloc_t))
-            return R_68K_NONE;
-        return *p;
-    }
+    // need to make constexpr 
+    // XXX wtf 22
+    elf_reloc_t relocs { m68k_elf_relocs, reloc_ops, 22, 4 };
 };
 
 

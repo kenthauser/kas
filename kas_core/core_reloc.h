@@ -2,93 +2,11 @@
 #define KAS_CORE_CORE_RELOC_H
 
 #include "expr/expr.h"
+#include "elf/elf_reloc.h"
 #include "utility/align_as_t.h"
 
 namespace kas::core
 {
-
-enum kas_reloc_t : uint8_t
-{
-      K_REL_NONE
-   // , K_REL_PCREL
-    , K_REL_ADD
-    , K_REL_SUB
-    , K_REL_GOT     // whatever these are
-    , K_REL_PLT
-    , K_REL_COPY
-    , K_REL_GLOB_DAT
-    , K_REL_JMP_SLOT
-    , NUM_KAS_RELOC
-};
-
-// XXX move to ARM
-enum arm_reloc_t : uint8_t
-{
-      ARM_REL_MOVW  = NUM_KAS_RELOC
-    , ARM_REL_MOVT
-    , NUM_ARM_RELOC
-};
-
-struct core_reloc
-{
-    static constexpr auto RFLAGS_PC_REL = 1;
-
-    core_reloc() = default;
-    constexpr core_reloc(uint8_t reloc, uint8_t bits = 0, uint8_t pc_rel = false)
-        : reloc(reloc)
-        , bits(bits)
-        , flags ( pc_rel ? RFLAGS_PC_REL : 0
-                )
-        {}
-    
-    // generate `std::map` key
-    constexpr auto key() const
-    {
-       return std::make_tuple(reloc, bits, flags);
-    }
-
-    uint8_t reloc {};
-    uint8_t bits  {};
-    uint8_t flags {};
-};
-
-struct reloc_info_t
-{
-    reloc_info_t() = default;
-
-    constexpr reloc_info_t(uint8_t num, const char *name, core_reloc reloc)
-        : num(num), name(name), reloc(reloc) {}
-
-    core_reloc  reloc;
-    const char *name;
-    uint8_t     num;
-};
-
-struct reloc_op_t
-{
-    using read_fn_t   = int64_t(*)(int64_t data);
-    using update_fn_t = int64_t(*)(int64_t value, int64_t addend);
-    using write_fn_t  = int64_t(*)(int64_t data, int64_t value);
-
-    reloc_op_t() = default;
-    constexpr reloc_op_t(uint8_t op
-                       , update_fn_t update_fn = update_add
-                       , write_fn_t  write_fn  = {}
-                       , read_fn_t   read_fn   = {}
-                       )
-            : op(op), read_fn(read_fn), write_fn(write_fn), update_fn(update_fn) {}
-
-    // prototype update functions
-    static int64_t update_add(int64_t value, int64_t addend) { return value + addend; } 
-    static int64_t update_sub(int64_t value, int64_t addend) { return value - addend; } 
-    static int64_t update_set(int64_t value, int64_t addend) { return addend; } 
-
-    uint8_t     op;
-    update_fn_t update_fn;
-    write_fn_t  write_fn;
-    read_fn_t   read_fn;
-};
-
 
 struct emit_base;       // forward declaration
 struct deferred_reloc_t
@@ -102,10 +20,10 @@ struct deferred_reloc_t
     };
     
     deferred_reloc_t() = default;
-    deferred_reloc_t(core_reloc reloc, int64_t addend = {}, uint8_t offset = {})
+    deferred_reloc_t(elf::kas_reloc reloc, int64_t addend = {}, uint8_t offset = {})
         : reloc(reloc), addend(addend), offset(offset) {}
 
-    // complete construction of object
+    // methods to complete construction of object
     void operator()(expr_t const&);
     void operator()(core_symbol_t const&, kas_loc const *);
     void operator()(core_expr_t   const&, kas_loc const *);
@@ -113,27 +31,23 @@ struct deferred_reloc_t
     void operator()(parser::kas_diag_t const&, kas_loc const *);
 
     // emit relocs & apply to base value
-    void emit(emit_base& base, parser::kas_error_t&);
-    void put_reloc  (emit_base&, parser::kas_error_t&, core_section const&);
-    void put_reloc  (emit_base&, parser::kas_error_t&, core_symbol_t  const&);
+    void emit       (emit_base&, parser::kas_error_t&);
+    void put_reloc  (emit_base&, parser::kas_error_t&, core_section  const&);
+    void put_reloc  (emit_base&, parser::kas_error_t&, core_symbol_t const&);
     void apply_reloc(emit_base&, parser::kas_error_t&);
 
-    // return true if `relocs` emited OK
+    // return true iff `relocs` emited OK
     static bool done(emit_base& base);
-    
-    const char *get_info(emit_base& base, reloc_info_t const**) const;
-    reloc_op_t  const *get_ops (uint8_t) const;
 
-    core_reloc          reloc;
-    int64_t             addend      {};
+    elf::kas_reloc      reloc;
+    int64_t             addend       {};
     core_symbol_t const *sym_p       {};
     core_expr_t   const *core_expr_p {};
     core_section  const *section_p   {};
     parser::kas_diag_t const *diag_p {};
     parser::kas_loc const *loc_p     {};
-    uint8_t             width       {};     // XXX refactor out.
-    uint8_t             offset      {};
-    bool                using_rela  {false};
+    uint8_t             width        {};     // XXX refactor out.
+    uint8_t             offset       {};
 };
 
 }

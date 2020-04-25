@@ -3,6 +3,7 @@
 
 #include "core_emit.h"
 #include "core_section.h"
+#include "expr/expr_fits.h"
 
 
 namespace kas::core
@@ -137,8 +138,7 @@ namespace kas::core
             *position_p += chunk_size * num_chunks;
         }
 
-        auto reloc_msg(reloc_info_t const& info
-                     , uint8_t width
+        auto reloc_msg(elf::kas_reloc_info const& info
                      , uint8_t offset
                      , std::string const& base_name
                      , int64_t addend
@@ -149,14 +149,21 @@ namespace kas::core
             if (addr_bytes > 3)
                 addr_bytes = 3;
 
+            auto width = info.reloc.bits/8;
 
             std::ostringstream s;
             auto sfx = emit_formatted::section_suffix(*section_p);
             s << fmt_hex(addr_bytes, position() + offset, sfx);
             s << " " << info.name << " ";
             s << base_name;
-            if (addend)
-                s << " " << fmt_hex(4, addend); // XXX width invalid
+
+            // if addend fits in `width` bytes, show in value, not as rela
+            using expression::expr_fits;
+
+            // if width == 0, implies CHAN != DATA & just a display reloc...
+            if (addend && width && 
+                    expr_fits().fits_sz(addend, width) != expression::DOES_FIT)
+                s << " " << fmt_hex(width, addend);
 
             return s.str();
         }
@@ -164,8 +171,7 @@ namespace kas::core
 
         void put_section_reloc(
                   e_chan_num num
-                , reloc_info_t const& info
-                , uint8_t width
+                , elf::kas_reloc_info const& info
                 , uint8_t offset
                 , core_section const& section
                 , int64_t& addend
@@ -178,14 +184,13 @@ namespace kas::core
             else
                 suffix_p = "?";
 
-            auto s = reloc_msg(info, width, offset, section.name(), addend);
-            emit_reloc(num, width, s);
+            auto s = reloc_msg(info, offset, section.name(), addend);
+            emit_reloc(num, 0, s);  // just use zero for width
         }
 
         void put_symbol_reloc(
                   e_chan_num num
-                , reloc_info_t const& info
-                , uint8_t width
+                , elf::kas_reloc_info const& info
                 , uint8_t offset
                 , core_symbol_t const& sym
                 , int64_t& addend 
@@ -198,13 +203,8 @@ namespace kas::core
             else
                 suffix_p = "X";
 
-            auto s = reloc_msg(info, width, offset, sym.name(), addend);
-            emit_reloc(num, width, s);
-        }
-
-        void put_str(e_chan_num num, uint8_t, std::string const& s) override
-        {
-            put(num, s);
+            auto s = reloc_msg(info, offset, sym.name(), addend);
+            emit_reloc(num, 0, s);  // just use zero for width
         }
 
         void put_diag(e_chan_num num, uint8_t width, parser::kas_diag_t const& diag) override

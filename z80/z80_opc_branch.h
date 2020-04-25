@@ -89,9 +89,8 @@ struct z80_opc_branch : tgt::opc::tgt_opc_branch<z80_mcode_t>
         else
         {
             // emit a branch
-            static constexpr core::core_reloc reloc { core::K_REL_ADD, 0, true };
-            base << *code_p;
-            base << core::set_size(1) << core::emit_reloc(reloc, -1) << dest << 0;
+            // single word opcode, single word displacement from end of insn
+            base << *code_p << core::emit_disp(1, -1) << dest;
         }
     }
 

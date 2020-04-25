@@ -40,11 +40,10 @@ enum z80_arg_mode : uint8_t
 // declare `token_reg`
 
 // `REG_T` & `REGSET_T` args also allow `MCODE_T` to lookup types
-struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, void, z80_reg_t, z80_reg_set_t>
+struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, z80_reg_t, z80_reg_set_t>
 {
     // inherit basic ctors
     using base_t::base_t;
-    //using error_msg = typename base_t::error_msg;
     
     // declare size of immed args
     static constexpr tgt::tgt_immed_info sz_info [] =
@@ -54,7 +53,6 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, void, z80_reg_t, z80_
         };
 
     // special processing for `IX`, `IY`
-//XXX    void emit(core::emit_base& base, uint8_t sz, unsigned bytes) const;
     const char *set_mode(unsigned mode);
 
     // calculate size of extension data for argument (based on MODE & reg/expr values)

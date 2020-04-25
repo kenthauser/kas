@@ -8,7 +8,7 @@
 namespace kas::m68k
 {
 
-void m68k_arg_t::emit(core::emit_base& base, uint8_t sz)
+void m68k_arg_t::emit(core::emit_base& base, m68k_stmt_info_t const& info)
 {
     int size = 0;
 
@@ -38,7 +38,7 @@ void m68k_arg_t::emit(core::emit_base& base, uint8_t sz)
         
         // immediate: emit fixed & float formats
         case MODE_IMMEDIATE:
-            return emit_immed(base, sz);
+            return emit_immed(base, info.sz());
 
         // byte branch emitted as part of base word
         case MODE_BRANCH_BYTE:
@@ -55,8 +55,8 @@ void m68k_arg_t::emit(core::emit_base& base, uint8_t sz)
                 size = 4;
             else
                 size = 2;
-                
-            static constexpr core::core_reloc reloc { core::K_REL_ADD, 0, true };
+               
+            static constexpr elf::kas_reloc reloc { elf::K_REL_ADD, 0, true };
             base << core::set_size(size) << core::emit_reloc(reloc) << expr << 0;
             return;
         }
@@ -70,7 +70,7 @@ void m68k_arg_t::emit(core::emit_base& base, uint8_t sz)
         // index: use `type` method
         case MODE_INDEX:
         case MODE_PC_INDEX:
-            return ext.emit(base, *this, sz);
+            return ext.emit(base, *this, info.sz());
     }
 
     base << core::set_size(size) << expr;

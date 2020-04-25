@@ -248,13 +248,13 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 *6. unsupported relocations emit as errors
 
-7. back-end object relocation absorbs "addend" if rela
+*7. back-end object relocation absorbs "addend" if rela
 
 *8. tokens store pointers to objects
 
 *9. first core expression is index [2]
 
-10. `RELOC:` message shows `rela` value for `rel` relocation
+*10. `RELOC:` message shows `rela` value for `rel` relocation
 
 *11. addr format not same for `addr` & `RELOC`
 
@@ -290,7 +290,7 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 27. label parsing sub-optimal. Don't know why so many "rules" are required.
 
-28. 1: jr 1b -> deleted: need some "seen this pass" magic
+*28. 1: jr 1b -> deleted: need some "seen this pass" magic
 
 *29. listing address & "equ" size
 
@@ -298,7 +298,7 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 *31. EQU symbols recorded as STB_TOKENS
 
-32. only `rela` relocations should list addend
+*32. only `rela` relocations should list addend
 
 *33. `.lcomm` symbols should show bss address
 

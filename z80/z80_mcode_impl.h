@@ -15,14 +15,6 @@ namespace kas::z80
 
 using expression::e_fixed_t;
 
-#if 0
-// determine size of immediate arg
-uint8_t z80_mcode_t::sz(stmt_info_t info) const
-{
-    return 0;
-}
-#endif
-
 //
 // Z80 opcode emit rules:
 //

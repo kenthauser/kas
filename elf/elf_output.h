@@ -1,5 +1,5 @@
-#ifndef KAS_ELF_ELF_OBJECT_H
-#define KAS_ELF_ELF_OBJECT_H
+#ifndef KAS_ELF_ELF_OUTPUT_H
+#define KAS_ELF_ELF_OUTPUT_H
 
 #include "elf_external.h"
 #include "elf_common.h"
@@ -8,7 +8,8 @@
 namespace kas::elf
 {
 
-struct elf_file {
+struct elf_format
+{
 
     // declare these as int to suppress narrowing messages.
     elf_file( int   ei_class
@@ -43,12 +44,13 @@ struct elf_file {
 
         // setup common data in sections
         elf_section::cvt_p = &cvt;
-
+#if 0
         // continue init  `kas_core` data structures (core_section && core_symbol)
         init_from_kas_core();
+#endif
     }
 
-
+#if 0
     // INIT `elf` sections & symbols from `kas_core`
     void init_from_kas_core()
     {
@@ -130,9 +132,7 @@ struct elf_file {
         // 9. done
         core::core_symbol_t::dump(std::cout);
     }
-
-
-
+#endif
     void write(std::ostream& os)
     {
         // create section_name section, if needed

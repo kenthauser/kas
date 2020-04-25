@@ -117,7 +117,7 @@ const char *core_symbol<Ref>::set_file(symbol_ref ref)
 
 // elf getters/setters
 template <typename Ref>
-void core_symbol<Ref>::sym_num(uint32_t num)
+void core_symbol<Ref>::set_sym_num(uint32_t num)
 {
     if (s_symnum)
         throw std::runtime_error{"core_symbol: " + s_name + ": sym_num already set"};
@@ -186,7 +186,7 @@ template const char *core_symbol<symbol_ref>::set_value(expression::ast::expr_t&
 template const char *core_symbol<symbol_ref>::make_label(uint32_t binding);
 template const char *core_symbol<symbol_ref>::make_common(uint32_t comm_size, int8_t binding, uint16_t align);
 template const char *core_symbol<symbol_ref>::make_error(const char *msg);
-template void core_symbol<symbol_ref>::sym_num(uint32_t num);
+template void core_symbol<symbol_ref>::set_sym_num(uint32_t num);
 
 template expr_t const*  core_symbol<symbol_ref>::value_p() const;
 template unsigned const core_symbol<symbol_ref>::size()    const;

@@ -24,6 +24,8 @@
 #include "z80_arg_impl.h"
 #include "z80_mcode_impl.h"
 
+#include "elf/elf_convert_elf.h"
+
 namespace kas::z80::parser
 {
     namespace x3 = boost::spirit::x3;

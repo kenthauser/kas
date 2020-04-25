@@ -36,7 +36,7 @@ namespace kas::m68k
                     default:
                         break;
                 }
-                return m68k::m68k_reg_t(reg_class, reg_num).name();
+                return m68k::m68k_reg_t::find(reg_class, reg_num).name();
             };
 
         auto index_reg_name = [&reg_name](m68k_extension_t const& ext) -> std::string

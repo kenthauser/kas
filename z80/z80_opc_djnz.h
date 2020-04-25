@@ -65,14 +65,8 @@ struct z80_opc_djnz : tgt::opc::tgt_opc_branch<z80_mcode_t>
 
         else
         {
-            // emit a branch
-#if 1            
-            static constexpr core::core_reloc reloc { core::K_REL_ADD, 0, true };
-            base << *code_p;
-            base << core::set_size(1) << core::emit_reloc(reloc, -1) << dest << 0;
-#else
-            base << *code_p << core::emit_disp(1) << dest;
-#endif
+            // emit simple djnz...
+            base << *code_p << core::emit_disp(1, -1) << dest;
         }
     }
 };

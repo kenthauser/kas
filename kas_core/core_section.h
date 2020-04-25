@@ -34,11 +34,6 @@
 #include <map>
 #include <deque>
 
-// declare class in ELF namespace
-namespace kas::elf
-{
-    struct es_data;
-}
 namespace kas::core 
 {
 
@@ -196,9 +191,9 @@ public:
 
     template <typename OS> void print(OS&) const;
 
-private:
-    // allow backend access to section config (without global getters)
-    friend struct elf::es_data;
+    // support `set_section` in backend. manage single mutable, opaque value
+    void  set_elf_callback(void *p) const { _elf_callback = p;    }
+    void *elf_callback()            const { return _elf_callback; } 
 
 public:
     static void clear()
@@ -206,7 +201,7 @@ public:
         //std::cout << "sections: clear" << std::endl;
         sections.clear();
     }
-private:
+//private:
 #if 0
     template <typename OS>//, typename = std::enable_if_t<std::is_base_of_v<std::ios_base, OS>>>
     friend OS& operator<<(OS& os, core_section const& obj)
@@ -233,8 +228,8 @@ private:
     elf::Elf32_Word kas_linkage {};
     elf::Elf32_Word kas_align   {};     // only "well-know sections"
 
-    // set & read by friend class. no setters nor getters
-    elf::es_data *es_data_p {};
+    // backend hook
+    mutable void *_elf_callback {};
 
     static inline core::kas_clear _c{base_t::obj_clear};
 };

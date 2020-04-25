@@ -17,7 +17,10 @@ struct kas_assemble
     static inline kas_clear _c{INSNS::obj_clear};
 
     // perform data structure inits -- refactor if need to parameterize...
-    kas_assemble()
+    // from initial FORMAT, just keep relocs...
+    template <typename FORMAT>
+    kas_assemble(FORMAT const& format)
+        : relocs(format.relocs)
     {
         // declare "default" sections
         // NB: put here so they are numbered 1, 2, 3
@@ -59,6 +62,7 @@ struct kas_assemble
         // 3. relax object code
         //do_relax(obj, &std::cout);
     #if 1
+        // XXX need reloc info before relax...
         do_relax(obj, out);
         std::cout << "relax complete" << std::endl;
     #endif
@@ -103,6 +107,11 @@ struct kas_assemble
 
     void emit(emit_base& e)
     {
+        // always start in ".text" section
+        e.set_segment(core_section::get(".text")[0]);
+        
+        // XXX supply reloc info here, but needed before relax...
+        e.elf_reloc_p = &relocs;
         auto proc_container = [&e](auto& container)
             {
                 container.proc_all_frags(
@@ -185,9 +194,13 @@ private:
                     sym.make_error("Undefined local symbol");
 
                 // 2. mark undefined & "referenced" symbols as GLOBAL
+                // XXX wrong...
+                if (sym.binding() == STB_TOKEN)
+                    sym.set_binding(STB_UNKN);
+
                 if (sym.binding() == STB_UNKN)
                     sym.set_binding(STB_GLOBAL);
-
+                
                 // 3. convert local common to bss symbol
                 if (sym.binding() != STB_GLOBAL && sym.kind() == STT_COMMON)
                 {
@@ -228,6 +241,7 @@ private:
     }
 
     INSNS *do_gen_dwarf {};
+    elf::elf_reloc_t const &relocs;
 };
 }
 #endif

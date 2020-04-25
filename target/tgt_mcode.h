@@ -135,8 +135,10 @@ struct tgt_mcode_t
     template <typename ARGS_T>
     std::pair<const char *, int> validate_args (ARGS_T& args, stmt_info_t const& info, std::ostream *trace = {}) const;
 
+    // calculate total size of opcode + args
+    // return `fits_result` based if immed size, branch displacement, goes out of range
     template <typename ARGS_T>
-    fits_result fits(ARGS_T& args, stmt_info_t const& info, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
+    fits_result size(ARGS_T& args, stmt_info_t const& info, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
 
     template <typename ARGS_T>
     void emit(core::emit_base&, ARGS_T&&, stmt_info_t const& info) const;
@@ -153,7 +155,8 @@ struct tgt_mcode_t
     // machine code size in bytes (for format & serialize)
     uint8_t code_size() const;
 
-    // machine code "base" size used in calculation (defaults to `code_size`)
+    // machine code "base" size used in total size calculation (defaults to `code_size`)
+    // can include prefixed from INFO, etc
     auto base_size() const
     {
         return derived().code_size();

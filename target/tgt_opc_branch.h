@@ -82,8 +82,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto words = mcode.code_size()/sizeof(mcode_size_t);
         while (words--)
             base << *code_p++;
-        static constexpr core::core_reloc reloc { core::K_REL_ADD, 0, true };
-        base << core::set_size(max_addr) << core::emit_reloc(reloc, -max_addr) << dest << 0;
+        base << core::emit_disp(max_addr, -max_addr) << dest;
     }
 
 

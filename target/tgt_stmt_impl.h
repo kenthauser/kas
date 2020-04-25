@@ -184,7 +184,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
 
         // all const args: can select best opcode & calculate size
         if (matching_mcode_p)
-            matching_mcode_p->fits(args, info, data.size, fits, trace);
+            matching_mcode_p->size(args, info, data.size, fits, trace);
         else
             matching_mcode_p = insn.eval(ok, args, info, data.size, fits, trace);
 

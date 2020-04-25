@@ -52,7 +52,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         if (result == expression::NO_FIT)
             return { msg, err_index };
 
-        // not that 1 matched, change msg
+        // note that 1 matched, change msg
         msg = err_msg_t::ERR_argument;
         ++val_p;
         ++err_index;
@@ -68,7 +68,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-        fits(ARGS_T& args
+        size(ARGS_T& args
            , stmt_info_t const& info
            , opc::op_size_t& size
            , expr_fits const& fits

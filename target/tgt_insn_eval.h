@@ -80,7 +80,7 @@ auto eval_insn_list
         op_size_t size;
        
         // NB: size `binds` info & may modify global arg
-        auto result = (*op_iter)->fits(args, stmt_info, size, fits, trace);
+        auto result = (*op_iter)->size(args, stmt_info, size, fits, trace);
 
         if (result == fits.no)
         {
@@ -174,8 +174,8 @@ auto eval_insn_list
             // rerun size
             op_size_t size;
             
-            // NB: size `binds` info. modifies passed arg.
-            mcode_p->fits(args, stmt_info, size, fits, nullptr);
+            // NB: size `binds` info. modifies passed `size` arg.
+            mcode_p->size(args, stmt_info, size, fits, nullptr);
         }
     }
 

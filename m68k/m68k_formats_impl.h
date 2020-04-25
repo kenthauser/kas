@@ -88,11 +88,9 @@ struct fmt_displacement : m68k_mcode_t::fmt_t::fmt_impl
 
         case MODE_BRANCH_BYTE:
         {
-            // 8-bits & pc-relative
-            static constexpr core::core_reloc reloc { core::K_REL_ADD, 8, true };
-            
             // displacement from pc + 2, 1 byte offset from base machine code word
-            base << core::emit_reloc(reloc, -2, 1) << arg.expr;
+            // XXX offset??
+            base << core::emit_disp(1, -2, 1) << arg.expr;
             break;
         }
         case MODE_BRANCH_WORD:
@@ -171,10 +169,10 @@ struct fmt_reg_pair : m68k_mcode_t::fmt_t::fmt_impl
         // XXX if pair is resolved to same reg twice, should disassembler report
         // XXX `REG` or `REG:REG`. I belive all insns assemble the same with
         // XXX REG & REG:REG.
-        auto gen_reg = [](unsigned n)
+        auto get_reg = [](unsigned n)
             {
                 auto mode = (n & 8) ? MODE_ADDR_REG : MODE_DATA_REG;
-                return m68k_reg_t{ mode, n & 7 };
+                return m68k_reg_t::find(mode, n & 7);
             };
             
         auto reg1 = (op[WORD_0] & MASK_0) >> SHIFT_0;
@@ -185,8 +183,8 @@ struct fmt_reg_pair : m68k_mcode_t::fmt_t::fmt_impl
         arg.reg_num = reg1 & 7;
         
         // generate `MODE_PAIR` arg
-        arg.expr  = gen_reg(reg1);
-        arg.outer = gen_reg(reg2);
+        arg.reg_p = &get_reg(reg1);
+        arg.outer = get_reg(reg2);
         arg.set_mode(MODE_PAIR);
     }
 };

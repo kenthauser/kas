@@ -32,7 +32,7 @@ struct m68k_stmt_info_t : detail::alignas_t<m68k_stmt_info_t, uint16_t>
     // `bind` updates info for mcode under evaluation
     // NB: `bound_sz` inited to `arg_size` in parser.
     void bind(mcode_t const&) const;
-    uint8_t sz() const { return bound_sz; }
+    uint8_t sz(mcode_t const&) const { return bound_sz; }
 
     void print(std::ostream&) const;
 

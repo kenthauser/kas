@@ -30,7 +30,7 @@
 #ifndef _ELF_COMMON_H
 #define _ELF_COMMON_H
 
-// XXX dummy define of `bfd_vma`
+// KAS modification: dummy define of `bfd_vma` KBH
 using bfd_vma = unsigned char;
 
 

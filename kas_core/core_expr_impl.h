@@ -358,9 +358,9 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
         }
 
         if (pc_rel)
-            reloc.reloc.flags |=  core_reloc::RFLAGS_PC_REL;
+            reloc.reloc.flags |=  elf::kas_reloc::RFLAGS_PC_REL;
         else
-            reloc.reloc.flags &=~ core_reloc::RFLAGS_PC_REL;
+            reloc.reloc.flags &=~ elf::kas_reloc::RFLAGS_PC_REL;
     
         reloc.emit(base, diag);
     };
@@ -375,7 +375,7 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
 
     // examine `minus` list to find `pc_rel` & subs
     auto section_p = &base.get_section();
-    unsigned pc_rel_cnt = !!(reloc.reloc.flags & core_reloc::RFLAGS_PC_REL);
+    unsigned pc_rel_cnt = !!(reloc.reloc.flags & elf::kas_reloc::RFLAGS_PC_REL);
     unsigned minus_cnt  = {};
 
     // convert minus terms to pc-relative if possible
@@ -412,7 +412,7 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
         if (pc_rel_cnt)
             if (p.addr_p && &p.addr_p->section() == &base.get_section())
             {
-                reloc.reloc.flags  &=~ core_reloc::RFLAGS_PC_REL;
+                reloc.reloc.flags  &=~ elf::kas_reloc::RFLAGS_PC_REL;
                 reloc.addend       +=  p.addr_p->offset()();
                 --pc_rel_cnt;
                 continue;
@@ -442,7 +442,7 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
 
                 // here need to emit `minus` relocation
                 // same width & offset
-                RELOC_T m_reloc { {K_REL_SUB, reloc.reloc.bits}, 0, reloc.offset };
+                RELOC_T m_reloc { {elf::K_REL_SUB, reloc.reloc.bits}, 0, reloc.offset };
                 
                 do_emit(m_reloc, &m);
                 break;
@@ -458,7 +458,7 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
 
     while(pc_rel_cnt--)
     {
-        RELOC_T m_reloc { {K_REL_SUB, reloc.reloc.bits}, 0, reloc.offset };
+        RELOC_T m_reloc { {elf::K_REL_SUB, reloc.reloc.bits}, 0, reloc.offset };
         do_emit(m_reloc, nullptr, true);
     }
     
@@ -473,7 +473,7 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
 
             // here need to emit `minus` relocation
             // same width & offset
-            RELOC_T m_reloc { {K_REL_SUB, reloc.reloc.bits}, 0, reloc.offset };
+            RELOC_T m_reloc { {elf::K_REL_SUB, reloc.reloc.bits}, 0, reloc.offset };
             
             do_emit(m_reloc, &m);
         }

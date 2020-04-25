@@ -192,16 +192,16 @@ struct val_pair : m68k_mcode_t::val_t
 
     void set_arg(m68k_arg_t& arg, unsigned value) const override
     {
-        auto calc_reg = [](auto value) -> m68k_reg_t
+        auto find_reg = [](auto value) -> m68k_reg_t const&
             {
                 auto rc = value & 8 ? RC_ADDR : RC_DATA;
                 uint16_t reg_num = value & 7;
-                return { rc, reg_num };
+                return m68k_reg_t::find(rc, reg_num);
             };
 
         // calculate expression value from machine code
-        arg.expr  = calc_reg(value);
-        arg.outer = calc_reg(value >> 4);
+        arg.reg_p  = &find_reg(value);
+        arg.outer =   find_reg(value >> 4);
         arg.set_mode(MODE_PAIR);
     }
     
@@ -335,12 +335,16 @@ struct val_bitfield : m68k_mcode_t::val_t
         auto get_expr = [](auto value) -> expr_t
             {
                 if (value & BF_REG_BIT)
-                    return m68k_reg_t{ RC_DATA, value & 7 };
+                    return m68k_reg_t::find(RC_DATA, value & 7);
                 return value & BF_MASK;
             };
 
         arg.outer = get_expr(value);
-        arg.expr  = get_expr(value >> BF_FIELD_SIZE);
+        value >>= BF_FIELD_SIZE;
+        if (value & BF_REG_BIT)
+            arg.reg_p = &m68k_reg_t::find(RC_DATA, value & 7);
+        else
+            arg.expr = value & BF_MASK;
         arg.set_mode(MODE_BITFIELD);
     }
 };
@@ -406,7 +410,7 @@ struct val_acc : m68k_mcode_t::val_t
     void set_arg(m68k_arg_t& arg, unsigned value) const override
     {
         // calculate expression value from machine code
-        arg.expr = m68k_reg_t { RC_CPU, value + REG_CPU_ACC0 };
+        arg.reg_p = &m68k_reg_t::find(RC_CPU, value + REG_CPU_ACC0);
         arg.set_mode(MODE_REG);
     }
     

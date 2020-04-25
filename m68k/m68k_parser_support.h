@@ -56,6 +56,7 @@
 
 namespace kas::m68k::parser
 {
+    using namespace kas::parser;
 //
 // Parser structures & values
 //
@@ -82,9 +83,9 @@ enum { P_SCALE_1 = 0, P_SCALE_2 = 1, P_SCALE_4 = 2, P_SCALE_8 = 3,
 // hold register/expression + scale + size arg
 struct expr_size_scale
 {
-    expr_t  value;
-    short   size;
-    short   scale;
+    kas_token   value;
+    short       size;
+    short       scale;
 
     friend std::ostream& operator<<(std::ostream& os, expr_size_scale const& e)
     {
@@ -114,7 +115,7 @@ enum : uint32_t { E_UNKN, E_ERROR, E_INT, E_EXPR, E_DATA, E_ADDR, E_PC, E_ZADDR,
 
 struct m68k_classify_expr
 {
-    m68k_classify_expr(expr_t const& e) : expr(e) {}
+    m68k_classify_expr(kas_token const& e) : token(e) {}
 
     auto operator()()
     {
@@ -180,9 +181,10 @@ private:
         }
     }
 
-    expr_t const& expr;
-    int           _value {};
-    uint32_t      e_type {};
+    kas_token const& token;
+    expr_t           expr;
+    int              _value {};
+    uint32_t         e_type {};
 };
 
 
@@ -327,7 +329,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 case E_REGSET:
                 {
                     // is register set well formed? (ie: kind() >= 0)
-                    m68k_arg_t r{ MODE_REGSET, std::move(base_value) };
+                    m68k_arg_t r{ MODE_REGSET, base_value };
                     if (auto rp = r.expr.get_p<m68k_reg_set_t>())
                         if (rp->kind() >= 0)
                             return r;
@@ -385,7 +387,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 if (inner.size() != 1)
                     return { error_msg::ERR_bad_pair, base_value };
                 auto& second = inner.front();
-                return { MODE_PAIR, base_value, second.value };
+                return { MODE_PAIR, base_value, second.value.expr() };
             }
         case PARSE_BITFIELD:
             {
@@ -424,7 +426,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                     default:
                         return { error_msg::ERR_bad_width, second.value };
                 }
-                return { MODE_BITFIELD, base_value, second.value };
+                return { MODE_BITFIELD, base_value, second.value.expr() };
             }
        
         // support motorola word/long expression specifier .w/.l
@@ -489,7 +491,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
 // 6) if displacement specified, calculate M_SIZE_*
 
 template <typename It, typename IndexArg_t>
-const char *classify_indirect_arg(It& it, IndexArg_t& idx, expr_t const * &error_p)
+const char *classify_indirect_arg(It& it, IndexArg_t& idx, kas_token const *& error_p)
 {
     expression::expr_fits fits;
 
@@ -618,8 +620,8 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
     struct index_arg
     {
         // save pointer to expressions
-        expr_t const *reg_p   {};
-        expr_t const *expr_p  {};
+        kas_token const *reg_p   {};
+        kas_token const *expr_p  {};
         int index_size  {};
         int index_scale {};
         int reg_num     {};
@@ -632,7 +634,7 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
     index_arg first_arg;
     index_arg second_arg;
     auto& base_value = base.value;
-    expr_t const *error_p = &base_value;
+    auto const *error_p = &base_value;
 
     // analyze indirect arguments
     auto ip  = mode.args.begin();
@@ -690,15 +692,15 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
     // first copy "expressions"
     if (first_arg.expr_p)
     {
-        result.expr          = *first_arg.expr_p;
-        result.ext.disp_size =  first_arg.expr_size;
+        result.expr          = first_arg.expr_p->expr();
+        result.ext.disp_size = first_arg.expr_size;
     }
 
     // handle second expression (ie outer)
     if (second_arg.expr_p)
     {
-        result.outer        = *second_arg.expr_p;
-        result.ext.mem_size =  second_arg.expr_size;
+        result.outer        = second_arg.expr_p->expr();
+        result.ext.mem_size = second_arg.expr_size;
     }
 
     // check if register in "inner"
