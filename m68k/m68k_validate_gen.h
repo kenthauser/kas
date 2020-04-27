@@ -37,7 +37,7 @@ namespace
 {
 struct val_dir_long : m68k_mcode_t::val_t
 {
-    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -51,8 +51,8 @@ struct val_dir_long : m68k_mcode_t::val_t
         return fits.no;
     }
 
-    fits_result size(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits
-                                                    , op_size_t& op_size) const override
+    fits_result size(m68k_arg_t& arg, m68k_mcode_t const& mc, m68k_stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& op_size) const override
     {
         op_size += 4;
         return fits.yes;
@@ -64,7 +64,7 @@ struct val_branch : m68k_mcode_t::val_t
 {
     // special for branch. Allow deletable branch
     constexpr val_branch(bool can_delete = {}) : can_delete(can_delete) {}
-    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         // allow direct mode 
         static constexpr auto am = AM_DIRECT;
@@ -75,8 +75,8 @@ struct val_branch : m68k_mcode_t::val_t
     }
 
     // NB: this validator is reason we need size_p: whole insn can be deleted
-    fits_result size(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits
-                                                    , op_size_t& op_size) const override
+    fits_result size(m68k_arg_t& arg, m68k_mcode_t const & mc, m68k_stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& op_size) const override
     {
         op_size.max = 6;            // not on 68000
 
@@ -124,7 +124,7 @@ struct val_branch : m68k_mcode_t::val_t
 
 struct val_movep : m68k_mcode_t::val_t
 {
-    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -136,8 +136,8 @@ struct val_movep : m68k_mcode_t::val_t
                 return fits.no;
         }
     }
-    fits_result size(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits
-                                                    , op_size_t& op_size) const override
+    fits_result size(m68k_arg_t& arg, m68k_mcode_t const& mc, m68k_stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& op_size) const override
     {
         arg.set_mode(MODE_MOVEP);
         op_size += 2;               // word displacement always present
@@ -149,7 +149,7 @@ struct val_pair : m68k_mcode_t::val_t
 {
     constexpr val_pair(bool addr_ok) : addr_ok(addr_ok) {}
 
-    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         // check for pair of DATA or GENERAL registers
         if (arg.mode() != MODE_PAIR)
@@ -214,7 +214,7 @@ struct val_regset : m68k_mcode_t::val_t
     constexpr val_regset(uint8_t kind = {}, bool rev = false)
                 : kind{kind}, rev(rev) {}
     
-    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         switch (arg.mode()) {
             case MODE_IMMEDIATE:
@@ -286,7 +286,7 @@ struct val_bitfield : m68k_mcode_t::val_t
     static constexpr auto BF_REG_BIT    = (1 << (BF_FIELD_SIZE - 1));
     static constexpr auto BF_MASK       = BF_REG_BIT - 1;
 
-    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         auto bf_fits = [&](auto& e) -> fits_result
             {
@@ -351,7 +351,7 @@ struct val_bitfield : m68k_mcode_t::val_t
 
 struct val_subreg : m68k_mcode_t::val_t
 {
-    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         // check for ... MAC registers
         if (arg.mode() > MODE_ADDR_REG)
@@ -385,7 +385,7 @@ struct val_subreg : m68k_mcode_t::val_t
 
 struct val_acc : m68k_mcode_t::val_t
 {
-    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         auto rp = arg.expr.template get_p<m68k_reg_t>();
         if (!rp || rp->kind() != RC_CPU)
@@ -420,7 +420,7 @@ struct val_acc : m68k_mcode_t::val_t
 // Check that CF may disallow anyway, via 3-word limit
 struct val_cf_bit_tst : m68k_mcode_t::val_t
 {
-    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         // use AM bits: test is MEMORY w/o IMMED
         if (arg.am_bitset() & AM_IMMED)
@@ -436,7 +436,7 @@ struct val_cf_bit_tst : m68k_mcode_t::val_t
 // Check that CF may disallow anyway, via 3-word limit
 struct val_cf_bit_static : m68k_mcode_t::val_t
 {
-    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         // for coldfire BIT instructions on STATIC bit # cases.
         auto mode_norm = arg.mode_normalize();

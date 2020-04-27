@@ -47,7 +47,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
             *trace << " " << val_p.name() << " ";
        
         // if invalid for info, pick up in size() method
-        auto result = val_p->ok(arg, info, fits);
+        auto result = val_p->ok(arg, fits);
 
         if (result == expression::NO_FIT)
             return { msg, err_index };
@@ -91,7 +91,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         if (trace)
             *trace << " " << val_p.name() << " ";
 
-        auto r = val_p->size(arg, info, fits, size);
+        auto r = val_p->size(arg, derived(), info, fits, size);
         
         if (trace)
             *trace << +r << " ";
@@ -123,7 +123,7 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         emit(core::emit_base& base, ARGS_T&& args, stmt_info_t const& info) const
 {
     // 0. generate base machine code data
-    auto machine_code = derived().code(info).data();
+    auto machine_code = derived().code(info);
     auto code_p       = machine_code.data();
 
     // 1. apply args & emit relocs as required
@@ -147,7 +147,7 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         base << *code_p++;
 
     // 3. emit arg information
-    auto sz = info.sz(*this);
+    auto sz = info.sz(derived());
     for (auto& arg : args)
         arg.emit(base, sz);
 }

@@ -344,11 +344,11 @@ auto gen_stmt = [](auto& ctx)
                     x3::_pass(ctx) = false;
                     break;
             }
-            flags.bound_sz = flags.arg_size = sz;   // init bound_sz to parsed size
+            flags.arg_size = sz; 
         }
         else 
         {
-            flags.bound_sz = flags.arg_size = OP_SIZE_VOID;
+            flags.arg_size = OP_SIZE_VOID;
             if (has_dot)
                 x3::_pass(ctx) = false;     // size req'd if dot
         }

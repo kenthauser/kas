@@ -122,22 +122,24 @@ void tgt_insert_args(Inserter& inserter
         // NB: may be more args than validators. LIST format only saves a few args in `code`
         if (val_iter != val_iter_end)
         {
+#ifdef TRACE_ARG_SERIALIZE
             val_name = val_iter.name();
+#endif
             val_p = &*val_iter++;
         }
         else
             val_p = {};
-#if 1
+
         // if validator present, be sure it can hold type
         // NB: only required for "LIST" format.
         if (val_p)
         {
             expr_fits fits{};
-            if (val_p->ok(arg, stmt_info, fits) != fits.yes)
+            if (val_p->ok(arg, fits) != fits.yes)
                 val_p = nullptr;
         }
-#endif
-#if 0
+
+#ifdef TRACE_ARG_SERIALIZE
         if (!val_p)
             val_name = "*NONE*";
         std::cout << "tgt_insert_args: " << +n 

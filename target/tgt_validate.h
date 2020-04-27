@@ -28,13 +28,21 @@
  * Each validator has 4 virtual methods. 
  *
  * ok        (arg, fits)              : returns `fits_result`
- * size      (arg, info, fits, size&) : updates `size` if `ok`. returns `ok`
+ * size      (arg, mcode, info, fits, size&) : updates `size`. return `fits_result`
  * get_value (arg)                    : get unsigned value for formatter insertion
  * set_arg   (arg, value)             : generate `arg` with formatter extracted `value`
  *                                    NB: `set_mode(mode)` executed after value extracted
  *
- * NB: `ok` validator presumed to store register values
+ * The `ok` validator checks basic `arg` charactistics.
+ * The `size` validator presumes `ok` has passed. It also validates `info` values.
+ * 
+ * The theory is that a insn consists of base opcode (represented by `mcode`) and
+ * parsed attributes from the actual opcode (such as condition code & and argument
+ * type (width)). The `ok` validator is used to quickly eliminate clearly incompatible
+ * arguments (such as the wrong register type, or an immediate value for register arg).
+ * `ok` basically works on the `ARG_MODE`. 
  *
+ * The `size` validator checks that all requirements on the arguement are met.
  *
  *****************************************************************************
  *
@@ -81,20 +89,29 @@ struct tgt_validate
     using arg_t       = typename MCODE_T::arg_t;
     using stmt_info_t = typename MCODE_T::stmt_info_t;
 
+    // need constexpr ctor for literal type
+    constexpr tgt_validate() {}
+
     // if arg invalid for particular "size", error it out in `size` method
-    virtual fits_result ok  (arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const = 0;
-    virtual fits_result size(arg_t& arg, stmt_info_t const& info, expr_fits const& fits, op_size_t&) const
+    virtual fits_result ok  (arg_t& arg, expr_fits const& fits) const = 0;
+    virtual fits_result size(arg_t& arg, MCODE_T const& mc, stmt_info_t const& info
+                           , expr_fits const& fits, op_size_t&) const
     { 
         // default: return "fits", don't update size
-        return ok(arg, info, fits);
+        return ok(arg, fits);
     }
 
     // insert & extract values from opcode
     virtual unsigned get_value(arg_t& arg)           const { return {}; }
-    virtual bool     has_data (arg_t& arg)           const { return true; }
     virtual void     set_arg  (arg_t& arg, unsigned) const {}
+
+#if 1
+    // XXX method not used. marked for pending delete
+    // tell emit that arg data follows opcode
+    virtual bool     has_extension(arg_t& arg)       const { return true; }
+#endif  
     // NB: literal types can't define dtors
-    // virtual ~tgt_validate() = default;
+    //virtual ~tgt_validate() = default;
 };
 
 
@@ -239,7 +256,7 @@ struct tgt_val_reg : MCODE_T::val_t
     constexpr bool is_single_register() const { return r_num != static_cast<reg_value_t>(~0); } 
    
     // test argument against validation
-    fits_result ok(arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
         if (!derived().is_mode_ok(arg))
             return fits.no;
@@ -289,7 +306,7 @@ struct tgt_val_range : MCODE_T::val_t
     constexpr tgt_val_range(int32_t min, int32_t max, int8_t zero = 0, int8_t size = 0)
                             : min(min), max(max), zero(zero), _size(size) {}
 
-    fits_result range_ok(arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const
+    fits_result range_ok(arg_t& arg, expr_fits const& fits) const
     {
         if (auto p = arg.get_fixed_p())
         {
@@ -302,24 +319,24 @@ struct tgt_val_range : MCODE_T::val_t
 
     }
 
-    fits_result ok(arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
         // range is only for immediate args
         switch (arg.mode())
         {
             case arg_mode_t::MODE_IMMEDIATE:
             case arg_mode_t::MODE_IMMED_QUICK:
-                return range_ok(arg, info, fits);
+                return range_ok(arg, fits);
             default:
                 return fits.no;
         }
     }
 
-    fits_result size(arg_t& arg, stmt_info_t const& info, expr_fits const& fits
-                                                    , op_size_t& op_size) const override
+    fits_result size(arg_t& arg, MCODE_T const& mc, stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& op_size) const override
     {
         if (_size) op_size += _size;
-        return ok(arg, info, fits);
+        return ok(arg, fits);
     }
 
     // get value to store in register

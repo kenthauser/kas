@@ -32,7 +32,7 @@ struct val_reg_gen: z80_mcode_t::val_t
     constexpr val_reg_gen() {}
 
     // test argument against validation
-    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -61,7 +61,7 @@ struct val_reg_gen: z80_mcode_t::val_t
     }
     
     // registers by themselves have no size. But IX/IY offsets do
-    fits_result size(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits, op_size_t& insn_size) const override
+    fits_result size(z80_arg_t& arg, z80_mcode_t const & mc, stmt_info_t const& info, expr_fits const& fits, op_size_t& insn_size) const override
     {
         switch (arg.mode())
         {
@@ -92,7 +92,7 @@ struct val_reg_gen: z80_mcode_t::val_t
         }
     }
 
-    bool has_data(z80_arg_t& arg) const override
+    bool has_extension(z80_arg_t& arg) const override
     {
         switch (arg.mode())
         {
@@ -105,7 +105,7 @@ struct val_reg_gen: z80_mcode_t::val_t
                 return false;
         }
     }
-    
+
     void set_arg(z80_arg_t& arg, unsigned value) const override
     {
         // set reg to general register, HL, IX, or IY as appropriate
@@ -129,7 +129,7 @@ struct val_reg_dbl: z80_mcode_t::val_t
 {
     constexpr val_reg_dbl(int16_t r_class = -1) : r_class(r_class) {}
 
-    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -199,7 +199,7 @@ struct val_indir_idx : z80_mcode_t::val_t
 {
     constexpr val_indir_idx() {}
 
-    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
     {
         switch (arg.mode())
         {
@@ -250,7 +250,7 @@ struct val_indir_bc_de : val_reg
     constexpr val_indir_bc_de() : val_reg(RC_DBL) {}
 
     // test argument against validation
-    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
     {
         if (arg.mode() != MODE_REG_INDIR)
             return fits.no;
@@ -280,7 +280,7 @@ struct val_jrcc : val_reg
     constexpr val_jrcc() : val_reg(RC_CC) {}
 
     // test argument against validation
-    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
     {
         if (arg.mode() != MODE_REG)
             return fits.no;
@@ -309,11 +309,11 @@ struct val_range : tgt::opc::tgt_val_range<z80_mcode_t>
     using base_t = tgt_val_range<z80_mcode_t>;
     using base_t::base_t;
 
-    fits_result ok(arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
         if (arg.mode() == arg_mode_t::MODE_DIRECT)
-            return base_t::range_ok(arg, info, fits);
-        return base_t::ok(arg, info, fits);
+            return base_t::range_ok(arg, fits);
+        return base_t::ok(arg, fits);
     }
 };
 
@@ -322,7 +322,7 @@ struct val_restart : z80_mcode_t::val_t
 {
     constexpr val_restart() {}
 
-    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
     {
         // range is only for direct args
         if (arg.mode() != MODE_DIRECT)
@@ -367,7 +367,7 @@ struct val_indir : z80_mcode_t::val_t
 {
     constexpr val_indir(uint16_t size) : _size(size) {}
 
-    fits_result ok(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
     {
         if (arg.mode() != MODE_INDIRECT)
             return fits.no;
@@ -379,10 +379,11 @@ struct val_indir : z80_mcode_t::val_t
     }
 
     // immediates may be inserted in opcode, or added data
-    fits_result size(z80_arg_t& arg, stmt_info_t const& info, expr_fits const& fits, op_size_t& insn_size) const override
+    fits_result size(z80_arg_t& arg, z80_mcode_t const& mc, stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& insn_size) const override
     {
         insn_size += _size;
-        return ok(arg, info, fits);
+        return ok(arg, fits);
     }
 
     uint16_t _size;

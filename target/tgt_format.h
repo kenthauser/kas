@@ -176,7 +176,7 @@ struct tgt_fmt_generic : MCODE_T::fmt_t::fmt_impl
              code &= ~(MASK << SHIFT);
              code |= (value & MASK) << SHIFT;
         op[WORD]   = code;
-        return !arg.has_data();
+        return !val_p->has_extension(arg);
     }
 
     void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const override

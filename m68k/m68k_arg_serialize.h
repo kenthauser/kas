@@ -15,14 +15,14 @@
 namespace kas::m68k
 {
 
-template <typename Inserter, typename ARG_INFO>
-bool m68k_arg_t::serialize (Inserter& inserter, m68k_stmt_info_t const& info, ARG_INFO *info_p)
+template <typename Inserter, typename WB_INFO>
+bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
 {
-    auto save_expr = [&](auto expr, auto size) -> bool
+    auto save_expr = [&](auto expr, int bytes) -> bool
         {
-            // if longer that LONG, save as expr
-            if (size > 4)
-                size = 0;
+            // if longer than LONG, save as expr
+            if (bytes > 4)
+                bytes = 0;
 
             // suppress writes of zero
             auto p = expr.get_fixed_p();
@@ -40,11 +40,11 @@ bool m68k_arg_t::serialize (Inserter& inserter, m68k_stmt_info_t const& info, AR
                 using fmt = typename e_float_t::object_t::fmt;
 #if 1
                 if (!p)
-                    fmt::ok_for_fixed(expr, size * 8);
+                    fmt::ok_for_fixed(expr, bytes * 8);
 #endif
             }
 #endif
-            return !inserter(std::move(expr), size);
+            return !inserter(std::move(expr), bytes);
         };
     
     // here the `has_reg` bit may be set spuriously
@@ -124,7 +124,7 @@ bool m68k_arg_t::serialize (Inserter& inserter, m68k_stmt_info_t const& info, AR
     }
 
     if (info_p->has_data)
-        return save_expr(expr, size(info).max);
+        return save_expr(expr, size(sz).max);
 
     // didn't save expression
     return false;
@@ -133,15 +133,16 @@ bool m68k_arg_t::serialize (Inserter& inserter, m68k_stmt_info_t const& info, AR
 
 // deserialize m68k arguments: for format, see above
 // save pointer `extension_t` word if present
-template <typename Reader, typename ARG_INFO>
-void m68k_arg_t::extract(Reader& reader, m68k_stmt_info_t const& info, ARG_INFO const *info_p, m68k_extension_t **wb_p)
+template <typename Reader>
+void m68k_arg_t::extract(Reader& reader, uint8_t sz, arg_serial_t *serial_p)
 {
-    if (info_p->has_reg)
+    using reg_tok = meta::_t<expression::token_t<reg_t>>;
+    
+    if (serial_p->has_reg)
     {
-        // register stored as expression
-        reg_p = reader.get_expr().template get_p<m68k_reg_t>();
-        if (!reg_p)
-            throw std::logic_error{"m68k_arg_t::extract: has_reg"};
+        // register stored as index
+        auto reg_idx = reader.get_fixed(sizeof(typename reg_t::reg_name_idx_t));
+        reg_p = &reg_t::get(reg_idx);
     } 
     
     // need to special case INDEX to match code above
@@ -151,11 +152,11 @@ void m68k_arg_t::extract(Reader& reader, m68k_stmt_info_t const& info, ARG_INFO 
 
         // get extension word
         auto& wb_ext = decltype(ext)::cast(reader.get_fixed_p(2));
-        *wb_p = &wb_ext;
+        //*wb_p = &wb_ext;
         ext = wb_ext;
 
         // get inner expression if stored
-        if (info_p->has_expr)       // `has_expr` mapped to `inner_has_expr`
+        if (serial_p->has_expr)       // `has_expr` mapped to `inner_has_expr`
             expr = reader.get_expr();
         else
         {
@@ -180,7 +181,7 @@ void m68k_arg_t::extract(Reader& reader, m68k_stmt_info_t const& info, ARG_INFO 
         }
 
         // get outer expression if stored
-        if (info_p->has_data)       // `has_data` mapped to `outer_has_expr`
+        if (serial_p->has_data)       // `has_data` mapped to `outer_has_expr`
             outer = reader.get_expr();
         else if (ext.outer())
         {
@@ -205,11 +206,11 @@ void m68k_arg_t::extract(Reader& reader, m68k_stmt_info_t const& info, ARG_INFO 
         }
     }
 
-    else if (info_p->has_expr)
+    else if (serial_p->has_expr)
     {
         expr = reader.get_expr();
     }
-    else if (info_p->has_data)
+    else if (serial_p->has_data)
     {
         // get size of fixed data to read
         // NB: can't use generic `size()` because `expr` is zero
@@ -226,7 +227,7 @@ void m68k_arg_t::extract(Reader& reader, m68k_stmt_info_t const& info, ARG_INFO 
                 break;
             case MODE_IMMEDIATE:
                 // immed is signed
-                bytes = -immed_info(info.sz()).sz_bytes;
+                bytes = -immed_info(sz).sz_bytes;
                 break;
             case MODE_ADDR_DISP_LONG:
             case MODE_DIRECT_LONG:
@@ -237,6 +238,9 @@ void m68k_arg_t::extract(Reader& reader, m68k_stmt_info_t const& info, ARG_INFO 
         }
         expr = reader.get_fixed(bytes);
     }
+    
+    // save write-back pointer to serialized data
+    wb_serial_p = serial_p;
 }
 
 }

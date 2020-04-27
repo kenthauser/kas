@@ -37,6 +37,8 @@ struct tgt_arg_t : parser::kas_position_tagged
     using derived_t     = Derived;
     using arg_mode_t    = MODE_T;
 
+    using arg_serial_t  = typename opc::detail::arg_serial_t;
+
     // if `STMT_INFO_T` is void, use default type
     using stmt_info_t   = meta::if_<std::is_void<STMT_INFO_T>
                                   , struct tgt_stmt_info_t
@@ -127,8 +129,7 @@ public:
     }
 
     // validate methods
-    template <typename...Ts>
-    kas::parser::kas_error_t ok_for_target(Ts&&...) 
+    kas::parser::kas_error_t ok_for_target(uint8_t sz) 
     {
         auto error = [this](const char *msg)
             {
@@ -171,12 +172,12 @@ public:
     bool serialize(Inserter& inserter, uint8_t sz, WB_INFO *wb_p);
     
     template <typename Reader>
-    void extract(Reader& reader, uint8_t sz, opc::detail::arg_serial_t *);
+    void extract(Reader& reader, uint8_t sz, arg_serial_t *);
 
     // emit args as addresses or immediate args
     void emit      (core::emit_base& base, uint8_t sz) const;
     void emit_immed(core::emit_base& base, uint8_t sz) const;
-    void emit_flt  (core::emit_base& base, uint8_t sz, uint8_t fmt) const;
+    void emit_float(core::emit_base& base, uint8_t sz, uint8_t fmt) const;
 
     parser::kas_error_t set_error(const char *msg)
     {
@@ -199,15 +200,15 @@ public:
     regset_t const *regset_p {};
     parser::kas_error_t err; 
 
-private:
+protected:
     friend std::ostream& operator<<(std::ostream& os, tgt_arg_t const& arg)
     {
         arg.derived().print(os);
         return os;
     }
 
-    opc::detail::arg_serial_t *wb_serial_p {};    // writeback pointer into serialized data
-    arg_mode_t _mode          { MODE_NONE };
+    arg_serial_t *wb_serial_p {};           // writeback pointer into serialized data
+    arg_mode_t    _mode       { MODE_NONE };
 };
 
 }

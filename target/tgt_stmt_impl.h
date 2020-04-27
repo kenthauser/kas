@@ -238,10 +238,12 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
     if (args.front().is_missing())
         return {};
 
+    // get size of operand
+    auto sz = derived().get_info().sz(*insn_p->mcodes.front());
     for (auto& arg : args)
     {
         // if not supported, return error
-        if (auto diag = arg.ok_for_target(derived().get_info()))
+        if (auto diag = arg.ok_for_target(sz))
             return diag;
 
         // test if constant    

@@ -169,7 +169,7 @@ struct fmt_reg_pair : m68k_mcode_t::fmt_t::fmt_impl
         // XXX if pair is resolved to same reg twice, should disassembler report
         // XXX `REG` or `REG:REG`. I belive all insns assemble the same with
         // XXX REG & REG:REG.
-        auto get_reg = [](unsigned n)
+        auto get_reg = [](unsigned n) -> m68k_reg_t const&
             {
                 auto mode = (n & 8) ? MODE_ADDR_REG : MODE_DATA_REG;
                 return m68k_reg_t::find(mode, n & 7);

@@ -182,15 +182,16 @@ int tgt_arg_t<Derived, M, I, R, RS>
             return derived().immed_info(sz).sz_bytes;
     }
 }
-
-// true if extension data needed for 
+#if 1
+// true if extension data needed for `arg_info` 
 template <typename Derived, typename M, typename I, typename R, typename RS>
 auto tgt_arg_t<Derived, M, I, R, RS>
                 ::has_data() const -> bool
+//                ::has_arg_info() const -> bool
 { 
     return derived().size(0) && !expr.empty();
 }
-
+#endif
 
 // save argument in serialized format
 // NB: `serialize` can trash `arg` instance. 
@@ -200,10 +201,8 @@ template <typename Inserter, typename WB>
 bool tgt_arg_t<Derived, M, I, R, RS>
             ::serialize(Inserter& inserter, uint8_t sz, WB *wb_p)
 {
-    auto save_expr = [&](auto sz) -> bool
+    auto save_expr = [&](auto bytes) -> bool
         {
-            auto bytes = derived().size(sz);          // extension bytes
-
             // suppress writes of zero size or zero value
             auto p = get_fixed_p();
             if ((p && !*p) || !bytes)
@@ -237,7 +236,7 @@ bool tgt_arg_t<Derived, M, I, R, RS>
     
     // get size of expression
     if (wb_p->has_data)
-        return save_expr(sz);
+        return save_expr(derived().size(sz));   // calculate size in bytes
 
     // no-reg. no-data. no-expr.
     return false;
@@ -250,7 +249,7 @@ bool tgt_arg_t<Derived, M, I, R, RS>
 template <typename Derived, typename M, typename I, typename R, typename RS>
 template <typename Reader>
 void tgt_arg_t<Derived, M, I, R, RS>
-            ::extract(Reader& reader, uint8_t sz, opc::detail::arg_serial_t *serial_p)
+            ::extract(Reader& reader, uint8_t sz, arg_serial_t *serial_p)
 {
     using reg_tok = meta::_t<expression::token_t<reg_t>>;
     
@@ -290,7 +289,7 @@ void tgt_arg_t<Derived, M, I, R, RS>
 }
 
 // default implementation for `emit` argument.
-// sizeof data emitted must match `size()`
+// sizeof data emitted must match value returned from `tgt_arg_t::size()`
 template <typename Derived, typename M, typename I, typename R, typename RS>
 auto tgt_arg_t<Derived, M, I, R, RS>
             ::emit(core::emit_base& base, uint8_t sz) const -> void
@@ -333,7 +332,7 @@ void tgt_arg_t<Derived, M, I, R, RS>
     {
         // CASE: emit formatted as floating point
         if (info.flt_fmt)
-            return derived().emit_flt(base, info.sz_bytes, info.flt_fmt);
+            return derived().emit_float(base, info.sz_bytes, info.flt_fmt);
 
         // CASE: emit floating point as fixed
         // NB: a previous `fmt::ok_for_fixed` should have converted all inappropriate
@@ -357,7 +356,7 @@ void tgt_arg_t<Derived, M, I, R, RS>
 template <typename Derived, typename arg_mode_t, typename reg_t, typename regset_t>
 std::enable_if_t<!std::is_void_v<expression::e_float_t>>
 void tgt_arg_t<Derived, arg_mode_t, reg_t, regset_t>
-            ::emit_flt(core::emit_base& base, uint8_t bytes, uint8_t flt_fmt) const
+            ::emit_float(core::emit_base& base, uint8_t bytes, uint8_t flt_fmt) const
 {
     // get floating point `object` format (from `ref_loc`)
     using flt_t       = typename expression::e_float_t::object_t;

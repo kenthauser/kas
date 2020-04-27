@@ -103,25 +103,28 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     static const tgt::tgt_immed_info sz_info[];
 
     // override `size`
-    op_size_t size(m68k_stmt_info_t const&, expression::expr_fits const *fits_p = {}, bool *is_signed = {});
+    op_size_t size(uint8_t sz, expression::expr_fits const *fits_p = {}, bool *is_signed = {});
 
     // support for `access-mode` validation
     uint16_t am_bitset() const;
 
     // serialize arg into `insn data` area
-    template <typename Inserter, typename ARG_INFO>
-    bool serialize(Inserter& inserter, m68k_stmt_info_t const&, ARG_INFO *);
+    template <typename Inserter, typename WB_INFO>
+    bool serialize(Inserter& inserter, uint8_t sz, WB_INFO *);
     
     // extract serialized arg from `insn data` area
-    template <typename Reader, typename ARG_INFO>
-    void extract(Reader& reader, m68k_stmt_info_t const&, ARG_INFO const*, m68k_extension_t **);
+    template <typename Reader>
+    void extract(Reader& reader, uint8_t sz, arg_serial_t *);
 
     // restore arg to `extracted` value for new iteration of `size`
     template <typename ARG_INFO>
     void restore(ARG_INFO const*, m68k_extension_t const *);
 
     // emit arg & relocations based on mode & info
-    void emit(core::emit_base& base, m68k_stmt_info_t const&);
+    // `m68k` has various special modes which must be interpreted
+    // NB: emit_immed & emit_float not overridden
+    void emit(core::emit_base& base, uint8_t sz);
+
 
     // true if all `expr` and `outer` are registers or constants 
     bool is_const () const;
@@ -141,7 +144,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     }
 
     // validate if arg suitable for target
-    kas::parser::kas_error_t ok_for_target(m68k_stmt_info_t const&);
+    kas::parser::kas_error_t ok_for_target(uint8_t sz);
 
     expr_t           outer;             // for '020 PRE/POST index addess modes
     m68k_arg_subword reg_subword {};    // for coldfire H/L subword access

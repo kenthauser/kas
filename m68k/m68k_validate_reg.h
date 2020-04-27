@@ -83,7 +83,7 @@ struct val_am : m68k_mcode_t::val_t
                 : match {am}, _mode(_mode), _reg(_reg) {}
 
     // test argument against validation
-    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         // basic AM mode match
         if ((arg.am_bitset() & match) != match)
@@ -100,13 +100,14 @@ struct val_am : m68k_mcode_t::val_t
     }
 
     // bytes required by arg: registers never require extra space, but "extensions" may..
-    fits_result size(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits, op_size_t& op_size) const override
+    fits_result size(m68k_arg_t& arg, m68k_mcode_t const& mc, m68k_stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& op_size) const override
     {
         // regset baked into base size
         if (match == AM_REGSET)
             return fits.yes;
 
-        auto arg_size = arg.size(info, &fits);
+        auto arg_size = arg.size(info.sz(mc), &fits);
         if (arg_size.is_error())
             return fits.no;
 
@@ -166,7 +167,7 @@ struct val_reg : m68k_mcode_t::val_t
     constexpr val_reg(uint16_t r_class, int16_t r_num = -1) : r_class{r_class}, r_num(r_num) {}
 
     // test argument against validation
-    fits_result ok(m68k_arg_t& arg, m68k_stmt_info_t const& info, expr_fits const& fits) const override
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         // must special case ADDR_REG & DATA_REG as these are
         // stored as a "arg.mode()": (magic number alert...).

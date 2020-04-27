@@ -23,7 +23,7 @@ namespace kas::m68k
 using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t, unsigned, 32>;
 
 // info: accumulate info from parsing insn not captured in `args`
-// NB: bitfields don't zero-init. use support type
+// NB: bitfields don't zero-init. use `aliagn_as` support type
 struct m68k_stmt_info_t : detail::alignas_t<m68k_stmt_info_t, uint16_t>
 {
     using base_t::base_t;
@@ -31,8 +31,8 @@ struct m68k_stmt_info_t : detail::alignas_t<m68k_stmt_info_t, uint16_t>
 
     // `bind` updates info for mcode under evaluation
     // NB: `bound_sz` inited to `arg_size` in parser.
-    void bind(mcode_t const&) const;
-    uint8_t sz(mcode_t const&) const { return bound_sz; }
+    //void bind(mcode_t const&) const;
+    uint8_t sz(mcode_t const&) const;
 
     void print(std::ostream&) const;
 
@@ -48,7 +48,7 @@ struct m68k_stmt_info_t : detail::alignas_t<m68k_stmt_info_t, uint16_t>
     value_t fp_ccode  : 1;      // is floating point conditional
 
     // bound_sz is mutable so rest of `info_t` doesn't need to be saved & restored 
-    mutable value_t bound_sz  : 3;      // (for validate/emit: sz for this mcode)
+    //mutable value_t bound_sz  : 3;      // (for validate/emit: sz for this mcode)
 };
 
 

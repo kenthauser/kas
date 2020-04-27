@@ -5,7 +5,7 @@
 // included in "parser/parser_variant.h"
 
 #include "bsd/bsd_parser_types.h"
-//#include "m68k/m68k_parser_types.h"
-#include "z80/z80_parser_types.h"
+#include "m68k/m68k_parser_types.h"
+//#include "z80/z80_parser_types.h"
 
 #endif

@@ -23,7 +23,7 @@ const tgt::tgt_immed_info m68k_arg_t::sz_info [] =
         , {  0  }                                       // 7: VOID
     };
 
-auto m68k_arg_t::ok_for_target(m68k_stmt_info_t const& info) -> kas::parser::kas_error_t
+auto m68k_arg_t::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
 {
     auto error = [this](const char *msg)
         {
@@ -43,7 +43,6 @@ auto m68k_arg_t::ok_for_target(m68k_stmt_info_t const& info) -> kas::parser::kas
     }
 
     // perform checks 
-    auto sz = info.sz();
 
     // 1. can't access address register as byte
     if (mode() == MODE_ADDR_REG && sz == OP_SIZE_BYTE)

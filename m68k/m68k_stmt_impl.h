@@ -110,7 +110,7 @@ const char *m68k_stmt_t::validate_mcode(mcode_t const *mcode_p) const
 // Handle instruction with no suffix but implied size.
 // Think "link" and "trap".
 // Actual mcode size is extracted from `mcode.defn()`
-void m68k_stmt_info_t::bind(m68k_mcode_t const& mc) const
+uint8_t m68k_stmt_info_t::sz(m68k_mcode_t const& mc) const
 {
     auto sz = arg_size;
     if (sz == OP_SIZE_VOID)
@@ -126,7 +126,7 @@ void m68k_stmt_info_t::bind(m68k_mcode_t const& mc) const
         else if (defn_sz == (1 << OP_SIZE_BYTE))
             sz = OP_SIZE_BYTE;
     }
-    bound_sz = sz;
+    return sz;
 }
 
 void m68k_stmt_info_t::print(std::ostream& os) const
