@@ -64,7 +64,8 @@
 // Raw strings not implemented
 //
 
-#include "literal_types.h"
+#include "literal_float.h"
+//#include "literal_string.h"
 #include <stdexcept>
 #include <cassert>
 

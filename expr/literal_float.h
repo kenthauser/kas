@@ -106,82 +106,9 @@ private:
     value_type value;
 };
 
-template <typename REF>
-struct kas_string_t : core::kas_object<kas_string_t<REF>, REF>
-{
-    using base_t      = core::kas_object<kas_string_t<REF>, REF>;
-    using emits_value = std::true_type;
-    using ref_t       = REF;
-
-    using base_t::index;
-        
-    // access ctor thru static `base_t::add` method
-    kas_string_t(uint8_t ch_size = 1, uint8_t unicode = false)
-        : ch_size_(ch_size), unicode_(unicode) {}
-
-    kas_string_t(const char *p) : kas_string_t()
-    {
-        while (*p)
-            data.push_back(*p++);
-    }
-
-private:
-    // create utf-8 std::string
-    // XXX move to `_impl` header
-    std::string& get_str() const
-    {
-        if (c_str_.empty()) {
-            std::ostringstream os;
-            os << std::hex << "\"";
-
-            for (auto ch : data) {
-                // if control-character: display as hex
-                if (ch <= 0x1f)
-                    os << std::setw(2) << ch;
-                else if (ch < 0x7f)
-                    os << static_cast<char>(ch);
-                else if (is_unicode() && ch <= 0xffff)
-                    os << "U+" << std::setw(4) << ch << " ";
-                else if (is_unicode() && ch_size_ > 1)
-                    os << "U+" << std::setw(6) << ch << " ";
-                else
-                    os << "\\x" << std::setw(ch_size_ * 2);
-            }
-            os << "\"";
-            c_str_ = os.str();
-        }
-        return c_str_;
-    }
-
-public:
-    // string manipulation methods
-    auto  begin()      const { return data.begin(); }
-    auto  end()        const { return data.end();   }
-    auto  size()       const { return data.size();  }
-    auto  ch_size()    const { return ch_size_;     }
-    bool  is_unicode() const { return unicode_;     }
-    void  push_back(uint32_t ch) { data.push_back(ch); }
-    auto  c_str() const { return get_str().c_str();   }
-
-    // template <typename OS>
-    // friend OS& operator<<(OS& os, kas_string_t const& str)
-    //     { return os << str.get_str(); }
-    template <typename OS>
-    void print(OS& os) const
-        { os << get_str(); }
-
-private:
-    std::vector<uint32_t> data;
-    mutable std::string c_str_;
-    uint8_t ch_size_;       // sizeof(T)
-    uint8_t unicode_;       // bool: is_unicode<>
-    static inline core::kas_clear _c{base_t::obj_clear};
-};
-
-
-// support largest int by host
+  // support largest int by host
 // holds values that are too big for `e_fixed_t`
-
+#if 0
 template <typename REF>
 struct bigint_host_t : core::kas_object<bigint_host_t<REF>, REF>
 {
@@ -197,15 +124,7 @@ private:
     value_type value {};
     static inline core::kas_clear _c{base_t::obj_clear};
 };
-}
-#if 1
-namespace kas::expression
-{
-// decalare
-// XXX 
-//using kas_bigint_host = core::ref_loc_tpl<detail::bigint_host_t>;
-using kas_string      = core::ref_loc_tpl<detail::kas_string_t>;
-}
 #endif
+}
 #endif
 

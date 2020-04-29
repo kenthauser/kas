@@ -1,7 +1,7 @@
 #ifndef KAS_EXPR_LITERAL_STRING_H
 #define KAS_EXPR_LITERAL_STRING_H
 
-// declare assembler FLOATING & STRING literal types
+// declare assembler STRING literal type
 
 // since both strings & floating point types won't fit in a 32-bit int
 // (or even a 64-bit int), allocate each on a private deque & reference
@@ -20,90 +20,65 @@
 #include <boost/range/iterator_range.hpp>
 #include <iomanip>
 
-namespace kas::expression
+#include <limits>
+
+namespace kas::expression::detail
 {
+namespace x3 = boost::spirit::x3;
+
+// basic kas_string: use `ref` for begin/end
+template <typename REF>
+struct kas_string_obj : core::kas_object<kas_string_obj<REF>, REF>
+{
+    using base_t      = core::kas_object<kas_string_obj<REF>, REF>;
+    using emits_value = std::true_type;
+    using ref_t       = REF;
+
+    using base_t::index;
+    using base_t::base_t;       // default ctor
 
 
-namespace detail {
-
-    using kas_string = core::ref_loc_t<struct kas_string_t>;
-
-    struct kas_string_t : core::kas_object<kas_string_t, kas_string>
+    std::string operator()() const
     {
-        using emits_value = std::true_type;
-        using ref_t       = kas_string;
+        return this->loc().src();
+    }
 
-        using base_t::index;
+    // named method easier to call with pointer 
+    auto value() const { return (*this)(); }
+};
 
-        enum ks_coding : uint8_t { KS_STR, KS_WIDE, KS_U8, KS_U16, KS_U32 };
+template <typename T = char>
+struct quoted_string_p : x3::parser<quoted_string_p<T>>
+{
+    using attribute_type = T;
+    static bool const has_attribute = true;
 
-        kas_string_t(kas_position_t loc, ks_codeing coding = KS_STR)
-                : kas_string_t(loc.first, loc.last, coding) {}
+    template <typename Iterator, typename Context, typename Attribute>
+    bool parse(Iterator& first, Iterator const& last
+      , Context const& context, x3::unused_type, Attribute& attr) const
+    {
+        using char_t = typename Iterator::value_type;
+        x3::skip_over(first, last, context);
+        if (*first != '"')
+            return false;
 
-        template <typename Iter>
-        kas_string_t(Iter const& first, Iter const& last, ks_coding coding = KS_STR)
-            : s_string{get_string(first, last, coding)}, s_coding(coding) {}
-
-        template <typename Iter>
-        void *get_string(Iter const& first, Iter const& last, ks_coding coding);
-
-    private:
-        // create utf-8 std::string
-        // XXX move to support .cc file
-        std::string& get_str() const
+        auto iter = first;      // don't move on fail
+        for (auto start = ++iter; iter != last; ++iter)
         {
-            if (c_str_.empty()) {
-                std::ostringstream os;
-                os << std::hex << "\"";
-
-                for (auto ch : data) {
-                    // if control-character: display as hex
-                    if (ch <= 0x1f)
-                        os << std::setw(2) << ch;
-                    else if (ch < 0x7f)
-                        os << static_cast<char>(ch);
-                    else if (is_unicode() && ch <= 0xffff)
-                        os << "U+" << std::setw(4) << ch << " ";
-                    else if (is_unicode() && ch_size_ > 1)
-                        os << "U+" << std::setw(6) << ch << " ";
-                    else
-                        os << "\\x" << std::setw(ch_size_ * 2);
-                }
-                os << "\"";
-                c_str_ = os.str();
-            }
-            return c_str_;
-        }
-
-    public:
-
-#if 0
-        // string manipulation methods
-        auto  begin()      const { return data.begin(); }
-        auto  end()        const { return data.end();   }
-        auto  size()       const { return data.size();  }
-        auto  ch_size()    const { return ch_size_;     }
-        bool  is_unicode() const { return unicode_;     }
-        void  push_back(uint32_t ch) { data.push_back(ch); }
-        auto  c_str() const { return get_str().c_str();   }
-
-        // template <typename OS>
-        // friend OS& operator<<(OS& os, kas_string_t const& str)
-        //     { return os << str.get_str(); }
-        template <typename OS>
-        void print(OS& os) const
-            { os << get_str(); }
-#endif
+            if (*iter != '"')
+                continue;
             
-    private:
-        void *s_string {};      // basic_string for s_coding
-        void *d_string {};      // basic_string for d_coding
-        ks_coding s_coding {};
-        ks_coding d_coding {};
-    };
+            // get result
+            std::basic_string<char_t> str{start, iter};
+            // update parse location
+            first = ++iter; // skip trailing quote
+            // convert attribute
+            x3::traits::move_to(str, attr);
+            return true;
+        }
+        return false;       // no trailing quotation mark
+    }
+};
 }
-
-// expose in expression namespace
-using kas_string = detail::kas_string;
-
 #endif
+

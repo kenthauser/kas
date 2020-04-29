@@ -8,7 +8,7 @@
 #include <type_traits>
 
 
-namespace kas {}
+namespace kas {}        // declare namespace
 namespace kas::expression
 {
 // forward declare various types
@@ -52,9 +52,9 @@ namespace detail
     // NB: The `float` & `string` defaults are `kas_object` types & thus
     // NB: can't be defined before `*_types.h` includes complete.
     // NB: Declare templates here & define defaults in `terminals.h`
-    template<typename = void> struct e_fixed : meta::id<int32_t> {};
-    template<typename = void> struct e_float;
-    template<typename = void> struct e_string;
+    template <typename = void> struct e_fixed : meta::id<int32_t> {};
+    template <typename = void> struct e_float;
+    template <typename = void> struct e_string;
 
     // declare info about processor targeted by assembler
     template<typename = void> struct e_data : meta::id< int32_t> {};

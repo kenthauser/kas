@@ -133,7 +133,7 @@ struct bsd_section_base :  opc_section
         
         else if (auto p = e.template get_p<expression::e_string_t>())
         {
-            sh_name = p->get().c_str();
+            sh_name = p->value().c_str();
         } 
         
         else
@@ -203,7 +203,7 @@ struct bsd_section_base :  opc_section
     template <typename T>
     const char *proc_elf_flags(T const& flags_p)
     {
-        for (auto p = flags_p->get().c_str(); *p; ++p) {
+        for (auto p = flags_p->value().c_str(); *p; ++p) {
             elf::Elf32_Word bsd_flag{};
             switch (*p) {
                 case 'a':

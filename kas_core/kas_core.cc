@@ -14,7 +14,7 @@
 #include "core_reloc_impl.h"
 //#include "emit_reloc_impl.h"
 
-#include "expr/literal_types.h"
+#include "expr/literal_float.h"
 
 namespace kas {
     using namespace expression;

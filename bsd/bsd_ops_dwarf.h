@@ -32,7 +32,7 @@ struct bsd_file : core::opc::opc_dw_file
         if (!name_p)
             return make_error(data, "file name required", *iter);
 
-        opc_dw_file::proc_args(data, index, name_p->get().c_str(), args.back());
+        opc_dw_file::proc_args(data, index, (*name_p)().c_str(), args.back());
     }
 };
 

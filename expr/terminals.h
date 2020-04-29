@@ -2,12 +2,13 @@
 #define KAS_EXPR_TERMINALS_H
 
 #include "expr_types.h"         // get base type templates
-#include "literal_types.h"      // get "literal" types (float/string/big-int)
+#include "literal_float.h"      // get "literal" types (float/string/big-int)
+#include "literal_string.h"
 #include "error_messages_base.h"
 #include "utility/reduce.h"
 #include "parser/token_defn.h"
 
-#include "c_int_parser.h"
+//#include "c_int_parser.h"
 
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/numeric.hpp>
@@ -36,9 +37,13 @@ namespace detail
     // x3 strict parser requires decimal point
     template <typename T>
     struct dflt_float_p : x3::real_parser<T, x3::strict_real_policies<T>> {};
-
+#if 0
     template <typename T>
     using dflt_string_p = x3::rule<struct _default_qs, T>;
+#else
+    template <typename T>
+    struct dflt_string_p : quoted_string_p<T> {};
+#endif
     
     // define default parsers: quoted on value-type
     template <typename> struct fixed_p      : id<quote<dflt_fixed_p>>  {};
@@ -64,7 +69,11 @@ namespace detail
 
     // set type default values
     template <typename> struct e_float  : meta::id<kas_float> {};
-    template <typename> struct e_string : meta::id<kas_string> {};
+    
+    using string_ref   = core::ref_loc_tpl<kas_string_obj>;
+    using kas_string_t = typename string_ref::object_t;
+
+    template <typename> struct e_string : meta::id<kas_string_t> {};
 }
 // declare aliases to reduce `mpl` noise...
 using e_fixed_t   = typename detail::e_fixed<>  ::type;
@@ -92,7 +101,7 @@ namespace detail
                                  , meta::invoke<detail::float_p<>::type, e_float_t>>;
     using tok_string = parser::token_defn_t<KAS_STRING("E_STRING")
                                  , e_string_t
-                                 , meta::invoke<detail::string_p<>::type, e_string_t>>;
+                                 , meta::invoke<detail::string_p<>::type, char>>;
 
 using expr_terminals = list<tok_fixed, tok_float, tok_string>;
 
@@ -104,11 +113,13 @@ using expr_terminals = list<tok_fixed, tok_float, tok_string>;
 #else
     // NB: need to remove "void" type & "void" parsers. Thus the `zip` list might be better
     // NB: probably better to make "large" `expr_terminals` type & filter there...
-    template<> struct term_types_v  <defn_expr> : meta::list<e_fixed_t, e_float_t, e_string_t> {};
+    template<> struct term_types_v  <defn_expr> : meta::list<e_fixed_t, e_float_t
+                                                    , detail::string_ref> {};
     //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_float, tok_string> {};
     //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_float> {};
     //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_string> {};
     template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_fixed> {};
+    //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_fixed, tok_string> {};
     //template<> struct term_parsers_v<defn_expr> : meta::list<x3::int_parser<e_fixed_t>> {};
 #endif
     // remove `void` types & parsers from lists

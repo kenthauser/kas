@@ -9,7 +9,7 @@
 // This implementation is derived from the information at those two sources
 //
 
-#include "expr/literal_types.h"
+#include "expr/literal_float.h"
 
 
 namespace kas::expression::detail
