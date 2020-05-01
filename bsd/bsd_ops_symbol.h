@@ -102,7 +102,7 @@ struct bsd_elf_type : opc_sym_type
             value = parser::get_symbol_type(*iter, true);
         else if (iter->is_token_type(tok_bsd_at_num()))
             value = *iter->get_fixed_p();
-        else if (iter->template get_p<core::symbol_ref>())
+        else if (iter->is_token_type(tok_bsd_ident()))
             value = parser::get_symbol_type(*iter, false);
 
         if (value < 0)

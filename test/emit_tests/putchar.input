@@ -95,7 +95,7 @@ queue:
 	.size	queue, .-queue
 	.align	2
 	.globl	mb_free
-	.type	mb_free, %function
+	.type	mb_free, @function
 mb_free:
 .LFB7:
 	.file 3 "mbuf.h"

@@ -53,13 +53,18 @@ struct token_defn_base
 // Deriving from `token_defn_t` required redefining `get()` method: likely error.
 
 // declared in `parser_types.h`
-template <typename NAME, typename VALUE_T = x3::unused_type, typename PARSER = void>
+template <typename NAME, typename VALUE_T = void, typename PARSER = void>
 struct token_defn_t : token_defn_base
 {
     using base_t   = token_defn_base;
     using name_t   = NAME;
-    using value_t  = VALUE_T;       // NB: value held by token
     using parser_t = PARSER;        // NB: iff parser is `type`
+
+    // default `value_t` to x3::unused_type
+    using value_t  = std::conditional_t<std::is_void_v<VALUE_T>
+                                      , x3::unused_type
+                                      , VALUE_T
+                                      >;
 
     using type     = token_defn_t;  // for MPL usage
 
@@ -71,7 +76,7 @@ struct token_defn_t : token_defn_base
     token_defn_t(kas_token const& token) : token_p(&token) {}
 
     // true iff can generate `parser` from `token_defn_t`
-    using has_parser = meta::bool_<!std::is_void_v<VALUE_T> && !std::is_void_v<PARSER>>;
+    using has_parser = meta::bool_<!std::is_void_v<PARSER>>;
 
     base_t const& get() const override
     {
@@ -100,7 +105,7 @@ struct token_defn_t : token_defn_base
     
     // method to retrieve & cast token `data` pointer
     // using `bound` instance of `token_defn_t`
-    VALUE_T const *operator()(kas_token const *p = {}) const;
+    value_t const *operator()(kas_token const *p = {}) const;
 
 private:
     friend kas_token;       // forward declared in `parser_types.h`

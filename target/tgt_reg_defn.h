@@ -32,7 +32,6 @@ struct tgt_reg_defn
     template <typename...NAMES, typename N, typename REG_C, typename REG_V, typename REG_TST>
     constexpr tgt_reg_defn(meta::list<meta::list<NAMES...>
                                      , meta::list<N, REG_C, REG_V, REG_TST>>)
-        // NB: {} initialization errors out if value doesn't fit in type
         : names     { (NAMES::value + 1)... }
         , reg_class { REG_C::value          }
         , reg_num   { REG_V::value          }
@@ -65,7 +64,7 @@ struct tgt_reg_defn
         {
             if (!name)
                 break;
-            os << prefix << name;
+            os << prefix << +name;
             prefix = ",";
         }
         os << " class="  << +d.reg_class;
@@ -84,8 +83,8 @@ namespace detail
     struct xlate
     {
         // unzip ALISES
-        using alias_from = transform<ALIASES, bind_back<quote<at>, int_<0>>>;
-        using alias_to   = transform<ALIASES, bind_back<quote<at>, int_<1>>>;
+        using alias_real_reg = transform<ALIASES, bind_back<quote<at>, int_<0>>>;
+        using alias_new_name = transform<ALIASES, bind_back<quote<at>, int_<1>>>;
 
         template <typename NAMES>
         struct do_xlate
@@ -94,13 +93,18 @@ namespace detail
             using type = do_xlate;
 
             // do `find_index` for all `alias_to` types
-            using xlate_to = concat<list<npos>, transform<alias_to, bind_front<quote<find_index>, front<NAMES>>>>;
+            using xlate_to = concat<list<npos>, transform<alias_new_name
+                                                        , bind_front<quote<find_index>
+                                                        , front<NAMES>
+                                                        >
+                                    >>;
             
             template <typename NAME>
-            using alias_index = at_c<xlate_to, find_index<alias_from, NAME>::value + 1>;                    
+            using alias_index = at_c<xlate_to, find_index<alias_real_reg, NAME>::value + 1>;                    
             
             template <typename DEFN>
-            using invoke = list<list<find_index<front<NAMES>, front<DEFN>>, alias_index<front<DEFN>>>
+            using invoke = list<list<find_index<front<NAMES>, front<DEFN>>
+                                   , alias_index<front<DEFN>>>
                               , DEFN
                               >;
         };
@@ -120,9 +124,14 @@ struct tgt_reg_adder
 
     using CTOR        = detail::xlate<ALIASES>;
     //using NAME_LIST   = typename DEFN_T::NAME_LIST;
-    using XTRA_NAMES  = typename CTOR::alias_to;
+    using XTRA_NAMES  = typename CTOR::alias_new_name;
     
-    using XLATE_LIST = meta::list<meta::list<const char *, typename DEFN_T::NAME_LIST, void, XTRA_NAMES>>;
+    using XLATE_LIST = meta::list<meta::list<const char *
+                                           , typename DEFN_T::NAME_LIST
+                                           , void
+                                           , XTRA_NAMES
+                                           >
+                                >;
 
 
     template <typename PARSER>
@@ -136,7 +145,7 @@ struct tgt_reg_adder
 #if 0
         // XLATE_LIST meta-fn doesn't work properly
         auto p = DEFN_T::names_base;
-        auto n = front<typename PARSER::all_types_defns>::size;
+        auto n = meta::front<typename PARSER::all_types_defns>::size;
         std::cout << "reg_names: ";
         while (n--)
             std::cout << *p++ << ", ";
@@ -158,12 +167,16 @@ struct tgt_reg_adder
 
         for (auto n = 0; n < count; ++n, ++p)
         {
+            // for each defn, lookup canonical name in x3 string parser.
+            // if not found, allocate an empty `tgt_reg` from obstack & register
+            // names from defn with `x3` parser to return `tgt_reg` object.
+            // finally, update `tgt_reg` object with defn.
+
             //std::cout << "reg_adder:" << *p;
             auto canonical = Reg_t::format_name(p->name());
             if (!x3.find(canonical))
             {
                 // create instance (numbering instances from 1)
-                //auto obj_p = &obstack.emplace_back(obstack.size() + 1);
                 auto obj_p = &OBJECT_T::add(canonical);
 
                 // add all names
@@ -185,8 +198,8 @@ struct tgt_reg_adder
                     }
                 }
             }
-            
-            x3.at(canonical)->add_defn(*p, n);
+            //std::cout << "reg_adder: adding defn for: " << canonical << std::endl; 
+            (*x3.find(canonical))->add_defn(*p, n);
         }
     }
 

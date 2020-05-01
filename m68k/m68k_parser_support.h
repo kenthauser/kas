@@ -83,13 +83,13 @@ enum { P_SCALE_1 = 0, P_SCALE_2 = 1, P_SCALE_4 = 2, P_SCALE_8 = 3,
 // hold register/expression + scale + size arg
 struct expr_size_scale
 {
-    kas_token   value;
+    kas_token   token;
     short       size;
     short       scale;
 
     friend std::ostream& operator<<(std::ostream& os, expr_size_scale const& e)
     {
-        return os << e.value << ", size=" << e.size << ", scale=" << e.scale << " ";
+        return os << e.token << ", size=" << e.size << ", scale=" << e.scale << " ";
     }
 };
 
@@ -115,7 +115,7 @@ enum : uint32_t { E_UNKN, E_ERROR, E_INT, E_EXPR, E_DATA, E_ADDR, E_PC, E_ZADDR,
 
 struct m68k_classify_expr
 {
-    m68k_classify_expr(kas_token const& e) : token(e) {}
+    m68k_classify_expr(expr_t const& e) : expr(e) {}
 
     auto operator()()
     {
@@ -181,7 +181,6 @@ private:
         }
     }
 
-    kas_token const& token;
     expr_t           expr;
     int              _value {};
     uint32_t         e_type {};
@@ -212,7 +211,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
         std::cout << +mode.mode << std::endl;
 
     std::cout << "base: " << base;
-    if (auto rp = base.value.get_p<m68k_reg_t>())
+    if (auto rp = base.token.get_p<m68k_reg_t>())
     {
         std::cout << " rc = " << +rp->kind() << " value = " << +rp->value();
         std::cout << ", ";
@@ -269,7 +268,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
     // if (mode.mode == PARSE_INDIR)
     //     return indirect();
 
-    auto& base_value = base.value;
+    auto& base_value = base.token.expr();
     // auto second;
 
     // direct parsed operands have a single "arg". See what it is.
@@ -387,7 +386,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 if (inner.size() != 1)
                     return { error_msg::ERR_bad_pair, base_value };
                 auto& second = inner.front();
-                return { MODE_PAIR, base_value, second.value.expr() };
+                return { MODE_PAIR, base_value, second.token.expr() };
             }
         case PARSE_BITFIELD:
             {
@@ -411,7 +410,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
 
                 auto& second = inner.front();
 
-                auto classify_width = m68k_classify_expr{second.value};
+                auto classify_width = m68k_classify_expr{second.token.expr()};
                 auto width = classify_width.value();
 
                 switch (classify_width())
@@ -424,9 +423,9 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                             break;
                         // FALLSTHRU
                     default:
-                        return { error_msg::ERR_bad_width, second.value };
+                        return { error_msg::ERR_bad_width, second.token};
                 }
-                return { MODE_BITFIELD, base_value, second.value.expr() };
+                return { MODE_BITFIELD, base_value, second.token.expr() };
             }
        
         // support motorola word/long expression specifier .w/.l
@@ -497,10 +496,10 @@ const char *classify_indirect_arg(It& it, IndexArg_t& idx, kas_token const *& er
 
     for (auto& arg : it)
     {
-        auto classify = m68k_classify_expr{arg.value};
+        auto classify = m68k_classify_expr{arg.token.expr()};
         auto kind = classify();
 
-        error_p = &arg.value;
+        error_p = &arg.token;
 
         switch (kind)
         {
@@ -532,7 +531,7 @@ const char *classify_indirect_arg(It& it, IndexArg_t& idx, kas_token const *& er
             idx.reg_num = classify.value();
             if (kind == E_ADDR)
                 idx.reg_num += 8;
-            idx.reg_p = &arg.value;
+            idx.reg_p = &arg.token;
 
             idx.index_scale = arg.scale;
             idx.index_size  = arg.size;
@@ -558,7 +557,7 @@ const char *classify_indirect_arg(It& it, IndexArg_t& idx, kas_token const *& er
             if (arg.scale != P_SCALE_AUTO)
                 return hw::index_scale::name();
 
-            idx.expr_p = &arg.value;
+            idx.expr_p = &arg.token;
 
             // ignore size specifications on displacements: calculate instead
             if (kind != E_INT)
@@ -607,7 +606,7 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
 #endif
     // NORMALIZE TO MIT
     // if !register base, swap for next in `inner` list
-    if (!base.value.get_p<m68k_reg_t>() && !mode.args.empty())
+    if (!base.token.get_p<m68k_reg_t>() && !mode.args.empty())
     {
         auto& inner_list = mode.args.front();
         inner_list.push_back(std::move(base));
@@ -633,7 +632,7 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
 
     index_arg first_arg;
     index_arg second_arg;
-    auto& base_value = base.value;
+    auto& base_value = base.token;
     auto const *error_p = &base_value;
 
     // analyze indirect arguments
@@ -653,10 +652,10 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
 
     // limit is 2
     if (ip != end)
-        return { error_msg::ERR_indirect, ip->front().value };
+        return { error_msg::ERR_indirect, ip->front().token};
 
     // now analyze base register
-    auto classify = m68k_classify_expr{base_value};
+    auto classify = m68k_classify_expr{base_value.expr()};
     auto kind = classify();
     switch (kind)
     {
@@ -796,7 +795,7 @@ mode
 
 BOOST_FUSION_ADAPT_STRUCT(
 kas::m68k::parser::expr_size_scale,
-value,
+token,
 size,
 scale
 )

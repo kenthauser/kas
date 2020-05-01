@@ -29,11 +29,13 @@ struct bsd_cfi_sections : core::opcode
 
         // grab first arg
         auto& e = args.front();
-
-        if (auto p = e.template get_p<core::symbol_ref>()) {
+#if 0
+        if (auto p = e.template get_p<core::symbol_ref>())
+        {
             auto& sym = p->get();
             //sym.set_flags(core::ST_TEMP);     // don't define as symbol just yet
         }
+#endif
     }
 };
 
@@ -47,9 +49,11 @@ struct bsd_cfi_startproc : opc_df_startproc
         if (auto err = opcode::validate_min_max(args, 0, 1))
             return make_error(data, err);
         bool omit_prologue = false;
-        if (!args.empty()) {
-            auto p = args.front().template get_p<core::symbol_ref>();
-            if (p && p->get().name() == "simple")
+        if (!args.empty())
+        {
+            // convert iter to ptr
+            auto p = &*args.front().begin();
+            if (p && !strcmp(p, "simple"))
                 omit_prologue = true;
             else
                 return make_error(data

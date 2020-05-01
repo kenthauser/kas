@@ -89,7 +89,7 @@ auto const dot_ident = token<tok_bsd_dot>['.' >> !bsd_charset];
 
 // parse "nothing"  as "missing" `token`
 // NB: also used for pseudo-ops with no args as "dummy" arg
-auto const missing = token<tok_bsd_missing>[eps];
+//auto const missing = token<tok_bsd_missing>[eps];
 
 // parser @ "tokens" (used by ELF)
 auto const at_token_initial = omit[char_("@%#")];
@@ -165,13 +165,13 @@ auto const space_arg  = rule<class _, bsd_arg>{"space_arg"}
 
 // comma_arg allows missing
 auto const comma_arg = rule<class _, bsd_arg>{"comma_arg"}
-        = space_arg | missing;
+        = space_arg | expression::tok_missing();
 
 // NB: allow comma separated or space separated (needed for .type)
 // NB: no arguments is parsed as [missing]
 auto const space_args = rule<class _, bsd::bsd_args> {}
         = space_arg >> (+space_arg | *(',' > space_arg))
-        | repeat(1)[missing];
+        | repeat(1)[expression::tok_missing()];
 
 // NB: no arguments is parsed as [missing]
 auto const comma_args = rule<class _, bsd::bsd_args> {}

@@ -37,20 +37,31 @@ struct kas_string_obj : core::kas_object<kas_string_obj<REF>, REF>
     using base_t::index;
     using base_t::base_t;       // default ctor
 
+    // should really store begin/end pair
+    kas_string_obj(std::string const& str, parser::kas_loc loc = {}) 
+        : str(str), base_t(loc) {}
 
-    std::string operator()() const
+public:
+    auto& operator()() const
     {
-        return this->loc().src();
+        return str;
     }
 
     // named method easier to call with pointer 
     auto value() const { return (*this)(); }
+
+private:
+    std::string str;
 };
 
-template <typename T = char>
+
+// parser returns pointer to string reference
+template <typename T>
 struct quoted_string_p : x3::parser<quoted_string_p<T>>
 {
-    using attribute_type = T;
+    using attribute_type = T const *;
+    using object_type    = T;
+
     static bool const has_attribute = true;
 
     template <typename Iterator, typename Context, typename Attribute>
@@ -58,6 +69,7 @@ struct quoted_string_p : x3::parser<quoted_string_p<T>>
       , Context const& context, x3::unused_type, Attribute& attr) const
     {
         using char_t = typename Iterator::value_type;
+
         x3::skip_over(first, last, context);
         if (*first != '"')
             return false;
@@ -69,11 +81,13 @@ struct quoted_string_p : x3::parser<quoted_string_p<T>>
                 continue;
             
             // get result
-            std::basic_string<char_t> str{start, iter};
+            std::string str(&*start, &*iter);
+            auto& value(object_type::add(str));
+            
             // update parse location
             first = ++iter; // skip trailing quote
             // convert attribute
-            x3::traits::move_to(str, attr);
+            x3::traits::move_to(&value, attr);
             return true;
         }
         return false;       // no trailing quotation mark

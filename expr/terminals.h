@@ -71,7 +71,7 @@ namespace detail
     template <typename> struct e_float  : meta::id<kas_float> {};
     
     using string_ref   = core::ref_loc_tpl<kas_string_obj>;
-    using kas_string_t = typename string_ref::object_t;
+    using kas_string_t = typename string_ref::object_t::type;
 
     template <typename> struct e_string : meta::id<kas_string_t> {};
 }
@@ -101,9 +101,12 @@ namespace detail
                                  , meta::invoke<detail::float_p<>::type, e_float_t>>;
     using tok_string = parser::token_defn_t<KAS_STRING("E_STRING")
                                  , e_string_t
-                                 , meta::invoke<detail::string_p<>::type, char>>;
+                                 , meta::invoke<detail::string_p<>::type, e_string_t>>;
+    
+    using tok_missing = parser::token_defn_t<KAS_STRING("E_MISSING"), void, x3::eps_parser>;
 
-using expr_terminals = list<tok_fixed, tok_float, tok_string>;
+    // NB: Don't include `tok_missing` in `expr_t` tokens, as `missing` always matches
+    using expr_terminals = list<tok_fixed, tok_float, tok_string>;
 
 #if 0
     // zip expr terminals into lists of types and parsers
@@ -114,11 +117,14 @@ using expr_terminals = list<tok_fixed, tok_float, tok_string>;
     // NB: need to remove "void" type & "void" parsers. Thus the `zip` list might be better
     // NB: probably better to make "large" `expr_terminals` type & filter there...
     template<> struct term_types_v  <defn_expr> : meta::list<e_fixed_t, e_float_t
-                                                    , detail::string_ref> {};
+                                                    , detail::string_ref
+                                                    > {};
     //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_float, tok_string> {};
     //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_float> {};
     //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_string> {};
-    template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_fixed> {};
+    template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed
+                            , tok_string
+                            > {};
     //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_fixed, tok_string> {};
     //template<> struct term_parsers_v<defn_expr> : meta::list<x3::int_parser<e_fixed_t>> {};
 #endif
@@ -130,6 +136,7 @@ using expr_terminals = list<tok_fixed, tok_float, tok_string>;
 // expose term_types & term_parsers in expression namespace
 using detail::term_types;
 using detail::term_parsers;
+using detail::tok_missing;
 using tok_fixed_t = meta::at_c<term_parsers, 0>;
 
 // find token to hold type T

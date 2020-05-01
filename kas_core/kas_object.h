@@ -32,9 +32,11 @@ namespace kas::core
                 : id<typename T::index_t> {};
     }
 
+struct kas_object_tag {};
+
 template <typename Derived, typename Ref = void
         , template <typename T> class Allocator = std::allocator>
-struct kas_object
+struct kas_object : kas_object_tag
 {
     using base_t      = kas_object;
     using derived_t   = Derived;
@@ -42,6 +44,8 @@ struct kas_object
     using index_t     = meta::_t<detail::get_index_t<Ref>>;
     using object_t    = derived_t;
 
+    using type        = derived_t;
+    
     // for `expr_fits`
     using emits_value = std::true_type;     // object holds value
 

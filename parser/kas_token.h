@@ -140,10 +140,13 @@ struct kas_token : kas_position_tagged
     {
         return is_token_type<T>();
     }
-#if 1
-    // XXX 
-    bool is_missing() const { return false; };
-#endif
+
+    bool is_missing() const
+    { 
+        return is_token_type<expression::tok_missing>();
+    };
+
+
     const char *name() const
     {
         return defn_p ? defn_p->name() : "TOKEN";
@@ -182,7 +185,7 @@ template <typename NAME, typename VALUE_T, typename PARSER>
 bool token_defn_t<NAME, VALUE_T, PARSER>::
             is_fixed() const 
 {
-    return std::is_integral_v<VALUE_T> && (sizeof(e_fixed_t) <= sizeof(VALUE_T));
+    return std::is_integral_v<value_t> && (sizeof(e_fixed_t) <= sizeof(value_t));
 }
    
 template <typename NAME, typename VALUE_T, typename PARSER>
@@ -195,7 +198,7 @@ template <typename NAME, typename VALUE_T, typename PARSER>
 unsigned token_defn_t<NAME, VALUE_T, PARSER>::
             index() const 
 {
-    return expr_t::index<VALUE_T>();
+    return expr_t::index<value_t>();
 }
 
 // convert "tokens" to "expressions"
@@ -207,17 +210,17 @@ void token_defn_t<NAME, VALUE_T, PARSER>::
     auto p = (*this)(&tok);
 
     // wrapped types need to be location tagged
-    if constexpr (meta::in<expr_t::unwrapped, VALUE_T>::value)
+    if constexpr (meta::in<expr_t::unwrapped, value_t>::value)
         e = { *p, tok };
     // XXX not correct, but...
     //else if constexpr (std::is_constructible<expr_t, VALUE_T>)
-    else if constexpr(meta::in<expr_t::plain, VALUE_T>::value)
+    else if constexpr(meta::in<expr_t::plain, value_t>::value)
         e = *p;
 }
 
 template <typename NAME, typename VALUE_T, typename PARSER>
-VALUE_T const *token_defn_t<NAME, VALUE_T, PARSER>::
-            operator()(kas_token const *p) const
+auto token_defn_t<NAME, VALUE_T, PARSER>::
+            operator()(kas_token const *p) const -> value_t const *
 {
     // require a token_p
     if (!p)
@@ -234,7 +237,7 @@ VALUE_T const *token_defn_t<NAME, VALUE_T, PARSER>::
         data_p = &p->_fixed;     // XXX not friend...
     else
         data_p = (*p)();
-    return static_cast<VALUE_T const *>(data_p);
+    return static_cast<value_t const *>(data_p);
 }
 
 #if 1
@@ -243,8 +246,8 @@ void const *token_defn_t<NAME, VALUE_T, PARSER>::
             gen_data_p(kas_token const& tok) const
 {
     std::cout << "token_defn_t::gen_data_p()" << std::endl;
-    print_type_name{"token_defn_t::gen_data_p()"}.name<VALUE_T>();
-    if constexpr (std::is_integral_v<VALUE_T> && sizeof(VALUE_T) <= sizeof(e_fixed_t))
+    print_type_name{"token_defn_t::gen_data_p()"}.name<value_t>();
+    if constexpr (std::is_integral_v<value_t> && sizeof(value_t) <= sizeof(e_fixed_t))
         return &tok._fixed;
     else
         return nullptr;

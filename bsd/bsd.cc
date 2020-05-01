@@ -47,7 +47,7 @@ struct _xxx
 
         print_type_name{"bsd: at_ident"}(bsd::parser::at_ident);
         print_type_name{"bsd: at_num"}  (bsd::parser::at_num);
-        print_type_name{"bsd: missing"} (bsd::parser::missing);
+        //print_type_name{"bsd: missing"} (bsd::parser::missing);
 
         auto const at_token_initial = x3::omit[x3::char_("@%#")];
         auto const at_ident         = (at_token_initial >> !x3::digit) > +parser::bsd_charset;

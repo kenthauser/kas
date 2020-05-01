@@ -56,7 +56,7 @@ using ctrl_reg_l = list<
     // 010/020/030/040/EC040/060/EC060/CPU32
       reg<REG_STR("sfc"), RC_CTRL, 0x000, hw::m68010>
     , reg<REG_STR("dfc"), RC_CTRL, 0x001, hw::m68010>
-    //, reg<REG_STR("usp"), RC_CTRL, 0x800, hw::m68010>   // name shared with RC_CPU reg
+    , reg<REG_STR("usp"), RC_CTRL, 0x800, hw::m68010>   // name shared with RC_CPU reg
     , reg<REG_STR("vbr"), RC_CTRL, 0x801, hw::m68010>
 
     // 020/030/040/EC040/060/EC060
@@ -103,7 +103,7 @@ using ctrl_reg_l = list<
     , reg<REG_STR("mmubar"), RC_CTRL, 0x008, hw::coldfire>
 
     , reg<REG_STR("vbr"), RC_CTRL, 0x801, hw::coldfire>    // also m68010 reg
-    //, reg<REG_STR("pc"),  RC_CTRL, 0x80f, hw::coldfire>    // name shared with RC_CPU reg
+    , reg<REG_STR("pc"),  RC_CTRL, 0x80f, hw::coldfire>    // name shared with RC_CPU reg
 
     , reg<REG_STR("rombar0"),  RC_CTRL, 0xc00, hw::coldfire>
     , reg<REG_STR("rombar1"),  RC_CTRL, 0xc01, hw::coldfire>
@@ -140,11 +140,11 @@ using m68k_reg_aliases_l = list<
 using m68k_all_reg_l = concat<list<>
                             , data_reg_l
                             , addr_reg_l
+                            , supv_reg_l
                             , zaddr_reg_l
                             , fp_reg_l
                             , ctrl_reg_l
                             , fctrl_reg_l
-                            , supv_reg_l
                             >;
 
 }

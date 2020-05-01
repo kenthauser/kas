@@ -65,11 +65,7 @@ namespace detail
         
         auto  first = tok.begin();
         auto& last  = tok.end();
-
-        // if not skipping '@' character, (eg symbol) require "STT_* format"
-        if (!skip_first && *first != 'S')
-            return err;
-
+        
         if (skip_first)
             ++first;
 

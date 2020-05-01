@@ -185,7 +185,6 @@ public:
 template <typename C>
 kas_error_t opcode::validate_min_max(C& c, uint16_t min, uint16_t max)
 {
-    
     // single arg can be "missing" or real arg.
     // clear container if "missing"
     if (c.size() == 1)

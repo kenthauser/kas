@@ -53,7 +53,7 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
                 , rcontext, value))
         {
 #ifdef TOKEN_TRACE
-        std::cout << " -> matched " << std::string(first, i) << std::endl;
+        std::cout << "tok_parser: matched \"" << std::string(first, i) << "\"" << std::endl;
 #endif
 
             // create "token" of `TOK_DEFN` type with parsed location
@@ -61,7 +61,16 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
             attribute_type tok(TOK_DEFN(), {first, i, &handler});
             
             // store parsed value in token (except for strings)
-            if constexpr (!std::is_same_v<decltype(value), x3::unused_type>)
+            // if parsed value is kas_object, allocate it & save address
+            if constexpr (std::is_base_of_v<core::kas_object_tag, decltype(attr)>)
+            {
+                // kas_object_ctor: value + kas_position
+                auto& obj = attr.add(value, { first, last, &handler });
+                tok.set(&obj);
+            }
+
+            // otherwise save value
+            else if constexpr (!std::is_same_v<decltype(value), x3::unused_type>)
                 tok.set(value);
                 
             // save token as parsed value
