@@ -167,7 +167,7 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
     // add extra `static_arg` as an end-of-list flag.
     // NB: make c[], not std::array to prevent re-instatantion
     // of common read/write routines (eg: `eval_list`)
-    using  mcode_size_t          = typename MCODE_T::mcode_size_t;
+    //using  mcode_size_t          = typename MCODE_T::mcode_size_t;
     using  arg_t                 = typename MCODE_T::arg_t;
     using  tgt_arg_serial_data_t = detail::tgt_arg_serial_data_t<MCODE_T>;
     using  stmt_info_t           = typename MCODE_T::stmt_info_t;
@@ -220,7 +220,7 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
                 break;
         }
 
-        // do the work (more args than validators occurs in `list` format)
+        // do the work (more args than validators can occur in `list` format)
         if (val_iter != val_iter_end)
             detail::extract_one<MCODE_T>(reader, n, *arg_p, p, sz, fmt, &*val_iter++, code_p);
         else

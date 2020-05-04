@@ -89,7 +89,7 @@ struct bsd_fixed : T
         // process container
         for (auto& tok : args)
         {
-            if (tok_bsd_missing(tok))
+            if (expression::tok_missing(tok))
                 tok = e_diag_t::error("Missing value", tok);
             size += proc_fn(tok);
         }

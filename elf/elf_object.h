@@ -37,8 +37,8 @@ struct elf_object
     void write(std::ostream& os);
 
     Elf64_Ehdr e_hdr;       // elf header
-    es_symbol *symtab_p;
-    es_string *sh_string_p; // XXX for write
+    es_symbol *symtab_p    {};
+    es_string *sh_string_p {};
     swap_endian swap;
     elf_convert cvt;
     

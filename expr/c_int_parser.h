@@ -65,7 +65,7 @@
 //
 
 #include "literal_float.h"
-//#include "literal_string.h"
+#include "literal_string.h"
 #include <stdexcept>
 #include <cassert>
 
@@ -150,7 +150,7 @@ auto decode_int = [](auto& ctx)
 // Declare additional types/functions to parse escape sequences,
 // unicode characters, and multi-byte sequences
 //
-// Note: same routines are used for parsing character literals
+// Note: the same routines are used for parsing character literals
 // (single quotes) resulting in a integer result and string literals
 // (double quotes) resulting in a "string" result.
 //
@@ -282,7 +282,7 @@ struct decode_char_seq
     void operator()(Context const& ctx) const
     {
         RT mask {};
-        kas_string::object_t *str_pointer {};
+        typename kas_string::object_t *str_pointer {};
         str_char_t<> char_t {};
 
         auto push_back = [&](RT ch)

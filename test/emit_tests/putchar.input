@@ -40,9 +40,9 @@ abort:
 	.cfi_offset 14, -8
 	.cfi_def_cfa 14, 8
 	.loc 2 56 0
-| 56 "traps.h" 1
+;| 56 "traps.h" 1
 	illegal
-| 0 "" 2
+;| 0 "" 2
 	.loc 2 57 0
 	jsr __no_return
 	.cfi_endproc
@@ -81,9 +81,9 @@ queue:
 	jsr abort
 .L5:
 	.loc 2 97 0
-| 97 "traps.h" 1
+;| 97 "traps.h" 1
 	trap #2
-| 0 "" 2
+;| 0 "" 2
 	.loc 2 99 0
 	nop
 	move.l -8(%fp),%d2
@@ -939,7 +939,7 @@ puts:
 	move.l %d1,8(%fp)
 	move.l %d0,%a0
 	move.b (%a0),%d0
-	extb.l %d0
+;;	extb.l %d0
 	move.l %d0,-(%sp)
 	jsr putchar
 	addq.l #4,%sp
@@ -1095,9 +1095,9 @@ abort_supv:
 .LBE19:
 .LBE16:
 	.loc 5 98 0
-| 98 "putchar.c" 1
+;| 98 "putchar.c" 1
 	illegal
-| 0 "" 2
+;| 0 "" 2
 	.loc 5 99 0
 	nop
 	unlk %fp
@@ -3154,6 +3154,6 @@ abort_supv:
 	.string	"MBUF"
 .LASF21:
 	.string	"next"
+;.ident	"GCC: (GNU) 5.4.0" ; XXX should be last
 .LASF10:
 	.string	"desc"
-	;.ident	"GCC: (GNU) 5.4.0"

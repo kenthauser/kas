@@ -27,6 +27,12 @@ template <> void const *bsd::tok_bsd_numeric_ident
     return &bsd::bsd_numeric_ident::get(tok);
 }
 
+template <> void const *bsd::tok_bsd_dot
+        ::gen_data_p(kas_token const& tok) const
+{
+    return &core::core_addr_t::get_dot();
+}
+
 }
 
 #endif

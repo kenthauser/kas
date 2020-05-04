@@ -303,21 +303,21 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
             {
                 case E_DATA:
                 {
-                    m68k_arg_t r{ MODE_DATA_REG, base_value };
+                    m68k_arg_t r{ MODE_DATA_REG, base.token };
                     r.reg_num = classify.value();
                     r.reg_subword = sub_reg;
                     return r;
                 }
                 case E_ADDR:
                 {
-                    m68k_arg_t r{ MODE_ADDR_REG, base_value };
+                    m68k_arg_t r{ MODE_ADDR_REG, base.token };
                     r.reg_num = classify.value();
                     r.reg_subword = sub_reg;
                     return r;
                 }
                 case E_EXPR:
                 case E_INT:
-                    return { MODE_DIRECT, base_value };
+                    return { MODE_DIRECT, base.token };
                 case E_REG:
                 {
                     m68k_arg_t r{ MODE_REG, base_value };
@@ -344,7 +344,8 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 case E_EXPR:
                 case E_INT:
                 case E_FLOAT:
-                    return { MODE_IMMEDIATE, base_value };
+                    std::cout << "m68k_parsed_arg: IMMED: " << base_value << std::endl;
+                    return { MODE_IMMEDIATE, base.token };
                 default:
                     return { error_msg::ERR_immediate, base_value };
             }

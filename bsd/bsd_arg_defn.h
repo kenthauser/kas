@@ -16,7 +16,7 @@ using tok_bsd_numeric_ident = token_defn_t<KAS_STRING("N_IDENT") , core::core_sy
 using tok_bsd_dot           = token_defn_t<KAS_STRING("DOT")     , core::core_addr_t>;
 using tok_bsd_at_num        = token_defn_t<KAS_STRING("AT_NUM")  , unsigned>;
 using tok_bsd_at_ident      = token_defn_t<KAS_STRING("AT_IDENT")>;
-using tok_bsd_missing       = token_defn_t<KAS_STRING("MISSING")>;
+//using tok_bsd_missing       = token_defn_t<KAS_STRING("MISSING")>;
 
 // XXX obsolete?
 using bsd_arg  = parser::kas_token;
@@ -30,6 +30,7 @@ namespace kas::parser
     template <> void const *bsd::tok_bsd_ident        ::gen_data_p(kas_token const&) const;
     template <> void const *bsd::tok_bsd_local_ident  ::gen_data_p(kas_token const&) const;
     template <> void const *bsd::tok_bsd_numeric_ident::gen_data_p(kas_token const&) const;
+    template <> void const *bsd::tok_bsd_dot          ::gen_data_p(kas_token const&) const;
 }
 
 #endif

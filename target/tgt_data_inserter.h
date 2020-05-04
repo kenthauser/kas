@@ -141,13 +141,16 @@ struct tgt_data_inserter_t
     }
 
     // insert data via pointer
-    value_type* operator()(value_type *code_p, int count = 1)
+    value_type* operator()(value_type *code_p, int bytes = 1)
     {
+        auto count = (bytes + sizeof(value_type) - 1)/sizeof(value_type);
 #if 0
-        std::cout << "insert(): ";
+        auto flags = std::cout.flags();
+        std::cout << "insert(): " << std::hex;
         for (auto n = 0; n < count; ++n)
             std::cout << +code_p[n] << " ";
         std::cout << "size = " << count << std::endl;
+        std::cout.flags(flags);
  #endif
         reserve(count * sizeof(value_type));
 
@@ -244,10 +247,18 @@ auto tgt_data_inserter_t<VALUE_T, EMIT_VALUE_T>::insert_fixed(emit_value_t i, in
     if (size < 0)
         size = -size;
 
-    //std::cout << "insert_fixed: " << std::hex << i << " size = " << size << std::endl;
 
     // convert bytes to chunks
     auto chunks = (size + sizeof(value_type) - 1)/sizeof(value_type);
+
+//#define TRACE_TGT_DATA_INSERTER
+#ifdef  TRACE_TGT_DATA_INSERTER
+    auto flags = std::cout.flags();
+    std::cout << "insert_fixed: " << std::hex << i;
+    std::cout << " size = " << size;
+    std::cout << " chunks = " << chunks << std::endl;
+    std::cout.flags(flags);
+#endif
 
     // no data -- return current pointer
     if (chunks == 0)
@@ -265,6 +276,13 @@ auto tgt_data_inserter_t<VALUE_T, EMIT_VALUE_T>::insert_fixed(emit_value_t i, in
 template <typename VALUE_T, typename EMIT_VALUE_T>
 auto tgt_data_inserter_t<VALUE_T, EMIT_VALUE_T>::insert_one(value_type i) -> value_type *
 {
+#ifdef  TRACE_TGT_DATA_INSERTER
+    auto flags = std::cout.flags();
+    std::cout << "insert_one: " << std::hex << i;
+    std::cout << ", n = " << n << std::endl;
+    std::cout.flags(flags);
+#endif
+
     //std::cout << "insert_one: " << std::hex << +i << std::endl;
     // save one word in fixed area if room
     if (n)
@@ -426,6 +444,7 @@ private:
             p += chunks;
             return s;
         }
+
         return chunk_it.get_p(chunks);
     }
 

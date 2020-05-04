@@ -99,7 +99,8 @@ void insert_one (Inserter& inserter
     bool completely_saved = fmt.insert(n, code_p, arg, val_p);
 //#define TRACE_ARG_SERIALIZE
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << "write_one: " << arg << ": completely_saved = " << std::boolalpha << completely_saved;
+    std::cout << "write_one: " << arg;
+    std::cout << ": completely_saved = " << std::boolalpha << completely_saved;
     std::cout << " has_validator = " << bool(val_p) << std::endl;
 #endif
 

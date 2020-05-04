@@ -188,7 +188,8 @@ kas_error_t opcode::validate_min_max(C& c, uint16_t min, uint16_t max)
     // single arg can be "missing" or real arg.
     // clear container if "missing"
     if (c.size() == 1)
-        if (c.front().is_missing()) {
+        if (c.front().is_missing())
+        {
             if (min == 1)
                 return kas_diag_t::error("Requires argument").ref(c.front());
             else if (!min) {

@@ -60,6 +60,16 @@ namespace kas::m68k
                 return name;
             };
 
+        auto disp = [](expr_t e)
+            {
+                auto p = e.get_fixed_p();
+                if (p)
+                {
+                    return (expr_t)(*p);
+                }
+                return e;
+            };
+
         // create aliases
         // using parser::disp_str;
 
@@ -107,7 +117,7 @@ namespace kas::m68k
         case MODE_ADDR_DISP_LONG:
         case MODE_MOVEP:
             os << reg_name(RC_ADDR, reg);
-            return os << "@(" << base << ")" << suffix;
+            return os << "@(" << disp(base) << ")" << suffix;
         case MODE_INDEX:
             break;      // addr + index
         case MODE_DIRECT_SHORT:
@@ -115,7 +125,7 @@ namespace kas::m68k
         case MODE_DIRECT_LONG:
             return os << base << ":l";
         case MODE_PC_DISP:
-            return os << "pc@(" << base << ")";
+            return os << "pc@(" << disp(base) << ")";
         case MODE_PC_INDEX:
             pc_reg = true;
             break;      // pc + index
