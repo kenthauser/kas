@@ -109,7 +109,7 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
         // propogate error if previously detected
         constexpr auto Err_Index = expr_t::index<kas::parser::kas_diag_t>();
         for (auto i= 0; i < N; ++i)
-            if (tokens[i]->index() == Err_Index)
+            if (tokens[i]->expr_index() == Err_Index)
                 return *tokens[i];
 
         // error location is just 
@@ -123,7 +123,7 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
     {
         // only need `is_zero` functions for ARITY == 2
         static constexpr zero_fn_t<expr_types> zero_fns;
-        auto dem_type = tokens[1]->index();
+        auto dem_type = tokens[1]->expr_index();
 
         if (defn_p->is_divide)
             if (zero_fns[dem_type-1](args[1]))

@@ -164,8 +164,7 @@ void ieee754_base<Derived, FLT>::ok_for_fixed(expr_t& expr, uint8_t fixed_bits)
 
         std::cout << "ok_for_fixed: float = " << expr_t(*p) << std::endl;
         
-        auto const& flt = p->get();
-        print_type_name {"ok_for_fixed: *p"}(*p);
+        auto const& flt = *p;
         print_type_name {"ok_for_fixed: flt"}(flt);
 
  //       std::cout << "flt (expr *p): " << expr_t(*p) << std::endl;

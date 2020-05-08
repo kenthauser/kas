@@ -102,13 +102,13 @@ struct kas_token : kas_position_tagged
     }
 
     // get expression variant index (+1)
-    unsigned index() const
+    unsigned expr_index() const
     {
         if (defn_p)
             return defn_p->index();
         return {};
     }
-#if 1
+
     template <typename T>
     T *get_p(T const& = {})
     {
@@ -121,10 +121,8 @@ struct kas_token : kas_position_tagged
         return const_cast<kas_token&>(*this).get_p<T>();
     }
 
-
-#endif
-    // test for token type: `void` tests for generic `kas_token`
-    template <typename T = void>
+    // test token type: true if token is specified type
+    template <typename T>
     token_defn_base const * is_token_type() const
     {
         // return pointer to "defn" if type matches

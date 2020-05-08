@@ -8,7 +8,8 @@
 #include "utility/reduce.h"
 #include "parser/token_defn.h"
 
-//#include "c_int_parser.h"
+#include "c_int_parser.h"
+#include "c_string_parser.h"
 
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/numeric.hpp>
@@ -24,13 +25,13 @@ namespace mpl = boost::mpl;
 
 namespace detail 
 {
-#if 1
+#if 0
     // Default `int` parser
     template <typename T>
     struct dflt_fixed_p : x3::int_parser<T> {};
 #else
     template <typename T>
-    struct dflt_fixed_p : literal::c_int_rule<T> {};
+    struct dflt_fixed_p : literal::c_int_parser<T> {};
 #endif
 
     // Define default `float` & `string` parsers
@@ -39,12 +40,11 @@ namespace detail
     struct dflt_float_p : x3::real_parser<T, x3::strict_real_policies<T>> {};
 #if 0
     template <typename T>
-    using dflt_string_p = x3::rule<struct _default_qs, T>;
+    struct dflt_string_p : quoted_string_p<T> {};
 #else
     template <typename T>
-    struct dflt_string_p : quoted_string_p<T> {};
+    struct dflt_string_p : literal::c_string_parser<T> {};
 #endif
-    
     // define default parsers: quoted on value-type
     template <typename> struct fixed_p      : id<quote<dflt_fixed_p>>  {};
     template <typename> struct float_p      : id<quote<dflt_float_p>>  {};
@@ -59,26 +59,22 @@ namespace detail
     // declare defaults for string type configuration
     template <typename> struct string_value : id<parser::char_type> {};
     
-    // resolve types & create floating point type
-    using float_value_t = _t<float_value<>>;
-    using float_fmt_t   = _t<float_fmt<>>;
-    //using float_host_t  = _t<bind_back<quote<float_host_ieee>, float_value_t, float_fmt_t>>;
+    // create floating point type
     template <typename REF>
-    using float_host_t  = float_host_ieee<REF, float_value_t, float_fmt_t>;
-    using kas_float     = _t<core::ref_loc_tpl<float_host_t>>;
+    using float_host_tpl  = float_host_ieee<REF, _t<float_value<>>, _t<float_fmt<> >>;
+    using e_float_ref     = core::ref_loc_tpl<float_host_tpl>;
 
-    // set type default values
-    template <typename> struct e_float  : meta::id<kas_float> {};
-    
-    using string_ref   = core::ref_loc_tpl<kas_string_obj>;
-    using kas_string_t = typename string_ref::object_t::type;
+    // create string type
+    template <typename REF>
+    using string_host_tpl = e_string_tpl<REF, _t<string_value<> >>;
+    using e_string_ref    = core::ref_loc_tpl<string_host_tpl>;
 
-    template <typename> struct e_string : meta::id<kas_string_t> {};
+    //template <typename> struct e_string : meta::id<kas_string_t> {};
 }
 // declare aliases to reduce `mpl` noise...
-using e_fixed_t   = typename detail::e_fixed<>  ::type;
-using e_float_t   = typename detail::e_float<>  ::type;
-using e_string_t  = typename detail::e_string<> ::type;
+using e_fixed_t   = typename detail::e_fixed<>   ::type;
+using e_float_t   = typename detail::e_float_ref ::object_t;
+using e_string_t  = typename detail::e_string_ref::object_t;
 using err_msg_t   = typename detail::err_msg<>  ::type;
 
 using e_data_t    = typename detail::e_data<>   ::type;
@@ -106,7 +102,9 @@ namespace detail
     using tok_missing = parser::token_defn_t<KAS_STRING("E_MISSING"), void, x3::eps_parser>;
 
     // NB: Don't include `tok_missing` in `expr_t` tokens, as `missing` always matches
-    using expr_terminals = list<tok_fixed, tok_float, tok_string>;
+    using expr_terminals = list<tok_fixed
+                              //, tok_float
+                              , tok_string>;
 
 #if 0
     // zip expr terminals into lists of types and parsers
@@ -116,8 +114,8 @@ namespace detail
 #else
     // NB: need to remove "void" type & "void" parsers. Thus the `zip` list might be better
     // NB: probably better to make "large" `expr_terminals` type & filter there...
-    template<> struct term_types_v  <defn_expr> : meta::list<e_fixed_t, e_float_t
-                                                    , detail::string_ref
+    template<> struct term_types_v  <defn_expr> : meta::list<e_fixed_t//, e_float_t
+                                                    , detail::e_string_ref
                                                     > {};
     //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_float, tok_string> {};
     //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_float> {};
@@ -136,6 +134,7 @@ namespace detail
 // expose term_types & term_parsers in expression namespace
 using detail::term_types;
 using detail::term_parsers;
+using detail::tok_string;
 using detail::tok_missing;
 using tok_fixed_t = meta::at_c<term_parsers, 0>;
 

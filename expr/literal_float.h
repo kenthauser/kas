@@ -1,13 +1,13 @@
 #ifndef KAS_EXPR_LITERAL_TYPES_H
 #define KAS_EXPR_LITERAL_TYPES_H
 
-// declare assembler FLOATING & STRING literal types
+// declare assembler FLOATING POINT literal type
 
-// since both strings & floating point types won't fit in a 32-bit int
+// since floating point types won't fit in a 32-bit int
 // (or even a 64-bit int), allocate each on a private deque & reference
 // by index. This helps with variant & speeds copying.
 
-// *** FLOATING POINT TYPES ***
+// *** FLOATING POINT CONTAINER TYPE ***
 
 // declare 2 types for literal floating point numbers:
 // un-interpreted (character iterator range) & host (typically long double)
@@ -15,13 +15,6 @@
 // un-interpreted is typically held until value is emitted & is then
 // directly converted to emitted binary. `host` format is used when
 // calculation is performed on floating point value (unusual)
-
-// *** STRING CONTAINTER TYPE ***
-
-// c++ delcares type types of parsed strings:
-// narrow (default), wide('L'), utc-8/16/32 ('u8'/'u'/'U')
-// declare a single type using a std::vector<uchar32_t> to hold characters
-// with instance variables to describe the string (8/16/32 unicode/host format)
 
 #include "parser/parser_types.h"
 #include "kas_core/ref_loc_t.h"

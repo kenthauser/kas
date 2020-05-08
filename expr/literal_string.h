@@ -22,24 +22,74 @@
 
 #include <limits>
 
+// declare types of strings supported by literals
+namespace kas::expression::literal
+{
+struct e_string_code
+{
+    constexpr e_string_code(uint8_t size = 0, bool unicode = false)
+        : size(size), unicode(unicode) {}
+
+    constexpr bool operator==(e_string_code const& other) const
+        { return size == other.size && unicode == other.unicode; }
+    constexpr bool operator!=(e_string_code const& other) const
+        { return !(*this == other); }
+
+
+    uint8_t size    : 1;    // bytes per character
+    uint8_t unicode : 1;    // true for unicode
+};
+
+static constexpr e_string_code str_code_none{};
+static constexpr e_string_code str_code_c   {sizeof(char)       , false};
+static constexpr e_string_code str_code_w   {sizeof(wchar_t)    , false};
+static constexpr e_string_code str_code_u8  {sizeof(char)       , true };
+static constexpr e_string_code str_code_u16 {sizeof(char16_t)   , true };
+static constexpr e_string_code str_code_u32 {sizeof(char32_t)   , true };
+
+// forward declare parser support routines in `int_parser_impl.h`
+
+// convert string to int until not in RADIX or MAX_DIGITS
+// SEP_CHAR is c++14 separator charater (if allowed)
+template <int RADIX, int SEP_CHAR = 0, typename Iterator>
+std::uintmax_t _str2int(Iterator& it, Iterator const& end, const char *& fail
+                       , int max_digits = -1, int min_digits = 1);
+
+// look for c-language string prefix codes
+template <typename Iterator>
+e_string_code parser_str_pfx(Iterator& it, Iterator const& last);
+}
+
+
+// declare type to hold parsed literal strings
 namespace kas::expression::detail
 {
 namespace x3 = boost::spirit::x3;
 
 // basic kas_string: use `ref` for begin/end
-template <typename REF>
-struct kas_string_obj : core::kas_object<kas_string_obj<REF>, REF>
+template <typename REF, typename T = void>
+struct e_string_tpl : core::kas_object<e_string_tpl<REF, T>, REF>
 {
-    using base_t      = core::kas_object<kas_string_obj<REF>, REF>;
+    using base_t      = core::kas_object<e_string_tpl<REF, T>, REF>;
     using emits_value = std::true_type;
     using ref_t       = REF;
+
+    // default stored value based on parsed character type
+    using value_t     = std::conditional_t<std::is_void_v<T>
+                                         , typename parser::char_type
+                                         , T
+                                         >;
 
     using base_t::index;
     using base_t::base_t;       // default ctor
 
-    // should really store begin/end pair
-    kas_string_obj(std::string const& str, parser::kas_loc loc = {}) 
-        : str(str), base_t(loc) {}
+    // two ctors: begin/end pair & string
+    template <typename Iterator>
+    e_string_tpl(Iterator const& begin, Iterator const& end, parser::kas_loc loc = {})
+        : str(begin, end), base_t(loc) {}
+
+    e_string_tpl(std::basic_string<value_t>&& str, parser::kas_loc loc = {}) 
+        : str(std::move(str)), base_t(loc) {}
 
 public:
     auto& operator()() const
@@ -48,14 +98,14 @@ public:
     }
 
     // named method easier to call with pointer 
-    auto value() const { return (*this)(); }
+    auto& value() const { return (*this)(); }
 
 private:
-    std::string str;
+    std::basic_string<value_t> str;
 };
 
 
-// parser returns pointer to string reference
+// parser returns pointer to e_string instance
 template <typename T>
 struct quoted_string_p : x3::parser<quoted_string_p<T>>
 {
@@ -68,29 +118,27 @@ struct quoted_string_p : x3::parser<quoted_string_p<T>>
     bool parse(Iterator& first, Iterator const& last
       , Context const& context, x3::unused_type, Attribute& attr) const
     {
-        using char_t = typename Iterator::value_type;
-
         x3::skip_over(first, last, context);
         if (*first != '"')
             return false;
 
-        auto iter = first;      // don't move on fail
+        Iterator iter(first);   // don't move on fail
         for (auto start = ++iter; iter != last; ++iter)
         {
             if (*iter != '"')
                 continue;
             
-            // get result
-            std::string str(&*start, &*iter);
-            auto& value(object_type::add(str));
+            // save result in `e_string` object
+            auto& value(object_type::add(start, iter));
             
             // update parse location
-            first = ++iter; // skip trailing quote
+            first = ++iter;     // skip trailing quote
+
             // convert attribute
             x3::traits::move_to(&value, attr);
             return true;
         }
-        return false;       // no trailing quotation mark
+        return false;           // no trailing quotation mark
     }
 };
 }

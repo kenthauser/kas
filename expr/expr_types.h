@@ -46,26 +46,17 @@ namespace detail
     // accumulate program options
     template <typename = void> struct options_types_v : list<> {};
 
-    // *** Declare base type configuration hooks ****
+    // *** Declare base type value, parser, and format hooks ***
 
-    // Forward declare template for fixed, floating, and string types
-    // NB: The `float` & `string` defaults are `kas_object` types & thus
-    // NB: can't be defined before `*_types.h` includes complete.
-    // NB: Declare templates here & define defaults in `terminals.h`
+    // NB: can set `fixed` default because no include header issue
     template <typename = void> struct e_fixed : meta::id<int32_t> {};
-    template <typename = void> struct e_float;
-    template <typename = void> struct e_string;
 
-    // declare info about processor targeted by assembler
-    template<typename = void> struct e_data : meta::id< int32_t> {};
-    template<typename = void> struct e_addr : meta::id<uint32_t> {};
-    template<typename = void> struct err_msg;
-
-    // *** Declare operator precidence configuration hooks ****
-
-    template<typename = void> struct e_precedence : id<precedence::precedence_c> {};
+    // Forward declare templates for floating point configuration
+    template<typename = void> struct float_value;
+    template<typename = void> struct float_fmt;
     
-    // *** Declare base type parsers and format hooks ***
+    // Forward declare template for string character type
+    template<typename = void> struct string_value;
 
     // Forward declare templates for fixed, floating, and string parsers
     // These templates are instantiated with a single expression type argument
@@ -74,12 +65,14 @@ namespace detail
     template<typename = void> struct float_p;
     template<typename = void> struct string_p;
     
-    // Forward declare templates for floating point configuration
-    template<typename = void> struct float_value;
-    template<typename = void> struct float_fmt;
+    // declare info about processor targeted by assembler
+    template<typename = void> struct e_data : meta::id< int32_t> {};
+    template<typename = void> struct e_addr : meta::id<uint32_t> {};
+    template<typename = void> struct err_msg;
 
-    // Forward declare `kas` object used to hold string object 
-    template<typename = void> struct string_value;
+    // *** Declare operator precidence configuration hooks ****
+
+    template<typename = void> struct e_precedence : id<precedence::precedence_c> {};
 }
 
 //
@@ -112,7 +105,7 @@ namespace detail
 {
     struct is_not_zero
     {
-        static bool value(void const *) noexcept { return false; }
+        static constexpr bool value(void const *) noexcept { return false; }
     };
 }
 

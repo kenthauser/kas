@@ -32,7 +32,7 @@ namespace detail
         static op_size_t proc_one(CI& ci, kas_token const& tok)
         {
             // confirm token represents a `value` token, not `syntax` token
-            if (!tok.index())
+            if (!tok.expr_index())
                 *ci++ = e_diag_t::error("Invalid value", tok);
 
             // if fixed, emit `bytes` into stream

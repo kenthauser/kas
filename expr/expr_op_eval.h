@@ -170,11 +170,12 @@ static HASH_T hash(kas_token const * const *tokens, std::size_t n)
     // sanity check for HASH / ARITY
     constexpr auto H_SHIFT = 8;
 
+    // use variant index to form "value" for hash_token
     HASH_T hash {};
     while (n--)
     {
         hash <<= H_SHIFT;
-        hash += (*tokens++)->index();
+        hash += (*tokens++)->expr_index();
     }
     return hash;
 }

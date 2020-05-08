@@ -302,7 +302,7 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 *33. `.lcomm` symbols should show bss address
 
-34. fix `get_p` & expr() mess in `kas_token`
+*34. fix `get_p` & expr() mess in `kas_token` --> push
 
 35. ld a,#DATALEN -> Z80_Gen: DATALEN not evaluated as constant
 
@@ -314,6 +314,13 @@ Plan 10/2: First fix floating point emit/warning/etc
 *38. invalid equ's should display "=xxxx", not address
 
 39. create a.out object
+
+40. add character constants (including eg 'ab') to c_int_parser
+
+41. add symbol binding: name is "local". not emitted unless all labels emitted.
+     sort of Internal lite
+
+42. 
 
 
 

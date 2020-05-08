@@ -63,9 +63,8 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
     static op_size_t proc_one(CI& ci, kas_token const& tok)
     {
         std::cout << "opc_size::proc_one: " << tok << std::endl;
-        
         // confirm token represents a `value` token, not `syntax` token
-        if (!tok.index())
+        if (!tok.expr_index())
             *ci++ = e_diag_t::error("Invalid value", tok);
 
         // if fixed argument, check if it fits
@@ -157,29 +156,25 @@ struct opc_string : opc_data<opc_string<ZTerm, char_type>, char_type>
     static op_size_t proc_one(CI& ci, kas_token const& tok)
     {
         std::size_t size = 0;
-        print_type_name{"opc_string"}.name<e_string_t>();
-#if 0
-        // XXX need to add support for additional e_string<> types...
-        // XXX coordinate with kas_string definitions...
-        if constexpr (!std::is_void_v<e_string_t>)
+        std::cout << "opc_size::proc_one: " << tok << std::endl;
+        
+        // confirm token represents a `value` token, not `syntax` token
+        if (!tok.expr_index())
+            *ci++ = e_diag_t::error("Invalid value", tok);
+        else if (!tok.is_token_type<expression::tok_string>())
+            *ci++ = e_diag_t::error("String required", tok);
+
+        else
         {
-            if (auto p = e.template get_p<e_string_t>())
-            {
-                auto& ks = p->get();
-                size += ks.size() + ZTerm::value;
-                for (auto& c : ks)
-                    *ci++ = c;
-                if (ZTerm::value)
-                    *ci++ = 0;
-            } 
-            else
-            {
-                // XXX express all others args as nullptr...
+            auto ks_p = expression::tok_string(tok)();       // get string value
+            auto str = (*ks_p)();
+                
+            size += str.size() + ZTerm::value;
+            for (auto& c : str)
+                *ci++ = c;
+            if (ZTerm::value)
                 *ci++ = 0;
-                size += 1;
-            }
         }
-#endif
         return size;
     }
 
