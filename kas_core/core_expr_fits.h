@@ -61,10 +61,15 @@ namespace kas::core
 template <typename REF>
 short core_expr<REF>::calc_num_relocs() const
 {
-    if (reloc_cnt < 0) {
-        flatten();
-        pair_nodes();
+    if (reloc_cnt < 0)
+    {
+        flatten();      // resolve labels -> addresses (if defined)
+                        // resolve EQU to value (could be address/core_expr_t)
+        
+        pair_nodes();   // if plus & minus terms in same segment, pair to create offset
 
+        // count number of un-paired terms:
+        // NB: don't yet determine if valid relocations exist
         auto unpaired = [](auto&& p) { return !p.p; };
         reloc_cnt  = std::count_if(plus.begin(),  plus.end(),  unpaired);
         reloc_cnt += std::count_if(minus.begin(), minus.end(), unpaired);
@@ -82,7 +87,8 @@ void core_expr<REF>::pair_nodes () const
         auto m_fp = m.addr_p ? m.addr_p->frag_p : nullptr;
 
         if (m_fp)
-            for (auto& p : plus) {
+            for (auto& p : plus)
+            {
                 if (p.p)            // already spoken for?
                     continue;
 
@@ -91,12 +97,13 @@ void core_expr<REF>::pair_nodes () const
                     if (m_fp->segment() == p_fp->segment())
                         return &p;
             }
-        return nullptr;
+        return {};
     };
 
     // pair-up plus & minus
     for (auto& m : minus)
-        if (auto p = find_plus(m)) {
+        if (auto p = find_plus(m))
+        {
             p->p = &m;
             m.p = p;
         }
@@ -215,7 +222,8 @@ bool core_expr<REF>::disp_ok(core_expr_dot const& dot) const
     typename decltype(plus)::value_type const *p {};
 
     for (auto&& expr : plus)
-        if (!expr.p) {
+        if (!expr.p)
+        {
             p = &expr;
             break;
         }
@@ -278,26 +286,28 @@ auto core_fits::operator()
     (core_expr_t const& e, fits_min_t min, fits_max_t max) const
     -> result_t
 {
-    // XXX this logic not quite complete.
-    // XXX need `can_emit` for backend for reloc vector
-    // XXX need to test `offset` if single reloc
-    switch (e.calc_num_relocs()) {
-        case 0:
-            break;
-        case 1:
-            //std::cout << " -> core_addr{}" << std::endl;
-            return (*this)(core_addr_t{}, min, max);
-        default:
-            //std::cout << " -> no " << std::endl;
-            return no;
-    }
-#if 0
+#if 1
+    std::cout << "core_fits: expr: " <<  e;
+    std::cout << " min/max = " << std::dec << min << "/" << max;
+    std::cout << " fuzz = " << fuzz;
+    std::cout << std::endl;
+
+
+#endif
+    // examine `core_expr_t` for unpaired terms
+    auto cnt = e.calc_num_relocs();
+    std::cout << "expr = " << expr_t(e) << ", cnt = " << cnt << ", reloc_cnt = " << e.reloc_cnt << std::endl;
+
+    if (cnt == 0)
+        return (*this)(e.get_offset(), min, max, 0);
+
+    else if (fuzz < 0)
+        e.reloc_cnt = -1;       // need to re-examine relocs after first pass
+
     // don't test offset until first relax pass complete
     if (fuzz < 0)
-        //std::cout << " -> maybe" << std::endl;
-    if (fuzz < 0)
         return maybe;
-#endif
+
     auto result = (*this)(e.get_offset(dot_p), min, max);
 #if 0
     std::cout << "\nfits (" <<  min << ", " << max << "): ";

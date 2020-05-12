@@ -3,7 +3,7 @@
 
 #include "kas/kas_string.h"
 #include "dl_state.h"
-#include "dwarf_emit.h"
+#include "dwarf_opc.h"
 #include <meta/meta.hpp>
 
 namespace kas::dwarf
@@ -94,7 +94,7 @@ struct insn_is_type
     using invoke = std::is_same<T, at_c<U, DW_INSN_TYPE_INDEX>>;
 };
 
-// get rule from "class, 1"
+// get rule from "class, n"
 // eg. RULE_get_c<STD, 2> -> Advance_PC
 template <typename T, std::size_t N>
 using RULE_get_c = at_c<filter<DW_INSNS, insn_is_type<T>>, N-1>;

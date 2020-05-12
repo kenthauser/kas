@@ -54,6 +54,7 @@ struct core_expr : kas_object<core_expr<Ref>, Ref>
     
     // token type to hold `core_expr`
     using token_t = tok_core_expr;
+
 private:
     struct expr_term
     {
@@ -64,16 +65,16 @@ private:
         // custom copy ctor -- clear mutables
         expr_term(expr_term const&);
 
-        bool flatten(core_expr&, bool);
+        bool flatten(core_expr&, bool is_minus);
 
         // erase & test if erased
-        bool empty () const   { return !symbol_p && !addr_p; }
+        bool empty () const   { return !symbol_p && !addr_p && !value_p;  }
         void erase()          { symbol_p = {}; addr_p = {}; value_p = {}; }
 
         // instance variables
         core_symbol_t  const *symbol_p {};
-        expr_t         const *value_p  {};
         core_addr_t    const *addr_p   {};
+        expr_t         const *value_p  {};      // for core_expr + core_expr
 
         // set by `core_expr::get_offset()` to tag offsets
         // NB: mutable values set in `expr_term::offset()`
@@ -91,6 +92,9 @@ public:
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
     explicit core_expr(T value) : fixed{value} {}
    
+    // need default ctor
+    explicit core_expr() {}
+
     // ctors for supported types
     core_expr(core_symbol_t const& sym)  : plus{sym } {}
     core_expr(core_addr_t   const& addr) : plus{addr} {}

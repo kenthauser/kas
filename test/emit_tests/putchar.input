@@ -429,7 +429,7 @@ mb_flush:
 	move.w -2(%fp),%d0
 	move.w %d0,%d0
 	and.l #65535,%d0
-	pea 751 ;.w
+	pea 751.w
 	move.l %d0,-(%sp)
 	jsr chk
 	addq.l #8,%sp
@@ -3154,6 +3154,6 @@ abort_supv:
 	.string	"MBUF"
 .LASF21:
 	.string	"next"
-;.ident	"GCC: (GNU) 5.4.0" ; XXX should be last
+|;.ident	"GCC: (GNU) 5.4.0" ; XXX should be last
 .LASF10:
 	.string	"desc"

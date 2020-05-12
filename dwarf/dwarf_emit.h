@@ -1,95 +1,57 @@
 #ifndef KAS_DWARF_DWARF_EMIT_H
 #define KAS_DWARF_DWARF_EMIT_H
 
+// Generate a stream of instructions containing DWARF data
+//
+// Dwarf programs are a long string of short, fixed value data 
+// instructions. This data is packaged into `core_insn` instructions
+// using the KAS `fixed` data opcodes used for the `.byte`, `.word`, etc
+// pseudo-ops and stored in an instruction container.
+//
+// Since all of the `fixed` data opcodes can accept an unlimited number
+// of arguments, several consecutive DWARF opcodes of the same type are
+// merged into a single `fixed` data opcode. This is much more efficient
+// for the backend code.
+//
+// The `dwarf::emit_insn` type generates an `core_insn` corresponding to the
+// dwarf opcode & then emulates the driver functions the fixed-code base
+// type `core::opc::opc_data`. The type `dwarf::emit_insn` can also generate
+// an `core::opc::opc_label` insn & others as required.
+//
+// The `dwarf::emit_insn` type makes use of a number of low-level data
+// structures and might be best viewed as a black box...
+
+
 #include "kas/kas_string.h"
 #include "kas_core/opc_fixed.h"
 #include "kas_core/opc_leb.h"
+#include "kas_core/core_fixed_inserter.h"
 #include "utility/print_type_name.h"
-
-//
-// Generate a stream of instructions given the `insn inserter`
-//
-// The `insn_inserter` requires instances of "core_insn", but impliciate
-// conversion from `opcode` is provided via `core_insn` ctor.
-//
-// /gen_
 
 namespace kas::dwarf
 {
 
+// retrieve `value_t` member type, if present (default: void)
+// `core::opc::opc_data` types have this member type
+template <typename OP, typename = void>
+struct get_value_impl : meta::id<void> {};
 
-// declare argument formats
-template <typename NAME, typename OP, int LENGTH = -1>
-struct ARG_defn : NAME
-{
-    using op = OP;
-    static constexpr auto size = LENGTH;
-};
+template <typename OP>
+struct get_value_impl<OP, std::void_t<typename OP::value_t>>
+        : meta::id <typename OP::value_t> {};
 
-using namespace kas::core::opc;
-
-using UBYTE = ARG_defn<KAS_STRING("UBYTE"), opc_fixed<uint8_t>,  1>;
-using UHALF = ARG_defn<KAS_STRING("UHALF"), opc_fixed<uint16_t>, 2>;
-using UWORD = ARG_defn<KAS_STRING("UWORD"), opc_fixed<uint32_t>, 4>;
-using ADDR  = ARG_defn<KAS_STRING("ADDR"),  opc_fixed<uint32_t>
-                                            , sizeof(DL_STATE::dl_addr_t)>;
-using NAME  = ARG_defn<KAS_STRING("NAME"),  opc_string<std::true_type>>;
-using TEXT  = NAME;
-
-using ULEB  = ARG_defn<KAS_STRING("ULEB"),  opc_uleb128>;
-using SLEB  = ARG_defn<KAS_STRING("SLEB"),  opc_sleb128>;
-
-// create an "core_addr()" entry
-// NB: only works if the target fragment is "relaxed"
-// XXX see if can refactor to use core_section::for_frags()
-// XXX should move to `core_addr`
-inline decltype(auto) gen_addr_ref(unsigned section_idx, std::size_t offset
-                                  , core::core_fragment const *frag_p = nullptr)
-{
-    static std::deque<core::addr_offset_t> offsets;
-
-    auto& section = core::core_section::get(section_idx); 
-    auto& segment = section[0];
-    if (!frag_p)
-        frag_p = segment.initial();
-
-    if (!frag_p)
-        throw std::runtime_error("gen_addr_ref: empty section");
-
-    // now find fragment for "offset"
-    while (frag_p) {
-        // is address in this frag?
-        // NB: allow at end for zero size or no following frag
-        // NB: address is relaxed -- don't let `best` beat `good`
-        auto end = frag_p->base_addr()() + frag_p->size()();
-        if (offset <= end)
-            break;
-
-        // advance to next    
-        frag_p  = frag_p->next_p();
-    }
-
-    if (!frag_p)
-        throw std::runtime_error("gen_addr_ref: offset out of range");
-
-    // save offset in static area
-    offset -= frag_p->base_addr()();
-    offsets.emplace_back(offset);
-
-    // create address with frag_p/offset_p pair
-    return core::core_addr_t::add(frag_p, &offsets.back());
-}
-
+template <typename OP>
+using get_value_t = meta::_t<get_value_impl<OP>>;
 
 template <typename INSN_INSERTER>
-struct emit_opc
+struct emit_insn
 {
-    using INSN_T = typename INSN_INSERTER::value_type;
-    using core_insn = core::core_insn;
-    
-    emit_opc(INSN_INSERTER& bi) : bi(bi) {}
+    emit_insn(INSN_INSERTER& inserter) : inserter(inserter) {}
 
-    // emit "named" type as actual data
+    // destructor: emit current in-progress insn
+    ~emit_insn() { do_emit(); }
+
+    // emit dwarf "named" insn as `core::core_insn`
     template <typename DEFN, typename Arg
             , typename OP = typename  DEFN::op>
     void operator()(DEFN, Arg&& arg)
@@ -97,85 +59,156 @@ struct emit_opc
         //std::cout << " " << std::string(DEFN()) << ": arg = " << expr_t(arg) << std::endl;
         do_fixed_emit<OP>(std::forward<Arg>(arg));
     }
-#ifdef XXX
-    // XXX handle const char * strings.
-    void operator()(NAME, const char *name)
-    {
-        auto str = expression::e_string_t::add(name);
-        do_fixed_emit<typename NAME::op>(str);
-    }
-#endif
-    // emit other ops (eg labels)
+
+    // emit other ops (eg labels, align)
     template <typename OPCODE, typename...Ts,
-            typename = std::enable_if_t<std::is_base_of_v<opcode, OPCODE>>>
+            typename = std::enable_if_t<std::is_base_of_v<core::opcode, OPCODE>>>
     void operator()(OPCODE const& op, Ts&&...args)
     {
-        do_emit({op, std::forward<Ts>(args)...});
+        do_emit();                  // emit pending insn
+        *inserter++ = { op, std::forward<Ts>(args)...};
     }
 
+    // emit symbol as label
     void operator()(core::symbol_ref const& sym)
     {
-        do_emit({core::opc::opc_label{}, sym});
+        do_emit();                  // emit pending insn
+        *inserter++ = { core::opc::opc_label{}, sym };
     }
 
+    auto& get_dot(int which = core::core_addr_t::DOT_CUR)
+    {
+        // if `dot` requested, must flush pending data before evaluating
+        do_emit();                      // next opcode may not match
+        if (which == core::core_addr_t::DOT_NEXT)
+            pending_dot_after = true;   // dot after next insn
+        return core::core_addr_t::get_dot(which);
+    }
+    
 private:
+    // fixed emit ops require a data inserter. Declare type
+    template <typename value_t>
+    using di_t = core::opc::detail::fixed_inserter_t<value_t>;
 
+    // emit arg using `core_data` derived type
     template <typename OP, typename Arg>
     void do_fixed_emit(Arg&& arg)
     {
-        //print_type_name{"do_fixed_emit"}.name<OP>();
-        OP op;
-#ifdef XXX
-        // XXX this is a mess. Will clean up a lot with insn 
-        // refactor to keep loc & first_data out of `insn` proper.
+        set_opcode<OP>();                       // make `OP` current insn type
         
-        auto initial_size = core::core_insn::data.size();
-#if 0
-        auto arg_ins = op.template inserter<expr_t>(di);
-        *op.size_p = arg_ins(std::move(arg));
-#else
-        auto proc_fn = op.gen_proc_one(di);
-        *op.size_p = proc_fn(std::move(arg));
-#endif
+        using value_t = get_value_t<OP>;        // defined for `core_data` types
+        auto& di = this->di.get(value_t());     // retrieve data inserter
 
-        // do INSN stuff
-        core_insn insn {op};
-        insn.first = initial_size;
-        insn.cnt   = core_insn::data.size() - initial_size;
+        // NB: normal OP::proc_one methods take `kas_tokens`.
+        // Overloads for dwarf types have been impemented in relevent `OP`
+        if constexpr (std::is_integral_v<Arg>)
+            insn.data.size += OP::proc_one(di, arg);
+        else if constexpr (std::is_same_v<std::decay_t<Arg>, const char *>)
+            insn.data.size += OP::proc_one(di, arg);
+        else
+            insn.data.size += OP::proc_one(di, expr_t(std::forward<Arg>(arg)));
 
-        do_emit(std::move(insn));
-#endif
+        // part of `get_dot(DOT_NEXT)` implementation.
+        if (pending_dot_after)
+        {
+            pending_dot_after = false;
+            do_emit();
+        }
     }
 
-    void do_emit(core_insn insn)
+    // emit insn if partial one is pending
+    void do_emit()
     {
-        *bi++ = std::move(insn);
+        if (insn.opc_index != 0)
+        {
+            std::cout << "do_emit: raw : ";
+            insn.raw(std::cout);
+            std::cout << std::endl;
+            std::cout << "do_emit: fmt : ";
+            insn.fmt(std::cout);
+            std::cout << std::endl;
+        }
+
+        if (insn.opc_index != 0)
+            *inserter++ = std::move(insn);
+        insn.opc_index    = 0;      // insn is empty
     }
 
-    // init object inserter from ctor
-    INSN_INSERTER& bi;
-#ifdef XXX
-    // get data inserter (which is a static object)
-    // XXX query insn_inserter to get data_inserter
-    static inline auto& di = INSN_T::data_inserter();
-#endif
+    template <typename OP>
+    void set_opcode()
+    {
+        // fixed data opcodes all have a `value_t` member type
+        using value_t = get_value_t<OP>;
+        
+        // don't allow excessive data in insns...
+        if (insn.data.size() > 1024)
+            do_emit();          // that's big enough...
+
+        OP op;                  // default construct opcode
+
+        // if different `OP`, need to emit old insn & start new one
+        if (op.index() != insn.opc_index)
+        {
+            do_emit();          // insert previous insn into container
+
+            // create new `insn` for current opcode
+            // for reference, inspect stmt_t::operator() method
+            // in "parser/parser_variant.h"
+            
+            // NB: insn & data_inserter (& members) don't have dtors. 
+            // NB: no need to destruct before re-construct...
+            static_assert(std::is_trivially_destructible_v<decltype(insn)>);
+            static_assert(std::is_trivially_destructible_v<di_t<value_t>>);
+
+            // reconstruct insn as `op`
+            new(&insn) decltype(insn)();
+            insn.opc_index = op.index();
+
+            // reconstruct the `data_inserter` needed to emulate `core_data`
+            new(&di.get(value_t())) di_t<value_t>(insn.data.di(), insn.data.fixed);
+        }
+    }
+
+private:
+    // data inserter part of the `opc_data` emulation
+    union data_inserter
+    {
+        // needs default ctor
+        data_inserter() {}
+
+        template <typename T>
+        auto& get(T)
+        {
+            if constexpr (std::is_same_v<T, char>)
+                return di_8;
+            else if constexpr (std::is_same_v<T, std::uint8_t>)
+                return di_u8;
+            else if constexpr (std::is_same_v<T, std::uint16_t>)
+                return di_u16;
+            else if constexpr (std::is_same_v<T, std::uint32_t>)
+                return di_u32;
+            else if constexpr (std::is_same_v<T, std::uint64_t>)
+                return di_u64;
+            else
+                // pick templated assertion that will fail...
+                static_assert(std::is_same_v<T, char>,
+                              "invalid data_inserter type");
+        }
+        
+        // data inserters
+        di_t<char>          di_8;
+        di_t<std::uint8_t > di_u8;
+        di_t<std::uint16_t> di_u16;
+        di_t<std::uint32_t> di_u32;
+        di_t<std::uint64_t> di_u64;
+    } di;
+    
+    // inserter to emit insn into container
+    INSN_INSERTER& inserter;
+    core::core_insn insn;       // current insn
+    bool pending_dot_after{};   // dot-after requested & pending
+
 };
-
-
-template <typename INSN_INSERTER>
-struct emit_ostream
-{
-    using INSN_T = typename INSN_INSERTER::value_t;
-    emit_ostream(INSN_INSERTER& bi) : bi(bi) {}
-   
-    // init object inserter from ctor
-    INSN_INSERTER& bi;
-
-    // get data inserter (which is a static object)
-    // XXX query insn_inserter to get data_inserter
-    static auto& di = INSN_T::data_inserter();
-};
-
 
 }
 

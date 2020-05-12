@@ -76,7 +76,13 @@ namespace kas::core
         insn_container(core_segment& initial, DTOR_FN fn = {}) 
                 : initial_segment(initial)
                 , dtor_fn(fn)
-                {}
+                , initial_state(value_type::get_state())
+                {
+                    std::cout << "insn_container for: " << initial_segment;
+                    std::cout << " data begins at: " << std::dec << value_type::index();
+                    std::cout << std::endl;
+                }
+
 
         // create container inserter
         auto inserter()
@@ -105,6 +111,7 @@ namespace kas::core
     // private:
     public:
         core_segment& initial_segment;
+        insn_state_t  initial_state;
         DTOR_FN       dtor_fn{};
 
         // first frag for this container
@@ -193,13 +200,19 @@ namespace kas::core
         // if first pass thru, save "forward iterators" for `proc_frag`
         bool must_generate_iters = !insn_iters;
 
-        if (must_generate_iters) {
+        if (must_generate_iters)
+        {
             insn_iters = new std::vector<frag_iter_t>();
             insn_iters->reserve(insn_index_list.size() - 1);
         }
 
-        // proc_all: reinit "value_type" data structures
-        value_type::reinit();
+        // proc_all: reset insn_container values to initial states
+        //value_type::reinit();
+        value_type::set_state(initial_state);
+        std::cout << "insn_container for: " << initial_segment;
+        std::cout << " reset to: " << std::dec << value_type::index();
+        std::cout << std::endl;
+
         auto insn_iter = insns.begin();
         auto it = insn_index_list.begin();
 
@@ -253,7 +266,7 @@ namespace kas::core
             (core_fragment& frag, insn_iter& it, uint32_t n, PROC_FN fn)
     {
         static const auto idx_label = opc::opc_label().index();
-//#define TRACE_DO_FRAG   3       // 1 = FRAG, 2 = INSN, 3 = RAW
+#define TRACE_DO_FRAG   3       // 1 = FRAG, 2 = INSN, 3 = RAW
 //#undef  TRACE_DO_FRAG
 
 #ifdef  TRACE_DO_FRAG
@@ -281,6 +294,10 @@ namespace kas::core
             std::cout << std::endl;
             std::cout << "processing: ";
 #if    TRACE_DO_FRAG >= 3
+            std::cout << std::endl;
+            std::cout << "raw : opc = " << insn.op().name(); 
+            std::cout << ", fixed = " << std::hex << insn.data.fixed.fixed;
+            std::cout << ", cnt = " << insn.data.cnt;
             std::cout << std::endl;
             std::cout << "raw : ";
             insn.raw(std::cout);
@@ -354,6 +371,11 @@ namespace kas::core
         
         // close index_list
         c.insn_index_list.emplace_back(c.insns.size());
+
+        std::cout << "insn_container for: " << c.initial_segment;
+        std::cout << " data ends at: " << std::dec;
+        std::cout << insn_data::insn_expr_data.size();
+        std::cout << std::endl;
     }
     
     // `inserter` primary method

@@ -54,14 +54,18 @@ namespace detail
             op_size_t size {};
 
             // `calc_size` only called if `size` is not relaxed
-            while(!reader.empty()) {
-                if(reader.is_chunk()) {
+            while(!reader.empty())
+            {
+                if(reader.is_chunk())
+                {
                     // chunk data size is fixed size
                     auto tpl = reader.get_chunk();
                     auto& sz  = std::get<1>(tpl);
                     auto& cnt = std::get<2>(tpl);
                     size += sz * cnt;
-                } else {
+                } 
+                else
+                {
                     // evaluate expression 
                     auto& value = reader.get_expr();
                     size += config.size_one(value, fits);
@@ -191,7 +195,23 @@ struct opc_data : opcode
     }
 #else
 #endif
-
+#if 0
+    // since only one insn can happen at a time, can use methods with statics...
+    // this technique used to support `dwarf` emit methods
+    auto& bi(data_t *p = {})
+    {
+        static detail::fixed_inserter_t<value_t> *bi_p;
+        
+        if (p)
+        {
+            if (!bi_p)
+                bi_p = new std::remove_reference_t<decltype(*bi_p)>{p->di(), p->fixed};
+            else
+                *bi_p = {p->di(), p->fixed};
+        }
+        return *bi_p;
+    }
+#endif
     auto gen_proc_one(data_t& data)
     {
         // create chunk back-inserter
@@ -199,14 +219,13 @@ struct opc_data : opcode
 
         // move fixed-inserter into lambda context
         // NB: if `loc` not provided, don't pass args that could generate errors...
-        return [bi=std::move(bi)](kas_token const& tok) mutable -> op_size_t
+        return [bi=std::move(bi)](auto&&...args) mutable -> op_size_t
             {
-                return derived_t::proc_one(bi, tok);
+                return derived_t::proc_one(bi, std::forward<decltype(args)>(args)...);
             };
     }
-
-
-    // each type represents a different inserter. Instantiated as `opcode::proc_args`
+   
+   // each type represents a different inserter. Instantiated as `opcode::proc_args`
     template <typename C>
     void proc_args(data_t& data, C&& c)
     {
@@ -218,8 +237,13 @@ struct opc_data : opcode
 
         // loop to move data from `parsed` expressions to `opc` data
         // NB: no loc for errors...so don't pass error values!
-        for (auto const& e : c)
-            size += fn(e, kas_loc());
+        if constexpr (std::is_same_v<C, parser::kas_token>)
+            for (auto const& tok : c)
+                size += fn(tok, tok);
+        else
+            for (auto const& e : c)
+                size += fn(e);
+
 
         // accumulated size
         data.size = size;
@@ -236,7 +260,10 @@ struct opc_data : opcode
         // get_reader requires iter l-value
         auto iter = data.iter();
         auto reader = get_reader(data, iter);
-        return impl.calc_size(reader, fits); 
+        
+        // XXX this is wrong
+        data.size = impl.calc_size(reader, fits); 
+        return data.size;
     }
 
     void fmt(data_t const& data, std::ostream& os) const override

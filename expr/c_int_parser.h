@@ -40,6 +40,8 @@ struct c_int_parser : x3::parser<c_int_parser<T>>
         bool result;
         if (std::isdigit(*it))
             result = parse_int(context, it, last, value, neg); 
+        else if (it != first)
+            return false;       // +/- prefix not allowed for char literals
         else
             result = parse_char(context, it, last, value, neg);
         

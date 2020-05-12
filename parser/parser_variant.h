@@ -85,11 +85,11 @@ struct stmt_t : kas_position_tagged
     core::core_insn operator()()
     {
         return var.apply_visitor(x3::make_lambda_visitor<core::core_insn>(
-        //return apply_visitor(x3::make_lambda_visitor<core::core_insn>(
             [this](auto&& node) -> core::core_insn
             {
                 static core::opc::opc_error error;
 
+                // construct empty insn, location tagged
                 core::core_insn insn{*this};     // get loc
 
                 // if valid insn, get opc_index
@@ -108,7 +108,7 @@ struct stmt_t : kas_position_tagged
                 }
 
                 return insn;
-                }));
+            }));
     }
     
 

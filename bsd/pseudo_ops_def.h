@@ -148,10 +148,10 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
         , DEFN_CFI<CFI("def_cfa"), dwarf::DF_def_cfa, 2>
 
         , X_DEFN_CFI<CFI("fde_data")>
-        //, X_DEFN_CFI<CFI("def_cfa")>
+        , X_DEFN_CFI<CFI("def_cfa")>
         , X_DEFN_CFI<CFI_CFA("register")>
         , X_DEFN_CFI<CFI_CFA("offset")>
-        //, X_DEFN_CFI<CFI("offset")>
+        , X_DEFN_CFI<CFI("offset")>
         , X_DEFN_CFI<CFI("personality")>
         , X_DEFN_CFI<CFI("personality_id")>
         , X_DEFN_CFI<CFI("lsda")>

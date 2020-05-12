@@ -35,9 +35,15 @@ struct insn_container_data
     using state_t = std::tuple<Iter>;
 
     // iter is mutable. copy in `insn_data`
-    static auto& iter()
+    // NB: for empty std::deque, begin() == end()
+    
+    static auto& iter(bool get_empty = false)
     {
-        static auto iter = insn_data::begin();
+        static auto empty_iter = insn_data::begin();
+        static auto iter       = insn_data::begin();
+
+        if (get_empty)
+            return empty_iter;
         return iter;
     }
 
@@ -63,6 +69,9 @@ struct insn_container_data
     static void set_state(state_t const& state)
     { 
         iter() = std::get<0>(state);
+
+        if (iter() == iter(true))
+            iter() = insn_data::begin();
     }
     
     static state_t get_state()

@@ -198,17 +198,25 @@ namespace kas::core
 
             // require special test for `min == 0` (ie insn deletion)
             // ...test for offset == { 0, disp }, ie this insn (delete if so)
+#if 0
+            XXX ????
             if (min == 0)
             {
-                if (offset.min != 0) 
+                if ((offset.min + disp) < 0)
                     return no;
+                if ((offset.min + disp)
                 if (offset.max == disp)     // just this insn
                     return yes;
                 return maybe;
             }
-            else if ((offset.min + disp) < min)
+            else
+#else
+            // validate against MIN
+            if ((offset.min + disp) < (min - fuzz))
                 return no;
-
+            else if ((offset.min + disp) < min)
+                return maybe;
+#endif
             // check max w/o fuzz
             auto max_result = (*this)(offset.max - disp, min, max);
             std::cout << "max_result -> " << +max_result << std::endl;

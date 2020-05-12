@@ -106,7 +106,8 @@ auto elf_stream::core2es_data(core::core_section const& s) const -> elf::es_data
     if (!p)
     {
         // construct new `es_data` section in `elf_object` from `core_section`
-        p = new elf::es_data(object, s.sh_type, s.sh_name, s.kas_align);
+        //p = new elf::es_data(object, s.sh_type, s.sh_name, s.kas_align);
+        p = new elf::es_data(object, s.sh_type, s.sh_name, 4);
         p->s_header.sh_flags = s.sh_flags;      // R/W, EXEC, ALLOC, etc
 
         // XXX group/linkage?

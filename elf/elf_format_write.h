@@ -49,13 +49,12 @@ void elf_object::write(std::ostream& os)
     {
         std::cout << "sections: name = " << p->name << ", offset = " << offset << std::endl;
         // calculate padding needed to align section data
-#ifdef XXX
         if (p->s_header.sh_type != SHT_NOBITS)
         {
             p->padding = cvt.padding(p->s_header.sh_addralign, offset);
             offset += p->padding;
         }
-#endif
+        
         // record offsets in section
         p->s_header.sh_offset = offset;
         p->s_header.sh_size   = p->position();  // XXX misuse of method?

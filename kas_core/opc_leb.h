@@ -15,18 +15,15 @@ namespace kas::core::opc
 
 namespace detail
 {
-
     // now declare the LEB128 `opc` interfaces
-
-    template <template <typename> typename LEB, typename VALUE_T = uint32_t>
-    struct opc_leb  : opc_data<opc_leb<LEB, VALUE_T>, uint8_t>
+    template <template <typename> typename LEB, typename MAX_T = uint32_t>
+    struct opc_leb  : opc_data<opc_leb<LEB, MAX_T>, uint8_t>
     {
-        using leb_t     = LEB<VALUE_T>;
-        using base_t    = opc_data<opc_leb<LEB, VALUE_T>, uint8_t>;
-        using value_t   = VALUE_T;
+        using value_t   = uint8_t;      // leb output always `uint8_t`
+        using leb_t     = LEB<MAX_T>;
+        using base_t    = opc_data<opc_leb<LEB, MAX_T>, value_t>;
         using op_size_t = typename opc::opcode::op_size_t;
         using NAME      = typename leb_t::NAME;
-
 
         template <typename CI>
         static op_size_t proc_one(CI& ci, kas_token const& tok)
@@ -36,10 +33,8 @@ namespace detail
                 *ci++ = e_diag_t::error("Invalid value", tok);
 
             // if fixed, emit `bytes` into stream
-            else if (auto p = tok.get_fixed_p()) {
-                auto fn = [&ci](auto n) { *ci++ = n; };
-                return leb_t::write(fn, *p);
-            }
+            else if (auto p = tok.get_fixed_p())
+                return proc_one(ci, *p);
              
             // if variable, emit expression & calculate size later
             else
@@ -47,10 +42,29 @@ namespace detail
             return { 1, leb_t::max_size() };
         }
        
+        // for internal use by dwarf: no error checking
+        template <typename CI>
+        static op_size_t proc_one(CI& ci, expr_t e)
+        {
+            if (auto p = e.get_fixed_p())
+                return proc_one(ci, *p);
+            *ci++ = e;
+            return { 1, leb_t::max_size() };
+        }
+
+        template <typename CI>
+        static op_size_t proc_one(CI& ci, MAX_T value)
+        {
+            auto fn = [&ci](value_t n) { *ci++ = n; };
+            return leb_t::write(fn, value);
+        }
+    
+        
         static op_size_t size_one(expr_t const& v, core_fits const& fits)
         {
-            std::cout << "opc_leb::size_one" << std::endl;
+            std::cout << "\nopc_leb::size_one: " << v << std::endl;
             // calculate size min/max
+    #if 0
             short min = 1;
             for (; min < leb_t::max_size(); ++min)
                 if (fits.fits(v, leb_t::min_value(min), leb_t::max_value(min)) != fits.no)
@@ -60,6 +74,28 @@ namespace detail
             for (; max < leb_t::max_size(); ++max)
                 if (fits.fits(v, leb_t::min_value(max), leb_t::max_value(max)) == fits.yes)
                     break;
+#else
+            short min = 1;
+            for (; min < leb_t::max_size(); ++min)
+            {
+                auto result = fits.fits(v, leb_t::min_value(min), leb_t::max_value(min));
+                std::cout << "result = " << result << std::endl;
+                if (result != fits.no)
+                    break;
+            }
+            short max = min;
+            for (; max < leb_t::max_size(); ++max)
+            {
+             //   if (fits.fits(v, leb_t::min_value(max), leb_t::max_value(max)) == fits.yes)
+               //     break;
+
+                auto result = fits.fits(v, leb_t::min_value(min), leb_t::max_value(max));
+                std::cout << "result = " << result << std::endl;
+                if (result == fits.yes)
+                    break;
+            }
+            std::cout << "size = {" << min << ", " << max << "}" << std::endl;
+#endif
 
             return {min, max};
         }
@@ -86,8 +122,8 @@ namespace detail
 }
 
 // actual pseudo-op types
-using opc_uleb128 = detail::opc_leb<expression::uleb128>;
-using opc_sleb128 = detail::opc_leb<expression::sleb128>;
+using opc_uleb128 = detail::opc_leb<expression::uleb128, uint32_t>;
+using opc_sleb128 = detail::opc_leb<expression::sleb128, int32_t>;
 
 }
 

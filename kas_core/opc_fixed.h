@@ -58,7 +58,7 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
 
 
     using NAME = m_name<sizeof(T), KAS_STRING("INT")>;
-    
+
     template <typename CI>
     static op_size_t proc_one(CI& ci, kas_token const& tok)
     {
@@ -87,6 +87,26 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
         // always fixed size
         return sizeof(T);
     }
+    
+    // for internal use by dwarf: no error checking
+    template <typename CI>
+    static op_size_t proc_one(CI& ci, T value)
+    {
+        *ci++ = value;
+        return sizeof(T);
+    }
+
+    template <typename CI, typename ARG_T>
+    std::enable_if_t<!std::is_integral_v<ARG_T>, op_size_t>
+    static proc_one(CI& ci, ARG_T const& arg)
+    {
+        if (auto p = arg.get_fixed_p())
+            *ci++ = *p;
+        else
+            *ci++ = arg;    // convert to arg
+        return sizeof(T);
+    }
+    
         
     static void emit_one(emit_base& base
                        , expr_t const& value
@@ -176,6 +196,39 @@ struct opc_string : opc_data<opc_string<ZTerm, char_type>, char_type>
                 *ci++ = 0;
         }
         return size;
+    }
+
+    // for internal use by dwarf: no error checking
+    template <typename CI>
+    static op_size_t proc_one(CI& ci, expr_t const& e)
+    {
+        auto str_p = e.get_p<e_string_t>();
+        auto& s = str_p->value();
+            
+        auto size = s.size() + 1;
+        for (auto& c : s)
+            *ci++ = c;
+        *ci++ = 0;
+        return size;
+    }
+
+
+    template <typename CI>
+    static op_size_t proc_one(CI& ci, char_type const *p)
+    {
+        auto size = std::strlen(p) + 1;
+        while (*p)
+            *ci++ = *p++;
+        *ci++ = 0;
+        return size * sizeof(char_type);
+    }
+
+    // in DWARF emit, empty strings translated as integer 0
+    template <typename CI>
+    static op_size_t proc_one(CI& ci, int)
+    {
+        *ci++ = 0;
+        return 1;
     }
 
 };

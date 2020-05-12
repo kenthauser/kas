@@ -97,8 +97,8 @@ struct core_section : kas_object<core_section>
         if (auto p = is_reserved(sh_name)){
             this->sh_type   = p->sh_type;
             this->sh_flags  = p->sh_flags;
-            if (p->sh_flags & SHF_ALLOC)
-                set_align();
+            // XXX if (p->sh_flags & SHF_ALLOC)
+                set_align();    // align all
         }
     }
 

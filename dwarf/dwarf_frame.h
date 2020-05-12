@@ -2,7 +2,7 @@
 #define KAS_DWARF_DWARF_FRAME_H
 
 #include "kas/kas_string.h"
-#include "dwarf_emit.h"
+#include "dwarf_opc.h"
 #include "dwarf_frame_data.h"
 #include <meta/meta.hpp>
 
@@ -20,8 +20,8 @@ auto& gen_cie_32(T& emit)
 
     using dl_addr_t = typename DL_STATE::dl_addr_t;
 
-    auto& bgn_cie  = core_addr_t::get_dot();
-    auto& end_cie  = core_symbol_t::add();
+    auto& bgn_cie  = emit.get_dot();        // get current location
+    auto& end_cie  = core_symbol_t::add("cie");  // allocate unresolved symbol
     
     // section length (not including section length field)
     emit(UWORD(), end_cie - bgn_cie - UWORD::size);
@@ -38,8 +38,8 @@ auto& gen_cie_32(T& emit)
 
     //emit(UBYTE(), ...initial insns...);
     uint32_t cmds[] = {0x0c, 0x0f, 0x04, 0x98, 0x01};
-    for (auto p = std::begin(cmds); p != std::end(cmds); ++p)
-        emit(UBYTE(), *p);
+    for (auto&& cmd : cmds)
+        emit(UBYTE(), cmd);
 
     emit(opc_align(), 4);                     // pad to multiple of addr_size
     emit(opc_label(), end_cie.ref());
@@ -57,8 +57,8 @@ void gen_fde_32(T& emit, df_data const& d, CIE& cie)
     using dl_addr_t = typename DL_STATE::dl_addr_t;
 
     // DOT_NEXT is `dot` *after* next instruction emitted
-    auto& bgn_fde  = core_addr_t::get_dot(core_addr_t::DOT_NEXT);
-    auto& end_fde  = core_symbol_t::add();
+    auto& bgn_fde  = emit.get_dot(core_addr_t::DOT_NEXT);
+    auto& end_fde  = core_symbol_t::add("fde");
 
     // section length (not including section length field)
     emit(UWORD(), end_fde - bgn_fde);
@@ -135,7 +135,7 @@ void dwarf_frame_gen(Inserter inserter)
 {
     std::cout << __FUNCTION__ << std::endl;
     
-    emit_opc<Inserter> emit(inserter);
+    emit_insn<Inserter> emit(inserter);
     DL_STATE state;
 
     // generate header. Return "end" label to be emitted at end

@@ -81,7 +81,7 @@ namespace opc
 
 struct insn_data 
 {
-private:
+//private:
     static inline std::deque<expr_t> insn_expr_data; 
 
 
@@ -115,6 +115,11 @@ public:
         return insn_expr_data.begin();
     }
 
+    static auto end()
+    {
+        return insn_expr_data.end();
+    }
+
     // return object, not reference
     Iter iter() const;
     std::size_t index() const;
@@ -141,19 +146,18 @@ public:
 //private:
     friend insn_container_data;
    
-    uint16_t        raw_cnt;
-    fixed_t         _fixed;
-    
+    uint16_t        raw_cnt{};
+    fixed_t         _fixed {};
+
+    // instances used during parsing of insns. 
+    insn_container_data *data_p {};
+
     // for test fixture
     static void clear()
     {
         insn_expr_data.clear();
     }
-
-
-    // instances used during parsing of insns. 
-    insn_container_data *data_p {};
-
+    // test fixture routine
     static inline core::kas_clear _c{clear};
 };
 }

@@ -3,6 +3,8 @@
 
 #include "kas/kas_string.h"
 #include "dwarf_fsm.h"
+#include "dwarf_opc.h"
+#include "dwarf_emit.h"
 #include <meta/meta.hpp>
 
 namespace kas::dwarf
@@ -57,7 +59,7 @@ auto gen_dwarf_32_header(T& emit)
 
     // emit directories
     //emit(UBYTE(), 0);
-    emit(NAME(), 0);
+    emit(NAME(), "");
     // emit files
     auto emit_file = [&emit](dwarf_file const& f) mutable
         {
@@ -218,10 +220,10 @@ void emit_rule(DL_STATE& s, EMIT& emit, Ts...args)
         if constexpr (arg_len < 0) {
             // variable length -- drop labels & emit `core_expr`
             
-            auto& dot = core::core_addr_t::get_dot(core::core_addr_t::DOT_NEXT);
-            auto& ext = core::core_symbol_t::add();
+            auto& dot = emit.get_dot(core::core_addr_t::DOT_NEXT);
+            ext_ref   = core::core_symbol_t::add("next").ref();
 
-            emit(ULEB(), ext - dot);
+            emit(ULEB(), ext_ref.get() - dot);
         } else if constexpr (arg_len < 128) {
             // add INSN byte to fixed length
             emit(UBYTE(),(int)arg_len + 1);   // assume fixed length not >= 128
@@ -418,7 +420,7 @@ void dwarf_gen(Inserter inserter)
 {
     std::cout << __FUNCTION__ << std::endl;
     
-    emit_opc<Inserter> emit{inserter};
+    emit_insn<Inserter> emit{inserter};
     DL_STATE state;
 
     // generate header. Return "end" symbol to be defined after data emited

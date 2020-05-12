@@ -545,6 +545,12 @@ bool core_expr<REF>::expr_term::flatten(core_expr& e, bool is_minus)
     if (addr_p)
         return true;
 
+    if (symbol_p)
+        value_p = symbol_p->value_p();
+
+    if (!value_p)
+        return true;        // forward declared symbol
+
     // Here have `value_p`. Interpret expression & splice into `core_expr`
     // Could use `visitor`, but only a few types matter, so just
     // expand list if `core_expr` handles additional base types

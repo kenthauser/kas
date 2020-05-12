@@ -136,6 +136,7 @@ public:
     template <typename OS>
     static void dump(OS& os)
     {
+        std::cout << "DW_STATE: dump: cout = " << obstack().size() << std::endl;
         dl_reader(true);
         base_t::dump(os);
     }

@@ -159,7 +159,19 @@ struct elf_convert
     // pick large alignment
     static constexpr auto   MAX_ALIGN   = 6;        // 64 bytes
     static_assert(MAX_PADDING >= (1 << MAX_ALIGN));
-       
+      
+    constexpr unsigned padding(unsigned align, unsigned long offset) const
+    {
+        if (align > 1)
+        {
+            auto mask = align - 1;  // convert power-of-two to mask
+            offset &= mask;         // get lsbs
+            if (offset)
+                return align - offset;
+        }
+        return 0;
+    }
+
 // convert operations
 //
 // used to convert SRC value to DST for writing. 
