@@ -93,6 +93,7 @@ struct tgt_opc_quick_base : core::opcode
 
     void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *) const override
     {
+        std::cout << "target_opc_quick" << std::endl;
         auto reader = read_quick_data(data);
         while (reader)
         {

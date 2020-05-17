@@ -149,6 +149,22 @@ const char *tgt_arg_t<Derived, M, I, R, RS>
     return {};
 }
 
+// set mode based on size of branch insn
+template <typename Derived, typename M, typename I, typename R, typename RS>
+void tgt_arg_t<Derived, M, I, R, RS>
+                ::set_branch_mode(unsigned insn_size)
+{ 
+    // increment one "MODE" for each word of insn after base code
+    // if INSN code size is 1, "base code" size is 2;
+    
+    // NB: don't know `mcode_t`, so use `expression::e_data_t` as proxy
+    using mcode_insn_sz = expression::e_data_t;
+
+    auto base  = std::max<unsigned>(2, sizeof(mcode_insn_sz));
+    auto words = (insn_size - base) / sizeof(mcode_insn_sz);
+    derived().set_mode(arg_mode_t::MODE_BRANCH + words);
+}
+
 // calculate size (for inserter)
 template <typename Derived, typename M, typename I, typename R, typename RS>
 int tgt_arg_t<Derived, M, I, R, RS>

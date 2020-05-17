@@ -59,6 +59,7 @@ enum m68k_arg_mode : uint8_t
     , MODE_INDIRECT
     , MODE_REG_INDIR 
     , MODE_REG_OFFSET 
+    , MODE_BRANCH = MODE_BRANCH_BYTE
 };
 
 // support for coldfire MAC. 

@@ -72,7 +72,7 @@ namespace kas::core
 
         virtual result_t disp(expr_t const& e, fits_min_t min, fits_max_t max, int delta) const override
         {
-            std::cout << ": " << e;
+            std::cout << "core_fits (disp): " << e;
             std::cout << " min/max = " << min << "/" << max;
             std::cout << ", delta: " << delta;
             std::cout << ", fuzz: "  << fuzz  << std::endl;
@@ -86,7 +86,6 @@ namespace kas::core
                         { return (*this)(value, min, max, delta); }
                     ));
         }
-
 
         // returns true if symbol is before `dot` or external
         // used to disallow branch deletion
@@ -212,11 +211,18 @@ namespace kas::core
             else
 #else
             // validate against MIN
-            if ((offset.min + disp) < (min - fuzz))
+            if ((offset.min - disp) < min)
                 return no;
-            else if ((offset.min + disp) < min)
+            if ((offset.min - disp) >= max)
+                return no;
+            if ((offset.max - disp) < max)
+                return yes;
+            if ((offset.max - disp) < (max+fuzz))
                 return maybe;
+            return no;
+
 #endif
+#if 0
             // check max w/o fuzz
             auto max_result = (*this)(offset.max - disp, min, max);
             std::cout << "max_result -> " << +max_result << std::endl;
@@ -230,6 +236,7 @@ namespace kas::core
             if (max_result == yes)
                 return maybe;
             return no;
+#endif
         }
 
     private:

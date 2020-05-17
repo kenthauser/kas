@@ -127,7 +127,7 @@ struct as_parser<TOK, std::enable_if_t<std::is_base_of_v<kas::parser::token_defn
     std::enable_if_t<!std::is_void_v<parser_t>, type>
     static call(TOK const& tok)
     {
-        print_type_name{"kas_token::as_parser::Derived"}.name<Derived>();
+        //print_type_name{"kas_token::as_parser::Derived"}.name<Derived>();
         return x3::as_parser(parser_t());
     }
 #if 0

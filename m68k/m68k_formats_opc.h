@@ -13,18 +13,18 @@
 #include "opc_cp_dbcc.h"
 #endif
 
+#include "m68k_opc_branch.h"
+
 
 namespace kas::m68k::opc
 {
 
-struct m68k_opc_branch;
+//struct m68k_opc_branch;
 
 // get `opc` generic base classes
 using fmt_gen    = tgt::opc::tgt_fmt_opc_gen   <m68k_mcode_t>;
 using fmt_list   = tgt::opc::tgt_fmt_opc_list  <m68k_mcode_t>;
 using fmt_branch = tgt::opc::tgt_fmt_opc_branch<m68k_mcode_t>;
-
-#if 1
 
 //using fmt_branch    = fmt_gen;
 using fmt_dbcc      = fmt_gen;
@@ -32,10 +32,9 @@ using fmt_cas2      = fmt_gen;
 using fmt_cp_branch = fmt_gen;
 using fmt_cp_dbcc   = fmt_gen;
 
-#else
-
+#if 0
 // branch opcode format
-struct fmt_branch : virtual m68k_mcode::fmt_t
+struct fmt_branch : virtual m68k_mcode_t::fmt_t
 {
     virtual opcode_t& get_opc() const override 
     {
@@ -43,7 +42,10 @@ struct fmt_branch : virtual m68k_mcode::fmt_t
         return opc;
     }
 };
+#endif
 
+#if 1
+#else
 // dbcc opcode format
 struct fmt_dbcc : virtual m68k_mcode::fmt_t
 {

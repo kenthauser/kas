@@ -43,9 +43,6 @@ struct tgt_opc_list : MCODE_T::opcode_t
                  , data_t& data
                  ) override
     {
-        // process insn for size before saving
-        insn.eval(ok, args, stmt_info, data.size, expression::expr_fits(), this->trace);
-
         // serialize format (for unresolved instructions)
         // 0) fixed area: OK bitset in host order
         // 1) insn index
@@ -116,9 +113,9 @@ struct tgt_opc_list : MCODE_T::opcode_t
         auto& insn =  insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         auto& mc   = *insn.list_mcode_p;
         auto  args =  base_t::serial_args(reader, mc);
-        auto  info =  args.info;        // stmt_info
+        auto& info =  args.info;        // stmt_info deserialized with args
 
-           // evaluate with new `fits`
+        // evaluate with new `fits`
         insn.eval(ok, args, info, data.size, fits, this->trace);
 
         // save new "OK"
@@ -143,7 +140,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
         auto& insn =  insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         auto& mc   = *insn.list_mcode_p;
         auto  args =  base_t::serial_args(reader, mc);
-        auto  info =  args.info;        // stmt_info
+        auto& info =  args.info;        // stmt_info
 
         // "find first set" in bitset
         auto index = 0;
@@ -152,10 +149,28 @@ struct tgt_opc_list : MCODE_T::opcode_t
                 break;
             else
                 bitmask >>= 1;
-       
+
         // select first `machine code` that matches
         auto& selected_mc = *insn.mcodes[index];
+
+#if 0      
+        std::cout << "tgt_opc_list::emit: code = ";
         auto code = selected_mc.code(info);
+        auto n = selected_mc.code_size()/sizeof(mcode_size_t);
+        for (auto p = code.begin(); n--; ++p)
+            std::cout << std::hex << +*p << ' ';
+        
+        auto delim = " ; args : ";
+        for (auto& arg : args)
+        {
+            std::cout << delim << arg << " mode = " << std::dec << +arg.mode();
+            delim = ",";
+        }
+        
+        // ...finish with `info`
+        std::cout << " ; info: " << info;
+        std::cout << std::endl;
+#endif        
         selected_mc.emit(base, args, info);
     }
 };

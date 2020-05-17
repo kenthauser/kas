@@ -267,7 +267,7 @@ namespace kas::core
     {
         static const auto idx_label = opc::opc_label().index();
 #define TRACE_DO_FRAG   3       // 1 = FRAG, 2 = INSN, 3 = RAW
-//#undef  TRACE_DO_FRAG
+#undef  TRACE_DO_FRAG
 
 #ifdef  TRACE_DO_FRAG
         std::cout << "do_frag::begin: " << frag;
@@ -294,10 +294,6 @@ namespace kas::core
             std::cout << std::endl;
             std::cout << "processing: ";
 #if    TRACE_DO_FRAG >= 3
-            std::cout << std::endl;
-            std::cout << "raw : opc = " << insn.op().name(); 
-            std::cout << ", fixed = " << std::hex << insn.data.fixed.fixed;
-            std::cout << ", cnt = " << insn.data.cnt;
             std::cout << std::endl;
             std::cout << "raw : ";
             insn.raw(std::cout);

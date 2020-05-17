@@ -29,10 +29,11 @@ struct m68k_stmt_info_t : detail::alignas_t<m68k_stmt_info_t, uint16_t>
     using base_t::base_t;
     using mcode_t = m68k_mcode_t;
 
-    // `bind` updates info for mcode under evaluation
-    // NB: `bound_sz` inited to `arg_size` in parser.
-    //void bind(mcode_t const&) const;
+    // get sz() (byte/word/long/etc) for a `mcode`
     uint8_t sz(mcode_t const&) const;
+
+    // test if mcode supported for `info`
+    const char *ok(mcode_t const&) const;
 
     void print(std::ostream&) const;
 
@@ -41,14 +42,11 @@ struct m68k_stmt_info_t : detail::alignas_t<m68k_stmt_info_t, uint16_t>
         info.print(os); return os;
     }
 
-    // NB: `has_dot` is parse only. `bound_sz` is validate only.
+    // NB: `has_dot` is parse only. 
     value_t arg_size  : 3;      // argument size: 7 == void (not specified)
     value_t ccode     : 5;      // conditional instruction code
     value_t has_ccode : 1;      // is conditional
     value_t fp_ccode  : 1;      // is floating point conditional
-
-    // bound_sz is mutable so rest of `info_t` doesn't need to be saved & restored 
-    //mutable value_t bound_sz  : 3;      // (for validate/emit: sz for this mcode)
 };
 
 
@@ -65,7 +63,7 @@ struct m68k_stmt_t : tgt::tgt_stmt<m68k_stmt_t, m68k_insn_t, m68k_arg_t>
     kas_error_t validate_args(insn_t const&, ARGS_T&, bool& args_arg_const, TRACE * = {}) const;
 
     // method to validate mcode. Principally for `stmt_info_t` validation
-    const char *validate_mcode(mcode_t const *mcode_p) const;
+    const char *validate_stmt(mcode_t const *mcode_p) const;
 
     // utility method to test if floating-point insn
     bool is_fp() const

@@ -60,9 +60,9 @@ auto  m68k_stmt_t::validate_args(insn_t const& insn
 }
 
 // Validate single MCODE supported by `TST` & `STMT_FLAGS`
-const char *m68k_stmt_t::validate_mcode(mcode_t const *mcode_p) const
+const char *m68k_stmt_t::validate_stmt(mcode_t const *mcode_p) const
 {
-    if (auto base_err = base_t::validate_mcode(mcode_p))
+    if (auto base_err = base_t::validate_stmt(mcode_p))
         return base_err;
 
     auto sfx_code = mcode_p->defn().info & opc::SFX_MASK;
@@ -127,6 +127,13 @@ uint8_t m68k_stmt_info_t::sz(m68k_mcode_t const& mc) const
             sz = OP_SIZE_BYTE;
     }
     return sz;
+}
+
+// Validate instruction supports suffix
+const char *m68k_stmt_info_t::ok(m68k_mcode_t const& mc) const
+{
+    auto defn_sz = mc.defn().info & 0x7f;
+    return {};
 }
 
 void m68k_stmt_info_t::print(std::ostream& os) const

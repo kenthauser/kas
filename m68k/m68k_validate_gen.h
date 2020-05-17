@@ -28,13 +28,15 @@
 *****************************************************************************/
 
 #include "m68k_mcode.h"
-#include "target/tgt_validate.h"
+#include "target/tgt_validate_generic.h"
+#include "target/tgt_validate_branch.h"
 
 namespace kas::m68k::opc
 {
 
-namespace 
-{
+//namespace 
+//{
+
 struct val_dir_long : m68k_mcode_t::val_t
 {
     fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
@@ -60,10 +62,10 @@ struct val_dir_long : m68k_mcode_t::val_t
     }
 };
 
-struct val_branch : m68k_mcode_t::val_t
+struct val_branch : tgt::opc::tgt_val_branch<val_branch, m68k_mcode_t>
 {
-    // special for branch. Allow deletable branch
-    constexpr val_branch(bool can_delete = {}) : can_delete(can_delete) {}
+    using base_t::base_t; 
+    
     fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         // allow direct mode 
@@ -73,53 +75,6 @@ struct val_branch : m68k_mcode_t::val_t
             return fits.yes;
         return fits.no;
     }
-
-    // NB: this validator is reason we need size_p: whole insn can be deleted
-    fits_result size(m68k_arg_t& arg, m68k_mcode_t const & mc, m68k_stmt_info_t const& info
-                   , expr_fits const& fits, op_size_t& op_size) const override
-    {
-        op_size.max = 6;            // not on 68000
-
-        // test if can delete. Slightly different so as to be sure
-        if (can_delete && !fits.seen_this_pass(arg.expr))
-            op_size.min = 0;
-        else
-            op_size.min = 2;
-            
-        // the following shift works for zero, two, four.
-        // six will fail at `while` loop
-        int disp_size = op_size.min >> 1;
-        int mode = MODE_BRANCH_BYTE;
-        while (op_size.min < op_size.max)
-        {
-            std::cout << "\nval_branch: fits: " << arg.expr << " sz = " << +disp_size << std::endl;
-            // if attempting to delete, must use "displacment" of zero. Else sizeof(mcode_op_t)
-            switch (fits.disp_sz(disp_size, arg.expr, op_size.min ? 2 : 0))
-            {
-                case expr_fits::no:
-                    if (op_size.min)
-                        ++mode;     // set next mode
-                    break;          // try next value
-                case expr_fits::yes:
-                    arg.set_mode(mode);
-                    op_size.max = op_size.min;
-                    std::cout << "val_branch:yes: arg = " << arg << std::endl;
-                    return expr_fits::yes;
-                default:
-                    std::cout << "val_branch:maybe: mode = " << std::dec << +mode << std::endl;
-                    return expr_fits::maybe;
-            }
-            op_size.min += 2;
-            ++disp_size;
-        }
-
-        // iff 68000, fits::no
-        arg.set_mode(mode);
-        std::cout << "val_branch:default: arg = " << arg << std::endl;
-        return expr_fits::yes;   
-    }
-
-    bool can_delete;
 };
 
 struct val_movep : m68k_mcode_t::val_t
@@ -453,7 +408,7 @@ struct val_cf_bit_static : m68k_mcode_t::val_t
     }
 };
 
-}   // unnamed namespace
+//}   // unnamed namespace
 
 
 #define VAL_GEN(NAME, ...) using NAME = _val_gen<KAS_STRING(#NAME), __VA_ARGS__>;
@@ -481,17 +436,19 @@ VAL_GEN (Q_IMMED16,  val_range_t<int16_t>);     // 16 bits signed
 VAL_GEN (BIT_IMMED,  val_range_t<int32_t>);     // 32 bits signed
 
 // XXX 
-VAL_GEN (ADDR_DISP,  val_range, 0, 0);   // mode == ADDR_DISP ? XXX convert to AM
-VAL_GEN (ADDR_INDIR, val_range, 0, 1);   // mode == ADDR_INDIR ? XXX convert to AM
+VAL_GEN (ADDR_DISP,  val_range, 0, 0);  // mode == ADDR_DISP ? XXX convert to AM
+VAL_GEN (ADDR_INDIR, val_range, 0, 1);  // mode == ADDR_INDIR ? XXX convert to AM
 
 // XXX 
-VAL_GEN (INDIR_MASK, val_range, 0, 2);   // mode in (INDIR, INCR, DECR, DISP)
+VAL_GEN (INDIR_MASK, val_range, 0, 2);  // mode in (INDIR, INCR, DECR, DISP)
 
-VAL_GEN (PAIR,       val_pair, 0);       // data pair
-VAL_GEN (GEN_PAIR,   val_pair, 1);       // gen-reg pair
+VAL_GEN (PAIR,       val_pair, 0);      // data pair
+VAL_GEN (GEN_PAIR,   val_pair, 1);      // gen-reg pair
 
-VAL_GEN (BRANCH   ,  val_branch);       // BRANCH (displacement)
-VAL_GEN (BRANCH_DEL, val_branch, 1);    // DELETABLE branch
+// For branches only: sizes args are size of insn, not arg
+VAL_GEN (BRANCH    ,  val_branch, 2);       // branch byte/word/long
+VAL_GEN (BRANCH_DEL,  val_branch, 0);       // branch byte/word/long DELETE-ABLE
+VAL_GEN (BRANCH_W  ,  val_branch, 4, 4);    // branch word only 
 
 VAL_GEN (MOVEP,      val_movep);         // indir or disp.
 

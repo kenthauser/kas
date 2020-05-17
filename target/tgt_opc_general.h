@@ -8,8 +8,6 @@ namespace kas::tgt::opc
 {
 using namespace kas::core::opc;
 
-using op_size_t = kas::core::opcode::op_size_t;
-
 template <typename MCODE_T>
 struct tgt_opc_general : MCODE_T::opcode_t
 {
@@ -47,27 +45,9 @@ struct tgt_opc_general : MCODE_T::opcode_t
                  , data_t&  data
                  ) override
     {
-        // get size for this opcode
-        if (auto trace = this->trace)
-        {
-            *trace << "tgt_opc_general::gen_insn: " << insn.name;
-            auto delim = ": ";
-            for (auto& arg : args)
-            {
-                *trace << delim << arg;
-                delim = ", ";
-            }
-            *trace << " ; info = " << stmt_info;
-            *trace << std::endl;
-        }
-        
-        // don't bother to trace, know mcode matches
-        mcode.size(args, stmt_info, data.size, expression::expr_fits{});
-
         // serialize format (for resolved instructions)
         // 1) mcode index
-        // 2) mcode binary data
-        // 3) serialized args
+        // 2) serialized args
         
         auto inserter = base_t::tgt_data_inserter(data);
         inserter(mcode.index);
@@ -79,12 +59,11 @@ struct tgt_opc_general : MCODE_T::opcode_t
     {
         // deserialize insn data
         // format:
-        //  1) opcode index
-        //  2) opcode binary code (word or long)
-        //  3) serialized args
+        //  1) mcode index
+        //  2) serialized args
         
         auto  reader = base_t::tgt_data_reader(data);
-        auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(mcode_t::index)));
         
         auto args    = base_t::serial_args(reader, mcode);
         auto code_p  = args.code_p;
@@ -114,7 +93,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
         }
 
         // ...finish with `info`
-        std::cout << " ; info: " << args.info;
+        os << " ; info: " << args.info;
     }
 
     op_size_t calc_size(data_t& data, core::core_fits const& fits) const override
@@ -126,7 +105,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
         //  3) serialized args
 
         auto  reader = base_t::tgt_data_reader(data);
-        auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(mcode_t::index)));
         
         auto  args   = base_t::serial_args(reader, mcode);
         auto& info   = args.info;
@@ -145,7 +124,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
         //  2) opcode binary code (word or long)
         //  3) serialized args
         auto  reader = base_t::tgt_data_reader(data);
-        auto& mcode  = MCODE_T::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(mcode_t::index)));
         auto  args   = base_t::serial_args(reader, mcode);
         auto& info   = args.info;
 

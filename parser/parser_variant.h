@@ -61,25 +61,6 @@ struct stmt_t : kas_position_tagged
     std::string src() const
     {
         return this->where();
-    #if 0
-        return apply_visitor(x3::make_lambda_visitor<std::string>(
-            [this](auto&& node)
-            {
-            #if 0
-                kas_loc const& loc = node;
-                if (loc)
-                    return loc.where();
-            #else
-                return this->where();
-
-            #endif
-                
-                std::string result{"UNTAGGED: "};
-                result += typeid(node).name();
-                return result;
-            }
-            ));
-    #endif
     }
 
     core::core_insn operator()()

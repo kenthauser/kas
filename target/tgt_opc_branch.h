@@ -66,8 +66,10 @@ struct tgt_opc_branch : MCODE_T::opcode_t
                             , stmt_info_t const&     info
                             , core::core_fits const& fits) const 
     {
-        // default: set min -> max
-        data.size.min = data.size.max;
+        arg_t arg;
+        arg.expr = dest;
+        auto  dest_iter  = mcode.vals().last();
+        dest_iter->size(arg, mcode, info, fits, data.size);
     }
 
 
@@ -78,11 +80,28 @@ struct tgt_opc_branch : MCODE_T::opcode_t
                             , expr_t const&          dest
                             , stmt_info_t const&     info) const
     {
-        // default: emit opcode words + displacement from end of insn
+        // 0. create an "arg" from dest expression
+        arg_t arg;
+        arg.expr = dest;
+        arg.set_branch_mode(data.size());
+        
+        // 1. insert `dest` into opcode
+        // get mcode validators: displacement always "last" arg
+        auto  val_it = mcode.vals().last();
+        auto  cnt    = mcode.vals().size();
+        auto& fmt    = mcode.fmt();
+        
+        if (!fmt.insert(cnt-1, code_p, arg, &*val_it))
+            fmt.emit_reloc(cnt-1, base, code_p, arg, &*val_it);
+
+        // 2. emit base code
         auto words = mcode.code_size()/sizeof(mcode_size_t);
         while (words--)
             base << *code_p++;
-        base << core::emit_disp(max_addr, -max_addr) << dest;
+
+        // 3. emit `dest`
+        auto sz = info.sz(mcode);
+        arg.emit(base, sz);
     }
 
 

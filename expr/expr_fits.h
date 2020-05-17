@@ -208,14 +208,12 @@ namespace kas::expression
         std::enable_if_t<!std::is_integral_v<T>, result_t>
         operator()(T const&, fits_min_t, fits_max_t) const
         {
-            print_type_name{"expr_fits: emits_value"}.name<T>();
             bool is_value_type = emits_value<T>::value;
             return is_value_type ? MIGHT_FIT : NO_FIT;
         }
 
         result_t operator()(core::core_expr_t const& e, fits_min_t, fits_max_t) const
         {
-            std::cout << "expr_fits::fits: expr = " << expr_t(e) << std::endl;
             return MIGHT_FIT;
         }
 

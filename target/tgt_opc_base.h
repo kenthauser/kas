@@ -27,7 +27,6 @@ struct tgt_opc_base : core::opc::opcode
     using op_size_t    = typename core::opcode::op_size_t;
     using emit_value_t = typename core::emit_base::emit_value_t;
    
-
     //
     // gen_insn:
     //

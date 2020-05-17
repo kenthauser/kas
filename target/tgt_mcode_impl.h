@@ -9,9 +9,9 @@ namespace kas::tgt
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-        validate_args(ARGS_T& args
-                    , stmt_info_t const& info 
-                    , std::ostream *trace) const
+        validate_mcode(ARGS_T& args
+                      , stmt_info_t const& info 
+                      , std::ostream *trace) const
      -> std::pair<const char *, int>
 {
     if (trace)
@@ -21,6 +21,10 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     auto  val_p = val_c.begin();
     auto  cnt   = val_c.size();
     auto  msg   = err_msg_t::ERR_invalid;   // "invalid arguments"
+
+    // validate mcode against parsed `info`
+    if (auto p = info.ok(derived()))
+        return { p, 0 };
 
     if (cnt == 1)
         msg = err_msg_t::ERR_argument;

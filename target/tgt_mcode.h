@@ -133,7 +133,7 @@ struct tgt_mcode_t
     // declare as template to defer definition of `ARGS_T`
     // validate arg count & arg_modes are supported on run-time target
     template <typename ARGS_T>
-    std::pair<const char *, int> validate_args (ARGS_T& args, stmt_info_t const& info, std::ostream *trace = {}) const;
+    std::pair<const char *, int> validate_mcode (ARGS_T& args, stmt_info_t const& info, std::ostream *trace = {}) const;
 
     // calculate total size of opcode + args
     // return `fits_result` based if immed size, branch displacement, goes out of range

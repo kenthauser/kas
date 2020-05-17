@@ -37,6 +37,8 @@ struct error_msg
     static constexpr auto ERR_bad_bitfield  = "X invalid bitfield";
     static constexpr auto ERR_bad_offset    = "X invalid offset";
     static constexpr auto ERR_bad_width     = "X invalid width";
+
+    static constexpr auto ERR_arg_width     = "X invalid width";
 };
 
 

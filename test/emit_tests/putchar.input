@@ -3,8 +3,8 @@
 .Ltext0:
 	.cfi_sections	.debug_frame
 	.align	2
-	.type	Xchk, @function
-Xchk:
+	.type	chk, @function
+chk:
 .LFB0:
 	.file 1 "chk.h"
 	.loc 1 32 0
@@ -27,7 +27,7 @@ Xchk:
 	rts
 	.cfi_endproc
 .LFE0:
-	.size	Xchk, .-Xchk
+	.size	chk, .-chk
 	.align	2
 	.type	abort, STT_FUNC
 	.type	abort, function

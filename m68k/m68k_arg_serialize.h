@@ -36,7 +36,6 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
             // if possibly `e_float_t` perform tests 
             if constexpr (!std::is_void_v<e_float_t>)
             {
-                std::cout << "tgt_arg_t::serialize: " << expr << std::endl;
                 using fmt = typename e_float_t::object_t::fmt;
 #if 1
                 if (!p)

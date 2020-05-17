@@ -67,10 +67,12 @@ struct init_from_list<T, meta::list<Ts...>, void, CTOR_ARG>
 {
     // NB: use std::array<> for support of zero-length arrays
     static constexpr auto size = sizeof...(Ts);
-    static constexpr std::array<T, size> data { detail::value_of(Ts())... };
-    static constexpr auto value = data.data();
+    static constexpr auto _size = std::max<unsigned>(1, size);
+    static constexpr T data[_size] { detail::value_of(Ts())... };
+    static constexpr T const* value = data;
 };
-    
+   
+
 //////////////////////////////////////////////////////////////////
 //
 // Declare `CTOR` for virtual types.

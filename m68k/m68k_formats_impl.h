@@ -84,18 +84,28 @@ struct fmt_displacement : m68k_mcode_t::fmt_t::fmt_impl
         {
         default:
             std::cout << "emit_relocation: bad arg: " << arg << ", mode = " << +arg.mode() << std::endl;
-            throw std::logic_error{"invalid fmt_displacement mode"};
+           break;
+           throw std::logic_error{"invalid fmt_displacement mode"};
 
         case MODE_BRANCH_BYTE:
         {
-            // displacement from pc + 2, 1 byte offset from base machine code word
+            // byte displacement stored in LSBs. Use reloc mechanism
+
+            std::cout << "fmt_displacement: branch byte" << std::endl;
+            // displacement is from pc + 2, 1 byte offset from base machine code word
             // XXX offset??
-            base << core::emit_disp(1, -2, 1) << arg.expr;
+            // reloc is 8-bits & pc-relative
+            elf::kas_reloc r { elf::K_REL_ADD, 8, true }; 
+            
+            // reloc is from end of machine code, with 1 byte offset
+            base << core::emit_reloc(r, -2, 1) << arg.expr;
             break;
         }
         case MODE_BRANCH_WORD:
+            std::cout << "fmt_displacement: branch word" << std::endl;
             break;                  // zero LSBs indicate word offset will follow
         case MODE_BRANCH_LONG:
+            std::cout << "fmt_displacement: branch long" << std::endl;
             *op |= 0xff;            // ones LSBs indicate long offset will follow
             break;
         }

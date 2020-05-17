@@ -42,7 +42,7 @@
  *****************************************************************************/
 
 #include "m68k_mcode.h"
-#include "target/tgt_validate.h"
+#include "target/tgt_validate_generic.h"
 #include <typeinfo>
 
 namespace kas::m68k::opc

@@ -242,14 +242,18 @@ auto core_fits::operator()
     (core_addr_t const& addr, fits_min_t min, fits_max_t max, int disp) const
     -> result_t
 {
-#if 0
+#if 1
     std::cout << "core_fits: (disp) core_addr: " << expr_t(addr);
     std::cout << " min/max = " << std::dec << min << "/" << max;
     std::cout << " disp = " << disp;
     std::cout << " fuzz = " << fuzz;
     std::cout << std::endl;
 #endif
-#if 0
+    
+    if (!dot_p)
+        return maybe;
+
+#if 1
     std::cout << "addr frag = " << *addr.frag_p;
     std::cout << " dot frag = " << *dot_p->frag_p;
     std::cout << " base_delta = " << dot_p->base_delta;
@@ -260,9 +264,6 @@ auto core_fits::operator()
     std::cout << " cur delta = "  << dot_p->cur_delta;
     std::cout << std::endl;
 #endif
-    if (!dot_p)
-        return maybe;
-
     // initial `fuzz`: just check sections
     if (fuzz < 0)
     {
@@ -271,10 +272,6 @@ auto core_fits::operator()
         return maybe;
     }    
     
-    // special test for `jr .`: must not delete jr backwards
-    if (min == 0 && dot_p->seen_this_pass(addr))
-        return no;
-
     expr_offset_t offset = dot_p->rebase(addr) - dot_p->offset();
     //std::cout << "core_fits: offset = " << offset << ", disp = " << disp << std::endl;
     return (*this)(offset, min, max, disp);

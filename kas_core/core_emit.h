@@ -245,7 +245,7 @@ private:
         elf::kas_reloc reloc { elf::K_REL_ADD
                              , static_cast<uint8_t>(r.size * 8)
                              , true };
-        base.set_width(r.size);
+        
         r.base_p = &base;
         r.r_p    = &base.add_reloc(reloc, r.addend, r.offset);
         return r;

@@ -13,25 +13,21 @@ using namespace meta;
 using namespace meta::placeholders;
 
 template <typename T>
-auto gen_dwarf_32_header(T& emit)
+auto& gen_dwarf_32_header(T& emit)
 {
     using core::core_symbol_t;
     using core::opc::opc_label;
 
-    // symbols have name but no location
+    // declare symbols forward referenced
     parser::kas_loc loc{};
-    auto bgn_ref  = core_symbol_t::add("dwarf_bgn", loc, core::STB_INTERNAL).ref();
-    auto end_ref  = core_symbol_t::add("dwarf_end", loc, core::STB_INTERNAL).ref();
-    
-    auto bhdr_ref = core_symbol_t::add("dwarf_bhdr", loc, core::STB_INTERNAL).ref();
-    auto ehdr_ref = core_symbol_t::add("dwarf_ehdr", loc, core::STB_INTERNAL).ref(); 
+    auto& end_data_line = core_symbol_t::add("dwarf_end", loc, core::STB_INTERNAL);
+    auto& end_hdr       = core_symbol_t::add("dwarf_ehdr", loc, core::STB_INTERNAL); 
 
     // section length (not including section length field)
-    emit(opc_label(), bgn_ref);
-    emit(UWORD(), end_ref.get() - bgn_ref.get() - UWORD::size);
+   // emit(UWORD(), end_ref.get() - emit.get_dot(core::core_addr_t::DOT_NEXT));
+    emit(UWORD(), end_data_line - emit.get_dot(core::core_addr_t::DOT_NEXT));
     emit(UHALF(), 4);                       // dwarf version
-    emit(UWORD(), ehdr_ref.get() - bhdr_ref.get());     // to end of header
-    emit(opc_label(), bhdr_ref);
+    emit(UWORD(), end_hdr - emit.get_dot(core::core_addr_t::DOT_NEXT));
 
     emit(UBYTE(), K_LNS_MIN_INSN_LENGTH);
     emit(UBYTE(), K_LNS_MAX_OPS_PER_INSN);  // added version 4
@@ -73,8 +69,8 @@ auto gen_dwarf_32_header(T& emit)
     emit(UBYTE(), 0);
 
     // header complete
-    emit(opc_label(), ehdr_ref);
-    return end_ref;
+    emit(end_hdr);
+    return end_data_line;
 }
 
 // select rule to update Dwarf Line state variable
@@ -424,7 +420,7 @@ void dwarf_gen(Inserter inserter)
     DL_STATE state;
 
     // generate header. Return "end" symbol to be defined after data emited
-    auto end_ref = gen_dwarf_32_header(emit);
+    auto& end= gen_dwarf_32_header(emit);
 #if 0
     fsm_xlate(std::make_index_sequence<meta::size<DW_INSNS>::value>(),
               std::make_index_sequence<NUM_DWARF_LINE_STATES>());
@@ -441,7 +437,7 @@ void dwarf_gen(Inserter inserter)
     dl_data::for_each(gen_line);
 
     // now emit end label.
-    emit(opc_label(), end_ref);
+    emit(end);
 }
 
 

@@ -20,6 +20,8 @@ auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_
     short min {};
     op_size_t result;
 
+    //std::cout << "m68k_arg_size: " << *this << ", mode = " << std::dec << mode() << std::endl;
+
     // default to unsigned
     if (is_signed_p) *is_signed_p = false;
 
@@ -121,19 +123,25 @@ auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_
             // always the first arg, so offset is always 2
             //std::cout << "m68k_arg_size: MODE_DIRECT" << " disp = " << expr;
             if (!fits_p)
-                return 4;       // assume DIRECT_LONG
-
-            if (fits_p->disp<int16_t>(expr, 2) == DOES_FIT)
+                return {2, 4};      // assume DIRECT_LONG or DIRECT_PCREL
+            
+            switch (fits_p->disp<int16_t>(expr, 2))
             {
-                set_mode(MODE_DIRECT_PCREL);
-                return 2;
+                case DOES_FIT:
+                    // update mode
+                    set_mode(MODE_DIRECT_PCREL);
+                    return 2;
+                case NO_FIT:
+                    break;
+                default:
+                    return {2, 4};
             }
-
+            
             // FALLSTHRU
         case MODE_DIRECT_ALTER:
             //std::cout << "m68k_arg_size: MODE_DIRECT_ALTER" << " disp = " << expr;
             if (!fits_p)
-                return 4;
+                return {2, 4};
 
             switch (fits_p->fits<int16_t>(expr))
             {

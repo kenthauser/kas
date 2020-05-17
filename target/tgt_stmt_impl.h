@@ -67,14 +67,14 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     }
 
     // validate args as appropriate for target
-    // also note if all args are "const" (ie: just registers & literals)
-    // NB: all const args are candidates for `quick` format
+    // NB: also note if all args are "const" (ie: just registers & literals)
+    // NB: "all const args" are candidates for `quick` format
     // NB: some target may have other requirements for `quick` opcode
     bool ok_for_quick = true;
     if (auto diag = derived().validate_args(insn, args, ok_for_quick, trace))
     {
         data.fixed.diag = diag;
-        return {};
+        return {};              // nullptr xlated into opc_diag{}
     }
 
     // select mcode(s) matching args (normally only a single mcode))
@@ -89,25 +89,18 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     int i = 0; 
     for (auto mcode_p : insn.mcodes)
     {
-//#define TRACE_STMT_MCODE
-#ifdef TRACE_STMT_MCODE
-        if (trace)
-        {
-            *trace << std::dec << std::endl;;
-            *trace << "mcode: "     << +mcode_p->index      << " ";
-            *trace << "stmt_info: " << info                 << " ";
-            *trace << "defn: "      << +mcode_p->defn_index << " ";
-            mcode_p->defn().print(*trace);
-        }
-#endif
-#undef TRACE_STMT_MCODE
         if (trace)
             *trace << "validating: " << +i << ": ";
 
+        const char *diag{};
+        int         cur_index{};
+
+        // validate supported by arch & by info flags
+        diag = derived().validate_stmt(mcode_p);
+
         // test if arguments match mcode
-        auto result    = mcode_p->validate_args(args, info, trace);
-        auto diag      = result.first;
-        auto cur_index = result.second;
+        if (!diag)
+            std::tie(diag, cur_index) = mcode_p->validate_mcode(args, info, trace);
         
         if (trace)
         {
@@ -164,8 +157,19 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     if (args.front().is_missing())
         args.clear();
 
+    // set initial size from single insn or list
+    expression::expr_fits fits;     // unitialized `fits` for intial eval
+    if (matching_mcode_p)
+        matching_mcode_p->size(args, info, data.size, fits, trace);
+    else
+    {
+        // see if can resolve list to single instruction
+        matching_mcode_p = insn.eval(ok, args, info, data.size, fits, trace);
+        if (ok.count() != 1)
+            matching_mcode_p = {};
+    }
 
-    // logic: here at least one arg matches. 
+    // logic: if here, at least one match. 
     // 1) if constant `args`, emit binary code
     // 2) if single match, use format for selected opcode
     // 3) otherwise, use opcode for "list"
@@ -177,17 +181,11 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     std::cout << "quick format: " << std::boolalpha << ok_for_quick;
     std::cout << ", single match: " << !!matching_mcode_p << std::endl;
     
+    // all const args: emit selected opcode
     if (ok_for_quick)
     {
-        expression::expr_fits fits;
-
-
-        // all const args: can select best opcode & calculate size
-        if (matching_mcode_p)
-            matching_mcode_p->size(args, info, data.size, fits, trace);
-        else
-            matching_mcode_p = insn.eval(ok, args, info, data.size, fits, trace);
-
+        // must allocate static instance. 
+        // NB: normally done in `tgt_fmt_opc_gen<>, but not appropriate for quick`
         static opc::tgt_opc_quick<mcode_t> opc_quick;
         opc_quick.proc_args(data, *matching_mcode_p, args, info);
         return &opc_quick;

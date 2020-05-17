@@ -40,9 +40,9 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 #include "m68k_size_lwb.h"          // types to insert "size" into opcode
-#include "m68k_formats_defn.h"      // actual format types
 #include "m68k_validate_reg.h"      // actual validate types
 #include "m68k_validate_gen.h"      // actual validate types
+#include "m68k_formats_defn.h"      // actual format types
 
 #include "target/tgt_mcode_defn.h"  // declare constexpr defn
 #include "target/tgt_insn_common.h" // decalare "trait" for definition

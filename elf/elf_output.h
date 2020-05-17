@@ -160,7 +160,8 @@ struct elf_format
         elf_section::for_each([&](auto& s)
             {
                 // calculate padding needed to align section data
-                if (s.s_header.sh_type != SHT_NOBITS) {
+                if (s.s_header.sh_type != SHT_NOBITS)
+                {
                     s.padding = cvt.padding(s.s_header.sh_addralign, offset);
                     offset += s.padding;
                 }

@@ -129,9 +129,11 @@ inline core_section const& core_addr<REF>::section() const
 
 inline bool core_fragment::operator<(core_fragment const& other) const
 {
-    if (other.segment() != segment())
+    // primary (only?) use of operator< is for `seen_this_pass`.
+    // since relax a segment at a time, not-looking is same as has-seen.
+    if (segment() != other.segment())
         return true;
-    return other.frag_num() < frag_num();
+    return frag_num() < other.frag_num();
 }
 
 template <typename REF>

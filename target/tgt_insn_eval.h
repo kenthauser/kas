@@ -87,8 +87,7 @@ auto eval_insn_list
             ok.reset(index);
             continue;
         }
-#if 0
-        // XXX study logic...
+        
         // Better match if new max better than current min
         if (result == fits.yes && insn_size.min > size.max)
         {
@@ -97,25 +96,24 @@ auto eval_insn_list
                 ok.reset(match_index);
             mcode_p = {};
         }
-#endif
         
         // first "match" is always "current best"
         if (!mcode_p)
         {
             mcode_p      = *op_iter;
-            insn_size    = size;
-            match_result = result;
             match_index  = index;
+            match_result = result;
+            insn_size    = size;
             state_updated = true;       // use state from this iteration
             continue;
         } 
-       
+
         // otherwise, see if this is better match
         // a "DOES" match is better than a "MIGHT" match
         if (match_result == fits.yes)
         {
             // see if new match is no better than old choices
-            if (size.max >= insn_size.max || size.min >= insn_size.min)
+            if (size.max >= insn_size.max && size.min >= insn_size.min)
             {
                 // this match is no better than previous. Delete it.
                 ok.reset(index);
@@ -126,14 +124,14 @@ auto eval_insn_list
         // pick a smaller "does match"
         if (result == fits.yes)
         {
-            if (insn_size.max < size.max)
+            if (insn_size.max > size.max)
                 insn_size.max = size.max;
 
-            // possibly downgrade match based on current match
+            // possibly downgrade current match based on previous best
             result = match_result;
         }
 
-        // allow larger "might" match max 
+        // allow larger "might" match max if "maybe" in mix
         if (match_result != fits.yes)
         {
             if (insn_size.max < size.max)

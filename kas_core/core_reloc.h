@@ -21,7 +21,12 @@ struct deferred_reloc_t
     
     deferred_reloc_t() = default;
     deferred_reloc_t(elf::kas_reloc reloc, int64_t addend = {}, uint8_t offset = {})
-        : reloc(reloc), addend(addend), offset(offset) {}
+        : reloc(reloc), addend(addend), offset(offset)
+    {
+        std::cout << "deferred_reloc_t::ctor: addend = " << addend;
+        std::cout << ", offset = " << +offset;
+        std::cout << std::endl;
+    }
 
     // methods to complete construction of object
     void operator()(expr_t const&);

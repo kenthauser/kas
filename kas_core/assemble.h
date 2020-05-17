@@ -74,7 +74,7 @@ struct kas_assemble
 #endif
         kas::parser::kas_diag_t::dump(std::cout);
         
-    #if 1
+    #if 0
         // 4. generate `cframe` data into a second container
         if (dwarf::df_data::size() != 0) {
             auto& cf = core_section::get(".debug_frame", SHT_PROGBITS);
@@ -90,10 +90,11 @@ struct kas_assemble
         kas::core::core_segment::dump(std::cout);
         kas::core::core_fragment::dump(std::cout);
 #endif
-    dwarf::dl_data::dump(std::cout);
-    #if 1
+    //dwarf::dl_data::dump(std::cout);
+    #if 0
         // 5. schedule `dwarf line` output for generation (after obj emit)
-        if (dwarf::dl_data::size() != 0) {
+        if (dwarf::dl_data::size() != 0)
+        {
             // add "end_sequence" to mark end of `dl_data` instructions 
             dwarf::dl_data::mark_end(text_seg);
             auto& dl = core_section::get(".debug_line", SHT_PROGBITS);
