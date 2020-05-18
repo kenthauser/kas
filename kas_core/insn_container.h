@@ -76,10 +76,11 @@ namespace kas::core
         insn_container(core_segment& initial, DTOR_FN fn = {}) 
                 : initial_segment(initial)
                 , dtor_fn(fn)
-                , initial_state(value_type::get_state())
+                , initial_state(value_type::get_state(true))
                 {
                     std::cout << "insn_container for: " << initial_segment;
                     std::cout << " data begins at: " << std::dec << value_type::index();
+                    std::cout << " state is " << initial_state;
                     std::cout << std::endl;
                 }
 
@@ -211,6 +212,8 @@ namespace kas::core
         value_type::set_state(initial_state);
         std::cout << "insn_container for: " << initial_segment;
         std::cout << " reset to: " << std::dec << value_type::index();
+        std::cout << " state is " << value_type::get_state();
+
         std::cout << std::endl;
 
         auto insn_iter = insns.begin();
@@ -267,7 +270,7 @@ namespace kas::core
     {
         static const auto idx_label = opc::opc_label().index();
 #define TRACE_DO_FRAG   3       // 1 = FRAG, 2 = INSN, 3 = RAW
-#undef  TRACE_DO_FRAG
+//#undef  TRACE_DO_FRAG
 
 #ifdef  TRACE_DO_FRAG
         std::cout << "do_frag::begin: " << frag;
@@ -371,6 +374,7 @@ namespace kas::core
         std::cout << "insn_container for: " << c.initial_segment;
         std::cout << " data ends at: " << std::dec;
         std::cout << insn_data::insn_expr_data.size();
+        std::cout << " state is: " << value_type::get_state();
         std::cout << std::endl;
     }
     

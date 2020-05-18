@@ -37,19 +37,21 @@ struct insn_container_data
     // iter is mutable. copy in `insn_data`
     // NB: for empty std::deque, begin() == end()
     
-    static auto& iter(bool get_empty = false)
+    static Iter& iter(bool get_empty = false)
     {
         static auto empty_iter = insn_data::begin();
-        static auto iter       = insn_data::begin();
+        static auto iter       = insn_data::end();
 
         if (get_empty)
             return empty_iter;
         return iter;
     }
 
-    static auto index()
+    static auto index(Iter const& it = iter())
     {
-        return std::distance(insn_data::begin(), iter());
+        if (it == iter(true))
+            return 0L;
+        return std::distance(insn_data::begin(), it);
     }
 
     void advance(core_insn const& insn)
@@ -74,8 +76,10 @@ struct insn_container_data
             iter() = insn_data::begin();
     }
     
-    static state_t get_state()
+    static state_t get_state(bool at_end = false)
     {
+        if (at_end)
+            return { insn_data::end() };
         return {iter()};
     }
 
@@ -109,6 +113,14 @@ private:
     uint16_t        _opc_index{};
     uint16_t        _cnt      {};
 };
+
+template <typename OS>
+OS& operator<<(OS& os, insn_container_data::state_t const& s)
+{
+    os << "{ iter=" << insn_container_data::index(std::get<0>(s));
+    return os << " } ";
+    return os;
+}
 
 
 }

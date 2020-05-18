@@ -56,7 +56,14 @@ struct emit_insn
             , typename OP = typename  DEFN::op>
     void operator()(DEFN, Arg&& arg)
     {
-        //std::cout << " " << std::string(DEFN()) << ": arg = " << expr_t(arg) << std::endl;
+#define TRACE_DWARF_EMIT
+#ifdef TRACE_DWARF_EMIT
+        std::cout << " " << std::string(DEFN()) << ": arg = ";
+        if constexpr (!std::is_same_v<std::decay_t<Arg>, const char *>)
+            std::cout << expr_t(arg) << std::endl;
+        else
+            std::cout << "\"" << arg << "\"" << std::endl;
+#endif
         do_fixed_emit<OP>(std::forward<Arg>(arg));
     }
 
@@ -65,6 +72,14 @@ struct emit_insn
             typename = std::enable_if_t<std::is_base_of_v<core::opcode, OPCODE>>>
     void operator()(OPCODE const& op, Ts&&...args)
     {
+#ifdef TRACE_DWARF_EMIT
+        std::cout << " OPCODE:" << op.name();
+        auto tpl = std::make_tuple(args...);
+        if constexpr (sizeof...(Ts) == 1)
+            std::cout << ": arg = " << std::get<0>(tpl) << std::endl;
+        else
+            std::cout << ": arg count = " << sizeof...(Ts) << std::endl;
+#endif
         do_emit();                  // emit pending insn
         *inserter++ = { op, std::forward<Ts>(args)...};
     }
@@ -72,18 +87,27 @@ struct emit_insn
     // emit symbol as label
     void operator()(core::symbol_ref const& sym)
     {
+#ifdef TRACE_DWARF_EMIT
+        std::cout << " LABEL: arg = " << sym << std::endl;
+#endif
         do_emit();                  // emit pending insn
         *inserter++ = { core::opc::opc_label{}, sym };
     }
 
     auto& get_dot(int which = core::core_addr_t::DOT_CUR)
     {
+#ifdef TRACE_DWARF_EMIT
+        const char *msg = !which ? "CURRENT" : "NEXT";
+        std::cout << " GET_DOT: " << msg << std::endl;
+#endif
         // if `dot` requested, must flush pending data before evaluating
         do_emit();                      // next opcode may not match
         if (which == core::core_addr_t::DOT_NEXT)
             pending_dot_after = true;   // dot after next insn
         return core::core_addr_t::get_dot(which);
     }
+
+#undef TRACE_DWARF_EMIT
     
 private:
     // fixed emit ops require a data inserter. Declare type

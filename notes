@@ -320,21 +320,21 @@ Plan 10/2: First fix floating point emit/warning/etc
 41. add symbol binding: name is "local". not emitted unless all labels emitted.
      sort of Internal lite
 
-42. branch is always long
+*42. branch is always long
 
 43. expr_fits need "relocation" info (ie: can expr be emitted)
 
-44. m68k_opc_branch routines are suitable for base code. Need to update
+*44. m68k_opc_branch routines are suitable for base code. Need to update
     emit to handle relocations & use arg.emit()
 
-45. the `do_calc_size` routine in m68k_opc_branch should be referenced in
+*45. the `do_calc_size` routine in m68k_opc_branch should be referenced in
     `val_branch` routine, which needs to be made generic `tgt_validate` routine.
 
 46. Need to add `get_relocs` & `get_dot` to `core_fits`
 
 *47. check logic in core_expr_dot.h:seen_this_pass
 
-48. First jump: first relax: initial_size = [2,2], from insn size of [0, 6]
+*48. First jump: first relax: initial_size = [2,2], from insn size of [0, 6]
 
 
 

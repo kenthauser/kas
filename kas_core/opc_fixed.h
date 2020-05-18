@@ -113,6 +113,8 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
                        , core_expr_dot const *dot_p
                        )
     {
+        std::cout << "opc_fixed::emit_one: value = " << value << std::endl;
+        
         // evaluate expression & emit
         base << set_size(sizeof(value_type));
         base << value;
@@ -222,7 +224,7 @@ struct opc_string : opc_data<opc_string<ZTerm, char_type>, char_type>
         *ci++ = 0;
         return size * sizeof(char_type);
     }
-
+#if 0
     // in DWARF emit, empty strings translated as integer 0
     template <typename CI>
     static op_size_t proc_one(CI& ci, int)
@@ -230,7 +232,7 @@ struct opc_string : opc_data<opc_string<ZTerm, char_type>, char_type>
         *ci++ = 0;
         return 1;
     }
-
+#endif
 };
 }
 #endif

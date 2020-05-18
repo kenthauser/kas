@@ -134,15 +134,21 @@ namespace detail
             using namespace expression;
             auto fits   = core_fits(dot_p);
 
-            while(!reader.empty()) {
-                if(reader.is_chunk()) {
+            while(!reader.empty())
+            {
+                if(reader.is_chunk())
+                {
                     // emit chunk as raw data (byte-swapped from host->target in backend)
                     auto tpl = reader.get_chunk();
                     auto& p   = std::get<0>(tpl);
                     auto& sz  = std::get<1>(tpl);
                     auto& cnt = std::get<2>(tpl);
+                    std::cout << "opc_fixed_impl::emit: cnt = " << +cnt;
+                    std::cout << ", size = " << +sz << std::endl;
                     base << emit_data(sz, cnt) << p; 
-                } else {
+                } 
+                else
+                {
                     // evaluate expression & emit
                     auto& value = reader.get_expr();        // what
                     auto loc_p = value.get_loc_p();         // where
