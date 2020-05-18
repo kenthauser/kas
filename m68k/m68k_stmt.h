@@ -19,11 +19,10 @@ namespace kas::m68k
 {
 // declare result of parsing
 // NB: there are  17 variants of `move.l`
-//using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t, hw::hw_tst, 16>;
-using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t, unsigned, 32>;
+using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t, hw::m68k_hw_defs, 32>;
 
 // info: accumulate info from parsing insn not captured in `args`
-// NB: bitfields don't zero-init. use `aliagn_as` support type
+// NB: bitfields don't zero-init. use `aliagn_as` support type to zero-init
 struct m68k_stmt_info_t : detail::alignas_t<m68k_stmt_info_t, uint16_t>
 {
     using base_t::base_t;

@@ -75,6 +75,8 @@ struct tgt_mcode_defn
     using adder_t       = typename mcode_t::adder_t;
     using mcode_sizes_t = typename mcode_t::mcode_sizes_t;
     using defn_info_t   = typename mcode_t::defn_info_t;
+    using code_defn_t   = typename mcode_t::code_defn_t;
+    using hw_tst        = typename mcode_t::hw_tst;
 
     using fmt_default   = typename mcode_t::fmt_default;     // default type (or void)
 
@@ -125,7 +127,7 @@ struct tgt_mcode_defn
             , info        { INFO::value        }
             , code        { CODE::value        }
             , code_words  { code_to_words<mcode_size_t>(CODE::value) }
-            //, tst         { TST::value     }
+            , tst         { TST()              }
             {}
     
     // index base values initialized by `adder`
@@ -142,15 +144,15 @@ struct tgt_mcode_defn
     void print(std::ostream& os) const;
     
     // (contexpr) instance data 
-    uint32_t code;          // actual binary code (base value)
-    uint16_t tst {};        // hw test
+    code_defn_t code;           // actual binary code (base value)
+    hw_tst      tst;            // hw test
 
     // override sizes in `MCODE_T`
     name_idx_t  name_index;    
     val_c_idx_t val_c_index;   
     fmt_idx_t   fmt_index;    
-    uint8_t     code_words;     // zero-based count of words
     defn_info_t info;           // info about sizes supported
+    uint8_t     code_words;     // zero-based count of words
 };
 
 // don't inline support routines
@@ -163,6 +165,8 @@ void tgt_mcode_defn<MCODE_T>::print(std::ostream& os) const
     os << " fmt_index = " << +fmt_index;
     os << std::hex;
     os << " code = " << +code;
+    if (tst)
+        os << " tst = " << +tst;
     os << std::dec;
     os << std::endl;
     os << " -> name = \"" << name();

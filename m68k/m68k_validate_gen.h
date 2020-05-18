@@ -75,6 +75,15 @@ struct val_branch : tgt::opc::tgt_val_branch<val_branch, m68k_mcode_t>
             return fits.yes;
         return fits.no;
     }
+
+    // override `tgt_val_branch` methods
+    constexpr uint8_t max() const
+    {
+        if (hw::cpu_defs[hw::branch_long{}])
+            return 4;
+        return base_t::max();
+    }
+    
 };
 
 struct val_movep : m68k_mcode_t::val_t

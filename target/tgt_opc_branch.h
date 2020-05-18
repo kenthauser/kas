@@ -45,26 +45,12 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     static constexpr auto max_insn = sizeof(expression::e_data_t);
     static constexpr auto max_addr = sizeof(expression::e_addr_t);
 
-    virtual void do_initial_size(data_t&            data
-                               , mcode_t const&     mcode
-                               , expr_t const&      dest
-                               , stmt_info_t const& info) const
-    {
-        // MIN: allow deletion of insn
-        static constexpr auto MIN_SIZE = 0;
-        // MAX: one word insn + branch as full size address word
-        static constexpr auto MAX_SIZE = sizeof(expression::e_data_t) + 
-                                         sizeof(expression::e_addr_t);
-        data.size = { MIN_SIZE, MAX_SIZE };
-    }
-
-
     virtual void do_calc_size(data_t&                data
                             , mcode_t const&         mcode
                             , mcode_size_t          *code_p
                             , expr_t const&          dest
                             , stmt_info_t const&     info
-                            , core::core_fits const& fits) const 
+                            , expr_fits const& fits) const 
     {
         arg_t arg;
         arg.expr = dest;
@@ -152,7 +138,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto& dest = args.back().expr;
         
         // calculate initial insn size
-        do_initial_size(data, mcode, dest, stmt_info);
+        do_calc_size(data, mcode, code_p, dest, stmt_info, expr_fits{});
 
         inserter(*code_p);                  // insert machine code: one word
         inserter(std::move(dest));          // save destination address

@@ -154,7 +154,6 @@ namespace detail {
         using name = NAME;
 
         // accumulate value from base classes
-        // XXX why are paren's requried? 2018/04/01 clang compile error KBH
         static constexpr auto add_v = (hw_bitset<FTL, ADD...>() | ... | BASE::add_v);
         static constexpr auto del_v = (hw_bitset<FTL, DEL...>() | ... | BASE::del_v);
 

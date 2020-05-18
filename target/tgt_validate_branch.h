@@ -71,7 +71,7 @@ struct tgt_val_branch : MCODE_T::val_t
     {
         // initialize size of insn if not relaxing
         if (op_size.is_relaxed())
-            op_size = { derived().min(), derived().max() };
+            op_size = { cfg_min, derived().max() };
 
         auto& dest = arg.expr;
 
