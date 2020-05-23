@@ -5,10 +5,6 @@
 #include "target/tgt_mcode.h"
 #include "parser/init_from_list.h"
 
-// instruction per-size run-time object
-// NB: not allocated if info->hw_tst fails, unless no
-// other insn with name allocated...
-
 namespace kas::m68k
 {
 // all m68k instructions have a specified "size" of operand
@@ -67,8 +63,8 @@ struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t, m68k_stmt_t, error_msg, m68
     using fmt_default = opc::FMT_X;
     using code_size_t = opc::m68k_insn_lwb;
 
-    uint8_t sz(stmt_info_t info) const;
-    auto    code(stmt_info_t info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
+    uint8_t     sz(stmt_info_t info) const;
+    auto        code(stmt_info_t info) const -> decltype(base_t::code(info));
     stmt_info_t extract_info(mcode_size_t const *) const;
 };
 

@@ -46,6 +46,7 @@ struct tgt_mcode_size_t
 
     // set default code size to `e_data_t`
     using mcode_size_t  = expression::e_data_t;
+    using code_defn_t   = uint32_t;
     using mcode_idx_t   = uint8_t;
     using defn_idx_t    = uint8_t;
     using name_idx_t    = uint8_t;
@@ -83,6 +84,8 @@ struct tgt_mcode_t
     using bitset_t     = typename insn_t::bitset_t;
     static_assert(std::is_same_v<derived_t, typename insn_t::mcode_t>);
 
+    using hw_tst       = typename insn_t::hw_tst;
+    
     // convenience type references
     using op_size_t     = typename core::opcode::op_size_t;
 
@@ -104,13 +107,14 @@ struct tgt_mcode_t
     // override sizes in `SIZE_T` if required
     using mcode_size_t = typename SIZE_T::mcode_size_t;
     using mcode_idx_t  = typename SIZE_T::mcode_idx_t;
+    using code_defn_t  = typename SIZE_T::code_defn_t;
     using defn_idx_t   = typename SIZE_T::defn_idx_t;
     using name_idx_t   = typename SIZE_T::name_idx_t;
     using fmt_idx_t    = typename SIZE_T::fmt_idx_t;
     using val_idx_t    = typename SIZE_T::val_idx_t;
     using val_c_idx_t  = typename SIZE_T::val_c_idx_t;
     using defn_info_t  = typename SIZE_T::defn_info_t;
-    
+
     static constexpr auto MAX_ARGS        = SIZE_T::MAX_ARGS;
     static constexpr auto MAX_MCODE_WORDS = SIZE_T::MAX_MCODE_WORDS;
 

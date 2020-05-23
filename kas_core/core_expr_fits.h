@@ -264,12 +264,15 @@ auto core_fits::operator()
     std::cout << " cur delta = "  << dot_p->cur_delta;
     std::cout << std::endl;
 #endif
-    // initial `fuzz`: just check sections
+    // initial `fuzz`: just check sections if not seen
     if (fuzz < 0)
     {
         if (&addr.section() != &dot_p->section())
             return no;
-        return maybe;
+
+        // can't test offset if haven't ever seen symbol
+        if (!dot_p->seen_this_pass(addr))
+            return maybe;
     }    
     
     expr_offset_t offset = dot_p->rebase(addr) - dot_p->offset();

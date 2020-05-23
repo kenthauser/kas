@@ -179,12 +179,13 @@ public:
 };
 
 
-template <typename MCODE_T, typename T>
+template <typename MCODE_T, typename T, typename base_t = tgt_val_range<MCODE_T>>
 struct tgt_val_range_t : tgt_val_range<MCODE_T>
 {
-    tgt_val_range_t(uint8_t size = 0)
+    using U = std::make_unsigned_t<T>;
+    tgt_val_range_t(uint8_t size = sizeof(T))
         : tgt_val_range<MCODE_T>(std::numeric_limits<T>::min()
-                               , std::numeric_limits<T>::max()
+                               , std::numeric_limits<U>::max()
                                , 0, size) {}
 };
 

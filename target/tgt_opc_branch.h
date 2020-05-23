@@ -45,33 +45,28 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     static constexpr auto max_insn = sizeof(expression::e_data_t);
     static constexpr auto max_addr = sizeof(expression::e_addr_t);
 
-    virtual void do_initial_size(data_t&            data
-                               , mcode_t const&     mcode
-                               , expr_t const&      dest
-                               , stmt_info_t const& info) const
+    virtual void do_initial_size(data_t&                data
+                            , mcode_t const&         mcode
+                            , mcode_size_t          *code_p
+                            , expr_t const&          dest
+                            , stmt_info_t const&     info
+                            , expr_fits const& fits) const 
     {
-        // MIN: allow deletion of insn
-        static constexpr auto MIN_SIZE = 0;
-        // MAX: one word insn + branch as full size address word
-        static constexpr auto MAX_SIZE = sizeof(expression::e_data_t) + 
-                                         sizeof(expression::e_addr_t);
-        data.size = { MIN_SIZE, MAX_SIZE };
+        return do_calc_size(data, mcode, code_p, dest, info, fits);
     }
-
 
     virtual void do_calc_size(data_t&                data
                             , mcode_t const&         mcode
                             , mcode_size_t          *code_p
                             , expr_t const&          dest
                             , stmt_info_t const&     info
-                            , core::core_fits const& fits) const 
+                            , expr_fits const& fits) const 
     {
         arg_t arg;
         arg.expr = dest;
         auto  dest_iter  = mcode.vals().last();
         dest_iter->size(arg, mcode, info, fits, data.size);
     }
-
 
     virtual void do_emit     (data_t const&          data
                             , core::emit_base&       base
@@ -90,7 +85,8 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto  val_it = mcode.vals().last();
         auto  cnt    = mcode.vals().size();
         auto& fmt    = mcode.fmt();
-        
+       
+        // insert arg into base insn (via reloc) as required
         if (!fmt.insert(cnt-1, code_p, arg, &*val_it))
             fmt.emit_reloc(cnt-1, base, code_p, arg, &*val_it);
 
@@ -152,7 +148,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto& dest = args.back().expr;
         
         // calculate initial insn size
-        do_initial_size(data, mcode, dest, stmt_info);
+        do_initial_size(data, mcode, code_p, dest, stmt_info, expr_fits{});
 
         inserter(*code_p);                  // insert machine code: one word
         inserter(std::move(dest));          // save destination address
@@ -212,8 +208,10 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto& dest   = reader.get_expr();
         
         auto  info   = mcode.extract_info(code_p);
-        
-        do_emit(data, base, mcode, code_p, dest, info);
+       
+        // check for deleted instruction
+        if (data.size())
+            do_emit(data, base, mcode, code_p, dest, info);
     }
 };
 }

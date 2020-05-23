@@ -325,7 +325,7 @@ void deferred_reloc_t::apply_reloc(emit_base& base, parser::kas_error_t& diag)
             uint64_t mask  {};
             uint8_t  shift {};
             auto     width = reloc.bits / 8;
-
+#if 0
             std::cout << "apply_reloc: width = " << +width;
             std::cout << ", offset = " << +offset;
             std::cout << ", base_width = " << +base.width;
@@ -333,7 +333,7 @@ void deferred_reloc_t::apply_reloc(emit_base& base, parser::kas_error_t& diag)
 
             std::cout << "location: " << *base.section_p;
             std::cout << "+" << std::hex << base.stream.position() << std::endl;
-          
+#endif     
             if (base.width < (width + offset))
                 throw std::logic_error { "apply_reloc: invalid width/offset" };
 

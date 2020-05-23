@@ -392,11 +392,9 @@ using m68k_misc_v = list<list<>
 #undef STR
 
 using m68k_gen_v = list<list<>
-#if 1
                   , m68k_move_v
                   , m68k_math_v
                   , m68k_branch_cc_v
-#endif
                   , m68k_misc_v
               >;
 }

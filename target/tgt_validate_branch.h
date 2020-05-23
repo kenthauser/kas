@@ -71,7 +71,7 @@ struct tgt_val_branch : MCODE_T::val_t
     {
         // initialize size of insn if not relaxing
         if (op_size.is_relaxed())
-            op_size = { derived().min(), derived().max() };
+            op_size = { cfg_min, derived().initial() };
 
         auto& dest = arg.expr;
 
@@ -133,6 +133,9 @@ struct tgt_val_branch : MCODE_T::val_t
     
     // maximum size of insn with largest branch
     constexpr uint8_t max() const { return cfg_max; }
+
+    // maximum size of "jump" if branch doesn't fit (see `tgt_opc_branch`)
+    constexpr uint8_t initial() const { return cfg_max; }
 
     // convert "insn_sz" to branch sz (in bytes)
     constexpr uint8_t disp_sz(uint8_t insn_sz) const

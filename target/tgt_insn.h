@@ -10,18 +10,21 @@
 namespace kas::tgt
 {
 template <typename MCODE_T
-        , typename TST_T      = std::uint16_t
+        , typename HW_DEFS
         , unsigned MAX_MCODES = 16 
         , typename INDEX_T    = std::uint16_t
         >
 struct tgt_insn_t
 {
     using mcode_t   = MCODE_T;
-    using tst_t     = TST_T;
+    using hw_defs   = HW_DEFS;
+    using hw_tst    = typename hw_defs::hw_tst;
     using index_t   = INDEX_T;
 
     using opcode    = core::opcode;
     using kas_error_t = parser::kas_error_t;
+
+    static constexpr auto max_mcodes = MAX_MCODES;
 
 // used by "adder"
     using obstack_t = std::deque<tgt_insn_t>;
@@ -29,7 +32,6 @@ struct tgt_insn_t
     
     // limit of number of MACHINE CODES per instruction
     // ie variants with same "name"
-    static constexpr auto max_mcodes = MAX_MCODES;
     using bitset_t = std::bitset<max_mcodes>;
 
     // canonical name & insn_list is all stored in instance
@@ -58,7 +60,7 @@ struct tgt_insn_t
 
     std::string name;
     index_t     index;          // zero-based index
-    tst_t       hw_tst{};       // error message if no mcodes
+    hw_tst      tst{};          // error message if no mcodes
 };
 
 }

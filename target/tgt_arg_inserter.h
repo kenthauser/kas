@@ -97,7 +97,6 @@ void insert_one (Inserter& inserter
     // write arg data into machine code if possible (dependent on validator)
     // returns false if no validator
     bool completely_saved = fmt.insert(n, code_p, arg, val_p);
-//#define TRACE_ARG_SERIALIZE
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "write_one: " << arg;
     std::cout << ": completely_saved = " << std::boolalpha << completely_saved;
@@ -138,16 +137,37 @@ void extract_one(Reader& reader
 #endif
     // extract arg from machine code (dependent on validator)
     // extract info from `opcode`
+    arg.set_mode(p->init_mode);
     if (val_p)
         fmt.extract(n, code_p, arg, val_p);
+
+#ifdef TRACE_ARG_SERIALIZE
+    std::cout << "\nextract one: mode = " << +arg.mode();
+    std::cout << ", init_mode = " << +p->init_mode;
+    std::cout << ", cur_mode = " << +p->cur_mode << std::endl;
+#endif
 
     // extract additional info as required
     // NB: extract may look at arg mode. Set to mode value when serialized
     arg.set_mode(p->init_mode);
+    
     arg.extract(reader, sz, p);
     
+#ifdef TRACE_ARG_SERIALIZE
+    std::cout << "\nextract one: mode = " << +arg.mode();
+    std::cout << ", init_mode = " << +p->init_mode;
+    std::cout << ", cur_mode = " << +p->cur_mode << std::endl;;
+#endif
+
     // update mode to current value
     arg.set_mode(p->cur_mode);
+
+#ifdef TRACE_ARG_SERIALIZE
+    std::cout << "\nextract one: mode = " << +arg.mode();
+    std::cout << ", init_mode = " << +p->init_mode;
+    std::cout << ", cur_mode = " << +p->cur_mode;
+    std::cout << ", arg = " << arg << std::endl;;
+#endif
 
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << " -> " << arg << "] ";;

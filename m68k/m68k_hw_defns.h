@@ -206,6 +206,7 @@ using cpu_is_list = list<
 //
 //////////////////////////////////////////////////////////////////////////////
 
+// base FPU is no FPU
 using fpu_base = fpu_defn<void, list<>>;
 
 // enable m68k address modes not supported by coldfire
@@ -251,6 +252,7 @@ template <> struct fpu4cpu<coldfire>  : fpu_coldfire {};
 //
 //////////////////////////////////////////////////////////////////////////////
 
+// base MMU is no MMU
 using mmu_base = mmu_defn<STR("mmu_base"), list<>>;
 
 // declare various types of MMU
@@ -276,7 +278,8 @@ template <typename CPU = void> struct mmu4cpu : m68551 {};
 using fpu_cp_defn = hw_cp_def<fpu, fpu4cpu>;
 using mmu_cp_defn = hw_cp_def<mmu, mmu4cpu>;
 
-using cpu_defs_t = hw_defs<cpu_is_list, fpu_cp_defn, mmu_cp_defn>;
+using m68k_hw_defs = hw_defs<cpu_is_list, fpu_cp_defn, mmu_cp_defn>;
+using cpu_defs_t  = m68k_hw_defs;
 using hw_tst  = typename cpu_defs_t::hw_tst;
 //using hw_void = typename cpu_defs_t::hw_void;
 using hw_void  = std::integral_constant<int, 0>;

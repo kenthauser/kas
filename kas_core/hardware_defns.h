@@ -104,7 +104,9 @@ namespace detail
     template <typename...Args>
     struct is_name_list<list<Args...>>
     {
-        static constexpr NAME_T value[] = { hw_name<Args>::value... };
+        // zero array not allowed
+        static constexpr auto _size = std::max<unsigned>(1, sizeof...(Args));
+        static constexpr NAME_T value[_size] = { hw_name<Args>::value... };
     };
 
     // create `char ***list` for `has_names`
@@ -113,7 +115,9 @@ namespace detail
     template <typename...Args>
     struct has_name_list<list<Args...>>
     {
-        static constexpr NAME_T const *value[] = { is_name_list<Args>::value... };
+        // zero array not allowed
+        static constexpr auto _size = std::max<unsigned>(1, sizeof...(Args));
+        static constexpr NAME_T const *value[_size] = { is_name_list<Args>::value... };
     };
 
     // calculate `isa_bitset` for `IS_TYPE` for each type in `IS_LIST`

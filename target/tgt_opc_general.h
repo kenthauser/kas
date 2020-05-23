@@ -128,7 +128,8 @@ struct tgt_opc_general : MCODE_T::opcode_t
         auto  args   = base_t::serial_args(reader, mcode);
         auto& info   = args.info;
 
-        mcode.emit(base, args, info);
+        if (data.size())
+            mcode.emit(base, args, info);
     }
 };
 }
