@@ -6,6 +6,23 @@
 #include "m68k_reg_types.h"
 #include "target/tgt_reg_trait.h"
 
+// Define `m68k_reg_t::format_name` to handler register prefix
+namespace kas::m68k
+{
+    // static function to generate canonical & alternate names
+    // (ie with & without '%' prefix)
+    const char *m68k_reg_t::format_name(const char *orig, unsigned i)
+    {
+        // make "with-%" canonical with `PFX_ALLOW`
+        auto offset = (reg_pfx == PFX_NONE);
+        if (i == 0)
+            return orig + offset;
+        else if (i == 1 && (reg_pfx == PFX_ALLOW))
+            return orig + !offset;
+        return {};
+    }
+}
+
 namespace kas::m68k::reg_defn
 {
 using namespace tgt::reg_defn;

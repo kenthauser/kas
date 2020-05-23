@@ -107,14 +107,14 @@ enum
     , REG_FPCTRL_CR  = 4    // FP Control Register
 };
 
-////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////:////////////////////////////
 //
 // definition of m68k register
 //
 ////////////////////////////////////////////////////////////////////////////
 
 // some assemblers require format such as `%d0`, some require `d0` some allow both
-enum m68k_reg_prefix { PFX_NONE, PFX_ALLOW, PFX_REQUIRE };
+enum m68k_reg_prefix { PFX_ALLOW, PFX_REQUIRE, PFX_NONE };
 
 // forward declare CRTP register type
 struct m68k_reg_t;
@@ -143,126 +143,17 @@ struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t, KAS_STRING("M68K"), m68k_reg_set_t>
     using token_t        = tok_m68k_reg;
     
     using base_t::base_t;       // use inherited ctors
+
+    // modify name according to `reg_prefix` as required
+    // NB: if `PFX_ALLOW`, both names are added to register name parser
+    static const char *format_name(const char *, unsigned i = 0);
+
+    // initialize with out-of-line definition at start of assemble
+    static m68k_reg_prefix reg_pfx;
 };
 
 // add to `expr` expression types
 using m68k_reg_ref = core::ref_loc_t<m68k_reg_t>;
 
-#if 0
-// 4-bit class, 12-bit value
-struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t, uint16_t, 4, 12>
-{
-    using hw_tst         = hw::hw_tst;
-    using reg_defn_idx_t = uint8_t;
-
-    using base_t::base_t;
-    
-    m68k_reg_t(reg_defn_idx_t reg_class, unsigned value)
-                : base_t(reg_class, static_cast<uint16_t>(value))
-        {
-            // add warning message here if casting is a problem...
-        }
-
-    // MIT syntax only for now
-    static const char *format_name(const char *n, unsigned i = 0)
-    {
-        if (i == 0)
-            return n + 1;
-        // allow MOTO
-        if (i == 1)
-            return n;
-        return {};
-    }
-
-};
-
-
-////////////////////////////////////////////////////////////////////////////
-//
-// definition of m68k register set
-//
-////////////////////////////////////////////////////////////////////////////
-
-template <typename Ref>
-struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set<Ref>, m68k_reg_t, Ref>
-{
-    using base_t = tgt::tgt_reg_set<m68k_reg_set<Ref>, m68k_reg_t, Ref>;
-    using base_t::base_t;
-
-    uint16_t reg_kind(m68k_reg_t const& r) const
-    {
-        auto kind = r.kind();
-        switch (kind)
-        {
-            case RC_ADDR:
-                kind = RC_DATA;
-                // FALLSTHRU
-            case RC_DATA:
-            case RC_FLOAT:
-            case RC_FCTRL:
-                return kind;
-            default:
-                return -1;
-        }
-    }
-    
-    // convert "register" to bit number in range [0-> (mask_bits - 1)]
-    uint8_t reg_bitnum(m68k_reg_t const& r) const
-    {
-        switch (r.kind())
-        {
-            case RC_DATA:  return  0 + r.value();
-            case RC_ADDR:  return  8 + r.value();
-            case RC_FLOAT: return  0 + r.value();
-            case RC_FCTRL:
-                // floating point control registers are "special"
-                switch (r.value())
-                {
-                    case REG_FPCTRL_CR:  return 12;
-                    case REG_FPCTRL_SR:  return 11;
-                    case REG_FPCTRL_IAR: return 10;
-                }
-                // FALLSTHRU
-            default:       return {};
-        }
-    }
-
-    
-    std::pair<bool, uint8_t> rs_mask_bits(bool reverse) const
-    {
-        // For M68K CPU: sixteen bit mask with
-        // Normal bit-order: D0 -> LSB, A7 -> MSB
-        //
-        // For FPU: 8 bit mask with
-        // Normal bit-order: FP7 -> LSB, FP0 -> MSB
-        //
-        // Easiest solution: toggle reverse for FP
-
-        // XXX too much this
-        const int mask_bits  = (this->kind() == RC_FLOAT) ? 8 : 16;
-        const bool bit_order = (this->kind() == RC_FLOAT) ? this->RS_DIR_MSB0 : this->RS_DIR_LSB0;
-
-        return { bit_order ^ reverse, mask_bits };
-    }
-};
-
-// register set is wrapped object. Never "parsed" directly, but "calculated" from operators
-using m68k_rs_ref    = core::ref_loc_tpl<m68k_reg_set>;
-using m68k_reg_set_t = typename m68k_rs_ref::object_t;
-
-
-#endif
 }
-#if 0
-// declare X3 parser for `reg_t`
-namespace kas::m68k::parser
-{
-    namespace x3 = boost::spirit::x3;
-
-    // declare parser for M68K token
-    using m68k_reg_x3 = x3::rule<struct X_reg, m68k_reg_t>;
-    BOOST_SPIRIT_DECLARE(m68k_reg_x3)
-}
-#endif
-
 #endif

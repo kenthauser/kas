@@ -62,7 +62,6 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
     template <typename CI>
     static op_size_t proc_one(CI& ci, kas_token const& tok)
     {
-        std::cout << "opc_size::proc_one: " << tok << std::endl;
         // confirm token represents a `value` token, not `syntax` token
         if (!tok.expr_index())
             *ci++ = e_diag_t::error("Invalid value", tok);
@@ -113,8 +112,6 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
                        , core_expr_dot const *dot_p
                        )
     {
-        std::cout << "opc_fixed::emit_one: value = " << value << std::endl;
-        
         // evaluate expression & emit
         base << set_size(sizeof(value_type));
         base << value;
@@ -178,7 +175,6 @@ struct opc_string : opc_data<opc_string<ZTerm, char_type>, char_type>
     static op_size_t proc_one(CI& ci, kas_token const& tok)
     {
         std::size_t size = 0;
-        std::cout << "opc_size::proc_one: " << tok << std::endl;
         
         // confirm token represents a `value` token, not `syntax` token
         if (!tok.expr_index())

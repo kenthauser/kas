@@ -15,11 +15,11 @@
 
 // instruction definitions
 #include "insns_m68000.h"
+#include "insns_m68881.h"
 #if 0
 #include "insns_m68020.h"
 #include "insns_m68040.h"
 //#include "insns_m68851.h"
-#include "insns_m68881.h"
 #include "insns_cpu32.h"
 //#include "insns_coldfire.h"
 #endif
@@ -43,9 +43,15 @@
 
 #include "elf/elf_convert_elf.h"
 
+// instantiate global values controlling assembly
 namespace kas::m68k::hw
 {
-    cpu_defs_t cpu_defs;
+    cpu_defs_t      cpu_defs;
+}
+
+namespace kas::m68k
+{
+    m68k_reg_prefix m68k_reg_t::reg_pfx { PFX_ALLOW };
 }
 
 namespace kas::m68k::parser
@@ -64,17 +70,12 @@ namespace kas::m68k::parser
                                 , reg_defn::m68k_all_reg_l
                                 , tgt::tgt_reg_adder<m68k_reg_t
                                                   , reg_defn::m68k_reg_aliases_l
-                                                  >
-                                >;
-
+                                                  >>;
     // define parser instance for register name parser
     m68k_reg_x3 reg_parser {"m68k reg"};
-#if 0
-    auto reg_parser_def = reg_name_parser_t().x3_deref();
-#else
     auto const raw_reg_parser = x3::no_case[reg_name_parser_t().x3()];
     auto const reg_parser_def = parser::token<tok_m68k_reg>[raw_reg_parser];
-#endif
+    
     BOOST_SPIRIT_DEFINE(reg_parser)
 
     // instantiate parser `type` for register name parser
@@ -118,7 +119,9 @@ namespace kas::m68k
 
 namespace kas::tgt
 {
+    // for target instantiatiation
     using ARCH_MCODE = m68k::m68k_mcode_t;
 }
 
+// instantiate target types
 #include "target/tgt_impl.h"

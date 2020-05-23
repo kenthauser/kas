@@ -46,12 +46,9 @@ namespace kas::z80::parser
                                 >;
     // define parser instance for register name parser
     z80_reg_x3 reg_parser {"z80 reg"};
-#if 0
-    auto reg_parser_def = reg_name_parser_t().x3_deref();
-#else
     auto const raw_reg_parser = x3::no_case[reg_name_parser_t().x3()];
     auto const reg_parser_def = parser::token<tok_z80_reg>[raw_reg_parser];
-#endif
+
     BOOST_SPIRIT_DEFINE(reg_parser)
     
     // instantiate parser `type` for register name parser

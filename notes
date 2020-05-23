@@ -336,7 +336,7 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 *48. First jump: first relax: initial_size = [2,2], from insn size of [0, 6]
 
-
+49. Get bsd FLOAT working as `.long`, etc
 
 
 

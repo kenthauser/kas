@@ -80,6 +80,7 @@ struct tgt_reg
 
     using map_key = std::pair<reg_class_t, reg_value_t>;
 
+    // re-format register name to add prefix/suffix as required
     // default: return name unaltered
     static const char *format_name(const char *n, unsigned i = 0)
     {

@@ -110,7 +110,11 @@ struct sym_parser_t
 
     auto x3() const
     {
-        return x3::lexeme[x3_raw() >> !(x3::alnum | '_')];
+        // XXX not right: need to disallow pfx
+        //if (!pfx)
+            return x3::lexeme[x3_raw() >> !(x3::alnum | '_')];
+        //else
+            //return x3::lexeme[x3::lit(pfx) >> x3_raw() >> !(x3::alnum | '_')];
     }
 
     struct deref

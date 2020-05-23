@@ -3,8 +3,8 @@
 
 ; 0. constants used
 
-::fp_short:
-    fabs.d   #7.5/2, fp6   ; 5 = double (64-bit float)
+fp_short:
+    fabs.d   #7.5/2, fp6     ; 5 = double (64-bit float)
     fabs.d   #7.5/1.5, fp6   ; 5 = double (64-bit float)
 
     fabs.l   d0,fp1
@@ -56,7 +56,3 @@
 
     fmovem.x fp1-fp3/fp5/fp7, a2@
     fmovem.l fpiar/fpcr, a3@
-
-
-
-

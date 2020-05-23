@@ -143,8 +143,6 @@ namespace detail
                     auto& p   = std::get<0>(tpl);
                     auto& sz  = std::get<1>(tpl);
                     auto& cnt = std::get<2>(tpl);
-                    std::cout << "opc_fixed_impl::emit: cnt = " << +cnt;
-                    std::cout << ", size = " << +sz << std::endl;
                     base << emit_data(sz, cnt) << p; 
                 } 
                 else
