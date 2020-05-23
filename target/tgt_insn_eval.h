@@ -49,6 +49,11 @@ auto eval_insn_list
         auto p = initial_state;
         for (auto& arg : args)
             *p++ = arg.get_state();
+
+        std::cout << "eval_insn_list: initial state: ";
+        for (auto s : initial_state)
+            std::cout << s << ", ";
+        std::cout << std::endl;
     }
 
     bool state_updated {};      // both start false
@@ -78,9 +83,20 @@ auto eval_insn_list
             *trace << std::dec << std::setw(2) << index << ": ";
         
         op_size_t size;
+        
+        std::cout << "eval_insn_list: before state: ";
+        for (auto arg: args)
+            std::cout << +arg.get_state() << ", ";
+        std::cout << std::endl;
+
        
         // NB: size `binds` info & may modify global arg
         auto result = (*op_iter)->size(args, stmt_info, size, fits, trace);
+
+        std::cout << "eval_insn_list: after state: ";
+        for (auto arg: args)
+            std::cout << +arg.get_state() << ", ";
+        std::cout << std::endl;
 
         if (result == fits.no)
         {
@@ -157,6 +173,11 @@ auto eval_insn_list
         *trace << " : size = "   << insn_size;
         *trace << '\n' << std::endl;
     }
+    
+    std::cout << "eval_insn_list: final state: ";
+    for (auto arg: args)
+        std::cout << +arg.get_state() << ", ";
+    std::cout << std::endl;
 
     // if found a single match, update args
     if (ok.count() == 1)
@@ -164,16 +185,19 @@ auto eval_insn_list
         // if state modified, need to rerun size. sigh.
         if (!state_updated)
         {
+            std::cout << "eval_insn_list: restore initial state: ";
+        
             // restore state
             auto p = initial_state;
             for (auto& arg: args)
                 arg.set_state(*p++);
-
+#if 1
             // rerun size
             op_size_t size;
             
             // NB: size `binds` info. modifies passed `size` arg.
             mcode_p->size(args, stmt_info, size, fits, nullptr);
+#endif
         }
     }
 

@@ -193,50 +193,31 @@ namespace kas::core
         result_t operator()(offset_t<T> const& offset, fits_min_t min, fits_max_t max, int disp) const
         {
             std::cout << "core_fits (offset) (" << offset << ", " << min << ", " << max << ", " << disp << ")" << std::endl;
-            // require `min` to be in range: NB: min can only increase
 
-            // require special test for `min == 0` (ie insn deletion)
-            // ...test for offset == { 0, disp }, ie this insn (delete if so)
-#if 0
-            XXX ????
-            if (min == 0)
+            // Special test for instruction deletion
+            if (max == 0)
             {
-                if ((offset.min + disp) < 0)
+                if (offset.min)
                     return no;
-                if ((offset.min + disp)
                 if (offset.max == disp)     // just this insn
                     return yes;
+                if (offset.max < disp)
+                    return no;
                 return maybe;
             }
-            else
-#else
-            // validate against MIN
+
+            // validate against MIN (which can't decrese)
             if ((offset.min - disp) < min)
                 return no;
             if ((offset.min - disp) >= max)
                 return no;
+
+            // validate against MAX (applying fuzz)
             if ((offset.max - disp) < max)
                 return yes;
             if ((offset.max - disp) < (max+fuzz))
                 return maybe;
             return no;
-
-#endif
-#if 0
-            // check max w/o fuzz
-            auto max_result = (*this)(offset.max - disp, min, max);
-            std::cout << "max_result -> " << +max_result << std::endl;
-            if (max_result == yes)
-                return yes;
-
-            // check max with fuzz
-            max_result = (*this)(offset.max - disp, min, max+fuzz);
-            std::cout << "max_result (fuzz) -> " << +max_result << std::endl;
-
-            if (max_result == yes)
-                return maybe;
-            return no;
-#endif
         }
 
     private:

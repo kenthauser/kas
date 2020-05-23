@@ -18,14 +18,13 @@ template <unsigned N, typename T>
 using fmt_arg = tgt::opc::tgt_fmt_arg<z80_mcode_t, N, T>;
 
 // use `opc` generic base classes
-using fmt_gen  = tgt::opc::tgt_fmt_opc_gen <z80_mcode_t>;
-using fmt_list = tgt::opc::tgt_fmt_opc_list<z80_mcode_t>;
-
+using fmt_gen    = tgt::opc::tgt_fmt_opc_gen   <z80_mcode_t>;
+using fmt_list   = tgt::opc::tgt_fmt_opc_list  <z80_mcode_t>;
+//using fmt_branch = tgt::opc::tgt_fmt_opc_branch<z80_mcode_t>;
 
 // declare Z80 specific opcode formats
-
 // branch opcode format
-struct fmt_jr : virtual z80_mcode_t::fmt_t
+struct fmt_branch : virtual z80_mcode_t::fmt_t
 {
     virtual opcode_t& get_opc() const override 
     {

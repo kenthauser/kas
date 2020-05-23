@@ -23,6 +23,7 @@ enum z80_arg_mode : uint8_t
     , MODE_REG_INDIR        // 7 register indirect
     , MODE_REG_OFFSET       // 8 register + offset (indirect)
     , MODE_REGSET           // 9 register-set 
+    , MODE_BRANCH           // 10 relative branch size (z80: always byte)
 
 // Add "modes" for IX/IY as many modes (32) available & only two Index registers
 // "Modes" are stored directly when args serialized. Allows prefix to be reconstructed
@@ -35,6 +36,7 @@ enum z80_arg_mode : uint8_t
 
 // Required enumeration
     , NUM_ARG_MODES
+    , NUM_BRANCH = 1        // only 1 branch insn
 };
 
 // declare `token_reg`

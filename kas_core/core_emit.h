@@ -236,7 +236,7 @@ struct emit_disp
     auto& operator<<(expr_t const& e)
     {
         (*r_p)(e);
-        return *base_p << 0;
+        return *base_p << set_size(size) << 0;
     }
 
 private:

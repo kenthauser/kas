@@ -79,14 +79,11 @@ using arg2_1w4b2  = fmt_arg<2, gen_1w4b2>;
 // NB: VALIDATORs are REG_GEN, REG_GEN
 // NB: purposefully make unique (arg order doesn't match move)
 struct FMT_LIST     : fmt_list, arg1_0b3, arg2_3b3 {};
-//struct FMT_LIST    : fmt_list {};
 
 // conventional name for `no-args` formatter
 struct FMT_X       : fmt_gen {};
 
-// JR uses special OPCODE to generate machine code
-struct FMT_JR      : fmt_jr           {};
-struct FMT_JRCC    : fmt_jr, arg1_3b2 {};
+struct FMT_BRANCH  : fmt_branch {};
 struct FMT_DJNZ    : fmt_djnz         {};
 
 // general registers are 3-bits shifted 0 or 3 bits

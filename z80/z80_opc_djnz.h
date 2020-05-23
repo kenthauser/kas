@@ -20,33 +20,14 @@ struct z80_opc_djnz : tgt::opc::tgt_opc_branch<z80_mcode_t>
     using NAME = KAS_STRING("Z80_DJNZ");
     const char *name() const override { return NAME::value; }
 
-    void do_initial_size(data_t&            data
-                       , mcode_t const&     mcode
-                       , expr_t const&      dest
-                       , stmt_info_t const& info) const override
+    void do_initial_size     (data_t&                data
+                            , mcode_t const&         mcode
+                            , mcode_size_t          *code_p
+                            , expr_t const&          dest
+                            , stmt_info_t const&     info
+                            , expression::expr_fits const& fits) const override
     {
         data.size = { 2, 7 };
-    }
-
-    void do_calc_size(data_t&                data
-                    , mcode_t const&         mcode
-                    , mcode_size_t          *code_p
-                    , expr_t const&          dest
-                    , stmt_info_t const&     info
-                    , core::core_fits const& fits) const override
-    {
-        // check word offset (from end of insn)
-        switch(fits.disp_sz(1, dest, 2))
-        {
-            case expression::NO_FIT:
-                data.size.min = data.size.max;
-                break;
-            case expression::DOES_FIT:
-                data.size.max = data.size.min;
-                break;
-            default:
-                break;
-        }
     }
 
     void do_emit     (data_t const&          data

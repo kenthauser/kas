@@ -132,6 +132,10 @@ struct tgt_opc_list : MCODE_T::opcode_t
         //  2) dummy word to hold args
         //  3) serialized args
 
+        // test for deleted instruction
+        if (!data.size())
+            return;
+        
         bitset_t ok(data.fixed.fixed);
 
         auto  reader = base_t::tgt_data_reader(data);
@@ -152,25 +156,6 @@ struct tgt_opc_list : MCODE_T::opcode_t
 
         // select first `machine code` that matches
         auto& selected_mc = *insn.mcodes[index];
-
-#if 0      
-        std::cout << "tgt_opc_list::emit: code = ";
-        auto code = selected_mc.code(info);
-        auto n = selected_mc.code_size()/sizeof(mcode_size_t);
-        for (auto p = code.begin(); n--; ++p)
-            std::cout << std::hex << +*p << ' ';
-        
-        auto delim = " ; args : ";
-        for (auto& arg : args)
-        {
-            std::cout << delim << arg << " mode = " << std::dec << +arg.mode();
-            delim = ",";
-        }
-        
-        // ...finish with `info`
-        std::cout << " ; info: " << info;
-        std::cout << std::endl;
-#endif        
         selected_mc.emit(base, args, info);
     }
 };

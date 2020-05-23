@@ -440,9 +440,9 @@ VAL_GEN (Z_IMMED,    val_range, 0,   0);
 VAL_GEN (Q_MOV3Q,    val_range, -1,  7, -1);    // map -1 to value zero
 
 // immediate QUICK validators using T
-VAL_GEN (Q_IMMED,    val_range_t<int8_t>);      // 8 bits signed (moveq)
-VAL_GEN (Q_IMMED16,  val_range_t<int16_t>);     // 16 bits signed
-VAL_GEN (BIT_IMMED,  val_range_t<int32_t>);     // 32 bits signed
+VAL_GEN (Q_IMMED,    val_range_t<int8_t >, 0);  // 8 bits signed (moveq)
+VAL_GEN (Q_IMMED16,  val_range_t<int16_t>, 0);  // 16 bits signed
+VAL_GEN (BIT_IMMED,  val_range_t<int32_t>, 0);  // 32 bits signed
 
 // XXX 
 VAL_GEN (ADDR_DISP,  val_range, 0, 0);  // mode == ADDR_DISP ? XXX convert to AM

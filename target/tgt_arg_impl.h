@@ -310,7 +310,7 @@ template <typename Derived, typename M, typename I, typename R, typename RS>
 auto tgt_arg_t<Derived, M, I, R, RS>
             ::emit(core::emit_base& base, uint8_t sz) const -> void
 {
-    switch (mode())
+    switch (auto m = mode())
     {
         case arg_mode_t::MODE_NONE:
         case arg_mode_t::MODE_ERROR:
@@ -332,6 +332,20 @@ auto tgt_arg_t<Derived, M, I, R, RS>
             emit_immed(base, sz);
             break;
         default:
+            if (m >= arg_mode_t::MODE_BRANCH &&
+                m <  arg_mode_t::MODE_BRANCH + arg_mode_t::NUM_BRANCH)
+            {
+                // branch: number of "words" is based on delta from MODE_BRANCH
+                // default implemetation: just guess & allow override
+                // NB: don't know `mcode_t`, so guess based on `expression::e_data_t`
+                using mcode_sz = typename expression::e_data_t;
+                auto words = (m - arg_mode_t::MODE_BRANCH) << sizeof(mcode_sz);
+                auto bytes = std::max<unsigned>(1, words);
+                std::cout << "tgt_arg_t::emit: branch: expr = " << expr;
+                std::cout << ", words = "  << words << std::endl;
+                if (bytes)
+                    base << core::emit_disp(bytes, -bytes) << expr;
+            }
             break;
     }
 }

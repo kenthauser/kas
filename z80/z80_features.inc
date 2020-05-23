@@ -8,11 +8,18 @@
 #define CPU_FEATURE(name)
 #endif
 
+#ifndef FPU_FEATURE
+#define FPU_FEATURE(name)
+#endif
 
-// declare z80 features
+#ifndef MMU_FEATURE
+#define MMU_FEATURE(name)
+#endif
+
+// declare z80-features
 // nominate features which describe supported addressing modes (by CPU class)
 // and nominate features which appear in two unrelated architectures
-CPU_FEATURE(z80_am)
-
+// clear for next run
 #undef CPU_FEATURE
-
+#undef FPU_FEATURE
+#undef MMU_FEATURE

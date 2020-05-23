@@ -10,7 +10,8 @@
  *****************************************************************************/
 
 #include "z80_mcode.h"
-#include "target/tgt_validate.h"
+#include "target/tgt_validate_generic.h"
+#include "target/tgt_validate_branch.h"
 
 
 namespace kas::z80::opc
@@ -24,6 +25,17 @@ using op_size_t   = core::opcode::op_size_t;
 struct val_reg : tgt::opc::tgt_val_reg<val_reg, z80_mcode_t>
 {
     using base_t::base_t;
+};
+
+struct val_branch : tgt::opc::tgt_val_branch<val_branch, z80_mcode_t>
+{
+    using base_t::base_t;
+
+    // max branch instruction size: z80 is 1 byte opcode, 1 byte displacement 
+    constexpr uint8_t max() const 
+    {
+        return 2;
+    }
 };
 
 // validate 8-bit general registers, plus (HL), (IX+n), (IY+n)
@@ -171,24 +183,30 @@ struct val_reg_dbl: z80_mcode_t::val_t
     
     unsigned get_value(z80_arg_t& arg) const override
     {
-
+        //std::cout << "val_reg_dbl::get_value: mode = " << +arg.mode();
+        //std::cout << ", r_class = " << +r_class << std::endl;
         if (arg.reg_p->kind(RC_IDX) == RC_IDX)
             return 2;
-        if (arg.reg_p->kind(RC_DBL) == RC_DBL)
-            return arg.reg_p->value(RC_DBL);
-        return 3;
+
+        // mirror testes in `ok`
+        if (arg.reg_p->kind(r_class) == r_class)
+            return arg.reg_p->value(r_class);
+        return arg.reg_p->value(RC_DBL);
     }
     
     void set_arg(z80_arg_t& arg, unsigned value) const override
     {
+        //std::cout << "val_reg_dbl::set_arg: mode = " << +arg.mode();
+        //std::cout << ", r_class = " << +r_class;
+        //std::cout << ", value = " << value << std::endl;
+
+        // NB: weird RC_AF & RC_SP have only values `3`. otherwise use RC_DBL
         if (arg.mode() != MODE_REG)
             arg.reg_p = &z80_reg_t::find(RC_IDX, arg.prefix);
-        else if (value != 3)
-            arg.reg_p = &z80_reg_t::find(RC_DBL, (uint16_t)value);
-        else if (r_class == RC_AF)
-            arg.reg_p = &z80_reg_t::find(RC_AF, 3);
+        else if (value == 3)
+            arg.reg_p = &z80_reg_t::find(r_class, 3);
         else
-            arg.reg_p = &z80_reg_t::find(RC_SP, 3);
+            arg.reg_p = &z80_reg_t::find(RC_DBL, (uint16_t)value);
     }
 
     int16_t r_class;
@@ -303,6 +321,25 @@ struct val_jrcc : val_reg
     }
 };
 
+struct val_direct: z80_mcode_t::val_t
+{
+    constexpr val_direct() {}
+
+    fits_result ok(z80_arg_t& arg, expr_fits const& fits) const override
+    {
+        if (arg.mode() == MODE_DIRECT)
+            return fits.yes;
+        return fits.no;
+    }
+
+    fits_result size(z80_arg_t& arg, z80_mcode_t const& mc, stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& op_size) const override
+    {
+        op_size += 2;
+        return fits.yes;
+    }
+};
+
 // extend `tgt_val_range` to allow MODE_DIRECT for bit operations
 struct val_range : tgt::opc::tgt_val_range<z80_mcode_t> 
 {
@@ -317,7 +354,11 @@ struct val_range : tgt::opc::tgt_val_range<z80_mcode_t>
     }
 };
 
-// validate RST instruction: require multiple of 8, rante 0..0x38
+template <typename T>
+using val_range_t = tgt::opc::tgt_val_range_t<z80_mcode_t, T, val_range>;
+
+
+// validate RST instruction: require multiple of 8, range 0..0x38
 struct val_restart : z80_mcode_t::val_t
 {
     constexpr val_restart() {}
@@ -396,6 +437,13 @@ struct val_indir : z80_mcode_t::val_t
 template <typename NAME, typename T, int...Ts>
 using _val_gen = meta::list<NAME, T, meta::int_<Ts>...>;
 
+#if 0
+// specialize generic validators
+using val_range   = tgt::opc::tgt_val_range<z80_mcode_t>;
+template <typename T>
+using val_range_t = tgt::opc::tgt_val_range_t<z80_mcode_t, T>;
+#endif
+
 template <typename NAME, int...Ts>
 using _val_reg = _val_gen<NAME, val_reg, Ts...>;
 
@@ -430,11 +478,18 @@ VAL_GEN(INDIR_8     , val_indir, 1);    // 8-bit indirect (I/O instructions)
 VAL_GEN(INDIR_BC_DE , val_indir_bc_de);
 VAL_GEN(INDIR_IDX   , val_indir_idx);
 
+// validate JR condition codes
 VAL_GEN(JR_CC       , val_jrcc);
-VAL_GEN(DIRECT      , val_range, 0, 0xffff, 0, 2);
 
-VAL_GEN(IMMED_8     , val_range, -(1<< 7), (1<< 8)-1, 0, 1);
-VAL_GEN(IMMED_16    , val_range, -(1<<15), (1<<16)-1, 0, 2);
+// For branches only: config_sizes areare size of insn, not arg
+VAL_GEN (BRANCH    ,  val_branch, 2, 2);    // branch byte in range (DJNZ)
+VAL_GEN (BRANCH_DEL,  val_branch, 0);       // branch byte/word/long DELETE-ABLE
+
+// Validate numeric arguments
+VAL_GEN(DIRECT      , val_direct);
+
+VAL_GEN(IMMED_8     , val_range_t<std::int8_t >);
+VAL_GEN(IMMED_16    , val_range_t<std::int16_t>);
 
 VAL_GEN(IMMED_IM    , val_range, 0, 2);
 VAL_GEN(BIT_NUM     , val_range, 0, 7);

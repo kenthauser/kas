@@ -52,8 +52,9 @@ template <typename Derived, typename N, typename RS, typename B, unsigned C, uns
 auto tgt_reg<Derived, N, RS, B, C, V>::
     find(reg_defn_idx_t rc, uint16_t rv) -> derived_t const&
 {
-//    std::cout << "tgt_reg::find: rc = " << std::hex << +rc << ", rv = " << +rv << std::endl;
-    return *defn_map().at(map_key{rc, rv});
+    //std::cout << "tgt_reg::find: rc = " << std::hex << +rc << ", rv = " << +rv << std::endl;
+    //return *defn_map().at(map_key{rc, rv});
+    return *defn_map().at({rc, rv});
 }
 
 template <typename Derived, typename N, typename RS, typename B, unsigned C, unsigned V>
