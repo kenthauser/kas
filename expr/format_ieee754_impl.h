@@ -173,7 +173,7 @@ void ieee754_base<Derived, FLT>::ok_for_fixed(expr_t& expr, uint8_t fixed_bits)
         
         // XXX why is dummy required
         uint32_t dummy[2];
-#if 1
+#if 0
         auto [flags, exp] = flt.get_bin_parts(dummy);
         if (flags.is_inf)
             expr = e_diag_t::error(err_msg_t::ERR_flt_inf);

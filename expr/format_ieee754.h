@@ -9,7 +9,7 @@
 // This implementation is derived from the information at those two sources
 //
 
-#include "expr/literal_float.h"
+#include "literal_float.h"
 
 
 namespace kas::expression::detail
@@ -23,13 +23,14 @@ struct ieee754_base
     using flt_t     = typename FLT::object_t;
 
     // declare supported formats
-    enum 
+    using fmt_t = uint8_t;
+    enum fmt : fmt_t
     {
           FMT_IEEE_NONE
         , FMT_IEEE_32_SINGLE
         , FMT_IEEE_64_DOUBLE
         , FMT_IEEE_16_HALF
-        , NUM_FMT_IEEE
+        , NUM_FMT
     };
 
     // chunk format used for data
@@ -38,6 +39,7 @@ struct ieee754_base
 
     // floating point format result type:
     // tuple: { bytes_per_chunk, chunk_count, chunk_pointer }
+    // NB: matches `core_emit::emit_data` format
     using result_type = std::tuple<uint8_t, uint8_t, void const *>;
 
     // conversion target formats
@@ -56,16 +58,16 @@ struct ieee754_base
     static void ok_for_fixed(expr_t& expr, uint8_t fixed_bits);
     
     // process IEEE interchange formats
-    result_type flt(flt_t const& flt, int fmt) const
+    result_type flt(flt_t const& flt, fmt_t fmt) const
     {
         switch (fmt)
         {
             case FMT_IEEE_16_HALF:
-                return derived().flt2(flt, std::integral_constant<int, 16>());
+                return flt2(flt, std::integral_constant<int, 16>());
             case FMT_IEEE_32_SINGLE:
-                return derived().flt2(flt, std::integral_constant<int, 32>());
+                return flt2(flt, std::integral_constant<int, 32>());
             case FMT_IEEE_64_DOUBLE:
-                return derived().flt2(flt, std::integral_constant<int, 64>());
+                return flt2(flt, std::integral_constant<int, 64>());
             default:
                 break;
         }

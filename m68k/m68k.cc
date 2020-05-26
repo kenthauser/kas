@@ -73,6 +73,8 @@ namespace kas::m68k::parser
                                                   >>;
     // define parser instance for register name parser
     m68k_reg_x3 reg_parser {"m68k reg"};
+
+    using tok_m68k_reg = typename m68k_reg_t::token_t;
     auto const raw_reg_parser = x3::no_case[reg_name_parser_t().x3()];
     auto const reg_parser_def = parser::token<tok_m68k_reg>[raw_reg_parser];
     

@@ -58,13 +58,12 @@ namespace kas::expression::detail
             , m68k::m68k_rs_ref     // m68k register-set reference
             > {};
 
-#if 1
     // parsers for directly parsed types
     template <> struct term_parsers_v<defn_cpu> :
         meta::list<
               m68k::parser::m68k_reg_x3
+              //typename m68k::m68k_reg_t::token_t
             > {};
-#endif
 }
 
 

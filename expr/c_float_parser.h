@@ -1,33 +1,55 @@
 #ifndef KAS_EXPR_C_FLOAT_PARSER_H
 #define KAS_EXPR_C_FLOAT_PARSER_H
 
-// parse floating point numbers into container
-// using c++11/14/17 languange formats
+// define x3 parser for floating point liter
 
 #include "literal_float.h"
+
 #include <stdexcept>
 #include <cassert>
 
-namespace kas::expression::parser
+namespace kas::expression::literal
 {
-    auto decode_flt = [](auto& ctx)
+
+// create a native X3 parser
+template <typename T>
+struct c_float_parser : x3::parser<c_float_parser<T>>
+{
+    using attribute_type = T;
+    static bool const has_attribute = true;
+
+    template <typename Iterator, typename Context, typename Attribute_>
+    bool parse(Iterator& first, Iterator const& last
+      , Context const& context, unused_type, Attribute_& attr) const
     {
-        _val(ctx)  = e_float_t::add(_attr(ctx));
-    };
+        x3::skip_over(first, last, context);
+        Iterator it(first);     // copy iterator
 
-    auto parse_flt = [](auto&& parser, auto&& decode)
-    {
-        return  parser[decode];
-    };
+        // look for (and consume) sign
+        bool neg = *it == '-';
+        if (neg || *it == '+')
+            ++it;
 
-    e_float_parser<e_float_t> c_float_p = "floating point parser (c-rules)";
+        // select numeric or character parser based on first character
+        T value {};
+        bool result;
+        if (std::isdigit(*it))
+            result = parse_int(context, it, last, value, neg); 
+        else if (it != first)
+            return false;       // +/- prefix not allowed for char literals
+        else
+            result = parse_char(context, it, last, value, neg);
+        
+        if (!result)
+            return false;
 
-    auto const c_float_p_def = lexeme[
-            parse_flt(strict_float_p<long double>(), decode_flt)
-        ];
+        traits::move_to(value, attr);
+        first = it;             // consume parsed value
+        return true;
+    }
+};
 
-    BOOST_SPIRIT_DEFINE(c_float_p)
 }
 
-
 #endif
+

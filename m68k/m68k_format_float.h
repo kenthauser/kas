@@ -20,47 +20,53 @@
 namespace kas::m68k
 {
 
+// XXX not sure `ieee754_base` needs to CRTP...
 struct m68k_format_float : expression::detail::ieee754_base<m68k_format_float, e_float_t>
 {
     using base_t = ieee754_base<m68k_format_float, e_float_t>;
 
-    enum
+    // NB: no way to extend `enum`: so just copy items
+    using fmt_t = std::underlying_type_t<base_t::fmt>;
+    enum fmt : fmt_t
     {
-          FMT_M68K_BASE = NUM_FMT_IEEE
+          FMT_IEEE_NONE         = base_t::fmt::FMT_IEEE_NONE
+        , FMT_IEEE_32_SINGLE    = base_t::fmt::FMT_IEEE_32_SINGLE
+        , FMT_IEEE_64_DOUBLE    = base_t::fmt::FMT_IEEE_64_DOUBLE
+        , FMT_IEEE_16_HALF      = base_t::fmt::FMT_IEEE_16_HALF
+        , FMT_M68K_BASE         = base_t::fmt::NUM_FMT
         , FMT_M68K_80_EXTEND
         , FMT_M68K_80_PACKED
+        , NUM_FMT
     };
     
-
-    result_type flt(flt_t const& flt, int bits) const
+    result_type flt(flt_t const& flt, fmt_t fmt) const
     {
-        switch (bits)
+        switch (fmt)
         {
             case FMT_M68K_80_EXTEND:
                 return flt2(flt, std::integral_constant<int, 80>());
             case FMT_M68K_80_PACKED:
                 return m68k_packed(flt);
             default:
-                return base_t::flt(flt, bits);
+                return base_t::flt(flt, fmt);
         }
     }; 
 
-//protected:
+private:
     // M68K "extended" format (80-bits)
-    // add 80-bit binary overload. Expose existing overloads.
-    using base_t::flt2;
-    
+    // NB: [emits as 3, 32-bit words = 96-bits]
     result_type flt2(flt_t const& flt, std::integral_constant<int,80>) const
     {
         // args: format, exponent bits, mantissa bits, buffer
         auto p      = output.begin();
-        auto mant_p = flt2(flt, base_t::FLT2, 15, 64, p);
+        auto mant_p = base_t::flt2(flt, base_t::FLT2, 15, 64, p);
         p[1] = mant_p[0];
         p[2] = mant_p[1];
         return { sizeof(*p), 3, p };
     }
 
     // M68K "packed" output format (80-bits)
+    // NB: [emits as 3, 32-bit words = 96-bits]
     result_type m68k_packed(flt_t const& flt) const
     {
         auto [ flags, exp, digits ] = get_dec_parts(flt, 17);
@@ -79,7 +85,7 @@ struct m68k_format_float : expression::detail::ieee754_base<m68k_format_float, e
             // IEEE uses 32-bit groups
             using mantissa_t = uint32_t;
             static constexpr auto MANT_WORD_BITS = 32;
-            static constexpr auto MANT_WORDS     = (flt_t::HOST_MANT_BITS-1)/MANT_WORD_BITS + 1;
+            static constexpr auto MANT_WORDS = (flt_t::HOST_MANT_BITS-1)/MANT_WORD_BITS + 1;
             
             // working buffer
             mantissa_t mantissa[MANT_WORDS];

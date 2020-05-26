@@ -72,7 +72,8 @@ struct tgt_arg_t : parser::kas_position_tagged
     }
     
     // error from `kas_error_t`
-    tgt_arg_t(parser::kas_error_t err) : _mode(MODE_ERROR), err(err) {}
+    tgt_arg_t(parser::kas_error_t err) : _mode(MODE_ERROR), err(err)
+                                        , kas_position_tagged_t(err.get_loc()) {}
 
     // ctor(s) for default parser
     tgt_arg_t(std::pair<kas_token, MODE_T> const& p) : tgt_arg_t(p.second, p.first) {}
@@ -178,7 +179,7 @@ public:
     // emit args as addresses or immediate args
     void emit      (core::emit_base& base, uint8_t sz) const;
     void emit_immed(core::emit_base& base, uint8_t sz) const;
-    void emit_float(core::emit_base& base, uint8_t sz, uint8_t fmt) const;
+    void emit_float(core::emit_base& base, uint8_t fmt) const;
 
     parser::kas_error_t set_error(const char *msg)
     {
@@ -200,6 +201,7 @@ public:
     reg_t    const *reg_p    {};
     regset_t const *regset_p {};
     parser::kas_error_t err; 
+
 
 protected:
     friend std::ostream& operator<<(std::ostream& os, tgt_arg_t const& arg)

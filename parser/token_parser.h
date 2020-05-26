@@ -57,15 +57,30 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
 #endif
 
             // create "token" of `TOK_DEFN` type with parsed location
-            auto& handler = x3::get<parser::error_handler_tag>(context); 
-            attribute_type tok(TOK_DEFN(), {first, i, &handler});
+            auto& handler = x3::get<parser::error_handler_tag>(context);
+            parser::kas_position_tagged loc = {first, i, &handler};
+            attribute_type tok(TOK_DEFN(), loc);
+
+            print_type_name{"attr"}.name<decltype(attr)>();
+            print_type_name{"value"}.name<decltype(value)>();
             
             // store parsed value in token (except for strings)
             // if parsed value is kas_object, allocate it & save address
             if constexpr (std::is_base_of_v<core::kas_object_tag, decltype(attr)>)
             {
                 // kas_object_ctor: value + kas_position
-                auto& obj = attr.add(value, { first, last, &handler });
+                std::cout << "token_parser: object added" << std::endl;
+                auto& obj = attr.add(value, loc);
+                tok.set(&obj);
+            }
+            
+            else if constexpr (std::is_same_v<typename TOK_DEFN::value_t, expression::e_float_t>)
+            {
+                std::cout << "token_parser: e_float added" << std::endl;
+                //kas_object_ctor: value + kas_position
+                //auto& obj = TOK_DEFN::value_t::add(value, { first, last, &handler });
+
+                auto& obj = expression::e_float_t::add(value, loc);
                 tok.set(&obj);
             }
 

@@ -128,7 +128,7 @@ struct tgt_data_inserter_t
     }
 
     // insert fixed or expression
-    value_type* operator()(expr_t const& e, int size = 0)
+    value_type* operator()(expr_t const& e, unsigned size = 0)
     {
         //std::cout << "insert_expr: " << e << " size = " << size << std::endl;
         if (size)
@@ -141,31 +141,20 @@ struct tgt_data_inserter_t
     }
 
     // insert data via pointer
-    value_type* operator()(value_type *code_p, int bytes = 1)
+    value_type* operator()(value_type *code_p, unsigned bytes = 1)
     {
         auto count = (bytes + sizeof(value_type) - 1)/sizeof(value_type);
-#if 0
-        auto flags = std::cout.flags();
-        std::cout << "insert(): " << std::hex;
-        for (auto n = 0; n < count; ++n)
-            std::cout << +code_p[n] << " ";
-        std::cout << "size = " << count << std::endl;
-        std::cout.flags(flags);
- #endif
         reserve(count * sizeof(value_type));
 
         auto p = insert_one(*code_p);
-        while (count > sizeof(value_type))
-        {
-            count -= sizeof(value_type);
+        while (--count)
             insert_one(*++code_p);
-        }
         return p;
     }
 
     // infer the size & signed/unsigned from T
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
-    value_type* operator()(T const& t, int size = 0)
+    value_type* operator()(T const& t, unsigned size = 0)
     {
         // NB: `signed` irrevelent on store
         if (!size)

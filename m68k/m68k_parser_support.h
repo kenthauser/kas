@@ -154,6 +154,10 @@ private:
                 e_type = E_PC;
                 _value = -1;
                 break;
+            case RC_FLOAT:
+                e_type = E_FLOAT;
+                _value = rp->value();
+                break;
             case RC_ZADDR:
                 e_type = E_ZADDR;
                 _value = 0;
@@ -181,12 +185,10 @@ private:
         }
     }
 
-    expr_t           expr;
-    int              _value {};
-    uint32_t         e_type {};
+    expr_t const&   expr;
+    int             _value {};
+    uint32_t        e_type {};
 };
-
-
 
 //
 // Method to process the single argument (empty displacement) formats
@@ -195,7 +197,6 @@ private:
 m68k_parsed_arg_t::operator m68k_arg_t ()
 {
 
-//#define TRACE_M68K_PARSE
 #ifdef  TRACE_M68K_PARSE
     static const char * const parse_names[] = 
         { "MISSING", "DIR", "IMMED", "INDIR", "INCR", "DECR", "PAIR", "BITFIELD"
@@ -211,7 +212,10 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
         std::cout << +mode.mode << std::endl;
 
     std::cout << "base: " << base;
-    if (auto rp = base.token.get_p<m68k_reg_t>())
+   
+    // see if base token is a register
+    using reg_tok = typename m68k_arg_t::reg_t::token_t;
+    if (auto rp = reg_tok(base.token)())
     {
         std::cout << " rc = " << +rp->kind() << " value = " << +rp->value();
         std::cout << ", ";
@@ -282,8 +286,8 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
     auto addr_only = [&](auto mode) -> m68k_arg_t
     {
         if (kind != E_ADDR)
-            return { error_msg::ERR_no_addr_reg, base_value };
-        m68k_arg_t r { mode, base_value };
+            return { error_msg::ERR_no_addr_reg, base.token };
+        m68k_arg_t r { mode, base.token };
         r.reg_num     = classify.value();
         r.reg_subword = sub_reg;
         return r;
@@ -318,9 +322,10 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 case E_EXPR:
                 case E_INT:
                     return { MODE_DIRECT, base.token };
+                case E_FLOAT:
                 case E_REG:
                 {
-                    m68k_arg_t r{ MODE_REG, base_value };
+                    m68k_arg_t r{ MODE_REG, base.token };
                     r.reg_num = classify.value();
                     r.reg_subword = sub_reg;
                     return r;
@@ -328,14 +333,14 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 case E_REGSET:
                 {
                     // is register set well formed? (ie: kind() >= 0)
-                    m68k_arg_t r{ MODE_REGSET, base_value };
+                    m68k_arg_t r{ MODE_REGSET, base.token };
                     if (auto rp = r.expr.get_p<m68k_reg_set_t>())
                         if (rp->kind() >= 0)
                             return r;
-                    return { error_msg::ERR_regset, r.expr };
+                    return { error_msg::ERR_regset, base.token  };
                 }
                 default:
-                    return { error_msg::ERR_direct, base_value };
+                    return { error_msg::ERR_direct, base.token };
             }
 
         case PARSE_IMMED:
@@ -347,7 +352,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                     std::cout << "m68k_parsed_arg: IMMED: " << base_value << std::endl;
                     return { MODE_IMMEDIATE, base.token };
                 default:
-                    return { error_msg::ERR_immediate, base_value };
+                    return { error_msg::ERR_immediate, base.token };
             }
 
         case PARSE_INDIR:
@@ -358,7 +363,9 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                     if (!hw::cpu_defs[hw::index_full{}])
                     {
                             // initialize index register
-                            m68k_arg_t r { MODE_INDEX };
+                            kas_token tok;          // create empty token
+                            tok.tag(base.token);    // location tag token
+                            m68k_arg_t r { MODE_INDEX, tok };
                             r.ext.reg_num       = classify.value();
                             r.ext.has_index_reg = true;
                             r.ext.base_suppr    = true;
@@ -370,7 +377,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 case E_PC:
                     return { MODE_PC_DISP };
                 default:
-                    return { error_msg::ERR_indirect , base_value };
+                    return { error_msg::ERR_indirect , base.token };
             }
 
         case PARSE_INCR:

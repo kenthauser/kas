@@ -48,6 +48,10 @@ struct tgt_reg
     using base_t      = tgt_reg;
     using derived_t   = Derived;
     using regset_t    = REGSET;
+    using base_name   = NAME;       // allow access to base name
+    
+    using token_name  = kas::str_cat<NAME, KAS_STRING("_REG")>;
+    using token_t     = parser::token_defn_t<token_name, Derived>;
 
     // be sure bits fit into single `BASE_T` value
     static_assert(VALUE_BITS > 0,

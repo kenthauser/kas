@@ -64,9 +64,19 @@ namespace {
             std::cout << "sizeof(expr_t) = " << sizeof(kas::expr_t) << std::endl;
             
             std::cout << std::endl;
-            flt_info<float>      ("float      ");
-            flt_info<double>     ("double     ");
-            flt_info<long double>("long double");
+            flt_info<     float>      ("float      ");
+            flt_info<     double>     ("double     ");
+            flt_info<     long double>("long double");
+            //flt_info<long long double>("long long double");
+
+            print_type_name{"e_float_t"}.name<e_float_t>();
+            print_type_name{"e_string_t"}.name<e_string_t>();
+
+            std::cout << "is_kas_object<e_float_t>: " << std::boolalpha << 
+                    std::is_base_of_v<kas::core::kas_object_tag, e_float_t> << std::endl;
+
+            std::cout << "is_kas_object<e_string_t>: " << std::boolalpha << 
+                    std::is_base_of_v<kas::core::kas_object_tag, e_string_t> << std::endl;
 
             std::cout << std::endl;
             print_expr_ops();
@@ -75,6 +85,8 @@ namespace {
 
             kas::expr_t e = sym + 4;
             std::cout << "xyz: sym + 4 = " << e << std::endl;
+
+            print_type_name{"expr_t parsers"}.name<kas::expression::detail::term_parsers>();
         }
 
         template <typename T>

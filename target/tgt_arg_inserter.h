@@ -174,7 +174,6 @@ void extract_one(Reader& reader
 #endif
 }
 
-#undef TRACE_ARG_SERIALIZE
 }
 
 

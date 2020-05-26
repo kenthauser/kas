@@ -2,13 +2,15 @@
 #define KAS_EXPR_TERMINALS_H
 
 #include "expr_types.h"         // get base type templates
-#include "literal_float.h"      // get "literal" types (float/string/big-int)
-#include "literal_string.h"
+#include "literal_float.h"      // type to hold float
+#include "literal_string.h"     // type to hold sting
 #include "error_messages_base.h"
 #include "utility/reduce.h"
 #include "parser/token_defn.h"
 
+// include default parsers
 #include "c_int_parser.h"
+#include "c_float_parser.h"
 #include "c_string_parser.h"
 
 #include <boost/spirit/home/x3.hpp>
@@ -25,26 +27,17 @@ namespace mpl = boost::mpl;
 
 namespace detail 
 {
-#if 0
-    // Default `int` parser
-    template <typename T>
-    struct dflt_fixed_p : x3::int_parser<T> {};
-#else
+    // Define default `int`, `float` & `string` parsers
     template <typename T>
     struct dflt_fixed_p : literal::c_int_parser<T> {};
-#endif
 
-    // Define default `float` & `string` parsers
-    // x3 strict parser requires decimal point
     template <typename T>
     struct dflt_float_p : x3::real_parser<T, x3::strict_real_policies<T>> {};
-#if 0
-    template <typename T>
-    struct dflt_string_p : quoted_string_p<T> {};
-#else
+    //struct dflt_float_p : literal::c_float_parser<T> {};
+    
     template <typename T>
     struct dflt_string_p : literal::c_string_parser<T> {};
-#endif
+
     // define default parsers: quoted on value-type
     template <typename> struct fixed_p      : id<quote<dflt_fixed_p>>  {};
     template <typename> struct float_p      : id<quote<dflt_float_p>>  {};
@@ -83,7 +76,6 @@ using e_addr_t    = typename detail::e_addr<>   ::type;
 //using e_bigint_host_t  = kas_bigint_host;
 //using e_float_fmt = typename float_fmt<>::type;
 
-#if 1
 namespace detail
 {
     // NB: in detail namespace, all types are ``meta``
@@ -94,7 +86,9 @@ namespace detail
                                  , meta::invoke<fixed_p<>::type, e_fixed_t>>;
     using tok_float  = parser::token_defn_t<KAS_STRING("E_FLOAT")
                                  , e_float_t
-                                 , meta::invoke<detail::float_p<>::type, e_float_t>>;
+                                 , meta::invoke<detail::float_p<>::type,
+                                                _t<detail::float_value<>>>>;
+                                            //typename e_float_t>::value_type>;
     using tok_string = parser::token_defn_t<KAS_STRING("E_STRING")
                                  , e_string_t
                                  , meta::invoke<detail::string_p<>::type, e_string_t>>;
@@ -103,29 +97,23 @@ namespace detail
 
     // NB: Don't include `tok_missing` in `expr_t` tokens, as `missing` always matches
     using expr_terminals = list<tok_fixed
-                              //, tok_float
+                              , tok_float
                               , tok_string>;
 
-#if 0
-    // zip expr terminals into lists of types and parsers
-    using zip_term_types = zip<expr_terminals>;
-    template<> struct term_types_v<defn_expr>   : at_c<zip_term_types, 0> {};
-    template<> struct term_parsers_v<defn_expr> : at_c<zip_term_types, 1> {};
-#else
     // NB: need to remove "void" type & "void" parsers. Thus the `zip` list might be better
     // NB: probably better to make "large" `expr_terminals` type & filter there...
-    template<> struct term_types_v  <defn_expr> : meta::list<e_fixed_t//, e_float_t
+    template<> struct term_types_v  <defn_expr> : meta::list<
+                                                      e_fixed_t 
+                                                    , detail::e_float_ref
                                                     , detail::e_string_ref
                                                     > {};
-    //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_float, tok_string> {};
-    //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_float> {};
-    //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_string> {};
-    template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed
+    
+    template<> struct term_parsers_v<defn_expr> : meta::list<
+                              tok_fixed
+                            , tok_float
                             , tok_string
                             > {};
-    //template<> struct term_parsers_v<defn_expr> : meta::list<tok_fixed, tok_fixed, tok_string> {};
-    //template<> struct term_parsers_v<defn_expr> : meta::list<x3::int_parser<e_fixed_t>> {};
-#endif
+    
     // remove `void` types & parsers from lists
     using term_types   = filter<all_defns<term_types_v>,   not_fn<quote<std::is_void>>>;
     using term_parsers = filter<all_defns<term_parsers_v>, not_fn<quote<std::is_void>>>;
@@ -155,7 +143,6 @@ template <> struct token_t<e_string_t> : detail::tok_string {};
 template <> struct token_t<typename detail::float_value<>::type>
                                        : detail::tok_float {};
 }
-#endif
 
 
 namespace kas

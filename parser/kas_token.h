@@ -149,6 +149,11 @@ struct kas_token : kas_position_tagged
     {
         return defn_p ? defn_p->name() : "TOKEN";
     }
+
+    kas_position_tagged const& get_loc() const
+    {
+        return *this;
+    }
     
     void print(std::ostream& os) const;
     

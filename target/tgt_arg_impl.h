@@ -356,68 +356,53 @@ void tgt_arg_t<Derived, M, I, R, RS>
             ::emit_immed(core::emit_base& base, uint8_t sz) const
 {
     auto& info = immed_info(sz);
-#if 0 
+#if 1 
     // process floating point types if supported
     if constexpr (!std::is_void_v<e_float_t>)
     {
         // CASE: emit formatted as floating point
         if (info.flt_fmt)
-            return derived().emit_float(base, info.sz_bytes, info.flt_fmt);
+            return derived().emit_float(base, info.flt_fmt);
 
         // CASE: emit floating point as fixed
         // NB: a previous `fmt::ok_for_fixed` should have converted all inappropriate
         //     values to diagnoistics. Just throw if problem.
-#if 0
-        using flt_t = typename e_float_t::object_t;
-        if (auto p = expr.template get_p<flt_t>())
+        if (auto p = expr.template get_p<e_float_t>())
         {
             // XXX warning float as fixed
             std::cout << "tgt_arg_t::emit_immed: " << expr << " emitted as integral value" << std::endl;
-            base << core::set_size(info.sz_bytes) << flt_t::fmt::fixed(*p);
+            base << core::set_size(info.sz_bytes) << static_cast<e_fixed_t>((*p)());
             return;
         }
-#endif
     }
 #endif
     base << core::set_size(info.sz_bytes) << expr;
 }
-#if 0
-// immediate arg floating point `emit` routine
-template <typename Derived, typename arg_mode_t, typename reg_t, typename regset_t>
-std::enable_if_t<!std::is_void_v<expression::e_float_t>>
-void tgt_arg_t<Derived, arg_mode_t, reg_t, regset_t>
-            ::emit_float(core::emit_base& base, uint8_t bytes, uint8_t flt_fmt) const
-{
-    // get floating point `object` format (from `ref_loc`)
-    using flt_t       = typename expression::e_float_t::object_t;
-    using flt_value_t = typename flt_t::value_type;
 
-    // the contortion below is because a temporary `flt_t` can be constructed
+// immediate arg floating point `emit` routine
+template <typename Derived, typename M, typename I, typename R, typename RS>
+std::enable_if_t<!std::is_void_v<expression::e_float_t>>
+tgt_arg_t<Derived, M, I, R, RS>
+            ::emit_float(core::emit_base& base, uint8_t flt_fmt) const
+{
+    // the contortion below is because a temporary `e_float_t` can be constructed
     // but not assigned. static's are no help, because they're only constructed once.
     auto p = expr.get_fixed_p();
-    flt_t fixed_as_float { p ? static_cast<flt_value_t>(*p) : 0 };
-    flt_t const *flt_p = expr.template get_p<flt_t>();
+    e_float_t fixed_as_float(p ? *p : 0);
+    e_float_t const *flt_p = expr.template get_p<e_float_t>();
     
-    if (!flt_p && p)
+    if (p)
         flt_p = &fixed_as_float;    // fixed point formatted as floating point
     else if (!flt_p)
     {
         // XXX should throw
-        std::cout << "tgt_arg_t::emit_flt: " << expr << " is not rational constant" << std::endl;
+        std::cout << "tgt_arg_t::emit_float: " << expr << " is not rational value" << std::endl;
         return;
     }
     
-    auto [chunk_size, chunks, data_p] = typename flt_t::fmt().flt(*flt_p, flt_fmt);
-    if (chunk_size == 0)
-    {
-        // XXX should throw
-        if (data_p)
-            std::cout << "tgt_arg_t::emit_flt: error: " << static_cast<const char *>(data_p) << std::endl;
-        return;
-    }
+    auto [chunk_size, chunks, data_p] = flt_p->format(flt_fmt);
     base << core::emit_data(chunk_size, chunks) << data_p;
 }
-#endif
 
 // default print implementation
 template <typename Derived, typename M, typename I, typename R, typename RS>

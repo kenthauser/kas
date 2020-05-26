@@ -142,8 +142,9 @@ namespace kas::m68k
         case MODE_DIRECT_ALTER:
         case MODE_REG:
         case MODE_REG_QUICK:
+            return os << arg.reg_p->name();
         case MODE_REGSET:
-            return os << base;
+            return os << "** REGSET **";
         case MODE_PAIR:
             return os << base << ":" << outer;
         case MODE_BITFIELD:

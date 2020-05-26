@@ -86,7 +86,23 @@ void tgt_insert_args(Inserter& inserter
    
     // insert base "code" (or zero from `insn_t::list_mcode`)
     // modify `mcode` to store `stmt_info` before writing
-    auto code_p = inserter(m_code.code(stmt_info).data(), m_code.code_size());
+#ifdef TRACE_ARG_SERIALIZE
+    {
+        auto p = m_code.code(stmt_info).data();
+        auto n = m_code.code_size();
+
+        std::cout << "tgt_insert_args: base_size = " << +n;
+        std::cout << ", data = " << std::hex;
+        while (n > 0)
+        {
+            std::cout << *p++;
+            n -= sizeof(mcode_size_t);
+        }
+        std::cout << std::endl;
+    }
+#endif
+    auto code   = m_code.code(stmt_info);
+    auto code_p = inserter(code.data(), m_code.code_size());
 
     // retrieve formatters and validators to write args into code (as appropriate)
     auto& fmt         = m_code.fmt();           // arg formatting instructions

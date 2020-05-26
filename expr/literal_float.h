@@ -1,10 +1,10 @@
-#ifndef KAS_EXPR_LITERAL_TYPES_H
-#define KAS_EXPR_LITERAL_TYPES_H
+#ifndef KAS_EXPR_LITERAL_FLOAT_H
+#define KAS_EXPR_LITERAL_FLOAT_H
 
 // declare assembler FLOATING POINT literal type
 
 // since floating point types won't fit in a 32-bit int
-// (or even a 64-bit int), allocate each on a private deque & reference
+// (or even a 64-bit int), allocate each instance on a private deque & reference
 // by index. This helps with variant & speeds copying.
 
 // *** FLOATING POINT CONTAINER TYPE ***
@@ -29,7 +29,7 @@ namespace kas::expression::detail
 
 
 template <typename REF, typename VALUE, typename FMT>
-struct float_host_ieee: core::kas_object<float_host_ieee<REF, VALUE, FMT>, REF>
+struct float_host_ieee : core::kas_object<float_host_ieee<REF, VALUE, FMT>, REF>
 {
     using base_t = core::kas_object<float_host_ieee<REF, VALUE, FMT>, REF>;
 
@@ -37,7 +37,7 @@ struct float_host_ieee: core::kas_object<float_host_ieee<REF, VALUE, FMT>, REF>
     // most significant is first. 
     using emits_value = std::true_type;     // XXX for `expr_fits`
     using value_type  = VALUE;
-    using fmt         = FMT;
+    using fmt_t       = FMT;
     using mantissa_t  = std::uint32_t;
 
     // if host not `ieee` format, need to implement appropriate `get_flags` & `get_bin_parts` 
@@ -53,7 +53,8 @@ struct float_host_ieee: core::kas_object<float_host_ieee<REF, VALUE, FMT>, REF>
         uint8_t subnorm : 1;
     };
     
-    constexpr float_host_ieee(value_type value = {}) : value(value) {}
+    constexpr float_host_ieee(value_type value = {}, parser::kas_loc loc = {})
+            : value(value), base_t(loc) {}
 
     // operator() extracts value
     value_type const& operator()() const
@@ -65,6 +66,12 @@ struct float_host_ieee: core::kas_object<float_host_ieee<REF, VALUE, FMT>, REF>
     operator value_type const&() const
     {
         return (*this)();
+    }
+
+    template <typename...Ts>
+    auto format(Ts&&...args) const
+    {
+        return fmt_t().flt(value, std::forward<Ts>(args)...);
     }
 
 //protected:
@@ -84,40 +91,18 @@ struct float_host_ieee: core::kas_object<float_host_ieee<REF, VALUE, FMT>, REF>
 
     // convert float to n-bit fixed
     // generate diagnostic if float can't be converted to fixed
-    // generate warning if it can
+    // returns "err_msg_t" or "e_fixed_t"
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
     auto as_fixed(T) const { return as_fixed_n(std::numeric_limits<T>::digits); }
 
     template <typename T>
     auto as_fixed()  const { return as_fixed(T()); }
 
-    // returns "err_msg_t" or "e_fixed_t"
-    // XXX no loc for error msg
+private:
     ast::expr_t as_fixed_n(int n) const;
 
-private:
     value_type value;
 };
-
-  // support largest int by host
-// holds values that are too big for `e_fixed_t`
-#if 0
-template <typename REF>
-struct bigint_host_t : core::kas_object<bigint_host_t<REF>, REF>
-{
-    using base_t      = core::kas_object<bigint_host_t<REF>, REF>;
-    using emits_value = std::true_type;
-    using value_type = std::intmax_t;
-
-    explicit bigint_host_t(value_type v = {}) : value(v) {};
-
-    value_type const& operator()() const { return value; }
-
-private:
-    value_type value {};
-    static inline core::kas_clear _c{base_t::obj_clear};
-};
-#endif
 }
 #endif
 

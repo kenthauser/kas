@@ -141,19 +141,6 @@ struct tgt_reg_adder
         OBJECT_T::set_lookup(PARSER::parser);
 
         DEFN_T::names_base = meta::front<typename PARSER::all_types_defns>::value;
-
-#if 0
-        // XLATE_LIST meta-fn doesn't work properly
-        auto p = DEFN_T::names_base;
-        auto n = meta::front<typename PARSER::all_types_defns>::size;
-        std::cout << "reg_names: ";
-        while (n--)
-            std::cout << *p++ << ", ";
-        std::cout << std::endl;
-
-        print_type_name{"reg: XTRA"}.name<XTRA_NAMES>();
-        print_type_name{"reg: XLATE_LIST"}.name<XLATE_LIST>();
-#endif
     }
 
     static inline std::deque<OBJECT_T> obstack;

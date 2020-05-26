@@ -123,9 +123,8 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
 
     // emit arg & relocations based on mode & info
     // `m68k` has various special modes which must be interpreted
-    // NB: emit_immed & emit_float not overridden
+    // NB: emit_immed & emit_float are not overridden
     void emit(core::emit_base& base, uint8_t sz);
-
 
     // true if all `expr` and `outer` are registers or constants 
     bool is_const () const;

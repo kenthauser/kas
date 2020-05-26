@@ -133,14 +133,14 @@ using m68k_reg_set_t = typename m68k_rs_ref::object_t;
 
 
 // define `m68k_reg` types as tokens
-using tok_m68k_reg = parser::token_defn_t<KAS_STRING("M68K_REG"), m68k_reg_t>;
+//using tok_m68k_reg = parser::token_defn_t<KAS_STRING("M68K_REG"), m68k_reg_t>;
 
 // M68K register type definition is regular
 struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t, KAS_STRING("M68K"), m68k_reg_set_t>
 {
     using hw_tst         = hw::hw_tst;
     using reg_defn_idx_t = uint8_t;
-    using token_t        = tok_m68k_reg;
+    //using token_t        = tok_m68k_reg;
     
     using base_t::base_t;       // use inherited ctors
 

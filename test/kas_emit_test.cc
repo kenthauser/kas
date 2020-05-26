@@ -126,7 +126,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     kas::core::core_fragment::dump(out);
     kas::dwarf::dl_data::dump(out);
 #endif
-#if 1
+#if 0
     // create object output (binary data)
     kas::core::elf_emit elf_obj(obj_fmt);
     obj.emit(elf_obj);
