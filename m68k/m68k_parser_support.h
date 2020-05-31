@@ -333,11 +333,18 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 case E_REGSET:
                 {
                     // is register set well formed? (ie: kind() >= 0)
+                    std::cout << "m68k_parsed_arg: REGSET = " << base_value << std::endl;
                     m68k_arg_t r{ MODE_REGSET, base.token };
-                    if (auto rp = r.expr.get_p<m68k_reg_set_t>())
+#if 0
+                    // XXX not sure what this test is about.
+                    std::cout << "m68k_parsed_arg: REGSET: kind = " << +rp->kind() << std::endl;
                         if (rp->kind() >= 0)
                             return r;
+                    }
                     return { error_msg::ERR_regset, base.token  };
+#else
+                    return r;
+#endif
                 }
                 default:
                     return { error_msg::ERR_direct, base.token };

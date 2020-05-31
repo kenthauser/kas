@@ -51,7 +51,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     using core::opcode;
     auto trace  = opcode::trace;
     //trace = nullptr;
-    //trace = &std::cout;
+    trace = &std::cout;
     
     // convenience references 
     auto& insn = *insn_p;

@@ -56,6 +56,8 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
         info_p->has_reg = false;
     if (info_p->has_reg)
         inserter(*reg_p);
+    if (regset_p)
+        inserter(*regset_p);
     
     switch (mode())
     {
@@ -203,6 +205,11 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, arg_serial_t *serial_p)
             if (size)
                 outer = reader.get_fixed(size);
         }
+    }
+
+    else if (mode() == MODE_REGSET)
+    {
+        regset_p = reader.get_expr().template get_p<regset_t>();
     }
 
     else if (serial_p->has_expr)

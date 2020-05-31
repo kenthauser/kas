@@ -78,7 +78,7 @@ using m68k_move_v = list<list<>
 
 // movem (predecrement uses reverse bitset order)
 , defn<sz_l, STR("movem"), OP<0x48c0 << 16, m68k>, FMT_I16_0RM, REGSET, CONTROL_ALTER>
-, defn<sz_l, STR("movem"), OP<0x48c0 << 16, m68k>, FMT_I16R_0RM, REGSET, PRE_DECR>
+, defn<sz_l, STR("movem"), OP<0x48c0 << 16, m68k>, FMT_I16_0RM, REGSET_REV, PRE_DECR>
 , defn<sz_l, STR("movem"), OP<0x4cc0 << 16, m68k>, FMT_0RM_I16, CONTROL, REGSET>
 , defn<sz_l, STR("movem"), OP<0x4cc0 << 16, m68k>, FMT_0RM_I16, POST_INCR, REGSET>
 
@@ -88,7 +88,7 @@ using m68k_move_v = list<list<>
 
 // movem.w only by m68k
 , defn<sz_w, STR("movem"), OP<0x4880 << 16, m68k>, FMT_I16_0RM, REGSET, CONTROL_ALTER>
-, defn<sz_w, STR("movem"), OP<0x4880 << 16, m68k>, FMT_I16R_0RM, REGSET, PRE_DECR>
+, defn<sz_w, STR("movem"), OP<0x4880 << 16, m68k>, FMT_I16_0RM, REGSET_REV, PRE_DECR>
 , defn<sz_w, STR("movem"), OP<0x4c80 << 16, m68k>, FMT_0RM_I16, CONTROL, REGSET>
 , defn<sz_w, STR("movem"), OP<0x4c80 << 16, m68k>, FMT_0RM_I16, POST_INCR, REGSET>
 

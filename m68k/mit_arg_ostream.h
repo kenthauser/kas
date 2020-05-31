@@ -140,11 +140,13 @@ namespace kas::m68k
             return os << base << ":l";
         case MODE_DIRECT:
         case MODE_DIRECT_ALTER:
+            return os << base;
         case MODE_REG:
         case MODE_REG_QUICK:
             return os << arg.reg_p->name();
         case MODE_REGSET:
-            return os << "** REGSET **";
+            arg.regset_p->print(os);
+            return os;
         case MODE_PAIR:
             return os << base << ":" << outer;
         case MODE_BITFIELD:

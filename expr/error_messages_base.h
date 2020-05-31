@@ -27,7 +27,7 @@ struct error_msg
     static constexpr auto ERR_addr_mode     = "X invalid addr_mode";
     static constexpr auto ERR_addr_reg_byte = "X byte operation on address register";
     static constexpr auto ERR_m68020_addr   = "X m68020 addr";
-    static constexpr auto ERR_regset        = "X invalid regster set";
+    static constexpr auto ERR_regset        = "X invalid register set";
     static constexpr auto ERR_direct        = "X invalid direct";
     static constexpr auto ERR_subreg        = "X invalid subregister access";
     static constexpr auto ERR_indirect      = "X invalid indirect";

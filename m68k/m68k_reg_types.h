@@ -102,9 +102,9 @@ enum
 // NB: values match `fmove.l`
 enum
 {
-      REG_FPCTRL_IAR = 1    // FP Instruction Address Register
-    , REG_FPCTRL_SR  = 2    // FP Status Register
-    , REG_FPCTRL_CR  = 4    // FP Control Register
+      REG_FPCTRL_IAR = 0    // FP Instruction Address Register
+    , REG_FPCTRL_SR  = 1    // FP Status Register
+    , REG_FPCTRL_CR  = 2    // FP Control Register
 };
 
 ////////////////////////////////////////////////:////////////////////////////
@@ -119,12 +119,33 @@ enum m68k_reg_prefix { PFX_ALLOW, PFX_REQUIRE, PFX_NONE };
 // forward declare CRTP register type
 struct m68k_reg_t;
 
-// reg_set holds [register + offset] values
+// reg_set holds `register mask` or `register + offset` values
+// for M68K, only holds register mask values. Special case "general" registers
 template <typename Ref>
 struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set<Ref>, m68k_reg_t, Ref>
 {
     using base_t = tgt::tgt_reg_set<m68k_reg_set<Ref>, m68k_reg_t, Ref>;
     using base_t::base_t;
+    
+    // data & address are in same register-set number space
+    // NB: Templated to defer instantiation until `m68k_reg_t` defined
+    template <typename REG_T>
+    uint16_t reg_kind(REG_T const& r) const
+    {
+        auto kind = r.kind();
+        if (kind == RC_ADDR)
+            return RC_DATA;
+        return kind;
+    }
+
+    template <typename REG_T>
+    uint8_t  reg_num(REG_T const& r) const
+    {
+        auto n = r.value();
+        if (r.kind() == RC_ADDR)
+            n += 8;
+        return n;
+    }
 };
 
 // alias the "reference" used for for register_set type

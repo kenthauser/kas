@@ -73,7 +73,7 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
                 auto& obj = attr.add(value, loc);
                 tok.set(&obj);
             }
-            
+#if 1            
             else if constexpr (std::is_same_v<typename TOK_DEFN::value_t, expression::e_float_t>)
             {
                 std::cout << "token_parser: e_float added" << std::endl;
@@ -83,7 +83,7 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
                 auto& obj = expression::e_float_t::add(value, loc);
                 tok.set(&obj);
             }
-
+#endif
             // otherwise save value
             else if constexpr (!std::is_same_v<decltype(value), x3::unused_type>)
                 tok.set(value);

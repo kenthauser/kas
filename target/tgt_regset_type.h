@@ -16,28 +16,19 @@ namespace kas::tgt
 template <typename Derived, typename Reg_t, typename Ref>
 struct tgt_reg_set : core::kas_object<Derived, Ref>
 {
-    using base_t     = tgt_reg_set;
-    using derived_t  = Derived;
-    using reg_t      = Reg_t;
-    using rs_value_t = int32_t;     // NB: e_fixed_t
+    using base_t      = tgt_reg_set;
+    using derived_t   = Derived;
+    using reg_t       = Reg_t;
+    using rs_value_t  = int32_t;     // NB: e_fixed_t
     using core_expr_t = typename core::core_expr_t;
-    using token_t = parser::token_defn_t<KAS_STRING("REGSET"), Derived>;
-#if 0
-    // this `Reg_t` member type simplifies global operator definitions
-    static_assert(std::is_same_v<Derived, typename reg_t::reg_set_t>
-                , "member type `reg_set_t` not properly defined in `Reg_t`");
-#endif
+    using regset_name = kas::str_cat<typename Reg_t::base_name, KAS_STRING("_REGSET")>;
+    using token_t     = parser::token_defn_t<regset_name, Derived>;
+    
     // declare errors
     enum  { RS_ERROR_INVALID_CLASS = 1, RS_ERROR_INVALID_RANGE, RS_OFFSET };
 
 protected:
     // Default Register-Set implementations. Override if `Derived`
-
-    // declare register-set bit order
-    enum { RS_DIR_LSB0, RS_DIR_MSB0 };
-
-    // default: LSB is register zero
-    static constexpr bool rs_bit_dir = RS_DIR_LSB0;
 
     // default: kind() is "reg.kind()"
     uint16_t reg_kind(Reg_t const& r) const
@@ -46,24 +37,14 @@ protected:
     }
 
     // default: bit for reg is "reg.value()"
-    uint8_t  reg_bitnum(Reg_t const& r) const
+    uint8_t  reg_num(Reg_t const& r) const
     {
         return r.value();
     }
 
-    // default: number of bits in result
-    // NB: some registers sets on same processor can be in different direction
-    std::pair<bool, uint8_t> rs_mask_bits(bool reverse) const
-    {
-        return {  derived().rs_bit_dir ^ reverse
-               ,  std::numeric_limits<rs_value_t>::digits
-               };
-    }
-    
     // record "range" and "extend" operators for disassembler
     static constexpr auto ch_range  = '-';
     static constexpr auto ch_extend = '/';
-
     
 public:
     // CRTP casts
@@ -87,7 +68,8 @@ public:
     auto& operator- (int r)                  { return binop('-', r); }
 
     // calculate register-set value 
-    rs_value_t value(bool reverse = false) const;
+    // Reg-0 is LSB, unless reversed by `reverse` bits
+    rs_value_t value(uint8_t reverse = {}) const;
 
     // return RC_* for regset class.
     // NB: negative value indicates error index
@@ -114,8 +96,8 @@ private:
     std::vector<reg_set_op> ops;
 
     // cache expensive to calculate values
-    mutable rs_value_t _value  {};
-    mutable rs_value_t _value2 {};
+    mutable rs_value_t _value     {};
+    mutable rs_value_t _value_rev {};
     mutable int16_t    _error  {};
     core_expr_t       *_expr   {};
 
@@ -130,8 +112,11 @@ template <typename L, typename R, typename RS = typename L::regset_t>
 auto operator- (L const& l, R const& r)
     -> decltype(std::declval<RS>().operator-(r))
 {
-    // XXX the `+` here makes offset work, probably breaks "range"
-    return RS::add(l, '+').operator-(r);
+    // if R is reg_t or regset_t, construct regset, else offset
+    using reg_t = typename RS::reg_t;
+    static constexpr bool is_reg_t = std::is_same_v<R, reg_t> ||
+                                     std::is_same_v<R, RS>;
+    return RS::add(l, (is_reg_t ? '=' : '+')).operator-(r);
 }
 template <typename L, typename R, typename RS = typename L::regset_t>
 auto operator/ (L const& l, R const& r)

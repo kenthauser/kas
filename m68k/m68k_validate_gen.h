@@ -175,8 +175,11 @@ struct val_pair : m68k_mcode_t::val_t
 // REGSET Functions: Allow single register or regset of appropriate kind()
 struct val_regset : m68k_mcode_t::val_t
 {
-    constexpr val_regset(uint8_t kind = {}, bool rev = false)
-                : kind{kind}, rev(rev) {}
+    using regset_t = typename base_t::arg_t::regset_t;
+    static constexpr bool have_regset = !std::is_void_v<regset_t>;
+
+    constexpr val_regset(uint8_t kind = {}, uint8_t reverse = {})
+                : kind{kind}, reverse(reverse) {}
     
     fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
@@ -186,7 +189,7 @@ struct val_regset : m68k_mcode_t::val_t
                 // XXX test for fixed in range
                 return fits.yes;
             case MODE_REGSET:
-                if (auto rs_p = arg.expr.template get_p<m68k_reg_set_t>())
+                if (auto rs_p = arg.regset_p)
                 {
                     if (!kind && rs_p->kind() <= RC_ADDR)
                         return fits.yes;
@@ -200,7 +203,7 @@ struct val_regset : m68k_mcode_t::val_t
                     return fits.yes;
                 break;
             case MODE_REG:
-                if (arg.expr.template get_p<m68k_reg_t>()->kind() == kind)
+                if (arg.reg_p->kind() == kind)
                     return fits.yes;
                 break;
             default:
@@ -223,8 +226,15 @@ struct val_regset : m68k_mcode_t::val_t
             case MODE_DATA_REG:
             case MODE_ADDR_REG:
             case MODE_REG:
+                if constexpr (have_regset)
+                {
+                    // create temporary register-set from single register
+                    arg.set_mode(MODE_IMMED_QUICK);
+                    regset_t rs(*arg.reg_p);
+                    return rs.value(reverse); 
+                }
             case MODE_REGSET:
-                return 0;
+                return arg.regset_p->value(reverse);
             default:
             // calclulate value to insert in machine code
                 return 0;
@@ -240,7 +250,7 @@ struct val_regset : m68k_mcode_t::val_t
     
     // kind == 0 for general register
     uint8_t kind;
-    bool    rev;
+    uint8_t reverse;
 };
 
 struct val_bitfield : m68k_mcode_t::val_t
@@ -465,9 +475,10 @@ VAL_GEN (DIR_LONG   , val_dir_long);    // special for move16
 
 VAL_GEN (BITFIELD,   val_bitfield);      // BITFIELD test
 
-VAL_GEN (REGSET,     val_regset, RC_DATA);      // REGSET test
-VAL_GEN (REGSET_REV, val_regset, RC_DATA, true);
-VAL_GEN (FP_REGSET,  val_regset, RC_FLOAT);
+VAL_GEN (REGSET,     val_regset, RC_DATA);      // REGSET test: D0 is LSB
+VAL_GEN (REGSET_REV, val_regset, RC_DATA, 16);  // REGSET test: A7 is LSB
+VAL_GEN (FP_REGSET,  val_regset, RC_FLOAT, 8);  // REGSET test: FP7 is LSB    
+VAL_GEN (FP_REGSET_REV, val_regset, RC_FLOAT);  // REGSET test: FP0 is LSB
 VAL_GEN (FC_REGSET,  val_regset, RC_FCTRL);
 
 // coldfire BIT insn validators

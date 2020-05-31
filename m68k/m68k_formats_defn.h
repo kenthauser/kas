@@ -173,9 +173,6 @@ struct FMT_I16_0RM  : fmt_gen, arg1_i<16, 1>, arg2_0rm {};
 struct FMT_I8_0RM   : fmt_gen, arg1_i<8, 1>, arg2_0rm {};
 struct FMT_I16_9    : fmt_gen, arg1_i<16, 1>, arg2_9 {};
 
-// special for movem to memory PRE_DECR
-struct FMT_I16R_0RM : fmt_gen, arg1_i<16, 1, true>, arg2_0rm {};
-
 // special for STOP
 struct FMT_I16      : fmt_gen, arg1_i<16, 1> {};
 
@@ -238,7 +235,6 @@ struct FMT_26_0RM                : fmt_gen, arg1_1w10, arg2_0rm {};
 struct FMT_DUPL_26_23            : fmt_gen, arg1_1w10 {};   // XXX need DUPL
 struct FMT_I7_23                 : fmt_gen, arg1_i<7, 1>, arg2_1w7 {}; 
 
-struct FMT_I8R_0RM               : fmt_gen, arg1_i<8, 1, true>, arg2_0rm {};
 struct FMT_0RM_I8                : fmt_gen, arg1_0rm, arg2_i<8, 1> {};
 
 }

@@ -64,10 +64,10 @@ tgt_arg_t<Derived, M, I, R, RS>
             msg = err_msg_t::ERR_argument;
         expr = tok.expr();
         break;
-#if 0
+#if 1
     case arg_mode_t::MODE_REGSET:
         if constexpr (!std::is_void<regset_t>::value)
-            if (rs_p && rs_p->kind() != -regset_t::RS_OFFSET)
+            if (regset_p && regset_p->kind() != -regset_t::RS_OFFSET)
                 break;
         
         msg = err_msg_t::ERR_argument;
@@ -76,10 +76,10 @@ tgt_arg_t<Derived, M, I, R, RS>
     case arg_mode_t::MODE_REG_OFFSET:
         if constexpr (!std::is_void<regset_t>::value)
         {
-            if (rs_p && rs_p->kind() == -regset_t::RS_OFFSET)
+            if (regset_p && regset_p->kind() == -regset_t::RS_OFFSET)
             {
-                reg = rs_p->reg();
-                expr = rs_p->offset();
+                reg_p = regset_p->reg_p();
+                expr = regset_p->offset();
                 break;
             }
         }
@@ -243,13 +243,28 @@ bool tgt_arg_t<Derived, M, I, R, RS>
     
     // here the `has_reg` bit may be set spuriously
     // (happens when no appropriate validator present)
-    // NB: all validators always save registers directly
+    // NB: all validators always save registers directly.
     // don't save if no register present
     if (!reg_p)
         wb_p->has_reg = false;
     else if (wb_p->has_reg)
         inserter(reg_p->index());
-    
+
+
+    // test for floating point immediate
+    if (mode() == arg_mode_t::MODE_IMMEDIATE)
+    {
+        auto& info = derived().immed_info(sz);
+        if (info.flt_fmt)
+        {
+            // if fixed point value, create floating point instance
+            if (auto p = get_fixed_p())
+                expr = e_float_t::add(*p, *this);
+            return !inserter(std::move(expr));
+        }
+        // FALLSTHRU if not floating point, use integral processing
+    }
+
     // get size of expression
     if (wb_p->has_data)
         return save_expr(derived().size(sz));   // calculate size in bytes

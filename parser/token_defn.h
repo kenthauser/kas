@@ -3,6 +3,7 @@
 
 //#include "kas_token.h"
 #include "kas/kas_string.h"     // for "NAMES" of tokens
+#include "kas_core/kas_object.h"
 
 namespace kas::parser
 {
@@ -43,6 +44,15 @@ struct token_defn_base
         auto&& t = get();
         return info == typeid(t) ? this : nullptr;
     }
+#if 0
+    // assign value from kas_object
+    template <typename T, typename = std::enable_if_t<
+                                        std::is_base_of_v<core::kas_object_tag, T>>>
+    void set(kas_token&, T& obj);
+    
+    // assign value from floating point value
+    void inline set(kas_token&, expression::detail::float_value<> flt);
+#endif
 };
 
 

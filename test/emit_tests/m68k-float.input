@@ -4,10 +4,11 @@
 ; 0. constants used
 
 fp_short:
-    .string "hello\n"
-    fabs.d   #7.5, fp6     ; 5 = double (64-bit float)
-;   fabs.d   #7.5/2, fp6     ; 5 = double (64-bit float)
-;   fabs.d   #7.5/1.5, fp6   ; 5 = double (64-bit float)
+    fabs.d   #7.5, fp6      ; float arg
+    fabs.d   #15./2, fp6    ; float/fixed
+    fabs.d   #5, fp6        ; fixed
+    fabs.d   #15/3.0, fp6   ; fixed/float
+    fabs.d   #7.5/1.5, fp6  ; float/float
 
     fabs.l   d2,fp1
     fabs.s   a1@, fp2
@@ -28,7 +29,7 @@ fp_short:
     fabs.x   #1.0, fp6   ; 2 = extended (80-bit float)
     fabs.p   #1.0, fp6   ; 3 = packed (fortran bcd)
     fabs.w   #135.0, fp6   ; 4 = word
-;   fabs.w   #135/2.0, fp6   ; 4 = word
+    fabs.w   #135/2.0, fp6   ; 4 = word
     fabs.d   #135.0, fp6   ; 5 = double (64-bit float)
     fabs.b   #1.0, fp6   ; 6 = byte
 ;
@@ -40,7 +41,7 @@ fp_short:
     fabs.d   #-2.0, fp6  ; 5 = double (64-bit float)
     fabs.b   #-2.0, fp6  ; 6 = byte
 ;
-;   fabs.b   fp_short, fp7
+    fabs.b   fp_short, fp7
     fabs.x   fp1, fp2
     fabs.x   fp3
 
@@ -56,5 +57,13 @@ fp_short:
     fsave    d2@(10)
     frestore a3@(d0)
 
-    fmovem.x fp1-fp3/fp5/fp7, a2@
     fmovem.l fpiar/fpcr, a3@
+    fmovem.l fpcr/fpiar, a3@
+    fmovem.x fp1,a4@-
+    fmovem.x a5@+,fp1
+    fmovem.x fp1/fp3,a4@-
+    fmovem.x a5@+,fp1/fp3
+    fmovem.x fp1-fp3,a4@-
+    fmovem.x a2@+,fp1-fp3
+    fmovem.x fp1-fp3/fp5/fp7, a2@-
+    fmovem.x a2@,fp1-fp3/fp5/fp7

@@ -226,7 +226,7 @@ using fp_gen_ops = list<list<>
 
 // fmovem: fp registers: static list & dynamic (via DATA REGISTER) versions
 , fp_defn <sz_x, 0xf000, fpu_m68k, STR("movem"), FMT_I8_0RM, FP_REGSET, CONTROL_ALTER>
-, fp_defn <sz_x, 0xe000, fpu_m68k, STR("movem"), FMT_I8R_0RM, FP_REGSET, PRE_DECR>
+, fp_defn <sz_x, 0xe000, fpu_m68k, STR("movem"), FMT_I8_0RM, FP_REGSET_REV, PRE_DECR>
 , fp_defn <sz_x, 0xd000, fpu_m68k, STR("movem"), FMT_0RM_I8, CONTROL, FP_REGSET>
 , fp_defn <sz_x, 0xd000, fpu_m68k, STR("movem"), FMT_0RM_I8, POST_INCR, FP_REGSET>
 , fp_defn <sz_x, 0xf800, fpu_m68k, STR("movem"), FMT_20_0RM, DATA_REG, CONTROL_ALTER>

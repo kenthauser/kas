@@ -62,7 +62,6 @@ namespace kas::expression::detail
     template <> struct term_parsers_v<defn_cpu> :
         meta::list<
               m68k::parser::m68k_reg_x3
-              //typename m68k::m68k_reg_t::token_t
             > {};
 }
 
