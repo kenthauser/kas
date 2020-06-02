@@ -84,7 +84,6 @@ public:
     auto parse(Iter& iter, Iter const& end)
     {
         auto& ctx = x3::get<error_diag_tag>(context());
-        //std::cout << "parse: obj = " << this << ", ctx = " << &ctx << std::endl;
         return parse_fn(*this, iter, end);
     }
 

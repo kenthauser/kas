@@ -41,7 +41,7 @@ auto stmt_separator = detail::stmt_separator_p<
 auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
       stmt_comment >> x3::omit[*(x3::char_ - x3::eol)] >> -x3::eol
     | stmt_separator
-    | x3::eol | x3::eoi
+    | x3::eol
     ;
 
 //////////////////////////////////////////////////////////////////////////
@@ -93,6 +93,7 @@ struct stmt_invalid
     auto on_error(Iterator& first , Iterator const& last
                 , Exception const& exc, Context const& context)
     {
+        std::cout << "stmt_invalid::on_error" << std::endl;
         // skip error line
         if (!parse(first, last, resync))
             first = last;
@@ -115,6 +116,8 @@ struct stmt_junk
         // save parser positions
         auto before = first;
         auto junk = exc.where();
+        
+        std::cout << "stmt_junk::on_error" << std::endl;
        
         // find end-of-line: first -> next parse location
         if (!parse(first, last, resync))
