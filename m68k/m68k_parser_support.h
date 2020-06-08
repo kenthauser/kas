@@ -261,23 +261,21 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
         mode.mode &=~ PARSE_MASK;
         sub_reg    = REG_SUBWORD_MASK;
     }
+    
+    // direct parsed operands have a single "arg". See what it is.
+    auto& base_value = base.token.expr();
+    auto classify = m68k_classify_expr{base_value};
+    auto kind = classify();
 
     // use "indirect" method to process arguments with displacements
+    if (mode.mode == PARSE_INDIR && kind == RC_DATA)
+        return indirect();
+
     // XXX but not PAIR nor BITFIELD
-    if (!mode.args.empty() && !mode.args.front().empty())
+    else if (!mode.args.empty() && !mode.args.front().empty())
         if (mode.mode != PARSE_PAIR &&
             mode.mode != PARSE_BITFIELD)
             return indirect();
-
-    // if (mode.mode == PARSE_INDIR)
-    //     return indirect();
-
-    auto& base_value = base.token.expr();
-    // auto second;
-
-    // direct parsed operands have a single "arg". See what it is.
-    auto classify = m68k_classify_expr{base_value};
-    auto kind = classify();
 
 #ifdef TRACE_M68K_PARSE
     std::cout << "m68k_parsed_arg_t::m68k_arg_t: " << base << " = " << kind <<std::endl;
@@ -369,15 +367,16 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                     // allow DATA as base if index_full provided
                     if (!hw::cpu_defs[hw::index_full{}])
                     {
-                            // initialize index register
-                            kas_token tok;          // create empty token
-                            tok.tag(base.token);    // location tag token
-                            m68k_arg_t r { MODE_INDEX, tok };
-                            r.ext.reg_num       = classify.value();
-                            r.ext.has_index_reg = true;
-                            r.ext.base_suppr    = true;
-                            return r;
-                        }
+                        // initialize index register
+                        kas_token tok;          // create empty token
+                        tok.tag(base.token);    // location tag token
+                        m68k_arg_t r { MODE_INDEX, tok };
+                        r.ext.reg_num        = classify.value();
+                        r.ext.disp_size      = M_SIZE_ZERO;
+                        r.ext.base_suppress  = true;
+                        r.ext.has_index_reg  = true;
+                        return r;
+                    }
                     // FALLSTHRU
                 case E_ADDR:
                     return addr_only(MODE_ADDR_INDIR);
@@ -577,7 +576,7 @@ const char *classify_indirect_arg(It& it, IndexArg_t& idx, kas_token const *& er
             // ignore size specifications on displacements: calculate instead
             if (kind != E_INT)
             {
-                idx.expr_size = M_SIZE_LONG;
+                idx.expr_size = M_SIZE_AUTO;
                 break;
             }
 
@@ -588,7 +587,7 @@ const char *classify_indirect_arg(It& it, IndexArg_t& idx, kas_token const *& er
             else if (fits.fits<std::int16_t>(value) == fits.yes)
                 idx.expr_size = M_SIZE_WORD;
             else
-                idx.expr_size = M_SIZE_LONG;
+                idx.expr_size = M_SIZE_AUTO;    // unknown
             break;
         }
     }
@@ -611,7 +610,7 @@ const char *classify_indirect_arg(It& it, IndexArg_t& idx, kas_token const *& er
 // 2) process @(...) into `index_arg` instances: `inner` & `outer`
 // 3) add `inner` and `outer` to `m68k_extension_t` instance
 // 4) if bool() says no index: generate displacement insn
-// 5) must be `MODE_INDEX` insn.
+// 5) otherwise must be `MODE_INDEX` insn.
 //
 
 m68k_arg_t m68k_parsed_arg_t::indirect()
@@ -639,7 +638,7 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
         int index_size  {};
         int index_scale {};
         int reg_num     {};
-        int expr_size = M_SIZE_NONE;
+        int expr_size = M_SIZE_AUTO;
     };
 
     // accumulate data in result
@@ -683,8 +682,9 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
 
         // data indirect mapped to index w/ base_value_reg suppressed
         case E_DATA:
-            first_arg.reg_num = classify.value();
-            first_arg.reg_p   = &base_value;
+            first_arg.reg_num        = classify.value();
+            first_arg.reg_p          = &base_value;
+            result.ext.has_index_reg = true;
             // FALLSTHRU
         case E_ZADDR:
         case E_ZPC:
@@ -693,7 +693,7 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
                 return { err, base_value };
 
             // `INDEX` mode required because `base_suppr`
-            result.ext.base_suppr = true;
+            result.ext.base_suppress = true;
             if (kind == E_ZPC)
                 result.set_mode(MODE_PC_INDEX);
             break;
@@ -709,12 +709,15 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
         result.expr          = first_arg.expr_p->expr();
         result.ext.disp_size = first_arg.expr_size;
     }
+    else
+        result.ext.disp_size = M_SIZE_ZERO;
 
     // handle second expression (ie outer)
     if (second_arg.expr_p)
     {
-        result.outer        = second_arg.expr_p->expr();
-        result.ext.mem_size = second_arg.expr_size;
+        result.outer         = second_arg.expr_p->expr();
+        result.ext.has_outer = true;
+        result.ext.mem_size  = second_arg.expr_size;
     }
 
     // check if register in "inner"
@@ -723,8 +726,7 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
         result.ext.reg_num       = first_arg.reg_num;
         result.ext.reg_scale     = first_arg.index_scale;
         result.ext.reg_is_word   = first_arg.index_size == M_SIZE_WORD;
-        result.ext.has_index_reg = true;
-        std::cout << "m68k_parser: has_first: " << std::endl;
+        result.ext.has_index_reg = true;        // index not suppressed
     }
 
     // check if register in "outer"
@@ -738,34 +740,34 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
         result.ext.reg_scale     = second_arg.index_scale;
         result.ext.reg_is_word   = second_arg.index_size == M_SIZE_WORD;
         result.ext.has_index_reg = true;
-        result.ext.is_post_index = true;
+        result.ext.is_post_index = true;    // index is post-index
         
-        // if no outer "displacement", set to zero
-        if (result.ext.mem_size == M_SIZE_NONE)
+        // if no outer "displacement", set value to zero (index register only)
+        if (!result.ext.has_outer)
             result.ext.mem_size  = M_SIZE_ZERO;
     }
-#if 0
-    // suppress illegal value of M_SIZE_NONE for inner
-    // NB: value of `M_SIZE_NONE` reused to indicate `index brief` format
-    if (first_arg.expr_size == M_SIZE_NONE)
-        result.ext.disp_size = M_SIZE_ZERO;
-#endif
+    
     // check if `full index` mode required
-    // no base_suppression, no outer expression, displacement is 8 bits
-    expression::expr_fits fits;
-    if (!result.ext.brief_ok() || fits.fits<std::int8_t>(result.expr) == fits.no)
+    // would error out later, but gives better message
+    if (!result.ext.brief_ok())
         if (auto err = hw::cpu_defs[hw::index_full{}])
             return { err, *error_p };
 
     // it's illegal to suppress everything...
-    if (result.ext.base_suppr
+    if (result.ext.base_suppress
         && !result.ext.has_index_reg
-        && !result.ext.outer()
+        && !result.ext.has_outer
         &&  result.ext.disp_size == M_SIZE_ZERO
         )
     {
         return { error_msg::ERR_addr_mode, *error_p };
     }
+
+    std::cout << "\nsupport: index_first = " << std::boolalpha << result.ext.has_index_reg;
+    std::cout << ", index_second = " << result.ext.is_post_index;
+    std::cout << ", inner_zero = " << (result.ext.disp_size == M_SIZE_ZERO);
+    std::cout << std::endl;
+
 
     // if index extension required, done.
     if (result.ext)
@@ -776,15 +778,17 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
     // 1) ADDR with zero offset --> mode 2
     // 2) ADDR with word offset --> mode 5
     // 3) PC   with word offset --> mode 7-2
-    // 4) Long or Auto offset handled by `MODE_ADDR_DISP_LONG`
+    // 4) Long or Auto offset handled by `MODE_ADDR_DISP_LONG` 
+    //    ...or MODE_PC_DISP_LONG
+    //
+    // NB: the *_LONG modes can be promoted back to INDEX if displacment out-of-range
 
     if (result.mode() == MODE_PC_INDEX)
     {
-        result.set_mode(MODE_PC_DISP);
+        result.set_mode(MODE_PC_DISP_LONG);
     } 
     else switch (result.ext.disp_size)
     {
-        case M_SIZE_NONE:
         case M_SIZE_ZERO:
             result.set_mode(MODE_ADDR_INDIR);
             break;
@@ -792,6 +796,7 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
         case M_SIZE_WORD:
             result.set_mode(MODE_ADDR_DISP);
             break; 
+        case M_SIZE_AUTO:   // unknown
         default:
             result.set_mode(MODE_ADDR_DISP_LONG);
             break;

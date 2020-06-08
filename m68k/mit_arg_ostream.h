@@ -17,7 +17,8 @@ namespace kas::m68k
         // declare a couple of utilities
         auto disp_str = [](expr_t e, int mode)
             {
-                const char *mode_strs[] = {":b", ":z", ":w", ":l"};
+                // auto/zero/word/long
+                const char *mode_strs[] = {"", ":z", ":w", ":l"};
 
                 std::stringstream str;
                 str << e << mode_strs[mode & 3];
@@ -75,8 +76,8 @@ namespace kas::m68k
 
         // NB: MODE_INDEX_BRIEF requires twiddling index & base -- copy these.
         auto const& reg    = arg.reg_num;
-        auto index         = arg.ext;
-        auto base          = arg.expr;
+        auto const& index  = arg.ext;
+        auto const& base   = arg.expr;
         auto const& outer  = arg.outer;
         
         // coldfire MAC subregisters. And MASK. sigh...
@@ -157,11 +158,6 @@ namespace kas::m68k
         }
 
         // here for index modes...
-        if (!pc_reg)
-            os << reg_name(index.base_suppr ? RC_ZADDR : RC_ADDR, reg);
-        else
-            os << reg_name(index.base_suppr ? RC_ZPC : RC_PC, 0);
-
         // do some bit twiddling with inner/outer modes
         auto const& inner = base;
         auto outer_mode   = index.mem_size;
@@ -171,6 +167,17 @@ namespace kas::m68k
 
         bool index_second = index.is_post_index;
         bool index_first  = index.has_index_reg && !index_second;
+
+        std::cout << "\nmit: index_first = " << std::boolalpha << index_first;
+        std::cout << ", index_second = " << index_second;
+        std::cout << ", inner_zero = " << inner_zero;
+        std::cout << std::endl;
+
+        // first, the base register
+        if (!pc_reg)
+            os << reg_name(index.base_suppress ? RC_ZADDR : RC_ADDR, reg);
+        else
+            os << reg_name(index.base_suppress ? RC_ZPC : RC_PC, 0);
 
         // print index (2x)
         if (index_first) 

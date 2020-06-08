@@ -6,7 +6,8 @@
 
 namespace kas::m68k
 {
-auto m68k_extension_t::size(m68k_arg_t& arg, expression::expr_fits const *fits_p)
+auto m68k_extension_t::size(m68k_arg_t& arg, expression::expr_fits const& fits,
+                            value_t *wb_ptr)
     -> op_size_t
 {
     // copy result code enum to namespace
@@ -15,37 +16,36 @@ auto m68k_extension_t::size(m68k_arg_t& arg, expression::expr_fits const *fits_p
     constexpr auto NO_FIT    = expression::fits_result::NO_FIT;
 
     // calculate size occupied by index displacement
-    // XXX NB: must rework for `PC_INDEX`. Also handle zpc base register
     auto size_for_index = [&](auto disp, auto const& expr, auto& size) -> uint8_t
         {
-            // if `fits` set, check size of argument
-            if (fits_p)
+            // test brief first
+            if (brief_ok())
             {
-                // test brief first
-                if (brief_ok())
+                if (fits.fits<int8_t>(expr) == DOES_FIT)
                 {
-                    if (fits_p->fits<int8_t>(expr) == DOES_FIT)
-                        return M_SIZE_NONE;     // convert to brief
+                    is_brief = true;
+                    if (wb_ptr)
+                        *wb_ptr = value();
+                    return M_SIZE_AUTO;     // convert to brief
                 }
-                
-                // test zero next 
-                auto zero_fits = fits_p->zero(expr);
-                if (zero_fits == DOES_FIT)
-                    return M_SIZE_ZERO;     // save in expr
-
-                // if word fits, don't need long
-                auto word_fits = fits_p->fits<int16_t>(expr);
-                auto disp  = (word_fits == DOES_FIT) ? M_SIZE_WORD : M_SIZE_LONG;
-                
-                op_size_t disp_size = (disp == M_SIZE_LONG) ? 4 : 2; 
-                if (zero_fits != NO_FIT)
-                    disp_size.min = 0;
-                    
-                size += disp_size;
-                return disp;
             }
+            
+            // test zero next 
+            auto zero_fits = fits.zero(expr);
+            if (zero_fits == DOES_FIT)
+                return M_SIZE_ZERO;     // save in expr, doesn't add to size
 
-            // XXX temp. size should not be called w/o fits
+            // if word fits, don't need long
+            auto word_fits = fits.fits<int16_t>(expr);
+            disp  = (word_fits == DOES_FIT) ? M_SIZE_WORD : M_SIZE_LONG;
+            
+            op_size_t ext_size = (disp == M_SIZE_LONG) ? 4 : 2; 
+            if (zero_fits != NO_FIT)
+                ext_size.min = 0;
+                
+            size += ext_size;
+            return disp;
+#if 0
             switch (disp)
             {
                 case M_SIZE_ZERO:
@@ -55,24 +55,34 @@ auto m68k_extension_t::size(m68k_arg_t& arg, expression::expr_fits const *fits_p
                     break;
                 case M_SIZE_LONG:
                     size += 4;
+                    break;
+                case M_SIZE_AUTO:
+                    size.max += 4;
+                    break;
+                    
                 default:
                     throw std::logic_error{"size_for_index"};
             }
             return disp;
+#endif
         };
 
     // size of extension word
     op_size_t result = 2;
    
     // out-of-range branch errors out at `emit`
-    if (is_brief())
+    if (is_brief)
         return result;          // nothing to see here...
 
-    // NB: `disp_size` is bitfield, can't be passed by reference
+    // NB: `disp_size` is bitfield; can't be passed by reference
     disp_size = size_for_index(disp_size, arg.expr, result);
     
-    if (outer())
+    if (has_outer)
         mem_size  = size_for_index(mem_size, arg.outer, result);
+                        
+    // save new values via write-back pointer
+    if (wb_ptr)
+        *wb_ptr = value();
     
     return result;
 }
@@ -96,19 +106,20 @@ void m68k_extension_t::emit(core::emit_base& base, m68k_arg_t const& arg, uint8_
             switch (disp)
             {
                 default:
-                case M_SIZE_NONE:
                 case M_SIZE_ZERO:
                     return 0;
                 case M_SIZE_WORD:
                     return 2;
+                case M_SIZE_AUTO:
                 case M_SIZE_LONG:
                     return 4;
             }
         };
 
-    if (is_brief())
+    if (is_brief)
     {
         // lower byte is 8-bit signed expression, not pc-relative
+        // use reloc because "expression" is only part of extension word.
         static constexpr elf::kas_reloc reloc { elf::K_REL_ADD, 8, false };
         base << core::emit_reloc(reloc, 0, 1) << arg.expr << base_value();
     }
@@ -117,7 +128,7 @@ void m68k_extension_t::emit(core::emit_base& base, m68k_arg_t const& arg, uint8_
     {
         // get full index word
         uint16_t value  = base_value() | 0x100;      // show not brief
-                 value |= base_suppr     << 7;
+                 value |= base_suppress  << 7;
                  value |= !has_index_reg << 6;
                  value |= disp_size      << 4;
                  value |= is_post_index  << 2;
@@ -127,8 +138,9 @@ void m68k_extension_t::emit(core::emit_base& base, m68k_arg_t const& arg, uint8_
         base << value;
         if (auto n = disp_to_bytes(disp_size))
             base << core::set_size(n) << arg.expr;
-        if (auto n = disp_to_bytes(mem_size))
-            base << core::set_size(n) << arg.outer;
+        if (has_outer)
+            if (auto n = disp_to_bytes(mem_size))
+                base << core::set_size(n) << arg.outer;
     }
 }
 

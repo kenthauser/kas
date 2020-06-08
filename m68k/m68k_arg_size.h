@@ -9,7 +9,7 @@
 namespace kas::m68k
 {
 
-auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_signed_p)
+auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const& fits, bool *is_signed_p)
      -> op_size_t
 {
     // copy result code enum to namespace
@@ -61,21 +61,19 @@ auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_
         case MODE_ADDR_DISP_LONG:
             if (is_signed_p)
                 *is_signed_p = true;
-
-            if (!fits_p)
-                return {0, 6};
-                
-            switch (fits_p->fits<int16_t>(expr))
+            
+            switch (fits.fits<int16_t>(expr))
             {
                 case NO_FIT:
-                    return 6;
+                    return 6;       // index + disp
                 case DOES_FIT:
                     set_mode(MODE_ADDR_DISP);
-                    break;
+                    break;          // FALLSTHRU resolve
                 default:
-                    if (fits_p->zero(expr) == NO_FIT)
+                    // if `expr` == 0, then just straight indirect
+                    if (fits.zero(expr) == NO_FIT)
                         return {2, 6};
-                    return {0, 6};
+                    return {0, 6};  // expr: could be zero or very big
             }
             // FALLSTHRU
 
@@ -84,11 +82,7 @@ auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_
             if (is_signed_p)
                 *is_signed_p = true;
             
-            // for extractor or disassembler: don't check mode
-            if (!fits_p)
-                return 2;
-            
-            switch (fits_p->zero(expr))
+            switch (fits.zero(expr))
             {
                 case DOES_FIT:
                     set_mode(MODE_ADDR_INDIR);
@@ -99,6 +93,23 @@ auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_
                 default:
                     return { 0, 2 };
             }
+        
+        case MODE_PC_DISP_LONG:
+            // PC displacement from 2+insn
+            switch (fits.disp<int16_t>(expr, 2))
+            {
+                case NO_FIT:
+                    return 6;       // index + disp
+                case DOES_FIT:
+                    set_mode(MODE_PC_DISP);
+                    break;          // FALLSTHRU resolve
+                default:
+                    // if `expr` == 0, then just straight indirect
+                    if (fits.zero(expr) == NO_FIT)
+                        return {2, 6};
+                    return {0, 6};  // expr: could be zero or very big
+            }
+            // FALLSTHRU
 
         // can modify PC_DISP to index
         case MODE_PC_DISP:
@@ -116,16 +127,14 @@ auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_
             //std::cout << std::endl;
             if (is_signed_p)
                 *is_signed_p = true;        // displacements are signed
-            return ext.size(*this, fits_p);
+            return ext.size(*this, fits, wb_ext_p);
 
         case MODE_DIRECT:
             // see if PC-relative mode OK.
             // always the first arg, so offset is always 2
             //std::cout << "m68k_arg_size: MODE_DIRECT" << " disp = " << expr;
-            if (!fits_p)
-                return {2, 4};      // assume DIRECT_LONG or DIRECT_PCREL
             
-            switch (fits_p->disp<int16_t>(expr, 2))
+            switch (fits.disp<int16_t>(expr, 2))
             {
                 case DOES_FIT:
                     // update mode
@@ -140,10 +149,8 @@ auto m68k_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_
             // FALLSTHRU
         case MODE_DIRECT_ALTER:
             //std::cout << "m68k_arg_size: MODE_DIRECT_ALTER" << " disp = " << expr;
-            if (!fits_p)
-                return {2, 4};
 
-            switch (fits_p->fits<int16_t>(expr))
+            switch (fits.fits<int16_t>(expr))
             {
                 case DOES_FIT:
                     //std::cout << " -> DIRECT_SHORT" << std::endl;

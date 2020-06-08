@@ -77,6 +77,21 @@ public:
     
     bool is_offset() const { return kind() == -RS_OFFSET; }
 
+    const char *is_error() const
+    {
+        if (ops.front().first != 'X') return {};
+
+        switch (kind())
+        {
+            case -RS_ERROR_INVALID_CLASS:
+                return "X regset class mismatch";
+            case -RS_ERROR_INVALID_RANGE:
+                return "X regset invalid range";
+            default:
+                return "X regset unknown error";
+        }
+    }
+
     // these methods only valid for `RC_OFFSET`
     // NB: expr_t definition not complete. Work around...
     template <typename OFFSET_T = expr_t>

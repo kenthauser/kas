@@ -338,6 +338,17 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 49. Get bsd FLOAT working as `.long`, etc
 
+50. a6@(d5:8:l) -> error parsing. Validate both ignore_junk & !ignore_junk. Both
+    seem questionable.
+
+51. add support for MODE_PC_DISP_LONG
+
+52. add arg method for "serialized_data_size". Remove `tgt_validate::has_extension` 
+    which adds similar info, but ad-hoc.
+
+53. Add parse errors for m68k:reg/size/scale subparsers, instead of just generic junk.
+
+54. should move.l a2@(short), d2 -> move.l pc@(a2, short), d2
 
 
 

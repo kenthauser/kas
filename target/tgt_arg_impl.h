@@ -19,6 +19,7 @@
 namespace kas::tgt
 {
 
+// constructor
 template <typename Derived, typename M, typename I, typename R, typename RS>
 tgt_arg_t<Derived, M, I, R, RS>
         ::tgt_arg_t(arg_mode_t mode, kas_token const& tok) : kas_position_tagged_t(tok) 
@@ -165,6 +166,40 @@ void tgt_arg_t<Derived, M, I, R, RS>
     derived().set_mode(arg_mode_t::MODE_BRANCH + words);
 }
 
+// validate argument
+template <typename Derived, typename M, typename I, typename R, typename RS>
+auto tgt_arg_t<Derived, M, I, R, RS>
+                ::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
+{
+    auto error = [this](const char *msg)
+        {
+            set_mode(MODE_ERROR);
+            return err = kas::parser::kas_diag_t::error(msg, *this).ref();
+        };
+
+    // 0. if parsed as error, propogate
+    if (mode() == MODE_ERROR)
+    {
+        // if not location-tagged, use arg location
+        // ie. create new "reference" from diag using `this` as loc
+        if (!err.get_loc())
+            err = err.get().ref(*this);
+        
+        return err;
+    }
+
+    // 1. check for improper REGSET (ok syntax, but bad semantics)
+    if constexpr (!std::is_void_v<regset_t>)
+    {
+        if (regset_p)
+            if (auto msg = regset_p->is_error())
+                return error(msg);
+    }
+
+    return {};
+}
+
+
 // calculate size (for inserter)
 template <typename Derived, typename M, typename I, typename R, typename RS>
 int tgt_arg_t<Derived, M, I, R, RS>
@@ -198,7 +233,24 @@ int tgt_arg_t<Derived, M, I, R, RS>
             return derived().immed_info(sz).sz_bytes;
     }
 }
-#if 1
+
+template <typename Derived, typename M, typename I, typename R, typename RS>
+auto tgt_arg_t<Derived, M, I, R, RS>
+                ::serial_data_size(uint8_t sz) const -> int8_t
+{ 
+    // modes defined by `tgt` don't have additional info (execpt immed)
+    switch (mode())
+    {
+        default:
+            return sizeof(expression::e_data_t);
+        case arg_mode_t::MODE_IMMED_QUICK:
+            return 0;
+        case arg_mode_t::MODE_IMMEDIATE:
+            return derived().immed_info(sz).sz_bytes;
+    }
+}
+
+#if 0
 // true if extension data needed for `arg_info` 
 template <typename Derived, typename M, typename I, typename R, typename RS>
 auto tgt_arg_t<Derived, M, I, R, RS>

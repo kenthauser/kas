@@ -174,7 +174,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     // 2) if single match, use format for selected opcode
     // 3) otherwise, use opcode for "list"
 
-    // XXX force list or general during debug
+    // XXX force list or general during debu
     //matching_mcode_p = {};      // XXX force list for all
     ok_for_quick   = {};      // XXX don't use quick
 

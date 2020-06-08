@@ -1,44 +1,79 @@
 #ifndef KAS_M68K_M68K_EXTENSION_T_H
 #define KAS_M68K_M68K_EXTENSION_T_H
 
+// Type to support M68K `extension` word.
+//
+// The `extension` word is used to support the `index` addressing mode
+// on all 68k processors. The basic (68000 & '010) extension format allows
+// a base register (address only), an index register (data or address) and
+// an 8-bit signed offset. This is the "brief" format and occupies 16-bits.
+//
+// On later processors the index register may be scaled (x1, x2, x4 and x8),
+// the base & index register can be suppressed, and the offset can be up to 32-bits.
+// In addition, a second memory indirect operation can use on the calculated 
+// effective address to perform a second index operation with an up to 
+// 32-bit offset and possibly the index register. This is "full" mode and it 
+// can occupy up to 5 16-bit words.
+//
+// To fully support the m68k extension word, a bit-field type is defined
+// to mimic the fields in the "full" mode. This is a 16-bit type and is
+// stored in the `m68k_arg_t`.  In addition, the field `m68k_arg_t::expr` is
+// used to hold the "inner" displacement and a second expression field "outer"
+// is also added to `m68k_arg_t`. A special serializer in `m68k_arg_serialize.h`
+// is required to properly store & restore the fields.
+//
+// Since C++ doesn't specify bitfield layout, special `emit` and `init`
+// routines perform translations from interal to machine formats.
+//
+// The `m68k_extension_t` type is stored in the `kas::aliagnas_t` CRTP
+// type to allow the full bitfield to be initialized, stored, and restored easily.
+//
+// Since the `emit` method doesn't have `size` nor `fits`, the size-defining
+// bits in the extension word must be updated and written back to the serialized
+// instance. Since the size fields will have be properly initialized for constant
+// values, only the "expression" values will see the size modified. And while
+// modifying a "size" field can interfer with de-serialization of the argument value,
+// there is no problem in this case because the serializer methods hold special bits
+// (inspected first) which show an expression was serialized. This the size-bits
+// (and the brief bit) can be used to pass size information to the emit method.
+
 #include "expr/expr.h"
 #include "target/tgt_arg.h"         // get forward declarations
-//#include "kas_core/opcode.h"        // get op_size_t
 #include "utility/align_as_t.h"
 
 namespace kas::m68k
 {
 // declare type to hold memory indirect address mode info
-// use the format of the 16-bit extension word
+// use the format of the 16-bit extension word as a guide
+//
+// Bits:
+//    reg num         : 4 bits
+//    is_long         : 1 bit
+//    shift           : 2 bits
+//    is_brief        : 1 bit
+//
+//    index_suppress  : 1 bit
+//    base_suppress   : 1 bit
+//    outer postindex : 1 bit   (as is_postindex)
+//    has_outer       : 1 bit
+//
+//    inner size  (zero/byte/word/long/auto) : 2 bits
+//    outer width (zero/word/long/auto) : 2 bits
+//
+// Total bits: 16 
+//
+// NB: don't need `inner::none` as there is no `inner suppress`
+// NB: don't need `outer::byte` as only `word` is emitted
+// NB: don't need `auto` as there is `p->has_expr` in serializer
+//
+// NB: `byte` could be refactored as `brief` leaving same inner & outer modes
+
 // M_SIZE_* enums chosen to match extension word format
-#if 0
-
-Bits:
-    reg num         : 4 -> 4
-    is_long         : 1 -> 5
-    shift           : 2 -> 7
-    is_brief        : 1 -> 8
-
-    has_index       : 1 -> 8
-    base_suppress   : 1 -> 9
-    outer postindex : 1 -> 10   : is_postindex
-
-    inner size  (zero/byte/word/long/auto) : 2 -> 12
-    outer width (zero/word/long/auto)      : 2 -> 14
-
-NB: don't need `inner::none` as there is no `inner suppress`
-NB: don't need `outer::byte` as only `word` is emitted
-NB: don't need `auto` as there is `p->has_expr`
-
-NB: `byte` could be refactored as `brief` leaving same inner & outer modes
-#endif
-
 enum {
-      M_SIZE_NONE  = 0              // reused in `disp_size` as "is_brief"
+      M_SIZE_AUTO  = 0          // size is unknown
     , M_SIZE_ZERO  = 1
     , M_SIZE_WORD  = 2
     , M_SIZE_LONG  = 3
-    , M_SIZE_AUTO  = M_SIZE_NONE    // special for serializer
 };
 
 
@@ -54,13 +89,15 @@ struct m68k_extension_t : kas::detail::alignas_t<m68k_extension_t, m68k_ext_size
     // expose for `size`
     using op_size_t = core::opc::opcode::op_size_t;
 
-    // 14-bits to implement `m68k_extension`
+    // 16-bits to implement `m68k_extension`
     value_t reg_num         : 4;        // general register number (addr/data reg)
     value_t reg_scale       : 2;        // index scale for post '000 processors
     value_t reg_is_word     : 1;        // true = word, false = long
+    value_t is_brief        : 1;        // true if brief format used
 
-    value_t base_suppr      : 1;        // suppress base register
-    value_t has_index_reg   : 1;        // index register not suppressed
+    value_t base_suppress   : 1;        // suppress base register
+    value_t has_index_reg   : 1;        // index register "set"
+    value_t has_outer       : 1;        // outer displacement "set"
     value_t is_post_index   : 1;        // using post-index memory mode
     value_t disp_size       : 2;        // M_SIZE_* for inner displacement
     value_t mem_size        : 2;        // M_SIZE_* for outer displacment
@@ -103,42 +140,20 @@ struct m68k_extension_t : kas::detail::alignas_t<m68k_extension_t, m68k_ext_size
         return mem_mode & 3;
     }
 #endif
-    uint16_t hw_value() const   { return 0; }
-    uint16_t outer_size() const { return M_SIZE_WORD; }
-    uint16_t brief_value() const { return 0; }
+    op_size_t size(m68k_arg_t&, expression::expr_fits const&, value_t *wb_ptr);
 
-    op_size_t size(m68k_arg_t&, expression::expr_fits const *);
-
-    // return if `brief` extension word indicated
-    uint16_t is_brief() const
-    {
-        return has_index_reg && (disp_size == M_SIZE_NONE);
-    }
-    
-    bool brief_ok() const
-    {
-        return has_index_reg && !base_suppr && !outer();
-    }
-
-    void set_brief()
-    {
-        if (!brief_ok())
-            throw std::logic_error{"m68k_extension::set_brief()"};
-        disp_size = M_SIZE_NONE;
-    }
-    
-    // return if `extension` required (not just displacement)
+    // return if `extension` required (effective address not only address + disp)
     operator bool() const
     {
-        return base_suppr || has_index_reg || outer();
+        return base_suppress || has_index_reg || has_outer;
     }
-   
-    // return iff `outer` dereference required
-    bool outer() const
+    
+    // brief format is OK (if displacement is in 8-bit range)
+    bool brief_ok() const
     {
-        return mem_size != M_SIZE_NONE && !is_post_index;
+        return !base_suppress && has_index_reg && !has_outer && !is_post_index;
     }
-
+    
     void emit(core::emit_base&, m68k_arg_t const&, uint8_t sz) const;
 };
 

@@ -104,7 +104,10 @@ public:
     bool is_missing() const { return _mode == MODE_NONE; }
     
     // for `inserter`: true if arg info not stored in opcode
+#if 0
+    // XXX marked for deletion
     bool has_data() const;
+#endif
 
     // helper method for evaluation of insn: default implementation
     // NB: `register` case is allowed because `expr` is zero
@@ -130,28 +133,8 @@ public:
         }
     }
 
-    // validate methods
-    kas::parser::kas_error_t ok_for_target(uint8_t sz) 
-    {
-        auto error = [this](const char *msg)
-            {
-                set_mode(MODE_ERROR);
-                return err = kas::parser::kas_diag_t::error(msg, *this).ref();
-            };
-
-        // 0. if parsed as error, propogate
-        if (mode() == MODE_ERROR)
-        {
-            // if not location-tagged, use arg location
-            // ie. create new "reference" from diag using `this` as loc
-            if (!err.get_loc())
-                err = err.get().ref(*this);
-            
-            return err;
-        }
-
-        return {};
-    }
+    // validate argument
+    kas::parser::kas_error_t ok_for_target(uint8_t sz);
     
     // calculate size of extension data for argument (based on MODE & reg/expr values)
     int size(uint8_t sz, expression::expr_fits const *fits_p = {}, bool *is_signed = {}) const;
@@ -175,6 +158,9 @@ public:
     
     template <typename Reader>
     void extract(Reader& reader, uint8_t sz, arg_serial_t *);
+   
+    // number of additional bytes to serialize arg
+    int8_t serial_data_size(uint8_t sz) const;
 
     // emit args as addresses or immediate args
     void emit      (core::emit_base& base, uint8_t sz) const;

@@ -138,13 +138,13 @@ namespace kas::m68k
             os <<  "(";
             if (!inner_zero) {
                 // display brief offset (8-bit) w/o size indicator
-                auto mode = index.is_brief() ? 1 : inner_mode;
+                auto mode = index.is_brief ? 1 : inner_mode;
                 os << disp_str(inner, mode) << ",";
             }
             if (!pc_reg)
-                os << reg_name(index.base_suppr ? RC_ZADDR : RC_ADDR, reg);
+                os << reg_name(index.base_suppress ? RC_ZADDR : RC_ADDR, reg);
             else
-                os << reg_name(index.base_suppr ? RC_ZPC : RC_PC, 0);
+                os << reg_name(index.base_suppress ? RC_ZPC : RC_PC, 0);
             if (index_first)
                 os << "," << index_reg_name(index);
             os << ")";
@@ -156,9 +156,9 @@ namespace kas::m68k
         if (!inner_zero)
             os << disp_str(inner, inner_mode) << ",";
         if (!pc_reg)
-            os << reg_name(index.base_suppr ? RC_ZADDR : RC_ADDR, reg);
+            os << reg_name(index.base_suppress ? RC_ZADDR : RC_ADDR, reg);
         else
-            os << reg_name(index.base_suppr ? RC_ZPC : RC_PC, 0);
+            os << reg_name(index.base_suppress ? RC_ZPC : RC_PC, 0);
         if (index_first)
             os << "," << index_reg_name(index);
         os << "],";

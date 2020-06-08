@@ -56,76 +56,73 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
         info_p->has_reg = false;
     if (info_p->has_reg)
         inserter(*reg_p);
-    if (regset_p)
+    if (mode() == MODE_REGSET)
         inserter(*regset_p);
     
-    switch (mode())
+    // need to special case INDEX to match code above
+    if (mode() == MODE_INDEX || mode() == MODE_PC_INDEX)
     {
-        default:
-            break;
+        auto size = 0;
+        
+        // 1) always save "extension" word
+        inserter(ext.value(), 2);
 
-        case MODE_INDEX:
-        case MODE_PC_INDEX:
-            // special case INDEX
+        // 2) use "has_expr" bit as inner_has_expression
+        switch (ext.disp_size)
+        {
+            case M_SIZE_ZERO:
+                size = 1;       // FLAG
+                break;
+            case M_SIZE_AUTO:
+                size = 0;       // AUTO == expr
+                break;
+            case M_SIZE_WORD:
+                size = 2;
+                break;
+            case M_SIZE_LONG:
+                size = 4;
+                break;
+        }
+       
+        // handle "ZERO"
+        if (size != 1)
+            info_p->has_expr = save_expr(expr, size);
+        
+        // 3) use "has_data" bit as outer_has_expression
+        info_p->has_data = false;   // could have been set by `save_expr`
+        if (ext.has_outer)
+        {
+            switch (ext.mem_size)
             {
-                int size;
-
-                // 1) always save "extension" word
-                inserter(ext.value(), 2);
-
-                // 2) use "has_expr" bit as inner_has_expression
-                switch (ext.disp_size)
-                {
-                    case M_SIZE_ZERO:
-                        size = 1;       // FLAG
-                        break;
-                    case M_SIZE_NONE:
-                        size = 0;       // AUTO
-                        break;
-                    case M_SIZE_WORD:
-                        size = 2;
-                        break;
-                    case M_SIZE_LONG:
-                        size = 4;
-                        break;
-                }
-               
-                // handle "ZERO"
-                if (size != 1)
-                    info_p->has_expr = save_expr(expr, size);
-                
-                // 3) use "has_data" bit as outer_has_expression
-                info_p->has_data = false;   // could have been set by `save_expr`
-                if (ext.outer())
-                {
-                    switch (ext.outer_size())
-                    {
-                        case M_SIZE_ZERO:
-                        // Inner Zero -- just return
-                            size = 1;       // FLAG
-                            break;
-                        case M_SIZE_NONE:
-                            size = 0;
-                            break;
-                        case M_SIZE_WORD:
-                            size = 2;
-                            break;
-                        case M_SIZE_LONG:
-                            size = 4;
-                            break;
-                    }
-                    if (size != 1)
-                        info_p->has_data = save_expr(outer, size);
-                }
-                
-                // emit relocations if inner or outer unresolved
-                return info_p->has_expr || info_p->has_data;
-            }                
-            break;
+                case M_SIZE_ZERO:
+                // Inner Zero -- just return
+                    size = 1;       // FLAG
+                    break;
+                case M_SIZE_AUTO:
+                    size = 0;
+                    break;
+                case M_SIZE_WORD:
+                    size = 2;
+                    break;
+                case M_SIZE_LONG:
+                    size = 4;
+                    break;
+            }
+            if (size != 1)
+                info_p->has_data = save_expr(outer, size);
+        }
+        
+        // serialize expressions if inner or outer unresolved
+        return info_p->has_expr || info_p->has_data;
     }
 
     if (info_p->has_data)
-        return save_expr(expr, size(sz).max);
+    {
+        if (auto n = serial_data_size(sz))
+            return save_expr(expr, n);
+        else
+            info_p->has_data = false;
+    }
 
     // didn't save expression
     return false;
@@ -151,10 +148,9 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, arg_serial_t *serial_p)
     {
         auto size = 0;
 
-        // get extension word
-        auto& wb_ext = decltype(ext)::cast(reader.get_fixed_p(2));
-        //*wb_p = &wb_ext;
-        ext = wb_ext;
+        // get pointer extension word & save as write-back pointer
+        wb_ext_p = reader.get_fixed_p(2);
+        ext = *wb_ext_p;              // init extension with saved value
 
         // get inner expression if stored
         if (serial_p->has_expr)       // `has_expr` mapped to `inner_has_expr`
@@ -166,7 +162,7 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, arg_serial_t *serial_p)
                 case M_SIZE_ZERO:
                     size = 0;       // Flag ZERO for extract
                     break;
-                case M_SIZE_NONE:
+                case M_SIZE_AUTO:
                     size = 0;       // AUTO stored as expr, retrieved above
                     break;
                 case M_SIZE_WORD:
@@ -184,14 +180,14 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, arg_serial_t *serial_p)
         // get outer expression if stored
         if (serial_p->has_data)       // `has_data` mapped to `outer_has_expr`
             outer = reader.get_expr();
-        else if (ext.outer())
+        else if (ext.has_outer)
         {
-            switch (ext.outer_size())
+            switch (ext.mem_size)
             {
                 case M_SIZE_ZERO:
                     size = 0;       // Flag ZERO for extract
                     break;
-                case M_SIZE_NONE:
+                case M_SIZE_AUTO:
                     size = 0;       // AUTO stored as expr, retrieved above
                     break;
                 case M_SIZE_WORD:
@@ -217,34 +213,8 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, arg_serial_t *serial_p)
         expr = reader.get_expr();
     }
     else if (serial_p->has_data)
-    {
-        // get size of fixed data to read
-        // NB: can't use generic `size()` because `expr` is zero
-        // and `m68k_arg_t::size` converts modes freely.
+        expr = reader.get_fixed(serial_data_size(sz));
 
-        int bytes = 2;          // most are 2 bytes, unsigned
-        switch (mode())
-        {
-            // declare the modes with word offsets
-            case MODE_ADDR_DISP:
-            case MODE_PC_DISP:
-            case MODE_MOVEP:
-                bytes = -2;
-                break;
-            case MODE_IMMEDIATE:
-                // immed is signed
-                bytes = -immed_info(sz).sz_bytes;
-                break;
-            case MODE_ADDR_DISP_LONG:
-            case MODE_DIRECT_LONG:
-                bytes = 4;
-                break;
-            default:
-                break;
-        }
-        expr = reader.get_fixed(bytes);
-    }
-    
     // save write-back pointer to serialized data
     wb_serial_p = serial_p;
 }

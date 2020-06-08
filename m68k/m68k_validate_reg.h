@@ -107,7 +107,7 @@ struct val_am : m68k_mcode_t::val_t
         if (match == AM_REGSET)
             return fits.yes;
 
-        auto arg_size = arg.size(info.sz(mc), &fits);
+        auto arg_size = arg.size(info.sz(mc), fits);
         if (arg_size.is_error())
             return fits.no;
 

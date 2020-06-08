@@ -23,6 +23,39 @@ const tgt::tgt_immed_info m68k_arg_t::sz_info [] =
         , {  0  }                                       // 7: VOID
     };
 
+// calculate size of serialized constant data
+int8_t m68k_arg_t::serial_data_size(uint8_t sz) const
+{ 
+    // 
+    switch (mode())
+    {
+        // default: two-byte unsigned if non-zero expression
+        default:
+            return 2;       // if they have non-zero expression
+
+        // declare the modes with word offsets
+        case MODE_ADDR_DISP:
+        case MODE_PC_DISP:
+        case MODE_MOVEP:
+            return -2;
+        case MODE_ADDR_DISP_LONG:
+        case MODE_PC_DISP_LONG:
+            return -4;
+        case MODE_DIRECT:
+        case MODE_DIRECT_ALTER:
+        case MODE_DIRECT_PCREL:
+        case MODE_DIRECT_LONG:
+            return 4;
+        case MODE_IMMEDIATE:
+            return -immed_info(sz).sz_bytes;
+        
+        case MODE_IMMED_QUICK:
+        case MODE_REG_QUICK:
+            return 0;
+    }
+}
+
+
 auto m68k_arg_t::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
 {
     auto error = [this](const char *msg)
@@ -31,18 +64,9 @@ auto m68k_arg_t::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
             return err = kas::parser::kas_diag_t::error(msg, *this).ref();
         };
 
-    // 0. if parsed as error, propogate
-    if (mode() == MODE_ERROR)
-    {
-        // if not location-tagged, use arg location
-        // ie. create new "reference" from diag using `this` as loc
-        if (!err.get_loc())
-            err = err.get().ref(*this);
-        
-        return err;
-    }
-
-    // perform checks 
+    // 0. perform common checks
+    if (auto result = base_t::ok_for_target(sz))
+        return result;
 
     // 1. can't access address register as byte
     if (mode() == MODE_ADDR_REG && sz == OP_SIZE_BYTE)
@@ -89,7 +113,6 @@ auto m68k_arg_t::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
         if (auto err = hw::cpu_defs[hw::coldfire{}])
             return error(error_msg::ERR_subreg);
 
-    // OK
     return {};
 }
 
@@ -107,6 +130,7 @@ m68k_arg_mode m68k_arg_t::mode_normalize() const
     case MODE_DIRECT_ALTER:
         return MODE_DIRECT_LONG;
     case MODE_DIRECT_PCREL:
+    case MODE_PC_DISP_LONG:
         return MODE_PC_DISP;
     }
 }

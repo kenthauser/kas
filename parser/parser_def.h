@@ -117,14 +117,14 @@ struct stmt_junk
         auto before = first;
         auto junk = exc.where();
         
-        std::cout << "stmt_junk::on_error" << std::endl;
+        std::cout << "stmt_junk::on_error" << std::string(first, junk) << std::endl;
        
         // find end-of-line: first -> next parse location
         if (!parse(first, last, resync))
             first = last;
 
         // process "junk" following statement
-        bool ignore_junk = true;
+        bool ignore_junk = false;
         std::string msg = "Junk following statement";
 
         auto& obj       = x3::get<error_diag_tag>(context);
@@ -147,7 +147,7 @@ struct stmt_junk
         }
         
         obj.err_idx = kas_diag_t::error(msg, junk_loc).ref();
-        return x3::error_handler_result::fail;
+        return x3::error_handler_result::accept;
     }
 
 private:

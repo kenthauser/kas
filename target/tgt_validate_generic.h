@@ -162,7 +162,8 @@ public:
         arg.set_mode(_size ? arg_mode_t::MODE_IMMEDIATE : arg_mode_t::MODE_IMMED_QUICK);
         
         // calclulate value to insert in machine code
-        auto p = arg.get_fixed_p();
+        // if constant, store in opcode. substitue value for zero as required
+        auto p = arg.expr.get_fixed_p();
         auto n = p ? *p : 0;
         return n == zero ? 0 : n;
     }

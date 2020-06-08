@@ -34,24 +34,25 @@ enum m68k_arg_mode : uint8_t
     , MODE_IMMEDIATE        // 7-4 immediate (int or float)
 // Additional support modes
     , MODE_ADDR_DISP_LONG   // 12: address displacement with long arg
-    , MODE_DIRECT           // 13: uncategorized direct arg
-    , MODE_DIRECT_ALTER     // 14: direct: PC_REL not allowed
-    , MODE_DIRECT_PCREL     // 15: direct: PC_REL indicated
-    , MODE_REG              // 16: m68k register
-    , MODE_REGSET           // 17: m68k register set
-    , MODE_PAIR             // 18: register pair (multiply/divide/cas2)
-    , MODE_BITFIELD         // 19: bitfield instructions
-    , MODE_IMMED_QUICK      // 20: immed arg stored in opcode
-    , MODE_REG_QUICK        // 21: movec: mode_reg stored in opcode
-    , MODE_MOVEP            // 22: special for MOVEP insn
+    , MODE_PC_DISP_LONG     // 13: pc displacement with long arg
+    , MODE_DIRECT           // 14: uncategorized direct arg
+    , MODE_DIRECT_ALTER     // 15: direct: PC_REL not allowed
+    , MODE_DIRECT_PCREL     // 16: direct: PC_REL indicated
+    , MODE_REG              // 17: m68k register
+    , MODE_REGSET           // 18: m68k register set
+    , MODE_PAIR             // 19: register pair (multiply/divide/cas2)
+    , MODE_BITFIELD         // 20: bitfield instructions
+    , MODE_IMMED_QUICK      // 21: immed arg stored in opcode
+    , MODE_REG_QUICK        // 22: movec: mode_reg stored in opcode
+    , MODE_MOVEP            // 23: special for MOVEP insn
 // Branch displacement sizes
-    , MODE_BRANCH_BYTE      // 23: store displacment in insn
-    , MODE_BRANCH_WORD      // 24: single displacment word
-    , MODE_BRANCH_LONG      // 25: two displacement words
+    , MODE_BRANCH_BYTE      // 24: store displacment in insn
+    , MODE_BRANCH_WORD      // 25: single displacment word
+    , MODE_BRANCH_LONG      // 26: two displacement words
 
 // Support "modes"
-    , MODE_ERROR            // 26: set error message
-    , MODE_NONE             // 27: when parsed: indicates end-of-args
+    , MODE_ERROR            // 27: set error message
+    , MODE_NONE             // 28: when parsed: indicates end-of-args
     , NUM_ARG_MODES
 
 // MODES which must be defined for compatibilty with `tgt_arg` ctor
@@ -104,7 +105,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     static const tgt::tgt_immed_info sz_info[];
 
     // override `size`
-    op_size_t size(uint8_t sz, expression::expr_fits const *fits_p = {}, bool *is_signed = {});
+    op_size_t size(uint8_t sz, expression::expr_fits const&, bool *is_signed = {});
 
     // support for `access-mode` validation
     uint16_t am_bitset() const;
@@ -117,6 +118,10 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     template <typename Reader>
     void extract(Reader& reader, uint8_t sz, arg_serial_t *);
 
+    // number of additional bytes to serialize arg
+    // negative value indicates value is "signed"
+    int8_t serial_data_size(uint8_t sz) const;
+    
     // restore arg to `extracted` value for new iteration of `size`
     template <typename ARG_INFO>
     void restore(ARG_INFO const*, m68k_extension_t const *);
@@ -148,7 +153,8 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
 
     expr_t           outer;             // for '020 PRE/POST index addess modes
     m68k_arg_subword reg_subword {};    // for coldfire H/L subword access
-    m68k_extension_t ext{};             // m68k extension word (index modes)
+    m68k_extension_t ext;               // m68k extension word (index modes)
+    uint16_t        *wb_ext_p {};       // serializer writeback pointer for `ext`
 #if 1
     // hardware formatted variables
     uint8_t cpu_mode() const;           // machine code words
@@ -163,7 +169,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
 #endif
 };
 
-// implementation in m68k.cc for debugging parser
+// implementation in m68k.cc for disassembler & debugging parser
 extern std::ostream& operator<<(std::ostream& os, m68k_arg_t const& arg);
 }
 

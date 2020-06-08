@@ -85,13 +85,12 @@ fixed	= 100
 
 ; 3. movem
 
-	movem.l	#456, a2@-
+    movem.l	#456, a2@-
 	movem.w	d0-d2/a0-a2/a6/a7, a2@-
 	movem.l 	fp@+, d0-d2/a0-a2/a6/a7
 	movem.l d1,a3@-
 	movem.w a0/usp,a2@
 	movem.w	d0-d2/a0-a2/a6/a7, long
-
 	movem.l sp@+, #456
 	movem.w long, d0-d2/a0-a2/a6/a7
 

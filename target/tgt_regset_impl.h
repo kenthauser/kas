@@ -25,12 +25,14 @@ template <typename Derived, typename Reg_t, typename Ref>
 int16_t tgt_reg_set<Derived, Reg_t, Ref>::kind() const
 {
     if (_error)
-        return -(_error);
+        return _error;
 
     auto& front = ops.front();
     if (front.first == '+')
         return -RS_OFFSET;
-    
+   
+    std::cout << "tgt_regset::kind: " << front.second;
+    std::cout << " = " << +derived().reg_kind(front.second) << std::endl;
     return derived().reg_kind(front.second);
 }
 
@@ -49,6 +51,9 @@ auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, derived_t const& r)
     auto iter = std::begin(r.ops);
     ops.emplace_back(op, iter->second);
     ops.insert(ops.end(), ++iter, r.ops.end());
+    if (_error)
+        ops.front().first = 'X';
+        
     return derived();
 }
 
@@ -75,6 +80,9 @@ auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, core_expr_t const& r
     else
         _error = RS_ERROR_INVALID_CLASS;
     
+    if (_error)
+        ops.front().first = 'X';
+    
     return derived();
 }
 
@@ -92,6 +100,9 @@ auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, int value)
         _expr->operator+(value);
     else
         _value += value;
+    
+    if (_error)
+        ops.front().first = 'X';
     
     return derived();
 }
