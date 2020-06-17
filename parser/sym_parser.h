@@ -80,15 +80,22 @@ struct sym_parser_t
     static constexpr auto sym_defns     = defn_t::value;
     static constexpr auto sym_defns_cnt = defn_t::size;
 
+    // constructor: add instances to parser
+    template <typename...Ts>
+    sym_parser_t(Ts&&...ts)
+    {
+
+    }
+
     //
     // Perform all "run-time" operations
     //
-
+#if 0
     // allocate parser at runtime
     static inline x3_parser_t *parser;
-
+#endif
     // use `ADDER` to initialize parser from `constexpr defns`
-    void add() const
+    void do_add() const
     {
         // only do once
         if (!parser)
@@ -104,7 +111,7 @@ struct sym_parser_t
     auto& x3_raw() const
     {
         if (!parser)
-            add();
+            do_add();
         return *parser;
     }
 
@@ -130,6 +137,10 @@ struct sym_parser_t
     {
         return x3()[deref()];
     }
+
+    // allocate parser at runtime (after all definitions completed
+    mutable x3_parser_t *parser {};
+
 };
 
 }

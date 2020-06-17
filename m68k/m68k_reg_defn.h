@@ -46,7 +46,13 @@ using addr_reg_l  = make_reg_seq<reg_seq<RC_ADDR>, REG_STR("a"), 8>;
 using fp_reg_l    = make_reg_seq<reg_seq<RC_FLOAT, hw::fpu>,        REG_STR("fp"), 8>;
 using zaddr_reg_l = make_reg_seq<reg_seq<RC_ZADDR, hw::index_full>, REG_STR("za"), 8>;
 
-// floating point user registers
+// delare alternate names for registers
+using m68k_reg_aliases_l = list<
+      list<REG_STR("a6"), REG_STR("fp")>
+    , list<REG_STR("a7"), REG_STR("sp")>
+    >;
+
+// floating point user registers (values match register-list constants)
 using fctrl_reg_l = list<
       reg<REG_STR("fpcr"),  RC_FCTRL, REG_FPCTRL_CR,  hw::fpu>
     , reg<REG_STR("fpsr"),  RC_FCTRL, REG_FPCTRL_SR,  hw::fpu>
@@ -66,7 +72,7 @@ using supv_reg_l = list<
     , reg<REG_STR("acc"),   RC_CPU, REG_CPU_ACC     , hw::mac>
     , reg<REG_STR("macsr"), RC_CPU, REG_CPU_MACSR   , hw::mac>
     , reg<REG_STR("mask"),  RC_CPU, REG_CPU_MASK    , hw::mac>
-    , reg<REG_STR("<<"),    RC_CPU, REG_CPU_SF_LEFT , hw::mac>  // XXX tokens?
+    , reg<REG_STR("<<"),    RC_CPU, REG_CPU_SF_LEFT , hw::mac>  // NB: comma-separated
     , reg<REG_STR(">>"),    RC_CPU, REG_CPU_SF_RIGHT, hw::mac>
 
     // coldfire eMAC
@@ -155,11 +161,27 @@ using ctrl_reg_l = list<
     , reg<REG_STR("pcr3l1"),  RC_CTRL, 0xd0f, hw::coldfire>
     >;
 
-// delare alternate names for registers
-using m68k_reg_aliases_l = list<
-      list<REG_STR("a6"), REG_STR("fp")>
-    , list<REG_STR("a7"), REG_STR("sp")>
+// NB: KAS register "values" are internal only. 
+// NB: MMU register values are a tuple of three nibbles:
+//  { immediate width in bytes, PMOVE PREG value, PMOVE NUM value }
+
+// declare m68851 BAD/BAC breakpoint registers
+using mmu_bad = make_reg_seq<reg_seq<RC_MMU_68851, hw::m68851>, REG_STR("bad"), 8, 0x2c0>;
+using mmu_bac = make_reg_seq<reg_seq<RC_MMU_68851, hw::m68851>, REG_STR("bac"), 8, 0x2d0>;
+
+using mmu51_reg_l = list<
+      reg<REG_STR("tc")  , RC_MMU_68851, 0x400, hw::m68851>
+    , reg<REG_STR("drp") , RC_MMU_68851, 0x810, hw::m68851>
+    , reg<REG_STR("srp") , RC_MMU_68851, 0x820, hw::m68851>
+    , reg<REG_STR("crp") , RC_MMU_68851, 0x830, hw::m68851>
+    , reg<REG_STR("cal") , RC_MMU_68851, 0x140, hw::m68851>
+    , reg<REG_STR("val") , RC_MMU_68851, 0x150, hw::m68851>
+    , reg<REG_STR("scc") , RC_MMU_68851, 0x160, hw::m68851>
+    , reg<REG_STR("ac")  , RC_MMU_68851, 0x270, hw::m68851>
+    , reg<REG_STR("psr") , RC_MMU_68851, 0x280, hw::m68851>
+    , reg<REG_STR("pscr"), RC_MMU_68851, 0x290, hw::m68851>
     >;
+
 
 #undef REG_STR
 
@@ -172,6 +194,10 @@ using m68k_all_reg_l = concat<list<>
                             , fp_reg_l
                             , ctrl_reg_l
                             , fctrl_reg_l
+
+                            , mmu51_reg_l
+                            , mmu_bad
+                            , mmu_bac
                             >;
 
 }

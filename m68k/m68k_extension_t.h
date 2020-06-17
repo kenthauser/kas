@@ -149,9 +149,10 @@ struct m68k_extension_t : kas::detail::alignas_t<m68k_extension_t, m68k_ext_size
     }
     
     // brief format is OK (if displacement is in 8-bit range)
+    // also allow `displacement` mode (ie no index reg)
     bool brief_ok() const
     {
-        return !base_suppress && has_index_reg && !has_outer && !is_post_index;
+        return !base_suppress && !has_outer && !is_post_index;
     }
     
     void emit(core::emit_base&, m68k_arg_t const&, uint8_t sz) const;

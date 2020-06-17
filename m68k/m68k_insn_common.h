@@ -57,8 +57,8 @@ using m68k_defn_groups = meta::list<
     , struct OP_M68K_040
     , struct OP_M68K_060
     , struct OP_M68K_CPU32
-    , struct OP_M68K_68881
-    , struct OP_M68K_68551
+    , struct OP_M68K_FPU
+    , struct OP_M68K_MMU
     , struct OP_COLDFIRE
     >;
 

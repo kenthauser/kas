@@ -38,18 +38,6 @@ auto tgt_reg<Derived, N, RS, B, C, V>::
 
 template <typename Derived, typename N, typename RS, typename B, unsigned C, unsigned V>
 auto tgt_reg<Derived, N, RS, B, C, V>::
-    find_data(reg_defn_idx_t rc, uint16_t rv) -> reg_defn_idx_t
-{
-    // brute force search thru data
-    auto p = insns;
-    for (auto n = 0; n++ < insns_cnt; ++p)
-        if (p->reg_class == rc && p->reg_num == rv)
-            return n;       // pre-incremented
-    return 0;
-}
-
-template <typename Derived, typename N, typename RS, typename B, unsigned C, unsigned V>
-auto tgt_reg<Derived, N, RS, B, C, V>::
     find(reg_defn_idx_t rc, uint16_t rv) -> derived_t const&
 {
     //std::cout << "tgt_reg::find: rc = " << std::hex << +rc << ", rv = " << +rv << std::endl;
@@ -103,8 +91,12 @@ template <typename Derived, typename N, typename RS, typename B, unsigned C, uns
 auto tgt_reg<Derived, N, RS, B, C, V>::
     validate(int reg_class) const -> const char *
 {
+#if 0
+    auto&& tst = select_defn(reg_class).reg_tst;
+    if (tst)
+        return m68k::hw::cpu_defs[tst];
+#endif
     return {};
-    //return hw::cpu_defs[get_defn(reg_0_index).reg_tst];
 }
 }
 

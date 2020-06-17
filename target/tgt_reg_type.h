@@ -37,6 +37,8 @@ struct tgt_reg_defn;
 // Store up to two "defn" indexes with "hw_tst" in 64-bit value
 //
 
+// XXX the REG_C_BIT stuff not used. value/class stored as BASE_T
+// XXX defn is `64-bits` iff MAX_NAMES == 2
 template <typename Derived
         , typename NAME
         , typename REGSET = void
@@ -108,7 +110,7 @@ protected:
     defn_t const&        select_defn(int reg_class = -1) const;
 
     // access parser to convert name->reg_t (for `get` method)`
-    static inline derived_t const *(*lookup)(const char *);
+    //static inline derived_t const *(*lookup)(const char *);
     
     static auto& obstack()
     {
@@ -129,16 +131,7 @@ public:
         insns     = _insns;
         insns_cnt = _cnt;
     }
-
-    // record x3 parser instance to convert name -> derived_t
-    template <typename PARSER_P>
-    static void set_lookup(PARSER_P p)
-    {
-        static auto parser_p = p;
-        lookup = [](const char *name) -> derived_t const *
-            { return *parser_p->find(name); };
-    }
-
+    
     // used in X3 expression
     tgt_reg() = default;
 
@@ -193,18 +186,11 @@ private:
         d.print(os); 
         return os;
     }
-#if 0
-    // reg_ok is really a bool. 
-    reg_defn_idx_t  reg_0_index {};
-    reg_defn_idx_t  reg_0_ok    {};
-    reg_defn_idx_t  reg_1_index {};
-    reg_defn_idx_t  reg_1_ok    {};
-#else
+    
     std::array<reg_defn_idx_t, MAX_REG_NAME_DEFNS> defns;
 
     // can't have more `registers` than names
     reg_name_idx_t  _idx;
-#endif
 };
 
 }

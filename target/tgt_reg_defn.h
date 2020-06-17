@@ -138,8 +138,6 @@ struct tgt_reg_adder
     tgt_reg_adder(PARSER) : defns(PARSER::sym_defns)
     {
         OBJECT_T::set_insns(PARSER::sym_defns, PARSER::sym_defns_cnt);
-        OBJECT_T::set_lookup(PARSER::parser);
-
         DEFN_T::names_base = meta::front<typename PARSER::all_types_defns>::value;
     }
 

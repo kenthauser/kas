@@ -19,7 +19,8 @@ namespace kas::m68k
 {
 // declare result of parsing
 // NB: there are  17 variants of `move.l`
-using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t, hw::m68k_hw_defs, 32>;
+// NB: there are > 32 variants of mac
+using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t, hw::m68k_hw_defs, 64>;
 
 // info: accumulate info from parsing insn not captured in `args`
 // NB: bitfields don't zero-init. use `aliagn_as` support type to zero-init

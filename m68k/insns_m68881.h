@@ -324,7 +324,7 @@ using fp_ops_v = list<fp_gen_ops, fp_cc_ops>;
 
 namespace kas::m68k::opc
 { 
-    template <> struct m68k_defn_list<OP_M68K_68881> : fp::fp_ops_v {};
+    template <> struct m68k_defn_list<OP_M68K_FPU> : fp::fp_ops_v {};
 }
 
 #endif

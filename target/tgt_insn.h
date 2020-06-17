@@ -29,6 +29,8 @@ struct tgt_insn_t
 // used by "adder"
     using obstack_t = std::deque<tgt_insn_t>;
     static inline const obstack_t *index_base;
+    static inline const mcode_t   *list_mcode_p;
+    static inline const hw_defs   *hw_cpu;  // local pointer to global
     
     // limit of number of MACHINE CODES per instruction
     // ie variants with same "name"
@@ -53,14 +55,13 @@ struct tgt_insn_t
     
     // retrieve instance from (zero-based) index
     static auto& get(index_t idx) { return (*index_base)[idx]; }
-    static inline const mcode_t  *list_mcode_p;
     
     // pointers to all `mcode_t` instances with same "name"
     std::vector<mcode_t const *> mcodes;
 
     std::string name;
     index_t     index;          // zero-based index
-    hw_tst      tst{};          // error message if no mcodes
+    hw_tst      tst{};          // for error message if no mcodes
 };
 
 }

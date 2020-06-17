@@ -25,6 +25,11 @@ auto  m68k_stmt_t::validate_args(insn_t const& insn
                     , TRACE_T *trace
                     ) const -> kas_error_t
 {
+    if (insn.mcodes.empty())
+    {
+        return parser::kas_diag_t::error(m68k::hw::cpu_defs[insn.tst], args.front()).ref();
+    }
+    
     // if first is dummy, no args to check
     if (args.front().is_missing())
         return {};

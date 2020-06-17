@@ -103,12 +103,6 @@ public:
     // for validate_min_max: default implmentation
     bool is_missing() const { return _mode == MODE_NONE; }
     
-    // for `inserter`: true if arg info not stored in opcode
-#if 0
-    // XXX marked for deletion
-    bool has_data() const;
-#endif
-
     // helper method for evaluation of insn: default implementation
     // NB: `register` case is allowed because `expr` is zero
     bool is_const () const

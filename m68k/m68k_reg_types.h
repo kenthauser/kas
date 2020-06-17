@@ -1,14 +1,12 @@
 #ifndef KAS_M68K_M68K_REG_TYPES_H
 #define KAS_M68K_M68K_REG_TYPES_H
 
-
-//
 // m68k register patterns:
 //
 // Each "register value" (as used in m68k.c) consists of a
-// three-item tuple < reg_class(ex RC_DATA), reg_num(eg 0), tst(eg: hw::index_full)
+// three-item tuple { reg_class(ex RC_DATA), reg_num(eg 0), tst(eg: hw::index_full) }
 // 1) reg_class    ranges from 0..15 `reg_arg_validate` (4-bits)
-// 2) The reg_num  ranges from 0..7 for eg data register; has 12-bit value for move.c
+// 2) The reg_num  ranges from 0..7 for eg data register; has 12-bit value for movec
 // 3) tst          16-bit hw_tst constexpr value
 //
 // Each register also has a name. Based on command line options, a leading `%` may
@@ -33,11 +31,8 @@
 //   can be used to remove it.
 // currently, for M68K there are ~100-120 register definitions
 
-// RC_PC & RC_ZPC both have a single member. Can be merged into RC_CPU ???
-
-// Also note: `m68k_reg`    is an expression variant type
-//            `m68k_regset` is an expression variant type
-//            `m68k_reg`    needs to export parser to `expr`
+// Also note: `m68k_reg`    is a kas_token/expression variant type
+//            `m68k_regset` is a kas_token/expression variant type
 
 #include "expr/expr_types.h"
 
@@ -69,6 +64,10 @@ enum : std::uint8_t
     , RC_CTRL
     , RC_FLOAT
     , RC_FCTRL
+
+    , RC_MMU_68851  // MMUs are similar, but different...
+    , RC_MMU_030
+    , RC_MMU_040
     , NUM_REG_CLASS
 };
 

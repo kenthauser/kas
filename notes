@@ -350,5 +350,12 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 54. should move.l a2@(short), d2 -> move.l pc@(a2, short), d2
 
+55. refactor make_reg_seq as `tgt_reg_seq <STR, RC, N, tst=void, base=0>`
+
+56. make register list list-of-list (ala insn). Currently list<list<>, ...> doesn't compile
+
+57. Too many `mac` instructions. Validate `mcode` before addind to insn list
+
+58. Need way to pass `cpu_defns` to reg_parser, and others. Can't have static race.
 
 

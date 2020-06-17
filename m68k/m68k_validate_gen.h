@@ -323,6 +323,160 @@ struct val_bitfield : m68k_mcode_t::val_t
     }
 };
 
+// mmu validators
+struct val_mmu_fc : m68k_mcode_t::val_t
+{
+    // MMU `pflush` allows IMMED, data register, SFC, or DFC
+    // Allow data register, SFC, or DFC
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    {
+        if (arg.mode() == MODE_DATA_REG)
+            return fits.yes;
+        if (arg.mode() != MODE_REG)
+            return fits.no;
+        if (arg.reg_p->kind() != RC_CTRL)
+            return fits.no;
+
+        // M68K defn: SFC = 0, DFC = 1
+        if (arg.reg_p->value() > 1)
+            return fits.no;
+        return fits.yes;
+    }
+    
+    unsigned get_value(m68k_arg_t& arg) const override
+    {
+        if (arg.mode() == MODE_DATA_REG)
+            return arg.reg_num + 8;
+        return arg.reg_p->value();
+    }
+
+    void set_arg(m68k_arg_t& arg, unsigned value) const override
+    {
+        // also handle immediate value
+        if (value & 0x10)
+        {
+            arg.expr = value & 0xf;
+            arg.set_mode(MODE_IMMEDIATE);
+        }
+
+        else if (value & 8)
+        {
+            arg.reg_p = &m68k_reg_t::find(RC_DATA, value & 7);
+            arg.set_mode(MODE_DATA_REG);
+        }
+
+        else
+        {
+            arg.reg_p = &m68k_reg_t::find(RC_CTRL, value & 1);
+            arg.set_mode(MODE_REG);
+        }
+    }
+};
+
+struct val_mmu_caches : m68k_mcode_t::val_t
+{
+    // Support MMU 040 CINV instruction
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    {
+        if (arg.mode() == MODE_DATA_REG)
+            return fits.yes;
+        if (arg.mode() != MODE_REG)
+            return fits.no;
+        if (arg.reg_p->kind() != RC_CTRL)
+            return fits.no;
+
+        // M68K defn: SFC = 0, DFC = 1
+        if (arg.reg_p->value() > 1)
+            return fits.no;
+        return fits.yes;
+    }
+    
+    unsigned get_value(m68k_arg_t& arg) const override
+    {
+        if (arg.mode() == MODE_DATA_REG)
+            return arg.reg_num + 8;
+        return arg.reg_p->value();
+    }
+
+    void set_arg(m68k_arg_t& arg, unsigned value) const override
+    {
+        // also handle immediate value
+        if (value & 0x10)
+        {
+            arg.expr = value & 0xf;
+            arg.set_mode(MODE_IMMEDIATE);
+        }
+
+        else if (value & 8)
+        {
+            arg.reg_p = &m68k_reg_t::find(RC_DATA, value & 7);
+            arg.set_mode(MODE_DATA_REG);
+        }
+
+        else
+        {
+            arg.reg_p = &m68k_reg_t::find(RC_CTRL, value & 1);
+            arg.set_mode(MODE_REG);
+        }
+    }
+};
+
+// validate MMU register
+struct val_mmu_reg : m68k_mcode_t::val_t
+{
+    constexpr val_mmu_reg(uint8_t r_class) : r_class{r_class} {}
+    
+    // This is the "unique" validator where sz is needed to validate match.
+    // Instead of burdening all other validators with a sz arg, if `sz`
+    // is a mis-match, return very large `size()` & let proc-list find correct match
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    {
+        if (arg.mode() != MODE_REG)
+            return fits.no;
+        if (arg.reg_p->kind() != r_class)
+            return fits.no;
+        return fits.yes;
+    }
+    
+    // MMU registers require various size args. number is encoded in reg_value
+    // Test for size mismatch
+    fits_result size(m68k_arg_t& arg, m68k_mcode_t const& mc, m68k_stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& op_size) const override
+    {
+        // info about arg encoded in value
+        auto value     = arg.reg_p->value();
+        auto reg_bytes = value >> 8;
+
+        // check for match
+        switch (info.sz(mc))
+        {
+            case OP_SIZE_BYTE: if (reg_bytes == 1) return fits.yes; break;
+            case OP_SIZE_WORD: if (reg_bytes == 2) return fits.yes; break;
+            case OP_SIZE_LONG: if (reg_bytes == 4) return fits.yes; break;
+            case OP_SIZE_QUAD: if (reg_bytes == 8) return fits.yes; break;
+            default:
+                break;
+        }
+        return fits.no;
+    }
+    
+    unsigned get_value(m68k_arg_t& arg) const override
+    {
+        // calclulate value to pass to special formatter...
+        return arg.reg_p->value();
+    }
+
+    void set_arg(m68k_arg_t& arg, unsigned value) const override
+    {
+        // create register from value passed by special formatter
+        arg.reg_p = &m68k_reg_t::find(r_class, value);
+        arg.set_mode(MODE_REG);
+    }
+    
+    uint8_t   r_class;
+};
+
+// coldfile validators
 struct val_subreg : m68k_mcode_t::val_t
 {
     fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
@@ -353,8 +507,6 @@ struct val_subreg : m68k_mcode_t::val_t
         arg.reg_subword = value & 16 ? REG_SUBWORD_UPPER : REG_SUBWORD_LOWER;
         arg.set_mode(value & 8 ? MODE_ADDR_REG : MODE_DATA_REG);
     }
-    
-
 };
 
 struct val_acc : m68k_mcode_t::val_t
@@ -480,6 +632,11 @@ VAL_GEN (REGSET_REV, val_regset, RC_DATA, 16);  // REGSET test: A7 is LSB
 VAL_GEN (FP_REGSET,  val_regset, RC_FLOAT, 8);  // REGSET test: FP7 is LSB    
 VAL_GEN (FP_REGSET_REV, val_regset, RC_FLOAT);  // REGSET test: FP0 is LSB
 VAL_GEN (FC_REGSET,  val_regset, RC_FCTRL);
+
+// MMU validators
+VAL_GEN (MMU_FC,    val_mmu_fc);
+VAL_GEN (MMU_CACHES,val_mmu_caches);
+VAL_GEN (MMU_REG,   val_mmu_reg, RC_MMU_68851);
 
 // coldfire BIT insn validators
 VAL_GEN (CF_BIT_TST   , val_cf_bit_tst);     // MEM w/o IMMED (would limit3 knock this out?)

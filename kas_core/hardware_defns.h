@@ -243,7 +243,7 @@ struct hw_defs
         }
 
         friend hw_defs;
-        const uint16_t value;
+        uint16_t value;
     };
 
     // hw_void: match everything

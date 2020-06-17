@@ -20,6 +20,11 @@ enum m68k_op_size_t
     , OP_SIZE_BYTE      // 6
     , OP_SIZE_VOID      // 7 NOT ACTUAL OP_SIZE
     , NUM_OP_SIZE
+
+    // XXX Possible mapping of OP_SIZE_QUAD...
+    // NB: MMU `pmovew` can have an immediate value of quad. 
+    // NB: use IMMED size of `OP_SIZE_VOID` to emit quad.
+    , OP_SIZE_QUAD = OP_SIZE_VOID
 };
 
 // declare "standard" co-processor ID values

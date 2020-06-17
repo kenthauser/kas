@@ -149,7 +149,7 @@ using isa_b   = cpu_defn<STR("isa_b"),  isa_a>;
 // isa_c is the successor to isa_b, but adds the isa_a+ insns
 using isa_c   = cpu_defn<STR("isa_c"),  list<isa_b, isa_ap>
                     , list<emac>            // added features
-                    , list<>                // deleted features
+                    , list<mac>             // deleted features
                     >;
 
 // DEVELOPMENT TARGET: doesn't test mac
@@ -163,7 +163,9 @@ using isa_c   = cpu_defn<STR("isa_c"),  list<isa_b, isa_ap>
 
 // first is default. all listed are available on command line
 using cpu_is_list = list<
-              m68020        // default
+              //m68020        // default
+              m68000
+              //isa_c
               //cpu_test
             , m68000
             , m68010
@@ -256,13 +258,13 @@ template <> struct fpu4cpu<coldfire>  : fpu_coldfire {};
 using mmu_base = mmu_defn<STR("mmu_base"), list<>>;
 
 // declare various types of MMU
-using m68551   = mmu_defn<STR("m68551"), mmu_base
+using m68851   = mmu_defn<STR("m68551"), mmu_base
                     >;
 
 
 // select FPU based on CPU
 // default is 68551
-template <typename CPU = void> struct mmu4cpu : m68551 {};
+template <typename CPU = void> struct mmu4cpu : m68851 {};
 
 // override based on CPU
 //template <> struct mmu4cpu<m68030>     { using type = mmu_m68030;   };

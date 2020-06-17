@@ -73,6 +73,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     bool ok_for_quick = true;
     if (auto diag = derived().validate_args(insn, args, ok_for_quick, trace))
     {
+        std::cout << "tgt_stmt::gen_insn: err = " << diag << std::endl;
         data.fixed.diag = diag;
         return {};              // nullptr xlated into opc_diag{}
     }
@@ -82,7 +83,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     mcode_t const* matching_mcode_p {};
     bool multiple_matches = false;
     const char *err_msg{};
-    int         err_index;
+    int         err_index{};
     auto& info = get_info();
 
     // loop thru mcodes, recording first error & recording all matches
@@ -145,6 +146,9 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
 
         if (err_index)
             loc_p = &args[err_index-1];
+        if (!err_msg)
+            err_msg = "X invalid instruction";
+
         data.fixed.diag = parser::kas_diag_t::error(err_msg, *loc_p).ref();
         return {};
     }
@@ -226,12 +230,14 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
                     , TRACE_T *trace
                     ) -> kas_error_t
 {
-#if 0
     // if no opcodes, then result is HW_TST
-    if (mcodes.empty())
-        return { tst.name(), args.front() };
+#if 0
+    if (insn.mcodes.empty())
+        return { m68k::hw::cpu_defs[insn.tst], args.front() };
+#else
+    if (insn.mcodes.empty())
+        return { "XXX Invalid insn", args.front() };
 #endif
-
     // if first is dummy, no args to check
     if (args.front().is_missing())
         return {};

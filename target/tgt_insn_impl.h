@@ -12,14 +12,15 @@ template <typename OPCODE_T, typename TST_T, unsigned MAX_MCODES, typename INDEX
 void tgt_insn_t<OPCODE_T, TST_T, MAX_MCODES, INDEX_T>::
         add_mcode(mcode_t *mcode_p)
 {
-#if 0
-    if (mcode_p->hw_tst())
-    {
-        if (!tst)
-            tst = mocode_p->hw_tst;
-        return;
-    }
-#endif
+    auto&& defn_tst = mcode_p->defn().tst;
+    if (defn_tst)
+        if (auto err = m68k::hw::cpu_defs[defn_tst])
+        {
+            std::cout << "mcode ignored: " << name << ": err = " << err << std::endl;
+            if (!tst)
+                tst = defn_tst;
+            return;
+        }
 
     mcodes.push_back(mcode_p);
 

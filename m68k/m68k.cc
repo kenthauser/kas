@@ -20,9 +20,9 @@
 #include "insns_cpu32.h"
 
 #include "insns_m68881.h"
+#include "insns_m68851.h"
 
-//#include "insns_m68851.h"
-//#include "insns_coldfire.h"
+#include "insns_coldfire.h"
 
 // parse instruction + args
 #include "mit_moto_parser_def.h"
@@ -75,7 +75,8 @@ namespace kas::m68k::parser
     m68k_reg_x3 reg_parser {"m68k reg"};
 
     using tok_m68k_reg = typename m68k_reg_t::token_t;
-    auto const raw_reg_parser = x3::no_case[reg_name_parser_t().x3()];
+    auto const raw_reg_parser = x3::no_case[reg_name_parser_t(hw::cpu_defs).x3()];
+    //auto const raw_reg_parser = x3::no_case[reg_name_parser_t().x3()];
     auto const reg_parser_def = parser::token<tok_m68k_reg>[raw_reg_parser];
     
     BOOST_SPIRIT_DEFINE(reg_parser)
@@ -96,8 +97,7 @@ namespace kas::m68k::parser
     using m68k_insn_adder        = typename m68k_mcode_t::adder_t;
     using m68k_insn_sym_parser_t = sym_parser_t<m68k_insn_defn, insns, m68k_insn_adder>;
 
-    // XXX shoud stop parsing on (PARSER_CHARS | '.')
-    m68k_insn_sym_parser_t insn_sym_parser;
+    m68k_insn_sym_parser_t insn_sym_parser(hw::cpu_defs);
 
     // parser for opcode names
     m68k_insn_x3 m68k_insn_parser {"m68k opcode"};
