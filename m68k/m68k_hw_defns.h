@@ -96,10 +96,13 @@ using m68030 = cpu_defn<STR("m68030"), m68020
                     , list<callm>               // deleted features
                     >;
 
-using m68040 = cpu_defn<STR("m68040"), m68030, fpu>;
+using m68040 = cpu_defn<STR("m68040"), m68030
+                    , fpu                       // added features
+                    >;
+
 using m68060 = cpu_defn<STR("m68060"), m68040
-                    , list<>
-                    , list<movep>               // deleted feature
+                    , list<>                    // added features
+                    , list<movep>               // deleted features
                     >;
 
 // add reduced feature set types

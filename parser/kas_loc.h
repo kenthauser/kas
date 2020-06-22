@@ -1,5 +1,5 @@
-#ifndef KAS_PARSER_KAS_POSITION_H
-#define KAS_PARSER_KAS_POSITION_H
+#ifndef KAS_PARSER_KAS_LOC_H
+#define KAS_PARSER_KAS_LOC_H
 
 // `kas_position_tagged_t`
 // `kas_loc`
@@ -15,14 +15,12 @@
 // - `x3::position_tagged` values need to outlast parsed values (eg in symbol
 //   table for error message). Use internal std::deque() to store
 //   original instances.
-
+//
 // `kas_position_tagged` replaces the `x3` class and holds a `kas_loc`.
 // allows `annotate_on_success` to properly record location.
 
-//#include "parser_config.h"
 #include <string>
-
-#include <iostream>
+#include <iterator>
 
 namespace kas::parser
 {
@@ -41,8 +39,13 @@ struct kas_loc
     // test if `loc` is set
     operator bool() const { return loc; }
 
-    // test ordering
-    bool operator< (kas_loc const& o) const { return loc < o.loc; }
+    // loc ordering: for `emit_listing`
+    // NB: this test is designed to test if 
+    // 1) source lines are ordered,
+    // 2) if "diagnostic" is located in a source line.
+    //
+    // Thus, test the `end()` first & use as `!(diag < line)` to test (line <= diag)
+    bool operator< (kas_loc const& o) const;
 
     // used in error_handler::where and for ostream
     auto const& get() const { return loc; }
@@ -111,7 +114,7 @@ private:
     mutable error_handler<Iter> const *handler{};
     
 private:
-    // mutable: record when `position_tagged` is stored
+    // mutable: record when `position_tagged` is registered in `error_handler` 
     mutable kas_loc loc;
 };
 

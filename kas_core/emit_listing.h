@@ -42,7 +42,7 @@ template <typename Iter> struct listing_line;
 template <typename Iter>
 struct emit_listing : emit_base
 {
-    using diag_map_key_t   = typename parser::kas_loc::index_t;
+    using diag_map_key_t   = typename parser::kas_loc;
     using diag_map_value_t = parser::kas_diag_t const *;
     using diag_map_t       = std::map<diag_map_key_t, diag_map_value_t>;
 
@@ -57,7 +57,7 @@ struct emit_listing : emit_base
     emit_listing(std::ostream& out) : out(out), emit_base(fmt)
     {
         // create ordered list of diagnostics
-        auto add  = [this](auto& obj) { diag_map.emplace(obj.loc().get(), &obj); };
+        auto add  = [this](auto& obj) { diag_map.emplace(obj.loc(), &obj); };
         parser::kas_diag_t::for_each(add);
 
         // init iterators into diagnostics map
@@ -114,7 +114,6 @@ private:
         return [&](e_chan_num num, std::size_t width, parser::kas_diag_t const& diag)
         {
             buffers[num].push_back(fmt.fmt_diag(width));
-//            diagnostics.push_back(diag.index());
         };
     }
 
@@ -136,7 +135,7 @@ private:
     std::list<parser::kas_diag_t::index_t> diagnostics;
     std::list<std::string> relocs;
     std::map<size_t, Iter> current_pos;
-    parser::kas_loc::index_t prev_loc {};
+    parser::kas_loc  prev_loc;
     std::ostream& out;
 
     using diag_iter_t = typename diag_map_t::iterator;
@@ -194,15 +193,16 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
     // accumulate listing into `line`
     auto& line = get_line();
     
-    //std::cout << "emit_listing: loc = " << loc.get() << std::endl;
+    //std::cout << "emit_listing: loc = " << loc.get();
+    //std::cout << ", src = " << loc.where() << std::endl;
 
     // don't generate listing for internally generated insns
     if (!loc)
         return;
 
-    if (loc.get() < prev_loc)
+    if (prev_loc && !(prev_loc < loc))
         throw std::logic_error{"Backwards listing: src = " + loc.where()};
-    prev_loc = loc.get();
+    prev_loc = loc;
 
     // unpack location into file_num/first/last
     auto where = parser::error_handler<Iter>::raw_where(loc);
@@ -295,7 +295,8 @@ void listing_line<Iter>::append_warnings(diag_type& new_diags)
     while(e.diag_iter != e.diag_end)
     {
         auto [key, ptr] = *e.diag_iter;
-        if (e.prev_loc < key)
+        //if (e.prev_loc < key)
+        if (!(key < e.prev_loc))
             break;
         new_diags.push_back(ptr->index());
         ++e.diag_iter;
@@ -332,7 +333,7 @@ Iter listing_line<Iter>::emit_line(Iter first, Iter last)
         auto& diag = parser::kas_diag_t::get(diagnostics.front());
         auto message = diag.level_msg() + diag.message;
         out << std::string(addr_size + data_size + 2, ' ');
-        //std::cout << "emit_diag: loc = " << diag.loc << std::endl;
+        //std::cout << "emit_diag: loc = " << diag.loc().get() << std::endl;
         if (diag.loc())
             parser::error_handler<Iter>::err_message(out, diag.loc(), message);
         else 

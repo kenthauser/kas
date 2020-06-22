@@ -14,7 +14,7 @@
 // `errors` are returned as a non-zero index.
 
 #include "parser/parser_types.h"
-#include "parser/kas_position.h"
+#include "parser/kas_loc.h"
 #include "kas_core/ref_loc_t.h"
 #include "kas_core/kas_object.h"
 

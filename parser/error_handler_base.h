@@ -2,7 +2,7 @@
 #define PARSER_ERROR_HANDLER_H
 
 #include "expr/expr.h"
-#include "kas_position.h"
+#include "kas_loc.h"
 
 #include "error_handler.h"
 #include "parser_obj.h"

@@ -24,7 +24,7 @@
 ==============================================================================*/
 // #if !defined(BOOST_SPIRIT_X3_ERROR_REPORTING_MAY_19_2014_00405PM)
 
-#include "kas_position.h"
+#include "kas_loc.h"
 
 #ifndef BOOST_SPIRIT_X3_NO_FILESYSTEM
 #include <boost/filesystem/path.hpp>

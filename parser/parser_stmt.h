@@ -2,7 +2,7 @@
 #define KAS_PARSER_PARSER_STMT_H
 
 #include "expr/expr.h"
-#include "kas_position.h"
+#include "kas_loc.h"
 #include "kas_token.h"
 #include "stmt_print.h"
 #include "literal_parser.h"

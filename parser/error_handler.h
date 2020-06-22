@@ -28,7 +28,7 @@
 // A `std::map` is used to store the "pushed" locations. The "lower_bound" method allows for
 // simple translation from a `kas_loc` value to a "native" offset.
 
-#include "kas_position.h"
+#include "kas_loc.h"
 #include "error_reporting.h"        // x3-style single file handler
 
 #include <map>

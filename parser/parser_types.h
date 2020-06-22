@@ -2,7 +2,7 @@
 #define PARSER_PARSER_TYPES_H
 
 #include "expr/expr_types.h"
-#include "kas_position.h"
+#include "kas_loc.h"
 #include "kas_core/ref_loc_t.h"
 
 #include <boost/spirit/home/x3.hpp>

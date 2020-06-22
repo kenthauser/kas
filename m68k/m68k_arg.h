@@ -6,7 +6,7 @@
 
 #include "m68k_extension_t.h"
 #include "kas_core/opcode.h"
-#include "parser/kas_position.h"
+#include "parser/kas_loc.h"
 
 namespace kas::m68k
 {

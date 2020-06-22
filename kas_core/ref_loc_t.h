@@ -17,7 +17,7 @@
 //                     NB: true iff referenced object is same
 
 #include "expr/expr_types.h"
-#include "parser/kas_position.h"
+#include "parser/kas_loc.h"
 
 #include <meta/meta.hpp>
 #include <boost/type_index.hpp>
