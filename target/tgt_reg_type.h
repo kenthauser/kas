@@ -41,7 +41,9 @@ struct tgt_reg_defn;
 // XXX defn is `64-bits` iff MAX_NAMES == 2
 template <typename Derived
         , typename NAME
+        , typename HW_DEFS
         , typename REGSET = void
+        , typename IDX_T  = void
         , typename BASE_T = uint16_t
         , unsigned REG_C_BITS = 8
         , unsigned VALUE_BITS = std::numeric_limits<BASE_T>::digits - REG_C_BITS> 
@@ -49,8 +51,13 @@ struct tgt_reg
 {
     using base_t      = tgt_reg;
     using derived_t   = Derived;
-    using regset_t    = REGSET;
     using base_name   = NAME;       // allow access to base name
+    using hw_defs     = HW_DEFS;
+    using regset_t    = REGSET;
+    using reg_defn_idx_t = std::conditional_t<std::is_void_v<IDX_T>
+                                            , uint8_t, IDX_T>;
+
+    using hw_tst      = typename hw_defs::hw_tst;
     
     using token_name  = kas::str_cat<NAME, KAS_STRING("_REG")>;
     using token_t     = parser::token_defn_t<token_name, Derived>;
@@ -70,13 +77,11 @@ struct tgt_reg
     using defn_t      = tgt_reg_defn<Derived>;
 
     // declare default types
-    using reg_defn_idx_t   = uint8_t;
-    using reg_name_idx_t   = uint8_t;
+    using reg_name_idx_t   = reg_defn_idx_t;
 
     // should calculate `T` from `BITS`
     using reg_class_t      = BASE_T;
     using reg_value_t      = BASE_T;
-    using hw_tst           = uint16_t;
 
     // default: allow a single alias 
     // default: allow two different reg defns to have same name
@@ -105,6 +110,7 @@ struct tgt_reg
 protected:
     static inline defn_t const  *insns;
     static inline reg_defn_idx_t insns_cnt;
+    static inline const hw_defs *hw_cpu_p;      // local pointer to global
 
     static defn_t const& get_defn(reg_defn_idx_t n);
     defn_t const&        select_defn(int reg_class = -1) const;
@@ -135,7 +141,13 @@ public:
     // used in X3 expression
     tgt_reg() = default;
 
-    // actual ctor for static instances
+    // PSEUDO CTOR: init static global as side effect
+    explicit tgt_reg(hw_defs const& defs)
+    {
+        hw_cpu_p = &defs;
+    }
+
+    // actual ctor for `kas_object` instances
     tgt_reg(const char *name, reg_name_idx_t idx) : _idx(idx) {}
 
     // use to create `reg_t` instances
@@ -152,21 +164,19 @@ public:
 
     // create new register from class/data pair
     // NB: used primarily for disassembly
-    //tgt_reg(reg_defn_idx_t reg_class, uint16_t value);
     static derived_t const& find(reg_defn_idx_t reg_class, uint16_t value);
 
     // used to initialize `tgt_reg` structures
     template <typename T> void add_defn(T const& d, reg_defn_idx_t n);
 
     // used to verify instance is a register
-    //bool valid() const { return reg_0_index; }
     bool valid() const { return defns[0]; }
     
     // methods to examine register
     uint16_t const  kind(int reg_class = -1)  const;
     uint16_t const  value(int reg_class = -1) const;
 
-    const char *validate(int reg_class = -1) const;
+    const char *validate(int reg_class = -1)  const;
     const char     *name()                    const;
 
     template <typename OS> void print(OS& os) const

@@ -173,8 +173,8 @@ struct tgt_mcode_t
     void print(std::ostream&) const;
 
     mcode_idx_t index;         // -> access this instance (zero-based)
-    defn_idx_t  defn_index;    // -> access associated defn for name, fmt, validator (zero-based)
-    // NB: additional disassembly items will be required
+    mcode_idx_t insn_index;    // -> access canonical instruction index (1-based)
+    defn_idx_t  defn_index;    // -> access associated defn for name, fmt, etc (zero-based)
 };
 
 }

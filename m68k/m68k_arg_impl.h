@@ -3,6 +3,7 @@
 
 
 #include "m68k_arg.h"
+#include "m68k_stmt.h"
 #include "m68k_format_float.h"
 #include "m68k_error_messages.h"
 
@@ -56,7 +57,7 @@ int8_t m68k_arg_t::serial_data_size(uint8_t sz) const
 }
 
 
-auto m68k_arg_t::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
+auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
 {
     auto error = [this](const char *msg)
         {
@@ -64,25 +65,24 @@ auto m68k_arg_t::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
             return err = kas::parser::kas_diag_t::error(msg, *this).ref();
         };
 
-    // 0. perform common checks
-    if (auto result = base_t::ok_for_target(sz))
+    // get reference to current stmt
+    auto& stmt = *static_cast<m68k_stmt_t const *>(stmt_p);
+    auto  sz   = stmt.flags.arg_size;
+
+    // 0. perform generic checks
+    if (auto result = base_t::ok_for_target(stmt_p))
         return result;
 
     // 1. can't access address register as byte
     if (mode() == MODE_ADDR_REG && sz == OP_SIZE_BYTE)
        return error(error_msg::ERR_addr_reg_byte);
 
-    // 2. if register, make sure register supported on CPU
-    if (mode() == MODE_REG)
-        if (auto msg = expr.get_p<m68k_reg_t>()->validate())
-            return error(msg);
-
-    // 3. floating point: allow register direct for 32-bit & under `source size`
+    // 2. floating point: allow register direct for 32-bit & under `source size`
     if (mode() <= MODE_ADDR_REG)
         if (immed_info(sz).sz_bytes > 4)
             return error(error_msg::ERR_direct);
 
-    // 4. disable several addressing modes on coldfire FPUs
+    // 3. disable several addressing modes on coldfire FPUs
     if (sz == OP_SIZE_XTND)
         if (auto msg = hw::cpu_defs[hw::fpu_x_addr()])
             return error(msg);
@@ -91,7 +91,10 @@ auto m68k_arg_t::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
         if (auto msg = hw::cpu_defs[hw::fpu_p_addr()])
             return error(msg);
 #if 0
-    if (info.is_cp(hw::fpu{}) && !hw::cpu_defs[hw::coldfire{}]) {
+    // XXX are these already precluded by 3-byte rule?
+    // 4. floating point: iff coldfire, restrict modes
+    if (info.is_cp(hw::fpu{}) && !(*reg_t::hw_cpu_p)[hw::coldfire{}])
+    {
         // several addressing modes not supported by CF FPU
         // ie. immediate, index, abs_short, abs_long
         // NB: cpu_mode only set non-zero when matches addressing.

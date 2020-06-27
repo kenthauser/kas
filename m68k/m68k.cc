@@ -101,8 +101,11 @@ namespace kas::m68k::parser
 
     // parser for opcode names
     m68k_insn_x3 m68k_insn_parser {"m68k opcode"};
+   
+    using tok_m68k_insn = typename m68k_insn_t::token_t;
+    auto const raw_insn_parser = x3::no_case[m68k_insn_sym_parser_t(hw::cpu_defs).x3()];
+    auto const m68k_insn_parser_def = parser::token<tok_m68k_insn>[raw_insn_parser];
     
-    auto const m68k_insn_parser_def = insn_sym_parser.x3_raw();
     BOOST_SPIRIT_DEFINE(m68k_insn_parser);
 
     // instantiate parsers

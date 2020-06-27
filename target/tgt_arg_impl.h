@@ -169,7 +169,7 @@ void tgt_arg_t<Derived, M, I, R, RS>
 // validate argument
 template <typename Derived, typename M, typename I, typename R, typename RS>
 auto tgt_arg_t<Derived, M, I, R, RS>
-                ::ok_for_target(uint8_t sz) -> kas::parser::kas_error_t
+                ::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
 {
     auto error = [this](const char *msg)
         {
@@ -187,12 +187,12 @@ auto tgt_arg_t<Derived, M, I, R, RS>
         
         return err;
     }
-#if 1
+
     // 1. check if register is supported
     if (reg_p)
         if (auto err = reg_p->validate())
             return error(err);
-#endif
+
     // 2. check for improper REGSET (ok syntax, but bad semantics)
     if constexpr (!std::is_void_v<regset_t>)
         if (regset_p)

@@ -128,7 +128,7 @@ public:
     }
 
     // validate argument
-    kas::parser::kas_error_t ok_for_target(uint8_t sz);
+    kas::parser::kas_error_t ok_for_target(void const *stmt_p);
     
     // calculate size of extension data for argument (based on MODE & reg/expr values)
     int size(uint8_t sz, expression::expr_fits const *fits_p = {}, bool *is_signed = {}) const;

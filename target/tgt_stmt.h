@@ -52,6 +52,7 @@ struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<DERIVED_T, INSN_T, ARG_T>>
     using mcode_t   = typename INSN_T::mcode_t;
     using arg_t     = ARG_T;
 
+    using insn_tok_t  = typename insn_t::token_t;
 
     using kas_error_t = parser::kas_error_t;
 
@@ -67,7 +68,6 @@ protected:
 
 public:
     auto& get_flags()       { return derived().flags; }
-
     auto& get_info()        { return derived().flags; }
     
     // method used to assemble instruction
@@ -93,17 +93,20 @@ public:
         p_obj(args);
     }
     
+    // allow floating point constants
+    bool is_fp() const      { return false; }
+    
     // X3 method to initialize instance
     template <typename Context>
     void operator()(Context const& ctx)
     {
         auto& x3_args = x3::_attr(ctx);
-        insn_p        = boost::fusion::at_c<0>(x3_args);
+        insn_tok      = boost::fusion::at_c<0>(x3_args);
         args          = boost::fusion::at_c<1>(x3_args);
         x3::_val(ctx) = derived();
     }
 
-    insn_t const      *insn_p;
+    kas::parser::kas_token insn_tok;
     std::vector<arg_t> args;
 };
 

@@ -34,8 +34,33 @@
 namespace kas::m68k::opc
 {
 
-//namespace 
-//{
+
+struct val_indirect : m68k_mcode_t::val_t
+{
+    constexpr val_indirect(bool allow_disp = {}) : allow_disp(allow_disp) {};
+    
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    {
+        auto mode = arg.mode();
+        
+        switch (arg.mode())
+        {
+            default:
+                break;
+
+            case MODE_ADDR_DISP:
+                if (!allow_disp)
+                    break;
+            // FALLSTHRU
+            case MODE_ADDR_INDIR:
+                return fits.yes;
+        }
+        return fits.no;
+    }
+
+    bool allow_disp;
+};
+
 
 struct val_dir_long : m68k_mcode_t::val_t
 {
@@ -606,11 +631,10 @@ VAL_GEN (Q_IMMED,    val_range_t<int8_t >, 0);  // 8 bits signed (moveq)
 VAL_GEN (Q_IMMED16,  val_range_t<int16_t>, 0);  // 16 bits signed
 VAL_GEN (BIT_IMMED,  val_range_t<int32_t>, 0);  // 32 bits signed
 
-// XXX 
-VAL_GEN (ADDR_DISP,  val_range, 0, 0);  // mode == ADDR_DISP ? XXX convert to AM
-VAL_GEN (ADDR_INDIR, val_range, 0, 1);  // mode == ADDR_INDIR ? XXX convert to AM
+VAL_GEN (ADDR_INDIR, val_indirect); 
+VAL_GEN (ADDR_DISP,  val_indirect, 1); 
 
-// XXX 
+// XXX This is `INDIRECT`: ie modes 2/3/4/5 in `validate_reg`
 VAL_GEN (INDIR_MASK, val_range, 0, 2);  // mode in (INDIR, INCR, DECR, DISP)
 
 VAL_GEN (PAIR,       val_pair, 0);      // data pair

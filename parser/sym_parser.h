@@ -81,12 +81,25 @@ struct sym_parser_t
     static constexpr auto sym_defns_cnt = defn_t::size;
 
     // constructor: add instances to parser
+    sym_parser_t() = default;
+
+    using VALUE_P_T = std::remove_pointer_t<typename ADDER::VALUE_T>;
+#if 1
     template <typename...Ts>
     sym_parser_t(Ts&&...ts)
     {
-
-    }
-
+        VALUE_P_T(std::forward<Ts>(ts)...);
+        //print_type_name{"sym_parser_t"}.name<VALUE_P_T>();
+        //VALUE_P_T::hw_cpu_p = &arg;
+    };
+#else
+    template <typename A, typename...Ts>
+    sym_parser_t(A&& arg, Ts&&...ts) //: VALUE_P_T(std::forward<Ts>(ts)...)
+    {
+        print_type_name{"sym_parser_t"}.name<VALUE_P_T>();
+        VALUE_P_T::hw_cpu_p = &arg;
+    };
+#endif
     //
     // Perform all "run-time" operations
     //

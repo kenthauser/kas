@@ -7,32 +7,30 @@
 namespace kas::tgt
 {
 
-// add mcode to insn queue
+// add mcode to insn list
 template <typename OPCODE_T, typename TST_T, unsigned MAX_MCODES, typename INDEX_T>
 void tgt_insn_t<OPCODE_T, TST_T, MAX_MCODES, INDEX_T>::
         add_mcode(mcode_t *mcode_p)
 {
+    // map mcode -> name (NB: mcodes can have several names)
+    if (!mcode_p->insn_index)
+        mcode_p->insn_index = index + 1;
+    
+    // validate `mcode` validation test passes
     auto&& defn_tst = mcode_p->defn().tst;
     if (defn_tst)
-        if (auto err = m68k::hw::cpu_defs[defn_tst])
+        if (auto err = (*hw_cpu_p)[defn_tst])
         {
-            std::cout << "mcode ignored: " << name << ": err = " << err << std::endl;
             if (!tst)
                 tst = defn_tst;
             return;
         }
+    
+    // limit mcodes per insn to bitset size
+    if (mcodes.size() >= max_mcodes)
+        throw std::logic_error("too many machine codes for " + std::string(name));
 
     mcodes.push_back(mcode_p);
-
-#if 0
-    // map mcode -> name
-    if (!mcode_p->canonical_insn)
-        mcode_p->canonical_insn = index + 1;
-#endif
-        
-    // limit mcodes per insn to bitset size
-    if (mcodes.size() > max_mcodes)
-        throw std::logic_error("too many machine codes for " + std::string(name));
 }
 
 template <typename O, typename T, unsigned M, typename I>

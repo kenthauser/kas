@@ -61,8 +61,8 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
             parser::kas_position_tagged loc = {first, i, &handler};
             attribute_type tok(TOK_DEFN(), loc);
 
-            print_type_name{"attr"}.name<decltype(attr)>();
-            print_type_name{"value"}.name<decltype(value)>();
+            //print_type_name{"attr"}.name<decltype(attr)>();
+            //print_type_name{"value"}.name<decltype(value)>();
             
             // store parsed value in token (except for strings)
             // if parsed value is kas_object, allocate it & save address

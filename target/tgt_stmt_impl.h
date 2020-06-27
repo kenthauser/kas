@@ -53,8 +53,8 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     //trace = nullptr;
     trace = &std::cout;
     
-    // convenience references 
-    auto& insn = *insn_p;
+    // convenience references
+    auto& insn  = *insn_tok_t(insn_tok)();
     auto& fixed = data.fixed;
     
     // print name/args
@@ -218,7 +218,8 @@ std::string tgt_stmt<DERIVED_T, INSN_T, ARG_T>::name() const
     using BASE_NAME = typename INSN_T::mcode_t::BASE_NAME;
     
     static constexpr auto name_prefix = kas::str_cat<BASE_NAME, KAS_STRING(":")>::value;
-    return name_prefix + insn_p->name;
+    auto& insn  = *insn_tok_t(insn_tok)();
+    return name_prefix + insn.name;
 }
 
 template <typename DERIVED_T, typename INSN_T, typename ARG_T>
@@ -230,27 +231,27 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
                     , TRACE_T *trace
                     ) -> kas_error_t
 {
-    // if no opcodes, then result is HW_TST
-#if 0
+    // if no mcodes, error was saved instead of mcode
     if (insn.mcodes.empty())
-        return { m68k::hw::cpu_defs[insn.tst], args.front() };
-#else
-    if (insn.mcodes.empty())
-        return { "XXX Invalid insn", args.front() };
-#endif
+        return parser::kas_diag_t::error(insn.err(), insn_tok).ref();
+    
     // if first is dummy, no args to check
     if (args.front().is_missing())
         return {};
 
-    // get size of operand
-    auto sz = derived().get_info().sz(*insn_p->mcodes.front());
     for (auto& arg : args)
     {
+        // if floating point arg, require `floating point` insn
+        if constexpr (!std::is_void_v<e_float_t>)
+            if (auto p = arg.template get_p<expression::e_float_t>())
+                if (!derived().is_fp())
+                    arg.set_error(error_msg::ERR_float);
+
         // if not supported, return error
-        if (auto diag = arg.ok_for_target(sz))
+        if (auto diag = arg.ok_for_target(this))
             return diag;
 
-        // test if constant    
+        // test if constant & ok for `quick` format
         if (ok_for_quick)
             if (!arg.is_const())
                 ok_for_quick = false;
@@ -260,5 +261,4 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
 }
 
 }
-
 #endif

@@ -58,7 +58,6 @@
 #include "m68k_stmt_flags.h"
 
 #include "expr/expr.h"              // expression public interface
-//#include "kas_core/core_parse_references.h"
 #include "parser/annotate_on_success.hpp"
 
 #include <boost/spirit/home/x3.hpp>
@@ -306,11 +305,15 @@ auto gen_stmt = [](auto& ctx)
         
         // unpack args & evaluate
         auto& args    = x3::_attr(ctx);
-        stmt.insn_p   = boost::fusion::at_c<0>(args);
+        stmt.insn_tok = boost::fusion::at_c<0>(args);
         auto& ccode   = boost::fusion::at_c<1>(args);
         auto& has_dot = boost::fusion::at_c<2>(args);
         auto& size    = boost::fusion::at_c<3>(args);
-       
+     
+        // all (and only) floating point insns begin with `f`
+        // NB: ASCII convert upper case to lower case
+        flags.is_fp = (stmt.insn_tok.begin()[0] | 0x20) == 'f';
+
         if (ccode)
         {
             // different condition code maps for general & fp insns

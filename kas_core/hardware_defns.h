@@ -376,7 +376,7 @@ public:
         return set(t, false);
     }
     
-    const char *name()
+    const char *name() const
     {
         return current_name;
     }

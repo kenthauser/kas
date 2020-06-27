@@ -12,6 +12,12 @@
 // define error_message type
 #include "m68k_error_messages.h"
 
+// expose error-type to global namespace
+namespace kas
+{
+    using m68k::error_msg;
+}
+
 // declare X3 parser for `reg_t`
 namespace kas::m68k::parser
 {

@@ -13,11 +13,16 @@
 namespace kas::m68k::parser
 {
     namespace x3 = boost::spirit::x3;
-
+#if 0
     // parse insn names: defined by `insn_adder`
     using m68k_insn_x3 = x3::rule<struct _, m68k_insn_t const *>;
     BOOST_SPIRIT_DECLARE(m68k_insn_x3)
+#else
+    // parse insn names: defined by `insn_adder`
+    using m68k_insn_x3 = x3::rule<struct _, kas::parser::kas_token>;
+    BOOST_SPIRIT_DECLARE(m68k_insn_x3)
 
+#endif
     // parse statements: defined in `m68k_parser_def.h`
     using m68k_stmt_x3 = x3::rule<struct _tag_m68k_stmt, m68k_stmt_t>;
     BOOST_SPIRIT_DECLARE(m68k_stmt_x3)
