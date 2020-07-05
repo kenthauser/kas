@@ -1,8 +1,10 @@
 ; from coldfire FFT app note (mac)
 ;and.l       #0xffff0000,d2
 move.l      d2,ACC
-msacl.w     d0.u,d4.u,<<,(a3),d5
-msacl.w     d0.l,d5.u,<<,(a1),d7
+msacl.w     d1.u,d4.u,<<,(a3),d5
+msacl.w     d1.l,a4.u,>>,(a3),a5
+msacl.w     d1.u,a4.l,>>,a3@+,d5
+msacl.w     a2.l,d5.u,<<,(a1),d7
 move.l      ACC,d3
 asr.l       d1,d3
 move.w      d3,(a0)+

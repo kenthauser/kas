@@ -212,6 +212,9 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
     detail::arg_serial_t *p;
     for (unsigned n = 0; true ;++n, ++arg_p, ++p)
     {
+        typename MCODE_T::val_t const *val_p {};
+        const char *val_name {};
+        
         // last static_arg is end-of-list flag, should never reach it.
         if (arg_p == std::end(static_args))
             throw std::runtime_error {"tgt_read_args: MAX_ARGS exceeded"};
@@ -236,18 +239,26 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
                 break;
         }
 
-        // do the work (more args than validators can occur in `list` format)
+        // do work: pass validator if present
+        // NB: may be more args than validators. LIST format only saves a few args in `code`
         if (val_iter != val_iter_end)
-            detail::extract_one<MCODE_T>(reader, n, *arg_p, p, sz, fmt, &*val_iter++, code_p);
-        else
-            detail::extract_one<MCODE_T>(reader, n, *arg_p, p, sz, fmt, nullptr, code_p);
+        {
+#ifdef TRACE_ARG_SERIALIZE
+            val_name = val_iter.name();
+#endif
+            val_p = &*val_iter++;
+        }
 
-        // std::cout << std::hex;
-        // std::cout << "read_arg  : mode = " << (int)p->arg_mode << " p_mode = " << arg_p->mode;
-        // std::cout << " reg_num = " << arg_p->reg_num;
-        // std::cout << " arg = " << *arg_p;
+#ifdef TRACE_ARG_SERIALIZE
+        if (!val_p)
+            val_name = "*NONE*";
+        std::cout << "tgt_read_args: " << +n 
+                  << " val = " << val_name
+                  << std::endl;
+#endif
+
+        detail::extract_one<MCODE_T>(reader, n, *arg_p, p, sz, fmt, val_p, code_p);
     }
-    
     return std::make_tuple(code_p, static_args);
 }
 

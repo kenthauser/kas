@@ -50,13 +50,17 @@ enum m68k_arg_mode : uint8_t
     , MODE_BRANCH_WORD      // 25: single displacment word
     , MODE_BRANCH_LONG      // 26: two displacement words
 
+// Coldfire sub-word support
+    , MODE_SUBWORD_LOWER    // 27: general register, lower
+    , MODE_SUBWORD_UPPER    // 28: general register, upper
+
 // Support "modes"
-    , MODE_ERROR            // 27: set error message
-    , MODE_NONE             // 28: when parsed: indicates end-of-args
+    , MODE_NONE             // 29: when parsed: indicates end-of-args
     , NUM_ARG_MODES
 
 // MODES which must be defined for compatibilty with `tgt_arg` ctor
-// never allocated. Do not need to include in `NUM_ARG_MODES`
+// never serialized. Do not need to include in `NUM_ARG_MODES`
+    , MODE_ERROR            // set error message (never serialized)
     , MODE_INDIRECT
     , MODE_REG_INDIR 
     , MODE_REG_OFFSET 
@@ -151,10 +155,11 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     // validate if arg suitable for target
     kas::parser::kas_error_t ok_for_target(void const *stmt_p);
 
-    expr_t           outer;             // for '020 PRE/POST index addess modes
-    m68k_arg_subword reg_subword {};    // for coldfire H/L subword access
-    m68k_extension_t ext;               // m68k extension word (index modes)
-    uint16_t        *wb_ext_p {};       // serializer writeback pointer for `ext`
+    expr_t           outer;                 // for '020 PRE/POST index addess modes
+    //m68k_arg_subword reg_subword {};      // for coldfire H/L subword access
+    m68k_extension_t ext;                   // m68k extension word (index modes)
+    uint16_t        *wb_ext_p {};           // serializer writeback pointer for `ext`
+    bool             has_subword_mask{};    // coldfire arg parsed with mask.
 #if 1
     // hardware formatted variables
     uint8_t cpu_mode() const;           // machine code words

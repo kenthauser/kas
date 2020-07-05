@@ -24,14 +24,17 @@ template <typename Derived, typename M, typename I, typename R, typename RS>
 tgt_arg_t<Derived, M, I, R, RS>
         ::tgt_arg_t(arg_mode_t mode, kas_token const& tok) : kas_position_tagged_t(tok) 
 {
-    //std::cout << "arg_t::ctor mode = " << +mode << " expr = " << expr;
-    //std::cout << " *this::loc = " << static_cast<parser::kas_loc>(*this) << std::endl;
+    std::cout << "arg_t::ctor mode = " << +mode << " expr = " << expr;
+    std::cout << " *this::loc = " << static_cast<parser::kas_loc>(*this) << std::endl;
     
     // accumulate error
     const char *msg   {};
     
     // extract regset & register-set values
     reg_p = reg_tok(tok)();
+
+    if (reg_p)
+        std::cout << "tgt_arg_t::ctor: reg = " << *reg_p << std::endl;
 
     // `rs_tok` can be void, so code slightly differently
     if constexpr (!std::is_void_v<rs_tok>)

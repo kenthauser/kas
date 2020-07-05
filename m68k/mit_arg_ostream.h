@@ -82,6 +82,7 @@ namespace kas::m68k
         
         // coldfire MAC subregisters. And MASK. sigh...
         auto suffix = "";
+    #if 0
         switch (arg.reg_subword) 
         {
             case REG_SUBWORD_LOWER:
@@ -96,6 +97,10 @@ namespace kas::m68k
             default:
                 break;
         }
+#else
+        if (arg.has_subword_mask)
+            suffix = "&";
+#endif
 
         bool pc_reg = false;
 
@@ -152,6 +157,10 @@ namespace kas::m68k
             return os << base << ":" << outer;
         case MODE_BITFIELD:
             return os << "{" << base << "," << outer << "}";
+        case MODE_SUBWORD_LOWER:
+            return os << *arg.reg_p << ".l";
+        case MODE_SUBWORD_UPPER:
+            return os << *arg.reg_p << ".u";
         default:
             return os << "XXX MODE: " + std::to_string(arg.mode());
             throw std::runtime_error("print_arg: unknown mode: " + std::to_string(arg.mode()));

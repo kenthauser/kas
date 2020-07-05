@@ -257,6 +257,7 @@ VAL_REG(ADDR_REG,   RC_ADDR);
 VAL_REG(CTRL_REG,   RC_CTRL);
 VAL_REG(FP_REG,     RC_FLOAT);
 VAL_REG(FCTRL_REG,  RC_FCTRL);
+VAL_REG(SHIFT_FACTOR, RC_SHIFT);
 
 VAL_REG(FPIAR,      RC_FCTRL, REG_FPCTRL_IAR);
 VAL_REG(SR,         RC_CPU,   REG_CPU_SR);
@@ -267,10 +268,10 @@ VAL_REG(USP,        RC_CPU,   REG_CPU_USP);
 VAL_REG(ACC,        RC_CPU,   REG_CPU_ACC);
 VAL_REG(MACSR,      RC_CPU,   REG_CPU_MACSR);
 VAL_REG(MASK,       RC_CPU,   REG_CPU_MASK);
-VAL_REG(SF_LEFT,    RC_CPU,   REG_CPU_SF_LEFT);
-VAL_REG(SF_RIGHT,   RC_CPU,   REG_CPU_SF_RIGHT);
 VAL_REG(ACC_EXT01,  RC_CPU,   REG_CPU_ACC_EXT01);
 VAL_REG(ACC_EXT23,  RC_CPU,   REG_CPU_ACC_EXT23);
+VAL_REG(SF_LEFT,    RC_SHIFT, REG_SHIFT_LEFT);
+VAL_REG(SF_RIGHT,   RC_SHIFT, REG_SHIFT_RIGHT);
 
 // MMU registers
 VAL_REG(MMU_VAL,    RC_MMU_68851, 0x150);
@@ -310,17 +311,18 @@ uint16_t m68k_arg_t::am_bitset() const
         unsigned am_index = mode_normalize();
         switch (am_index)
         {
-            case MODE_REGSET:
-                return _am_bitset = AM_REGSET;
             default:
                 // OK if directly-mapped mode...
                 if (am_index <= MODE_IMMEDIATE)
-                    // ...and NOT special coldfire MAC mode
-                    if (reg_subword == REG_SUBWORD_FULL)
-                        break;      // break iff OK.
-                        
+                    break;      // break iff OK.
+            // FALLSTHRU           
+            case MODE_SUBWORD_LOWER:
+            case MODE_SUBWORD_UPPER:
                 // ERROR: no match. Pick non-zero value which never matches
                 return _am_bitset = AM_NONE;
+            
+            case MODE_REGSET:
+                return _am_bitset = AM_REGSET;
         }
         _am_bitset = cpu_mode_to_access_mode[am_index];
 

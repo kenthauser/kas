@@ -28,6 +28,7 @@
 *****************************************************************************/
 
 #include "m68k_mcode.h"
+#include "m68k_validate_reg.h"      // use AM_*
 #include "target/tgt_validate_generic.h"
 #include "target/tgt_validate_branch.h"
 
@@ -502,35 +503,42 @@ struct val_mmu_reg : m68k_mcode_t::val_t
 };
 
 // coldfile validators
+
+// `val_subreg` should be paired with `fmt_subreg`. 
+// validator return 7 bits: subreg + mode + reg
+// NB: 4 lsbs happen to be general register #
+
+static constexpr auto VAL_SUBWORD_UPPER = 1 << 6;
 struct val_subreg : m68k_mcode_t::val_t
 {
     fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
-        // check for ... MAC registers
-        if (arg.mode() > MODE_ADDR_REG)
-            return fits.no;
-        if (arg.reg_subword != REG_SUBWORD_FULL)
-            return fits.yes;
-        return fits.no;
+        switch (arg.mode())
+        {
+            case MODE_SUBWORD_LOWER:
+            case MODE_SUBWORD_UPPER:
+                return fits.yes;
+
+            default:
+                return fits.no;
+        }
     }
     
     unsigned get_value(m68k_arg_t& arg) const override
     {
         // calclulate value to insert in machine code
-        auto value = arg.reg_num;
-        if (arg.mode() == MODE_ADDR_REG)
-            value += 8;
-        if (arg.reg_subword == REG_SUBWORD_UPPER)
-            value += 16;
+        auto value = arg.reg_p->gen_reg_value();
+        if (arg.mode() == MODE_SUBWORD_UPPER)
+            value |= VAL_SUBWORD_UPPER;
         return value;
     }
 
     void set_arg(m68k_arg_t& arg, unsigned value) const override
     {
-        // calculate expression value from machine code
-        arg.reg_num     = value & 7;
-        arg.reg_subword = value & 16 ? REG_SUBWORD_UPPER : REG_SUBWORD_LOWER;
-        arg.set_mode(value & 8 ? MODE_ADDR_REG : MODE_DATA_REG);
+        auto mode = (value & VAL_SUBWORD_UPPER) ? MODE_SUBWORD_UPPER: MODE_SUBWORD_LOWER;
+        auto kind = (value & 8) ? RC_ADDR : RC_DATA;
+        arg.reg_p = &m68k_reg_t::find(kind, value & 7);
+        arg.set_mode(mode);
     }
 };
 

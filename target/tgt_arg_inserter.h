@@ -142,7 +142,7 @@ void extract_one(Reader& reader
         fmt.extract(n, code_p, arg, val_p);
 
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << "\nextract one: mode = " << +arg.mode();
+    std::cout << "\nextract one 1: mode = " << +arg.mode();
     std::cout << ", init_mode = " << +p->init_mode;
     std::cout << ", cur_mode = " << +p->cur_mode << std::endl;
 #endif
@@ -154,7 +154,7 @@ void extract_one(Reader& reader
     arg.extract(reader, sz, p);
     
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << "\nextract one: mode = " << +arg.mode();
+    std::cout << "\nextract one 2: mode = " << +arg.mode();
     std::cout << ", init_mode = " << +p->init_mode;
     std::cout << ", cur_mode = " << +p->cur_mode << std::endl;;
 #endif
@@ -163,7 +163,7 @@ void extract_one(Reader& reader
     arg.set_mode(p->cur_mode);
 
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << "\nextract one: mode = " << +arg.mode();
+    std::cout << "\nextract one 3: mode = " << +arg.mode();
     std::cout << ", init_mode = " << +p->init_mode;
     std::cout << ", cur_mode = " << +p->cur_mode;
     std::cout << ", arg = " << arg << std::endl;;

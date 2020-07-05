@@ -112,7 +112,10 @@ auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
 #endif
 
     // 5. disallow "SUBWORD" (coldfire MAC) except on coldfire
-    if (reg_subword != REG_SUBWORD_FULL)
+    if (has_subword_mask
+        || mode() == MODE_SUBWORD_LOWER
+        || mode() == MODE_SUBWORD_UPPER)
+
         if (auto err = hw::cpu_defs[hw::coldfire{}])
             return error(error_msg::ERR_subreg);
 

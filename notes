@@ -354,10 +354,15 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 56. make register list list-of-list (ala insn). Currently list<list<>, ...> doesn't compile
 
-57. Too many `mac` instructions. Validate `mcode` before addind to insn list
+57. Too many `mac` instructions. Validate `mcode` before adding to insn list
 
 58. Need way to pass `cpu_defns` to reg_parser, and others. Can't have static race.
 
 59. Harmonize `mcode_idx_t` & `defn_idx_t`: there is a one-to-one relationship. 1 type.
+
+60. core_expr & tgt_regset need to use temporary objects as intermediates. Only assign
+    kas_object instance when converted to `expr_t`
+
+61. disallow tgt_reg_t MODE w/o token
 
 

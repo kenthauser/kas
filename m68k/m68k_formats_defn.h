@@ -97,13 +97,17 @@ using arg1_9b2 = fmt_arg<1, fmt_generic<9, 2>>;
 using arg2_9b2 = fmt_arg<2, fmt_generic<9, 2>>;
 
 // coldfile: MAC subregister modes: bits spread all over the place...
-using arg1_0ul    = fmt_arg<1, fmt_subreg<0,  3, 6>>;
+using arg1_0ul    = fmt_arg<1, fmt_subreg<0,  3>>;
 using arg1_1w0ul  = fmt_arg<1, fmt_subreg<0,  3, 6, 1>>;
-using arg2_9ul    = fmt_arg<2, fmt_subreg<9, -3, 7>>;
+using arg2_9ul    = fmt_arg<2, fmt_subreg<9, -3>>;
 using arg2_1w12ul = fmt_arg<2, fmt_subreg<12, 3, 7, 1>>;
 
-using arg4_9o3b4  = fmt_arg<4, fmt_reg_mode<9, 0, -3, 1>>;
-using arg5_9o3b4  = fmt_arg<5, fmt_reg_mode<9, 0, -3, 1>>;
+// general register (no subword)
+using arg4_9g     = fmt_arg<4, fmt_subreg<9, -3>>;
+using arg5_9g     = fmt_arg<5, fmt_subreg<9, -3>>;
+
+// coldfire: MAC scale-factor (ie <<, >>)
+using arg3_1sf9   = fmt_arg<3, fmt_generic<9, 2, 1>>;
 
 // coldfire: emac ACCn has special formatter
 // NB: `ani` formats: LSB of ACCn is inverted in first word
@@ -207,8 +211,11 @@ struct FMT_0B2_9B2      : fmt_gen, arg1_0b2, arg2_9b2 {};
 
 // coldfire: mac formats
 struct FMT_0UL_9UL               : fmt_gen, arg1_0ul, arg2_9ul {};
-struct FMT_UL0_UL12_0RM_9UL      : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg3_0rm, arg4_9o3b4 {};
-struct FMT_UL0_UL12_X_0RM_9UL    : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg4_0rm, arg5_9o3b4 {};
+struct FMT_UL0_UL12_0RM_9UL      : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg3_0rm, arg4_9g{};
+struct FMT_UL0_UL12_X_0RM_9UL    : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg4_0rm, arg5_9g {};
+
+struct FMT_UL0_UL12_SF_0RM_9G    : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg4_0rm, arg5_9g
+                                                      , arg3_1sf9 {};
 
 // coldfire: emac formats
 struct FMT_0UL_9UL_ANI           : fmt_gen, arg1_0ul, arg2_9ul, arg3_ani {};
@@ -216,8 +223,8 @@ struct FMT_0UL_9UL_X_ANI         : fmt_gen, arg1_0ul, arg2_9ul, arg4_ani {};
 struct FMT_0UL_9UL_AN            : fmt_gen, arg1_0ul, arg2_9ul, arg3_an  {};
 struct FMT_0UL_9UL_X_AN          : fmt_gen, arg1_0ul, arg2_9ul, arg4_an  {};
 
-struct FMT_UL0_UL12_0RM_9UL_AN   : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg3_0rm, arg4_9o3b4, arg5_an {};
-struct FMT_UL0_UL12_X_0RM_9UL_AN : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg4_0rm, arg5_9o3b4, arg6_an {};
+struct FMT_UL0_UL12_0RM_9UL_AN   : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg3_0rm, arg4_9g, arg5_an {};
+struct FMT_UL0_UL12_X_0RM_9UL_AN : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg4_0rm, arg5_9g, arg6_an {};
 
 struct FMT_0UL_9UL_AN_AN2        : fmt_gen, arg1_0ul, arg2_9ul, arg3_an, arg4_an2 {};
 struct FMT_0UL_9UL_X_AN_AN2      : fmt_gen, arg1_0ul, arg2_9ul, arg4_an, arg5_an2 {};

@@ -9,7 +9,7 @@
 // Define `m68k_reg_t::format_name` to handler register prefix
 namespace kas::m68k
 {
-    // static function to generate canonical & alternate names
+    // method to generate canonical & alternate names
     // (ie with & without '%' prefix)
     const char *m68k_reg_t::format_name(const char *orig, unsigned i)
     {
@@ -30,6 +30,17 @@ namespace kas::m68k
             return orig + offset;
         return {};
 #endif
+    }
+
+    // method to calculate general register value
+    uint16_t m68k_reg_t::gen_reg_value() const
+    {
+        auto& defn = select_defn();
+        if (defn.reg_class == RC_DATA)
+            return defn.reg_num;
+        if (defn.reg_class == RC_ADDR)
+            return defn.reg_num + 8;
+        return 0;
     }
 }
 
@@ -72,8 +83,6 @@ using supv_reg_l = list<
     , reg<REG_STR("acc"),   RC_CPU, REG_CPU_ACC     , hw::mac>
     , reg<REG_STR("macsr"), RC_CPU, REG_CPU_MACSR   , hw::mac>
     , reg<REG_STR("mask"),  RC_CPU, REG_CPU_MASK    , hw::mac>
-    , reg<REG_STR("<<"),    RC_CPU, REG_CPU_SF_LEFT , hw::mac>  // NB: comma-separated
-    , reg<REG_STR(">>"),    RC_CPU, REG_CPU_SF_RIGHT, hw::mac>
 
     // coldfire eMAC
     , reg<REG_STR("acc0"), RC_CPU, REG_CPU_ACC0, hw::emac> 
@@ -82,6 +91,10 @@ using supv_reg_l = list<
     , reg<REG_STR("acc3"), RC_CPU, REG_CPU_ACC3, hw::emac> 
     , reg<REG_STR("acc_ext01"), RC_CPU, REG_CPU_ACC_EXT01, hw::emac> 
     , reg<REG_STR("acc_ext23"), RC_CPU, REG_CPU_ACC_EXT23, hw::emac> 
+    
+    // coldfire MAC/eMAC
+    , reg<REG_STR("<<"),    RC_SHIFT, REG_SHIFT_LEFT , hw::mac>  // NB: comma-separated
+    , reg<REG_STR(">>"),    RC_SHIFT, REG_SHIFT_RIGHT, hw::mac>
     >;
 
 // cpu control registers (see movec for values)

@@ -166,8 +166,9 @@ using isa_c   = cpu_defn<STR("isa_c"),  list<isa_b, isa_ap>
 
 // first is default. all listed are available on command line
 using cpu_is_list = list<
-              m68020        // default
+              //m68020        // default
               // m68000
+              isa_a
               //isa_c
               //cpu_test
             , m68000

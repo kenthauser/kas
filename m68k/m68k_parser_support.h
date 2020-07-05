@@ -254,12 +254,11 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
     std::cout << std::endl;
 #endif
 
-    // check for the PARSE_MASK & save in reg_subword field.
-    auto sub_reg = REG_SUBWORD_FULL;
-    if (mode.mode & PARSE_MASK)
+    // check for the PARSE_MASK & save in `has_subword_mask` local
+    auto has_subword_mask = mode.mode & PARSE_MASK;
+    if (has_subword_mask)
     {
         mode.mode &=~ PARSE_MASK;
-        sub_reg    = REG_SUBWORD_MASK;
     }
     
     // direct parsed operands have a single "arg". See what it is.
@@ -287,7 +286,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
             return { error_msg::ERR_no_addr_reg, base.token };
         m68k_arg_t r { mode, base.token };
         r.reg_num     = classify.value();
-        r.reg_subword = sub_reg;
+        //r.reg_subword = sub_reg;
         return r;
     };
 
@@ -307,14 +306,14 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 {
                     m68k_arg_t r{ MODE_DATA_REG, base.token };
                     r.reg_num = classify.value();
-                    r.reg_subword = sub_reg;
+                    r.has_subword_mask = has_subword_mask;
                     return r;
                 }
                 case E_ADDR:
                 {
                     m68k_arg_t r{ MODE_ADDR_REG, base.token };
                     r.reg_num = classify.value();
-                    r.reg_subword = sub_reg;
+                    r.has_subword_mask = has_subword_mask;
                     return r;
                 }
                 case E_EXPR:
@@ -325,7 +324,6 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 {
                     m68k_arg_t r{ MODE_REG, base.token };
                     r.reg_num = classify.value();
-                    r.reg_subword = sub_reg;
                     return r;
                 }
                 case E_REGSET:
@@ -459,23 +457,17 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
             switch (kind)
             {
                 case E_DATA:
-                {
-                    m68k_arg_t r{ MODE_DATA_REG };
-                    r.reg_num = classify.value();
-                    r.reg_subword = (mode.mode == PARSE_SFX_L)
-                                        ? REG_SUBWORD_LOWER 
-                                        : REG_SUBWORD_UPPER;
-                    return r;
-                }
                 case E_ADDR:
                 {
-                    m68k_arg_t r{ MODE_ADDR_REG };
+                    auto arg_mode = MODE_SUBWORD_UPPER;
+                    if (mode.mode == PARSE_SFX_L)
+                        arg_mode = MODE_SUBWORD_LOWER;
+
+                    m68k_arg_t r{ arg_mode, base.token };
                     r.reg_num = classify.value();
-                    r.reg_subword = (mode.mode == PARSE_SFX_L)
-                                        ? REG_SUBWORD_LOWER 
-                                        : REG_SUBWORD_UPPER;
                     return r;
                 }
+                
                 case E_EXPR:
                 case E_INT:
                     // absorb ".l" meaning "long"

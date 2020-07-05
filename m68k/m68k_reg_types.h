@@ -68,11 +68,12 @@ enum : std::uint8_t
     , RC_MMU_68851  // MMUs are similar, but different...
     , RC_MMU_030
     , RC_MMU_040
+    , RC_SHIFT      // coldfire MAC/eMAC
     , NUM_REG_CLASS
 };
 
 // name special registers for easy access
-// NB: REG_CPU_* values are completely arbitrary
+// NB: enum values are completely arbitrary
 enum
 {
       REG_CPU_USP
@@ -82,9 +83,6 @@ enum
     // coldfire MAC /eMAC
     , REG_CPU_MACSR
     , REG_CPU_MASK
-    , REG_CPU_SF_LEFT   // scale factor: "<<"
-    , REG_CPU_SF_RIGHT  // scale factor: ">>"
-
     // coldfire MAC
     , REG_CPU_ACC
     
@@ -95,6 +93,13 @@ enum
     , REG_CPU_ACC3
     , REG_CPU_ACC_EXT01
     , REG_CPU_ACC_EXT23
+};
+
+// name shift "registers"
+enum
+{
+      REG_SHIFT_LEFT  = 1   // scale factor: "<<"
+    , REG_SHIFT_RIGHT = 3   // scale factor: ">>"
 };
 
 // name fp control registers
@@ -152,10 +157,8 @@ using m68k_rs_ref    = core::ref_loc_tpl<m68k_reg_set>;
 using m68k_reg_set_t = typename m68k_rs_ref::object_t;
 
 
-// define `m68k_reg` types as tokens
-//using tok_m68k_reg = parser::token_defn_t<KAS_STRING("M68K_REG"), m68k_reg_t>;
-
 // M68K register type definition is regular
+// NB: implementation of methods in `m68k_reg_defn.h`
 struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t, KAS_STRING("M68K")
                                 , hw::cpu_defs_t, m68k_reg_set_t>
 {
@@ -164,6 +167,10 @@ struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t, KAS_STRING("M68K")
     using reg_defn_idx_t = uint8_t;
     
     using base_t::base_t;       // use inherited ctors
+
+    // return "general register" value (for m68k_extension & other uses)
+    // NB: undefined value if register is not general register
+    uint16_t gen_reg_value() const;
 
     // modify name according to `reg_prefix` as required
     // NB: if `PFX_ALLOW`, both names are added to register name parser
