@@ -164,6 +164,10 @@ struct tgt_reg_adder
                 // create instance (numbering instances from 1)
                 auto obj_p = &OBJECT_T::add(canonical);
 
+                // don't add register name that is not parsed
+                if (obj_p->is_unparseable())
+                    continue;
+
                 // add all names
                 for (unsigned i = 0; true; ++i)
                 {

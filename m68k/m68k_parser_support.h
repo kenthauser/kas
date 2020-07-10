@@ -257,9 +257,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
     // check for the PARSE_MASK & save in `has_subword_mask` local
     auto has_subword_mask = mode.mode & PARSE_MASK;
     if (has_subword_mask)
-    {
         mode.mode &=~ PARSE_MASK;
-    }
     
     // direct parsed operands have a single "arg". See what it is.
     auto& base_value = base.token.expr();
@@ -286,7 +284,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
             return { error_msg::ERR_no_addr_reg, base.token };
         m68k_arg_t r { mode, base.token };
         r.reg_num     = classify.value();
-        //r.reg_subword = sub_reg;
+        r.has_subword_mask = has_subword_mask;
         return r;
     };
 
@@ -373,6 +371,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                         r.ext.disp_size      = M_SIZE_ZERO;
                         r.ext.base_suppress  = true;
                         r.ext.has_index_reg  = true;
+                        r.has_subword_mask = has_subword_mask;
                         return r;
                     }
                     // FALLSTHRU

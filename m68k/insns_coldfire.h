@@ -9,207 +9,124 @@ namespace kas::m68k::opc::ns_coldfire
 #define STR KAS_STRING
 
 using cf_mac_moves_v = list<list<>
-// generic mac
-, defn<sz_l, STR("move"), OP<0xa980, coldfire>, FMT_X_0RM, MACSR,   GEN_REG>
-, defn<sz_l, STR("move"), OP<0xa9c0, coldfire>, void,      MACSR,   CCR>
-, defn<sz_l, STR("move"), OP<0xa900, coldfire>, FMT_0RM,   GEN_REG, MACSR>
-, defn<sz_l, STR("move"), OP<0xa900, coldfire>, FMT_0RM,   IMMED,   MACSR>
 
-, defn<sz_l, STR("move"), OP<0xad80, coldfire>, FMT_X_0RM, MASK,    GEN_REG>
-, defn<sz_l, STR("move"), OP<0xad00, coldfire>, FMT_0RM,   GEN_REG, MASK>
-, defn<sz_l, STR("move"), OP<0xad00, coldfire>, FMT_0RM,   IMMED,   MASK>
-
-// original mac: access ACC
-, defn<sz_l, STR("move"), OP<0xa180, mac>, FMT_X_0RM, ACC, GEN_REG>
-, defn<sz_l, STR("move"), OP<0xa100, mac>, FMT_0RM,   GEN_REG, ACC>
-, defn<sz_l, STR("move"), OP<0xa100, mac>, FMT_0RM,   IMMED, ACC>
+// MAC + eMAC: moves
+, defn<sz_l, STR("move"), OP<0xa180, coldfire>, FMT_9_0RM, MAC, GEN_REG>
+, defn<sz_l, STR("move"), OP<0xa100, coldfire>, FMT_0RM_9, MAC_GEN, MAC>
     
-// emac access ACC_N
-// acc = 2 bit field, shifted 9 in first word
-, defn<sz_l, STR("move"), OP<0xa180, emac>, FMT_9B2_0RM, ACC_N, GEN_REG>
-, defn<sz_l, STR("move"), OP<0xa100, emac>, FMT_0RM_9B2, GEN_REG, ACC_N>
-, defn<sz_l, STR("move"), OP<0xa100, emac>, FMT_0RM_9B2, IMMED, ACC_N>
+, defn<sz_l, STR("move"), OP<0xa9c0, coldfire>, void, MACSR, CCR>
+, defn<sz_l, STR("move"), OP<0xa110, emac>, FMT_0_9, ACC, ACC>
 
-// src = w0b0, dst = w0b9
-, defn<sz_l, STR("move"), OP<0xa110, emac>, FMT_0B2_9B2, ACC_N, ACC_N>
-
-// acc = w0b9
-, defn<sz_l, STR("movclr"), OP<0xa1c0, emac>, FMT_9B2_0RM, ACC_N, GEN_REG>
-    
-// emac access ACC_EXT..
-, defn<sz_l, STR("move"), OP<0xab80, emac>, FMT_X_0RM, ACC_EXT01, GEN_REG>
-, defn<sz_l, STR("move"), OP<0xaf80, emac>, FMT_X_0RM, ACC_EXT23, GEN_REG>
-, defn<sz_l, STR("move"), OP<0xab00, emac>, FMT_0RM, GEN_REG, ACC_EXT01>
-, defn<sz_l, STR("move"), OP<0xaf00, emac>, FMT_0RM, GEN_REG, ACC_EXT23>
-, defn<sz_l, STR("move"), OP<0xab00, emac>, FMT_0RM, IMMED, ACC_EXT01>
-, defn<sz_l, STR("move"), OP<0xaf00, emac>, FMT_0RM, IMMED, ACC_EXT23>
+, defn<sz_l, STR("movclr"), OP<0xa1c0, emac>, FMT_9_0RM, ACC, GEN_REG>
 >;
 
 // the MAC (and eMAC) have many odd syntax quarks (eg optional << or >>)
 // Also optional `&` after indirect arg to indicate MASK in use
+//
+// NB: using separate MASK validators allows the "mask" bit to be encoded
+// via validator instead if via standard serialze methods (ie arg.mode, etc)
+// Not strictly compatible with "list" format, but "list" should never be
+// required for "m***l" formats which use mask, as args are never ambiguous
+
 using cf_mac_v = list<list<>
 // original mac
-// dst msb = w0b6, src ul = w1b6, dst ul = w1b7
-, defn<sz_w, STR("mac"),  OP<0xa000'0000, mac>, FMT_0UL_9UL, REG_UL, REG_UL>
-, defn<sz_w, STR("mac"),  OP<0xa000'0200, mac>, FMT_0UL_9UL, REG_UL, REG_UL, SF_LEFT>
-, defn<sz_w, STR("mac"),  OP<0xa000'0600, mac>, FMT_0UL_9UL, REG_UL, REG_UL, SF_RIGHT>
-, defn<sz_l, STR("mac"),  OP<0xa000'0800, mac>, FMT_0UL_9UL, GEN_REG, GEN_REG>
-, defn<sz_l, STR("mac"),  OP<0xa000'0a00, mac>, FMT_0UL_9UL, GEN_REG, GEN_REG, SF_LEFT>
-, defn<sz_l, STR("mac"),  OP<0xa000'0e00, mac>, FMT_0UL_9UL, GEN_REG, GEN_REG, SF_RIGHT>
-    
-, defn<sz_w, STR("msac"),  OP<0xa000'0100, mac>, FMT_0UL_9UL, REG_UL, REG_UL>
-, defn<sz_w, STR("msac"),  OP<0xa000'0300, mac>, FMT_0UL_9UL, REG_UL, REG_UL, SF_LEFT>
-, defn<sz_w, STR("msac"),  OP<0xa000'0700, mac>, FMT_0UL_9UL, REG_UL, REG_UL, SF_RIGHT>
-, defn<sz_l, STR("msac"),  OP<0xa000'0900, mac>, FMT_0UL_9UL, GEN_REG, GEN_REG>
-, defn<sz_l, STR("msac"),  OP<0xa000'0b00, mac>, FMT_0UL_9UL, GEN_REG, GEN_REG, SF_LEFT>
-, defn<sz_l, STR("msac"),  OP<0xa000'0f00, mac>, FMT_0UL_9UL, GEN_REG, GEN_REG, SF_RIGHT>
+// MAC/MSAS without load
+, defn<sz_lw, STR("mac"),  OP<0xa000'0000, mac, INFO_SIZE_MAC>
+                , FMT_0UL_9UL, REG_UL, REG_UL>
+, defn<sz_lw, STR("mac"),  OP<0xa000'0000, mac, INFO_SIZE_MAC>
+                , FMT_0UL_9UL_SF, REG_UL, REG_UL, CF_SHIFT>
 
-// INDIRECT doesn't match `MASK` versions. INDIR_MASK matches both.
+, defn<sz_lw, STR("msac"),  OP<0xa000'0100, mac, INFO_SIZE_MAC>
+                , FMT_0UL_9UL, REG_UL, REG_UL>
+, defn<sz_lw, STR("msac"),  OP<0xa000'0100, mac, INFO_SIZE_MAC>
+                , FMT_0UL_9UL_SF, REG_UL, REG_UL, CF_SHIFT>
+
+// MAC/MSAS with load
+// nxp app notes show `l`, but programmers reference doesn't... 
+// INDIR_MASK validator requires `MASK`. INDIRECT matches both with & without.
 // First to match is chosen...so order matters
-, defn<sz_w, STR("macl"),  OP<0xa080'0000, mac>
-        , FMT_UL0_UL12_0RM_9UL,   REG_UL, REG_UL, INDIRECT, GEN_REG>
-, defn<sz_w, STR("macl"),  OP<0xa080'0020, mac>
-        , FMT_UL0_UL12_0RM_9UL,   REG_UL, REG_UL, INDIR_MASK, GEN_REG>
-#if 0
-, defn<sz_w, STR("macl"),  OP<0xa080'0200, mac>
-        , FMT_UL0_UL12_SF_0RM_9G, REG_UL, REG_UL, SF, INDIRECT, GEN_REG>
-#endif
-, defn<sz_w, STR("macl"),  OP<0xa080'0220, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, REG_UL, REG_UL, SF_LEFT, INDIR_MASK, GEN_REG>
-, defn<sz_w, STR("macl"),  OP<0xa080'0600, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG>
-, defn<sz_w, STR("macl"),  OP<0xa080'0620, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG>
+, defn<sz_lw, STR("macl"),  OP<0xa080'0020, mac, INFO_SIZE_MAC>
+        , FMT_UL0_UL12_SF_0RM_9G,   REG_UL, REG_UL, INDIR_MASK, GEN_REG>
+, defn<sz_lw, STR("macl"),  OP<0xa080'0000, mac, INFO_SIZE_MAC>
+        , FMT_UL0_UL12_SF_0RM_9G,   REG_UL, REG_UL, INDIRECT, GEN_REG>
+, defn<sz_lw, STR("macl"),  OP<0xa080'0020, mac, INFO_SIZE_MAC>
+        , FMT_UL0_UL12_SF_0RM_9G,   REG_UL, REG_UL, CF_SHIFT, INDIR_MASK, GEN_REG>
+, defn<sz_lw, STR("macl"),  OP<0xa080'0000, mac, INFO_SIZE_MAC>
+        , FMT_UL0_UL12_SF_0RM_9G,   REG_UL, REG_UL, CF_SHIFT, INDIRECT, GEN_REG>
 
-, defn<sz_l, STR("macl"),  OP<0xa080'0800, mac>
-        , FMT_UL0_UL12_0RM_9UL,   GEN_REG, GEN_REG, INDIRECT, GEN_REG>
-, defn<sz_l, STR("macl"),  OP<0xa080'0820, mac>
-        , FMT_UL0_UL12_0RM_9UL,   GEN_REG, GEN_REG, INDIR_MASK, GEN_REG>
-, defn<sz_l, STR("macl"),  OP<0xa080'0a00, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, GEN_REG, GEN_REG, SF_LEFT, INDIRECT, GEN_REG>
-, defn<sz_l, STR("macl"),  OP<0xa080'0a20, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, GEN_REG, GEN_REG, SF_LEFT, INDIR_MASK, GEN_REG>
-, defn<sz_l, STR("macl"),  OP<0xa080'0e00, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, GEN_REG, GEN_REG, SF_RIGHT, INDIRECT, GEN_REG>
-, defn<sz_l, STR("macl"),  OP<0xa080'0e20, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, GEN_REG, GEN_REG, SF_RIGHT, INDIR_MASK, GEN_REG>
-    
-, defn<sz_w, STR("msacl"),  OP<0xa080'0100, mac>
-        , FMT_UL0_UL12_0RM_9UL,   REG_UL, REG_UL, INDIRECT, GEN_REG>
-, defn<sz_w, STR("msacl"),  OP<0xa080'0120, mac>
-        , FMT_UL0_UL12_0RM_9UL,   REG_UL, REG_UL, INDIR_MASK, GEN_REG>
-
-//
-, defn<sz_w, STR("msacl"),  OP<0xa080'0100, mac>
-        , FMT_UL0_UL12_SF_0RM_9G, REG_UL, REG_UL, SHIFT_FACTOR, INDIRECT, GEN_REG>
-//
-
-, defn<sz_w, STR("msacl"),  OP<0xa080'0320, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, REG_UL, REG_UL, SF_LEFT, INDIR_MASK, GEN_REG>
-//, defn<sz_w, STR("msacl"),  OP<0xa080'0700, mac>
-//        , FMT_UL0_UL12_X_0RM_9UL, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG>
-, defn<sz_w, STR("msacl"),  OP<0xa080'0720, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG>
-
-, defn<sz_l, STR("msacl"),  OP<0xa080'0900, mac>
-        , FMT_UL0_UL12_0RM_9UL,   GEN_REG, GEN_REG, INDIRECT, GEN_REG>
-, defn<sz_l, STR("msacl"),  OP<0xa080'0920, mac>
-        , FMT_UL0_UL12_0RM_9UL,   GEN_REG, GEN_REG, INDIR_MASK, GEN_REG>
-, defn<sz_l, STR("msacl"),  OP<0xa080'0b00, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, GEN_REG, GEN_REG, SF_LEFT, INDIRECT, GEN_REG>
-, defn<sz_l, STR("msacl"),  OP<0xa080'0b20, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, GEN_REG, GEN_REG, SF_LEFT, INDIR_MASK, GEN_REG>
-, defn<sz_l, STR("msacl"),  OP<0xa080'0f00, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, GEN_REG, GEN_REG, SF_RIGHT, INDIRECT, GEN_REG>
-, defn<sz_l, STR("msacl"),  OP<0xa080'0f20, mac>
-        , FMT_UL0_UL12_X_0RM_9UL, GEN_REG, GEN_REG, SF_RIGHT, INDIR_MASK, GEN_REG>
-#if 0 
-// Manual calls ops `mac` but app notes use `macl`. 
-// Duplicate LOAD instructions w/o `L` suffix
-#endif
+, defn<sz_lw, STR("msacl"),  OP<0xa080'0120, mac, INFO_SIZE_MAC>
+        , FMT_UL0_UL12_SF_0RM_9G,   REG_UL, REG_UL, INDIR_MASK, GEN_REG>
+, defn<sz_lw, STR("msacl"),  OP<0xa080'0100, mac, INFO_SIZE_MAC>
+        , FMT_UL0_UL12_SF_0RM_9G,   REG_UL, REG_UL, INDIRECT, GEN_REG>
+, defn<sz_lw, STR("msacl"),  OP<0xa080'0120, mac, INFO_SIZE_MAC>
+        , FMT_UL0_UL12_SF_0RM_9G,   REG_UL, REG_UL, CF_SHIFT, INDIR_MASK, GEN_REG>
+, defn<sz_lw, STR("msacl"),  OP<0xa080'0100, mac, INFO_SIZE_MAC>
+        , FMT_UL0_UL12_SF_0RM_9G,   REG_UL, REG_UL, CF_SHIFT, INDIRECT, GEN_REG>
 >;
 
-using cf_emac_v = list<list<>
 // extended mac
-, defn<sz_w, STR("mac"),  OP<0xa000'0000, emac>, FMT_0UL_9UL_ANI,   REG_UL, REG_UL, ACC_N>
-, defn<sz_w, STR("mac"),  OP<0xa000'0200, emac>, FMT_0UL_9UL_X_ANI, REG_UL, REG_UL, SF_LEFT, ACC_N>
-, defn<sz_w, STR("mac"),  OP<0xa000'0600, emac>, FMT_0UL_9UL_X_ANI, REG_UL, REG_UL, SF_RIGHT, ACC_N>
-, defn<sz_l, STR("mac"),  OP<0xa000'0800, emac>, FMT_0UL_9UL_ANI,   GEN_REG, GEN_REG, ACC_N>
-, defn<sz_l, STR("mac"),  OP<0xa000'0a00, emac>, FMT_0UL_9UL_X_ANI, GEN_REG, GEN_REG, SF_LEFT, ACC_N>
-, defn<sz_l, STR("mac"),  OP<0xa000'0e00, emac>, FMT_0UL_9UL_X_ANI, GEN_REG, GEN_REG, SF_RIGHT, ACC_N>
+using cf_emac_v = list<list<>
+// eMAC MAC/MSAS without load
+, defn<sz_lw, STR("mac"),  OP<0xa000'0000, emac, INFO_SIZE_MAC>
+    , FMT_0UL_9UL_AN,   REG_UL, REG_UL, ACC>
+, defn<sz_lw, STR("mac"),  OP<0xa000'0000, emac, INFO_SIZE_MAC>
+    , FMT_0UL_9UL_SF_AN, REG_UL, REG_UL, CF_SHIFT, ACC>
 
-, defn<sz_w, STR("msac"),  OP<0xa000'0100, emac>, FMT_0UL_9UL_AN,   REG_UL, REG_UL, ACC_N>
-, defn<sz_w, STR("msac"),  OP<0xa000'0300, emac>, FMT_0UL_9UL_X_AN, REG_UL, REG_UL, SF_LEFT, ACC_N>
-, defn<sz_w, STR("msac"),  OP<0xa000'0700, emac>, FMT_0UL_9UL_X_AN, REG_UL, REG_UL, SF_RIGHT, ACC_N>
-, defn<sz_l, STR("msac"),  OP<0xa000'0900, emac>, FMT_0UL_9UL_AN,   GEN_REG, GEN_REG, ACC_N>
-, defn<sz_l, STR("msac"),  OP<0xa000'0b00, emac>, FMT_0UL_9UL_X_AN, GEN_REG, GEN_REG, SF_LEFT, ACC_N>
-, defn<sz_l, STR("msac"),  OP<0xa000'0f00, emac>, FMT_0UL_9UL_X_AN, GEN_REG, GEN_REG, SF_RIGHT, ACC_N>
+, defn<sz_lw, STR("msac"),  OP<0xa000'0100, emac, INFO_SIZE_MAC>
+        , FMT_0UL_9UL_AN,   REG_UL, REG_UL, ACC>
+, defn<sz_lw, STR("msac"),  OP<0xa000'0300, emac, INFO_SIZE_MAC>
+        , FMT_0UL_9UL_SF_AN, REG_UL, REG_UL, CF_SHIFT, ACC>
    
-// Multiply & load
-// accumulator_N LSB is inverted! Wow!
-, defn<sz_w, STR("macl"),  OP<0xa000'0000, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
-, defn<sz_w, STR("macl"),  OP<0xa000'0020, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
-, defn<sz_w, STR("macl"),  OP<0xa000'0200, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
-, defn<sz_w, STR("macl"),  OP<0xa000'0220, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
-, defn<sz_w, STR("macl"),  OP<0xa000'0600, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
-, defn<sz_w, STR("macl"),  OP<0xa000'0620, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
+// MAC/MSAS with load
+// nxp app notes show `l`, but programmers reference doesn't... 
+// INDIR_MASK validator requires `MASK`. INDIRECT matches both with & without.
+// First to match is chosen...so order matters
 
-, defn<sz_l, STR("macl"),  OP<0xa000'0800, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
-, defn<sz_l, STR("macl"),  OP<0xa000'0820, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
-, defn<sz_l, STR("macl"),  OP<0xa000'0a00, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
-, defn<sz_l, STR("macl"),  OP<0xa000'0a20, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
-, defn<sz_l, STR("macl"),  OP<0xa000'0e00, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
-, defn<sz_l, STR("macl"),  OP<0xa000'0e20, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
+// accumulator_N LSB is inverted for `loads`! Wow!
+, defn<sz_lw, STR("macl"),  OP<0xa000'0000, emac, INFO_SIZE_MAC>
+    , FMT_UL0_UL12_0RM_9G_ANI,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC>
+, defn<sz_lw, STR("macl"),  OP<0xa000'0020, emac, INFO_SIZE_MAC>
+    , FMT_UL0_UL12_0RM_9G_ANI,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC>
+, defn<sz_lw, STR("macl"),  OP<0xa000'0000, emac, INFO_SIZE_MAC>
+    , FMT_UL0_UL12_SF_0RM_9G_ANI, REG_UL, REG_UL, CF_SHIFT,  INDIRECT, GEN_REG, ACC>
+, defn<sz_lw, STR("macl"),  OP<0xa000'0020, emac, INFO_SIZE_MAC>
+    , FMT_UL0_UL12_SF_0RM_9G_ANI, REG_UL, REG_UL, CF_SHIFT,  INDIR_MASK, GEN_REG, ACC>
 
-, defn<sz_w, STR("msacl"),  OP<0xa000'0100, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
-, defn<sz_w, STR("msacl"),  OP<0xa000'0120, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
-, defn<sz_w, STR("msacl"),  OP<0xa000'0300, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
-, defn<sz_w, STR("msacl"),  OP<0xa000'0320, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
-, defn<sz_w, STR("msacl"),  OP<0xa000'0700, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
-, defn<sz_w, STR("msacl"),  OP<0xa000'0720, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
-
-, defn<sz_l, STR("msacl"),  OP<0xa000'0900, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N>
-, defn<sz_l, STR("msacl"),  OP<0xa000'0920, emac>, FMT_UL0_UL12_0RM_9UL_AN,   REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N>
-, defn<sz_l, STR("msacl"),  OP<0xa000'0b00, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIRECT, GEN_REG, ACC_N>
-, defn<sz_l, STR("msacl"),  OP<0xa000'0b20, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_LEFT,  INDIR_MASK, GEN_REG, ACC_N>
-, defn<sz_l, STR("msacl"),  OP<0xa000'0f00, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N>
-, defn<sz_l, STR("msacl"),  OP<0xa000'0f20, emac>, FMT_UL0_UL12_X_0RM_9UL_AN, REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N>
-
-#if 0
-// nxp app notes show `l`, but programmers reference doesn't... duplicate entries
-#endif
+, defn<sz_lw, STR("msacl"),  OP<0xa000'0100, emac, INFO_SIZE_MAC>
+        , FMT_UL0_UL12_0RM_9G_ANI, REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC>
+, defn<sz_lw, STR("msacl"),  OP<0xa000'0100, emac, INFO_SIZE_MAC>
+        , FMT_UL0_UL12_0RM_9G_ANI, REG_UL, REG_UL, INDIRECT, GEN_REG, ACC>
+, defn<sz_lw, STR("msacl"),  OP<0xa000'0100, emac, INFO_SIZE_MAC>
+        , FMT_UL0_UL12_SF_0RM_9G_ANI, REG_UL, REG_UL, CF_SHIFT, INDIR_MASK, GEN_REG, ACC>
+, defn<sz_lw, STR("msacl"),  OP<0xa000'0100, emac, INFO_SIZE_MAC>
+        , FMT_UL0_UL12_SF_0RM_9G_ANI, REG_UL, REG_UL, CF_SHIFT, INDIRECT, GEN_REG, ACC>
 >;
 
+// eMAC rev-B insns
 using cf_emac_b_v = list<list<>
-, defn<sz_w, STR("maaac"),  OP<0xa000'0001, emac_b>, FMT_0UL_9UL_AN_AN2,   REG_UL, REG_UL, ACC_N, ACC_N>
-, defn<sz_w, STR("maaac"),  OP<0xa000'0201, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_LEFT, ACC_N, ACC_N>
-, defn<sz_w, STR("maaac"),  OP<0xa000'0601, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_RIGHT, ACC_N, ACC_N>
-, defn<sz_l, STR("maaac"),  OP<0xa000'0801, emac_b>, FMT_0UL_9UL_AN_AN2,   GEN_REG, GEN_REG, ACC_N, ACC_N>
-, defn<sz_l, STR("maaac"),  OP<0xa000'0a01, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_LEFT, ACC_N, ACC_N>
-, defn<sz_l, STR("maaac"),  OP<0xa000'0e01, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_RIGHT, ACC_N, ACC_N>
+, defn<sz_lw, STR("maaac"),  OP<0xa000'0001, emac_b, INFO_SIZE_MAC>
+        , FMT_0UL_9UL_AN_AN2,   REG_UL, REG_UL, ACC, ACC>
+, defn<sz_lw, STR("maaac"),  OP<0xa000'0001, emac_b, INFO_SIZE_MAC>
+        , FMT_0UL_9UL_SF_AN_AN2, REG_UL, REG_UL, CF_SHIFT, ACC, ACC>
     
-, defn<sz_w, STR("masac"),  OP<0xa000'0003, emac_b>, FMT_0UL_9UL_AN_AN2,   REG_UL, REG_UL, ACC_N, ACC_N>
-, defn<sz_w, STR("masac"),  OP<0xa000'0203, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_LEFT, ACC_N, ACC_N>
-, defn<sz_w, STR("masac"),  OP<0xa000'0603, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_RIGHT, ACC_N, ACC_N>
-, defn<sz_l, STR("masac"),  OP<0xa000'0803, emac_b>, FMT_0UL_9UL_AN_AN2,   GEN_REG, GEN_REG, ACC_N, ACC_N>
-, defn<sz_l, STR("masac"),  OP<0xa000'0a03, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_LEFT, ACC_N, ACC_N>
-, defn<sz_l, STR("masac"),  OP<0xa000'0e03, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_RIGHT, ACC_N, ACC_N>
+, defn<sz_lw, STR("masac"),  OP<0xa000'0003, emac_b, INFO_SIZE_MAC>
+        , FMT_0UL_9UL_AN_AN2,   REG_UL, REG_UL, ACC, ACC>
+, defn<sz_lw, STR("masac"),  OP<0xa000'0003, emac_b, INFO_SIZE_MAC>
+        , FMT_0UL_9UL_SF_AN_AN2, REG_UL, REG_UL, CF_SHIFT, ACC, ACC>
     
-, defn<sz_w, STR("msaac"),  OP<0xa000'0101, emac_b>, FMT_0UL_9UL_AN_AN2,   REG_UL, REG_UL, ACC_N, ACC_N>
-, defn<sz_w, STR("msaac"),  OP<0xa000'0301, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_LEFT, ACC_N, ACC_N>
-, defn<sz_w, STR("msaac"),  OP<0xa000'0701, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_RIGHT, ACC_N, ACC_N>
-, defn<sz_l, STR("msaac"),  OP<0xa000'0901, emac_b>, FMT_0UL_9UL_AN_AN2,   GEN_REG, GEN_REG, ACC_N, ACC_N>
-, defn<sz_l, STR("msaac"),  OP<0xa000'0b01, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_LEFT, ACC_N, ACC_N>
-, defn<sz_l, STR("msaac"),  OP<0xa000'0f01, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_RIGHT, ACC_N, ACC_N>
+, defn<sz_lw, STR("msaac"),  OP<0xa000'0101, emac_b, INFO_SIZE_MAC>
+        , FMT_0UL_9UL_AN_AN2,   REG_UL, REG_UL, ACC, ACC>
+, defn<sz_lw, STR("msaac"),  OP<0xa000'0101, emac_b, INFO_SIZE_MAC>
+        , FMT_0UL_9UL_SF_AN_AN2, REG_UL, REG_UL, CF_SHIFT, ACC, ACC>
     
-, defn<sz_w, STR("mssac"),  OP<0xa000'0101, emac_b>, FMT_0UL_9UL_AN_AN2,   REG_UL, REG_UL, ACC_N, ACC_N>
-, defn<sz_w, STR("mssac"),  OP<0xa000'0301, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_LEFT, ACC_N, ACC_N>
-, defn<sz_w, STR("mssac"),  OP<0xa000'0701, emac_b>, FMT_0UL_9UL_X_AN_AN2, REG_UL, REG_UL, SF_RIGHT, ACC_N, ACC_N>
-, defn<sz_l, STR("mssac"),  OP<0xa000'0901, emac_b>, FMT_0UL_9UL_AN_AN2,   GEN_REG, GEN_REG, ACC_N, ACC_N>
-, defn<sz_l, STR("mssac"),  OP<0xa000'0b01, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_LEFT, ACC_N, ACC_N>
-, defn<sz_l, STR("mssac"),  OP<0xa000'0f01, emac_b>, FMT_0UL_9UL_X_AN_AN2, GEN_REG, GEN_REG, SF_RIGHT, ACC_N, ACC_N>
+, defn<sz_lw, STR("mssac"),  OP<0xa000'0103, emac_b, INFO_SIZE_MAC>
+        , FMT_0UL_9UL_AN_AN2,   REG_UL, REG_UL, ACC, ACC>
+, defn<sz_lw, STR("mssac"),  OP<0xa000'0103, emac_b, INFO_SIZE_MAC>
+        , FMT_0UL_9UL_SF_AN_AN2, REG_UL, REG_UL, CF_SHIFT, ACC, ACC>
 >;
 
+
+// generic coldfire INSNS
 using cf_supv_v = list<list<>
 // re-add core insns otherwise excluded
 , defn<sz_vb, STR("tas"),  OP<0x4ac0, isa_c>, FMT_0RM, DATA_ALTER>
@@ -241,7 +158,7 @@ using cf_supv_v = list<list<>
 // DEBUG cp
 , defn<sz_l, STR("wdebug"),  OP<0xfbc0'0003, isa_a>, FMT_0RM, ADDR_INDIR>
 , defn<sz_l, STR("wdebug"),  OP<0xfbc0'0003, isa_a>, FMT_0RM, ADDR_DISP> 
-, defn<sz_lwb, STR("wddata"), OP<0xfb00, isa_a>, FMT_0RM, MEM_ALTER>
+, defn<sz_lwb, STR("wddata"), OP<0xfb00, isa_a, INFO_SIZE_NORM>, FMT_0RM, MEM_ALTER>
     
 >; 
 

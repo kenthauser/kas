@@ -68,17 +68,18 @@ auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
     // get reference to current stmt
     auto& stmt = *static_cast<m68k_stmt_t const *>(stmt_p);
     auto  sz   = stmt.flags.arg_size;
+    auto _mode = mode();
 
     // 0. perform generic checks
     if (auto result = base_t::ok_for_target(stmt_p))
         return result;
 
     // 1. can't access address register as byte
-    if (mode() == MODE_ADDR_REG && sz == OP_SIZE_BYTE)
+    if (_mode == MODE_ADDR_REG && sz == OP_SIZE_BYTE)
        return error(error_msg::ERR_addr_reg_byte);
 
     // 2. floating point: allow register direct for 32-bit & under `source size`
-    if (mode() <= MODE_ADDR_REG)
+    if (_mode <= MODE_ADDR_REG)
         if (immed_info(sz).sz_bytes > 4)
             return error(error_msg::ERR_direct);
 
@@ -91,7 +92,7 @@ auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
         if (auto msg = hw::cpu_defs[hw::fpu_p_addr()])
             return error(msg);
 #if 0
-    // XXX are these already precluded by 3-byte rule?
+    // XXX are these already precluded by 3-word rule?
     // 4. floating point: iff coldfire, restrict modes
     if (info.is_cp(hw::fpu{}) && !(*reg_t::hw_cpu_p)[hw::coldfire{}])
     {
@@ -111,13 +112,17 @@ auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
     }
 #endif
 
-    // 5. disallow "SUBWORD" (coldfire MAC) except on coldfire
+    // 5. disallow "SUBWORD" (coldfire MAC) except on coldfire with `word` format
     if (has_subword_mask
-        || mode() == MODE_SUBWORD_LOWER
-        || mode() == MODE_SUBWORD_UPPER)
+        || _mode == MODE_SUBWORD_LOWER
+        || _mode == MODE_SUBWORD_UPPER)
+    {
 
         if (auto err = hw::cpu_defs[hw::coldfire{}])
             return error(error_msg::ERR_subreg);
+        if (_mode > MODE_ADDR_REG && sz != OP_SIZE_WORD)
+            return error("X subreg for long instruction");
+    }
 
     return {};
 }

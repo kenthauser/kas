@@ -60,6 +60,18 @@ auto tgt_reg<Derived, N, HW, RS, IDX, B, C, V>::
     // assign to `defns[0]` if first; else to `defns[1]`
     if (!defns[0]) 
         defns[0] = n + 1;
+#ifdef XXX
+    else if (auto tst = get_defn(defns[0]).reg_tst)
+    {
+        // test if previously defined defn is supported
+        if ((*hw_cpu_p)[tst])
+        {
+            if (!defns[1])
+                defns[1] = defns[0];
+            defns[0] = n + 1;
+        }
+    }
+#endif
     else if (!defns[1])
         defns[1] = n + 1;
     else
@@ -102,6 +114,20 @@ auto tgt_reg<Derived, N, HW, RS, IDX, B, C, V>::
         return (*hw_cpu_p)[tst];
     return {};
 }
+
+
+template <typename Derived, typename N, typename HW, typename RS, typename IDX
+            , typename B, unsigned C, unsigned V>
+auto tgt_reg<Derived, N, HW, RS, IDX, B, C, V>::
+    is_unparseable() const -> bool
+{
+    return false;
+    auto& defn = get_defn(defns[0]);
+    return defn.name()[0] == '*';
+}
+
+
+
 }
 
 #endif

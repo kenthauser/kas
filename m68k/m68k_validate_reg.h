@@ -66,8 +66,11 @@ enum {
     , AM_REGSET     = 1 <<  7
     , AM_PDEC       = 1 <<  8
     , AM_PINC       = 1 <<  9
-    , AM_INDIRECT   = 1 << 10
-    , AM_GEN_REG    = 1 << 11
+// coldfire MAC validator bits
+    , AM_INDIRECT   = 1 << 10       // mode = 2/3/4/5
+    , AM_GEN_REG    = 1 << 11       // mode = 0/1
+    , AM_MAC_GEN    = 1 << 12       // mode = 0/1/7-4
+// default for no match
     , AM_NONE       = 1 << 15
     };
 
@@ -183,6 +186,10 @@ struct val_reg : m68k_mcode_t::val_t
        if (reg.kind() != r_class)
             return fits.no;
 
+        // unparseable registers don't match
+        if (reg.is_unparseable())
+            return fits.no;
+
         // here reg-class matches. Test reg-num if specified
         // test if testing for rc_class only (ie. rc_value < 0)
         if (r_num < 0)
@@ -246,10 +253,8 @@ VAL(MEM_ALTER,      AM_MEMORY | AM_ALTERABLE);
 VAL(IMMED,          AM_IMMED, MODE_IMMEDIATE);  // mode == 7-4
 VAL(POST_INCR,      AM_PINC,  MODE_POST_INCR);  // mode == 3
 VAL(PRE_DECR,       AM_PDEC,  MODE_PRE_DECR);   // mode == 4
-VAL(DIRECT,         AM_DIRECT);             // mode == 7-0 & 7-1
-VAL(INDIRECT,       AM_INDIRECT);           // mode == 2/3/4/5
-VAL(GEN_REG,        AM_GEN_REG);            // mode == 0/1
-VAL(CONTROL_INDIR,  AM_CTRL | AM_INDIRECT); // mode == 2/5
+VAL(DIRECT,         AM_DIRECT);                 // mode == 7-0 & 7-1
+VAL(CONTROL_INDIR,  AM_CTRL | AM_INDIRECT);     // mode == 2/5
 
 // register-class and register-specific validations 
 VAL_REG(DATA_REG,   RC_DATA);
@@ -257,24 +262,23 @@ VAL_REG(ADDR_REG,   RC_ADDR);
 VAL_REG(CTRL_REG,   RC_CTRL);
 VAL_REG(FP_REG,     RC_FLOAT);
 VAL_REG(FCTRL_REG,  RC_FCTRL);
-VAL_REG(SHIFT_FACTOR, RC_SHIFT);
 
 VAL_REG(FPIAR,      RC_FCTRL, REG_FPCTRL_IAR);
 VAL_REG(SR,         RC_CPU,   REG_CPU_SR);
 VAL_REG(CCR,        RC_CPU,   REG_CPU_CCR);
 VAL_REG(USP,        RC_CPU,   REG_CPU_USP);
 
-// coldfire MAC adds many named registers...
-VAL_REG(ACC,        RC_CPU,   REG_CPU_ACC);
-VAL_REG(MACSR,      RC_CPU,   REG_CPU_MACSR);
-VAL_REG(MASK,       RC_CPU,   REG_CPU_MASK);
-VAL_REG(ACC_EXT01,  RC_CPU,   REG_CPU_ACC_EXT01);
-VAL_REG(ACC_EXT23,  RC_CPU,   REG_CPU_ACC_EXT23);
-VAL_REG(SF_LEFT,    RC_SHIFT, REG_SHIFT_LEFT);
-VAL_REG(SF_RIGHT,   RC_SHIFT, REG_SHIFT_RIGHT);
-
 // MMU registers
 VAL_REG(MMU_VAL,    RC_MMU_68851, 0x150);
+
+// coldfire MAC validators
+VAL(GEN_REG,        AM_GEN_REG);            // mode == 0/1
+VAL(MAC_GEN,        AM_MAC_GEN);            // mode == 0/1/7-4 (for MAC/eMAC)
+VAL(INDIRECT,       AM_INDIRECT);           // mode == 2/3/4/5
+
+VAL_REG(MAC,        RC_MAC);
+VAL_REG(CF_SHIFT,   RC_SHIFT);
+VAL_REG(MACSR,      RC_MAC,   REG_MAC_MACSR);
 
 #undef VAL
 #undef VAL_REG
@@ -292,8 +296,8 @@ uint16_t m68k_arg_t::am_bitset() const
 
     // magic numbers below are from m68k opcode formats...
     static constexpr uint16_t cpu_mode_to_access_mode[] = {
-          AM_GEN | AM_DATA                       | AM_ALTERABLE | AM_GEN_REG    // 0: data_reg
-        , AM_GEN                                 | AM_ALTERABLE | AM_GEN_REG    // 1: addr_reg
+          AM_GEN | AM_DATA | AM_GEN_REG          | AM_ALTERABLE | AM_MAC_GEN    // 0: data_reg
+        , AM_GEN           | AM_GEN_REG          | AM_ALTERABLE | AM_MAC_GEN    // 1: addr_reg
         , AM_GEN | AM_DATA | AM_MEMORY | AM_CTRL | AM_ALTERABLE | AM_INDIRECT   // 2: addr_indirect
         , AM_GEN | AM_DATA | AM_MEMORY | AM_PINC | AM_ALTERABLE | AM_INDIRECT   // 3: post_incr
         , AM_GEN | AM_DATA | AM_MEMORY | AM_PDEC | AM_ALTERABLE | AM_INDIRECT   // 4: pre_decr
@@ -303,7 +307,7 @@ uint16_t m68k_arg_t::am_bitset() const
         , AM_GEN | AM_DATA | AM_MEMORY | AM_CTRL | AM_ALTERABLE | AM_DIRECT     // 7-1: abs long
         , AM_GEN | AM_DATA | AM_MEMORY | AM_CTRL                                // 7-2: pc displacement
         , AM_GEN | AM_DATA | AM_MEMORY | AM_CTRL                                // 7-3: pc index
-        , AM_GEN | AM_DATA | AM_MEMORY | AM_IMMED | AM_REGSET                   // 7-4: immed
+        , AM_GEN | AM_DATA | AM_MEMORY | AM_IMMED | AM_REGSET   | AM_MAC_GEN    // 7-4: immed
         };
 
     if (!_am_bitset)

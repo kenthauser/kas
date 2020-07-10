@@ -168,8 +168,7 @@ using isa_c   = cpu_defn<STR("isa_c"),  list<isa_b, isa_ap>
 using cpu_is_list = list<
               //m68020        // default
               // m68000
-              isa_a
-              //isa_c
+              isa_c
               //cpu_test
             , m68000
             , m68010

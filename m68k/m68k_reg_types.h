@@ -68,6 +68,7 @@ enum : std::uint8_t
     , RC_MMU_68851  // MMUs are similar, but different...
     , RC_MMU_030
     , RC_MMU_040
+    , RC_MAC        // coldfire MAC/eMAC registers
     , RC_SHIFT      // coldfire MAC/eMAC
     , NUM_REG_CLASS
 };
@@ -79,26 +80,33 @@ enum
       REG_CPU_USP
     , REG_CPU_SR
     , REG_CPU_CCR
-           
-    // coldfire MAC /eMAC
-    , REG_CPU_MACSR
-    , REG_CPU_MASK
+};
+
+// values are used in 3-bit "register" field of mac move insn
+enum
+{
+    // coldfire MAC/eMAC
+      REG_MAC_MACSR     = 4
+    , REG_MAC_MASK      = 6
+
     // coldfire MAC
-    , REG_CPU_ACC
+    , REG_MAC_ACC       = 0
     
     // coldfire eMAC
-    , REG_CPU_ACC0
-    , REG_CPU_ACC1
-    , REG_CPU_ACC2
-    , REG_CPU_ACC3
-    , REG_CPU_ACC_EXT01
-    , REG_CPU_ACC_EXT23
+    , REG_MAC_ACC0      = 0
+    , REG_MAC_ACC1      = 1
+    , REG_MAC_ACC2      = 2
+    , REG_MAC_ACC3      = 3
+    , REG_MAC_ACC_EXT01 = 5
+    , REG_MAC_ACC_EXT23 = 7
 };
 
 // name shift "registers"
 enum
 {
-      REG_SHIFT_LEFT  = 1   // scale factor: "<<"
+      REG_SHIFT_NONE  = 0   // scale factor: NONE
+    , REG_SHIFT_LEFT  = 1   // scale factor: "<<"
+    , REG_SHIFT_RSVD  = 2   // scale factor: reserved
     , REG_SHIFT_RIGHT = 3   // scale factor: ">>"
 };
 

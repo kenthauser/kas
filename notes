@@ -354,7 +354,7 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 56. make register list list-of-list (ala insn). Currently list<list<>, ...> doesn't compile
 
-57. Too many `mac` instructions. Validate `mcode` before adding to insn list
+*57. Too many `mac` instructions. Validate `mcode` before adding to insn list
 
 58. Need way to pass `cpu_defns` to reg_parser, and others. Can't have static race.
 
@@ -364,5 +364,7 @@ Plan 10/2: First fix floating point emit/warning/etc
     kas_object instance when converted to `expr_t`
 
 61. disallow tgt_reg_t MODE w/o token
+
+62. reg_find returns hw_defn fail register over hw_defn pass register
 
 

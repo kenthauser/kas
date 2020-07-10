@@ -542,34 +542,34 @@ struct val_subreg : m68k_mcode_t::val_t
     }
 };
 
+// test for MAC accumulator
 struct val_acc : m68k_mcode_t::val_t
 {
     fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
-        auto rp = arg.expr.template get_p<m68k_reg_t>();
-        if (!rp || rp->kind() != RC_CPU)
+        if (arg.mode() != MODE_REG)
+            return fits.no;
+        
+        auto& reg = *arg.reg_p;
+        if (reg.kind() != RC_MAC)
             return fits.no;
 
-        if (rp->value() < REG_CPU_ACC0)
+        if (reg.value() & 4)
             return fits.no;
-
-        if (rp->value() <= REG_CPU_ACC3)
-            return fits.yes;
-
-        return fits.no;
+        
+        return fits.yes;
     }
     
     unsigned get_value(m68k_arg_t& arg) const override
     {
         // calclulate value to insert in machine code
-        auto n = arg.expr.template get_p<m68k_reg_t>()->value();
-        return n - REG_CPU_ACC0;
+        return arg.reg_p->value();
     }
 
     void set_arg(m68k_arg_t& arg, unsigned value) const override
     {
         // calculate expression value from machine code
-        arg.reg_p = &m68k_reg_t::find(RC_CPU, value + REG_CPU_ACC0);
+        arg.reg_p = &m68k_reg_t::find(RC_MAC, value);
         arg.set_mode(MODE_REG);
     }
     
@@ -612,8 +612,25 @@ struct val_cf_bit_static : m68k_mcode_t::val_t
     }
 };
 
-//}   // unnamed namespace
+// use base AM_INDIRECT, but require `has_subword_mask`
+struct val_cf_indir_mask : val_am
+{
+    using base_t = val_am;
+    constexpr val_cf_indir_mask() : base_t(AM_INDIRECT) {}
 
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    {
+        if (!arg.has_subword_mask)
+            return fits.no;
+        return base_t::ok(arg, fits);
+    }
+    
+    void set_arg(m68k_arg_t& arg, unsigned value) const override
+    {
+        arg.has_subword_mask = true;
+        return base_t::set_arg(arg, value);
+    }
+};
 
 #define VAL_GEN(NAME, ...) using NAME = _val_gen<KAS_STRING(#NAME), __VA_ARGS__>;
 
@@ -642,8 +659,8 @@ VAL_GEN (BIT_IMMED,  val_range_t<int32_t>, 0);  // 32 bits signed
 VAL_GEN (ADDR_INDIR, val_indirect); 
 VAL_GEN (ADDR_DISP,  val_indirect, 1); 
 
-// XXX This is `INDIRECT`: ie modes 2/3/4/5 in `validate_reg`
-VAL_GEN (INDIR_MASK, val_range, 0, 2);  // mode in (INDIR, INCR, DECR, DISP)
+// `INDIRECT` from `m68k_validate_gen.h`, but requires `has_subword_mask` true
+VAL_GEN (INDIR_MASK, val_cf_indir_mask);
 
 VAL_GEN (PAIR,       val_pair, 0);      // data pair
 VAL_GEN (GEN_PAIR,   val_pair, 1);      // gen-reg pair
@@ -676,7 +693,8 @@ VAL_GEN (CF_BIT_STATIC, val_cf_bit_static);  // CTRL_ALTER w/o abs & index
 
 // coldfire MAC validators
 VAL_GEN (REG_UL,     val_subreg);            // test SUBWORD field
-VAL_GEN (ACC_N,      val_acc);               // test range RC_CPU: ACC0 thru ACC3 inclusive
+VAL_GEN (ACC,        val_acc);               // test if MAC/eMAC accumulator
+
 
 #undef VAL_GEN
 }

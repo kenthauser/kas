@@ -199,21 +199,21 @@ struct fmt_reg_pair : m68k_mcode_t::fmt_t::fmt_impl
     }
 };
 
-// coldfire MAC throws bits all over the place
+// coldfire MAC (especially eMAC) throws bits all over the place
 // Three register bits are shifted by SHIFT and inserted.
 // The fourth general register bit (data/addr) is shifted by SHIFT+OFFSET & inserted.
-// The "subword" bit is shifted by by SUB_BIT (if > 0) & inserted in SUB_WORD
+// The "subword" bit is shifted by by SUB_BIT (if >= 0) & inserted in SUB_WORD
 
 // data format from validator: 4 LSBs: general register #, SUB_BIT << 4
 template <unsigned SHIFT, int B4_OFFSET, int SUB_BIT = -1
-                        , unsigned WORD = 0, unsigned SUB_WORD = WORD>
+                        , unsigned WORD = 0, unsigned SUB_WORD = 1>
 struct fmt_subreg : m68k_mcode_t::fmt_t::fmt_impl
 {
     using val_t = m68k_mcode_t::val_t;
 
     bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
-        // validator return 7 bits: subreg + mode + reg
+        // validator returns 7 bits: subreg + mode + reg
         // NB: 4 lsbs happen to be general register #
         auto value = val_p->get_value(arg);
 
@@ -229,78 +229,69 @@ struct fmt_subreg : m68k_mcode_t::fmt_t::fmt_impl
 
         if constexpr (SUB_BIT >= 0)
         {
-            // XXX even tho in constexpr, SUB_BIT < 0 causes compiler error
-            // XXX constexpr `std::abs` makes assembler happy.
-            op[SUB_WORD] &=~ std::abs(SUB_BIT) << 1;
+            op[SUB_WORD] &=~ (1 << SUB_BIT);
             op[SUB_WORD] |=  !!(VAL_SUBWORD_UPPER & value) << SUB_BIT;
         }
+
         return true;
     }
     
     void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
-        auto value = op[WORD];
+        // accumulate value
+        uint16_t value{};
 
-        // first, extract "upper/lower" if present
-        uint16_t subword{};
-
+        // set subword value if required
         if constexpr (SUB_BIT >= 0)
-        {
-            // XXX even tho in constexpr, SUB_BIT < 0 causes compiler error
-            // XXX constexpr `std::abs` makes assembler happy.
-            if (value & (std::abs(SUB_BIT) << 1))
-                subword = VAL_SUBWORD_UPPER;
-        }
+            if (op[SUB_WORD] & (1 << SUB_BIT))
+                value = VAL_SUBWORD_UPPER;
         
         // get general register bits
         // NB: if B4_OFFSET is 3, then just 4-bit value
         if constexpr (B4_OFFSET == 3)
-            subword |= (15 << 0) & (value >> SHIFT);
+            value |= 15 & (op[WORD] >> SHIFT);
         else
         {
-            subword |= (7 << 0) & (value >> SHIFT);
-            subword |= 8 & (value >> (SHIFT+B4_OFFSET));
+            auto code = op[WORD];
+            value |= 7 & (code >> SHIFT);
+            value |= 8 & (code >> (SHIFT + B4_OFFSET - 3));
         }
-        val_p->set_arg(arg, subword);
+        val_p->set_arg(arg, value);
     }
 };
 
 // emac accN stored: (optionally complemented) LSB in word 0, bit 7; MSB in word 1, bit 5
+// think like a compiler when bit-twiddling...
 template <bool INVERT_LSB = false>
 struct fmt_emac_an : m68k_mcode_t::fmt_t::fmt_impl
 {
     using val_t = m68k_mcode_t::val_t;
-    //static constexpr auto MASK = (7 << SHIFT) | (7 << (SHIFT+MODE_OFFSET));
 
     bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
-#if 0
-        // validator return 6 bits: mode + reg
+        // validator returns 2 bits for ACC0->ACC3
         auto value = val_p->get_value(arg);
-        auto cpu_reg  = value & (7 << 0);
-        auto cpu_mode = value & (7 << 3);
 
-        value  = cpu_reg  << SHIFT;
-        value |= cpu_mode << (SHIFT+MODE_OFFSET-3);
+        // store MSB
+        op[1] &=~ (1 << 5);
+        op[1] |=  (value & 2) << (5 - 1);
         
-        op[WORD]  &= ~MASK;
-        op[WORD]  |= value;
-#endif
+        // store LSB
+        op[0] &=~ (1 << 7);
+        op[0] |= (!(value & 1) ^ !INVERT_LSB) << 7;
         return true;
     }
     
     void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
-#if 0
-        auto value = op[WORD];
-        auto reg_num  = (7 << 0) & (value >> SHIFT);
-        auto cpu_mode = (7 << 3) & (value >> (SHIFT+MODE_OFFSET-3));
-        
-        val_p->set_arg(*arg, reg_num | cpu_mode);
-#endif
-    }
-    void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p) const override
-    {
+        // get MSB
+        auto value =  (op[1] >> (5 - 1)) & 2;
+
+        // get LSB
+        if (!(op[0] & (1 << 7)) == INVERT_LSB)
+            ++value;
+
+        val_p->set_arg(arg, value);
     }
 };
 

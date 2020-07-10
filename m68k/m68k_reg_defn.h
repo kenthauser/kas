@@ -78,24 +78,29 @@ using supv_reg_l = list<
     , reg<REG_STR("sr"),  RC_CPU, REG_CPU_SR>
     , reg<REG_STR("ccr"), RC_CPU, REG_CPU_CCR>
     , reg<REG_STR("usp"), RC_CPU, REG_CPU_USP>
+>;
 
+using coldfire_mac_l = list<
     // coldfire MAC
-    , reg<REG_STR("acc"),   RC_CPU, REG_CPU_ACC     , hw::mac>
-    , reg<REG_STR("macsr"), RC_CPU, REG_CPU_MACSR   , hw::mac>
-    , reg<REG_STR("mask"),  RC_CPU, REG_CPU_MASK    , hw::mac>
-
+      reg<REG_STR("acc"),  RC_MAC, REG_MAC_ACC,  hw::mac>
+    
     // coldfire eMAC
-    , reg<REG_STR("acc0"), RC_CPU, REG_CPU_ACC0, hw::emac> 
-    , reg<REG_STR("acc1"), RC_CPU, REG_CPU_ACC1, hw::emac> 
-    , reg<REG_STR("acc2"), RC_CPU, REG_CPU_ACC2, hw::emac> 
-    , reg<REG_STR("acc3"), RC_CPU, REG_CPU_ACC3, hw::emac> 
-    , reg<REG_STR("acc_ext01"), RC_CPU, REG_CPU_ACC_EXT01, hw::emac> 
-    , reg<REG_STR("acc_ext23"), RC_CPU, REG_CPU_ACC_EXT23, hw::emac> 
+    , reg<REG_STR("acc0"), RC_MAC, REG_MAC_ACC0, hw::emac> 
+    , reg<REG_STR("acc1"), RC_MAC, REG_MAC_ACC1, hw::emac> 
+    , reg<REG_STR("acc2"), RC_MAC, REG_MAC_ACC2, hw::emac> 
+    , reg<REG_STR("acc3"), RC_MAC, REG_MAC_ACC3, hw::emac> 
+    , reg<REG_STR("acc_ext01"), RC_MAC, REG_MAC_ACC_EXT01, hw::emac> 
+    , reg<REG_STR("acc_ext23"), RC_MAC, REG_MAC_ACC_EXT23, hw::emac> 
     
     // coldfire MAC/eMAC
-    , reg<REG_STR("<<"),    RC_SHIFT, REG_SHIFT_LEFT , hw::mac>  // NB: comma-separated
-    , reg<REG_STR(">>"),    RC_SHIFT, REG_SHIFT_RIGHT, hw::mac>
-    >;
+    , reg<REG_STR("macsr"), RC_MAC, REG_MAC_MACSR    , hw::coldfire>
+    , reg<REG_STR("mask"),  RC_MAC, REG_MAC_MASK     , hw::coldfire>
+
+    , reg<REG_STR("<<"),    RC_SHIFT, REG_SHIFT_LEFT , hw::coldfire>  // NB: comma-separated
+    , reg<REG_STR(">>"),    RC_SHIFT, REG_SHIFT_RIGHT, hw::coldfire>
+    , reg<REG_STR("*SF_N"), RC_SHIFT, REG_SHIFT_NONE , hw::coldfire>
+    , reg<REG_STR("*SF_R"), RC_SHIFT, REG_SHIFT_RSVD , hw::coldfire>
+>;
 
 // cpu control registers (see movec for values)
 using ctrl_reg_l = list<
@@ -207,7 +212,7 @@ using m68k_all_reg_l = concat<list<>
                             , fp_reg_l
                             , ctrl_reg_l
                             , fctrl_reg_l
-
+                            , coldfire_mac_l
                             , mmu51_reg_l
                             , mmu_bad
                             , mmu_bac

@@ -82,26 +82,9 @@ namespace kas::m68k
         
         // coldfire MAC subregisters. And MASK. sigh...
         auto suffix = "";
-    #if 0
-        switch (arg.reg_subword) 
-        {
-            case REG_SUBWORD_LOWER:
-                suffix = ".l";
-                break;
-            case REG_SUBWORD_UPPER:
-                suffix = ".u";
-                break;
-            case REG_SUBWORD_MASK:
-                suffix = "&";
-                break;
-            default:
-                break;
-        }
-#else
         if (arg.has_subword_mask)
             suffix = "&";
-#endif
-
+        
         bool pc_reg = false;
 
         switch (arg.mode()) {

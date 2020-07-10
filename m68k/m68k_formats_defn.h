@@ -97,10 +97,16 @@ using arg1_9b2 = fmt_arg<1, fmt_generic<9, 2>>;
 using arg2_9b2 = fmt_arg<2, fmt_generic<9, 2>>;
 
 // coldfile: MAC subregister modes: bits spread all over the place...
-using arg1_0ul    = fmt_arg<1, fmt_subreg<0,  3>>;
-using arg1_1w0ul  = fmt_arg<1, fmt_subreg<0,  3, 6, 1>>;
-using arg2_9ul    = fmt_arg<2, fmt_subreg<9, -3>>;
-using arg2_1w12ul = fmt_arg<2, fmt_subreg<12, 3, 7, 1>>;
+// NB: `arg1_0g`  stores "general register" in word 0
+//     `arg1_0ul` stores "general register" in word 0 and subword bit in word 1
+//     `arg1_1w0ul` stores both general register & subword bit in word 1
+using arg1_0g     = fmt_arg<1, fmt_subreg<0,  3>>;
+using arg1_0ul    = fmt_arg<1, fmt_subreg<0,  3, 6, 0, 1>>;
+using arg1_1w0ul  = fmt_arg<1, fmt_subreg<0,  3, 6, 1, 1>>;
+
+using arg2_9g     = fmt_arg<2, fmt_subreg<9, -3>>;
+using arg2_9ul    = fmt_arg<2, fmt_subreg<9, -3, 7, 0, 1>>;
+using arg2_1w12ul = fmt_arg<2, fmt_subreg<12, 3, 7, 1, 1>>;
 
 // general register (no subword)
 using arg4_9g     = fmt_arg<4, fmt_subreg<9, -3>>;
@@ -110,7 +116,7 @@ using arg5_9g     = fmt_arg<5, fmt_subreg<9, -3>>;
 using arg3_1sf9   = fmt_arg<3, fmt_generic<9, 2, 1>>;
 
 // coldfire: emac ACCn has special formatter
-// NB: `ani` formats: LSB of ACCn is inverted in first word
+// NB: `ani` formats: LSB of ACCn is inverted in first word (really!)
 using arg3_an   = fmt_arg<3, fmt_emac_an<false>>;
 using arg4_an   = fmt_arg<4, fmt_emac_an<false>>;
 using arg5_an   = fmt_arg<5, fmt_emac_an<false>>;
@@ -211,13 +217,13 @@ struct FMT_0B2_9B2      : fmt_gen, arg1_0b2, arg2_9b2 {};
 
 // coldfire: mac formats
 struct FMT_0UL_9UL               : fmt_gen, arg1_0ul, arg2_9ul {};
-struct FMT_UL0_UL12_0RM_9UL      : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg3_0rm, arg4_9g{};
-struct FMT_UL0_UL12_X_0RM_9UL    : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg4_0rm, arg5_9g {};
-
+struct FMT_0UL_9UL_SF            : FMT_0UL_9UL, arg3_1sf9 {};           // above + SF
+struct FMT_UL0_UL12_0RM_9G       : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg3_0rm, arg4_9g{};
 struct FMT_UL0_UL12_SF_0RM_9G    : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg4_0rm, arg5_9g
-                                                      , arg3_1sf9 {};
+                                        , arg3_1sf9 {};
 
 // coldfire: emac formats
+#if 0
 struct FMT_0UL_9UL_ANI           : fmt_gen, arg1_0ul, arg2_9ul, arg3_ani {};
 struct FMT_0UL_9UL_X_ANI         : fmt_gen, arg1_0ul, arg2_9ul, arg4_ani {};
 struct FMT_0UL_9UL_AN            : fmt_gen, arg1_0ul, arg2_9ul, arg3_an  {};
@@ -228,6 +234,19 @@ struct FMT_UL0_UL12_X_0RM_9UL_AN : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg4_0rm, a
 
 struct FMT_0UL_9UL_AN_AN2        : fmt_gen, arg1_0ul, arg2_9ul, arg3_an, arg4_an2 {};
 struct FMT_0UL_9UL_X_AN_AN2      : fmt_gen, arg1_0ul, arg2_9ul, arg4_an, arg5_an2 {};
+#endif
+// XXX
+struct FMT_0UL_9UL_AN            : fmt_gen, arg1_0ul, arg2_9ul, arg3_an {};
+struct FMT_0UL_9UL_SF_AN         : fmt_gen, arg1_0ul, arg2_9ul, arg3_1sf9, arg4_an {};
+struct FMT_UL0_UL12_0RM_9G_ANI : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg3_0rm
+                                        , arg4_9g, arg5_ani {};
+struct FMT_UL0_UL12_SF_0RM_9G_ANI : fmt_gen, arg1_1w0ul, arg2_1w12ul, arg3_1sf9, arg4_0rm
+                                        , arg5_9g, arg6_ani {};
+
+// coldfire: emac-b formats
+struct FMT_0UL_9UL_AN_AN2        : fmt_gen, arg1_0ul, arg2_9ul, arg3_an, arg4_an2 {};
+struct FMT_0UL_9UL_SF_AN_AN2     : fmt_gen, arg1_0ul, arg2_9ul, arg4_an, arg5_an2
+                                            , arg3_1sf9 {};
 
 // Floating point formats
 struct FMT_0RM_20                : fmt_gen, arg1_0rm,  arg2_1w4 {};

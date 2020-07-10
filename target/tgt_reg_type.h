@@ -179,6 +179,9 @@ public:
     const char *validate(int reg_class = -1)  const;
     const char     *name()                    const;
 
+    // true if register is defined, but unparseable
+    bool  is_unparseable()                    const;                  
+
     template <typename OS> void print(OS& os) const
     {
         os << name();
