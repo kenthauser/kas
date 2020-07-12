@@ -12,7 +12,7 @@
 // Each register also has a name. Based on command line options, a leading `%` may
 // be permitted or requied
 //
-// A few registers have aliases. Currently the only aliases are fp->a6 & sp->a7
+// A few registers have aliases. Currently the only aliases are fp == a6 & sp == a7
 //
 // A few registers can have multiple definitions:
 // Example: USP can be a `RC_CPU` register when determining if (eg.) move.l a0,usp is allowed
@@ -69,7 +69,7 @@ enum : std::uint8_t
     , RC_MMU_030
     , RC_MMU_040
     , RC_MAC        // coldfire MAC/eMAC registers
-    , RC_SHIFT      // coldfire MAC/eMAC
+    , RC_SHIFT      // coldfire MAC/eMAC shift values
     , NUM_REG_CLASS
 };
 
@@ -164,16 +164,13 @@ struct m68k_reg_set : tgt::tgt_reg_set<m68k_reg_set<Ref>, m68k_reg_t, Ref>
 using m68k_rs_ref    = core::ref_loc_tpl<m68k_reg_set>;
 using m68k_reg_set_t = typename m68k_rs_ref::object_t;
 
-
+// XXX defn_idx_t needs to be param to `tgt_reg`
 // M68K register type definition is regular
 // NB: implementation of methods in `m68k_reg_defn.h`
 struct m68k_reg_t : tgt::tgt_reg<m68k_reg_t, KAS_STRING("M68K")
-                                , hw::cpu_defs_t, m68k_reg_set_t>
+                            , hw::cpu_defs_t, m68k_reg_set_t>
 {
-    //using hw_defs        = HW_DEFS;
-    //using hw_tst         = typename hw_defs::hw_tst;
     using reg_defn_idx_t = uint8_t;
-    
     using base_t::base_t;       // use inherited ctors
 
     // return "general register" value (for m68k_extension & other uses)

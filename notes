@@ -367,4 +367,10 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 62. reg_find returns hw_defn fail register over hw_defn pass register
 
+63. Z80: revisit need for "z80_stmt_impl.h". Can be merged into CRTP?
+
+64. Z80: rst isns incorrect
+
+65. Z80: floating point non-support doesn't link
+
 

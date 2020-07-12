@@ -14,7 +14,7 @@ namespace kas::z80::parser
     namespace x3 = boost::spirit::x3;
 
     // parse insn names: defined by `insn_adder`
-    using z80_insn_x3 = x3::rule<struct _, z80_insn_t const *>;
+    using z80_insn_x3 = x3::rule<struct _, kas::parser::kas_token>;
     BOOST_SPIRIT_DECLARE(z80_insn_x3)
 
     // parse statements: defined in `z80_parser_def.h`

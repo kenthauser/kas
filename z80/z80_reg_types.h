@@ -34,20 +34,19 @@ struct z80_reg_set : tgt::tgt_reg_set<z80_reg_set<Ref>, z80_reg_t, Ref>
 using z80_rs_ref    = core::ref_loc_tpl<z80_reg_set>;
 using z80_reg_set_t = typename z80_rs_ref::object_t;
 
-
+#if 0
 // define `z80_reg` types as tokens
 using tok_z80_reg = parser::token_defn_t<KAS_STRING("Z80_REG"), z80_reg_t>;
+#endif
 
 // Declare Register "Classes" for Z80
 enum { RC_NONE, RC_GEN, RC_DBL, RC_IDX, RC_SP, RC_AF, RC_I, RC_R, RC_CC, NUM_RC };
 
 // Z80 register type definition is regular
-struct z80_reg_t : tgt::tgt_reg<z80_reg_t, KAS_STRING("Z80"), z80_reg_set_t>
+struct z80_reg_t : tgt::tgt_reg<z80_reg_t, KAS_STRING("Z80")
+                               , hw::z80_hw_defs, z80_reg_set_t>
 {
-    using hw_tst         = hw::hw_tst;
     using reg_defn_idx_t = uint8_t;
-    using token_t        = tok_z80_reg;
-    
     using base_t::base_t;       // use inherited ctors
 };
 

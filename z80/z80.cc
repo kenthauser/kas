@@ -23,8 +23,15 @@
 // arch impl files
 #include "z80_arg_impl.h"
 #include "z80_mcode_impl.h"
+#include "z80_stmt_impl.h"
 
 #include "elf/elf_convert_elf.h"
+
+// instantiate global values controlling assembly
+namespace kas::z80::hw
+{
+    z80_hw_defs     z80_defs;
+}
 
 namespace kas::z80::parser
 {
@@ -46,7 +53,8 @@ namespace kas::z80::parser
                                 >;
     // define parser instance for register name parser
     z80_reg_x3 reg_parser {"z80 reg"};
-    auto const raw_reg_parser = x3::no_case[reg_name_parser_t().x3()];
+    using tok_z80_reg = typename z80_reg_t::token_t;
+    auto const raw_reg_parser = x3::no_case[reg_name_parser_t(hw::z80_defs).x3()];
     auto const reg_parser_def = parser::token<tok_z80_reg>[raw_reg_parser];
 
     BOOST_SPIRIT_DEFINE(reg_parser)
@@ -64,16 +72,18 @@ namespace kas::z80::parser
                                   , meta::quote<meta::_t>
                                   >;
 
-    using z80_insn_parser_t = sym_parser_t<typename z80_mcode_t::defn_t, insns>;
+    using z80_insn_sym_parser_t = sym_parser_t<typename z80_mcode_t::defn_t, insns>;
 
 
-    // XXX shoud stop parsing on (PARSER_CHARS | '.')
-    z80_insn_parser_t insn_sym_parser;
+    z80_insn_sym_parser_t insn_sym_parser(hw::z80_defs);
 
     // parser for opcode names
     z80_insn_x3 z80_insn_parser {"z80 opcode"};
     
-    auto const z80_insn_parser_def = insn_sym_parser.x3();
+    using tok_z80_insn = typename z80_insn_t::token_t;
+    auto const raw_insn_parser = x3::no_case[z80_insn_sym_parser_t(hw::z80_defs).x3()];
+    auto const z80_insn_parser_def = parser::token<tok_z80_insn>[raw_insn_parser];
+    
     BOOST_SPIRIT_DEFINE(z80_insn_parser);
 
     // instantiate parsers

@@ -95,7 +95,11 @@ public:
     
     // allow floating point constants
     bool is_fp() const      { return false; }
-    
+#if 1 
+    // XXX should be deleted. But compile failure
+    template <typename Context>
+    void operator()(Context const& ctx);
+#else
     // X3 method to initialize instance
     template <typename Context>
     void operator()(Context const& ctx)
@@ -103,9 +107,9 @@ public:
         auto& x3_args = x3::_attr(ctx);
         insn_tok      = boost::fusion::at_c<0>(x3_args);
         args          = boost::fusion::at_c<1>(x3_args);
-        x3::_val(ctx) = derived();
+    //    x3::_val(ctx) = *this;
     }
-
+#endif
     kas::parser::kas_token insn_tok;
     std::vector<arg_t> args;
 };

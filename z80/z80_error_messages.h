@@ -1,10 +1,12 @@
 #ifndef KAS_Z80_ERROR_MESSAGES_H
 #define KAS_Z80_ERROR_MESSAGES_H
 
+#include "expr/error_messages_base.h"
+
 namespace kas::z80
 {
 
-struct error_msg
+struct error_msg : expression::error_msg
 {
     // common messages
     static constexpr auto ERR_invalid       = "invalid arguments";

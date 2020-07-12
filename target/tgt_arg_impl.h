@@ -429,7 +429,7 @@ void tgt_arg_t<Derived, M, I, R, RS>
             ::emit_immed(core::emit_base& base, uint8_t sz) const
 {
     auto& info = immed_info(sz);
-#if 1 
+#if 0 
     // process floating point types if supported
     if constexpr (!std::is_void_v<e_float_t>)
     {

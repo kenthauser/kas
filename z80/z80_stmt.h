@@ -13,10 +13,18 @@
 // Declare insn_t & stmt_t types
 namespace kas::z80
 {
-    // declare result of parsing
-    // NB: there are 19 variants of `ld`
-    using z80_insn_t = tgt::tgt_insn_t<struct z80_mcode_t, hw::z80_hw_defs, 32>;
-    struct z80_stmt_t : tgt::tgt_stmt<z80_stmt_t, z80_insn_t, z80_arg_t> {};
+// declare result of parsing
+// NB: there are 19 variants of `ld`
+using z80_insn_t = tgt::tgt_insn_t<struct z80_mcode_t, hw::z80_hw_defs, 32>;
+
+struct z80_stmt_t : tgt::tgt_stmt<z80_stmt_t, z80_insn_t, z80_arg_t>
+{
+    using base_t::base_t;
+
+    // XXX = delete?
+    template <typename Context>
+    void operator()(Context const& ctx);
+};
 }
 
 

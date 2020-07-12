@@ -137,7 +137,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
 
     // true if all `expr` and `outer` are registers or constants 
     bool is_const () const;
-
+#if 0
     // XXX don't let register appear as constants (? why needed ?)
     // also seems to block IMMEDIATE
     template <typename T>
@@ -151,6 +151,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
                 return nullptr;
         }
     }
+#endif
 
     // validate if arg suitable for target
     kas::parser::kas_error_t ok_for_target(void const *stmt_p);

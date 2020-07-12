@@ -13,6 +13,12 @@
 // define error_message type
 #include "z80_error_messages.h"
 
+// expose error-type to global namespace
+namespace kas
+{
+    using z80::error_msg;
+}
+
 // declare X3 parser for `reg_t`
 namespace kas::z80::parser
 {

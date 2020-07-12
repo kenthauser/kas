@@ -5,6 +5,9 @@
 #include "z80_error_messages.h"
 #include "kas_core/core_emit.h"
 
+// XXX
+#include "expr/format_ieee754_impl.h"
+
 namespace kas::z80
 {
 

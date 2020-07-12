@@ -243,7 +243,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
     {
         // if floating point arg, require `floating point` insn
         if constexpr (!std::is_void_v<e_float_t>)
-            if (auto p = arg.template get_p<expression::e_float_t>())
+            if (auto p = arg.expr.template get_p<expression::e_float_t>())
                 if (!derived().is_fp())
                     arg.set_error(error_msg::ERR_float);
 

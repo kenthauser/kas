@@ -307,7 +307,8 @@ public:
     const char *cp_tst(uint8_t cp_id) const
     {
         // I can't figure out how to make this constexpr 2018/04/30 Kent
-        static hw_tst tst_cp_keys[] = { typename CP_DEFNS::key()... };
+        static constexpr auto _size = std::max<unsigned>(1, sizeof...(CP_DEFNS));
+        static hw_tst tst_cp_keys[_size] = { typename CP_DEFNS::key()... };
         return (*this)[tst_cp_keys[cp_id-1]];
     }
     
