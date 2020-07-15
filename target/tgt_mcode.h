@@ -74,7 +74,7 @@ struct tgt_mcode_t
     // extract types from STMT
     using insn_t       = typename stmt_t::insn_t;
     using arg_t        = typename stmt_t::arg_t;
-    using stmt_info_t  = std::remove_reference_t<decltype(std::declval<stmt_t>().get_info())>;
+    using stmt_info_t  = typename stmt_t::info_t;
     using stmt_args_t  = decltype(stmt_t::args);
 
     using arg_mode_t   = typename arg_t::arg_mode_t;

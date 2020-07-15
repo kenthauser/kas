@@ -55,7 +55,7 @@ auto reset_args = [](auto& ctx) { z80_arg_t::reset(); };
 auto const raw_z80_stmt = x3::rule<class _, z80_stmt_t> {} =
         (z80_insn_x3() > x3::eps[reset_args] > z80_args)[z80_stmt_t()];
 
-auto const z80_stmt_def = raw_z80_stmt;
+auto const z80_stmt_def = (z80_insn_x3() > x3::eps[reset_args] > z80_args)[z80_stmt_t()];
 
 // c++ magic for external linkage
 z80_stmt_x3 z80_stmt {"z80_stmt"};

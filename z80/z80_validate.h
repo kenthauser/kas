@@ -392,15 +392,9 @@ struct val_restart : z80_mcode_t::val_t
     
     void set_arg(z80_arg_t& arg, unsigned value) const override
     {
-        // XXX wrong. need something else
-        //arg.tok = value << 3;
+        arg.set_mode(MODE_IMMED_QUICK);
+        arg.expr = value << 3;
     }
-#if 0    
-    bool all_saved(z80_arg_t& arg) const override
-    {
-        return true;
-    }
-#endif
 };
 
 // 16-bit indirect (memory) or 8-bit indirect (I/O)
@@ -436,13 +430,6 @@ struct val_indir : z80_mcode_t::val_t
 
 template <typename NAME, typename T, int...Ts>
 using _val_gen = meta::list<NAME, T, meta::int_<Ts>...>;
-
-#if 0
-// specialize generic validators
-using val_range   = tgt::opc::tgt_val_range<z80_mcode_t>;
-template <typename T>
-using val_range_t = tgt::opc::tgt_val_range_t<z80_mcode_t, T>;
-#endif
 
 template <typename NAME, int...Ts>
 using _val_reg = _val_gen<NAME, val_reg, Ts...>;

@@ -43,21 +43,21 @@ struct tgt_stmt_info_t
 };
 
 
-template <typename DERIVED_T, typename INSN_T, typename ARG_T>
-struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<DERIVED_T, INSN_T, ARG_T>>
+template <typename DERIVED_T, typename INSN_T, typename ARG_T
+        , typename INFO_T = tgt_stmt_info_t>
+struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>>
 {
     using derived_t = DERIVED_T;
     using base_t    = tgt_stmt;
     using insn_t    = INSN_T;
     using mcode_t   = typename INSN_T::mcode_t;
     using arg_t     = ARG_T;
+    using info_t    = INFO_T;
 
     using insn_tok_t  = typename insn_t::token_t;
 
     using kas_error_t = parser::kas_error_t;
 
-    // use default `info` as default `flags`
-    tgt_stmt_info_t flags;
 
 protected:
     // CRTP casts
@@ -67,9 +67,6 @@ protected:
         { return *static_cast<derived_t*>(this); }
 
 public:
-    auto& get_flags()       { return derived().flags; }
-    auto& get_info()        { return derived().flags; }
-    
     // method used to assemble instruction
     core::opcode *gen_insn(core::opcode::data_t&);
 
@@ -81,10 +78,6 @@ public:
     // Principally for `hw_tst` & `stmt_info_t` validation
     constexpr const char *validate_stmt(mcode_t const *mcode_p) const { return {}; }
    
-    // statement flags: variable data stored in opcode `name`: 
-    // eg `ble` (branch if less-than-or-equal)
-    // NB: not all architectures use `stmt_flags` to handle cases such as `ble`
-
     // methods used by test fixtures
     std::string name() const;
 
@@ -95,23 +88,14 @@ public:
     
     // allow floating point constants
     bool is_fp() const      { return false; }
-#if 1 
-    // XXX should be deleted. But compile failure
+
+    // generate `tgt_stmt` from args (used by parser)
     template <typename Context>
     void operator()(Context const& ctx);
-#else
-    // X3 method to initialize instance
-    template <typename Context>
-    void operator()(Context const& ctx)
-    {
-        auto& x3_args = x3::_attr(ctx);
-        insn_tok      = boost::fusion::at_c<0>(x3_args);
-        args          = boost::fusion::at_c<1>(x3_args);
-    //    x3::_val(ctx) = *this;
-    }
-#endif
-    kas::parser::kas_token insn_tok;
-    std::vector<arg_t> args;
+    
+    kas::parser::kas_token  insn_tok;
+    info_t                  info;
+    std::vector<arg_t>      args;
 };
 
 

@@ -7,19 +7,6 @@
 namespace kas::m68k
 {
 
-#if 1
-// XXX should be deleted. But compile failure...
-template <typename Context>
-void m68k_stmt_t::operator()(Context const& ctx)
-{
-    // X3 method to initialize instance
-    auto& x3_args = x3::_attr(ctx);
-    auto& stmt    = boost::fusion::at_c<0>(x3_args);
-    stmt.args     = boost::fusion::at_c<1>(x3_args); 
-    x3::_val(ctx) = stmt;
-} 
-#endif
-
 // Validate single MCODE supported by `TST` & `STMT_FLAGS`
 const char *m68k_stmt_t::validate_stmt(mcode_t const *mcode_p) const
 {
@@ -29,9 +16,9 @@ const char *m68k_stmt_t::validate_stmt(mcode_t const *mcode_p) const
     auto sfx_code = mcode_p->defn().info & opc::SFX_MASK;
     
     // if size specified, validate it's supported
-    if (flags.arg_size != OP_SIZE_VOID)
+    if (info.arg_size != OP_SIZE_VOID)
     {
-        if (!(mcode_p->defn().info & (1 << flags.arg_size)))
+        if (!(mcode_p->defn().info & (1 << info.arg_size)))
             return error_msg::ERR_bad_size;
         
         // if suffix prohibited, error out
@@ -50,18 +37,18 @@ const char *m68k_stmt_t::validate_stmt(mcode_t const *mcode_p) const
     if (mcode_p->defn().info & opc::SFX_CCODE_BIT::value)
     {
         // here ccode insn: require ccode suffix
-        if (!flags.has_ccode)
+        if (!info.has_ccode)
             return error_msg::ERR_ccode_reqd;
 
         // disallow T/F ccode if mcode disallows it 
-        if (sfx_code == opc::SFX_NONE::value && !is_fp() && flags.ccode < 2)
+        if (sfx_code == opc::SFX_NONE::value && !is_fp() && info.ccode < 2)
             return error_msg::ERR_no_cc_tf;
     }
 
     // don't allow condition codes on non-ccode insns
     else
     {
-        if (flags.has_ccode)
+        if (info.has_ccode)
             return error_msg::ERR_no_ccode;
     }
 

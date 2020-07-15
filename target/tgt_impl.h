@@ -20,6 +20,7 @@ namespace kas::tgt
 {
     // name types used to instantiate the CRTP templates: reg, reg_set, stmt
     using stmt_t     = typename ARCH_MCODE::stmt_t;
+    using info_t     = typename ARCH_MCODE::stmt_info_t;
     using insn_t     = typename ARCH_MCODE::insn_t;
     using arg_t      = typename ARCH_MCODE::arg_t;
     using reg_t      = typename arg_t::reg_t;
@@ -27,8 +28,6 @@ namespace kas::tgt
     using regset_ref = typename regset_t::ref_loc_t;
     
     // instantiate reg routines referenced from expression parsers
-    // XXX need to refactor: warning about `typedef not permitted`
-    //template const char *reg_t::name() const;
 
     // instantiate reg_set routines referenced from expression parsers
     // NB: error if `regset_t` is `void`
@@ -42,8 +41,10 @@ namespace kas::tgt
                     ::binop(const char, int)   -> derived_t&;
     
     // instantiate routines referenced from stmt parsers
-    template core::opcode *tgt_stmt<stmt_t, insn_t, arg_t>::gen_insn(core::opcode::data_t&);
-    template std::string   tgt_stmt<stmt_t, insn_t, arg_t>::name() const;
+    template core::opcode *tgt_stmt<stmt_t, insn_t, arg_t, info_t>
+                                ::gen_insn(core::opcode::data_t&);
+    template std::string   tgt_stmt<stmt_t, insn_t, arg_t, info_t>
+                                ::name() const;
 
     // instantiate printers
     template void tgt_reg_set<regset_t, reg_t, regset_ref>

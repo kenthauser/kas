@@ -292,35 +292,33 @@ namespace kas::m68k::parser
     BOOST_SPIRIT_DEFINE(m68k_args)
 
 
-    // an m68k instruction is "opcode" followed by comma-separated "arg_list"
-    // bitfield breaks regularity. Allow bitfield to follow arg w/o comma
-    // no arguments indicated by location tagged `m68k_arg` with type MODE_NONE
+// an m68k instruction is "opcode" followed by comma-separated "arg_list"
+// bitfield breaks regularity. Allow bitfield to follow arg w/o comma
+// no arguments indicated by location tagged `m68k_arg` with type MODE_NONE
 
-// set "m68k_stmt_t" flags based on condition codes & other insn-name flags
+// set "m68k_stmt_info_t" info based on condition codes & other insn-name flags
 auto gen_stmt = [](auto& ctx)
     {
         // result is `stmt_t`
-        m68k_stmt_t stmt;
-        auto& flags = stmt.get_flags();
+        m68k_stmt_info_t info;
         
         // unpack args & evaluate
-        auto& args    = x3::_attr(ctx);
-        stmt.insn_tok = boost::fusion::at_c<0>(args);
-        auto& ccode   = boost::fusion::at_c<1>(args);
-        auto& has_dot = boost::fusion::at_c<2>(args);
-        auto& size    = boost::fusion::at_c<3>(args);
+        auto& parts    = x3::_attr(ctx);
+        auto& insn_tok = boost::fusion::at_c<0>(parts);
+        auto& ccode    = boost::fusion::at_c<1>(parts);
+        auto& has_dot  = boost::fusion::at_c<2>(parts);
+        auto& size     = boost::fusion::at_c<3>(parts);
      
         // all (and only) floating point insns begin with `f`
-        // NB: ASCII convert upper case to lower case
-        flags.is_fp = (stmt.insn_tok.begin()[0] | 0x20) == 'f';
+        // NB: (0x20 == ASCII convert upper case to lower case)
+        info.is_fp = (insn_tok.begin()[0] | 0x20) == 'f';
 
         if (ccode)
         {
             // different condition code maps for general & fp insns
-            // floating point insn names start with `f`
-            flags.has_ccode = true;
-            flags.fp_ccode  = stmt.is_fp();
-            auto code = m68k_ccode::code(*ccode, flags.fp_ccode);
+            info.has_ccode = true;
+            info.fp_ccode  = info.is_fp;
+            auto code = m68k_ccode::code(*ccode, info.fp_ccode);
 
             if (code < 0)
             {
@@ -328,7 +326,7 @@ auto gen_stmt = [](auto& ctx)
                 x3::_pass(ctx) = false;
             }
             else
-                flags.ccode = code;
+                info.ccode = code;
         }
 
         if (size)
@@ -347,21 +345,21 @@ auto gen_stmt = [](auto& ctx)
                     x3::_pass(ctx) = false;
                     break;
             }
-            flags.arg_size = sz; 
+            info.arg_size = sz; 
         }
         else 
         {
-            flags.arg_size = OP_SIZE_VOID;
+            info.arg_size = OP_SIZE_VOID;
             if (has_dot)
                 x3::_pass(ctx) = false;     // size req'd if dot
         }
 
-        x3::_val(ctx) = stmt;
+        x3::_val(ctx) = {insn_tok, info};   // value is <insn, info> pair
     };
 
 // M68K encodes several "options" in insn name. Decode them.
 // invalid options error out in `m68k_insn_t::validate_args` 
-auto const parse_insn = rule<class _, m68k_stmt_t> {"instruction"} = 
+auto const parse_insn = rule<class _, std::pair<parser::kas_token, m68k_stmt_info_t>> {} =
         lexeme[(m68k_insn_x3()          // insn_base_name
                 >> -m68k_ccode::x3()    // optional condition-code
                 >> -char_('.')          // optional dot
@@ -370,18 +368,11 @@ auto const parse_insn = rule<class _, m68k_stmt_t> {"instruction"} =
                 )[gen_stmt]
                 ];
 
-
-// need two rules to get tagging 
-auto const raw_m68k_stmt = rule<class _, m68k_stmt_t> {} = 
-            (parse_insn > m68k_args)[m68k_stmt_t()];
-            
 // Parser interface
 m68k_stmt_x3 m68k_stmt {"m68k_stmt"};
-auto const m68k_stmt_def = raw_m68k_stmt;
+auto const m68k_stmt_def = (parse_insn > m68k_args)[m68k_stmt_t()]; 
     
-    BOOST_SPIRIT_DEFINE(m68k_stmt)
-
-    struct _tag_m68k_stmt : kas::parser::annotate_on_success {};
+BOOST_SPIRIT_DEFINE(m68k_stmt)
 }
 
 #endif

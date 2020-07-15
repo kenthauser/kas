@@ -47,24 +47,18 @@ struct m68k_stmt_info_t : detail::alignas_t<m68k_stmt_info_t, uint16_t>
 // NB: there are (at least) 17 variants of `move.l`
 using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t, hw::m68k_hw_defs, 32>;
 
-struct m68k_stmt_t : tgt::tgt_stmt<m68k_stmt_t, m68k_insn_t, m68k_arg_t>
+struct m68k_stmt_t : tgt::tgt_stmt<m68k_stmt_t, m68k_insn_t, m68k_arg_t, m68k_stmt_info_t>
 {
     using base_t::base_t;
-#if 1
-    // parser method `gen_stmt` used to generate stmt
-    template <typename Context>
-    void operator()(Context const& ctx); // XXX = delete;
-#endif
-    // method to validate mcode. Principally for `m68k_stmt_info_t` validation
+    
+    // method to validate mcode. Use for `m68k_stmt_info_t` validation
     const char *validate_stmt(m68k_mcode_t const *mcode_p) const;
 
     // override method to test if floating-point insn
     bool is_fp() const
     {
-        return flags.is_fp;
+        return info.is_fp;
     }
-    
-    m68k_stmt_info_t flags;
 };
 
 

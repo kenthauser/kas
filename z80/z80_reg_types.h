@@ -34,11 +34,6 @@ struct z80_reg_set : tgt::tgt_reg_set<z80_reg_set<Ref>, z80_reg_t, Ref>
 using z80_rs_ref    = core::ref_loc_tpl<z80_reg_set>;
 using z80_reg_set_t = typename z80_rs_ref::object_t;
 
-#if 0
-// define `z80_reg` types as tokens
-using tok_z80_reg = parser::token_defn_t<KAS_STRING("Z80_REG"), z80_reg_t>;
-#endif
-
 // Declare Register "Classes" for Z80
 enum { RC_NONE, RC_GEN, RC_DBL, RC_IDX, RC_SP, RC_AF, RC_I, RC_R, RC_CC, NUM_RC };
 

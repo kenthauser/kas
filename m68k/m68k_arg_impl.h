@@ -67,7 +67,7 @@ auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
 
     // get reference to current stmt
     auto& stmt = *static_cast<m68k_stmt_t const *>(stmt_p);
-    auto  sz   = stmt.flags.arg_size;
+    auto  sz   = stmt.info.arg_size;
     auto _mode = mode();
 
     // 0. perform generic checks

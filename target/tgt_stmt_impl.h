@@ -35,9 +35,9 @@ namespace kas::tgt
 
 using namespace kas::core::opc;
 
-template <typename DERIVED_T, typename INSN_T, typename ARG_T>
-core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
-        ::gen_insn(core::opcode::data_t& data)
+template <typename DERIVED_T, typename INSN_T, typename ARG_T, typename INFO_T>
+auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
+        gen_insn(core::opcode::data_t& data) -> core::opcode *
 {
     // get support types from `mcode`
     using mcode_t   = typename insn_t::mcode_t;
@@ -63,7 +63,7 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
         *trace << "tgt_stmt::eval: " << insn.name << " [" << insn.mcodes.size() << " opcodes]";
         for (auto& arg : args)
             *trace << ", " << arg;
-        *trace << "  stmt_info: " << get_info() << std::endl;
+        *trace << "  stmt_info: " << info << std::endl;
     }
 
     // validate args as appropriate for target
@@ -84,7 +84,6 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
     bool multiple_matches = false;
     const char *err_msg{};
     int         err_index{};
-    auto& info = get_info();
 
     // loop thru mcodes, recording first error & recording all matches
     int i = 0; 
@@ -212,8 +211,9 @@ core::opcode *tgt_stmt<DERIVED_T, INSN_T, ARG_T>
 }
 
 // test fixure routine to display statement name
-template <typename DERIVED_T, typename INSN_T, typename ARG_T>
-std::string tgt_stmt<DERIVED_T, INSN_T, ARG_T>::name() const
+template <typename DERIVED_T, typename INSN_T, typename ARG_T, typename INFO_T>
+auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
+        name() const -> std::string
 {
     using BASE_NAME = typename INSN_T::mcode_t::BASE_NAME;
     
@@ -222,9 +222,9 @@ std::string tgt_stmt<DERIVED_T, INSN_T, ARG_T>::name() const
     return name_prefix + insn.name;
 }
 
-template <typename DERIVED_T, typename INSN_T, typename ARG_T>
+template <typename DERIVED_T, typename INSN_T, typename ARG_T, typename INFO_T>
 template <typename ARGS_T, typename TRACE_T>
-auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
+auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
         validate_args(insn_t const& insn
                     , ARGS_T& args
                     , bool& ok_for_quick
@@ -258,6 +258,31 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T>::
     }
     
     return {};
+}
+
+// allow first arg to be `token` or `std::pair<token, INFO_T>`
+template <typename DERIVED_T, typename INSN_T, typename ARG_T, typename INFO_T>
+template <typename Context>
+auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
+    operator()(Context const& ctx) -> void
+{
+    auto& x3_args = x3::_attr(ctx);
+    auto& insn    = boost::fusion::at_c<0>(x3_args);
+    if constexpr (std::is_same_v<std::remove_reference_t<decltype(insn)>
+                               , decltype(insn_tok)>)
+    {
+        // insn is `tok`
+        insn_tok = insn;
+    }
+    else
+    {
+        // insn is `std::pair<tok, info>`
+        insn_tok = insn.first;
+        info     = insn.second;
+    }
+    
+    args          = boost::fusion::at_c<1>(x3_args);
+    x3::_val(ctx) = derived();
 }
 
 }
