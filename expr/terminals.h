@@ -54,7 +54,7 @@ namespace detail
     
     // create floating point type
     template <typename REF>
-    using float_host_tpl  = float_host_ieee<REF, _t<float_value<>>, _t<float_fmt<> >>;
+    using float_host_tpl  = float_host_t<REF, _t<float_value<>>, _t<float_fmt<> >>;
     using e_float_ref     = core::ref_loc_tpl<float_host_tpl>;
 
     // create string type
@@ -66,7 +66,11 @@ namespace detail
 }
 // declare aliases to reduce `mpl` noise...
 using e_fixed_t   = typename detail::e_fixed<>   ::type;
+#if 1
 using e_float_t   = typename detail::e_float_ref ::object_t;
+#else
+using e_float_t   = void;
+#endif
 using e_string_t  = typename detail::e_string_ref::object_t;
 using err_msg_t   = typename detail::err_msg<>  ::type;
 
@@ -84,15 +88,20 @@ namespace detail
     using tok_fixed  = parser::token_defn_t<KAS_STRING("E_FIXED")
                                  , e_fixed_t
                                  , meta::invoke<fixed_p<>::type, e_fixed_t>>;
+#if 1
     using tok_float  = parser::token_defn_t<KAS_STRING("E_FLOAT")
                                  , e_float_t
                                  , meta::invoke<detail::float_p<>::type,
                                                 _t<detail::float_value<>>>>;
                                             //typename e_float_t>::value_type>;
+#endif
     using tok_string = parser::token_defn_t<KAS_STRING("E_STRING")
                                  , e_string_t
                                  , meta::invoke<detail::string_p<>::type, e_string_t>>;
-    
+   
+    // NB: `tok_missing` doesn't really belong in `expr` because it really means no
+    //     expression was parsed. Place it here so that it is visable to all modules
+    //     operatoring on expressions. Don't include in `terminal` list because it's not.
     using tok_missing = parser::token_defn_t<KAS_STRING("E_MISSING"), void, x3::eps_parser>;
 
     // NB: Don't include `tok_missing` in `expr_t` tokens, as `missing` always matches

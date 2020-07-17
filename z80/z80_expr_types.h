@@ -39,12 +39,11 @@ namespace kas::expression::detail
     template <> struct e_addr <void> { using type = std::uint16_t;  };
     template <> struct err_msg<void> { using type = z80::error_msg; };
 
-    //template <> struct e_float<void> : meta::id<void> {};
+    //template <> struct float_value<void> : meta::id<void> {};
 
     // types for expression variant
     template <> struct term_types_v<defn_cpu> :
         meta::list<
-              //z80::z80_reg_t      // z80 register
               z80::z80_reg_ref
             , z80::z80_rs_ref     // z80 register set: index_reg + offset
             > {};
@@ -53,7 +52,6 @@ namespace kas::expression::detail
     template <> struct term_parsers_v<defn_cpu> :
         meta::list<
               z80::parser::z80_reg_x3
-        //       z80::tok_z80_reg 
             > {};
 }
 

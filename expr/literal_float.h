@@ -27,11 +27,24 @@
 namespace kas::expression::detail
 {
 
+// Declare master template
+template <typename REF, typename VALUE, typename FMT, typename = void>
+struct float_host_t;
 
+// Specialize to `void` if VALUE or FMT is void
+template <typename REF, typename VALUE>
+struct float_host_t<REF, VALUE, void, void> : meta::id<void> {};
+
+template <typename REF, typename FMT>
+struct float_host_t<REF, void, FMT, void> : meta::id<void> {};
+
+// Define actual type
 template <typename REF, typename VALUE, typename FMT>
-struct float_host_ieee : core::kas_object<float_host_ieee<REF, VALUE, FMT>, REF>
+struct float_host_t<REF, VALUE, FMT, void> 
+        : core::kas_object<float_host_t<REF, VALUE, FMT, void>, REF>
 {
-    using base_t = core::kas_object<float_host_ieee<REF, VALUE, FMT>, REF>;
+    using base_t = core::kas_object<float_host_t<REF, VALUE, FMT, void>, REF>;
+    using type   = base_t;
 
     // IEEE is based on 32-bits groups, so organize mantissa into 32-bit segments
     // most significant is first. 
@@ -53,7 +66,7 @@ struct float_host_ieee : core::kas_object<float_host_ieee<REF, VALUE, FMT>, REF>
         uint8_t subnorm : 1;
     };
     
-    constexpr float_host_ieee(value_type value = {}, parser::kas_loc loc = {})
+    constexpr float_host_t(value_type value = {}, parser::kas_loc loc = {})
             : value(value), base_t(loc) {}
 
     // operator() extracts value

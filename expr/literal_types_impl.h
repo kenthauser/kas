@@ -34,7 +34,7 @@
 namespace kas::expression::detail
 {
 template <typename REF, typename VALUE, typename FMT>
-auto float_host_ieee<REF, VALUE, FMT>::get_flags() const -> flag_t
+auto float_host_t<REF, VALUE, FMT>::get_flags() const -> flag_t
 {
     // get sign & zero the other flags
     flag_t flags = { std::signbit(value) };
@@ -63,7 +63,7 @@ auto float_host_ieee<REF, VALUE, FMT>::get_flags() const -> flag_t
 
 template <typename REF, typename VALUE, typename FMT>
 template <typename T>
-auto float_host_ieee<REF, VALUE, FMT>::get_bin_parts(T *mantissa_p, int mant_bits, bool truncate) const
+auto float_host_t<REF, VALUE, FMT>::get_bin_parts(T *mantissa_p, int mant_bits, bool truncate) const
     -> std::tuple<flag_t, int>
 {
     if ((unsigned)mant_bits > HOST_MANT_BITS)

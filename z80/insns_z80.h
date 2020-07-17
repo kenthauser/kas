@@ -31,7 +31,7 @@
 // CC           : condition codes for JP, CALL, & RET
 // JR_CC        : condition codes for JR
 //
-// Conventions is for formater type names to list "shifts" for args in order. 
+// Conventions is for formatter type names to list "shifts" for args in order. 
 // shift of `X` indicates arg is not inserted in machine code
 // for shift if `X`, arg is either determined by "validator" (eg REG_A) or immediate
 // immediate arg validators can determine emit size

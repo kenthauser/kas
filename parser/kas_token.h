@@ -76,8 +76,15 @@ struct kas_token : kas_position_tagged
     template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
     void set(T const& flt)
     {
-        auto& obj = expression::e_float_t::add(flt, *this);
-        set(&obj);
+        if constexpr (!std::is_void_v<expression::e_float_t>)
+        {
+            //auto& obj = expression::e_float_t::add(flt, *this);
+            //set(&obj);
+        }
+        else
+        {
+            // XXX create diag
+        }
     }
 
 

@@ -13,7 +13,7 @@ namespace kas::z80
 enum z80_arg_mode : uint8_t
 {
 // Standard Modes
-      MODE_NONE             // 0 when parsed: indicates missing arg: always zero
+      MODE_NONE             // 0 when parsed: indicates missing arg
     , MODE_ERROR            // 1 set error message
     , MODE_DIRECT           // 2 direct address (Z80: also accepted for immediate arg. sigh)
     , MODE_INDIRECT         // 3 indirect address
@@ -38,8 +38,6 @@ enum z80_arg_mode : uint8_t
     , NUM_ARG_MODES
     , NUM_BRANCH = 1        // only 1 branch insn
 };
-
-// declare `token_reg`
 
 // `REG_T` & `REGSET_T` args also allow `MCODE_T` to lookup types
 struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, z80_reg_t, z80_reg_set_t>
@@ -70,7 +68,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t, z80_arg_mode, z80_reg_t, z80_reg_se
     }
 
     // these are static because only 1 prefix allowed per instruction
-    // NB: HL can be a "prefix" register with zero prefix code, thus two bools
+    // NB: HL can be a "prefix" register with zero prefix code, thus two values. 
     // eg: "add ix,ix" & "add hl,hl" allowed. but "add ix,hl" not allowed
     static inline uint8_t prefix;
     static inline bool    has_prefix;

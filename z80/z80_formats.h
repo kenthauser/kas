@@ -12,15 +12,12 @@
 //    (these are named in `formats_opc`)
 //
 // 2. Following the "base", underscores are used to separate inserter for each argument.
-//    Thus `FMT_a1_a2_a3` inserts three arguments, coded `a1`, `a2`, and `a3`.
+//    Thus `FMT_3_0` inserts three arguments, coded `3` and `0`
+// 
+// 3. Most args are 3-bits. These are encoded with either `0` or `3`.
+//    Some DBL register opcode use a 2-bit code shifted 4. These are encoded `4`
+//    Special opcodes use the xWx format described in `tgt_format.h`
 //
-// 3. For the M68K, most insertions are 3-bits register numbers, or 6-bit register/mode
-//    combinations. For register args, the convention is to use 0-15 to represent shifts in
-//    the first word, and 16-31 to represent shifts in the second word. For the 6-bit
-//    variants, the convention is to add `rm` to the shift, yielding eg: `0rm`, `28rm`
-//
-// 4. Inserters which aren't regular use irregular naming. eg: coldfire ACCx uses
-//    `9b2` for a two-bit field shifted 9. '020 CAS2 uses `CAS2` for a one-off formater.
 
 #include "z80_formats_opc.h"
 
