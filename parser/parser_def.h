@@ -44,6 +44,13 @@ auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
     | x3::eol
     ;
 
+// absorb characters until EOL
+x3::rule<class _> skip_eol {"skip_eol"};
+auto const skip_eol_def = stmt_eol | x3::graph >> skip_eol;
+
+using tok_invalid = token_defn_t<KAS_STRING("INVALID")>;
+auto const invalid = token<tok_invalid>[x3::omit[+x3::graph]];
+
 //////////////////////////////////////////////////////////////////////////
 //  Parser List Support Methods
 //      * combine lists of parsers to single parser
@@ -57,8 +64,11 @@ using label_parsers =  all_defns<detail::label_ops_l>;
 using stmt_parsers  =  all_defns<detail::stmt_ops_l>;
 
 x3::rule<class _stmt    , typename stmt_t::base_t> const statement   = "statement";
+//x3::rule<class _stmt    ,  stmt_t> const statement   = "statement";
+
 x3::rule<class _tag_stmt, stmt_t> const tagged_stmt = "tagged stmt";
 stmt_x3 stmt { "stmt" };
+
 
 // insn is statment (after skipping blank or commented lines)
 // NB: parse "statement" separately because X3 sees `variant` base
@@ -68,15 +78,30 @@ auto const stmt_def  = *stmt_eol > tagged_stmt;
 
 // require statements to extend to end-of-line (or separator)
 // not required for labels
+
+#if 0
+auto const x_stmt = x3::rule<struct _, typename stmt_t::base_t> { "x_stmt"} 
+                  = combine_parsers(stmt_parsers()) > stmt_eol;
+#else
+x3::rule<struct stmt_junk,  typename stmt_t::base_t> x_stmt{ "x_stmt" };
+auto const x_stmt_def = combine_parsers(stmt_parsers()) > stmt_eol;
+BOOST_SPIRIT_DEFINE(x_stmt);
+#endif
+
+
 auto const statement_def =
-            combine_parsers(stmt_parsers(), parse_eol)
-          | combine_parsers(label_parsers())
+           // x_stmt
+        //    combine_parsers(stmt_parsers(), parse_eol)
+           combine_parsers(stmt_parsers()) > stmt_eol
+         // combine_parsers(label_parsers())
+        //  |  x3::omit[x3::eoi] >> x3::attr(stmt_eoi())
+         // | (invalid >> -skip_eol)[detail::stmt_diag()]
           ;
 
 auto const tagged_stmt_def = statement;
 
 
-BOOST_SPIRIT_DEFINE(stmt, statement, tagged_stmt)
+BOOST_SPIRIT_DEFINE(stmt, statement, tagged_stmt, skip_eol)
 
 ///////////////////////////////////////////////////////////////////////////
 // Annotation and Error handling
@@ -107,7 +132,7 @@ private:
     kas::parser::error_handler_base base;
 };
 
-struct stmt_junk
+struct stmt_junk// : annotate_on_success
 {
     template <typename Iterator, typename Exception, typename Context>
     auto on_error(Iterator& first , Iterator const& last

@@ -7,7 +7,7 @@ namespace kas::parser
 {
 
 template <typename...Ts, typename FN_T = std::nullptr_t>
-auto combine_parsers(std::tuple<Ts...> const& args, FN_T fn = {})
+constexpr auto combine_parsers(std::tuple<Ts...> const& args, FN_T fn = {})
 {
     // if no parsers, return parser that doesn't match anything
     if constexpr (sizeof...(Ts) == 0)
@@ -32,7 +32,7 @@ auto combine_parsers(std::tuple<Ts...> const& args, FN_T fn = {})
 
 // accept a `meta::list` as argument. 
 template <typename...Ts, typename FN_T = std::nullptr_t>
-auto combine_parsers(meta::list<Ts...>, FN_T fn = {})
+constexpr auto combine_parsers(meta::list<Ts...>, FN_T fn = {})
 {
     return combine_parsers<Ts...>(std::make_tuple(Ts()...), fn);
 }
