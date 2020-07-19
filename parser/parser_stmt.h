@@ -147,17 +147,9 @@ namespace detail
        
         stmt_diag(kas_token const& token) : base_t(token)
         {
-        }
-#if 1
-        // create "invalid instruction" from `invalid` token
-        template <typename Context>
-        void operator()(Context const& ctx) 
-        {
-            auto& token  = x3::_attr(ctx);
             diag = kas_diag_t::error("Invalid instruction", token).ref();
-            x3::_val(ctx) = *this;
         }
-     #endif   
+        
         const char *name() const
         {
             return opc.name();

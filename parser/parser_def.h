@@ -80,26 +80,27 @@ auto const stmt_def  = *stmt_eol > tagged_stmt;
 // not required for labels
 
 #if 0
-auto const x_stmt = x3::rule<struct _, typename stmt_t::base_t> { "x_stmt"} 
+// use `BOOST_SPIRIT_DEFINE` facility to prevent link errors (KBH 2020/07/19) 
+auto const parse_insn = x3::rule<struct insn_junk, typename stmt_t::base_t> { "parse_insn"} 
                   = combine_parsers(stmt_parsers()) > stmt_eol;
 #else
-x3::rule<struct stmt_junk,  typename stmt_t::base_t> x_stmt{ "x_stmt" };
-auto const x_stmt_def = combine_parsers(stmt_parsers()) > stmt_eol;
-BOOST_SPIRIT_DEFINE(x_stmt);
+x3::rule<struct insn_junk,  typename stmt_t::base_t> parse_insn { "parse_insn" };
+auto const parse_insn_def = combine_parsers(stmt_parsers()) > stmt_eol;
+BOOST_SPIRIT_DEFINE(parse_insn);
 #endif
 
+auto const parse_invalid = x3::rule<class _, detail::stmt_diag> { "parse_invalid"} 
+                  = invalid >> x3::omit[-skip_eol];
 
 auto const statement_def =
-           // x_stmt
-        //    combine_parsers(stmt_parsers(), parse_eol)
-           combine_parsers(stmt_parsers()) > stmt_eol
-         // combine_parsers(label_parsers())
-        //  |  x3::omit[x3::eoi] >> x3::attr(stmt_eoi())
-         // | (invalid >> -skip_eol)[detail::stmt_diag()]
-          ;
+           parse_insn
+         | combine_parsers(label_parsers())
+         | x3::omit[x3::eoi] >> x3::attr(stmt_eoi())
+         | parse_invalid
+         ;
 
+// tag stmt after fully parsed
 auto const tagged_stmt_def = statement;
-
 
 BOOST_SPIRIT_DEFINE(stmt, statement, tagged_stmt, skip_eol)
 
@@ -107,32 +108,11 @@ BOOST_SPIRIT_DEFINE(stmt, statement, tagged_stmt, skip_eol)
 // Annotation and Error handling
 ///////////////////////////////////////////////////////////////////////////
 
-// annotation is performed `per-parser`. only error-handling is here.
-
 // parser to find point to restart scan after error
 auto const resync = *(x3::char_ - stmt_eol) >> stmt_eol;
 
-struct stmt_invalid
-{
-    template <typename Iterator, typename Exception, typename Context>
-    auto on_error(Iterator& first , Iterator const& last
-                , Exception const& exc, Context const& context)
-    {
-        std::cout << "stmt_invalid::on_error" << std::endl;
-        // skip error line
-        if (!parse(first, last, resync))
-            first = last;
-        
-        // return failure to parse instruction
-        return x3::error_handler_result::fail;
-    }
-
-private:
-    // parser base error handler
-    kas::parser::error_handler_base base;
-};
-
-struct stmt_junk// : annotate_on_success
+// handle where unparsed data after insn, but before EOL
+struct insn_junk
 {
     template <typename Iterator, typename Exception, typename Context>
     auto on_error(Iterator& first , Iterator const& last
@@ -142,7 +122,7 @@ struct stmt_junk// : annotate_on_success
         auto before = first;
         auto junk = exc.where();
         
-        std::cout << "stmt_junk::on_error" << std::string(first, junk) << std::endl;
+        std::cout << "insn_junk::on_error" << std::string(first, junk) << std::endl;
        
         // find end-of-line: first -> next parse location
         if (!parse(first, last, resync))
@@ -181,7 +161,6 @@ private:
 };
 
 struct _tag_stmt : annotate_on_success {};
-struct _stmt     : stmt_junk    {};
 
 }
 
