@@ -118,25 +118,29 @@ struct insn_junk
     auto on_error(Iterator& first , Iterator const& last
                 , Exception const& exc, Context const& context)
     {
+        // examine context
+        auto& obj       = x3::get<error_diag_tag>(context);
+        auto& e_handler = x3::get<error_handler_tag>(context);
+        
         // save parser positions
         auto before = first;
-        auto junk = exc.where();
+        auto junk   = exc.where();
+        bool no_eol = false;
         
-        std::cout << "insn_junk::on_error" << std::string(first, junk) << std::endl;
-       
         // find end-of-line: first -> next parse location
         if (!parse(first, last, resync))
-            first = last;
+        {
+            first  = last;
+            no_eol = true;
+        }
 
+        kas_position_tagged junk_loc { junk, first, &e_handler };
+        std::cout << "insn_junk::on_error: " << junk_loc.where() << std::endl;
+       
         // process "junk" following statement
         bool ignore_junk = false;
         std::string msg = "Junk following statement";
 
-        auto& obj       = x3::get<error_diag_tag>(context);
-        auto& e_handler = x3::get<error_handler_tag>(context);
-
-        kas_position_tagged junk_loc { junk, first, &e_handler };
-        
         if (ignore_junk)
         {
             // generate warning message about junk & re-parse
@@ -150,7 +154,7 @@ struct insn_junk
             // front door, which doesn't seem to work.
             return x3::error_handler_result::accept;
         }
-        
+       
         obj.err_idx = kas_diag_t::error(msg, junk_loc).ref();
         return x3::error_handler_result::accept;
     }
