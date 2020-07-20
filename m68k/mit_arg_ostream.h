@@ -159,12 +159,12 @@ namespace kas::m68k
 
         bool index_second = index.is_post_index;
         bool index_first  = index.has_index_reg && !index_second;
-
+#if 0
         std::cout << "\nmit: index_first = " << std::boolalpha << index_first;
         std::cout << ", index_second = " << index_second;
         std::cout << ", inner_zero = " << inner_zero;
         std::cout << std::endl;
-
+#endif
         // first, the base register
         if (!pc_reg)
             os << reg_name(index.base_suppress ? RC_ZADDR : RC_ADDR, reg);

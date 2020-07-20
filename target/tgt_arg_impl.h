@@ -68,7 +68,7 @@ tgt_arg_t<Derived, M, I, R, RS>
             msg = err_msg_t::ERR_argument;
         expr = tok.expr();
         break;
-#if 1
+
     case arg_mode_t::MODE_REGSET:
         if constexpr (!std::is_void<regset_t>::value)
             if (regset_p && regset_p->kind() != -regset_t::RS_OFFSET)
@@ -90,7 +90,7 @@ tgt_arg_t<Derived, M, I, R, RS>
         msg = err_msg_t::ERR_argument;
 
         break;
-#endif
+
     case arg_mode_t::MODE_INDIRECT:
         // check for register indirect
         if (reg_p)
@@ -126,10 +126,12 @@ tgt_arg_t<Derived, M, I, R, RS>
         
     default:
         // some other parsed "mode", evaluated in derived().set_mode()
+        // default: just set mode & expr from passed values
+        expr = tok.expr();
         break;
     }
 
-    // if !error, set mode
+    // if !error, allow derived type to process `set_mode`
     if (!msg)
         msg = derived().set_mode(mode);
     

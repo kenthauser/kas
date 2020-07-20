@@ -141,7 +141,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
         if (err_index > args.size())
             err_index = args.size();
 
-        parser::kas_position_tagged const *loc_p = this;
+        parser::kas_position_tagged const *loc_p = &insn_tok;
 
         if (err_index)
             loc_p = &args[err_index-1];

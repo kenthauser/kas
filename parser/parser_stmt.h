@@ -66,17 +66,19 @@ namespace print
 using print_obj = print::stmt_print<std::ostream>;
 
 template <typename Derived>
-struct parser_stmt : kas_position_tagged
+struct parser_stmt //: kas_position_tagged
 {
     using base_t    = parser_stmt<Derived>;
     using derived_t = Derived;
     using print_obj = print::stmt_print<std::ostream>;
     using opcode    = core::opcode;
 
+#if 0
     // inherit base class operators
     using kas_position_tagged::kas_position_tagged;
     using kas_position_tagged::operator=;
-
+#endif
+    
     // CRTP casts
     auto& derived() const
         { return *static_cast<derived_t const*>(this); }
@@ -139,13 +141,13 @@ namespace detail
         static inline opc_error opc{};
     
         using base_t::base_t;
-
+        
         stmt_diag(kas_error_t diag)
-            : diag(diag), base_t(diag.get_loc()) {}
+            : diag(diag) {}
         
         stmt_diag(kas_diag_t const& err) : stmt_diag(err.ref()) {}
        
-        stmt_diag(kas_token const& token) : base_t(token)
+        stmt_diag(kas_token const& token)
         {
             diag = kas_diag_t::error("Invalid instruction", token).ref();
         }

@@ -18,7 +18,7 @@ namespace kas::z80::parser
     BOOST_SPIRIT_DECLARE(z80_insn_x3)
 
     // parse statements: defined in `z80_parser_def.h`
-    using z80_stmt_x3 = x3::rule<struct _tag_z80_stmt, z80_stmt_t>;
+    using z80_stmt_x3 = x3::rule<struct _, z80_stmt_t>;
     BOOST_SPIRIT_DECLARE(z80_stmt_x3)
 }
 

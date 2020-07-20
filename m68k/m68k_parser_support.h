@@ -387,23 +387,19 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
             return addr_only(MODE_POST_INCR);
         case PARSE_DECR:
             return addr_only(MODE_PRE_DECR);
-#ifdef XXX
-        case PARSE_MISSING:
-            return { MODE_DIRECT, core::missing_ref{} };
-#endif
         case PARSE_PAIR:
             {
                 auto& inner = mode.args.front();
                 if (inner.size() != 1)
-                    return { error_msg::ERR_bad_pair, base_value };
+                    return { error_msg::ERR_bad_pair, base.token };
                 auto& second = inner.front();
-                return { MODE_PAIR, base_value, second.token.expr() };
+                return { MODE_PAIR, base.token, second.token };
             }
         case PARSE_BITFIELD:
             {
                 auto& inner = mode.args.front();
                 if (inner.size() != 1)
-                    return { error_msg::ERR_bad_bitfield, base_value };
+                    return { error_msg::ERR_bad_bitfield, base.token};
 
                 auto offset = classify.value();
                 switch (kind)
@@ -416,7 +412,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                             break;
                         // FALLSTHRU
                     default:
-                        return { error_msg::ERR_bad_offset, base_value };
+                        return { error_msg::ERR_bad_offset, base.token };
                 }
 
                 auto& second = inner.front();
@@ -436,7 +432,8 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                     default:
                         return { error_msg::ERR_bad_width, second.token};
                 }
-                return { MODE_BITFIELD, base_value, second.token.expr() };
+                std::cout << "set_bitfield: " << base.token << ", " << second.token <<std::endl;
+                return { MODE_BITFIELD, base.token, second.token };
             }
        
         // support motorola word/long expression specifier .w/.l
@@ -447,9 +444,9 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 case E_EXPR:
                 case E_INT:
                     // just absorb ".w"
-                    return { MODE_DIRECT, base_value};
+                    return { MODE_DIRECT, base.token };
                 default:
-                    return { error_msg::ERR_direct, base_value };
+                    return { error_msg::ERR_direct, base.token };
             }
         case PARSE_SFX_L:
         case PARSE_SFX_U:
@@ -471,10 +468,10 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 case E_INT:
                     // absorb ".l" meaning "long"
                     if (mode.mode == PARSE_SFX_L)
-                        return { MODE_DIRECT, base_value };
+                        return { MODE_DIRECT, base.token };
                     // FALLSTHRU
                 default:
-                    return { error_msg::ERR_direct, base_value };
+                    return { error_msg::ERR_direct, base.token };
             }
     }
 }

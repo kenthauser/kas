@@ -120,15 +120,7 @@ BOOST_SPIRIT_DEFINE(dot_parser)
 
 // local labels restart each time standard label defined.
 auto set_last = [](auto& ctx) { bsd_local_ident::set_last(ctx); };
-#if 0
-// label format: ident followed by ':'
-auto const ident_label = (label >> ':')[set_last];
-auto const local_label = l_ident >> ':';
 
-// for numeric: parse digit as token to get location tagging
-auto const numeric_label = token<tok_bsd_local_ident>[digit >> ':'];
-
-#else
 auto const ident_label = rule<class _lbl_ident, kas_token> {} =
         (label >> ':')[set_last];
 auto const local_label = rule<class _lbl_local, kas_token> {} =
@@ -136,7 +128,6 @@ auto const local_label = rule<class _lbl_local, kas_token> {} =
 auto const numeric_label = rule<class _lbl_numeric, kas_token> {} =
         token<tok_bsd_numeric_ident>[omit[digit] >> ':'];
 
-#endif
 // parse labels as `token`
 auto const all_labels = rule<class _, kas_token> {} =
             ident_label | local_label | numeric_label;
