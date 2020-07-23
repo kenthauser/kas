@@ -76,14 +76,15 @@ namespace kas::m68k::parser
 
     using tok_m68k_reg = typename m68k_reg_t::token_t;
     auto const raw_reg_parser = x3::no_case[reg_name_parser_t(hw::cpu_defs).x3()];
-    //auto const raw_reg_parser = x3::no_case[reg_name_parser_t().x3()];
     auto const reg_parser_def = parser::token<tok_m68k_reg>[raw_reg_parser];
     
     BOOST_SPIRIT_DEFINE(reg_parser)
 
     // instantiate parser `type` for register name parser
-    BOOST_SPIRIT_INSTANTIATE(m68k_reg_x3 , iterator_type, expr_context_type)
+    BOOST_SPIRIT_INSTANTIATE(m68k_reg_x3        , iterator_type, expr_context_type)
+    BOOST_SPIRIT_INSTANTIATE(m68k_sized_fixed_x3, iterator_type, expr_context_type)
 
+    
     //////////////////////////////////////////////////////////////////////////
     // Instruction Parser Definition
     //////////////////////////////////////////////////////////////////////////
@@ -102,8 +103,9 @@ namespace kas::m68k::parser
     // parser for opcode names
     m68k_insn_x3 m68k_insn_parser {"m68k opcode"};
    
+    // use `x3()` if insn has no suffix. use `x3_raw() if insn suffix allowed
     using tok_m68k_insn = typename m68k_insn_t::token_t;
-    auto const raw_insn_parser = x3::no_case[m68k_insn_sym_parser_t(hw::cpu_defs).x3()];
+    auto const raw_insn_parser = x3::no_case[m68k_insn_sym_parser_t(hw::cpu_defs).x3_raw()];
     auto const m68k_insn_parser_def = parser::token<tok_m68k_insn>[raw_insn_parser];
     
     BOOST_SPIRIT_DEFINE(m68k_insn_parser);

@@ -373,4 +373,8 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 65. Z80: floating point non-support doesn't link
 
+66. make `hw_defs`  a subclass of actual class to prevent excessive type name
 
+67. assembling cf_frame screws up insn_container
+
+*68. `chkw`, `jne` not parsing correctly w/o "."

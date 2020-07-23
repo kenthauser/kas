@@ -357,7 +357,7 @@ using m68k_branch_cc_v = list<list<>
 , defn<sz_v, STR("jbsr"), OP<0x6100>, FMT_BRANCH, BRANCH>
 
 // Scc (coldfire: data register only)
-, cc<0x50c0, all_cc_names, STR("s"), m68k    , FMT_0RM, MEM_ALTER>
+, cc<0x50c0, all_cc_names, STR("s"), m68k    , FMT_0RM, DATA_ALTER>
 , cc<0x50c0, all_cc_names, STR("s"), coldfire, FMT_0RM, DATA_REG>
 
 // trapcc

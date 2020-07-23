@@ -42,7 +42,7 @@ VPATH = parser:expr:kas_core:bsd:m68k:test:kas_exec:z80:arm
 
 OBJS =  kas_core.o expr.o parser.o
 OBJS += bsd.o
-OBJS += m68k.o
+#OBJS += m68k.o
 #OBJS += z80.o
 #OBJS += arm.o
 
@@ -58,6 +58,8 @@ TEST_EMIT_ARGS  = test/emit_tests
 #CXXFLAGS += -DTRACE_ARG_SERIALIZE
 #arm.o : CXXFLAGS += -DTRACE_ARG_SERIALIZE
 #m68k.o : CXXFLAGS += -DTRACE_M68K_PARSE
+
+include machine_makefile.inc
 
 #kas_expr_test: kas_expr_test.o expr.o kas_core.o bsd.o m68k.o m68k_defns.o
 kas_expr_test: kas_expr_test.o $(OBJS)

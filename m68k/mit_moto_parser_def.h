@@ -70,9 +70,26 @@ namespace kas::m68k::parser
     using namespace kas::parser;
 
     //////////////////////////////////////////////////////////////////////////
-    //  M68K Instruction Parser Definition
+    //  M68K "sized" fixed argument parser
+    //
+    // required because `751.w` parses as floating point
     //////////////////////////////////////////////////////////////////////////
+    
+    // declare token & parser
+    using tok_sized_fixed = kas::parser::token_defn_t<KAS_STRING("MOTO_SIZED_EXPR")
+                                                    , e_fixed_t>;
+   
+    // get parser for "standard" fixed parser. Add suffix for MOTO sized variant
+    using fixed_p = typename expression::detail::tok_fixed::parser_t;
 
+    auto const sized_fixed_p = token<tok_sized_fixed>
+                            [fixed_p() >> lit('.') >> omit[char_("wWlL")]];
+
+    // complete declared parser for instantiation
+    m68k_sized_fixed_x3 moto_sized_fixed { "moto_sized_fixed" };
+    auto const moto_sized_fixed_def = sized_fixed_p;
+    BOOST_SPIRIT_DEFINE(moto_sized_fixed)
+    
     //////////////////////////////////////////////////////////////////////////
     // Parse M68K argument using MIT syntax
     //////////////////////////////////////////////////////////////////////////

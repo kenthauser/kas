@@ -18,20 +18,20 @@ namespace kas
     using m68k::error_msg;
 }
 
-// declare X3 parser for `reg_t`
+// declare X3 parser for `reg_t` & Motorola "sized" integer
 namespace kas::m68k::parser
 {
     namespace x3 = boost::spirit::x3;
-    
+
     // declare parser for Z80 register tokens
     using m68k_reg_x3 = x3::rule<struct X_reg, kas::parser::kas_token>;
     BOOST_SPIRIT_DECLARE(m68k_reg_x3)
+
+    // declare parser for MOTO `sized` integer (eg: `751.w` parses like a float)
+    using m68k_sized_fixed_x3 = x3::rule<struct X_m68k_sized, kas::parser::kas_token>;
+    BOOST_SPIRIT_DECLARE(m68k_sized_fixed_x3)
 }
 
-
-
-
-// XXX is this namespace needed??
 // forward declare m68k types
 namespace kas::m68k
 {
@@ -48,13 +48,12 @@ namespace kas::m68k
 namespace kas::expression::detail
 {
     // M68K defines non-standard `extended` & `packed` formats
-    template <> struct float_fmt<void> { using type = m68k::m68k_format_float; };
-    template <> struct err_msg<void>   { using type = m68k::error_msg;   };
-    //?template <> struct e_float<void>   { using type = void; }; 
+    template <> struct float_fmt<void> : meta::id<m68k::m68k_format_float> {};
+    template <> struct err_msg  <void> : meta::id<m68k::error_msg        > {};
     
     // M68K is baased on 16-bit instructions & 32-bit addresses
-    template <> struct e_data <void> { using type = m68k::m68k_base_t; };
-    template <> struct e_addr <void> { using type = std::uint32_t;     };
+    template <> struct e_data   <void> : meta::id<m68k::m68k_base_t      > {};
+    template <> struct e_addr   <void> : meta::id<std::uint32_t          > {};
 
     // expose terminals to expression subsystem
     // m68k types for expression variant
@@ -68,6 +67,7 @@ namespace kas::expression::detail
     template <> struct term_parsers_v<defn_cpu> :
         meta::list<
               m68k::parser::m68k_reg_x3
+            , m68k::parser::m68k_sized_fixed_x3
             > {};
 }
 
