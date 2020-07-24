@@ -1,5 +1,5 @@
-#ifndef KAS_CORE_INSN_DATA_H
-#define KAS_CORE_INSN_DATA_H
+#ifndef KAS_CORE_OPCODE_DATA_H
+#define KAS_CORE_OPCODE_DATA_H
 
 // Declare information used by opcodes.
 // This information is 
@@ -16,7 +16,7 @@ namespace opc
 {
     // an "pseudo-anonymous" union which holds several `core_types`
     template <typename FIXED_T = uint32_t>
-    union insn_fixed_t
+    union opcode_fixed_t
     {
         using fixed_t = FIXED_T;
 
@@ -31,7 +31,7 @@ namespace opc
         parser::kas_loc loc;
         addr_offset_t offset;
 
-        insn_fixed_t(fixed_t fixed = {}) : fixed(fixed) {};
+        opcode_fixed_t(fixed_t fixed = {}) : fixed(fixed) {};
 
         template <typename T>
         auto begin() const
@@ -51,7 +51,7 @@ namespace opc
         constexpr auto size() const  { return sizeof(data)/sizeof(T); }
     };
 
-    // using fixed_t = insn_fixed_t;
+    // using fixed_t = opcode_fixed_t;
 
     // define a `back_inserter` which adds `last` method to return reference
     // to last stored item (eg: back)
@@ -79,45 +79,46 @@ namespace opc
 }
 
 
-struct insn_data 
+struct opcode_data 
 {
 //private:
-    static inline std::deque<expr_t> insn_expr_data; 
-
+    // allow `insn_container` direct access to `expr_data` queue
+    friend insn_container_data;
+    static inline std::deque<expr_t> opcode_expr_data; 
 
 public:
     // types picked up by `struct opcode`
-    using Iter     = typename decltype(insn_expr_data)::iterator;
-    using fixed_t  = opc::insn_fixed_t<>;
-    using Inserter = opc::opc_back_insert_iterator<decltype(insn_expr_data)>;
+    using Iter     = typename decltype(opcode_expr_data)::iterator;
+    using fixed_t  = opc::opcode_fixed_t<>;
+    using Inserter = opc::opc_back_insert_iterator<decltype(opcode_expr_data)>;
   
     
     // this ctor used when generating insn data
-    insn_data(parser::kas_loc loc = {}) : loc(loc), fixed(_fixed)
+    opcode_data(parser::kas_loc loc = {}) : loc(loc), fixed(_fixed)
     {
         // remember current status of data queue
-        first = insn_expr_data.size();
+        first = opcode_expr_data.size();
     }
 
     // this ctor used when evaluating container data
-    insn_data(insn_container_data&);
+    opcode_data(insn_container_data&);
 
     // get back-inserter for expression data when generating data
     auto& di() const
     {
-        static auto _di = opc::opc_back_inserter(insn_expr_data);
+        static auto _di = opc::opc_back_inserter(opcode_expr_data);
         return _di;
     }
 
     // get iter to expression data
     static auto begin()
     {
-        return insn_expr_data.begin();
+        return opcode_expr_data.begin();
     }
 
     static auto end()
     {
-        return insn_expr_data.end();
+        return opcode_expr_data.end();
     }
 
     // return object, not reference
@@ -144,7 +145,6 @@ public:
     mutable uint16_t cnt;        // expressions used by this insn
 
 //private:
-    friend insn_container_data;
    
     uint16_t        raw_cnt{};
     fixed_t         _fixed {};
@@ -155,7 +155,7 @@ public:
     // for test fixture
     static void clear()
     {
-        insn_expr_data.clear();
+        opcode_expr_data.clear();
     }
     // test fixture routine
     static inline core::kas_clear _c{clear};

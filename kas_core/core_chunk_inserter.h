@@ -2,7 +2,7 @@
 #define KAS_CORE_CHUNK_INSERTER_H
 
 #include "core_chunk_types.h"
-#include "kas_core/insn_data.h"
+#include "kas_core/opcode_data.h"
 
 namespace kas::core::chunk
 {

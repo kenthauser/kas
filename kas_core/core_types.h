@@ -26,9 +26,9 @@ struct insn_container_data;
 namespace opc
 {
     template <typename Container = std::deque<kas::expression::ast::expr_t>>
-    struct insn_data;// : protected Container;
+    struct opcode_data;// : protected Container;
 
-    template <typename DATA = insn_data<>>
+    template <typename DATA = opcode_data<>>
     struct insn_opcode;
     
     // create alias using default types

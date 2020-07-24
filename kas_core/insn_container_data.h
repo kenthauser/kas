@@ -1,7 +1,7 @@
 #ifndef KAS_CORE_INSN_CONTAINER_DATA_H
 #define KAS_CORE_INSN_CONTAINER_DATA_H
 
-#include "insn_data.h"
+#include "opcode_data.h"
 
 
 namespace kas::core
@@ -16,9 +16,9 @@ namespace kas::core
 struct insn_container_data
 {
     // name `core_insn` interface type & inherit types
-    using fixed_t   = typename insn_data::fixed_t;
-    using op_size_t = typename insn_data::op_size_t;
-    using Iter      = typename insn_data::Iter;
+    using fixed_t   = typename opcode_data::fixed_t;
+    using op_size_t = typename opcode_data::op_size_t;
+    using Iter      = typename opcode_data::Iter;
  
     insn_container_data() = default;
     insn_container_data(core_insn const&);
@@ -39,8 +39,8 @@ struct insn_container_data
     
     static Iter& iter(bool get_empty = false)
     {
-        static auto empty_iter = insn_data::begin();
-        static auto iter       = insn_data::end();
+        static auto empty_iter = opcode_data::begin();
+        static auto iter       = opcode_data::end();
 
         if (get_empty)
             return empty_iter;
@@ -51,7 +51,7 @@ struct insn_container_data
     {
         if (it == iter(true))
             return 0L;
-        return std::distance(insn_data::begin(), it);
+        return std::distance(opcode_data::begin(), it);
     }
 
     void advance(core_insn const& insn)
@@ -73,19 +73,19 @@ struct insn_container_data
         iter() = std::get<0>(state);
 
         if (iter() == iter(true))
-            iter() = insn_data::begin();
+            iter() = opcode_data::begin();
     }
     
     static state_t get_state(bool at_end = false)
     {
         if (at_end)
-            return { insn_data::end() };
+            return { opcode_data::end() };
         return {iter()};
     }
 
     static void reinit()
     {
-        iter()    = insn_data::begin();
+        iter()    = opcode_data::begin();
         _loc_base = {};
     }
 
@@ -94,7 +94,7 @@ struct insn_container_data
     static void clear()
     {
         // clear expression deque & static instances
-        insn_data::clear();
+        opcode_data::clear();
         reinit();
     }
 

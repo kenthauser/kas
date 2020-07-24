@@ -23,7 +23,7 @@
 
 #include "core_size.h"
 #include "core_emit.h"
-#include "insn_data.h"
+#include "opcode_data.h"
 #include "core_fits.h"
 
 #include "kas_object.h"
@@ -60,10 +60,11 @@ struct opcode
     using op_size_t  = typename DATA::op_size_t;
 #endif
 
-    // pick up some types from `insn_data`
-    using data_t     = insn_data;
-    using op_size_t  = typename insn_data::op_size_t; 
-    using Iter       = typename insn_data::Iter;
+    // pick up some types from `opcode_data`
+    using data_t     = opcode_data;
+    // XXX wrong place
+    using op_size_t  = typename data_t::op_size_t; 
+    using Iter       = typename data_t::Iter;
 
     virtual ~opcode() = default;
 
@@ -79,13 +80,13 @@ struct opcode
     }
 
     // NB: the `Iter` args are passed by value to generate a local copy
-    virtual op_size_t calc_size(insn_data& data, core_fits const& fits) const
+    virtual op_size_t calc_size(opcode_data& data, core_fits const& fits) const
     {
         return data.size;
     }
-    virtual void fmt(insn_data const& data, std::ostream& out) const
+    virtual void fmt(opcode_data const& data, std::ostream& out) const
     {}
-    virtual void emit(insn_data const& data, emit_base& base, core_expr_dot const *dot_p) const
+    virtual void emit(opcode_data const& data, emit_base& base, core_expr_dot const *dot_p) const
     {}
 
 private:
@@ -141,10 +142,10 @@ public:
     }
 
     // if no arguments -- presumably result stored in fixed.
-    void proc_args(insn_data&) {}
+    void proc_args(opcode_data&) {}
 
     // routine for test runner
-    void raw(insn_data const& data, std::ostream& out) const
+    void raw(opcode_data const& data, std::ostream& out) const
     {
         out << std::hex << data.fixed.fixed;
         auto iter = data.iter();        // NB: `iter` must be called before...
@@ -160,20 +161,20 @@ public:
     template <typename C>
     static kas_error_t validate_min_max(C&, uint16_t = 0, uint16_t = ~0);
 
-    void make_error(insn_data& data, parser::kas_error_t err)
+    void make_error(opcode_data& data, parser::kas_error_t err)
     {
         data.fixed.diag = err;
         data.size.set_error();
     }
 
     // convenience method: pass msg & `loc`
-    void make_error(insn_data& data, std::string&& msg, kas::parser::kas_loc const& loc)
+    void make_error(opcode_data& data, std::string&& msg, kas::parser::kas_loc const& loc)
     {
         return make_error(data, kas_diag_t::error(std::move(msg), loc));
     }
 
     template <typename REF, typename = std::enable_if_t<std::is_base_of_v<ref_loc_tag, REF>>>
-    void make_error(insn_data& data, const char *msg, REF const& ref)
+    void make_error(opcode_data& data, const char *msg, REF const& ref)
     {
         return make_error(data, msg, *ref.template get_p<kas::parser::kas_loc>());
     }
@@ -228,12 +229,12 @@ struct opc_error : opcode
         return "ERROR";
     }
 
-    void proc_args(insn_data& data, kas::parser::kas_error_t diag)
+    void proc_args(opcode_data& data, kas::parser::kas_error_t diag)
     {
         data.fixed.diag = diag;
     }
 
-    void fmt(insn_data const& data, std::ostream& out) const override
+    void fmt(opcode_data const& data, std::ostream& out) const override
     {
         auto& fixed = data.fixed;
 
@@ -241,7 +242,7 @@ struct opc_error : opcode
         out << (fixed.diag ? fixed.diag.get().message : "[[ Zero Errno ]]");
     }
 
-    void emit(insn_data const& data, emit_base& emit, core_expr_dot const *dot_p) const override
+    void emit(opcode_data const& data, emit_base& emit, core_expr_dot const *dot_p) const override
     {
         auto& fixed = data.fixed;
         

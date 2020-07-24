@@ -373,7 +373,7 @@ namespace kas::core
 
         std::cout << "insn_container for: " << c.initial_segment;
         std::cout << " data ends at: " << std::dec;
-        std::cout << insn_data::insn_expr_data.size();
+        //std::cout << insn_data::opcode_expr_data.size();
         std::cout << " state is: " << value_type::get_state();
         std::cout << std::endl;
     }

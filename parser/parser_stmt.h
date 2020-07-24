@@ -127,7 +127,7 @@ namespace detail
             return opc.name();
         }
 
-        opcode *gen_insn(core::insn_data& data)
+        opcode *gen_insn(core::opcode_data& data)
         {
             return &opc;
         }
@@ -162,7 +162,7 @@ namespace detail
             p_obj(diag);
         }
 
-        opcode *gen_insn(core::insn_data& data)
+        opcode *gen_insn(core::opcode_data& data)
         {
             // fixed area unused otherwise...
             data.fixed.diag = diag;
