@@ -28,32 +28,52 @@ struct insn_container_data
     {
         _opc_index = index;
     }
-
-    // manage global running counters
-    static inline uint32_t _loc_base;
     
-    using state_t = std::tuple<Iter>;
-
-    // iter is mutable. copy in `insn_data`
-    // NB: for empty std::deque, begin() == end()
-    
-    static Iter& iter(bool get_empty = false)
-    {
-        static auto empty_iter = opcode_data::begin();
-        static auto iter       = opcode_data::end();
-
-        if (get_empty)
-            return empty_iter;
-        return iter;
-    }
-
+    // all deque iterators are invalidated on emplace back.
+    // query & set data_iter via offset.
+    // "initial state" holds index values
+    // "state" holds iterators, which are generated after all data inserted
     static auto index(Iter const& it = iter())
     {
-        if (it == iter(true))
-            return 0L;
         return std::distance(opcode_data::begin(), it);
     }
+    
+    using initial_state_t = std::tuple<std::size_t>;
+    using state_t         = std::tuple<Iter>;
 
+    // methods for walking frags
+    static Iter& iter()
+    {
+        // iterator into "opcode_data" expression list
+        static Iter _iter = opcode_data::begin();
+        return _iter;
+    }
+
+    // get current iterator & counts
+    static state_t get_state()
+    {
+        return { iter() };
+    }
+
+    // reset current iterator & counts for new frag
+    static void set_state(state_t const& state)
+    { 
+        iter() = std::get<0>(state);
+    }
+    
+    // methods for setting up `insn_containers`
+    static initial_state_t get_initial_state()
+    {
+        return { opcode_data::end() };
+    }
+
+    static void set_initial_state(initial_state_t const& state)
+    {
+        auto& index = std::get<0>(state);
+        iter() = opcode_data::begin() + index;
+    }
+
+    // consume instruction
     void advance(core_insn const& insn)
     { 
         //if (insn.loc)
@@ -62,27 +82,25 @@ struct insn_container_data
         std::advance(iter(), _cnt);
     }
 
+  // change insn size
     void update(op_size_t const& size)
     {
         _size = size;
     }
-
-    // set pointers into new frag
-    static void set_state(state_t const& state)
-    { 
-        iter() = std::get<0>(state);
-
-        if (iter() == iter(true))
-            iter() = opcode_data::begin();
-    }
     
-    static state_t get_state(bool at_end = false)
-    {
-        if (at_end)
-            return { opcode_data::end() };
-        return {iter()};
-    }
+    // implement inline for now
+    uint16_t    opc_index() const    { return _opc_index; }
+    uint16_t    cnt()       const    { return _cnt;       }
+    op_size_t   size()      const    { return _size;      }
+    auto&       loc()       const    { return _loc;       }
 
+    // fixed can't be compressed. Expose publically
+    fixed_t         fixed     {};
+
+private:
+    // manage global running counters
+    static inline uint32_t _loc_base;
+    
     static void reinit()
     {
         iter()    = opcode_data::begin();
@@ -98,16 +116,6 @@ struct insn_container_data
         reinit();
     }
 
-    // implement inline for now
-    uint16_t    opc_index() const    { return _opc_index; }
-    uint16_t    cnt()       const    { return _cnt;       }
-    op_size_t   size()      const    { return _size;      }
-    auto&       loc()       const    { return _loc;       }
-
-    // fixed can't be compressed. Expose publically
-    fixed_t         fixed     {};
-
-private:
     op_size_t       _size     {};
     parser::kas_loc _loc      {};
     uint16_t        _opc_index{};
@@ -117,9 +125,15 @@ private:
 template <typename OS>
 OS& operator<<(OS& os, insn_container_data::state_t const& s)
 {
-    os << "{ iter=" << insn_container_data::index(std::get<0>(s));
+    os << "{ expr=" << insn_container_data::index(std::get<0>(s));
     return os << " } ";
-    return os;
+}
+
+template <typename OS>
+OS& operator<<(OS& os, insn_container_data::initial_state_t const& s)
+{
+    os << "{ expr=" << std::get<0>(s);
+    return os << " } ";
 }
 
 

@@ -34,17 +34,17 @@ namespace opc
         opcode_fixed_t(fixed_t fixed = {}) : fixed(fixed) {};
 
         template <typename T>
-        auto begin() const
+        auto begin()
         { 
             void *v = data;
             return static_cast<T *>(v);
         }
-        
+       
+        // once more, with const...
         template <typename T>
-        auto begin()       
+        auto const begin() const
         { 
-            void *v = data;
-            return static_cast<T *>(v);
+            const_cast<opcode_fixed_t&>(*this).begin<T>();
         }
 
         template <typename T>
@@ -118,16 +118,20 @@ public:
 
     static auto end()
     {
-        return opcode_expr_data.end();
+        return opcode_expr_data.size();
+    }
+
+    static auto empty()
+    {
+        return opcode_expr_data.empty();
     }
 
     // return object, not reference
     Iter iter() const;
     std::size_t index() const;
     
-    // use signed type for opcode size
-    // XXX why?
-    using op_size_t   = offset_t<int16_t>;
+    // use unsigned type for opcode size
+    using op_size_t   = offset_t<uint16_t>;
 
     // fixed is a `local` or `container_data` reference
     fixed_t&         fixed;

@@ -75,7 +75,7 @@ namespace detail
                 if (fits.fits(v, leb_t::min_value(max), leb_t::max_value(max)) == fits.yes)
                     break;
 #else
-            short min = 1;
+            typename op_size_t::value_t min = 1;
             for (; min < leb_t::max_size(); ++min)
             {
                 auto result = fits.fits(v, leb_t::min_value(min), leb_t::max_value(min));
@@ -83,7 +83,7 @@ namespace detail
                 if (result != fits.no)
                     break;
             }
-            short max = min;
+            auto max = min;
             for (; max < leb_t::max_size(); ++max)
             {
              //   if (fits.fits(v, leb_t::min_value(max), leb_t::max_value(max)) == fits.yes)

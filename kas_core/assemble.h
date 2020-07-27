@@ -74,7 +74,7 @@ struct kas_assemble
 #endif
         kas::parser::kas_diag_t::dump(std::cout);
         
-    #if 0
+    #if 1
         // 4. generate `cframe` data into a second container
         if (dwarf::df_data::size() != 0) {
             auto& cf = core_section::get(".debug_frame", SHT_PROGBITS);

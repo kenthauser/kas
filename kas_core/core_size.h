@@ -31,8 +31,9 @@ namespace kas::core
 {
 
     template <typename T>
-    struct offset_t {
-        using OFFSET_T = T;
+    struct offset_t
+    {
+        using value_t  = T;
 
         static constexpr auto max_limit = std::numeric_limits<T>::max();
 
@@ -151,7 +152,7 @@ namespace kas::core
         constexpr bool is_error()   const { return max < min; }
 
         // choose value with min > max. 
-        constexpr offset_t ERROR() const { return  {2, 0}; };
+        static constexpr offset_t ERROR() { return  {2, 0}; };
 
         void set_error()
         {

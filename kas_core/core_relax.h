@@ -10,7 +10,7 @@ namespace kas::core
 template <typename C>
 struct core_relax
 {
-    using fuzz_t = typename frag_offset_t::OFFSET_T;
+    using fuzz_t = typename frag_offset_t::value_t;
     static constexpr fuzz_t initial_fuzz = std::numeric_limits<int16_t>::max();
     
     // tuning function

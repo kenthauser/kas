@@ -63,8 +63,9 @@ namespace kas::core
         using PROC_FN     = std::function<void(core_insn&, core_expr_dot const&)>;
 
         // insn_iter, insn_state & count for iterating a frag
-        using insn_state_t = typename value_type::state_t;
-        using frag_iter_t  = std::tuple<insn_iter, insn_state_t, uint32_t>;
+        using initial_state_t = typename value_type::initial_state_t;
+        using insn_state_t    = typename value_type::state_t;
+        using frag_iter_t     = std::tuple<insn_iter, insn_state_t, uint32_t>;
 
         using base_t::for_each;
 
@@ -76,14 +77,8 @@ namespace kas::core
         insn_container(core_segment& initial, DTOR_FN fn = {}) 
                 : initial_segment(initial)
                 , dtor_fn(fn)
-                , initial_state(value_type::get_state(true))
-                {
-                    std::cout << "insn_container for: " << initial_segment;
-                    std::cout << " data begins at: " << std::dec << value_type::index();
-                    std::cout << " state is " << initial_state;
-                    std::cout << std::endl;
-                }
-
+                , initial_state(value_type::get_initial_state())
+                {}
 
         // create container inserter
         auto inserter()
@@ -103,30 +98,26 @@ namespace kas::core
 
     public:
         friend base_t;
-        static void clear()
-        {
-            //data().clear();
-            value_type::clear();
-        }
+    
     // XXX temp
     // private:
     public:
-        core_segment& initial_segment;
-        insn_state_t  initial_state;
-        DTOR_FN       dtor_fn{};
+        initial_state_t initial_state;        // initial state of opcode_data, etc
+        core_segment&   initial_segment;
+        DTOR_FN         dtor_fn{};
 
         // first frag for this container
         core_fragment const *first_frag_p {};
         
         void do_frag(core_fragment&, insn_iter&, uint32_t, PROC_FN);
         void do_frag(core_fragment&, frag_iter_t const&  , PROC_FN);
+
+        // insns for this container
         Insn_Deque_t insns;
-        //decltype(core_insn::data)::size_type data_initial = -1;
+        
         std::deque<uint32_t> insn_index_list;
         std::vector<frag_iter_t> *insn_iters{};
         core_expr_dot dot;
-
-        static inline core::kas_clear _c{base_t::obj_clear};
     };
 
     //////////////////////////////////////////////////////////////////////////
@@ -138,7 +129,7 @@ namespace kas::core
     template <typename Insn_Deque_t>
     struct insn_container<Insn_Deque_t>::insn_inserter
     {
-        using value_type = typename Insn_Deque_t::value_type;
+        //using value_type = typename insn_container::value_type;
 
         insn_inserter(insn_container&);
         ~insn_inserter();
@@ -209,12 +200,7 @@ namespace kas::core
 
         // proc_all: reset insn_container values to initial states
         //value_type::reinit();
-        value_type::set_state(initial_state);
-        std::cout << "insn_container for: " << initial_segment;
-        std::cout << " reset to: " << std::dec << value_type::index();
-        std::cout << " state is " << value_type::get_state();
-
-        std::cout << std::endl;
+        value_type::set_initial_state(initial_state);
 
         auto insn_iter = insns.begin();
         auto it = insn_index_list.begin();
@@ -228,7 +214,7 @@ namespace kas::core
                 ++it;
             };
 
-        // process frags in this container
+        // process all frags in this container
         auto num_frags = insn_index_list.size() - 1;
         core_fragment::for_each(proc_one_frag, first_frag_p, num_frags);
     }
@@ -261,6 +247,7 @@ namespace kas::core
         auto it  = std::get<insn_iter>(frag_it);
         auto cnt = std::get<uint32_t>(frag_it);
         value_type::set_state(std::get<insn_state_t>(frag_it));
+
         do_frag(frag, it, cnt, fn);
     }
 
@@ -370,12 +357,6 @@ namespace kas::core
         
         // close index_list
         c.insn_index_list.emplace_back(c.insns.size());
-
-        std::cout << "insn_container for: " << c.initial_segment;
-        std::cout << " data ends at: " << std::dec;
-        //std::cout << insn_data::opcode_expr_data.size();
-        std::cout << " state is: " << value_type::get_state();
-        std::cout << std::endl;
     }
     
     // `inserter` primary method

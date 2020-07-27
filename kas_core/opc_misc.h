@@ -95,7 +95,8 @@ namespace kas::core::opc
 
 
             // if constant, create expression to beginning of current subsection
-            if (auto p = org.get_fixed_p()) {
+            if (auto p = org.get_fixed_p())
+            {
                 // this is a lot of work...
                 static constexpr addr_offset_t zero;
 
@@ -104,7 +105,9 @@ namespace kas::core::opc
                 auto& sum  = base + *p;
                 std::cout << "opc_org: dest = " << expr_t(sum) << std::endl;
                 *iter = sum.ref(data.fixed.loc);
-                return { 0, static_cast<short>(*p) };
+
+                // need XXX to limit to `uint16_t`
+                return { 0, static_cast<uint16_t>(*p) };
             }
             
 #if 0

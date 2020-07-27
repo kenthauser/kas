@@ -106,6 +106,7 @@ struct kas_token : kas_position_tagged
         return _expr;
     }
 
+    // once more, with const...
     auto const& expr() const
     {
         return const_cast<kas_token&>(*this).expr();

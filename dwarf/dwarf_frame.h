@@ -131,7 +131,7 @@ void emit_cf_cmd(T& emit, df_insn_data const& d)
 }
 
 template <typename Inserter>
-void dwarf_frame_gen(Inserter inserter)
+void dwarf_frame_gen(Inserter& inserter)
 {
     std::cout << __FUNCTION__ << std::endl;
     

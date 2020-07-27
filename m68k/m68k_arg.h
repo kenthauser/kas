@@ -171,7 +171,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     m68k_arg_mode mode_normalize() const;
     mutable uint16_t  _am_bitset{};
 #if 1
-    mutable op_size_t _arg_size{-1};
+    mutable op_size_t _arg_size { op_size_t::ERROR() };
 #endif
 };
 
