@@ -34,7 +34,7 @@ elf_stream::elf_stream(ELF_OBJECT& object)
 
     // 3. Calculate size of symbol table
     // count actual symbols
-    elf::Elf64_Half n_syms {};
+    elf::elf_object::elf_sym_index_t n_syms {};
 
     core::core_symbol_t::dump(std::cout);
    
@@ -124,9 +124,9 @@ auto elf_stream::core2es_data(core::core_section const& s) const -> elf::es_data
 #define ELF64_R_INFO(s,t)   (((s) << 32) + (t))
 
 // actually emit a reloc
-// Generate an ELF64 relocation & then convert to target format
+// Generate an ELF64 relocation & then later to target format
 void elf_stream::put_elf_reloc(core::e_chan_num num
-                , uint32_t reloc
+                , elf::kas_reloc_info const& info 
                 , uint32_t sym_num
                 , uint8_t  offset
                 , int64_t& data
@@ -143,31 +143,13 @@ void elf_stream::put_elf_reloc(core::e_chan_num num
     // should probably be done by `core_emit`...
 #endif
     
-    // NB: If host_format changes from ELF64, need to revisit code.
-    // NB: Don't parameterize types, instead generate compilation
-    // NB: errors on host type change
-
-    // can't shift a uint32 by 32. convert to uint64 before shift
-    elf::Elf64_Xword r_sym  = sym_num;
-    elf::Elf64_Xword r_info = ELF64_R_INFO(r_sym, reloc);
-
-    // XXX offset can use some analysis for `endian` issues...
-
     if (!use_rel_a)
     {
-        // create ELF64_Rel `reloc`
-        elf::Elf64_Rel reloc{ position() + offset, r_info };
-        std::cout << "put_elf_reloc: r_info = " << std::hex << r_info;
-        std::cout << ", sym = " << sym_num;
-        std::cout << ", offset = " << std::hex << reloc.r_offset;
-        std::cout << ", info = " << reloc.r_info << std::endl;
-        es_data_p->put_reloc(reloc);
+        es_data_p->put_reloc(info, sym_num, offset);
     }
     else
     {
-        // create ELF64_Rela `reloc`
-        elf::Elf64_Rela reloc{ position() + offset, r_info, data };
-        es_data_p->put_reloc_a(reloc);
+        es_data_p->put_reloc_a(info, sym_num, offset, data);
         data = 0;
     }
 }

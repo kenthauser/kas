@@ -1,7 +1,9 @@
 #ifndef KAS_ELF_M68K_M68K_ELF_H
 #define KAS_ELF_M68K_M68K_ELF_H
 
+#include "kas_core/emit_object.h"      // for `obj_format` template
 #include "elf/elf_format_elf.h"
+#include "elf/elf_format_elf_write.h"
 
 namespace kas::elf::m68k
 {
@@ -45,14 +47,15 @@ struct m68k_elf : elf32_format<std::endian::big>
 
     }
 
-    // need to make constexpr 
-    // XXX wtf 22
-    elf_reloc_t relocs { m68k_elf_relocs, reloc_ops, 22, 4 };
+    // relocs is `constexpr
+    static constexpr elf_reloc_t relocs { m68k_elf_relocs, reloc_ops };
 };
-
-
 }
 
-
+// set object format
+namespace kas::core::detail
+{
+    template <> struct obj_format<void> : meta::id<elf::m68k::m68k_elf> {};
+}
 
 #endif

@@ -15,12 +15,18 @@
 #include "kas_core/emit_listing.h"
 
 #include "kas_core/assemble.h"
-
+#if 0
 #include "m68k/m68k_elf.h"
 #include "kas_core/elf_emit.h"
+#else
+#include "machine_out.h"
+#endif
+
 #include "kas_core/elf_stream_impl.h"    // XXX
 #include "kas_core/elf_symbol_util.h"    // XXX
-#include "elf/elf_format_write.h"       // XXX
+//#include "elf/elf_format_write.h"       // XXX
+
+
 
 #include <iostream>
 #include <iterator>
@@ -64,7 +70,8 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     
     // need object format before assembling
     // `obj_fmt` defines valid relocations
-    kas::elf::m68k::m68k_elf obj_fmt;
+    //kas::elf::m68k::m68k_elf obj_fmt;
+    meta::_t<kas::core::detail::obj_format<>> obj_fmt;
     
     // create assembler object
     kas::core::kas_assemble obj(obj_fmt);
@@ -127,16 +134,16 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     kas::core::core_fragment::dump(out);
     kas::dwarf::dl_data::dump(out);
 #endif
-#if 0
+#if 1
     // create object output (binary data)
-    kas::core::elf_emit elf_obj(obj_fmt);
+    kas::core::emit_object elf_obj(obj_fmt);
     obj.emit(elf_obj);
 
     // get dest for object output
     auto elf_path = sub_path_ext(input_path.c_str(), "elf");
     std::ofstream elf_out(elf_path, std::ios_base::binary | std::ios_base::trunc);
     
-    elf_obj.write(elf_out);
+    elf_obj.write(obj_fmt, elf_out);
 #endif
 #if 1
     parse_out << "LISTING:" << std::endl;

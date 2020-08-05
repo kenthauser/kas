@@ -39,9 +39,11 @@ struct es_data : elf_section
         {}
 
 
-    // put reloc (two flavors)
-    template <typename Rel>
-    void put_reloc(Rel&& reloc)
+    // put reloc using reloc (two flavors)
+    template <typename Rel = Elf64_Rel>
+    void put_reloc(kas_reloc_info const& info
+                 , uint32_t sym_num
+                 , uint8_t  offset)
     {
         // ignore if SHT_NOBITS
         if (s_header.sh_type == SHT_NOBITS)
@@ -53,27 +55,31 @@ struct es_data : elf_section
                                               , index
                                               );
 
-        // emit reloc (convert to target format)
-        reloc_p->put(object.cvt(reloc));
+        // emit reloc (generate in host format)
+        reloc_p->put(object.cvt.create_reloc<Rel>(info, sym_num, position(), offset));
     }
 
-    template <typename Rela>
-    void put_reloc_a(Rela&& reloc)
+    template <typename Rel = Elf64_Rela>
+    void put_reloc_a(kas_reloc_info const& info
+                 , uint32_t sym_num
+                 , uint8_t  offset
+                 , int64_t  data)
     {
         // ignore if SHT_NOBITS
         if (s_header.sh_type == SHT_NOBITS)
             return;
-        if (!reloc_a_p)    // allocate relocation segment if required
-            reloc_a_p = new detail::es_reloc<Rela>(object
-                                                 , SHT_RELA
-                                                 , ".rela" + name
-                                                 , index
-                                                 );
+        if (!reloc_a_p)      // allocate relocation segment if required
+            reloc_a_p = new detail::es_reloc<Rel>(object
+                                              , SHT_RELA
+                                              , ".rela" + name
+                                              , index
+                                              );
 
-        // emit reloc (convert to target format)
-        reloc_a_p->put(object.cvt(reloc));
+        // emit reloc (generate in host format)
+        reloc_p->put(object.cvt.create_reloc<Rel>(info, sym_num
+                                                , position(), offset, data));
     }
-    
+
     Elf64_Word   sym_num   {};       // STT_SECTION entry for this section
     elf_section *reloc_p   {};       // section for REL relocations
     elf_section *reloc_a_p {};       // section for RELA relocations

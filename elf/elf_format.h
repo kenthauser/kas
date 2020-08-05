@@ -1,8 +1,8 @@
 #ifndef KAS_ELF_ELF_FORMAT_H
 #define KAS_ELF_ELF_FORMAT_H
 
-#include "elf_external.h"       // headers
-#include "elf_common.h"         // magic numbers
+#include "elf_external.h"       // elf section headers
+#include "elf_common.h"         // elf magic numbers
 #include "elf_reloc.h"
 #include "kas/endian.h" 
 
@@ -45,6 +45,7 @@ using detail::HOST4TGT;
 
 // forward declare `string` elf_section XXX why?
 struct es_string;
+struct elf_object;
 
 // base type `elf_format` only idenifies ENDIAN & relocations
 // XXX need to make `elf_format` virtual type, not templated...
@@ -62,6 +63,9 @@ struct elf_format
         header.e_machine = e_machine;
         header.e_version = EV_CURRENT;
     }
+
+    void write(elf_object&, std::ostream& os) const;
+
 
     elf_reloc_t relocs;     // supported relocations
     Elf64_Ehdr  header{};   // prototype header

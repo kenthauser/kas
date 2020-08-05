@@ -1,5 +1,5 @@
-#ifndef KAS_ELF_ELF_CONVERT_ELF_H
-#define KAS_ELF_ELF_CONVERT_ELF_H
+#ifndef KAS_ELF_ELF_CONVERT_AOUT_H
+#define KAS_ELF_ELF_CONVERT_AOUT_H
 
 // Convert ELF Class (ELF32/ELF64) and data ENDIAN between host and target formats
 //
@@ -15,72 +15,14 @@
 // are slightly different.
 
 #include "elf_convert.h"
+#include "aout_gnu.h"
 
 namespace kas::elf
 {
 
-// create `elf` type from object data
-// the `create` methods are only required for `host_hdr` types
-
-// binutils defn uses `bfd_vma`. override with the ELF standard defn
-#undef  ELF64_R_INFO
-#define ELF64_R_INFO(s,t)   (((s) << 32) + (t))
-
-
-template <>
-auto elf_convert::create_reloc<Elf64_Rel>(
-                               kas_reloc_info const& info
-                             , uint32_t sym_num
-                             , uint64_t position
-                             , uint8_t offset
-                             , int64_t  data
-                             ) const -> cvt_fns::cvt_src_rt
-{
-    // create ELF64_Rel `reloc`
-    static Elf64_Rel reloc;
-    
-    // can't shift a uint32 by 32. convert to uint64 before shift
-    Elf64_Xword r_sym  = sym_num;
-    Elf64_Xword r_info = ELF64_R_INFO(r_sym, info.num);
-
-    // XXX offset can use some analysis for `endian` issues...
-    reloc = { position + offset, r_info };
-    std::cout << "create_reloc: r_info = " << std::hex << r_info;
-    std::cout << ", sym = " << sym_num;
-    std::cout << ", offset = " << std::hex << reloc.r_offset;
-    std::cout << ", info = " << reloc.r_info << std::endl;
-    return { &reloc, sizeof(reloc) };
-}
-
-template <>
-auto elf_convert::create_reloc<Elf64_Rela>(
-                               kas_reloc_info const& info
-                             , uint32_t sym_num
-                             , uint64_t position
-                             , uint8_t offset
-                             , int64_t  data
-                             ) const -> cvt_fns::cvt_src_rt
-{
-    // create ELF64_Rela `reloc`
-    static Elf64_Rela reloc;
-    
-    // can't shift a uint32 by 32. convert to uint64 before shift
-    Elf64_Xword r_sym  = sym_num;
-    Elf64_Xword r_info = ELF64_R_INFO(r_sym, info.num);
-
-    // XXX offset can use some analysis for `endian` issues...
-    reloc = { position + offset, r_info, data };
-    std::cout << "create_reloc: r_info = " << std::hex << r_info;
-    std::cout << ", sym = " << sym_num;
-    std::cout << ", offset = " << std::hex << reloc.r_offset;
-    std::cout << ", info = " << reloc.r_info << std::endl;
-    return { &reloc, sizeof(reloc) };
-}
-
-
 // make dst member `cast`ed & `swap`ed from src member.
 #define ASSIGN(member)  assign(d.member, s.member, src_is_host)
-
+#if 0
 // Elf Ehdr
 template <typename DST, typename SRC>
 void elf_convert::cvt_ehdr(DST& d, SRC const& s, bool src_is_host) const
@@ -116,19 +58,27 @@ void elf_convert::cvt_shdr(DST& d, SRC const& s, bool src_is_host) const
     ASSIGN(sh_addralign);
     ASSIGN(sh_entsize);
 }
-
-// Elf Sym
+#endif
+// generate a.out symbols
+#if 0
 template <typename DST, typename SRC>
 void elf_convert::cvt_sym(DST& d, SRC const& s, bool src_is_host) const
+#else
+template <>
+void elf_convert::cvt_sym(nlist& d, Elf64_Sym const& s, bool src_is_host) const
+#endif
 {
+    //static_assert (std::is_same_v<DST, nlist>);
+#if 0
     ASSIGN(st_name);
     ASSIGN(st_value);
     ASSIGN(st_size);
     ASSIGN(st_info);
     ASSIGN(st_other);
     ASSIGN(st_shndx);
+#endif
 }
-
+#if 0
 // Elf Phdr
 template <typename DST, typename SRC>
 void elf_convert::cvt_phdr(DST& d, SRC const& s, bool src_is_host) const
@@ -142,11 +92,12 @@ void elf_convert::cvt_phdr(DST& d, SRC const& s, bool src_is_host) const
     ASSIGN(p_flags);
     ASSIGN(p_align);
 }
-
+#endif
 // Relocation conversions are not as straightforward.
 // `r_info` is composite of `sym` & `type`.
 // `r_info` format is different for ELF32 & ELF64
 
+#if 0
 // Relocation conversion: SRC & DST are same ei_class (ie host format)
 // endian swap can still be required
 template <>
@@ -164,14 +115,15 @@ inline void elf_convert::
     ASSIGN(r_info);
     ASSIGN(r_addend);
 }
-
+#endif
 // Relocation conversion: DST = ELF32, SRC = ELF64
 // NB: make a `template` for single definition purposes
 
 template <>
 inline void elf_convert::
-    cvt_rel(Elf32_Rel& d, Elf64_Rel const& s, bool src_is_host) const
+    cvt_rel(relocation_info& d, Elf64_Rel const& s, bool src_is_host) const
 {
+#if 0
     auto host_info = swap_src(s.r_info, true);  // know `src_is_host`
     auto sym  = ELF64_R_SYM(host_info);
     auto type = ELF64_R_TYPE(host_info);
@@ -181,11 +133,13 @@ inline void elf_convert::
     d.r_info = swap_dst(info, true);
     
     ASSIGN(r_offset);
+#endif
 }
 template <>
 inline void elf_convert::
     cvt_rela(Elf32_Rela& d, Elf64_Rela const& s, bool src_is_host) const
 {
+#if 0
     auto host_info = swap_src(s.r_info, true);  // know `src_is_host`
     auto sym  = ELF64_R_SYM(host_info);
     auto type = ELF64_R_TYPE(host_info);
@@ -196,6 +150,7 @@ inline void elf_convert::
 
     ASSIGN(r_offset);
     ASSIGN(r_addend);
+#endif
 }
 
 #if 0

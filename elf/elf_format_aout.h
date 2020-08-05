@@ -1,14 +1,20 @@
-#ifndef KAS_ELF_ELF_FORMAT_ELF_H
-#define KAS_ELF_ELF_FORMAT_ELF_H
+#ifndef KAS_ELF_ELF_FORMAT_AOUT_H
+#define KAS_ELF_ELF_FORMAT_AOUT_H
 
 #include "elf_format.h"
-#include "elf_convert_elf.h"
+#include "elf_convert_aout.h"
 
 namespace kas::elf
 {
 
-template <std::endian ENDIAN, typename HEADERS, typename...Ts>
-struct elf_format_elf : elf_format<ENDIAN, HEADERS>
+//using aout_hdrs  = meta::list<Elf64_Ehdr, Elf64_Shdr, nlist 
+//                                , relocation_info, void, Elf64_Phdr>;
+// no real headers...just symbols & relocations
+using aout_hdrs  = meta::list<void, void, nlist, relocation_info, void, void>;
+
+
+template <std::endian ENDIAN, typename HEADERS = aout_hdrs, typename...Ts>
+struct elf_format_aout : elf_format<ENDIAN, HEADERS>
 {
     using base_t = elf_format<ENDIAN, HEADERS>;
 
@@ -18,14 +24,11 @@ struct elf_format_elf : elf_format<ENDIAN, HEADERS>
         : ENDIAN == std::endian::big    ? ELFDATA2MSB
         :                                 ELFDATANONE
         ;
-    static constexpr auto ei_class = 
-          std::is_same_v<HEADERS, detail::elf32_hdrs> ? ELFCLASS32
-        : std::is_same_v<HEADERS, detail::elf64_hdrs> ? ELFCLASS64
-        :                                               ELFCLASSNONE
-        ;
+
+    static constexpr auto ei_class = ELFCLASSNONE;
 
     // declare these as int to suppress narrowing messages.
-    elf_format_elf( elf_reloc_t const& relocs
+    elf_format_aout( elf_reloc_t const& relocs
                   , int   e_machine
                   , int   ei_flags = {}
                   , int   os_abi = {}
@@ -65,19 +68,11 @@ struct elf_format_elf : elf_format<ENDIAN, HEADERS>
             this->header.e_phentsize = sizeof(Elf32_Phdr);
             this->header.e_shentsize = sizeof(Elf32_Shdr);
         }
-
     }
     
-    // write ELF object
+    // write a.out object
     void write(elf_object&, std::ostream&) const;
 };
-
-template <std::endian ENDIAN, typename...Ts>
-using elf32_format = elf_format_elf<ENDIAN, detail::elf32_hdrs, Ts...>;
-
-template <std::endian ENDIAN, typename...Ts>
-using elf64_format = elf_format_elf<ENDIAN, detail::elf64_hdrs, Ts...>;
-
 }
 
 #endif

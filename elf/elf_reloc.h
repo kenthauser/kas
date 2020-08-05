@@ -56,12 +56,13 @@ struct kas_reloc_info
 // hold info about target relocations
 struct elf_reloc_t
 {
+    // cononical constructor
     constexpr elf_reloc_t(kas_reloc_info const *reloc_info
-              , reloc_ops_t   const *reloc_ops
-              , std::size_t num_info
-              , std::size_t num_ops
-              , kas_rela rela = {}
-              )
+                        , reloc_ops_t    const *reloc_ops
+                        , std::size_t num_info
+                        , std::size_t num_ops
+                        , kas_rela    rela = {}
+                        )
         : reloc_info (reloc_info)
         , ops        (reloc_ops)
         , num_info   (num_info)
@@ -69,18 +70,13 @@ struct elf_reloc_t
         , rela       (rela)
         {}
 
-    // accept array of info with no ops
-    template <std::size_t NUM_INFO>
-    constexpr elf_reloc_t(kas_reloc_info const reloc_info[NUM_INFO], kas_rela rela = {})
-        : elf_reloc_t(reloc_info, nullptr, NUM_INFO, 0, rela) {}
-
-    // accept arrays
-    template <std::size_t NUM_INFO, std::size_t NUM_OPS>
-    constexpr elf_reloc_t(kas_reloc_info const reloc_info[NUM_INFO]
-              , reloc_ops_t   const reloc_ops[NUM_OPS]
-              , kas_rela rela = {}
-              )
-        : elf_reloc_t(reloc_info, reloc_ops, NUM_INFO, NUM_OPS, rela) {}
+    // pass arrays as arrays...
+    template <size_t N, size_t R, typename...Ts>
+    constexpr elf_reloc_t(kas_reloc_info const (&reloc_info)[N]
+                        , reloc_ops_t    const (&reloc_ops) [R]
+                        , Ts... args)
+                : elf_reloc_t(reloc_info, reloc_ops, N, R, std::forward<Ts>(args)...)
+                {}
 
     // XXX temp implementations using std::map
     // XXX only allow 1 map per compliation
@@ -97,11 +93,6 @@ struct elf_reloc_t
             for (int i = 0; i < num_info; ++i, ++p)
             {
                 auto [_, insert] = map_p->emplace(p->reloc.key(), p);
-            #if 0
-            // XXX relocations can have multiple names. only finds first
-                if (!insert)
-                    throw std::logic_error("duplicate reloc" + std::string(p->name));
-            #endif
             }
         }
 
@@ -122,7 +113,7 @@ private:
     kas_reloc_info const * const reloc_info;
     reloc_ops_t    const * const ops;
     const std::size_t num_info, num_ops;
-    kas_rela        rela;
+    const kas_rela    rela;
 };
 
 }

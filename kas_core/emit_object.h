@@ -1,7 +1,7 @@
-#ifndef KAS_CORE_ELF_EMIT_H
-#define KAS_CORE_ELF_EMIT_H
+#ifndef KAS_CORE_EMIT_OBJECT_H
+#define KAS_CORE_EMIT_OBJECT_H
 
-// elf_emit.h
+// emit_object
 //
 // Generate a proper backend-object to allow generation of object file
 //
@@ -18,11 +18,18 @@
 namespace kas::core
 {
 
-struct elf_emit : core::emit_base
+namespace detail
+{
+    // *** Declare object format ***
+    // NB: Must override via include
+    template <typename = void> struct obj_format: meta::id<void> {};
+}
+
+struct emit_object : core::emit_base
 {
 
     template <typename ELF_FORMAT>
-    elf_emit(ELF_FORMAT const& fmt)
+    emit_object(ELF_FORMAT const& fmt)
         : elf_obj(fmt)
         , stream(elf_obj)
         , emit_base{stream}
@@ -33,16 +40,17 @@ struct elf_emit : core::emit_base
         // dot always known
         insn.emit(*this, dot_p);
     }
-#if 1
-    template <typename OS>
-    auto write(OS& os)
+
+    // default: trampoline to object format method
+    template <typename ELF_FORMAT, typename OS>
+    auto write(ELF_FORMAT const& fmt, OS& os)
     {
-        return elf_obj.write(os);    
+        return fmt.write(elf_obj, os);    
     }
-#endif
+
 private:
     elf::elf_object elf_obj;
-    elf_stream      stream;
+    elf_stream      stream;         // must be declared after `elf_obj`
 
 };
 }

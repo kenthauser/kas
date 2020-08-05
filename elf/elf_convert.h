@@ -38,63 +38,6 @@
 
 namespace kas::elf
 {
-namespace detail
-{
-#if 0
-    // helper type to do work of conversion
-    struct do_cvt
-    {
-        constexpr do_cvt(elf_convert const& cvt)
-            : cvt(cvt) {}
-
-        // perform actual conversion 
-        template <typename TGT_HDRS, typename DST, typename SRC>
-        void operator()(TGT_HDRS, DST& dst, SRC const& src) const;
-
-        template <typename T>
-        constexpr auto swap_src(T member) const
-        {
-            if constexpr (SWAP_ENDIAN::passthru)
-                return member;
-            if (src_is_host)
-                return member;
-            return cvt.swap(member);
-        }
-
-        template <typename T>
-        constexpr auto swap_dst(T member) const
-        {
-            if constexpr (SWAP_ENDIAN::passthru)
-                return member;
-            if (src_is_host)
-                return cvt.swap(member);
-            return member;
-        }
-
-        // convert hdr source field to (swapped) header dst field
-        template <typename DST, typename SRC>
-        constexpr void assign(DST& dst_member, SRC const& src_member) const
-        {
-            if constexpr (SWAP_ENDIAN::passthru)
-            {
-                dst_member = src_member;
-            }
-            else
-            {
-                // get SRC into host format
-                auto data = swap_src(src_member);
-
-                // cast to DST type & swap
-                dst_member = swap_dst(static_cast<DST>(data));
-            }
-        }
-
-        elf_convert const& cvt;
-        bool               src_is_host;
-    };
-#endif
-}
-
 
 // external interface -- non-templated
 struct elf_convert
@@ -106,8 +49,11 @@ struct elf_convert
         using hdrs_size = meta::size<host_hdrs>;
        
         // convert src to dest
-        using src_fn = std::pair<void const *, std::size_t>(*)(elf_convert const&, void const *);
+        using cvt_src_rt = std::pair<void const *, std::size_t>;
+        using src_fn     = cvt_src_rt(*)(elf_convert const&, void const *);
 
+        // instantiate all six conversions
+        // XXX should use metafn to extract host header types
         template <typename TGT_HDRS>
         cvt_fns(TGT_HDRS)
         {
@@ -136,10 +82,9 @@ struct elf_convert
     {
     }
   
-    cvt_fns fns;
-
+    // convert "host" type to "return-type" (pointer/size pair)
     template <typename HOST_HDR>
-    std::pair<void const *, std::size_t> operator()(HOST_HDR const& host) const
+    cvt_fns::cvt_src_rt operator()(HOST_HDR const& host) const
     {
         return fns.get_src<HOST_HDR>()(*this, &host);
     }
@@ -150,16 +95,15 @@ struct elf_convert
         return (*this)(host).second;
     }
 //
-// Support for `padding`. Create a `zero` sized to largest header
+// Support for `padding`. Create a `zero` array sized to largest header
 //
+    // XXX consider move zero to detail::host. 
     // ostream::write requires `char`, not `unsigned char`
-    static constexpr auto   MAX_PADDING = 64;       // large header
-    static constexpr char   zero[MAX_PADDING] = {};
-
     // pick large alignment
-    static constexpr auto   MAX_ALIGN   = 6;        // 64 bytes
-    static_assert(MAX_PADDING >= (1 << MAX_ALIGN));
-      
+    static constexpr auto MAX_ALIGN   = 6;        // 64 bytes
+    static constexpr auto MAX_PADDING = (1 << MAX_ALIGN);
+    static constexpr char zero[MAX_PADDING] = {};
+
     constexpr unsigned padding(unsigned align, unsigned long offset) const
     {
         if (align > 1)
@@ -172,6 +116,42 @@ struct elf_convert
         return 0;
     }
 
+// generate operations
+// used by "assemblers" to create `kas::obj` types
+
+#if 0
+    auto gen_reloc(kas_reloc_info const& info
+                 , uint32_t  sym_num
+                 , uint8_t   offset
+             //  , uint64_t  data
+                 ) const
+    {
+        Elf64_Rel reloc;
+        create_reloc(reloc, info, sym_num, offset);
+        return reloc;
+    }
+    
+    auto gen_reloc_a(kas_reloc_info const& info
+                   , uint32_t  sym_num
+                   , uint8_t   offset
+                   , uint64_t  data
+                   ) const
+    {
+        Elf64_Rela reloc;
+        create_reloc(reloc, info, sym_num, offset, data);
+        return reloc;
+    }
+#endif
+    template <typename HST>
+    cvt_fns::cvt_src_rt create_reloc(
+                     kas_reloc_info const& info
+                   , uint32_t sym_num
+                   , uint64_t position
+                   , uint8_t  offset
+                   , int64_t  data = 0
+                   ) const;
+
+
 // convert operations
 //
 // used to convert SRC value to DST for writing. 
@@ -179,12 +159,14 @@ struct elf_convert
 //
 // used when writing target data
 
+    // XXX can SRC be void? if not, pass `SRC const&`
     template <typename TGT, typename SRC>
-    static std::pair<void const *, std::size_t>
-    cvt_src(elf_convert const& cvt, void const *p) 
+    static cvt_fns::cvt_src_rt cvt_src(elf_convert const& cvt, void const *p) 
     {
         auto& src = *static_cast<SRC const *>(p);
-        if constexpr (std::is_same_v<TGT, SRC> && cvt.swap.passthru)
+        if constexpr (std::is_void_v<TGT>)
+            return {"not supported by target", 0};
+        else if constexpr (std::is_same_v<TGT, SRC> && cvt.swap.passthru)
             return {&src, sizeof(src)};
         else
         {
@@ -194,32 +176,7 @@ struct elf_convert
         }
     }
 
-#if 0
-//
-// used to convert DST to host format
-// SRC is in TGT format, and may require swap
-//
-// 
-
-    template <typename DST, typename SRC>
-    void cvt(DST& dst, SRC const& src, bool src_is_host = false) const
-    {
-        if constexpr (std::is_same_v<DST, SRC> && swap.passthru)
-        {
-            // no format change -- short circut with copy
-            memcpy(&dst, &src, sizeof(dst));
-        }
-        
-        else
-        {
-            // need to swap before evaluating or before writing
-            do_cvt(*this, src_is_host)(dst, src);
-        }
-    }
-   
-#endif
-
-    // trampoline method. You can't partially specialize
+    // trampoline methods. You can't partially specialize
     // function templates, so just "name" all six conversions
     template <typename HDR, typename DST, typename SRC>
     void do_cvt(DST& d, SRC const& s, bool src_is_host) const
@@ -252,6 +209,7 @@ struct elf_convert
     void cvt_phdr(DST& d, SRC const& s, bool src_is_host) const;
     
 
+    // perform swap to "host" for member (ie. *no* swap if src is host)
     template <typename T>
     constexpr T swap_src(T member, bool src_is_host) const
     {
@@ -262,14 +220,15 @@ struct elf_convert
         return swap(member);
     }
 
+    // perform swap to "target" for member (ie. *do* swap if src is host)
     template <typename T>
     constexpr T swap_dst(T member, bool src_is_host) const
     {
         if (swap.passthru)
             return member;
-        if (src_is_host)
-            return swap(member);
-        return member;
+        if (!src_is_host)
+            return member;
+        return swap(member);
     }
 
     // convert hdr source field to (swapped) header dst field
@@ -291,17 +250,8 @@ struct elf_convert
     }
 
     swap_endian const& swap;
+    cvt_fns fns;
 };
-#if 0
-// simplify declaration of actual conversion methods
-#if 1
-template <typename SWAP_ENDIAN, typename TGT_HDRS>
-using DO_CVT = elf_convert<SWAP_ENDIAN, TGT_HDRS>;
-#else
-#define DO_CVT void template<typename S, typename T> \
-                    void elf_convert<S,T>::do_cvt::operator()
-#endif
-#endif
 }
 
 #endif

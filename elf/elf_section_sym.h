@@ -77,7 +77,8 @@ struct es_symbol : elf_section
         return sym_num;
     }
 
-    void generate_target(elf_object& obj)
+    // generate object "section" from host table
+    void generate_symtab(elf_object& obj)
     {
         // XXX if passthru just modify pointers...
         auto cnt = host_table.size();           // get symbol count...

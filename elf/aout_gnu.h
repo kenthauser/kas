@@ -32,7 +32,8 @@
 
 */
 
-#define USE_EXTENDED_RELOC defined(TC_SPARC)
+//#define USE_EXTENDED_RELOC defined(TC_SPARC)
+#define USE_EXTENDED_RELOC 0
 
 #if defined(TC_SPARC)
 enum reloc_type

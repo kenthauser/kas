@@ -1,6 +1,16 @@
 #ifndef KAS_ELF_ELF_OBJECT_H
 #define KAS_ELF_ELF_OBJECT_H
 
+// elf_object
+//
+// The `elf_object` type holds a handle to an `elf` object.
+// These can the output of as assembler, or the in-memory representation
+// of objects read from disk for linking or other utilities.
+//
+// NB: If `ELF_FORMAT` describes a non-elf format, the object is 
+//     converted to an `elf` compatible format on read, and then back
+//     to base format on write.
+
 #include "elf_common.h"
 #include "elf_external.h"
 
@@ -14,6 +24,8 @@ struct es_string;
 
 struct elf_object
 {
+    // declare appropriate type for "symbol number"
+    using elf_sym_index_t = Elf64_Half;
 
     template <typename ELF_FORMAT>
     elf_object(ELF_FORMAT const& format)
@@ -34,15 +46,11 @@ struct elf_object
         section_ptrs.reserve(n_sections);
     }
 
-    void write(std::ostream& os);
-
     Elf64_Ehdr e_hdr;       // elf header
     es_symbol *symtab_p    {};
     es_string *sh_string_p {};
     swap_endian swap;
     elf_convert cvt;
-    
-private:
     std::vector<elf_section *> section_ptrs;
 };
 

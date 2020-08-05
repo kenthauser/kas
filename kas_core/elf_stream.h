@@ -93,7 +93,7 @@ public:
         auto sym_num = sym.sym_num();
         if (!sym_num)
             throw std::logic_error("elf_stream: no sym_num for symbol: " + sym.name());
-        put_elf_reloc(num, info.num, sym_num, offset, addend);
+        put_elf_reloc(num, info, sym_num, offset, addend);
     }
 
     void put_section_reloc(
@@ -105,7 +105,7 @@ public:
                 ) override
     {
         auto sym_num = core2es_data(section).sym_num;
-        put_elf_reloc(num, info.num, sym_num, offset, addend);
+        put_elf_reloc(num, info, sym_num, offset, addend);
     }
 
     void put_diag(e_chan_num num, uint8_t width, parser::kas_diag_t const& diag) override
@@ -151,7 +151,7 @@ private:
     // actually emit a reloc
     void put_elf_reloc(
                   e_chan_num num
-                , uint32_t reloc
+                , elf::kas_reloc_info const& info 
                 , uint32_t sym_num
                 , uint8_t  offset
                 , int64_t& data

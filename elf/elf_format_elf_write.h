@@ -1,7 +1,7 @@
-#ifndef KAS_ELF_ELF_FORMAT_WRITE_H
-#define KAS_ELF_ELF_FORMAT_WRITE_H
+#ifndef KAS_ELF_ELF_FORMAT_ELF_WRITE_H
+#define KAS_ELF_ELF_FORMAT_ELF_WRITE_H
 
-#include "elf_format.h"
+#include "elf_format_elf.h"
 #include "elf_section.h"
 #include "elf_convert.h"
 #include "elf_section_sym.h"
@@ -9,8 +9,9 @@
 namespace kas::elf
 {
 
-// XXX develop as part of elf object for now
-void elf_object::write(std::ostream& os)
+template <std::endian ENDIAN, typename HEADERS, typename...Ts>
+void elf_format_elf<ENDIAN, HEADERS, Ts...>::
+    write(elf_object& obj, std::ostream& os) const
 {
     // write a std::pair<void const *, std::size> pair
     auto do_write = [](auto& os, std::pair<void const *, std::size_t>d)
@@ -18,13 +19,20 @@ void elf_object::write(std::ostream& os)
             auto p = static_cast<const char *>(d.first);
             os.write(p, d.second);
         };
-    
-    // generate "target" symbols
-    symtab_p->generate_target(*this);
+   
+    // create convenient references to `obj` members
+    auto& e_hdr        = obj.e_hdr;
+    auto& symtab_p     = obj.symtab_p;
+    auto& cvt          = obj.cvt;
+    auto& sh_string_p  = obj.sh_string_p;
+    auto& section_ptrs = obj.section_ptrs;
+
+    // generate "symbols" section
+    symtab_p->generate_symtab(obj);
 
     // create section_name section, if needed
     if (!sh_string_p)
-        sh_string_p = new es_string(*this, ".shstrtab");
+        sh_string_p = new es_string(obj, ".shstrtab");
 
     // initialize section names (as required)
     for (auto& p : section_ptrs)
