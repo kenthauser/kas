@@ -35,6 +35,8 @@
 #include "elf/elf_section_sym.h"
 #include "elf/elf_section_data.h"
 
+#include "elf/elf_convert_elf.h"    // host format
+
 namespace kas::core
 {
 

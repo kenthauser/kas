@@ -30,7 +30,7 @@ struct elf_object
     template <typename ELF_FORMAT>
     elf_object(ELF_FORMAT const& format)
         : swap(format.endian)
-        , cvt(swap, format)
+        , cvt(*this, swap, format)
         , e_hdr(format.header)
     {}
 

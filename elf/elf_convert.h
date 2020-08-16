@@ -76,8 +76,9 @@ struct elf_convert
 
 
     template <typename ELF_FORMAT, typename TGT_HDRS = typename ELF_FORMAT::headers>
-    elf_convert(swap_endian const& swap, ELF_FORMAT)
-            : swap(swap)
+    elf_convert(elf_object const& obj, swap_endian const& swap, ELF_FORMAT)
+            : obj(obj)
+            , swap(swap)
             , fns(TGT_HDRS{})
     {
     }
@@ -142,14 +143,13 @@ struct elf_convert
         return reloc;
     }
 #endif
-    template <typename HST>
-    cvt_fns::cvt_src_rt create_reloc(
-                     kas_reloc_info const& info
-                   , uint32_t sym_num
-                   , uint64_t position
-                   , uint8_t  offset
-                   , int64_t  data = 0
-                   ) const;
+    template <typename HOST_REL>
+    HOST_REL create_reloc(kas_reloc_info const& info
+                        , uint32_t sym_num
+                        , uint64_t position
+                        , uint8_t  offset
+                        , int64_t  data = 0
+                        ) const;
 
 
 // convert operations
@@ -249,6 +249,7 @@ struct elf_convert
         }
     }
 
+    elf_object  const& obj;
     swap_endian const& swap;
     cvt_fns fns;
 };

@@ -26,7 +26,7 @@ struct elf_section
                 , Elf64_Word sh_type
                 , std::string const& name
                 , unsigned alignment = {})
-            : name(name)
+            : object(obj), name(name)
     {
         index = obj.add_section_p(this);    // allocate slot in object
 
@@ -118,6 +118,11 @@ struct elf_section
         return s_header.sh_size;
     }
 
+    bool empty() const
+    {
+        return !data_endb;
+    }
+
     // calculate current position in section
     Elf64_Xword position() const
     {
@@ -140,6 +145,7 @@ struct elf_section
     // buffer can be pre-allocated or dynamically allocated in `vector`
     // If pre-allocated, `data_base` is set non-zero. If not pre-allocated
     // buffer will expand as required
+    elf_object&         object;         // containing object
     std::vector<char>   data;           // memory allocator
     char *              data_base {};
     char *              data_p    {};

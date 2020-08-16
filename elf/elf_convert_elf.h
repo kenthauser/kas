@@ -22,59 +22,53 @@ namespace kas::elf
 // create `elf` type from object data
 // the `create` methods are only required for `host_hdr` types
 
-// binutils defn uses `bfd_vma`. override with the ELF standard defn
+// gnu binutils defn uses `bfd_vma`. override with the ELF standard defn
 #undef  ELF64_R_INFO
 #define ELF64_R_INFO(s,t)   (((s) << 32) + (t))
 
 
 template <>
-auto elf_convert::create_reloc<Elf64_Rel>(
+inline auto elf_convert::create_reloc<Elf64_Rel>(
                                kas_reloc_info const& info
                              , uint32_t sym_num
                              , uint64_t position
-                             , uint8_t offset
+                             , uint8_t  offset
                              , int64_t  data
-                             ) const -> cvt_fns::cvt_src_rt
+                             ) const -> Elf64_Rel
 {
-    // create ELF64_Rel `reloc`
-    static Elf64_Rel reloc;
-    
     // can't shift a uint32 by 32. convert to uint64 before shift
     Elf64_Xword r_sym  = sym_num;
     Elf64_Xword r_info = ELF64_R_INFO(r_sym, info.num);
 
     // XXX offset can use some analysis for `endian` issues...
-    reloc = { position + offset, r_info };
+    Elf64_Rel reloc = { position + offset, r_info };
     std::cout << "create_reloc: r_info = " << std::hex << r_info;
     std::cout << ", sym = " << sym_num;
     std::cout << ", offset = " << std::hex << reloc.r_offset;
     std::cout << ", info = " << reloc.r_info << std::endl;
-    return { &reloc, sizeof(reloc) };
+    return reloc;
 }
 
 template <>
-auto elf_convert::create_reloc<Elf64_Rela>(
+inline auto elf_convert::create_reloc<Elf64_Rela>(
                                kas_reloc_info const& info
                              , uint32_t sym_num
                              , uint64_t position
-                             , uint8_t offset
+                             , uint8_t  offset
                              , int64_t  data
-                             ) const -> cvt_fns::cvt_src_rt
+                             ) const -> Elf64_Rela
 {
-    // create ELF64_Rela `reloc`
-    static Elf64_Rela reloc;
-    
     // can't shift a uint32 by 32. convert to uint64 before shift
     Elf64_Xword r_sym  = sym_num;
     Elf64_Xword r_info = ELF64_R_INFO(r_sym, info.num);
 
     // XXX offset can use some analysis for `endian` issues...
-    reloc = { position + offset, r_info, data };
+    Elf64_Rela reloc = { position + offset, r_info, data };
     std::cout << "create_reloc: r_info = " << std::hex << r_info;
     std::cout << ", sym = " << sym_num;
     std::cout << ", offset = " << std::hex << reloc.r_offset;
     std::cout << ", info = " << reloc.r_info << std::endl;
-    return { &reloc, sizeof(reloc) };
+    return reloc;
 }
 
 

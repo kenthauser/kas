@@ -27,9 +27,6 @@ void elf_format_elf<ENDIAN, HEADERS, Ts...>::
     auto& sh_string_p  = obj.sh_string_p;
     auto& section_ptrs = obj.section_ptrs;
 
-    // generate "symbols" section
-    symtab_p->generate_symtab(obj);
-
     // create section_name section, if needed
     if (!sh_string_p)
         sh_string_p = new es_string(obj, ".shstrtab");
@@ -50,12 +47,28 @@ void elf_format_elf<ENDIAN, HEADERS, Ts...>::
     if (e_hdr.e_phnum == 0)
         e_hdr.e_phentsize = 0;
 
-    // calculate physical offsets
+    // perform required conversions & calculate physical offsets
     auto offset = e_hdr.e_ehsize;
 
     for (auto& p : section_ptrs)
     {
         std::cout << "sections: name = " << p->name << ", offset = " << offset << std::endl;
+        // perform host -> target conversions for symbol tables & relocations
+        switch (p->s_header.sh_type)
+        {
+            case SHT_SYMTAB:
+                es_symbol::gen_target_data(obj, p);
+                break;
+            case SHT_REL:
+                detail::es_reloc<Elf64_Rel>::gen_target_data(obj, p);
+                break;
+            case SHT_RELA:
+                detail::es_reloc<Elf64_Rela>::gen_target_data(obj, p);
+                break;
+            default:
+                break;
+        }
+
         // calculate padding needed to align section data
         if (p->s_header.sh_type != SHT_NOBITS)
         {

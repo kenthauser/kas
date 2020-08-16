@@ -35,8 +35,9 @@ struct es_string : elf_section
 };
 
 // create a symbol section
-// NB: hold copy of symbols in host format, convert to target format
-// on writing, or to host format on reading
+// NB: hold copy of symbols in host format,
+// convert to target format on writing,
+// or to host format on reading
 struct es_symbol : elf_section
 {
     // default initializer -- system symbol table
@@ -54,10 +55,23 @@ struct es_symbol : elf_section
         host_table.emplace_back();
     }
     
-    // symbols use "add", not "put"
+    // host objects use "add", not "put"
     void put(void const *, std::size_t) = delete;
 
-    // add symbol to host symbol table
+    // generate target from host table
+    // do `static_cast` in object, not calling location
+    static void gen_target_data(elf_object& obj, elf_section *s)
+    {
+        static_cast<es_symbol *>(s)->do_gen_target(obj);
+    }
+
+    // make room for expected "entries"
+    void reserve(Elf64_Word size)
+    {
+        host_table.reserve(size);
+    }
+    
+    // add symbol to host symbol table: Elf64_Sym
     Elf64_Word add(Elf64_Sym const& new_sym, std::string const& name = {})
     {
         // symbol number is index value (zero-based)
@@ -77,11 +91,12 @@ struct es_symbol : elf_section
         return sym_num;
     }
 
-    // generate object "section" from host table
-    void generate_symtab(elf_object& obj)
+private:
+    // convert "host" object to "target" object
+    void do_gen_target(elf_object& obj)
     {
         // XXX if passthru just modify pointers...
-        auto cnt = host_table.size();           // get symbol count...
+        auto cnt = host_table.size();           // get entry count...
         set_size(cnt * s_header.sh_entsize);    // ... and allocate memory
         
         // convert host -> target
@@ -89,14 +104,8 @@ struct es_symbol : elf_section
             elf_section::put(obj.cvt(s));
     }
 
-    // make room for expected "entries"
-    void reserve(Elf64_Word size)
-    {
-        host_table.reserve(size);
-    }
-private:
-    std::vector<Elf64_Sym>  host_table;
-    es_string    sym_string;        // support section for strings
+    std::vector<Elf64_Sym> host_table;
+    es_string sym_string;        // auxillary section for symbol names 
 };
 
 }
