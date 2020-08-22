@@ -13,10 +13,10 @@ template <std::endian ENDIAN, typename HEADERS, typename...Ts>
 void elf_format_aout<ENDIAN, HEADERS, Ts...>::
     write(elf_object& obj, std::ostream& os) const
 {
-    using a = aout_utils;
+    using utils = aout_utils;
     
     // map elf sections -> a.out sections. ignore empty (eg consolidated) sections
-    std::array<elf_section *, a::N_AOUT_SECT> aout_sections{}; 
+    std::array<elf_section *, utils::N_AOUT_SECT> aout_sections{}; 
     for (auto p : obj.section_ptrs)
     {
         auto save = [&aout_sections](elf_section *p, unsigned n)
@@ -26,37 +26,9 @@ void elf_format_aout<ENDIAN, HEADERS, Ts...>::
                     throw std::runtime_error("a.out: duplicate section:" + p->name);
                 sp = p;
             };
-#if 0
-        // XXX alternately use ST_TYPE to classify sections...
-        std::cout << "a.out: map: " << p->name << std::endl;
-        if (p->empty())
-            continue;                       // nothing to see here
-        else if (p->name == ".text")
-            save(p, S_TEXT);
-        else if (p->name == ".data")
-            save(p, S_DATA);
-        else if (p->name == ".bss")
-            save(p, S_BSS);
-        else if (p->name == ".rel.text")
-            save(p, S_T_REL);
-        else if (p->name == ".rel.data")
-            save(p, S_D_REL);
-        else if (p->name == ".rel.bss")
-            continue;                       // NO_BITS is NO_BITS...
-        else if (p->name == ".rela.bss")
-            continue;                       // NO_BITS is NO_BITS...
-        else if (p->name == ".symtab")
-            save(p, S_SYM);
-        else if (p->name == ".strtab")
-            save(p, S_STRTAB);
-        else if (p->name == ".shstrtab")    // ELF section table name table
-            continue;                       // (if converting from ELF)
-        else
-            throw std::runtime_error{"a.out: section not supported: " + p->name};
-#else
-        auto sect = a::from_elf(*p);
-        std::cout << "a.out: mapping " << p->name << " to " << a::aout_names[sect] << std::endl;
-#endif
+        auto sect = utils::from_elf(*p);
+        std::cout << "a.out: mapping " << p->name;
+        std::cout << " to " << utils::aout_names[sect] << std::endl;
     }
     
     // generate "symbols" && "relocs" sections
@@ -96,6 +68,7 @@ void elf_format_aout<ENDIAN, HEADERS, Ts...>::
         
         std::cout << "a.out: section: n = " << (n-1) << std::endl;
         std::cout << "sections: name = " << p->name << ", offset = " << offset << std::endl;
+        // XXX this should be in common method...
         // calculate padding needed to align section data
         if (p->s_header.sh_type != SHT_NOBITS)
         {
@@ -111,84 +84,47 @@ void elf_format_aout<ENDIAN, HEADERS, Ts...>::
         if (p->s_header.sh_type != SHT_NOBITS)
             offset += p->s_header.sh_size;
     };
-#if 0
-    // align section headers after data
-    auto h_alignment = cvt.header_align<Elf64_Shdr>();
-    auto h_padding   = cvt.padding(h_alignment, offset);
-    header.e_shoff   = offset + h_padding;
-#else
-    e_hdr.e_shoff = offset;
-#endif
     
-    // now write data: first aout_header
     
-    // write a std::pair<void const *, std::size> pair
-    auto do_write = [](auto& os, std::pair<void const *, std::size_t> d)
+    // write a (void const *, std::size) pair
+    auto do_write = [&os](void const *p, std::size_t s)
         {
-            auto p = static_cast<const char *>(d.first);
-            os.write(p, d.second);
+            os.write(static_cast<const char *>(p), s);
         };
 
     // initialize the `a.out` header
     exec aout_header{};
     N_SET_INFO(&aout_header, OMAGIC, M_UNKNOWN, 0);
-#if 0 
-    if (auto p = aout_sections[S_TEXT])
+
+    // XXX might be better as pointer-to-member array...
+    if (auto p = aout_sections[utils::S_TEXT])
         aout_header.a_text   = p->size();
-    if (auto p = aout_sections[S_DATA])
+    if (auto p = aout_sections[utils::S_DATA])
         aout_header.a_data = p->size();
-    if (auto p = aout_sections[S_BSS])
+    if (auto p = aout_sections[utils::S_BSS])
         aout_header.a_bss   = p->size();
-    if (auto p = aout_sections[S_T_REL])
+    if (auto p = aout_sections[utils::S_T_REL])
         aout_header.a_trsize   = p->size();
-    if (auto p = aout_sections[S_D_REL])
+    if (auto p = aout_sections[utils::S_D_REL])
         aout_header.a_drsize   = p->size();
-    if (auto p = aout_sections[S_SYM])
+    if (auto p = aout_sections[utils::S_SYMTAB])
         aout_header.a_syms   = p->size();
-#endif
-    do_write(os, {&aout_header, sizeof(aout_header)});
+
+    // now write data: first aout_header
+    do_write(&aout_header, sizeof(aout_header));
 
     // write section data in order (except BSS)
-    aout_sections[a::S_BSS] = {};
+    aout_sections[utils::S_BSS] = {};
     for (auto p : aout_sections)
-    {
-        if (p && p->size())
-            do_write(os, {p, p->size()});
-    }
-#if 0
-    //os.write((const char *)cvt.cvt(header), header.e_ehsize);
-    do_write(os, cvt(e_hdr));
-    // next write data: section data
-    for (auto& p : section_ptrs)
-    {
-        if (p->s_header.sh_type == SHT_NOBITS)
-            continue;
-        if (p->padding)
-            os.write(cvt.zero, p->padding);
-        if (p->position())
-            os.write(p->begin(), p->position());
-    };
-#endif
-#if 0
+        if (p)
+            do_write(p->begin(), p->size());
 
-    // next write data: section headers
-    // align if needed
-    if (h_padding)
-        os.write(cvt.zero, h_padding);
-#endif
-#if 0
-    // first is zero entry
-    std::cout << "e_shentsize " << +e_hdr.e_shentsize << std::endl;
-    os.write(cvt.zero, e_hdr.e_shentsize);
-#endif
-#if 0
-    // followed by actual section headers
-    for (auto& p : section_ptrs)
-    {
-        do_write(os, cvt(p->s_header));
-    };
-    
-#endif
+    // finally write string table prefixed by "size" (32-bits)
+    auto& strtab = obj.symtab_p->strtab();
+    uint32_t str_size = strtab.size() + 4;    // add sizeof(str_size)
+    do_write(&str_size, sizeof(str_size));    // size in host order
+    do_write(strtab.begin(), strtab.size());  // write string table
+
     os.flush();     // push to device
 }
 

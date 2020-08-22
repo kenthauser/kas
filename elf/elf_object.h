@@ -32,6 +32,7 @@ struct elf_object
         : swap(format.endian)
         , cvt(*this, swap, format)
         , e_hdr(format.header)
+        , relocs(format.relocs)
     {}
 
     std::size_t add_section_p(elf_section *p)
@@ -46,11 +47,15 @@ struct elf_object
         section_ptrs.reserve(n_sections);
     }
 
+    const char *sym_name(Elf64_Sym const& sym) const;
+    const char *sym_name(Elf64_Word n_sym) const;
+
     Elf64_Ehdr e_hdr;       // elf header
     es_symbol *symtab_p    {};
     es_string *sh_string_p {};
     swap_endian swap;
     elf_convert cvt;
+    elf_reloc_t const& relocs;
     std::vector<elf_section *> section_ptrs;
 };
 

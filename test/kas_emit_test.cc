@@ -25,6 +25,7 @@
 #include "kas_core/elf_stream_impl.h"    // XXX
 #include "kas_core/elf_symbol_util.h"    // XXX
 //#include "elf/elf_format_write.h"       // XXX
+#include "elf/elf_format_elf_ostream.h"     // ostream host format
 
 
 

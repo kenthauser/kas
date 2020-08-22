@@ -104,14 +104,14 @@ struct aout_utils
             case STT_NOTYPE:
             case STT_OBJECT:
             case STT_FUNC:
-                return add_binding(N_UNDF, st_bind);
+                //return add_binding(N_UNDF, st_bind);
             case STT_SECTION:
                 // symbol references a section.
                 break;
             case STT_FILE:
                 return N_FN;
             case STT_COMMON:
-                return add_binding(N_UNDF, STB_GLOBAL);
+                return N_COMM;
         
             // unsupported
             case STT_TLS:
@@ -132,8 +132,9 @@ struct aout_utils
         switch (sym.st_shndx)
         {
             case SHN_UNDEF:
+                return add_binding(N_UNDF, st_bind);
             case SHN_COMMON:
-                return add_binding(N_UNDF, STB_GLOBAL);
+                return N_COMM;
             case SHN_ABS:
                 return add_binding(N_ABS, st_bind);
             default:
@@ -158,44 +159,25 @@ struct aout_utils
 template <>
 void elf_convert::cvt_sym(nlist& d, Elf64_Sym const& sym, bool src_is_host) const
 {
-    // NB: swap not required: `a.out` headers always in host order
+    // NB: swap not required: `a.out` types always in host order
     d.n_un.n_strx = sym.st_name + 4;      // offset for sizeof(string length field)
     d.n_type      = aout_utils::sym_type_from_elf(obj, sym);
     d.n_other     = sym.st_other;
     d.n_desc      = 0;                  // used by debugger (ie stabs)
     d.n_value     = sym.st_value;
 
-    std::cout << "cvt_sym: from: " ;//<< sym << " to: " << std::hex;
-    std::cout << " n_type = " << +d.n_type;
-    std::cout << " n_value = " << d.n_value;
+    // special for commons: ELF `value` is alignment. A.OUT `value` is size
+    if (d.n_type == N_COMM)
+        d.n_value = sym.st_size;
+
+    std::cout << "cvt_sym: from: " << std::make_pair(obj, sym);
+    std::cout <<           " to: " << std::make_pair(obj, d);
     std::cout << std::endl;
 }
 
 // Relocation conversions are not as straightforward.
 // `r_info` is composite of `sym` & `type`.
 // `r_info` format is different for ELF32 & ELF64
-
-#if 0
-// Relocation conversion: SRC & DST are same ei_class (ie host format)
-// endian swap can still be required
-template <>
-inline void elf_convert::
-    cvt_rel(Elf64_Rel& d, Elf64_Rel const& s, bool src_is_host) const
-{
-    ASSIGN(r_offset);
-    ASSIGN(r_info);
-}
-template <>
-inline void elf_convert::
-    cvt_rel(Elf64_Rela& d, Elf64_Rela const& s, bool src_is_host) const
-{
-    ASSIGN(r_offset);
-    ASSIGN(r_info);
-    ASSIGN(r_addend);
-}
-#endif
-// Relocation conversion: DST = ELF32, SRC = ELF64
-// NB: make a `template` for single definition purposes
 
 template <>
 inline void elf_convert::
@@ -204,43 +186,43 @@ inline void elf_convert::
 
     // extract sym number & type from `s`
     auto host_info = swap_src(s.r_info, true);  // know `src_is_host`
-    auto sym  = ELF64_R_SYM(host_info);
-    auto type = ELF64_R_TYPE(host_info);
+    auto sym_num   = ELF64_R_SYM(host_info);
+    auto type      = ELF64_R_TYPE(host_info);
+    const kas_reloc_info *info_p{};
+    auto info_name = obj.relocs.get_info(type, &info_p);
 
-    std::cout << "aout::cvt_rel: " << std::hex;
-    std::cout << " sym = " << sym;
-    std::cout << " type = " << type;
-    std::cout << " addr = " << s.r_offset;
-    std::cout << std::endl;
-#if 0
-    //  use DST size for result
-    decltype(d.r_info) info = ELF32_R_INFO(sym, type);
-    d.r_info = swap_dst(info, true);
-#endif
-    unsigned r_symbolnum;
-        
+    auto& sym      = obj.symtab_p->get(sym_num);
 
-    assign(r_symbolnum, sym, src_is_host);
+    // get reloc addend: see if symbol represents section
+    auto aout_sect = aout_utils::sym_type_from_elf(obj, sym);
+    switch (aout_sect & ~N_EXT)
+    {
+        case N_TEXT:
+        case N_DATA:
+        case N_BSS:
+        case N_ABS:
+            d.r_symbolnum = aout_sect;
+            d.r_extern    = false;
+            break;
+        default:
+            d.r_symbolnum = sym_num;
+            d.r_extern    = true;
+    }
+
+    // examine `kas_reloc` for reloc method
+    // NB: should error if no `info_p` or `method` not ADD
+    if (info_p)
+    {
+        d.r_pcrel     = info_p->reloc.flags & kas_reloc::RFLAGS_PC_REL;
+        d.r_length    = info_p->reloc.bits / 8;
+    }
+    
+    // relocation address maps directly
     assign(d.r_address, s.r_offset, src_is_host);
-    d.r_symbolnum = r_symbolnum;
-}
 
-template <>
-inline void elf_convert::
-    cvt_rela(relocation_info& d, Elf64_Rela const& s, bool src_is_host) const
-{
-#if 0
-    auto host_info = swap_src(s.r_info, true);  // know `src_is_host`
-    auto sym  = ELF64_R_SYM(host_info);
-    auto type = ELF64_R_TYPE(host_info);
-
-    //  use DST size for result
-    decltype(d.r_info) info = ELF32_R_INFO(sym, type);
-    d.r_info = swap_dst(info, true);
-
-    ASSIGN(r_offset);
-    ASSIGN(r_addend);
-#endif
+    std::cout << "cvt_rel: from: " << std::make_pair(obj, s);
+    std::cout <<           " to: " << std::make_pair(obj, d);
+    std::cout << std::endl;
 }
 
 }

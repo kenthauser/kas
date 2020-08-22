@@ -6,7 +6,6 @@
 #include "elf_reloc.h"
 #include "kas/endian.h" 
 
-
 namespace kas::elf
 {
 
@@ -70,6 +69,17 @@ struct elf_format
     elf_reloc_t relocs;     // supported relocations
     Elf64_Ehdr  header{};   // prototype header
 };
+
+// since `Elf64` is used as host format, require ostream methods for symbols & relocs
+template <typename OSTREAM>
+OSTREAM& operator<< (OSTREAM& os, std::pair<elf_object const&, Elf64_Sym const&>);
+
+template <typename OSTREAM>
+OSTREAM& operator<< (OSTREAM& os, std::pair<elf_object const&, Elf64_Rel const&>);
+
+template <typename OSTREAM>
+OSTREAM& operator<< (OSTREAM& os, std::pair<elf_object const&, Elf64_Rela const&>);
+
 }
 
 #endif

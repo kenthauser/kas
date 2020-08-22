@@ -91,6 +91,24 @@ struct es_symbol : elf_section
         return sym_num;
     }
 
+    const char *sym_name(Elf64_Sym const& sym) const
+    {
+        return sym_string.begin() + sym.st_name;
+    }
+
+    const char *sym_name(Elf64_Word index) const
+    {
+        return sym_name(get(index));
+    }
+
+    Elf64_Sym const& get(Elf64_Word index) const
+    {
+        return host_table[index];
+    }
+
+    // a.out needs direct access to string table
+    auto& strtab() const { return sym_string; }
+
 private:
     // convert "host" object to "target" object
     void do_gen_target(elf_object& obj)
@@ -107,6 +125,21 @@ private:
     std::vector<Elf64_Sym> host_table;
     es_string sym_string;        // auxillary section for symbol names 
 };
+   
+// XXX temporary home. just trampoline
+const char *elf_object::sym_name(Elf64_Sym const& sym) const 
+{
+    if (symtab_p)
+        return symtab_p->sym_name(sym);
+    return "";
+}
+
+const char *elf_object::sym_name(Elf64_Word n_sym) const 
+{
+    if (symtab_p)
+        return symtab_p->sym_name(n_sym);
+    return "";
+}
 
 }
 #endif

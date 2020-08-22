@@ -2,6 +2,7 @@
 #define KAS_ELF_ELF_FORMAT_AOUT_H
 
 #include "elf_format.h"
+#include "elf_format_aout_ostream.h"
 #include "elf_convert_aout.h"
 
 namespace kas::elf

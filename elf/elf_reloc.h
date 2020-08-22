@@ -109,6 +109,20 @@ struct elf_reloc_t
         return fn_map.at(reloc.action);
     }
 
+    // method for `ostream`
+    const char *get_info(uint8_t r_num, kas_reloc_info const **info_p = {}) const
+    {
+        auto p = reloc_info;
+        for (auto n = 0; n < num_info; ++n, ++p)
+            if (p->num == r_num)
+            {
+                if (info_p)
+                    (*info_p) = p;
+                return p->name;
+            }
+        return "invalid relocation";
+    }
+
 private:
     kas_reloc_info const * const reloc_info;
     reloc_ops_t    const * const ops;
