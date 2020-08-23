@@ -23,7 +23,7 @@ void elf_format_aout<ENDIAN, HEADERS, Ts...>::
             {
                 auto& sp = aout_sections[n];
                 if (sp)
-                    throw std::runtime_error("a.out: duplicate section:" + p->name);
+                    throw std::runtime_error("a.out: duplicate section: " + p->name);
                 sp = p;
             };
         auto sect = utils::from_elf(*p);
@@ -57,8 +57,12 @@ void elf_format_aout<ENDIAN, HEADERS, Ts...>::
     auto& sh_string_p  = obj.sh_string_p;
     auto& section_ptrs = obj.section_ptrs;
     
+    // initialize the `a.out` header
+    exec aout_header{};
+    N_SET_INFO(&aout_header, OMAGIC, M_UNKNOWN, 0);
+
     // calculate physical offsets
-    auto offset = e_hdr.e_ehsize;
+    auto offset = sizeof(exec);
 
     auto n = 0;
     for (auto& p : aout_sections)
@@ -67,7 +71,9 @@ void elf_format_aout<ENDIAN, HEADERS, Ts...>::
         if (!p) continue;       // ignore empty sections
         
         std::cout << "a.out: section: n = " << (n-1) << std::endl;
-        std::cout << "sections: name = " << p->name << ", offset = " << offset << std::endl;
+        std::cout << "sections: name = " << p->name << ", offset = " << offset;
+        std::cout << std::endl;
+
         // XXX this should be in common method...
         // calculate padding needed to align section data
         if (p->s_header.sh_type != SHT_NOBITS)
@@ -79,7 +85,11 @@ void elf_format_aout<ENDIAN, HEADERS, Ts...>::
         // record offsets in section
         p->s_header.sh_offset = offset;
         p->s_header.sh_size   = p->position();      // size is next write offset
-        
+       
+        // store section size in `a.out` header
+        if (auto mp = utils::aout_sizes[n-1])
+            aout_header.*mp = p->size();
+
         // NO_BITS sections don't occupy space
         if (p->s_header.sh_type != SHT_NOBITS)
             offset += p->s_header.sh_size;
@@ -91,25 +101,7 @@ void elf_format_aout<ENDIAN, HEADERS, Ts...>::
         {
             os.write(static_cast<const char *>(p), s);
         };
-
-    // initialize the `a.out` header
-    exec aout_header{};
-    N_SET_INFO(&aout_header, OMAGIC, M_UNKNOWN, 0);
-
-    // XXX might be better as pointer-to-member array...
-    if (auto p = aout_sections[utils::S_TEXT])
-        aout_header.a_text   = p->size();
-    if (auto p = aout_sections[utils::S_DATA])
-        aout_header.a_data = p->size();
-    if (auto p = aout_sections[utils::S_BSS])
-        aout_header.a_bss   = p->size();
-    if (auto p = aout_sections[utils::S_T_REL])
-        aout_header.a_trsize   = p->size();
-    if (auto p = aout_sections[utils::S_D_REL])
-        aout_header.a_drsize   = p->size();
-    if (auto p = aout_sections[utils::S_SYMTAB])
-        aout_header.a_syms   = p->size();
-
+    
     // now write data: first aout_header
     do_write(&aout_header, sizeof(aout_header));
 

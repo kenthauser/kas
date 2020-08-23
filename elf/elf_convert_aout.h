@@ -1,18 +1,6 @@
 #ifndef KAS_ELF_ELF_CONVERT_AOUT_H
 #define KAS_ELF_ELF_CONVERT_AOUT_H
 
-// Convert ELF Class (ELF32/ELF64) and data ENDIAN between host and target formats
-//
-// When headers are in memory, they are stored as ELF64 with host-endian.
-// Data in sections is always stored in target format (class/endian)
-// `elf_convert` supports both host->target & target->host translations
-// of headers & byte-swap for endian conversion of data emited to data sections.
-
-// Conversions between various ELF formats is generally just a member-wise
-// assignment between source and destination, possibly with endian conversion
-//
-// The exception is the relocation formats beause the `r_info` member formats
-// are slightly different.
 
 #include "elf_convert.h"
 #include "aout_gnu.h"
@@ -23,14 +11,22 @@ namespace kas::elf
 struct aout_utils
 {
     // a.out has header + fixed order sections:
+    // declare them in the order written to output stream
     enum aout_sect { S_TEXT, S_DATA, S_BSS, S_T_REL, S_D_REL
                    , S_SYMTAB, S_STRTAB, S_UNDEF, N_AOUT_SECT };
 
-    static constexpr const char *aout_names[N_AOUT_SECT] = 
+    // name all `a.out` sections (static_assert enforced)
+    static constexpr const char *aout_names[] = 
             { "S_TEXT", "S_DATA", "S_BSS", "S_T_REL", "S_D_REL"
             , "S_SYMTAB", "S_STRTAB", "S_UNDEF" };
+    static_assert(std::extent_v<decltype(aout_names)> == N_AOUT_SECT);
+   
+    // pointers to `exec` members holding aout_sect sizes
+    static constexpr unsigned exec::* aout_sizes[N_AOUT_SECT] = 
+            { &exec::a_text, &exec::a_data, &exec::a_bss
+            , &exec::a_trsize, &exec::a_drsize, &exec::a_syms };
 
-    // declare mapping from "S_*" to a.out::"N_*"
+    // declare mapping from "S_*" to a.out::"N_*" (most map to zero, ie N_UNDF)
     static constexpr uint8_t sect2reloc[N_AOUT_SECT] = { N_TEXT, N_DATA, N_BSS };
 
     // map elf section -> a.out section (enum `aout_sect`)
@@ -195,13 +191,13 @@ inline void elf_convert::
 
     // get reloc addend: see if symbol represents section
     auto aout_sect = aout_utils::sym_type_from_elf(obj, sym);
-    switch (aout_sect & ~N_EXT)
+    switch (auto base_sect = aout_sect & ~N_EXT)
     {
         case N_TEXT:
         case N_DATA:
         case N_BSS:
         case N_ABS:
-            d.r_symbolnum = aout_sect;
+            d.r_symbolnum = base_sect;
             d.r_extern    = false;
             break;
         default:
