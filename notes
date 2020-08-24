@@ -242,7 +242,7 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 *3. make "listing" emit "diagnostics" not otherwise generated
 
-4. allow blank lines
+*4. allow blank lines
 
 *5. error expressions emit as "xx" with diagnostic
 
@@ -268,7 +268,7 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 *16. `diag` not setting token `position`
 
-17. last line (.long...) not in listing??
+*17. last line (.long...) not in listing??
 
 *18. print diagnostics before relocations
 
@@ -313,7 +313,7 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 *38. invalid equ's should display "=xxxx", not address
 
-39. create a.out object
+*39. create a.out object
 
 40. add character constants (including eg 'ab') to c_int_parser
 

@@ -54,6 +54,8 @@ bool kas_loc::operator < (kas_loc const& o) const
     auto w   = error_handler_type::raw_where(loc);
     auto o_w = error_handler_type::raw_where(o.loc);
 
+    if (w.second.begin()  < o_w.second.end())
+        return true;
     return w.second.end() < o_w.second.end();
 }
 }

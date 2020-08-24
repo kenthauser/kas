@@ -126,9 +126,6 @@ private:
         };
     }
 
-    // "map" diagnostics by "loc"
-    
-
     friend listing_line<Iter>;
     emit_formatted fmt{ put(), put_diag(), put_reloc() };
     std::array<std::vector<std::string>, NUM_EMIT_FMT> buffers;
@@ -138,6 +135,7 @@ private:
     parser::kas_loc  prev_loc;
     std::ostream& out;
 
+    // "map" diagnostics by "loc"
     using diag_iter_t = typename diag_map_t::iterator;
     diag_map_t  diag_map {};
     diag_iter_t diag_iter;
@@ -295,7 +293,9 @@ void listing_line<Iter>::append_warnings(diag_type& new_diags)
     while(e.diag_iter != e.diag_end)
     {
         auto [key, ptr] = *e.diag_iter;
-        //if (e.prev_loc < key)
+
+        //std::cout << "append_warnings: prev_loc = " << e.prev_loc.get();
+        //std::cout << ", key = " << key.get() << std::endl;
         if (!(key < e.prev_loc))
             break;
         new_diags.push_back(ptr->index());

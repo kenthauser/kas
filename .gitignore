@@ -1,5 +1,6 @@
 *.o
 *.d
+*.elf
 kas_expr_test
 kas_parse_test
 kas_emit_test

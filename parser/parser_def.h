@@ -135,6 +135,7 @@ struct insn_junk
         }
 
         kas_position_tagged junk_loc { junk, first, &e_handler };
+        //kas_position_tagged junk_loc { junk, junk, &e_handler };
         std::cout << "insn_junk::on_error: " << junk_loc.where() << std::endl;
        
         // process "junk" following statement
