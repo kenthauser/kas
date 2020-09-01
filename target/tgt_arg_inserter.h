@@ -37,10 +37,11 @@ namespace kas::tgt::opc::detail
 //              
 
 // declare meta-data value stored when serialized
-struct arg_serial_t
+struct arg_serial_t : alignas_t<arg_serial_t, uint16_t>
 {
-    using value_t = uint16_t;
     static constexpr std::size_t MODE_FIELD_SIZE = 5;
+
+    arg_serial_t(value_t mode = {}) : init_mode(mode), cur_mode(mode) {}
 
     value_t init_mode : MODE_FIELD_SIZE;    // mode when serialized
     value_t has_reg   : 1;                  // register stored
@@ -105,15 +106,18 @@ void insert_one (Inserter& inserter
 
     // write arg data
     // NB: `serialize` can destroy arg.
-    p->cur_mode = p->init_mode = arg.mode();
-    p->has_reg  = !val_p;           // if no validator, check for register
-    p->has_data = !completely_saved;
-    p->has_expr = arg.serialize(inserter, sz, p);
-
+    *p = arg.mode();
+    if (!completely_saved)
+    {
+        p->has_reg  = !val_p;           // if no validator, check for register
+        p->has_data = true;
+        p->has_expr = arg.serialize(inserter, sz, p);
+    }
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "write_one: " << arg;
     std::cout << ": mode = "   << std::dec << std::setw(2) << +p->init_mode;
-    std::cout << " bits: "     << +p->has_reg << "/" << +p->has_data << "/" << +p->has_expr;
+    std::cout << " reg/data/expr = ";
+    std::cout << +p->has_reg << "/" << +p->has_data << "/" << +p->has_expr;
     std::cout << std::endl;
 #endif
 }
@@ -133,7 +137,8 @@ void extract_one(Reader& reader
 {
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "\n[read_one:  mode = " << std::dec << std::setw(2) << +p->init_mode;
-    std::cout << " bits: " << +p->has_reg  << "/" << +p->has_data << "/" << +p->has_expr;
+    std::cout << " reg/data/expr = ";
+    std::cout << +p->has_reg  << "/" << +p->has_data << "/" << +p->has_expr;
 #endif
     // extract arg from machine code (dependent on validator)
     // extract info from `opcode`

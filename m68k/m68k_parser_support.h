@@ -97,7 +97,7 @@ using m68k_disp_t = std::list<expr_size_scale>;
 
 struct m68k_displacement
 {
-    int mode;
+    int parsed_mode;
     std::list<m68k_disp_t> args;
 };
 
@@ -205,11 +205,11 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
         };
 
     // print arg
-    std::cout << "m68k_parsed_arg_t: mode = ";
-    if (mode.mode < std::extent<decltype(parse_names)>::value)
-        std::cout << parse_names[mode.mode] << std::endl;
+    std::cout << "m68k_parsed_arg_t: parsed_mode = ";
+    if (mode.parsed_mode < std::extent<decltype(parse_names)>::value)
+        std::cout << parse_names[mode.parsed_mode] << std::endl;
     else
-        std::cout << +mode.mode << std::endl;
+        std::cout << +mode.parsed_mode << std::endl;
 
     std::cout << "base: " << base;
    
@@ -255,9 +255,9 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
 #endif
 
     // check for the PARSE_MASK & save in `has_subword_mask` local
-    auto has_subword_mask = mode.mode & PARSE_MASK;
+    auto has_subword_mask = mode.parsed_mode & PARSE_MASK;
     if (has_subword_mask)
-        mode.mode &=~ PARSE_MASK;
+        mode.parsed_mode &=~ PARSE_MASK;
     
     // direct parsed operands have a single "arg". See what it is.
     auto& base_value = base.token.expr();
@@ -265,17 +265,17 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
     auto kind = classify();
 
     // use "indirect" method to process arguments with displacements
-    if (mode.mode == PARSE_INDIR && kind == RC_DATA)
+    if (mode.parsed_mode == PARSE_INDIR && kind == RC_DATA)
         return indirect();
 
     // XXX but not PAIR nor BITFIELD
     else if (!mode.args.empty() && !mode.args.front().empty())
-        if (mode.mode != PARSE_PAIR &&
-            mode.mode != PARSE_BITFIELD)
+        if (mode.parsed_mode != PARSE_PAIR &&
+            mode.parsed_mode != PARSE_BITFIELD)
             return indirect();
 
 #ifdef TRACE_M68K_PARSE
-    std::cout << "m68k_parsed_arg_t::m68k_arg_t: " << base << " = " << kind <<std::endl;
+    std::cout << "m68k_parsed_arg_t::m68k_arg_t(): " << base << " = " << kind <<std::endl;
 #endif
     // support routine to require addr register
     auto addr_only = [&](auto mode) -> m68k_arg_t
@@ -288,7 +288,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
         return r;
     };
 
-    switch (mode.mode)
+    switch (mode.parsed_mode)
     {
         default:
             // enable this while debugging...
@@ -393,6 +393,8 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 if (inner.size() != 1)
                     return { error_msg::ERR_bad_pair, base.token };
                 auto& second = inner.front();
+                std::cout << "PAIR: args = " << base.token << ", " << second.token << std::endl;
+
                 return { MODE_PAIR, base.token, second.token };
             }
         case PARSE_BITFIELD:
@@ -456,7 +458,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 case E_ADDR:
                 {
                     auto arg_mode = MODE_SUBWORD_UPPER;
-                    if (mode.mode == PARSE_SFX_L)
+                    if (mode.parsed_mode == PARSE_SFX_L)
                         arg_mode = MODE_SUBWORD_LOWER;
 
                     m68k_arg_t r{ arg_mode, base.token };
@@ -467,7 +469,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 case E_EXPR:
                 case E_INT:
                     // absorb ".l" meaning "long"
-                    if (mode.mode == PARSE_SFX_L)
+                    if (mode.parsed_mode == PARSE_SFX_L)
                         return { MODE_DIRECT, base.token };
                     // FALLSTHRU
                 default:
@@ -736,7 +738,7 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
     }
     
     // check if `full index` mode required
-    // would error out later, but gives better message
+    // would error out later, but generate better error message
     if (!result.ext.brief_ok())
         if (auto err = hw::cpu_defs[hw::index_full{}])
             return { err, *error_p };
@@ -751,11 +753,13 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
         return { error_msg::ERR_addr_mode, *error_p };
     }
 
-    std::cout << "\nsupport: index_first = " << std::boolalpha << result.ext.has_index_reg;
-    std::cout << ", index_second = " << result.ext.is_post_index;
+#ifdef TRACE_M68K_PARSE
+    std::cout << "\nm68k_parser_support.h:indirect():" << std::boolalpha;
+    std::cout << " reg_inner = " << (bool)result.ext.has_index_reg;
+    std::cout << ", reg_outer = " << (bool)result.ext.is_post_index;
     std::cout << ", inner_zero = " << (result.ext.disp_size == M_SIZE_ZERO);
     std::cout << std::endl;
-
+#endif
 
     // if index extension required, done.
     if (result.ext)
@@ -810,7 +814,7 @@ scale
 
 BOOST_FUSION_ADAPT_STRUCT(
 kas::m68k::parser::m68k_displacement,
-mode,
+parsed_mode,
 args
 )
 

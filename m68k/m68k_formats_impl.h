@@ -53,9 +53,16 @@ struct fmt_reg_mode : m68k_mcode_t::fmt_t::fmt_impl
         op[WORD]  &= ~MASK;
         op[WORD]  |= value;
 
-        // test if expr is zero. return true iff expr == zero
-        auto p = arg.expr.get_fixed_p();
-        return p && !*p;
+        switch (arg.mode())
+        {
+        case MODE_INDEX:
+        case MODE_PC_INDEX:
+            return false;       // need additional data
+        default:
+            // test if expr is zero. return true iff expr == zero
+            auto p = arg.expr.get_fixed_p();
+            return p && !*p;
+        }
     }
     
     void extract(uint16_t const* op, m68k_arg_t& arg, val_t const *val_p) const override
@@ -128,9 +135,8 @@ struct fmt_reg_pair : m68k_mcode_t::fmt_t::fmt_impl
 
     bool insert(uint16_t* op, m68k_arg_t& arg, val_t const *val_p) const override
     {
-        auto get_reg = [](auto& e)
+        auto get_reg = [](auto rp)
             {
-                auto rp = e.template get_p<m68k_reg_t>();
                 auto n = rp->value();
                 if constexpr (BITS > 3)
                     if (rp->kind() == RC_ADDR)
@@ -143,8 +149,8 @@ struct fmt_reg_pair : m68k_mcode_t::fmt_t::fmt_impl
 
         if (arg.mode() == MODE_PAIR)
         {
-            reg1 = get_reg(arg.expr);
-            reg2 = get_reg(arg.outer);
+            reg1 = get_reg(arg.reg_p);
+            reg2 = get_reg(arg.outer.get_p<m68k_reg_t>());
         }
         else
         {

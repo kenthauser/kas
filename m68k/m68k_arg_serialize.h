@@ -43,6 +43,7 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
 #endif
             }
 #endif
+            // return true iff expression, not fixed
             return !inserter(std::move(expr), bytes);
         };
     

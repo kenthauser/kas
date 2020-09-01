@@ -133,6 +133,18 @@ struct val_movep : m68k_mcode_t::val_t
         op_size += 2;               // word displacement always present
         return expr_fits::yes;      // move_p not a coldfire insn
     }
+
+    unsigned get_value(m68k_arg_t& arg) const override
+    {
+        return arg.cpu_reg();
+    }
+
+    void set_arg(m68k_arg_t& arg, unsigned value) const override
+    {
+        arg.reg_num = value;
+    }
+
+    bool has_data(arg_t& arg) const override { return true; }
 };
 
 struct val_pair : m68k_mcode_t::val_t
@@ -149,12 +161,11 @@ struct val_pair : m68k_mcode_t::val_t
         auto max_reg_class = RC_DATA + addr_ok;
 
         // check first of pair
-        auto rp = arg.expr.template get_p<m68k_reg_t>();
-        if (!rp || rp->kind() > max_reg_class)
+        if (!arg.reg_p || arg.reg_p->kind() > max_reg_class)
             return fits.no;
 
         // check second of pair
-        rp = arg.outer.template get_p<m68k_reg_t>();
+        auto rp = arg.outer.template get_p<m68k_reg_t>();
         if (!rp || rp->kind() > max_reg_class)
             return fits.no;
 
@@ -166,16 +177,20 @@ struct val_pair : m68k_mcode_t::val_t
     unsigned get_value(m68k_arg_t& arg) const override
     {
         // calclulate value to pass to `fmt_reg_pair`
-        auto gen_reg_value = [](auto const& e)
+        auto gen_reg_value = [](auto const p) -> decltype(p->value())
             {
-                auto p = e.template get_p<m68k_reg_t>();
+                if (!p)
+                {
+                    std::cout << "val_pair::gen_reg_value: nullptr" << std::endl;
+                    return 0;
+                }
                 auto n = p->value();
                 if (p->kind() == RC_ADDR)
                     n += 8;
                 return n;
             };
-        auto reg1 = gen_reg_value(arg.expr);
-        auto reg2 = gen_reg_value(arg.outer);
+        auto reg1 = gen_reg_value(arg.reg_p);
+        auto reg2 = gen_reg_value(arg.outer.get_p<m68k_reg_t>());
 
         return reg1 | (reg2 << 4);
     }

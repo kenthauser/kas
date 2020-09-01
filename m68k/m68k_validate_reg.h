@@ -159,6 +159,24 @@ struct val_am : m68k_mcode_t::val_t
         arg.set_mode(mode);
     }
 
+    bool has_data(m68k_arg_t& arg) const override
+    {
+        switch (arg.mode())
+        {
+            default:
+                return true;
+            case MODE_DATA_REG:
+            case MODE_ADDR_REG:
+            case MODE_ADDR_INDIR:
+            case MODE_POST_INCR:
+            case MODE_PRE_DECR:
+            case MODE_REG:
+            case MODE_IMMED_QUICK:
+            case MODE_REG_QUICK:
+                return false;
+        }
+    }
+
     uint16_t match;
     int8_t   _mode;
     int8_t   _reg;
@@ -200,6 +218,11 @@ struct val_reg : m68k_mcode_t::val_t
             return fits.yes;
 
         return fits.no;
+    }
+    
+    bool has_data(m68k_arg_t& arg) const override
+    {
+        return false;
     }
     
     // registers by themselves have no size. Don't override default size() method 

@@ -104,7 +104,7 @@ struct val_reg_gen: z80_mcode_t::val_t
         }
     }
 
-    bool has_extension(z80_arg_t& arg) const override
+    bool has_data(z80_arg_t& arg) const override
     {
         switch (arg.mode())
         {

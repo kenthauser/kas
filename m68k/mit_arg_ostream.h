@@ -137,7 +137,7 @@ namespace kas::m68k
             arg.regset_p->print(os);
             return os;
         case MODE_PAIR:
-            return os << base << ":" << outer;
+            return os << *arg.reg_p << ":" << outer;
         case MODE_BITFIELD:
             return os << "{" << base << "," << outer << "}";
         case MODE_SUBWORD_LOWER:

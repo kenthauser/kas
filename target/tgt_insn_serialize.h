@@ -92,7 +92,7 @@ void tgt_insert_args(Inserter& inserter
         auto n = m_code.code_size();
 
         std::cout << "tgt_insert_args: base_size = " << +n;
-        std::cout << ", data = " << std::hex;
+        std::cout << ", base_code = " << std::hex;
         while (n > 0)
         {
             std::cout << *p++;

@@ -136,7 +136,7 @@ using arg6_an2  = fmt_arg<6, fmt_generic<2, 2, 1>>;
 
 
 // used by OPC_LIST instructions
-struct FMT_LIST     : fmt_list, arg1_0, arg2_3 {};
+struct FMT_LIST     : fmt_list, arg1_0rm, arg2_6rm {};
 
 
 // branch formats have implied argument format

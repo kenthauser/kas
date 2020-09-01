@@ -56,6 +56,21 @@ int8_t m68k_arg_t::serial_data_size(uint8_t sz) const
     }
 }
 
+const char *m68k_arg_t::set_mode(unsigned mode)
+{
+    // specialize to handle non-generic modes (ie not in `tgt_arg`)
+    // NB: index modes handled in `m68k_arg_size` and `*support.h`
+    // NB: Thus only bitfields & register pairs require special processing
+    
+    switch (mode)
+    {
+        default:
+            break;
+    }
+    
+    base_t::set_mode(mode);
+    return {};
+}
 
 auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
 {
@@ -181,20 +196,20 @@ uint8_t m68k_arg_t::cpu_reg() const
 // true if all `disp` and `outer` are registers or constants 
 bool m68k_arg_t::is_const () const
 {
-    auto do_const = [](auto const& e) -> bool
+    auto do_is_const = [](auto const& e) -> bool
         {
             // `is_const` implies insn ready to emit.
-            if (e.template get_p<m68k_reg_t>())
-                return true;
-            if (e.template get_p<m68k_reg_set_t>())
-                return true;
             if (e.get_fixed_p())
                 return true;
             // if (e.template get_p<e_float_t>())
             //     return true;
+
+            // outer can be register for pair & bitfields
+            if (e.template get_p<m68k_reg_t>())
+                return true;
             return false;
         };
-    return do_const(expr) && do_const(outer);
+    return do_is_const(expr) && do_is_const(outer);
 }
 
     

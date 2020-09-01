@@ -138,7 +138,9 @@ namespace kas::m68k::parser
 
     auto const mit_indirect_arg = lit('@') >> ('(' > (mit_ss_p % ',') > ')');
 
-    struct moto_indir {
+    struct moto_indir
+    {
+        // initialize m68k_parser_support.h:m68k_displacement from parsed data
         template <typename Context>
         void operator()(Context const& ctx) const
         {
@@ -149,24 +151,26 @@ namespace kas::m68k::parser
 
             m68k_displacement disp{mode};
 
-//#define TRACE_M68K_PARSE
 #ifdef TRACE_M68K_PARSE
-            std::cout << "moto_indir: mode = " << mode << ": ";
-            for (auto& arg : ess_v) {
+            std::cout << "moto_indir: parsed_mode = " << mode << ": ";
+            for (auto& arg : ess_v)
+            {
                 std::cout << arg;
             }
             std::cout << std::endl;
 #endif
             // get target list
             auto& out_list_list = disp.args;
-            out_list_list.emplace_back();
+            out_list_list.emplace_back();       // XXX create empty slot for base reg
             auto& out_list = out_list_list.back();
 
             // split into inner/outer as required
             // scan for P_SCALE_Z to start next...
 
-            for (auto& arg : ess_v) {
-                if (arg.scale == P_SCALE_Z) {
+            for (auto& arg : ess_v)
+            {
+                if (arg.scale == P_SCALE_Z)
+                {
                     out_list_list.emplace_back();
                     out_list = out_list_list.back();
                 }

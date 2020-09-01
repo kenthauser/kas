@@ -94,11 +94,9 @@ struct tgt_validate
     virtual unsigned get_value(arg_t& arg)           const { return {}; }
     virtual void     set_arg  (arg_t& arg, unsigned) const {}
 
-#if 1
-    // XXX method not used. marked for pending delete
-    // tell emit that arg data follows opcode
-    virtual bool     has_extension(arg_t& arg)       const { return true; }
-#endif  
+    // tell emit that arg data has additional information
+    virtual bool     has_data(arg_t& arg)            const { return true; }
+
     // NB: literal types can't define dtors
     //virtual ~tgt_validate() = default;
 };

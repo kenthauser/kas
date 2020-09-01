@@ -127,7 +127,8 @@ tgt_arg_t<Derived, M, I, R, RS>
     default:
         // some other parsed "mode", evaluated in derived().set_mode()
         // default: just set mode & expr from passed values
-        expr = tok.expr();
+        if (!reg_p)
+            expr = tok.expr();
         break;
     }
 
@@ -141,6 +142,8 @@ tgt_arg_t<Derived, M, I, R, RS>
         err = kas::parser::kas_diag_t::error(msg, *this).ref();
         derived().set_mode(arg_mode_t::MODE_ERROR);
     }
+
+    std::cout << "tgt_arg_t::ctor: expr = " << expr << std::endl;
 }
 
 // error message for invalid `mode`. msg used by ctor only.

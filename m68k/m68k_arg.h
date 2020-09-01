@@ -97,13 +97,18 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     // inherit basic ctors
     using base_t::base_t;
     
-    // direct, immediate, register pair, or bitfield
-    m68k_arg_t(m68k_arg_mode mode, kas_token e = {}, kas_token outer = {})
-            :  outer(outer.expr()), base_t(mode, e)
-            {}
+    // ctor to handle: direct, immediate, register pair, or bitfield
+    m68k_arg_t(m68k_arg_mode mode, kas_token tok = {}, kas_token outer = {})
+            :  outer(outer.expr()), base_t(mode, tok)
+            {
+                std::cout << "m68k_arg_t::ctor: outer = " << this->outer << std::endl;
+            }
 
     // indirect & index values are constructed in `m68k_parser_support.h`
     // and inited via copy elision
+
+    // set-mode does yeoman's work in ctor
+    const char *set_mode(unsigned mode);
 
     // override `sz_info' in `impl`
     static const tgt::tgt_immed_info sz_info[];

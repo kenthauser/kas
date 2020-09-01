@@ -256,8 +256,8 @@ namespace kas::core
             (core_fragment& frag, insn_iter& it, uint32_t n, PROC_FN fn)
     {
         static const auto idx_label = opc::opc_label().index();
-#define TRACE_DO_FRAG   3       // 1 = FRAG, 2 = INSN, 3 = RAW
-#undef  TRACE_DO_FRAG
+//#define TRACE_DO_FRAG   3       // 1 = FRAG, 2 = INSN, 3 = RAW
+//#undef  TRACE_DO_FRAG
 
 #ifdef  TRACE_DO_FRAG
         std::cout << "do_frag::begin: " << frag;

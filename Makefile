@@ -1,6 +1,7 @@
 CXXFLAGS += -std=c++17 -I. -g
 CXXFLAGS += -pedantic
-CXXFLAGS += -isystem spirit/include -isystem meta/include -isystem /usr/local/include
+CXXFLAGS += -isystem spirit/include -isystem meta/include   \
+                                    -isystem /usr/local/include
 CXXFLAGS += -ftemplate-depth=4096
 #CXXFLAGS += -O2 -fomit-frame-pointer
 #CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
@@ -52,12 +53,13 @@ TEST_EXPR_ARGS  = test/expr_tests
 TEST_PARSE_ARGS = test/parse_tests
 TEST_EMIT_ARGS  = test/emit_tests
 
+#CXXFLAGS += -DTRACE_DO_FRAG=3
 #expr.o : CXXFLAGS += -DPRINT_EXPR_INFO
 #expr.o : CXXFLAGS += -DEXPR_TRACE_EVAL
 #CXXFLAGS += -DTOKEN_TRACE
 #CXXFLAGS += -DTRACE_ARG_SERIALIZE
 #arm.o : CXXFLAGS += -DTRACE_ARG_SERIALIZE
-#m68k.o : CXXFLAGS += -DTRACE_M68K_PARSE
+m68k.o : CXXFLAGS += -DTRACE_M68K_PARSE
 
 include machine_makefile.inc
 
