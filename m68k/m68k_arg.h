@@ -41,25 +41,26 @@ enum m68k_arg_mode : uint8_t
     , MODE_REG              // 17: m68k register
     , MODE_REGSET           // 18: m68k register set
     , MODE_PAIR             // 19: register pair (multiply/divide/cas2)
-    , MODE_BITFIELD         // 20: bitfield instructions
-    , MODE_IMMED_QUICK      // 21: immed arg stored in opcode
-    , MODE_REG_QUICK        // 22: movec: mode_reg stored in opcode
-    , MODE_MOVEP            // 23: special for MOVEP insn
+    , MODE_PAIR_INDIR       // 20: indirect register pair (cas2)
+    , MODE_BITFIELD         // 21: bitfield instructions
+    , MODE_IMMED_QUICK      // 22: immed arg stored in opcode
+    , MODE_REG_QUICK        // 23: movec: mode_reg stored in opcode
+    , MODE_MOVEP            // 24: special for MOVEP insn
 // Branch displacement sizes
-    , MODE_BRANCH_BYTE      // 24: store displacment in insn
-    , MODE_BRANCH_WORD      // 25: single displacment word
-    , MODE_BRANCH_LONG      // 26: two displacement words
+    , MODE_BRANCH_BYTE      // 25: store displacment in insn
+    , MODE_BRANCH_WORD      // 26: single displacment word
+    , MODE_BRANCH_LONG      // 27: two displacement words
 
 // Coldfire sub-word support
-    , MODE_SUBWORD_LOWER    // 27: general register, lower
-    , MODE_SUBWORD_UPPER    // 28: general register, upper
+    , MODE_SUBWORD_LOWER    // 28: general register, lower
+    , MODE_SUBWORD_UPPER    // 29: general register, upper
 
 // Support "modes"
-    , MODE_NONE             // 29: when parsed: indicates end-of-args
+    , MODE_NONE             // 30: when parsed: indicates end-of-args
     , NUM_ARG_MODES
 
-// MODES which must be defined for compatibilty with `tgt_arg` ctor
-// never serialized. Do not need to include in `NUM_ARG_MODES`
+// MODES which must be defined for compatibilty with `tgt_arg` ctor.
+// Never serialized. Do not need to include in `NUM_ARG_MODES`
     , MODE_ERROR            // set error message (never serialized)
     , MODE_INDIRECT
     , MODE_REG_INDIR 

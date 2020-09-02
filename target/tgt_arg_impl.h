@@ -22,11 +22,14 @@ namespace kas::tgt
 // constructor
 template <typename Derived, typename M, typename I, typename R, typename RS>
 tgt_arg_t<Derived, M, I, R, RS>
-        ::tgt_arg_t(arg_mode_t mode, kas_token const& tok) : kas_position_tagged_t(tok) 
+        ::tgt_arg_t(arg_mode_t mode, kas_token const& tok, kas_position_tagged_t const& pos) : kas_position_tagged_t(pos) 
 {
     std::cout << "arg_t::ctor mode = " << +mode << " expr = " << expr;
     std::cout << " *this::loc = " << static_cast<parser::kas_loc>(*this) << std::endl;
-    
+   
+    if (!static_cast<parser::kas_loc>(*this))
+        static_cast<kas_position_tagged_t>(*this) = tok;
+        
     // accumulate error
     const char *msg   {};
     

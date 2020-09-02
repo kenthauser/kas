@@ -279,6 +279,8 @@ namespace kas::m68k::parser
     x3::rule<class _m68k_arg, m68k_parsed_arg_t> const m68k_parsed_arg = "m68k_parsed_arg";
     x3::rule<class _bf_arg,   m68k_parsed_arg_t> const parsed_bf_arg   = "parsed_bf_arg";
     
+    struct _m68k_arg     : kas::parser::annotate_on_success {};
+    
     BOOST_SPIRIT_DEFINE(mit_arg_suffix)
     BOOST_SPIRIT_DEFINE(mit_bitfield, mit_bitfield_arg)
     BOOST_SPIRIT_DEFINE(m68k_parsed_arg, parsed_bf_arg)

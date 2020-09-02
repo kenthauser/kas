@@ -60,11 +60,11 @@ struct tgt_arg_t : parser::kas_position_tagged
     static constexpr auto MODE_ERROR = arg_mode_t::MODE_ERROR;
 
     // x3 parser requires default constructable
-    tgt_arg_t(kas_token const& tok = {}) : kas_position_tagged_t(tok) {}
+    tgt_arg_t(kas_position_tagged_t const& pos = {}) : kas_position_tagged_t(pos) {}
 
     // error from const char *msg
-    tgt_arg_t(const char *err, kas_token const& token = {})
-            : _mode(MODE_ERROR), kas_position_tagged_t(token)
+    tgt_arg_t(const char *err, kas_position_tagged_t const& pos = {})
+            : _mode(MODE_ERROR), kas_position_tagged_t(pos)
     {
         // create a `diag` instance
         auto& diag = parser::kas_diag_t::error(err, *this);
@@ -77,12 +77,13 @@ struct tgt_arg_t : parser::kas_position_tagged
 
     // ctor(s) for default parser
     tgt_arg_t(std::pair<kas_token, MODE_T> const& p) : tgt_arg_t(p.second, p.first) {}
-    tgt_arg_t(std::pair<MODE_T, kas_token> const& p) : tgt_arg_t(p.first, p.second) {}
+    tgt_arg_t(std::tuple<MODE_T, kas_token, kas_position_tagged_t> const& p)
+            : tgt_arg_t(std::get<0>(p), std::get<1>(p), std::get<2>(p)) {}
+
+    // declare primary constructor
+    tgt_arg_t(arg_mode_t mode, kas_token const& tok, kas_position_tagged_t const& pos = {});
 
 protected:
-    // declare primary constructor
-    tgt_arg_t(arg_mode_t mode, kas_token const& tok);
-
     // CRTP casts
     auto constexpr& derived() const
         { return *static_cast<derived_t const*>(this); }

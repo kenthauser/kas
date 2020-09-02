@@ -101,7 +101,7 @@ struct m68k_displacement
     std::list<m68k_disp_t> args;
 };
 
-struct m68k_parsed_arg_t
+struct m68k_parsed_arg_t : parser::kas_position_tagged
 {
     expr_size_scale base;
     m68k_displacement mode;
@@ -212,7 +212,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
         std::cout << +mode.parsed_mode << std::endl;
 
     std::cout << "base: " << base;
-   
+    
     // see if base token is a register
     using reg_tok = typename m68k_arg_t::reg_t::token_t;
     if (auto rp = reg_tok(base.token)())
@@ -227,6 +227,8 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
             std::cout << arg;
         std::cout << std::endl;
     }
+
+    std::cout << "src = " << where();
     std::cout << std::endl;
 #endif
 
@@ -282,7 +284,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
     {
         if (kind != E_ADDR)
             return { error_msg::ERR_no_addr_reg, base.token };
-        m68k_arg_t r { mode, base.token };
+        m68k_arg_t r { mode, base.token, *this };
         r.reg_num     = classify.value();
         r.has_subword_mask = has_subword_mask;
         return r;
@@ -446,9 +448,9 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                 case E_EXPR:
                 case E_INT:
                     // just absorb ".w"
-                    return { MODE_DIRECT, base.token };
+                    return { MODE_DIRECT, base.token, *this };
                 default:
-                    return { error_msg::ERR_direct, base.token };
+                    return { error_msg::ERR_direct, *this };
             }
         case PARSE_SFX_L:
         case PARSE_SFX_U:
