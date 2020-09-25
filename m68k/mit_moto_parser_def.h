@@ -96,7 +96,7 @@ namespace kas::m68k::parser
 
    // an m68k argument is "expression" augmented by "address mode"
     auto m68k_disp = [](auto&& mode) { return attr(m68k_displacement{mode}); };
-    auto z_expr    = [] { return attr(expr_size_scale{0, 0, P_SCALE_Z}); };
+    auto z_expr    = [] { return attr(m68k_arg_term_t{0, 0, P_SCALE_Z}); };
 
 
     auto const mit_size =
@@ -125,19 +125,35 @@ namespace kas::m68k::parser
             | "*8" > attr(P_SCALE_8)
             | eps  > attr(P_SCALE_AUTO)
             ;
+    using tok_invalid_term  = token_defn_t<KAS_STRING("INVALID_TERM")>;
+    auto const invalid_term = token<tok_invalid_term>[omit[+graph - ",)"]];
 
-    x3::rule<class _mit_s_s,  expr_size_scale> const mit_ss_p = "mit_ss_p";
-    x3::rule<class _moto_s_s, expr_size_scale> const moto_ss_p = "moto_size_scale";
+
+    x3::rule<class _mit_s_s , m68k_arg_term_t> const mit_ss_p  = "mit_ss_p";
+    x3::rule<class _moto_s_s, m68k_arg_term_t> const moto_ss_p = "moto_size_scale";
+    x3::rule<class _err_s_s , m68k_arg_term_t> const err_ss_p  = "m68k_term_error";
     auto const moto_ss_p_def = expr()         > moto_size         > moto_scale;
     auto const mit_ss_p_def  = expr()         > mit_size          > mit_scale;
+    auto const err_ss_p_def  = invalid_term   > mit_size          > mit_scale;
 
     // auto const m68k_ss_p = expr() > m68k_size > m68k_scale;
 
-    BOOST_SPIRIT_DEFINE(moto_ss_p, mit_ss_p)
+    BOOST_SPIRIT_DEFINE(moto_ss_p, mit_ss_p, err_ss_p)
 
-
+    // parse optional list of "indirect" terms. eg: "@(d1:4, 12)"
+    // allow "@()" to parse & handle semantics in "m68k_parser_support.h"
+    // NB: require "x3::rule" because of `expect` ')'
+#if 0
     auto const mit_indirect_arg = lit('@') >> ('(' > (mit_ss_p % ',') > ')');
-
+#else
+    struct _mit_indirect_arg : annotate_on_success{};
+    auto const mit_indirect_arg = 
+        rule<_mit_indirect_arg, std::vector<m68k_arg_term_t>> {"mit_indirect_arg"}\
+                    = (lit('@') >> lit('(')) >      // prefix parsed...
+                        ( ((mit_ss_p % ',') > ')')
+                        | (lit(')') > repeat(1)[z_expr()])
+                        | ((err_ss_p % ',') > lit(')')));
+#endif
     struct moto_indir
     {
         // initialize m68k_parser_support.h:m68k_displacement from parsed data
@@ -239,34 +255,34 @@ namespace kas::m68k::parser
     auto const mit_arg_suffix_def =
               attr(PARSE_INDIR)  >> +mit_indirect_arg
             | ('('          > moto_indirect)
-            | "@+&"        >> m68k_disp(PARSE_INCR  | PARSE_MASK)
-            | "@+"         >> m68k_disp(PARSE_INCR)
-            | "@-&"        >> m68k_disp(PARSE_DECR  | PARSE_MASK)
-            | "@-"         >> m68k_disp(PARSE_DECR)
-            | "@&"         >> m68k_disp(PARSE_INDIR | PARSE_MASK)
-            | "@"          >> m68k_disp(PARSE_INDIR)
+            | "@+&"         > m68k_disp(PARSE_INCR  | PARSE_MASK)
+            | "@+"          > m68k_disp(PARSE_INCR)
+            | "@-&"         > m68k_disp(PARSE_DECR  | PARSE_MASK)
+            | "@-"          > m68k_disp(PARSE_DECR)
+            | "@&"          > m68k_disp(PARSE_INDIR | PARSE_MASK)
+            | "@"           > m68k_disp(PARSE_INDIR)
             | ':'           > mit_pair
             // motorola allows ".w" & ".l" suffixes on constants
             // coldfire allows ".u" & ".l" suffixes on registers for MAC
             | no_case[".w"] > m68k_disp(PARSE_SFX_W)
             | no_case[".l"] > m68k_disp(PARSE_SFX_L)
             | no_case[".u"] > m68k_disp(PARSE_SFX_U)
-            | m68k_disp(PARSE_DIR)
+            | /* default */   m68k_disp(PARSE_DIR)
             ;
 
     auto const m68k_parsed_arg_def =
-               '('  > z_expr()        > moto_indirect
+               '('  > z_expr()      > moto_indirect
             |  "-(" > moto_ss_p > 
                             (  ")&" > m68k_disp(PARSE_DECR | PARSE_MASK)
                              | ")"  > m68k_disp(PARSE_DECR)
                             )
-            | '#' > mit_ss_p          > m68k_disp(PARSE_IMMED)
-            |  mit_ss_p               > mit_arg_suffix
+            | '#' > mit_ss_p        > m68k_disp(PARSE_IMMED)
+            |  mit_ss_p             > mit_arg_suffix
             ;
 
     // parse bitfield
     x3::rule<class _mit_bf_p, m68k_displacement> const mit_bitfield     = "mit_bitfield";
-    x3::rule<class _bf_arg_tag, expr_size_scale> const mit_bitfield_arg = "mit_bitfield_arg";
+    x3::rule<class _bf_arg_tag, m68k_arg_term_t> const mit_bitfield_arg = "mit_bitfield_arg";
 
     auto const mit_bitfield_arg_def = -lit('#') > mit_ss_p;
     auto const mit_bitfield_def = ((mit_bitfield_arg % ',') > '}' > attr(PARSE_BITFIELD))[moto_indir()];
@@ -299,9 +315,9 @@ namespace kas::m68k::parser
 
 
     // tag location for each argument
-    struct m68k_arg     : kas::parser::annotate_on_success {};
-    struct m68k_bf_arg  : kas::parser::annotate_on_success {};
-    struct m68k_missing : kas::parser::annotate_on_success {};
+    struct m68k_arg     : annotate_on_success {};
+    struct m68k_bf_arg  : annotate_on_success {};
+    struct m68k_missing : annotate_on_success {};
 
     BOOST_SPIRIT_DEFINE(m68k_arg, m68k_bf_arg, m68k_missing)
 

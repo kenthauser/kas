@@ -30,21 +30,32 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
 
     template <typename Iterator, typename Context
                 , typename RContext, typename Attribute>
-    bool parse(Iterator& first, Iterator const& last
-                , Context const& context, RContext const& rcontext, Attribute& attr) const
+    bool parse(Iterator& first, Iterator const& last, Context const& context
+             , RContext const& rcontext, Attribute& attr) const
     {
-        // if parsing string, save location, not token `value_t`
+        // if parsing string, save location, not token `data_p`
         using raw_string = std::basic_string<typename Iterator::value_type>;
         using s_attr = typename x3::traits::attribute_of<Subject, Context>::type;
         using subject_attribute_type = std::conditional_t<
-                        std::is_same_v<raw_string, s_attr>, x3::unused_type, s_attr>;
-
+                                    std::is_same_v<raw_string, s_attr>
+                                  , x3::unused_type
+                                  , s_attr
+                                  >;
+        
+        // skip over leading whitespace
         x3::skip_over(first, last, context);
         Iterator i = first;
 #ifdef TOKEN_TRACE
         std::cout << "tok_parser: checking: ";
+#ifdef TOKEN_TRACE_PRINT_TYPE
+        // `name` can be pages long...
         print_type_name{TOK_DEFN::name_t::value}.name<s_attr>();
+#else
+        // just print token name
+        std::cout << TOK_DEFN::name_t::value << std::endl;
+#endif
 #endif   
+        // attempt to parse input into `value`
         subject_attribute_type value;
         kas_context ctx(context);
         if (this->subject.parse(
@@ -84,7 +95,7 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
                 tok.set(&obj);
             }
 #endif
-            // otherwise save value
+            // otherwise save value (except for `x3::unused_type`)
             else if constexpr (!std::is_same_v<decltype(value), x3::unused_type>)
                 tok.set(value);
                 

@@ -52,8 +52,18 @@ static constexpr e_string_code str_code_u32 {sizeof(char32_t)   , true };
 // convert string to int until not in RADIX or MAX_DIGITS
 // SEP_CHAR is c++14 separator charater (if allowed)
 template <int RADIX, int SEP_CHAR = 0, typename Iterator>
-std::uintmax_t _str2int(Iterator& it, Iterator const& end, const char *& fail
-                       , int max_digits = -1, int min_digits = 1);
+const char * _str2int(Iterator& it, Iterator const& end, std::uint64_t& value
+                    , int *exponent_p, int max_digits = -1, int min_digits = 1);
+
+// allow `exponent_p` to be omitted from arg list
+template <int RADIX, int SEP_CHAR = 0, typename Iterator>
+const char * _str2int(Iterator& it, Iterator const& end, std::uint64_t& value
+                    , int max_digits = -1, int min_digits = 1)
+{
+    return _str2int<RADIX, SEP_CHAR>
+                    (it, end, value, nullptr, max_digits, min_digits);
+}
+
 
 // look for c-language string prefix codes
 template <typename Iterator>

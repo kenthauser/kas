@@ -81,19 +81,19 @@ enum { P_SCALE_1 = 0, P_SCALE_2 = 1, P_SCALE_4 = 2, P_SCALE_8 = 3,
 //
 
 // hold register/expression + scale + size arg
-struct expr_size_scale
+struct m68k_arg_term_t
 {
     kas_token   token;
     short       size;
     short       scale;
 
-    friend std::ostream& operator<<(std::ostream& os, expr_size_scale const& e)
+    friend std::ostream& operator<<(std::ostream& os, m68k_arg_term_t const& e)
     {
         return os << e.token << ", size=" << e.size << ", scale=" << e.scale << " ";
     }
 };
 
-using m68k_disp_t = std::list<expr_size_scale>;
+using m68k_disp_t = std::list<m68k_arg_term_t>;
 
 struct m68k_displacement
 {
@@ -103,7 +103,7 @@ struct m68k_displacement
 
 struct m68k_parsed_arg_t : parser::kas_position_tagged
 {
-    expr_size_scale base;
+    m68k_arg_term_t base;
     m68k_displacement mode;
 
     operator m68k_arg_t();
@@ -205,7 +205,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
         };
 
     // print arg
-    std::cout << "m68k_parsed_arg_t: parsed_mode = ";
+    std::cout << "\nm68k_parsed_arg_t: parsed_mode = ";
     if (mode.parsed_mode < std::extent<decltype(parse_names)>::value)
         std::cout << parse_names[mode.parsed_mode] << std::endl;
     else
@@ -802,22 +802,23 @@ m68k_arg_t m68k_parsed_arg_t::indirect()
 }
 
 BOOST_FUSION_ADAPT_STRUCT(
-kas::m68k::parser::m68k_parsed_arg_t,
-base,
-mode
+    kas::m68k::parser::m68k_parsed_arg_t,
+    base,
+    mode
+)
+
+
+BOOST_FUSION_ADAPT_STRUCT(
+    kas::m68k::parser::m68k_arg_term_t,
+    token,
+    size,
+    scale
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-kas::m68k::parser::expr_size_scale,
-token,
-size,
-scale
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-kas::m68k::parser::m68k_displacement,
-parsed_mode,
-args
+    kas::m68k::parser::m68k_displacement,
+    parsed_mode,
+    args
 )
 
 #endif

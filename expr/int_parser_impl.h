@@ -118,16 +118,15 @@ constexpr int _char2int(Char ch)
 
 // convert string to int until not in RADIX or MAX_DIGITS
 // SEP_CHAR is c++14 separator charater (if allowed)
+// max defaults to -1 (ignored), min defaults to 1
 template <int RADIX, int SEP_CHAR, typename Iterator>
-std::uintmax_t _str2int(Iterator& it, Iterator const& end, const char *& fail
-                       , int max_digits, int min_digits)
+const char * _str2int(Iterator& it, Iterator const& end
+                     , uint64_t& value, int *exponent_p
+                     , int max_digits, int min_digits)
 {
-    // largest supported type
-    std::uintmax_t result = 0;
-
-    auto decode_str = [&](int& n)
+    auto decode_str = [&](int& n) -> const char *
     {
-        for ( ; n && it != end; ++it)
+        for ( ; it != end && n; ++it)
         {
             auto ch = *it;
             if (SEP_CHAR && (ch == SEP_CHAR))
@@ -136,18 +135,37 @@ std::uintmax_t _str2int(Iterator& it, Iterator const& end, const char *& fail
             if (i < 0)
                 break;
 
-            result = result * RADIX + i;
+            // check for overflow...
+            // XXX optimize for normal cases...
+            // XXX maybe an "overflow" class with specializations...
+            // XXX maybe limit to eg `digits10()` and have overflow method...
+            using value_t = std::remove_reference_t<decltype(value)>;
+            constexpr auto max = std::numeric_limits<value_t>::max();
+            constexpr auto oor = "E literal out of range";
+
+            if (value > max/RADIX)
+                return oor;
+            value *= RADIX;
+            if (i > (max - value))
+                return oor;
+
+            // finish "shift in digit" and manage exponent
+            value += i;
+
+            // exponent_p only set for floating point fractional parses
+            if (exponent_p)
+                --*exponent_p;
             --n;
         }
+        return {};
     };
 
     max_digits -= min_digits;
-    decode_str(min_digits);
+    if (auto err = decode_str(min_digits))
+        return err;
     if (min_digits)
-        fail = "E literal too short";
-    else
-        decode_str(max_digits);
-    return result;
+        return "E literal too short";
+    return decode_str(max_digits);
 }
 
 //
@@ -171,7 +189,7 @@ auto _str2char(e_string_code code, It& it, It const& end, const char *& fail)
                 return {};
             }
 
-            auto ch = *it++;    // consume initial character
+            uint64_t ch = *it++;    // consume initial character
 
             if (ch != '\\')
                 return ch;      // i'm just a `char`
@@ -189,7 +207,8 @@ auto _str2char(e_string_code code, It& it, It const& end, const char *& fail)
                 case '4': case '5': case '6': case '7':
                     // c/c++: max length: 3 chars
                     code = str_code_none;       // flag raw value
-                    return _str2int<8>(it, end, fail, 3);
+                    fail = _str2int<8>(it, end, ch, 3);
+                    return ch;
                 
                 default:
                     break;
@@ -218,13 +237,16 @@ auto _str2char(e_string_code code, It& it, It const& end, const char *& fail)
                     // c/c++: unlimited length
                     // c/c++: unspecified result if exceeds value_t
                     code = str_code_none;       // flag raw value
-                    return _str2int<16>(it, end, fail);
+                    fail = _str2int<16>(it, end, ch);
+                    return ch;
                 case 'u':
                     code = str_code_u16;        // value is unicode-16
-                    return _str2int<16>(it, end, fail, 4, 4);
+                    fail = _str2int<16>(it, end, ch, 4, 4);
+                    return ch;
                 case 'U':
                     code = str_code_u32;        // value is unicode-32
-                    return _str2int<16>(it, end, fail, 8, 8);
+                    fail = _str2int<16>(it, end, ch, 8, 8);
+                    return ch;
             }
         };
 

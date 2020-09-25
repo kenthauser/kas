@@ -32,8 +32,8 @@ namespace detail
     struct dflt_fixed_p : literal::c_int_parser<T> {};
 
     template <typename T>
-    struct dflt_float_p : x3::real_parser<T, x3::strict_real_policies<T>> {};
-    //struct dflt_float_p : literal::c_float_parser<T> {};
+    //struct dflt_float_p : x3::real_parser<T, x3::strict_real_policies<T>> {};
+    struct dflt_float_p : literal::c_float_parser<T> {};
     
     template <typename T>
     struct dflt_string_p : literal::c_string_parser<T> {};

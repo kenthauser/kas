@@ -30,7 +30,7 @@ struct c_int_parser : x3::parser<c_int_parser<T>>
         x3::skip_over(first, last, context);
         Iterator it(first);     // copy iterator
 
-        // look for (and consume) sign
+        // look for (and consume) leading sign
         bool neg = *it == '-';
         if (neg || *it == '+')
             ++it;
@@ -39,7 +39,7 @@ struct c_int_parser : x3::parser<c_int_parser<T>>
         T value {};
         bool result;
         if (std::isdigit(*it))
-            result = parse_int(context, it, last, value, neg); 
+            result = parse_uint(context, it, last, value, neg); 
         else if (it != first)
             return false;       // +/- prefix not allowed for char literals
         else
@@ -55,29 +55,30 @@ struct c_int_parser : x3::parser<c_int_parser<T>>
     
     // parse numeric sequence
     template <typename Context, typename Iterator>
-    bool parse_int(Context const& context, Iterator& it, Iterator const& last
-                  , T& value, bool neg) const
+    bool parse_uint(Context const& context, Iterator& it, Iterator const& last
+                  , T& attr, bool neg) const
     {
         // parsing c++14 integers. define separator character
         static constexpr auto cpp14_sep = '\'';
 
         // look for c-language prefix (ie: 0x, 0b, 0)
-        const char *fail{};
+        const char *fail {};
+        uint64_t    value{};
         if (*it != '0')
-            value = _str2int<10, cpp14_sep>(it, last, fail);
+            fail = _str2int<10, cpp14_sep>(it, last, value);
         else
             switch (*++it)
             {
                 case 'x': case 'X':
-                    value = _str2int<16, cpp14_sep>(++it, last, fail);
+                    fail = _str2int<16, cpp14_sep>(++it, last, value);
                     break;
                 case 'b': case 'B':
-                    value = _str2int<2, cpp14_sep>(++it, last, fail);
+                    fail = _str2int<2, cpp14_sep>(++it, last, value);
                     break;
                 case '0': case '1': case '2': case '3':
                 case '4': case '5': case '6': case '7':
                 // case cpp_sep:    // don't think separator can follow octal prefix
-                    value = _str2int<8, cpp14_sep>(it, last, fail);
+                    fail = _str2int<8, cpp14_sep>(it, last, value);
                     break;
                 case '8': case '9':
                     return false;   // invalid octal value
@@ -134,6 +135,7 @@ struct c_int_parser : x3::parser<c_int_parser<T>>
         if (neg)
             value = -value;
 
+        attr = value;
         return true;
     }
     

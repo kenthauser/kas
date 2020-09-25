@@ -199,10 +199,10 @@ private:
     void init(T const&, HAS_LOC);
 
     // `_expr` & `data_p` hold side effects from text->value conversion
-    // thus mark mutable
-    mutable expr_t         _expr;
+    // thus both are marked as mutable
+    token_defn_base const *defn_p {};   // pointer to token "type" definitions
     mutable void const    *data_p {};   // allow conversion from string to object
-    token_defn_base const *defn_p {};
+    mutable expr_t         _expr;       // cache converted object
 };
 
 // allow streaming of token;

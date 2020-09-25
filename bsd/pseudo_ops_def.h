@@ -76,7 +76,7 @@ namespace detail
 
     // Canonical frame address
     // NB: Some of the CFI names are so long they exceeded 16 character macro limit
-    // create a MACRO to prepend "cfi_", thus easing name creation
+    // create a MACRO to prepend "cfi_", et al., thus easing name creation
 #define CFI(s)      ::kas::string::str_cat<STR("cfi_"), STR((s))>
 #define CFI_CFA(s)  ::kas::string::str_cat<STR("cfi_def_cfa_"), STR((s))>
 #define CFI_ADJ(s)  ::kas::string::str_cat<STR("cfi_adjust_"), STR((s))>
