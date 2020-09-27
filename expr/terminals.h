@@ -43,11 +43,7 @@ namespace detail
     template <typename> struct float_p      : id<quote<dflt_float_p>>  {};
     template <typename> struct string_p     : id<quote<dflt_string_p>> {};
 
-    template <typename> struct err_msg      : meta::id<error_msg> {};
-
-    // declare defaults for floating point type configuration
-    template <typename> struct float_value  : id<long double> {};
-    template <typename> struct float_fmt    : id<struct ieee754> {};
+    template <typename> struct err_msg      : id<error_msg> {};
 
     // declare defaults for string type configuration
     template <typename> struct string_value : id<parser::char_type> {};
@@ -61,24 +57,17 @@ namespace detail
     template <typename REF>
     using string_host_tpl = e_string_tpl<REF, _t<string_value<> >>;
     using e_string_ref    = core::ref_loc_tpl<string_host_tpl>;
-
-    //template <typename> struct e_string : meta::id<kas_string_t> {};
 }
+
+// expose public interface to types
 // declare aliases to reduce `mpl` noise...
-using e_fixed_t   = typename detail::e_fixed<>   ::type;
-#if 1
-using e_float_t   = typename detail::e_float_ref ::object_t;
-#else
-using e_float_t   = void;
-#endif
-using e_string_t  = typename detail::e_string_ref::object_t;
-using err_msg_t   = typename detail::err_msg<>  ::type;
+using e_fixed_t   = typename detail::fixed_value<>::type;
+using e_float_t   = typename detail::e_float_ref  ::object_t;
+using e_string_t  = typename detail::e_string_ref ::object_t;
+using err_msg_t   = typename detail::err_msg<>    ::type;
 
-using e_data_t    = typename detail::e_data<>   ::type;
-using e_addr_t    = typename detail::e_addr<>   ::type;
-
-//using e_bigint_host_t  = kas_bigint_host;
-//using e_float_fmt = typename float_fmt<>::type;
+using e_data_t    = typename detail::e_data<>     ::type;
+using e_addr_t    = typename detail::e_addr<>     ::type;
 
 namespace detail
 {
@@ -87,17 +76,21 @@ namespace detail
     // declare "standard" tokens
     using tok_fixed  = parser::token_defn_t<KAS_STRING("E_FIXED")
                                  , e_fixed_t
-                                 , meta::invoke<fixed_p<>::type, e_fixed_t>>;
+                                 , invoke<_t<fixed_p<>>, e_fixed_t>>;
 #if 1
     using tok_float  = parser::token_defn_t<KAS_STRING("E_FLOAT")
                                  , e_float_t
-                                 , meta::invoke<detail::float_p<>::type,
-                                                _t<detail::float_value<>>>>;
-                                            //typename e_float_t>::value_type>;
+                                 , invoke<_t<float_p<>>, 
+                                                _t<float_value<>>>>;
+#else
+    using tok_float  = parser::token_defn_t<KAS_STRING("E_FLOAT")
+                                 , e_float_t
+                                 , meta::invoke<_t<float_p<>>, e_float_t>>;
+
 #endif
     using tok_string = parser::token_defn_t<KAS_STRING("E_STRING")
                                  , e_string_t
-                                 , meta::invoke<detail::string_p<>::type, e_string_t>>;
+                                 , invoke<_t<string_p<>>, e_string_t>>;
    
     // NB: `tok_missing` doesn't really belong in `expr` because it really means no
     //     expression was parsed. Place it here so that it is visable to all modules
@@ -106,26 +99,28 @@ namespace detail
 
     // NB: Don't include `tok_missing` in `expr_t` tokens, as `missing` always matches
     using expr_terminals = list<tok_fixed
-                              , tok_float
+                              //, tok_float
                               , tok_string>;
 
     // NB: need to remove "void" type & "void" parsers. Thus the `zip` list might be better
     // NB: probably better to make "large" `expr_terminals` type & filter there...
     template<> struct term_types_v  <defn_expr> : meta::list<
                                                       e_fixed_t 
-                                                    , detail::e_float_ref
-                                                    , detail::e_string_ref
+                                                    , e_float_ref
+                                                    , e_string_ref
                                                     > {};
     
     template<> struct term_parsers_v<defn_expr> : meta::list<
                               tok_fixed
-                            , tok_float
+                        //    , tok_float
                             , tok_string
                             > {};
     
     // remove `void` types & parsers from lists
-    using term_types   = filter<all_defns<term_types_v>,   not_fn<quote<std::is_void>>>;
-    using term_parsers = filter<all_defns<term_parsers_v>, not_fn<quote<std::is_void>>>;
+    using term_types   = filter<all_defns<term_types_v>
+                              , not_fn<quote<std::is_void>>>;
+    using term_parsers = filter<all_defns<term_parsers_v>
+                              , not_fn<quote<std::is_void>>>;
 }
 
 // expose term_types & term_parsers in expression namespace
@@ -147,10 +142,12 @@ struct token_t<T, std::void_t<typename T::token_t>> : T::token_t {};
 
 // specialize default types
 template <> struct token_t<e_fixed_t>  : detail::tok_fixed {};
-template <> struct token_t<e_float_t>  : detail::tok_float {};
+//template <> struct token_t<e_float_t>  : detail::tok_float {};
 template <> struct token_t<e_string_t> : detail::tok_string {};
-template <> struct token_t<typename detail::float_value<>::type>
-                                       : detail::tok_float {};
+
+// expression evaluation generates floating point constants. Convert to token
+//template <> struct token_t<typename detail::float_value<>::type>
+//                                       : detail::tok_float {};
 }
 
 

@@ -67,6 +67,18 @@ struct c_float_parser : x3::parser<c_float_parser<T>>
             return false;
         if (!parse_exp(context, it, last, exponent, fmt))
             return false;
+        
+        // absorb floating point suffix if present
+        if (it != last)
+            switch (*it)
+            {
+                case 'l': case 'L':
+                case 'f': case 'F':
+                    ++it;
+                    break;
+                default:
+                    break;
+            }
 
         // compute value as long double (use `powl`)
         auto value  = std::powl(fmt.is_hex ? 2 : 10, exponent);
@@ -129,6 +141,13 @@ struct c_float_parser : x3::parser<c_float_parser<T>>
             else
                 fail = _str2int<10, cpp14_sep>(it, last, mant, &exp, -1, 0);
         }
+
+        // If floating point suffix `f` present, pretend we saw `dot`.
+        // Thus `10.` and `10f` are equivalent
+        // NB: don't absorb `f` suffix.
+        if (it != last)
+            if (*it == 'f' || *it == 'F')
+                fmt.has_dot = true;
 
         if (fmt.is_hex)
             exp *= 4;       // each digit is four binary bits

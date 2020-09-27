@@ -160,7 +160,7 @@ public:
     // emit args as addresses or immediate args
     void emit      (core::emit_base& base, uint8_t sz) const;
     void emit_immed(core::emit_base& base, uint8_t sz) const;
-    void emit_float(core::emit_base& base, uint8_t fmt) const;
+    void emit_float(core::emit_base& base, tgt_immed_info const&) const;
 
     parser::kas_error_t set_error(const char *msg)
     {

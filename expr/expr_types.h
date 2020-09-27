@@ -13,6 +13,9 @@ namespace kas::expression
 {
 // forward declare various types
 
+// declare default floating point formatter
+struct ieee754;
+
 // open print namespace used for `print` extensions
 namespace print {}
 
@@ -48,31 +51,30 @@ namespace detail
 
     // *** Declare base type value, parser, and format hooks ***
 
-    // NB: can set `fixed` default because no include header issue
-    template <typename = void> struct e_fixed : meta::id<int32_t> {};
-
-    // Forward declare templates for floating point configuration
-    template<typename = void> struct float_value;
-    template<typename = void> struct float_fmt;
+    // Declare numeric type templates and default values
+    template <typename = void> struct fixed_value : id<int32_t>     {};
+    template <typename = void> struct float_value : id<long double> {};
+    template <typename = void> struct float_fmt   : id<ieee754>     {};
     
     // Forward declare template for string character type
+    // NB: defaults to `parser::char_type`. Not known at `#include` time.
     template<typename = void> struct string_value;
 
     // Forward declare templates for fixed, floating, and string parsers
     // These templates are instantiated with a single expression type argument
     // NB can't default "type", because that would instantiate e_* templates
-    template<typename = void> struct fixed_p;
-    template<typename = void> struct float_p;
-    template<typename = void> struct string_p;
+    template <typename = void> struct fixed_p;
+    template <typename = void> struct float_p;
+    template <typename = void> struct string_p;
     
     // declare info about processor targeted by assembler
-    template<typename = void> struct e_data : meta::id< int32_t> {};
-    template<typename = void> struct e_addr : meta::id<uint32_t> {};
-    template<typename = void> struct err_msg;
+    template <typename = void> struct e_data : id< int32_t> {};
+    template <typename = void> struct e_addr : id<uint32_t> {};
+    template <typename = void> struct err_msg;
 
     // *** Declare operator precidence configuration hooks ****
-
-    template<typename = void> struct e_precedence : id<precedence::precedence_c> {};
+    template <typename = void> struct e_precedence : 
+                                            id<precedence::precedence_c> {};
 }
 
 //
