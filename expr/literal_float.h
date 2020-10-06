@@ -65,10 +65,16 @@ struct float_host_t<REF, VALUE, FMT, void>
         uint8_t is_nan  : 1;
         uint8_t subnorm : 1;
     };
-    
+#if 1   
+    float_host_t(value_type value = {}, parser::kas_loc loc = {})
+            : value(value), base_t(loc)
+        {
+            std::cout << "float_host_t::ctor: " << value << std::endl;
+        }
+#else
     constexpr float_host_t(value_type value = {}, parser::kas_loc loc = {})
             : value(value), base_t(loc) {}
-
+#endif
     // operator() extracts value
     value_type const& operator()() const
     {

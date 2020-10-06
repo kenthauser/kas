@@ -85,7 +85,10 @@ template <typename Derived, typename N, typename HW, typename RS, typename IDX
 auto tgt_reg<Derived, N, HW, RS, IDX, B, C, V>::
     name() const -> const char *
 {
-    return derived_t::format_name(select_defn().name());
+    // get name of best definition (if any)
+    if (auto p = derived_t::format_name(select_defn().name()))
+        return p;
+    return canonical;       // name when allocated
 }
 
 template <typename Derived, typename N, typename HW, typename RS, typename IDX
@@ -121,6 +124,7 @@ template <typename Derived, typename N, typename HW, typename RS, typename IDX
 auto tgt_reg<Derived, N, HW, RS, IDX, B, C, V>::
     is_unparseable() const -> bool
 {
+    // XXX Coldfire SF_N, SF_R
     return false;
     auto& defn = get_defn(defns[0]);
     return defn.name()[0] == '*';

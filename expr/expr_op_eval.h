@@ -12,14 +12,12 @@
 #include "kas_core/core_addr.h"
 #include "kas_core/core_expr_type.h"
 
-using expr_op_return = kas::parser::kas_token;
-
 namespace kas::expression::detail
 {
 
 struct expr_op_eval
 {
-    // args are stored in tuple
+    // use `std::tuple` interface to access args
     template <std::size_t N>
     using exec_arg_t = std::array<void *, N>;
 
@@ -35,12 +33,14 @@ private:
     }
     
     // evaluate OP with casted & dereferenced `void *` pointers
+    // convert returned value to `kas_token`
     // NB: third template arg for SFINAE support.
-    template <typename OP, typename...Ts
-            , typename RT = decltype(std::declval<OP>()(std::declval<Ts>()...))
-            , typename    = std::enable_if_t<std::is_constructible_v<expr_op_return, RT>>>
-    static expr_op_return
-    gen_fn(exec_arg_t<sizeof...(Ts)>&& args)
+    template <
+          typename OP, typename...Ts
+        , typename RT = decltype(std::declval<OP>()(std::declval<Ts>()...))
+        , typename    = std::enable_if_t<std::is_constructible_v<kas_token, RT>>
+        >
+    static kas_token gen_fn(exec_arg_t<sizeof...(Ts)>&& args)
     {
         using indexes = std::make_index_sequence<sizeof...(Ts)>;
         return do_exec<OP, Ts...>(std::move(args), indexes());
@@ -49,7 +49,7 @@ private:
 public:
     // ctor: save pointer for [OP, list<types...>] pair
     template <typename OP, typename...Ts, typename = decltype(gen_fn<OP, Ts...>)>
-    constexpr expr_op_eval(OP, meta::list<Ts...>) :      fn { gen_fn<OP, Ts...> } {}
+    constexpr expr_op_eval(OP, meta::list<Ts...>) : fn { gen_fn<OP, Ts...> } {}
     
     // ctor: invalid args to op -- clear fn
     template <typename...Ts>
@@ -98,7 +98,7 @@ private:
     // store and dispach by argment arity via union
     union fn_ptrs
     {
-        using RT = expr_op_return;
+        using RT = kas_token;
         
         // declare pointer to fn accepting `exec_arg_t`
         template <std::size_t N>

@@ -104,7 +104,7 @@ public:
         return p ? *p : 0;
     }
 
-    std::array<dl_value_t, NUM_DWARF_LINE_STATES> state;
+    std::array<dl_value_t, NUM_DWARF_LINE_STATES> state {};
     dl_addr_t  address;
 };
 

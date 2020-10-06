@@ -56,20 +56,23 @@ struct tgt_reg_defn
     hw_tst          reg_tst;
   
     template <typename OS>
-    friend OS& operator<<(OS& os, tgt_reg_defn const& d)
+    friend OS& operator<<(OS& os, tgt_reg_defn const& defn)
     {
         os << "reg_defn: " << std::hex;
-        const char * prefix = "names= ";
-        for (auto& name : d.names)
+        const char * prefix = "names= { ";
+        for (auto& name_idx : defn.names)
         {
-            if (!name)
+            if (!name_idx)
                 break;
-            os << prefix << +name;
-            prefix = ",";
+            //os << prefix << +name_idx;
+            os << prefix << names_base[name_idx-1];
+            prefix = ", ";
+            //os << " xxx = " << defn.name(name_idx);
         }
-        os << " class="  << +d.reg_class;
-        os << " num="    << +d.reg_num;
-        os << " tst="    <<  d.reg_tst;
+        os << " }";
+        os << " class="  << +defn.reg_class;
+        os << " num="    << +defn.reg_num;
+        os << " tst="    <<  defn.reg_tst;
         return os << std::endl;
     }
 };
@@ -157,7 +160,7 @@ struct tgt_reg_adder
             // names from defn with `x3` parser to return `tgt_reg` object.
             // finally, update `tgt_reg` object with defn.
 
-            //std::cout << "reg_adder:" << *p;
+            std::cout << "reg_adder:" << *p;
             auto canonical = Reg_t::format_name(p->name());
             if (!x3.find(canonical))
             {
@@ -175,19 +178,19 @@ struct tgt_reg_adder
                     if (!name)
                         break;
                     
-                    //std::cout << "reg_adder: adding " << name << std::endl;
+                    std::cout << "reg_adder: adding " << name << std::endl;
                     x3.add(Reg_t::format_name(name), obj_p);
 
                     // see if alternate names
                     name = Reg_t::format_name(name, 1); 
                     if (name)
                     {
-                        //std::cout << "reg_adder: alternate " << name << std::endl;
+                        std::cout << "reg_adder: alternate " << name << std::endl;
                         x3.add(name, obj_p);
                     }
                 }
             }
-            //std::cout << "reg_adder: adding defn for: " << canonical << std::endl; 
+            std::cout << "reg_adder: adding defn for: " << canonical << std::endl; 
             (*x3.find(canonical))->add_defn(*p, n);
         }
     }

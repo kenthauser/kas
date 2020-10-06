@@ -146,7 +146,7 @@ private:
     
     // save pending relocs in array
     static constexpr auto MAX_RELOCS_PER_LOCATION = 4;
-    std::array<deferred_reloc_t, MAX_RELOCS_PER_LOCATION> relocs;
+    std::array<deferred_reloc_t, MAX_RELOCS_PER_LOCATION> relocs{};
 
     emit_value_t         data      {};
     e_chan_num      e_chan    { EMIT_DATA };

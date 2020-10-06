@@ -198,7 +198,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     -> std::array<mcode_size_t, MAX_MCODE_WORDS>
 {
     // split `code` into array of words
-    std::array<mcode_size_t, derived_t::MAX_MCODE_WORDS> code_data;
+    std::array<mcode_size_t, derived_t::MAX_MCODE_WORDS> code_data {};
     auto& d = defn();
 
     auto value = d.code;

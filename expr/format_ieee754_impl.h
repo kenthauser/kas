@@ -202,7 +202,7 @@ T ieee754_base<Derived, FLT>::fixed(flt_t const& flt, T)
     static constexpr auto MANT_WORDS     = (flt_t::HOST_MANT_BITS-1)/MANT_WORD_BITS + 1;
     
     // working buffer
-    std::array<mantissa_t, MANT_WORDS> mantissa;
+    std::array<mantissa_t, MANT_WORDS> mantissa {};
 
 
     // many float -> fixed conversions are possible

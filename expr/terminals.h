@@ -47,21 +47,26 @@ namespace detail
 
     // declare defaults for string type configuration
     template <typename> struct string_value : id<parser::char_type> {};
+
+    // resolve templated value types
+    using fixed_value_t  = _t<fixed_value <>>;
+    using float_value_t  = _t<float_value <>>;
+    using string_value_t = _t<string_value<>>;
     
     // create floating point type
     template <typename REF>
-    using float_host_tpl  = float_host_t<REF, _t<float_value<>>, _t<float_fmt<> >>;
+    using float_host_tpl  = float_host_t<REF, float_value_t, _t<float_fmt<> >>;
     using e_float_ref     = core::ref_loc_tpl<float_host_tpl>;
 
     // create string type
     template <typename REF>
-    using string_host_tpl = e_string_tpl<REF, _t<string_value<> >>;
+    using string_host_tpl = e_string_tpl<REF, string_value_t >;
     using e_string_ref    = core::ref_loc_tpl<string_host_tpl>;
 }
 
 // expose public interface to types
 // declare aliases to reduce `mpl` noise...
-using e_fixed_t   = typename detail::fixed_value<>::type;
+using e_fixed_t   =          detail::fixed_value_t;
 using e_float_t   = typename detail::e_float_ref  ::object_t;
 using e_string_t  = typename detail::e_string_ref ::object_t;
 using err_msg_t   = typename detail::err_msg<>    ::type;
@@ -76,18 +81,12 @@ namespace detail
     // declare "standard" tokens
     using tok_fixed  = parser::token_defn_t<KAS_STRING("E_FIXED")
                                  , e_fixed_t
-                                 , invoke<_t<fixed_p<>>, e_fixed_t>>;
-#if 1
-    using tok_float  = parser::token_defn_t<KAS_STRING("E_FLOAT")
-                                 , e_float_t
-                                 , invoke<_t<float_p<>>, 
-                                                _t<float_value<>>>>;
-#else
-    using tok_float  = parser::token_defn_t<KAS_STRING("E_FLOAT")
-                                 , e_float_t
-                                 , meta::invoke<_t<float_p<>>, e_float_t>>;
+                                 , invoke<_t<fixed_p<>>, fixed_value_t>>;
 
-#endif
+    using tok_float  = parser::token_defn_t<KAS_STRING("E_FLOAT")
+                                 , e_float_t
+                                 , invoke<_t<float_p<>>, float_value_t>>;
+                                
     using tok_string = parser::token_defn_t<KAS_STRING("E_STRING")
                                  , e_string_t
                                  , invoke<_t<string_p<>>, e_string_t>>;
@@ -99,7 +98,7 @@ namespace detail
 
     // NB: Don't include `tok_missing` in `expr_t` tokens, as `missing` always matches
     using expr_terminals = list<tok_fixed
-                              //, tok_float
+                              , tok_float
                               , tok_string>;
 
     // NB: need to remove "void" type & "void" parsers. Thus the `zip` list might be better
@@ -112,7 +111,7 @@ namespace detail
     
     template<> struct term_parsers_v<defn_expr> : meta::list<
                               tok_fixed
-                        //    , tok_float
+                            , tok_float
                             , tok_string
                             > {};
     
@@ -126,6 +125,7 @@ namespace detail
 // expose term_types & term_parsers in expression namespace
 using detail::term_types;
 using detail::term_parsers;
+using detail::tok_float;
 using detail::tok_string;
 using detail::tok_missing;
 using tok_fixed_t = meta::at_c<term_parsers, 0>;
@@ -140,16 +140,27 @@ struct token_t : meta::id<void> {};
 template <typename T>
 struct token_t<T, std::void_t<typename T::token_t>> : T::token_t {};
 
+template <typename T>
+struct token_t<T, std::enable_if_t<std::is_floating_point_v<T>>>
+                    : detail::tok_float {};
+
 // specialize default types
 template <> struct token_t<e_fixed_t>  : detail::tok_fixed {};
-//template <> struct token_t<e_float_t>  : detail::tok_float {};
+template <> struct token_t<e_float_t>  : detail::tok_float {};
 template <> struct token_t<e_string_t> : detail::tok_string {};
 
 // expression evaluation generates floating point constants. Convert to token
-//template <> struct token_t<typename detail::float_value<>::type>
-//                                       : detail::tok_float {};
+template <> struct token_t<typename detail::float_value<>::type>
+                                       : detail::tok_float {};
 }
 
+#if 0
+namespace kas::parser
+{
+template <> void const * expression::tok_float::
+        gen_data_p(kas_token const&, std::type_info const&, void const *) const;
+}
+#endif
 
 namespace kas
 {
@@ -160,5 +171,6 @@ namespace kas
     using expression::err_msg_t;
     using e_diag_t  = parser::kas_diag_t;
 }
+
 
 #endif

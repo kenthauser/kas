@@ -25,6 +25,10 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
     using base_type = x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, Subject>>;
     using attribute_type = kas_token;
 
+    // `tokens` must be defined as alias types of `token_defn_t`, not derived types
+    static_assert(std::is_same_v<TOK_DEFN, typename TOK_DEFN::type>
+                , "TOK_DEFN must be type alias, not derived type");
+
     kas_token_parser(Subject const& subject)
         : base_type(subject) {}
 
@@ -47,13 +51,7 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
         Iterator i = first;
 #ifdef TOKEN_TRACE
         std::cout << "tok_parser: checking: ";
-#ifdef TOKEN_TRACE_PRINT_TYPE
-        // `name` can be pages long...
-        print_type_name{TOK_DEFN::name_t::value}.name<s_attr>();
-#else
-        // just print token name
         std::cout << TOK_DEFN::name_t::value << std::endl;
-#endif
 #endif   
         // attempt to parse input into `value`
         subject_attribute_type value;
@@ -84,17 +82,6 @@ struct kas_token_parser : x3::unary_parser<Subject, kas_token_parser<TOK_DEFN, S
                 auto& obj = attr.add(value, loc);
                 tok.set(&obj);
             }
-#if 1            
-            else if constexpr (std::is_same_v<typename TOK_DEFN::value_t, expression::e_float_t>)
-            {
-                std::cout << "token_parser: e_float added" << std::endl;
-                //kas_object_ctor: value + kas_position
-                //auto& obj = TOK_DEFN::value_t::add(value, { first, last, &handler });
-
-                auto& obj = expression::e_float_t::add(value, loc);
-                tok.set(&obj);
-            }
-#endif
             // otherwise save value (except for `x3::unused_type`)
             else if constexpr (!std::is_same_v<decltype(value), x3::unused_type>)
                 tok.set(value);

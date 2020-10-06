@@ -148,7 +148,7 @@ public:
     }
 
     // actual ctor for `kas_object` instances
-    tgt_reg(const char *name, reg_name_idx_t idx) : _idx(idx) {}
+    tgt_reg(const char *name, reg_name_idx_t idx) : canonical(name), _idx(idx) {}
 
     // use to create `reg_t` instances
     static derived_t& add(const char *name)
@@ -199,8 +199,9 @@ private:
         d.print(os); 
         return os;
     }
-    
-    std::array<reg_defn_idx_t, MAX_REG_NAME_DEFNS> defns;
+   
+    const char *canonical;      // name specified when allocated
+    std::array<reg_defn_idx_t, MAX_REG_NAME_DEFNS> defns{};
 
     // can't have more `registers` than names
     reg_name_idx_t  _idx;

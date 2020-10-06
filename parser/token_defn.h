@@ -5,6 +5,8 @@
 #include "kas/kas_string.h"     // for "NAMES" of tokens
 #include "kas_core/kas_object.h"
 
+#include <typeinfo>
+
 namespace kas::parser
 {
 
@@ -22,14 +24,26 @@ struct token_defn_base
     // get reference to static instance of derived type
     virtual token_defn_base const& get() const = 0;
 
+    // initialize `kas_token` instance for `token_defn` object
+    virtual void const *init(std::type_info const&, void const *obj) const
+    {
+        std::cout << "token_defn_base::init: default" << std::endl;
+        print_type_name{"token_defn"}(*this);
+        return obj;
+    }
+
     // get token name
     virtual const char *name() const = 0;
     
     // get expression value `index`
     virtual unsigned index() const = 0;
     
-    // declare method to access `data_p` as derived pointer
-    virtual void const *gen_data_p(kas_token const&) const = 0;
+    // declare method to generate `data_p` for tokens
+    struct _unused {};
+    virtual void const *gen_data_p(kas_token const& tok
+                                 , std::type_info const& info = typeid(_unused)
+                                 , void const *obj            = nullptr
+                                 ) const = 0;
 
     // calculate "expr" from token's `data_p` value
     virtual void gen_expr(expr_t& e, kas_token const&) const {};
@@ -121,7 +135,10 @@ private:
     friend kas_token;       // forward declared in `parser_types.h`
 
     // declare method to generate `data_p` from `string`
-    void const *gen_data_p(kas_token const& tok) const override;
+    void const *gen_data_p(kas_token const& tok
+                         , std::type_info const& info
+                         , void const *obj
+                         ) const override;
     
     // for "bound" instance (in python parlance)
     kas_token const *token_p {};

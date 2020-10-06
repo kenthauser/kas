@@ -155,5 +155,4 @@ auto operator+ (L const& l, R const& r)
     return RS::add(r, '+').operator+(l);
 }
 }
-
 #endif

@@ -191,6 +191,31 @@ auto const expr_def  = inner;
 
 BOOST_SPIRIT_DEFINE(expr, inner, term)
 }
+#if 0
+namespace kas::parser
+{
+template <> void const * expression::tok_float::
+        gen_data_p(kas_token const& tok
+                 , std::type_info const& info
+                 , void const *obj
+                 ) const
+{
+    std::cout << "tok_float::gen_data_p: " << info.name() << std::endl;
+    if (typeid(long double) == info)
+        return &e_float_t::add(*static_cast<long double const *>(obj));
+    else if (typeid(double) == info)
+        return &e_float_t::add(*static_cast<double const *>(obj));
+    else if (typeid(float) == info)
+        return &e_float_t::add(*static_cast<float const *>(obj));
+    else
+        return obj;
+}
+
+}
+#endif
+
+
+
 
 // boost::spirit boilerplate for parsing pairs
 #include <boost/fusion/include/adapt_struct.hpp>

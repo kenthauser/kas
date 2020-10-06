@@ -30,13 +30,20 @@ struct kas_token : kas_position_tagged
             >
     kas_token(T&& obj) : defn_p{&TOK().get()}
     {
+        std::cout << "kas_token: ctor: " << defn_p->name();
+        print_type_name{", T = ", ""}.name<T>(); 
+
+        set(std::forward<T>(obj));
+#if 0
         if constexpr (std::is_integral_v<U>)
             _fixed = obj;
+#if 0
         else if constexpr (std::is_floating_point_v<U>)
             set(obj);
+#endif
         else
-            data_p = &obj;
-
+            data_p = defn_p->init(typeid(U), &obj);
+#endif
         // diagnostics have location already tagged
         if constexpr (std::is_same_v<U, kas_diag_t>)
             tag(obj.loc());
@@ -64,6 +71,7 @@ struct kas_token : kas_position_tagged
         defn_p->set(*this, std::forward<T>(obj));
     }
 #endif
+#if 0
     // special for arithmetic values
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
     std::enable_if_t<sizeof(T) <= sizeof(e_fixed_t)>
@@ -71,28 +79,33 @@ struct kas_token : kas_position_tagged
     {
         _fixed = fixed;
         data_p = {};
+        _expr  = {};
     }
-
+//#if 0
     template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
     void set(T const& flt)
     {
-        if constexpr (!std::is_void_v<expression::e_float_t>)
-        {
-            //auto& obj = expression::e_float_t::add(flt, *this);
-            //set(&obj);
-        }
-        else
-        {
-            // XXX create diag
-        }
+        auto& obj = expression::e_float_t::add(flt, *this);
+        set(&obj);
     }
-
+#endif
 
     
-    // special for `sym_parser` tokens: parsed result is pointer
-    void set(void const *p)
+    template <typename T>
+    void set(T const& obj)
     {
-        data_p = p;
+        //print_type_name{"kas_token::set"}.name<T>();
+        std::cout << "kas_token::set" << std::endl;
+        if constexpr (std::is_integral_v<T>)
+        {
+            _fixed = obj;
+            data_p = {};
+        }
+        else if constexpr (std::is_pointer_v<T>)
+            data_p = obj;
+        else
+            data_p = defn_p->gen_data_p(*this, typeid(T), &obj);
+        _expr  = {};
     }
 
     // get `expr()` from token_defn.

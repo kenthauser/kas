@@ -128,7 +128,7 @@ private:
 
     friend listing_line<Iter>;
     emit_formatted fmt{ put(), put_diag(), put_reloc() };
-    std::array<std::vector<std::string>, NUM_EMIT_FMT> buffers;
+    std::array<std::vector<std::string>, NUM_EMIT_FMT> buffers{};
     std::list<parser::kas_diag_t::index_t> diagnostics;
     std::list<std::string> relocs;
     std::map<size_t, Iter> current_pos;

@@ -85,16 +85,56 @@ auto token_defn_t<NAME, VALUE_T, PARSER>::
     return static_cast<value_t const *>(data_p);
 }
 
+namespace detail
+{
+    template <typename PARSER, typename = void>
+    struct get_parser_value : meta::id<void> {};
+
+    template <typename PARSER>
+    struct get_parser_value<PARSER, std::void_t<typename PARSER::attribute_type>>
+            : meta::id<typename PARSER::attribute_type> {};
+}
+
+
 template <typename NAME, typename VALUE_T, typename PARSER>
 void const *token_defn_t<NAME, VALUE_T, PARSER>::
-            gen_data_p(kas_token const& tok) const
+            gen_data_p(kas_token const& tok
+                     , std::type_info const& info
+                     , void const *obj
+                     ) const
 {
+    // if parser specified as part of type, retrieve parsed value
+    using PARSED_VALUE_T = typename detail::get_parser_value<PARSER>::type; 
+
     std::cout << "token_defn_t::gen_data_p()" << std::endl;
-    print_type_name{"token_defn_t::gen_data_p()"}.name<value_t>();
+    print_type_name{"token_defn_t::gen_data_p()::VALUE_T"}.name<value_t>();
+    print_type_name{"token_defn_t::gen_data_p()::PARSED_VALUE"}.name<PARSED_VALUE_T>();
     if constexpr (std::is_integral_v<value_t> && sizeof(value_t) <= sizeof(e_fixed_t))
         return &tok._fixed;
-    else
-        return nullptr;
+
+    else if (typeid(VALUE_T) == info)
+        return obj;
+
+    else if constexpr (!std::is_void_v<PARSED_VALUE_T> &&
+                        std::is_base_of_v<core::kas_object_tag, VALUE_T>
+                        && !std::is_same_v<VALUE_T, e_string_t>)
+
+    {
+        if (typeid(PARSED_VALUE_T) == info)
+        {
+            auto p = static_cast<PARSED_VALUE_T const *>(obj);
+            return &VALUE_T::add(*p);
+        }
+
+        else
+        {
+            std::cout << "token_defn_t: info mismatch: info = " << info.name();
+            std::cout << ", PARSED_VALUE = " << typeid(PARSED_VALUE_T).name();
+            std::cout << std::endl;
+        }
+    }
+
+    return nullptr;
 }
 }
 

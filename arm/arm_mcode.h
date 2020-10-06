@@ -65,7 +65,7 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t, arm_stmt_t, error_msg, arm_mc
     //
     
     // Insert condition code & s_flag as required
-    auto code(stmt_info_t stmt_info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
+    auto code(stmt_info_t stmt_info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS> {};
 };
 
 

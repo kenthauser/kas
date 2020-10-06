@@ -11,9 +11,10 @@ struct print_type_name
     print_type_name() = default;
 
     template <typename T>
-    print_type_name(T&& prefix_str) : prefix{std::forward<T>(prefix_str)}
+    print_type_name(T&& prefix_str, const char *sep = ": ")
+        : prefix{std::forward<T>(prefix_str)}
     {
-        prefix += ": ";
+        prefix += sep;
     }
 
     template <typename T>

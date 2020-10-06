@@ -22,6 +22,8 @@ template <typename T>
 struct c_float_parser : x3::parser<c_float_parser<T>>
 {
     using attribute_type = T;
+    using object_type    = T;
+
     static bool const has_attribute = true;
     
     // Allow upto 64-bit mantissa.
@@ -80,11 +82,19 @@ struct c_float_parser : x3::parser<c_float_parser<T>>
                     break;
             }
 
+        
         // compute value as long double (use `powl`)
         auto value  = std::powl(fmt.is_hex ? 2 : 10, exponent);
              value *= mantissa;
 
+#if 1
         traits::move_to(value, attr);
+#else
+        // allocate float_host object & initialize with value
+        auto& obj = object_type::add(value);
+        traits::move_to(&obj, attr);
+        print_type_name("c_float_parser::attr")(attr);
+#endif
         first = it;             // consume parsed value
         return true;
     }
