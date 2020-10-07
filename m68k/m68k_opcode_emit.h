@@ -33,7 +33,7 @@ void m68k_opcode_t::emit(
     //
     // emit m68k "extension" word. aka index
     //
-    auto emit_index = [&base](auto& ext, auto& inner, auto& outer)
+    auto emit_extension = [&base](auto& ext, auto& inner, auto& outer)
         {
             // utility to emit index displacement
             auto emit_index_disp = [&base](auto sz, auto& disp)

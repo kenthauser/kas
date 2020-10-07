@@ -131,7 +131,7 @@ void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     auto code_p       = machine_code.data();
 
     // 1. apply args & emit relocs as required
-    // now that have selected machine code match, there must be validator for each arg
+    // NB: matching mcodes have a validator for each arg
     
     // Insert args into machine code "base" value
     // if base code has "relocation", emit it

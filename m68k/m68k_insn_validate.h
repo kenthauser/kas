@@ -61,6 +61,7 @@ using expr_fits   = expression::expr_fits;
 using fits_result = expression::fits_result;
 using op_size_t   = core::opcode::op_size_t;
 
+#if 0
 struct m68k_validate
 {
     virtual fits_result ok  (m68k_arg_t& arg, m68k_size_t sz, expr_fits const& fits) const = 0;
@@ -86,7 +87,8 @@ struct m68k_validate
     }
 
 };
-
+#endif
+#if 0
 // move to _impl
 struct m68k_validate_args
 {
@@ -104,6 +106,6 @@ struct m68k_validate_args
     std::array<uint8_t, MAX_ARGS> arg_index;
     uint8_t                       arg_count;
 };
-
+#endif
 }
 #endif

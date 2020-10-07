@@ -18,12 +18,8 @@ namespace kas::m68k
 template <typename Inserter, typename WB_INFO>
 bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
 {
-    auto save_expr = [&](auto expr, int bytes) -> bool
+    auto save_expr = [&](auto expr, uint8_t sz) -> bool
         {
-            // if longer than LONG, save as expr
-            if (bytes > 4)
-                bytes = 0;
-
             // suppress writes of zero
             auto p = expr.get_fixed_p();
             if (p && !*p)
@@ -31,18 +27,19 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
                 info_p->has_data = false;    
                 return false;               // and no expression.
             }
+            
+            // non-zero expression. must save.
             info_p->has_data = true;    
-#if 0   
-            // if possibly `e_float_t` perform tests 
-            if constexpr (!std::is_void_v<e_float_t>)
-            {
-                using fmt = typename e_float_t::object_t::fmt;
-#if 1
-                if (!p)
-                    fmt::ok_for_fixed(expr, bytes * 8);
-#endif
-            }
-#endif
+            
+            auto& arg_info = m68k_arg_t::sz_info[sz];
+            auto  bytes    = arg_info.sz_bytes;
+            if (p && arg_info.flt_fmt)
+                expr = e_float_t::add(*p);
+
+            // if longer than LONG, save as expr
+            else if (bytes > 4)
+                bytes = 0;
+
             // return true iff expression, not fixed
             return !inserter(std::move(expr), bytes);
         };
@@ -117,13 +114,9 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
         return info_p->has_expr || info_p->has_data;
     }
 
+    // if data present, save it
     if (info_p->has_data)
-    {
-        if (auto n = serial_data_size(sz))
-            return save_expr(expr, n);
-        else
-            info_p->has_data = false;
-    }
+        return save_expr(expr, sz);
 
     // didn't save expression
     return false;

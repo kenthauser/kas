@@ -27,11 +27,11 @@ enum m68k_arg_mode : uint8_t
     , MODE_PRE_DECR         // 4 address register only
     , MODE_ADDR_DISP        // 5 word offset
     , MODE_INDEX            // 6 address register index
-    , MODE_DIRECT_SHORT     // 7-0 16-bit direct address
-    , MODE_DIRECT_LONG      // 7-1 32-bit direct address
-    , MODE_PC_DISP          // 7-2 PC + word offset
-    , MODE_PC_INDEX         // 7-3 PC + index
-    , MODE_IMMEDIATE        // 7-4 immediate (int or float)
+    , MODE_DIRECT_SHORT     // 7+0 16-bit direct address
+    , MODE_DIRECT_LONG      // 7+1 32-bit direct address
+    , MODE_PC_DISP          // 7+2 PC + word offset
+    , MODE_PC_INDEX         // 7+3 PC + index
+    , MODE_IMMEDIATE        // 7+4 immediate (int or float)
 // Additional support modes
     , MODE_ADDR_DISP_LONG   // 12: address displacement with long arg
     , MODE_PC_DISP_LONG     // 13: pc displacement with long arg

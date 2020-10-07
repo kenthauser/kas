@@ -379,4 +379,11 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 *68. `chkw`, `jne` not parsing correctly w/o "."
 
+69. Add token_init_list (types) member type for `token_defn_t` data_p init.
+
+70. FP args allowed on non-fp insns
+
+
+
+
 

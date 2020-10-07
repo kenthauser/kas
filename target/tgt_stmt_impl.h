@@ -241,11 +241,21 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
 
     for (auto& arg : args)
     {
-        // if floating point arg, require `floating point` insn
+        // if floating point constant, require `floating point` insn
         if constexpr (!std::is_void_v<e_float_t>)
             if (auto p = arg.expr.template get_p<expression::e_float_t>())
+            {
                 if (!derived().is_fp())
                     arg.set_error(error_msg::ERR_float);
+                else
+                {
+                    // and floating point immed format
+                    auto  sz = info.sz(*insn.mcodes.front());
+                    auto& immed_info = arg.immed_info(sz);
+                    if (!immed_info.flt_fmt)
+                        arg.set_error(error_msg::ERR_float);
+                }
+            }
 
         // if not supported, return error
         if (auto diag = arg.ok_for_target(this))
