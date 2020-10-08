@@ -161,6 +161,15 @@ const char *tgt_arg_t<Derived, M, I, R, RS>
     return {};
 }
 
+template <typename Derived, typename M, typename I, typename R, typename RS>
+auto tgt_arg_t<Derived, M, I, R, RS>
+                ::set_error(const char *msg) -> parser::kas_error_t 
+{
+    set_mode(MODE_ERROR);
+    err = kas::parser::kas_diag_t::error(msg, *this).ref();
+    return err;
+}
+
 // set mode based on size of branch insn
 template <typename Derived, typename M, typename I, typename R, typename RS>
 void tgt_arg_t<Derived, M, I, R, RS>

@@ -18,7 +18,7 @@ namespace kas::m68k
 template <typename Inserter, typename WB_INFO>
 bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
 {
-    auto save_expr = [&](auto expr, uint8_t sz) -> bool
+    auto save_expr = [&](auto expr, uint8_t bytes, uint8_t flt_fmt = {}) -> bool
         {
             // suppress writes of zero
             auto p = expr.get_fixed_p();
@@ -30,10 +30,12 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
             
             // non-zero expression. must save.
             info_p->has_data = true;    
-            
+           #if 0 
             auto& arg_info = m68k_arg_t::sz_info[sz];
             auto  bytes    = arg_info.sz_bytes;
-            if (p && arg_info.flt_fmt)
+            auto  flt_fmt  = arg_info.flt_fmt;
+           #endif
+            if (p && flt_fmt)
                 expr = e_float_t::add(*p);
 
             // if longer than LONG, save as expr
@@ -57,44 +59,22 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
     if (mode() == MODE_REGSET)
         inserter(*regset_p);
     
-    // need to special case INDEX to match code above
-    if (mode() == MODE_INDEX || mode() == MODE_PC_INDEX)
+    // need to special case modes with data
+    switch (mode())
     {
-        auto size = 0;
-        
-        // 1) always save "extension" word
-        inserter(ext.value(), 2);
+        case MODE_INDEX:
+        case MODE_PC_INDEX:
+        {
+            auto size = 0;
+            
+            // 1) always save "extension" word
+            inserter(ext.value(), 2);
 
-        // 2) use "has_expr" bit as inner_has_expression
-        switch (ext.disp_size)
-        {
-            case M_SIZE_ZERO:
-                size = 1;       // FLAG
-                break;
-            case M_SIZE_AUTO:
-                size = 0;       // AUTO == expr
-                break;
-            case M_SIZE_WORD:
-                size = 2;
-                break;
-            case M_SIZE_LONG:
-                size = 4;
-                break;
-        }
-       
-        // handle "ZERO"
-        if (size != 1)
-            info_p->has_expr = save_expr(expr, size);
-        
-        // 3) use "has_data" bit as outer_has_expression
-        info_p->has_data = false;   // could have been set by `save_expr`
-        if (ext.has_outer)
-        {
-            switch (ext.mem_size)
+            // 2) use "has_expr" bit as inner_has_expression
+            switch (ext.disp_size)
             {
                 case M_SIZE_ZERO:
-                // Inner Zero -- just return
-                    size = 1;       // FLAG
+                    size = 1;       // flag
                     break;
                 case M_SIZE_AUTO:
                     size = 0;
@@ -106,17 +86,59 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
                     size = 4;
                     break;
             }
+           
+            // handle "ZERO"
             if (size != 1)
-                info_p->has_data = save_expr(outer, size);
+                info_p->has_expr = save_expr(expr, size);
+            
+            // 3) use "has_data" bit as outer_has_expression
+            info_p->has_data = false;   // could have been set by `save_expr`
+            if (ext.has_outer)
+            {
+                switch (ext.mem_size)
+                {
+                    case M_SIZE_ZERO:
+                    // Inner Zero -- just return
+                        size = 1;       // flag
+                        break;
+                    case M_SIZE_AUTO:
+                        size = 0;
+                        break;
+                    case M_SIZE_WORD:
+                        size = 2;
+                        break;
+                    case M_SIZE_LONG:
+                        size = 4;
+                        break;
+                }
+                if (size != 1)
+                    info_p->has_data = save_expr(outer, size);
+            }
+            
+            // serialize expressions if inner or outer unresolved
+            return info_p->has_expr || info_p->has_data;
         }
-        
-        // serialize expressions if inner or outer unresolved
-        return info_p->has_expr || info_p->has_data;
-    }
 
-    // if data present, save it
-    if (info_p->has_data)
-        return save_expr(expr, sz);
+        case MODE_ADDR_DISP:
+        case MODE_PC_DISP:
+        case MODE_MOVEP:
+            return save_expr(expr, 2);
+
+        case MODE_IMMED_QUICK:
+            return false;
+
+        case MODE_BITFIELD:
+            // XXX don't know
+        default:
+
+            if (info_p->has_data)
+            {
+                auto& arg_info = m68k_arg_t::sz_info[sz];
+                auto  bytes    = arg_info.sz_bytes;
+                auto  flt_fmt  = arg_info.flt_fmt;
+                return save_expr(expr, bytes, flt_fmt);
+            }
+    }
 
     // didn't save expression
     return false;

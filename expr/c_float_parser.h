@@ -87,14 +87,7 @@ struct c_float_parser : x3::parser<c_float_parser<T>>
         auto value  = std::powl(fmt.is_hex ? 2 : 10, exponent);
              value *= mantissa;
 
-#if 1
         traits::move_to(value, attr);
-#else
-        // allocate float_host object & initialize with value
-        auto& obj = object_type::add(value);
-        traits::move_to(&obj, attr);
-        print_type_name("c_float_parser::attr")(attr);
-#endif
         first = it;             // consume parsed value
         return true;
     }

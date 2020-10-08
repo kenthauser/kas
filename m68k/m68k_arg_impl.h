@@ -74,12 +74,6 @@ const char *m68k_arg_t::set_mode(unsigned mode)
 
 auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
 {
-    auto error = [this](const char *msg)
-        {
-            set_mode(MODE_ERROR);
-            return err = kas::parser::kas_diag_t::error(msg, *this).ref();
-        };
-
     // get reference to current stmt
     auto& stmt = *static_cast<m68k_stmt_t const *>(stmt_p);
     auto  sz   = stmt.info.arg_size;
@@ -91,30 +85,36 @@ auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
 
     // 1. can't access address register as byte
     if (_mode == MODE_ADDR_REG && sz == OP_SIZE_BYTE)
-       return error(error_msg::ERR_addr_reg_byte);
+       return set_error(error_msg::ERR_addr_reg_byte);
 
     // 2. floating point: allow register direct for 32-bit & under `source size`
     if (_mode <= MODE_ADDR_REG)
         if (immed_info(sz).sz_bytes > 4)
-            return error(error_msg::ERR_direct);
+            return set_error(error_msg::ERR_direct);
 
-    // 3. disable several addressing modes on coldfire FPUs
+    // 3. require floating point format for floating point immediates
+    if constexpr (!std::is_void_v<e_float_t>)
+        if (auto p = expr.template get_p<expression::e_float_t>())
+            if (!immed_info(sz).flt_fmt)
+                return set_error(error_msg::ERR_float);
+
+    // 4. disable several addressing modes on coldfire FPUs
     if (sz == OP_SIZE_XTND)
         if (auto msg = hw::cpu_defs[hw::fpu_x_addr()])
-            return error(msg);
+            return set_error(msg);
 
     if (sz == OP_SIZE_PACKED)
         if (auto msg = hw::cpu_defs[hw::fpu_p_addr()])
-            return error(msg);
+            return set_error(msg);
 #if 0
     // XXX are these already precluded by 3-word rule?
-    // 4. floating point: iff coldfire, restrict modes
+    // 5. floating point: iff coldfire, restrict modes
     if (info.is_cp(hw::fpu{}) && !(*reg_t::hw_cpu_p)[hw::coldfire{}])
     {
         // several addressing modes not supported by CF FPU
         // ie. immediate, index, abs_short, abs_long
         // NB: cpu_mode only set non-zero when matches addressing.
-        switch (mode) {
+        switch (_mode) {
             default:
                 break;
             case MODE_INDEX:
@@ -122,21 +122,21 @@ auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
             case MODE_IMMEDIATE:
             case MODE_DIRECT_SHORT:
             case MODE_DIRECT_LONG:
-                return hw::coldfire::name{};
+                return set_error(hw::coldfire::name{});
         }
     }
 #endif
 
-    // 5. disallow "SUBWORD" (coldfire MAC) except on coldfire with `word` format
+    // 6. disallow "SUBWORD" (coldfire MAC) except on coldfire with `word` format
     if (has_subword_mask
         || _mode == MODE_SUBWORD_LOWER
         || _mode == MODE_SUBWORD_UPPER)
     {
 
         if (auto err = hw::cpu_defs[hw::coldfire{}])
-            return error(error_msg::ERR_subreg);
+            return set_error(error_msg::ERR_subreg);
         if (_mode > MODE_ADDR_REG && sz != OP_SIZE_WORD)
-            return error("X subreg for long instruction");
+            return set_error("X subreg requires word format");
     }
 
     return {};
