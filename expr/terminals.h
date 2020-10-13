@@ -29,14 +29,13 @@ namespace detail
 {
     // Define default `int`, `float` & `string` parsers
     template <typename T>
-    struct dflt_fixed_p : literal::c_int_parser<T> {};
+    struct dflt_fixed_p : x3::int_parser<T> {};
 
     template <typename T>
-    //struct dflt_float_p : x3::real_parser<T, x3::strict_real_policies<T>> {};
-    struct dflt_float_p : literal::c_float_parser<T> {};
+    struct dflt_float_p : x3::real_parser<T, x3::strict_real_policies<T>> {};
     
     template <typename T>
-    struct dflt_string_p : literal::c_string_parser<T> {};
+    struct dflt_string_p : quoted_string_p<T> {};   // see `literal_string.h`
 
     // define default parsers: quoted on value-type
     template <typename> struct fixed_p      : id<quote<dflt_fixed_p>>  {};
@@ -90,7 +89,7 @@ namespace detail
     using tok_string = parser::token_defn_t<KAS_STRING("E_STRING")
                                  , e_string_t
                                  , invoke<_t<string_p<>>, e_string_t>>;
-   
+
     // NB: `tok_missing` doesn't really belong in `expr` because it really means no
     //     expression was parsed. Place it here so that it is visable to all modules
     //     operatoring on expressions. Don't include in `terminal` list because it's not.
@@ -128,7 +127,6 @@ using detail::term_parsers;
 using detail::tok_float;
 using detail::tok_string;
 using detail::tok_missing;
-using tok_fixed_t = meta::at_c<term_parsers, 0>;
 
 // find token to hold type T
 // default to none
@@ -140,27 +138,19 @@ struct token_t : meta::id<void> {};
 template <typename T>
 struct token_t<T, std::void_t<typename T::token_t>> : T::token_t {};
 
+// specialize for native c-language types
+template <typename T>
+struct token_t<T, std::enable_if_t<std::is_integral_v<T>>>
+                    : detail::tok_fixed {};
 template <typename T>
 struct token_t<T, std::enable_if_t<std::is_floating_point_v<T>>>
                     : detail::tok_float {};
 
-// specialize default types
-template <> struct token_t<e_fixed_t>  : detail::tok_fixed {};
-template <> struct token_t<e_float_t>  : detail::tok_float {};
-template <> struct token_t<e_string_t> : detail::tok_string {};
+// specialize for expression defined types
+//template <> struct token_t<e_float_t>  : detail::tok_float {};
+//template <> struct token_t<e_string_t> : detail::tok_string {};
 
-// expression evaluation generates floating point constants. Convert to token
-template <> struct token_t<typename detail::float_value<>::type>
-                                       : detail::tok_float {};
 }
-
-#if 0
-namespace kas::parser
-{
-template <> void const * expression::tok_float::
-        gen_data_p(kas_token const&, std::type_info const&, void const *) const;
-}
-#endif
 
 namespace kas
 {

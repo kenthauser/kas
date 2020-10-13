@@ -30,7 +30,12 @@ struct core_symbol : kas_object<core_symbol<REF>, REF>
     using base_t      = kas_object<core_symbol<REF>, REF>;
     using emits_value = std::true_type;
     using expr_t      = expression::ast::expr_t;
-
+#if 0
+    // causes ambiguity in `::print`
+    using token_t     = parser::token_defn_t<
+                            KAS_STRING("TOK_SYMBOL"), core_symbol
+                            >;
+#endif
     // expose protected methods
     using base_t::for_each_if;
     using base_t::for_each;

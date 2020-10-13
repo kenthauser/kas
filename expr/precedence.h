@@ -33,9 +33,10 @@ enum : prec_t {
 
 struct precedence_c
 {
-    static prec_t value(prec_t pri)
+    static constexpr prec_t value(prec_t pri)
     {
-        switch(pri) {
+        switch(pri)
+        {
             default:
                 return pri;
 

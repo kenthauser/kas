@@ -5,7 +5,6 @@
 #include "kas_loc.h"
 #include "kas_token.h"
 #include "stmt_print.h"
-#include "literal_parser.h"
 #include "kas_core/opcode.h"
 
 #include <boost/mpl/string.hpp>
@@ -29,7 +28,6 @@ namespace kas::parser
 namespace detail
 {
     using namespace meta;
-    using boost::mpl::string;
 
     // vector of types in variant
     template <typename tag = void> struct parser_type_l : list<> {};
@@ -41,17 +39,8 @@ namespace detail
     template <typename tag = void> struct parser_label_l : list<> {};
 
     // declare empty strings for comment and stmt seperator default
-    template <typename = void> struct stmt_separator_str : string<> {};
-    template <typename = void> struct stmt_comment_str   : string<> {};
-
-    // declare default "Parsers" for comment & stmt seperator
-    // NB can't default "type", because that would instantiate
-    // stmt_*_str templates
-    template <typename INSN_SEPARATOR, typename = void>
-    struct stmt_separator_p : literal_parser<INSN_SEPARATOR> {};
-
-    template <typename INSN_COMMENT,   typename = void>
-    struct stmt_comment_p   : literal_parser<INSN_COMMENT>   {};
+    template <typename = void> struct stmt_separator_str : kas_string<> {};
+    template <typename = void> struct stmt_comment_str   : kas_string<> {};
 }
 
 using namespace ::kas::core::opc;
@@ -73,12 +62,6 @@ struct parser_stmt //: kas_position_tagged
     using print_obj = print::stmt_print<std::ostream>;
     using opcode    = core::opcode;
 
-#if 0
-    // inherit base class operators
-    using kas_position_tagged::kas_position_tagged;
-    using kas_position_tagged::operator=;
-#endif
-    
     // CRTP casts
     auto& derived() const
         { return *static_cast<derived_t const*>(this); }

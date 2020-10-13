@@ -11,8 +11,6 @@
 #include "operators.h"              // defines expression operations
 #include "parser/parser.h"
 
-#include "parser/error_handler_base.h"
-#include "parser/annotate_on_success.hpp"
 #include "parser/token_parser.h"
 #include "parser/combine_parsers.h"
 
@@ -21,7 +19,6 @@
 namespace kas::expression::parser
 {
 namespace x3 = boost::spirit::x3;
-namespace ascii = boost::spirit::x3::ascii;
 
 //////////////////////////////////////////////////////////////////////////
 // Shunting yard algorithm (see Wikipedia) to resolve operator precedence
@@ -62,7 +59,7 @@ struct shunting_yard
         x3::_val(ctx) = ops.result();
     }
 
-    // implement shunting yard stack opersations
+    // implement shunting yard stack operations
     // extract `tokens` from pair & push on separate stack
     // leave `opers` in container (with execution methods)
     template <typename OPER_PAIR_T>
@@ -191,35 +188,9 @@ auto const expr_def  = inner;
 
 BOOST_SPIRIT_DEFINE(expr, inner, term)
 }
-#if 0
-namespace kas::parser
-{
-template <> void const * expression::tok_float::
-        gen_data_p(kas_token const& tok
-                 , std::type_info const& info
-                 , void const *obj
-                 ) const
-{
-    std::cout << "tok_float::gen_data_p: " << info.name() << std::endl;
-    if (typeid(long double) == info)
-        return &e_float_t::add(*static_cast<long double const *>(obj));
-    else if (typeid(double) == info)
-        return &e_float_t::add(*static_cast<double const *>(obj));
-    else if (typeid(float) == info)
-        return &e_float_t::add(*static_cast<float const *>(obj));
-    else
-        return obj;
-}
 
-}
-#endif
-
-
-
-
-// boost::spirit boilerplate for parsing pairs
+// boost::fusion boilerplate for parsing pairs
 #include <boost/fusion/include/adapt_struct.hpp>
 
 BOOST_FUSION_ADAPT_STRUCT(kas::expression::parser::op_expr_pair_t, first, second)
-
 #endif

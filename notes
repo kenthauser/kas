@@ -381,7 +381,17 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 69. Add token_init_list (types) member type for `token_defn_t` data_p init.
 
-70. FP args allowed on non-fp insns
+*70. FP args allowed on non-fp insns
+
+71. allow float_value to be `void` to disable floating point
+
+72. find home for tok_missing. Should not be in `terminals`
+
+73. convert comment/separator type to KAS_STRING
+
+74. define bsd_precedence as example
+
+
 
 
 

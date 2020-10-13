@@ -30,7 +30,7 @@ namespace kas::core
 // NB: two 32-bit indexes fit in a 64-bit type.
 
 // forward declare `ref_loc` template
-template <typename T, typename Index = void> struct ref_loc;
+template <typename T, typename Index = void, typename = void> struct ref_loc;
 
 // declare "convience" template: take `template` instead of `type`
 template <template <typename> class T, typename Index = void>
@@ -62,9 +62,18 @@ namespace detail
             >> : std::true_type {};
 }
 
+// specialze for `T` is void (ie when floating point not supported)
+template <typename T, typename Index>
+struct ref_loc<T, Index, meta::invoke<T, void>>
+{
+    static_assert(std::is_same_v<T, ref_loc>, "Ref_Loc partial");
+    using object_type = void;
+};
+
+
 struct ref_loc_tag {};
 
-template <typename T, typename Index>
+template <typename T, typename Index, typename>
 struct ref_loc : ref_loc_tag
 {
     using index_default = uint32_t;
@@ -173,9 +182,9 @@ private:
 };
 
 // default printer: print type name & instance variables
-template <typename T, typename Index>
+template <typename T, typename Index, typename V>
 template <typename OS>
-void ref_loc<T, Index>::print(OS& os) const
+void ref_loc<T, Index, V>::print(OS& os) const
 {
     os << "["  << boost::typeindex::type_id<object_t>().pretty_name();
     os << ": " << index << " loc: " << _loc.get();

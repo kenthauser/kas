@@ -29,8 +29,11 @@ namespace kas::arm::parser
 namespace kas::parser::detail
 {
     // ARM comment and separator characters
-    template<> struct fmt_separator_str<void> : boost::mpl::string<';'> {};
-    template<> struct fmt_comment_str  <void> : boost::mpl::string<'@'> {};
+    //template<> struct fmt_separator_str<void> : boost::mpl::string<';'> {};
+    //template<> struct fmt_comment_str  <void> : boost::mpl::string<'@'> {};
+    template<> struct fmt_separator_str<void> : KAS_STRING(";") {};
+    template<> struct fmt_comment_str  <void> : KAS_STRING("@") {};
+
 
     // target types for stmt variant
     template <> struct parser_type_l<defn_cpu> :

@@ -7,8 +7,9 @@
 // (or even a 64-bit int), allocate each on a private deque & reference
 // by index. This helps with variant & speeds copying.
 
-// *** STRING CONTAINTER TYPE ***
+// *** STRING CONTAINER TYPE ***
 
+// XXX obsolete comment??
 // c++ delcares type types of parsed strings:
 // narrow (default), wide('L'), utc-8/16/32 ('u8'/'u'/'U')
 // declare a single type using a std::vector<uchar32_t> to hold characters
@@ -114,7 +115,8 @@ private:
     std::basic_string<value_t> str;
 };
 
-
+// declare a basic "quoted string" parser.
+// Accept only ".*" strings.
 // parser returns pointer to e_string instance
 template <typename T>
 struct quoted_string_p : x3::parser<quoted_string_p<T>>

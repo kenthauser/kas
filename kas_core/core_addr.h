@@ -16,8 +16,14 @@ namespace kas::core
 template <typename REF>
 struct core_addr : kas_object<core_addr<REF>, REF>
 {
-    using base_t = kas_object<core_addr<REF>, REF>;
-    using base_t::add;
+    using base_t  = kas_object<core_addr<REF>, REF>;
+#if 0
+    // causes ambiguity in ::print
+    using token_t = parser::token_defn_t<
+                            KAS_STRING("TOK_ADDR"), core_addr
+                            >;
+#endif
+
     
     using NAME = KAS_STRING("core_addr");
 
@@ -26,6 +32,7 @@ struct core_addr : kas_object<core_addr<REF>, REF>
     // XXX for `expr_fits`
     using emits_value = std::true_type;
 
+    using base_t::add;
     using base_t::dump;
 
     core_addr() = default;

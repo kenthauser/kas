@@ -22,13 +22,8 @@ namespace kas::parser
 {
 namespace x3 = boost::spirit::x3;
 
-// instantiate comment and seperator parsers...
-auto stmt_comment   = detail::stmt_comment_p  <
-        typename detail::stmt_comment_str<>::type
-        >();
-auto stmt_separator = detail::stmt_separator_p<
-        typename detail::stmt_separator_str<>::type
-        >();
+using stmt_comment   = meta::_t<detail::stmt_comment_str<>>;
+using stmt_separator = meta::_t<detail::stmt_separator_str<>>;
 
 //////////////////////////////////////////////////////////////////////////
 //  Parser Support Methods
@@ -39,8 +34,10 @@ auto stmt_separator = detail::stmt_separator_p<
 
 // parse to comment, separator, or end-of-line
 auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
-      stmt_comment >> x3::omit[*(x3::char_ - x3::eol)] >> -x3::eol
-    | stmt_separator
+      x3::lit(stmt_comment()()) >> 
+      x3::omit[*(x3::char_ - x3::eol)] >> 
+      -x3::eol
+    | x3::lit(stmt_separator()())
     | x3::eol
     ;
 
@@ -78,16 +75,9 @@ auto const stmt_def  = *stmt_eol > tagged_stmt;
 
 // require statements to extend to end-of-line (or separator)
 // not required for labels
-
-#if 0
-// use `BOOST_SPIRIT_DEFINE` facility to prevent link errors (KBH 2020/07/19) 
-auto const parse_insn = x3::rule<struct insn_junk, typename stmt_t::base_t> { "parse_insn"} 
-                  = combine_parsers(stmt_parsers()) > stmt_eol;
-#else
 x3::rule<struct insn_junk,  typename stmt_t::base_t> parse_insn { "parse_insn" };
 auto const parse_insn_def = combine_parsers(stmt_parsers()) > stmt_eol;
 BOOST_SPIRIT_DEFINE(parse_insn);
-#endif
 
 auto const parse_invalid = x3::rule<class _, detail::stmt_diag> { "parse_invalid"} 
                   = invalid >> x3::omit[-skip_eol];
