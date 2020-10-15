@@ -20,7 +20,6 @@
 namespace kas::m68k
 {
 
-// XXX not sure `ieee754_base` needs to CRTP...
 struct m68k_format_float : expression::detail::ieee754_base<m68k_format_float, e_float_t>
 {
     using base_t = ieee754_base<m68k_format_float, e_float_t>;

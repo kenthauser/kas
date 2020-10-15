@@ -112,10 +112,13 @@ protected:
     auto get_dec_parts(flt_t const& flt, int precision) const
         -> std::tuple<decltype(std::declval<flt_t>().get_flags()), int, std::string>;
 };
+}
 
-// ieee754 with just interchange formats
-struct ieee754 : ieee754_base<ieee754, e_float_t> {};
+namespace kas::expression
+{
 
+    // ieee754 with just interchange formats
+    struct ieee754 : detail::ieee754_base<ieee754, e_float_t> {};
 
 }
 #endif

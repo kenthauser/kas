@@ -14,6 +14,9 @@
 #include "target/tgt_mcode_impl.h"
 #include "target/tgt_validate_impl.h"
 
+#include "expr/format_ieee754_impl.h"
+#include "expr/literal_types_impl.h"
+
 #include <iostream>
 
 namespace kas::tgt

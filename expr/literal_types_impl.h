@@ -63,8 +63,9 @@ auto float_host_t<REF, VALUE, FMT>::get_flags() const -> flag_t
 
 template <typename REF, typename VALUE, typename FMT>
 template <typename T>
-auto float_host_t<REF, VALUE, FMT>::get_bin_parts(T *mantissa_p, int mant_bits, bool truncate) const
-    -> std::tuple<flag_t, int>
+auto float_host_t<REF, VALUE, FMT>::
+        get_bin_parts(T *mantissa_p, int mant_bits, bool truncate) const
+            -> std::tuple<flag_t, int>
 {
     if ((unsigned)mant_bits > HOST_MANT_BITS)
         throw std::logic_error{"float_host_ieee::get_parts: bits out of range"};

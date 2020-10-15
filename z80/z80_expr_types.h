@@ -35,10 +35,11 @@ namespace kas::expression::detail
 {
     // override default `kas` types in `expr_types.h`
     // undefined addresses are 16-bits
-    template <> struct e_data <void> { using type = std::uint8_t;   };
-    template <> struct e_addr <void> { using type = std::uint16_t;  };
-    template <> struct err_msg<void> { using type = z80::error_msg; };
+    template <> struct e_data <void> : meta::id<std::uint8_t>   {};
+    template <> struct e_addr <void> : meta::id<std::uint16_t>  {};
+    template <> struct err_msg<void> : meta::id<z80::error_msg> {};
 
+    // floating point not supported
     //template <> struct float_value<void> : meta::id<void> {};
 
     // types for expression variant

@@ -52,7 +52,7 @@ struct float_host_t<REF, VALUE, FMT, void>
     using value_type  = VALUE;
     using fmt_t       = FMT;
     using mantissa_t  = std::uint32_t;
-
+    
     // if host not `ieee` format, need to implement appropriate `get_flags` & `get_bin_parts` 
     static constexpr auto HOST_MANT_BITS = std::numeric_limits<value_type>::digits;
     
@@ -122,6 +122,7 @@ private:
 
     value_type value;
 };
+
 }
 #endif
 

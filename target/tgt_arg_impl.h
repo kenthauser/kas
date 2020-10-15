@@ -15,6 +15,7 @@
 // developed.
 
 #include "tgt_arg.h"
+#include "expr/format_ieee754.h"
 
 namespace kas::tgt
 {

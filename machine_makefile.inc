@@ -1,5 +1,5 @@
-# target is m68k
+# target is z80
 
-OBJS += m68k.o
+OBJS += z80.o
 
 

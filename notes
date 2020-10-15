@@ -387,9 +387,9 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 72. find home for tok_missing. Should not be in `terminals`
 
-73. convert comment/separator type to KAS_STRING
+*73. convert comment/separator type to KAS_STRING
 
-74. define bsd_precedence as example
+*74. define bsd_precedence as example
 
 
 
