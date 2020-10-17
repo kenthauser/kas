@@ -36,6 +36,7 @@ namespace kas::tgt
 
 template <typename MCODE_T
         , typename HW_DEFS
+        , typename BASE_NAME
         , unsigned MAX_MCODES = 16 
         , typename INDEX_T    = std::uint16_t
         >
@@ -46,8 +47,8 @@ struct tgt_insn_t
     using hw_tst    = typename hw_defs::hw_tst;
     using index_t   = INDEX_T;
 
-    using base_name = KAS_STRING("X_M68K");
-    using insn_name = kas::str_cat<base_name, KAS_STRING("_INSN")>;
+    //using base_name = KAS_STRING("M68K");
+    using insn_name = kas::str_cat<BASE_NAME, KAS_STRING("_INSN")>;
     using token_t   = parser::token_defn_t<insn_name, tgt_insn_t>;
 
     using opcode    = core::opcode;

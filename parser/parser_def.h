@@ -124,18 +124,19 @@ struct insn_junk
             no_eol = true;
         }
 
-        kas_position_tagged junk_loc { junk, first, &e_handler };
-        //kas_position_tagged junk_loc { junk, junk, &e_handler };
-        std::cout << "insn_junk::on_error: " << junk_loc.where() << std::endl;
+        //std::cout << "insn_junk::on_error: exc = " << exc.what() << std::endl;
+        //std::cout << "insn_junk::on_error: which = " << exc.which() << std::endl;
+        kas_position_tagged junk_loc { junk, last, &e_handler };
+        //std::cout << "insn_junk::on_error: " << junk_loc.where() << std::endl;
        
         // process "junk" following statement
         bool ignore_junk = false;
-        std::string msg = "Junk following statement";
+        std::string msg = "Expected " + exc.which();
 
         if (ignore_junk)
         {
             // generate warning message about junk & re-parse
-            kas_diag_t::warning(msg + ", ignored", junk_loc);
+            kas_diag_t::warning("Junk following statement, ignored", junk_loc);
             obj.parse(before, junk);
 
             // apparently X3 steps on "re-parse" return value if just

@@ -27,11 +27,11 @@ struct is_meta_list<meta::list<Ts...>, void> : std::true_type {};
 // `defn_tags` used by configure.py to build machine includes
 using defn_tags = meta::list<
           struct defn_expr
-        , struct defn_parser
         , struct defn_core
         , struct defn_fmt
         , struct defn_host
         , struct defn_cpu
+        , struct defn_parser
         >;
 
 // XXX should this be `meta::fold`

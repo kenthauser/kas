@@ -109,7 +109,8 @@ auto inline kas_parser::iter_t::operator*() -> value_type
     try
     {
         if (obj_p->parse(src.iter(), src.last()))
-            return obj_p->value;
+            if (!obj_p->err_idx)
+                return obj_p->value;
     }
 
     // hook for "reparse". Apparently x3 steps on return value

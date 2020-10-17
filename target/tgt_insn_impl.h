@@ -8,8 +8,8 @@ namespace kas::tgt
 {
 
 // add mcode to insn list
-template <typename OPCODE_T, typename TST_T, unsigned MAX_MCODES, typename INDEX_T>
-void tgt_insn_t<OPCODE_T, TST_T, MAX_MCODES, INDEX_T>::
+template <typename O, typename T, typename B, unsigned M, typename I>
+void tgt_insn_t<O, T, B, M, I>::
         add_mcode(mcode_t *mcode_p)
 {
     // map mcode -> name (NB: mcodes can have several names)
@@ -33,9 +33,9 @@ void tgt_insn_t<OPCODE_T, TST_T, MAX_MCODES, INDEX_T>::
     mcodes.push_back(mcode_p);
 }
 
-template <typename O, typename T, unsigned M, typename I>
+template <typename O, typename T, typename B, unsigned M, typename I>
 template <typename OS>
-void tgt_insn_t<O, T, M, I>::
+void tgt_insn_t<O, T, B, M, I>::
         print(OS& os) const
 {
     os << "[" << name << "]";

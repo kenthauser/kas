@@ -205,11 +205,11 @@ auto eval_insn_list
 }
 
 // templated definition to cut down on noise in `tgt_insn_t` defn
-template <typename MCODE_T, typename TST_T, unsigned MAX_MCODES, typename INDEX_T>
+template <typename O, typename T, typename B, unsigned M, typename I>
 template <typename...Ts>
-auto tgt_insn_t<MCODE_T, TST_T, MAX_MCODES, INDEX_T>
-        ::eval(bitset_t& ok, Ts&&...args) const
-        -> MCODE_T const *
+auto tgt_insn_t<O, T, B, M, I>::
+        eval(bitset_t& ok, Ts&&...args) const
+        -> mcode_t const *
 {
     return eval_insn_list(*this, ok, std::forward<Ts>(args)...);
 }

@@ -391,6 +391,14 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 *74. define bsd_precedence as example
 
+75. M68k: zpc@(x) -> should map to direct short
+
+76. refactor ref_loc_t to unquote template.
+
+77. clean up & harmonize parse error processing: currently in parser_def.h::insn_junk,
+    parser_obj.h:operator*(), and error_handler_base.h. Handle `junk` characters,
+    trailing `junk` and exception errors. Populate execption `map` from individual parsers.
+
 
 
 

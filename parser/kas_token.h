@@ -34,16 +34,7 @@ struct kas_token : kas_position_tagged
         print_type_name{", T = ", ""}.name<T>(); 
 
         set(std::forward<T>(obj));
-#if 0
-        if constexpr (std::is_integral_v<U>)
-            _fixed = obj;
-#if 0
-        else if constexpr (std::is_floating_point_v<U>)
-            set(obj);
-#endif
-        else
-            data_p = defn_p->init(typeid(U), &obj);
-#endif
+        
         // diagnostics have location already tagged
         if constexpr (std::is_same_v<U, kas_diag_t>)
             tag(obj.loc());
@@ -58,44 +49,11 @@ struct kas_token : kas_position_tagged
     }
 
     // set data or expression depending on argument
-#if 0
-    // method for non-integral objects
-    template <typename T, typename = std::enable_if_t<
-                                        !std::is_integral_v<
-                                            std::remove_reference_t<T>>>>
-    auto set(T&& obj) -> 
-        decltype(std::declval<token_defn_base>().set(*this, std::forward<T>(obj)))
-    {
-        if (!defn_p)
-            throw std::logic_error("kas_token::set: set(OBJ) on generic_token");
-        defn_p->set(*this, std::forward<T>(obj));
-    }
-#endif
-#if 0
-    // special for arithmetic values
-    template <typename T, typename = std::enable_if_t<std::is_integral_v<T>>>
-    std::enable_if_t<sizeof(T) <= sizeof(e_fixed_t)>
-    set(T fixed)
-    {
-        _fixed = fixed;
-        data_p = {};
-        _expr  = {};
-    }
-//#if 0
-    template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
-    void set(T const& flt)
-    {
-        auto& obj = expression::e_float_t::add(flt, *this);
-        set(&obj);
-    }
-#endif
-
-    
     template <typename T>
     void set(T const& obj)
     {
         //print_type_name{"kas_token::set"}.name<T>();
-        std::cout << "kas_token::set" << std::endl;
+        std::cout << "kas_token::set src=" << where() << std::endl;
         if constexpr (std::is_integral_v<T>)
         {
             _fixed = obj;
