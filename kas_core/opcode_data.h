@@ -126,6 +126,9 @@ public:
         return opcode_expr_data.empty();
     }
 
+    // set insn to `error`
+    void set_error(const char *msg);
+    
     // return object, not reference
     Iter iter() const;
     std::size_t index() const;

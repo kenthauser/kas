@@ -247,7 +247,7 @@ struct opc_error : opcode
         auto& fixed = data.fixed;
         
         if (fixed.diag)
-            emit << emit_info << fixed.diag.get();
+            emit <<  set_size(data.size()) << fixed.diag.get();
     }
 };
 }

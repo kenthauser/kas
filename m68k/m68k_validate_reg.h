@@ -132,6 +132,7 @@ struct val_am : m68k_mcode_t::val_t
 
         // use arg generic routine to see if coldfire limit exceeded
         //return coldfire_limit(result, size_p);
+        return cf_limit_3w(result, op_size);
         return result;
     }
 

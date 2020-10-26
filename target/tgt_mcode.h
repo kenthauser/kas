@@ -6,6 +6,7 @@
 
 #include "kas_core/core_emit.h"
 #include "kas_core/core_fits.h"
+#include "tgt_mcode_defn.h"
 
 namespace kas::tgt::opc
 {

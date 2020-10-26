@@ -58,6 +58,7 @@
 #include "m68k_stmt_flags.h"
 
 #include "expr/expr.h"              // expression public interface
+#include "parser/token_parser.h"
 #include "parser/annotate_on_success.hpp"
 
 #include <boost/spirit/home/x3.hpp>

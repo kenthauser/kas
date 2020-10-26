@@ -149,14 +149,21 @@ using isa_ap  = cpu_defn<STR("isa_a+"), isa_a>;
 // isa_b is the successor to isa_a
 using isa_b   = cpu_defn<STR("isa_b"),  isa_a>;
 
-// isa_c is the successor to isa_b, but adds the isa_a+ insns
-using isa_c   = cpu_defn<STR("isa_c"),  list<isa_b, isa_ap>
-                    , list<emac>            // added features
-                    , list<mac>             // deleted features
+// XXX TST is develment target. Merge with `isa_c` for production
+using isa_c_tst       = cpu_defn<STR("isa_c_tst"), list<isa_b, isa_ap>
+                    , list<emac>
+                    , list<>
                     >;
 
-// DEVELOPMENT TARGET: doesn't test mac
-//using cpu_test = cpu_defn<STR("cpu_test"), list<isa_c, m68040>>;
+using isa_c = cpu_defn<STR("isa_c"), isa_c_tst
+                   , list<>
+                   , list<mac>
+                   >;
+
+
+
+// DEVELOPMENT TARGET: allows mac & emac
+using cpu_test = cpu_defn<STR("cpu_test"), list<isa_c_tst, m68040>>;
 
 
 //////////////////////////////////////////////////////////////////////////////

@@ -49,6 +49,30 @@ auto opcode_data::index() const -> std::size_t
     return std::distance(begin(), iter());
 }
 
+void opcode_data::set_error(const char *msg)
+{
+    std::cout << "opcode_data::set_error: " << msg << std::endl;
+
+    if (data_p)
+    {
+        // processing from insn container (during relax)
+        data_p->set_error();    // convert to error insn
+
+        // XXX initialize loc 
+    }
+    else
+    {
+        // processing before container insertion
+        // generate an error insn with zero size
+        // `loc` set by ctor
+        size.set_error();   // `core_insn` does rest
+    }
+
+    // record error message for instruction
+    fixed.diag = e_diag_t::error(msg, loc).ref();
+}
+
+
 }
    
 

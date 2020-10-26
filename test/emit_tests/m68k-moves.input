@@ -21,7 +21,10 @@ fixed	= 100
 	move.b	a5@(12), d0@(20)
 	move.l	a1@(d2, 3), short   ; writable .text
 	move.w	short, long
-	move.l	long, short
+	move.l	long, short         ; coldfire: fails
+    move.l  long, a2@           ; coldfire: ok
+    move.l  #345, a2@(2)        ; coldfire: fails
+    move.l  long, a2@(2)        ; coldfire: fails
 	move.b	long, #fixed
 	move.b	#fixed, long
 	move.l	#fixed, d2

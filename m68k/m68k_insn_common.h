@@ -62,6 +62,12 @@ using m68k_defn_groups = meta::list<
     , struct OP_COLDFIRE
     >;
 
+// declare base type with `cf_limit_3w` method
+struct m68k_opc_base : tgt::opc::tgt_opc_base<m68k_mcode_t>
+{
+    void cf_limit_3w(opcode_data& data);
+};
+
 template <typename=void> struct m68k_defn_list : meta::list<> {};
 
 //

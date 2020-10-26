@@ -5,6 +5,7 @@
 
 #include "m68k_reg_types.h"
 #include "target/tgt_reg_trait.h"
+#include "target/tgt_reg_defn.h"
 
 // Define `m68k_reg_t::format_name` to handler register prefix
 namespace kas::m68k

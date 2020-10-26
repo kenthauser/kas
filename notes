@@ -399,7 +399,9 @@ Plan 10/2: First fix floating point emit/warning/etc
     parser_obj.h:operator*(), and error_handler_base.h. Handle `junk` characters,
     trailing `junk` and exception errors. Populate execption `map` from individual parsers.
 
-
+78. Need to add "set_error(char *msg)" method to `opcode_data.h`. Would set insn_index to
+    error, generate diag from (loc) & msg. Set fixed to diag_ref. Set size.max to size.min.
+    Needed for `coldfire_limit_3word` support (and probably others). 
 
 
 

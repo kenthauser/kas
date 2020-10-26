@@ -75,15 +75,16 @@ template <typename MCODE_T>
 struct tgt_validate
 {
     using base_t      = tgt_validate;
-    using arg_t       = typename MCODE_T::arg_t;
-    using stmt_info_t = typename MCODE_T::stmt_info_t;
+    using mcode_t     = MCODE_T;
+    using arg_t       = typename mcode_t::arg_t;
+    using stmt_info_t = typename mcode_t::stmt_info_t;
 
     // need constexpr ctor for literal type
     constexpr tgt_validate() {}
 
     // if arg invalid for particular "size", error it out in `size` method
     virtual fits_result ok  (arg_t& arg, expr_fits const& fits) const = 0;
-    virtual fits_result size(arg_t& arg, MCODE_T const& mc, stmt_info_t const& info
+    virtual fits_result size(arg_t& arg, mcode_t const& mc, stmt_info_t const& info
                            , expr_fits const& fits, op_size_t&) const
     { 
         // default: return "fits", don't update size

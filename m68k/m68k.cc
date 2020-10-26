@@ -1,13 +1,10 @@
 // Arch definitions for M68K & Coldfire processors
 
+#include "utility/print_type_name.h"
+
 #include "expr/expr.h"
 #include "parser/parser.h"
 #include "parser/sym_parser.h"
-#include "parser/token_parser.h"
-#include "target/tgt_mcode_defn.h"
-#include "target/tgt_reg_defn.h"
-
-#include "utility/print_type_name.h"
 
 // per-arch includes
 #include "m68k_mcode.h"
@@ -45,7 +42,7 @@
 // instantiate global values controlling assembly
 namespace kas::m68k::hw
 {
-    cpu_defs_t      cpu_defs;
+    cpu_defs_t      cpu_defs{isa_c()};
 }
 
 namespace kas::m68k

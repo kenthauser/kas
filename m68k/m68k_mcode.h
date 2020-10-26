@@ -53,10 +53,12 @@ struct m68k_mcode_size_t : tgt::tgt_mcode_size_t
 // forward declare m68k code size_fn
 namespace opc
 {
-    struct FMT_X;
-    struct m68k_insn_lwb;
+    struct FMT_X;               // default formatter
+    struct m68k_insn_lwb;       // support complicated m68k opcode size methods
+    struct m68k_opc_base;       // includes `cf_limit_3w` method
 }
 
+struct m68k_val_t;      // forward declare `coldfire` support type
 struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t, m68k_stmt_t, error_msg, m68k_mcode_size_t>
 {
     using BASE_NAME = KAS_STRING("M68K");
@@ -65,14 +67,66 @@ struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t, m68k_stmt_t, error_msg, m68
     using base_t::base_t;
 
     // override default types
+    using val_t       = m68k_val_t;
     using fmt_default = opc::FMT_X;
     using code_size_t = opc::m68k_insn_lwb;
+//    using opcode_t    = opc::m68k_opc_base;
+    using op_size_t   = core::opcode::op_size_t;
 
     uint8_t     sz(stmt_info_t info) const;
     auto        code(stmt_info_t info) const -> decltype(base_t::code(info));
     stmt_info_t extract_info(mcode_size_t const *) const;
+
+    // coldfire support (limit insns to 3 words)
+    op_size_t& cf_limit_3w(core::opcode_data& data) const;
 };
 
+auto m68k_mcode_t::cf_limit_3w(core::opcode_data& data) const
+    -> op_size_t&
+{
+        std::cout << "m68k_mcode_t::cf_limit_3w" << std::endl;
+#if 0
+        if (!hw::cpu_defs[hw::limit_3w{}])
+        {
+            std::cout << "m68k_val_t:limit_3w set" << std::endl;
+            if (op_size.min > 6)
+            {
+                std::cout << "m68k_val_t::cf_limit_3w: limit_3w fails" << std::endl;
+                //op_size.set_error();
+                //return fits_result::NO_FIT;
+            }
+        }
+#endif
+        return data.size;
+}
+struct m68k_val_t : tgt::opc::tgt_validate<m68k_mcode_t>
+{
+    using base_t      = tgt_validate;
+    using mcode_t     = typename base_t::mcode_t;
+using expr_fits   = expression::expr_fits;
+using fits_result = expression::fits_result;
+using op_size_t   = core::opcode::op_size_t;
+
+
+    fits_result cf_limit_3w(fits_result result, op_size_t& op_size) const
+    { 
+        std::cout << "m68k_val_t::cf_limit_3w: size = " << op_size << std::endl;
+
+        if (!hw::cpu_defs[hw::limit_3w{}])
+        {
+            std::cout << "m68k_val_t:limit_3w set" << std::endl;
+            if (op_size.min > 6)
+            {
+                std::cout << "m68k_val_t::cf_limit_3w: limit_3w fails" << std::endl;
+                //op_size.set_error();
+                //return fits_result::NO_FIT;
+            }
+        }
+        return result;
+    }
+
+    
+};
 
 }
 #endif

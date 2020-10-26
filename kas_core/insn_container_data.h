@@ -82,10 +82,16 @@ struct insn_container_data
         std::advance(iter(), _cnt);
     }
 
-  // change insn size
+    // change insn size
     void update(op_size_t const& size)
     {
         _size = size;
+    }
+
+    void set_error() 
+    {
+        static const auto idx_error = opc::opc_error().index();
+        _opc_index = idx_error;
     }
     
     // implement inline for now
