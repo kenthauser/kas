@@ -21,8 +21,8 @@
 //    `9b2` for a two-bit field shifted 9. '020 CAS2 uses `CAS2` for a one-off formater.
 
 
-#include "m68k_formats_impl.h"
 #include "m68k_formats_opc.h"
+#include "m68k_formats_impl.h"      // XXX an `impl` file???
 
 namespace kas::m68k::opc
 {

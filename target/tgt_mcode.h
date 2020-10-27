@@ -6,7 +6,7 @@
 
 #include "kas_core/core_emit.h"
 #include "kas_core/core_fits.h"
-#include "tgt_mcode_defn.h"
+//#include "tgt_mcode_defn.h"
 
 namespace kas::tgt::opc
 {
@@ -17,6 +17,7 @@ template <typename MCODE_T> struct tgt_validate_args;
 template <typename MCODE_T> struct tgt_defn;
 template <typename MCODE_T> struct tgt_defn_adder;
 template <typename MCODE_T> struct tgt_opc_base;
+template <typename MCODE_T> struct tgt_mcode_defn;
 template <typename MOCDE_T> struct tgt_mcode_sizes;
 template <typename MCODE_T> struct tgt_size;
 template <typename MCODE_T> struct tgt_fmt_opc_gen;

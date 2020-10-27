@@ -124,6 +124,23 @@ auto m68k_mcode_t::extract_info(mcode_size_t const *code_p) const -> stmt_info_t
     return info;
 }
 
+// coldfile limit_3w is in `opc` namespace
+namespace opc
+{
+    auto m68k_opc_base::cf_limit_3w(core::opcode_data& data) const
+        -> op_size_t&
+    {
+        if (!hw::cpu_defs[hw::limit_3w{}])
+            if (data.size.min > 6)
+            {
+                data.size = 6;
+                data.set_error(hw::limit_3w::name::value);
+            }
+        
+        return data.size;
+    }
+}
+
 }
 
 #endif

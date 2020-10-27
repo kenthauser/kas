@@ -1,7 +1,8 @@
 #ifndef KAS_M68K_M68K_SIZE_LWB_H
 #define KAS_M68K_M68K_SIZE_LWB_H
 
-#include "m68k_mcode.h"         // need op-size defns
+#include "m68k_mcode.h"             // need op-size defns
+#include "target/tgt_opc_base.h"    // extending `tgt_opc_base`
 #include "utility/align_as_t.h"
 
 namespace kas::m68k::opc
@@ -11,7 +12,20 @@ using namespace hw;
 
 /////////////////////////////////////////////////////////////////////////
 //
-//  for insertion of `op_size` into base opcode
+// declare base_type for coldfire `limit_3w` support
+//
+/////////////////////////////////////////////////////////////////////////
+
+struct m68k_opc_base : tgt::opc::tgt_opc_base<m68k_mcode_t>
+{
+    // implementation in `m68k_mcode_impl.h`
+    op_size_t& cf_limit_3w(core::opcode_data&) const;
+};
+
+/////////////////////////////////////////////////////////////////////////
+//
+//  declare complicated code for insertion and extraction of `op_size`
+//  into base opcode
 //
 //  declare size functions (as types)
 //
@@ -21,7 +35,15 @@ template <int WORD, int BIT, int SEQ>
 using insn_add_size = meta::list<meta::int_<WORD>, meta::int_<BIT>, meta::int_<SEQ>>;
 
 // sequences (BWL) are surprisingly aribrary
-enum { SEQ_BWL_012, SEQ_BWL_132, SEQ_BWL_123, SEQ_WL_01, SEQ_WL_23, SEQ_FLT, SEQ_VOID, NUM_SEQ };
+enum { SEQ_BWL_012
+     , SEQ_BWL_132
+     , SEQ_BWL_123
+     , SEQ_WL_01
+     , SEQ_WL_23
+     , SEQ_FLT
+     , SEQ_VOID
+     , NUM_SEQ
+     };
 
 // declare types used in INSN definitions
 using INFO_SIZE_NORM  = insn_add_size<0,  6, SEQ_BWL_012>;
@@ -37,6 +59,7 @@ using INFO_SIZE_VOID  = insn_add_size<0,  0, SEQ_VOID>;
 
 using INFO_SIZE_LIST  = insn_add_size<0,  12, SEQ_FLT>;     // stash size in MSBs
 
+// declare meta::list with all defined configurations
 using LWB_SIZE_LIST = meta::list<
                               INFO_SIZE_NORM        // default type is first
                             , INFO_SIZE_VOID        // VOID type must be second
@@ -169,10 +192,6 @@ public:
         return code << sz_bit;
     }
    
-    uint8_t word() const { return sz_word; }
-    
-    static_assert(NUM_SEQ <= 8);    // must fit in the allocated 3 bits
-
     uint8_t extract(uint16_t const *code_p) const
     {
         auto lwb_code = code_p[sz_word] >> sz_bit;
@@ -183,7 +202,12 @@ public:
         return sz;
     }
 
+    uint8_t word() const { return sz_word; }
+    
 private:
+    // consexpr "value" is a `uint8_t`
+    static_assert(NUM_SEQ <= 8);    // must fit in the allocated 3 bits
+    
     value_t sz_seq  : 3;
     value_t sz_word : 1;
     value_t sz_bit  : 4;

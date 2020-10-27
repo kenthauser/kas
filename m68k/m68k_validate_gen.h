@@ -83,8 +83,7 @@ struct val_dir_long : m68k_mcode_t::val_t
                    , expr_fits const& fits, op_size_t& op_size) const override
     {
         op_size += 4;
-        //return fits.yes;
-        return cf_limit_3w(expr_fits::yes, op_size);
+        return fits.yes;
     }
 };
 

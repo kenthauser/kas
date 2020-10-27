@@ -3,7 +3,7 @@
 
 #include "m68k_stmt.h"
 #include "target/tgt_mcode.h"
-#include "parser/init_from_list.h"
+//#include "parser/init_from_list.h"
 
 namespace kas::m68k
 {
@@ -53,12 +53,12 @@ struct m68k_mcode_size_t : tgt::tgt_mcode_size_t
 // forward declare m68k code size_fn
 namespace opc
 {
-    struct FMT_X;               // default formatter
+    struct FMT_X;               // default opcode formatter
     struct m68k_insn_lwb;       // support complicated m68k opcode size methods
     struct m68k_opc_base;       // includes `cf_limit_3w` method
 }
 
-struct m68k_val_t;      // forward declare `coldfire` support type
+//struct m68k_val_t;      // forward declare `coldfire` support type
 struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t, m68k_stmt_t, error_msg, m68k_mcode_size_t>
 {
     using BASE_NAME = KAS_STRING("M68K");
@@ -67,16 +67,19 @@ struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t, m68k_stmt_t, error_msg, m68
     using base_t::base_t;
 
     // override default types
-    using val_t       = m68k_val_t;
+    //using val_t       = m68k_val_t;
     using fmt_default = opc::FMT_X;
     using code_size_t = opc::m68k_insn_lwb;
-//    using opcode_t    = opc::m68k_opc_base;
+    using opcode_t    = opc::m68k_opc_base;
     using op_size_t   = core::opcode::op_size_t;
 
     uint8_t     sz(stmt_info_t info) const;
     auto        code(stmt_info_t info) const -> decltype(base_t::code(info));
     stmt_info_t extract_info(mcode_size_t const *) const;
 
+#if 1
+};
+#else
     // coldfire support (limit insns to 3 words)
     op_size_t& cf_limit_3w(core::opcode_data& data) const;
 };
@@ -127,7 +130,7 @@ using op_size_t   = core::opcode::op_size_t;
 
     
 };
-
+#endif
 }
 #endif
 
