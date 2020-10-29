@@ -73,6 +73,8 @@ struct stmt_t : kas_position_tagged
                 // construct empty insn, location tagged
                 core::core_insn insn{*this};     // get loc
 
+                std::cout << "stmt_t::operator(): where = " << where() << std::endl;
+
                 // if valid insn, get opc_index
                 if (auto op_p = node.gen_insn(insn.data))
                     insn.opc_index = op_p->index();

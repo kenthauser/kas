@@ -107,7 +107,7 @@ public:
     {
 #ifdef TRACE_ERROR_HANDLER
         std::cout << "x3_error_handler::tag:";
-        std::cout << " src = " << {first, last};
+        std::cout << " src = " << escaped_str(std::string({first, last}));
         std::cout << std::endl;
         std::cout << "x3_error_handler::tag:";
         std::cout << " position = " << position_max() << " AST = ";

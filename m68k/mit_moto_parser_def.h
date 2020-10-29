@@ -71,7 +71,7 @@ namespace kas::m68k::parser
     using namespace kas::parser;
 
     //////////////////////////////////////////////////////////////////////////
-    //  M68K "sized" fixed argument parser
+    //  M68K "tok_sized_fixed" fixed argument parser
     //
     // required because `751.w` parses as floating point
     //////////////////////////////////////////////////////////////////////////
@@ -350,8 +350,8 @@ auto gen_stmt = [](auto& ctx)
         auto& size     = boost::fusion::at_c<3>(parts);
      
         // all (and only) floating point insns begin with `f`
-        // NB: (0x20 == ASCII convert upper case to lower case)
-        info.is_fp = (insn_tok.begin()[0] | 0x20) == 'f';
+        // NB: less obvious than `std::tolower()`, but faster for specific case
+        info.is_fp = (insn_tok.begin()[0] | ('f' - 'F')) == 'f';
 
         if (ccode)
         {
@@ -371,7 +371,7 @@ auto gen_stmt = [](auto& ctx)
 
         if (size)
         {
-            uint8_t sz;
+            auto& sz = info.arg_size;
             switch (*size)
             {
                 case 'l': case 'L': sz = OP_SIZE_LONG;   break;
@@ -385,7 +385,6 @@ auto gen_stmt = [](auto& ctx)
                     x3::_pass(ctx) = false;
                     break;
             }
-            info.arg_size = sz; 
         }
         else 
         {
