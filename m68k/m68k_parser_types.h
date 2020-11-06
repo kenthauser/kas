@@ -19,6 +19,11 @@ namespace kas::m68k::parser
     BOOST_SPIRIT_DECLARE(m68k_insn_x3)
 
     // parse statements: defined in `m68k_parser_def.h`
+    // XXX for reasons I don't understand, `x3/nonterminal/detail/rule.hpp:331`
+    // XXX determines that `m68k_stmt_x3` should be evaluated with attribute
+    // XXX type of `x3::unused_type`. Thus, need to parse with internal rule for
+    // XXX `m68k_stmt_t`, and then have second `rule` `tag` it. 
+    //using m68k_stmt_x3 = x3::rule<kas::parser::annotate_on_success, m68k_stmt_t>;
     using m68k_stmt_x3 = x3::rule<struct _tag_m68k_stmt, m68k_stmt_t>;
     BOOST_SPIRIT_DECLARE(m68k_stmt_x3)
 }

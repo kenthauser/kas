@@ -26,7 +26,7 @@ using Iter = kas::parser::iterator_type;
 
 struct kas_parser 
 {
-    using value_type = stmt_t;
+    using value_type = stmt_variant;
     
 private:
     using parse_fn_t = bool (*)(kas_parser& obj, Iter&, Iter const&);

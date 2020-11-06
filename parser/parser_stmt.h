@@ -51,11 +51,14 @@ namespace print
     void print_stmt(OS&, Ts&&...);
 }
 
+// forward declare "annotate_on_success".
+struct annotate_on_success;
 
 using print_obj = print::stmt_print<std::ostream>;
 
+// CRTP base type for elements of `parser_variant`
 template <typename Derived>
-struct parser_stmt //: kas_position_tagged
+struct parser_stmt : kas_position_tagged
 {
     using base_t    = parser_stmt<Derived>;
     using derived_t = Derived;

@@ -60,10 +60,10 @@ auto const parse_eol  = [](auto p) { return p > stmt_eol; };
 using label_parsers =  all_defns<detail::label_ops_l>;
 using stmt_parsers  =  all_defns<detail::stmt_ops_l>;
 
-x3::rule<class _stmt    , typename stmt_t::base_t> const statement   = "statement";
+x3::rule<class _stmt    , typename stmt_variant::base_t> const statement   = "statement";
 //x3::rule<class _stmt    ,  stmt_t> const statement   = "statement";
 
-x3::rule<class _tag_stmt, stmt_t> const tagged_stmt = "tagged stmt";
+x3::rule<class _tag_stmt, stmt_variant> const tagged_stmt = "tagged stmt";
 stmt_x3 stmt { "stmt" };
 
 
@@ -75,7 +75,7 @@ auto const stmt_def  = *stmt_eol > tagged_stmt;
 
 // require statements to extend to end-of-line (or separator)
 // not required for labels
-x3::rule<struct insn_junk,  typename stmt_t::base_t> parse_insn { "parse_insn" };
+x3::rule<struct insn_junk,  typename stmt_variant::base_t> parse_insn { "parse_insn" };
 auto const parse_insn_def = combine_parsers(stmt_parsers()) > stmt_eol;
 BOOST_SPIRIT_DEFINE(parse_insn);
 

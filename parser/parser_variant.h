@@ -30,7 +30,7 @@ namespace detail
 }
 
 //struct stmt_t : detail::parser_variant, kas_position_tagged
-struct stmt_t : kas_position_tagged
+struct stmt_variant : kas_position_tagged
 {
     using base_t = detail::parser_variant;
 #if 0
@@ -38,12 +38,12 @@ struct stmt_t : kas_position_tagged
     template <typename...Ts>
     stmt_t(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
 #else
-    stmt_t() = default;
-    stmt_t(base_t&& var) : var(std::move(var)) {}
+    stmt_variant() = default;
+    stmt_variant(base_t&& var) : var(std::move(var)) {}
     template <typename T,
               typename = std::enable_if_t<meta::in<detail::all_types_l
                                       , std::remove_reference_t<T>>::value>>
-    stmt_t(T&& s) : var(std::forward<T>(s)) {}
+    stmt_variant(T&& s) : var(std::forward<T>(s)) {}
     //stmt_t(stmt_t const&) = default;
     //template <typename...Ts>
     //stmt_t(Ts&&...args) : var(std::forward<Ts>(args)...) {}
@@ -73,7 +73,7 @@ struct stmt_t : kas_position_tagged
                 // construct empty insn, location tagged
                 core::core_insn insn{*this};     // get loc
 
-                std::cout << "stmt_t::operator(): where = " << where() << std::endl;
+                std::cout << "stmt_t::operator(): where = " << src() << std::endl;
 
                 // if valid insn, get opc_index
                 if (auto op_p = node.gen_insn(insn.data))
@@ -108,7 +108,7 @@ struct stmt_t : kas_position_tagged
         ));
     }
     
-    friend std::ostream& operator<<(std::ostream& os, stmt_t const& stmt)
+    friend std::ostream& operator<<(std::ostream& os, stmt_variant const& stmt)
     {
         stmt.print(os);
         return os;

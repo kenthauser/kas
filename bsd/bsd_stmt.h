@@ -34,7 +34,7 @@ using namespace kas::core::opc;
 
 struct bsd_stmt_pseudo : kas::parser::parser_stmt<bsd_stmt_pseudo>
 {
-    // pseduos need out-of-line definations
+    // pseduos need out-of-line name definitions
     std::string name() const;
     
     opcode *gen_insn(opcode::data_t& data);
@@ -50,10 +50,10 @@ struct bsd_stmt_pseudo : kas::parser::parser_stmt<bsd_stmt_pseudo>
 
 struct bsd_stmt_label : kas::parser::parser_stmt<bsd_stmt_label>
 {
-    static inline opc_label opc;
-
+    // labels generate a `opc_label` insn
     opcode *gen_insn(opcode::data_t& data)
     {
+        static opc_label opc;
         opc.proc_args(data, std::move(ident_p->ref()));
         return &opc;
     }
@@ -76,10 +76,10 @@ struct bsd_stmt_label : kas::parser::parser_stmt<bsd_stmt_label>
 
 struct bsd_stmt_equ : kas::parser::parser_stmt<bsd_stmt_equ>
 {
-    static inline opc_equ opc;
-
+    // `equ` statements generate `equ` insns
     opcode *gen_insn(opcode::data_t& data) 
     {
+        static opc_equ opc;
         opc.proc_args(data, *ident_p, value);
         return &opc;
     }
@@ -103,10 +103,10 @@ struct bsd_stmt_equ : kas::parser::parser_stmt<bsd_stmt_equ>
 
 struct bsd_stmt_org : kas::parser::parser_stmt<bsd_stmt_org>
 {
-    static inline bsd_org opc;
-
+    // `org` statements generate `org` insns
     opcode *gen_insn(opcode::data_t& data) 
     {
+        static bsd_org opc;
         opc.proc_args(data, std::move(v_args));
         return &opc;
     }
@@ -129,6 +129,7 @@ struct bsd_stmt_org : kas::parser::parser_stmt<bsd_stmt_org>
 
 //
 // x3 parser hooks: take arg lists & create insn objects
+// NB: all templated so single definition restrictions don't apply
 //
 
 template <typename Context>

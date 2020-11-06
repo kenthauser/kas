@@ -39,6 +39,7 @@ namespace kas::parser
         inline void on_success(Iterator const& first, Iterator const& last
           , boost::variant<Types...>& ast, Context const& context)
         {
+            print_type_name{"annotate_on_success: variant"}.name<decltype(ast)>();
             ast.apply_visitor(x3::make_lambda_visitor<void>([&](auto& node)
             {
                 this->on_success(first, last, node, context);
@@ -49,6 +50,7 @@ namespace kas::parser
         inline void on_success(Iterator const& first, Iterator const& last
           , T& ast, Context const& context)
         {
+            print_type_name{"annotate_on_success"}.name<T>();
             auto& error_handler = x3::get<error_handler_tag>(context);
             error_handler.tag(ast, first, last);
         }

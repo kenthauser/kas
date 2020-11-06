@@ -16,8 +16,12 @@ namespace kas
 
     namespace parser
     {
-        using stmt_x3 = x3::rule<struct _, stmt_t> const;
+        using stmt_x3 = x3::rule<struct _, stmt_variant> const;
         BOOST_SPIRIT_DECLARE(stmt_x3)
+
+        // declare x3::on_success annotater
+        struct annotate_on_success;
+        using aos = annotate_on_success;
     }
 
     // parser public interface

@@ -332,8 +332,8 @@ namespace kas::m68k::parser
     BOOST_SPIRIT_DEFINE(m68k_args)
 
 
-// an m68k instruction is "opcode" followed by comma-separated "arg_list"
-// bitfield breaks regularity. Allow bitfield to follow arg w/o comma
+// an m68k instruction is "opcode" followed by comma-separated "arg_list".
+// `bitfield` breaks regularity. Allow bitfield to follow arg w/o comma
 // no arguments indicated by location tagged `m68k_arg` with type MODE_NONE
 
 // set "m68k_stmt_info_t" info based on condition codes & other insn-name flags
@@ -352,6 +352,7 @@ auto gen_stmt = [](auto& ctx)
         // all (and only) floating point insns begin with `f`
         // NB: less obvious than `std::tolower()`, but faster for specific case
         info.is_fp = (insn_tok.begin()[0] | ('f' - 'F')) == 'f';
+        auto sz = OP_SIZE_VOID;     // default "size"
 
         if (ccode)
         {
@@ -371,7 +372,6 @@ auto gen_stmt = [](auto& ctx)
 
         if (size)
         {
-            auto& sz = info.arg_size;
             switch (*size)
             {
                 case 'l': case 'L': sz = OP_SIZE_LONG;   break;
@@ -388,11 +388,11 @@ auto gen_stmt = [](auto& ctx)
         }
         else 
         {
-            info.arg_size = OP_SIZE_VOID;
             if (has_dot)
-                x3::_pass(ctx) = false;     // size req'd if dot
+                x3::_pass(ctx) = false;     // size req'd if dot present
         }
 
+        info.arg_size = sz;                 // store parsed size in info
         x3::_val(ctx) = {insn_tok, info};   // value is <insn, info> pair
     };
 
@@ -407,10 +407,31 @@ auto const parse_insn = rule<class _, std::pair<parser::kas_token, m68k_stmt_inf
                 )[gen_stmt]
                 ];
 
-// Parser interface
+// Parser external interface
+
+// NB: since `raw_m68k_stmt` parsed object is created via `semantic action`, 
+// NB: x3 doesn't tag it (see `x3/nonterminal/detail/rule.hpp:311`)
+// NB: Thus create "raw" parser to generate stmt, then use public parser to tag it
+auto const raw_m68k_stmt = rule<class _, m68k_stmt_t> {}
+    = (parse_insn > m68k_args)[m68k_stmt_t()];  
+
+struct _tag_m68k_stmt : parser::annotate_on_success
+{
+#if 1
+    using base_t = parser::annotate_on_success;
+    template <typename T, typename Iterator, typename Context>
+    inline void on_success(Iterator const& first, Iterator const& last
+      , T& ast, Context const& context)
+    {
+        print_type_name{"_tag_m68k_stmt::on_success()"}.name<T>();
+        base_t::on_success(first, last, ast, context);
+    }
+#endif
+};
+
+// Boilerplate to define `stmt` parser
 m68k_stmt_x3 m68k_stmt {"m68k_stmt"};
-auto const m68k_stmt_def = (parse_insn > m68k_args)[m68k_stmt_t()]; 
-    
+auto const m68k_stmt_def = raw_m68k_stmt;
 BOOST_SPIRIT_DEFINE(m68k_stmt)
 }
 
