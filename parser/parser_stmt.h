@@ -65,6 +65,10 @@ struct parser_stmt : kas_position_tagged
     using print_obj = print::stmt_print<std::ostream>;
     using opcode    = core::opcode;
 
+    parser_stmt() = default;
+    parser_stmt(const kas_position_tagged& loc)
+        : kas_position_tagged(loc) {}
+
     // CRTP casts
     auto& derived() const
         { return *static_cast<derived_t const*>(this); }
@@ -127,9 +131,10 @@ namespace detail
         static inline opc_error opc{};
     
         using base_t::base_t;
-        
+       
+        // XXX clean up: don't need 3 ctors...
         stmt_diag(kas_error_t diag)
-            : diag(diag) {}
+            : diag(diag), base_t(diag.get_loc()) {}
         
         stmt_diag(kas_diag_t const& err) : stmt_diag(err.ref()) {}
        

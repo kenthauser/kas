@@ -210,6 +210,8 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
 
     // get iter to where in the source file we left off
     auto& prev = prev_it(idx)->second;
+    //line.append_diag(diagnostics);
+    //line.append_warnings(diagnostics);
     prev = line.emit_line(prev, first);
 
     // collect object code for this insn

@@ -84,30 +84,27 @@ auto const l_ident = token<tok_bsd_local_ident>[uint_ >> '$' >> !bsd_charset];
 auto const n_ident = token<tok_bsd_numeric_ident>
                     [omit[digit >> char_("bBfF") >> !lit('\'') >> !bsd_charset]];
 
-// parse `dot` as a `token`
+// 4. BSD has `dot` as a token
 auto const dot_ident = token<tok_bsd_dot>['.' >> !bsd_charset];
 
-// parse "nothing"  as "missing" `token`
-// NB: also used for pseudo-ops with no args as "dummy" arg
-//auto const missing = token<tok_bsd_missing>[eps];
-
-// parser @ "tokens" (used by ELF)
+// 5. BSD supports `@` "tokens" for object code backend (ELF, etc)
 auto const at_token_initial = omit[char_("@%#")];
 auto const at_ident = token<tok_bsd_at_ident>[(at_token_initial >> !digit) > +bsd_charset];
 auto const at_num   = token<tok_bsd_at_num>  [(at_token_initial >>  uint_) > !bsd_charset];
 
 // 
-// expose dot and idents to `expr` parsers
+// define dot and idents `expr` parsers declared as `expr` types
+//
+// NB: these parsers declared in `bsd_expr_types.h`
 //
 
 sym_parser_x3 sym_parser {"sym"};
+dot_parser_x3 dot_parser {"dot"};
 
 auto const sym_parser_def = ident | l_ident | n_ident;
-BOOST_SPIRIT_DEFINE(sym_parser)
-
-dot_parser_x3 dot_parser {"dot"};
 auto const dot_parser_def = dot_ident;
-BOOST_SPIRIT_DEFINE(dot_parser)
+
+BOOST_SPIRIT_DEFINE(sym_parser, dot_parser)
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -164,7 +161,7 @@ auto const comma_arg = rule<class _, bsd_arg>{"comma_arg"}
         = space_arg | expression::tok_missing();
 
 // NB: allow comma separated or space separated (needed for .type)
-// NB: no arguments is parsed as [missing]
+// NB: `space_args` also allows comma separated to support `XXX`
 auto const space_args = rule<class _, bsd::bsd_args> {}
         = space_arg >> (+space_arg | *(',' > space_arg))
         | repeat(1)[expression::tok_missing()];

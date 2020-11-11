@@ -29,14 +29,14 @@ namespace detail
     using parser_variant = apply<quote<x3::variant>, all_types_l>;
 }
 
-//struct stmt_t : detail::parser_variant, kas_position_tagged
-struct stmt_variant : kas_position_tagged
+struct stmt_variant : detail::parser_variant //, kas_position_tagged
+//struct stmt_variant : kas_position_tagged
 {
     using base_t = detail::parser_variant;
-#if 0
+#if 1
     using base_t::base_t;
     template <typename...Ts>
-    stmt_t(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
+    stmt_variant(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
 #else
     stmt_variant() = default;
     stmt_variant(base_t&& var) : var(std::move(var)) {}
@@ -60,18 +60,25 @@ struct stmt_variant : kas_position_tagged
     //stmt_t(stmt_error err) : stmt_t(err) {};
     std::string src() const
     {
-        return this->where();
+        //return this->where();
+        return apply_visitor(x3::make_lambda_visitor<std::string>(
+            [this](auto&& node) -> std::string
+            {
+                return node.where();
+            }));
     }
 
     core::core_insn operator()()
     {
-        return var.apply_visitor(x3::make_lambda_visitor<core::core_insn>(
+        return /* var.*/apply_visitor(x3::make_lambda_visitor<core::core_insn>(
             [this](auto&& node) -> core::core_insn
             {
                 static core::opc::opc_error error;
 
                 // construct empty insn, location tagged
-                core::core_insn insn{*this};     // get loc
+                //core::core_insn insn{*this};     // get loc
+                core::core_insn insn{node};     // get loc
+
 
                 std::cout << "stmt_t::operator(): where = " << src() << std::endl;
 
@@ -97,8 +104,8 @@ struct stmt_variant : kas_position_tagged
 
     void print(std::ostream& os) const
     {
-        var.apply_visitor(x3::make_lambda_visitor<void>(
-        //apply_visitor(x3::make_lambda_visitor<void>(
+        //var.apply_visitor(x3::make_lambda_visitor<void>(
+        apply_visitor(x3::make_lambda_visitor<void>(
             [&os](auto&& node)
             { 
                 print_obj pobj{os};

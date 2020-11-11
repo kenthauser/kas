@@ -99,32 +99,32 @@ namespace kas::m68k::parser
     auto m68k_disp = [](auto&& mode) { return attr(m68k_displacement{mode}); };
     auto z_expr    = [] { return attr(m68k_arg_term_t{0, 0, P_SCALE_Z}); };
 
-
+    // NB: the `no_skip` directives prevent matching whitespace following args
     auto const mit_size =
               no_case[":w"] > attr(M_SIZE_WORD)
             | no_case[":l"] > attr(M_SIZE_LONG)
-            | eps           > attr(M_SIZE_AUTO)
+            | no_skip[eps]  > attr(M_SIZE_AUTO)
             ;
     auto const mit_scale =
-              ":1" > attr(P_SCALE_1)
-            | ":2" > attr(P_SCALE_2)
-            | ":4" > attr(P_SCALE_4)
-            | ":8" > attr(P_SCALE_8)
-            | eps  > attr(P_SCALE_AUTO)
+              ":1"         > attr(P_SCALE_1)
+            | ":2"         > attr(P_SCALE_2)
+            | ":4"         > attr(P_SCALE_4)
+            | ":8"         > attr(P_SCALE_8)
+            | no_skip[eps] > attr(P_SCALE_AUTO)
             ;
 
     // parse m68k displacement element
     auto const moto_size =
               no_case[".w"] > attr(M_SIZE_WORD)
             | no_case[".l"] > attr(M_SIZE_LONG)
-            | eps           > attr(M_SIZE_AUTO)
+            | no_skip[eps]  > attr(M_SIZE_AUTO)
             ;
     auto const moto_scale =
-              "*1" > attr(P_SCALE_1)
-            | "*2" > attr(P_SCALE_2)
-            | "*4" > attr(P_SCALE_4)
-            | "*8" > attr(P_SCALE_8)
-            | eps  > attr(P_SCALE_AUTO)
+              "*1"          > attr(P_SCALE_1)
+            | "*2"          > attr(P_SCALE_2)
+            | "*4"          > attr(P_SCALE_4)
+            | "*8"          > attr(P_SCALE_8)
+            | no_skip[eps]  > attr(P_SCALE_AUTO)
             ;
     using tok_invalid_term  = token_defn_t<KAS_STRING("INVALID_TERM")>;
     auto const invalid_term = token<tok_invalid_term>[omit[+graph - ",)"]];
