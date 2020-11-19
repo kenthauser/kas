@@ -15,23 +15,23 @@ using namespace kas::parser;
 using aos = kas::parser::annotate_on_success;
 
 // declare statment parsers
-using stmt_comma_x3 = x3::rule<class _tag_comma, bsd::bsd_stmt_pseudo>;
+using stmt_comma_x3 = x3::rule<class _tag_comma, bsd::bsd_stmt_pseudo *>;
 //using stmt_comma_x3 = x3::rule<struct _tag_bsd, bsd::bsd_stmt_pseudo>;
 BOOST_SPIRIT_DECLARE(stmt_comma_x3)
 
-using stmt_space_x3 = x3::rule<class _tag_space, bsd::bsd_stmt_pseudo>;
+using stmt_space_x3 = x3::rule<class _tag_space, bsd::bsd_stmt_pseudo *>;
 //using stmt_space_x3 = x3::rule<struct _tag_bsd, bsd::bsd_stmt_pseudo>;
 BOOST_SPIRIT_DECLARE(stmt_space_x3)
 
-using stmt_equ_x3   = x3::rule<class _tag_equ, bsd::bsd_stmt_equ>;
+using stmt_equ_x3   = x3::rule<class _tag_equ, bsd::bsd_stmt_equ *>;
 //using stmt_equ_x3   = x3::rule<struct _tag_bsd, bsd::bsd_stmt_equ>;
 BOOST_SPIRIT_DECLARE(stmt_equ_x3)
 
-using stmt_org_x3   = x3::rule<class _tag_org, bsd::bsd_stmt_org>;
+using stmt_org_x3   = x3::rule<class _tag_org, bsd::bsd_stmt_org *>;
 //using stmt_org_x3   = x3::rule<struct _tag_bsd, bsd::bsd_stmt_org>;
 BOOST_SPIRIT_DECLARE(stmt_org_x3)
 
-using stmt_label_x3 = x3::rule<class _tag_lbl, bsd::bsd_stmt_label>;
+using stmt_label_x3 = x3::rule<class _tag_lbl, bsd::bsd_stmt_label *>;
 //using stmt_label_x3 = x3::rule<struct _tag_bsd, bsd::bsd_stmt_label>;
 BOOST_SPIRIT_DECLARE(stmt_label_x3)
 

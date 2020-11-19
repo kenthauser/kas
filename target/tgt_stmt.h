@@ -45,7 +45,7 @@ struct tgt_stmt_info_t
 
 template <typename DERIVED_T, typename INSN_T, typename ARG_T
         , typename INFO_T = tgt_stmt_info_t>
-struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>>
+struct tgt_stmt : kas::parser::parser_stmt
 {
     using derived_t = DERIVED_T;
     using base_t    = tgt_stmt;
@@ -58,17 +58,14 @@ struct tgt_stmt : kas::parser::parser_stmt<tgt_stmt<DERIVED_T, INSN_T, ARG_T, IN
 
     using kas_error_t = parser::kas_error_t;
 
-
-protected:
     // CRTP casts
     auto& derived() const
         { return *static_cast<derived_t const*>(this); }
     auto& derived()
         { return *static_cast<derived_t*>(this); }
 
-public:
     // method used to assemble instruction
-    core::opcode *gen_insn(core::opcode::data_t&);
+    core::opcode *gen_insn(core::opcode::data_t&) override;
 
     // method validate args. Principally for target & address mode
     template <typename ARGS_T, typename TRACE>
@@ -79,9 +76,9 @@ public:
     constexpr const char *validate_stmt(mcode_t const *mcode_p) const { return {}; }
    
     // methods used by test fixtures
-    std::string name() const;
+    std::string name() const override;
 
-    void print_args(parser::print_obj const& p_obj) const
+    void print_args(parser::print_obj const& p_obj) const override
     {
         p_obj(args);
     }

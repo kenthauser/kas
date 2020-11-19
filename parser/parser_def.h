@@ -61,21 +61,15 @@ auto const parse_eol  = [](auto p) { return p > stmt_eol; };
 using label_parsers =  all_defns<detail::label_ops_l>;
 using stmt_parsers  =  all_defns<detail::stmt_ops_l>;
 
-x3::rule<class insn_junk, typename stmt_variant::base_t> const statement   = "statement";
-//x3::rule<class _stmt    ,  stmt_t> const statement   = "statement";
+x3::rule<class insn_junk, stmt_t> const statement   = "statement";
 
-x3::rule<class _tag_stmt, stmt_variant> const tagged_stmt = "tagged stmt";
+x3::rule<class _tag_stmt, stmt_t> const tagged_stmt = "tagged stmt";
 stmt_x3 stmt { "stmt" };
 
-#if 0
-auto const parse_insn = x3::rule<class _insn_err, typename stmt_variant::base_t> {}
-        = combine_parsers(stmt_parsers());
-#else
-x3::rule<class _insn_err,  typename stmt_variant::base_t> parse_insn { "parse_insn" };
+x3::rule<class _insn_err,  parser_stmt *> parse_insn { "parse_insn" };
 auto const parse_insn_def = combine_parsers(stmt_parsers());
 BOOST_SPIRIT_DEFINE(parse_insn);
 
-#endif
 
 // insn is statment (after skipping blank or commented lines)
 // NB: parse "statement" separately because X3 sees `variant` base
@@ -89,20 +83,24 @@ auto const stmt_def  = *stmt_eol > tagged_stmt;
 //auto const parse_insn_def = combine_parsers(stmt_parsers()) > stmt_eol;
 //BOOST_SPIRIT_DEFINE(parse_insn);
 
-auto const parse_invalid = x3::rule<class _, detail::stmt_diag> { "parse_invalid"} 
-                  = invalid >> x3::omit[-skip_eol];
+auto const parse_invalid = x3::rule<class _, detail::stmt_diag*> { "parse_invalid"} 
+                  = x3::omit[invalid] >> x3::omit[-skip_eol]
+                                      >> x3::attr(detail::stmt_diag()());
 
 auto const statement_def =
            parse_insn        > stmt_eol
          | combine_parsers(label_parsers())
-         | x3::omit[x3::eoi] >> x3::attr(stmt_eoi())
-         | parse_invalid
+         | x3::omit[x3::eoi] >> x3::attr(stmt_eoi()())
+ //        | parse_invalid
          ;
 
 // tag stmt after fully parsed
 auto const tagged_stmt_def = statement;
 
-BOOST_SPIRIT_DEFINE(stmt, statement, tagged_stmt, skip_eol)
+BOOST_SPIRIT_DEFINE(stmt)
+BOOST_SPIRIT_DEFINE(statement)
+BOOST_SPIRIT_DEFINE(tagged_stmt)
+BOOST_SPIRIT_DEFINE(skip_eol)
 
 ///////////////////////////////////////////////////////////////////////////
 // Annotation and Error handling

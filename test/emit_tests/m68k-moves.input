@@ -18,10 +18,10 @@ fixed	= 100
     move.l  a0,a1     junk
     nop
     nop 
-    junk ###, a1
+  ;  junk ###, a1
     nop
     nop
-    nop ###, a1
+  ;   nop ###, a1
     nop
     nop
 
@@ -30,14 +30,14 @@ fixed	= 100
 	move.b	a2@, a3@+
 	move.l	a3@+, a4@-
 	move.w	a4@-, a5@(123)
-	move.b	a5@(12), d0@(20)
+	;move.b	a5@(12), d0@(20)
 	move.l	a1@(d2, 3), short   ; writable .text
 	move.w	short, long
 	move.l	long, short         ; coldfire: fails
     move.l  long, a2@           ; coldfire: ok
-    move.l  #345, a2@(2)        ; coldfire: fails
+    ;move.l  #345, a2@(2)        ; coldfire: fails
     move.l  long, a2@(2)        ; coldfire: fails
-	move.b	long, #fixed
+	;move.b	long, #fixed
 	move.b	#fixed, long
 	move.l	#fixed, d2
 	move.w	#zero, d3
@@ -64,13 +64,13 @@ fixed	= 100
 
 	moveq.l	#-100, d4
 	moveq  	#-100, d4
-	moveq.l	#-200, d4
+	;moveq.l	#-200, d4
 	move.l	#200, d5
 
 	move.l	#0, d6
 	move.w	#0, a7
 
-	move.w	sr, a0
+	;move.w	sr, a0
 	move.w	sr, d1
 	move.w	a2@, sr
 	move.w	ccr, d2
@@ -78,41 +78,41 @@ fixed	= 100
 
 	move.l	a2, usp
 	move.l	usp, a3
-	move.l	usp, d2
+	;move.l	usp, d2
 
 ; 4. movep
 
-	movep.l	d0,a2@
-	movep.w	d1,a2@(123)
-	movep.l	a3@, d2
-	movep.w a3@(123), d3
+	;movep.l	d0,a2@
+	;movep.w	d1,a2@(123)
+	;movep.l	a3@, d2
+	;movep.w a3@(123), d3
 
 ; 5. movec/moves
 
-	movec	dfc, d2
-	movec a1, vbr
+	;movec	dfc, d2
+	;movec a1, vbr
 
-	moves.b	d1,a2@+
-	moves.b a1,a2@+
-	moves.w	a3@-,d2
-	moves.l d0@,a3
-	moves.l d3,d4
+	;moves.b	d1,a2@+
+	;moves.b a1,a2@+
+	;moves.w	a3@-,d2
+	;moves.l d0@,a3
+	;moves.l d3,d4
 
 ; 3. movem
 
-    movem.l	#456, a2@-
-	movem.w	d0-d2/a0-a2/a6/a7, a2@-
-	movem.l 	fp@+, d0-d2/a0-a2/a6/a7
-	movem.l d1,a3@-
-	movem.w a0/usp,a2@
-	movem.w	d0-d2/a0-a2/a6/a7, long
-	movem.l sp@+, #456
-	movem.w long, d0-d2/a0-a2/a6/a7
+    ;movem.l	#456, a2@-
+	;movem.w	d0-d2/a0-a2/a6/a7, a2@-
+	;movem.l 	fp@+, d0-d2/a0-a2/a6/a7
+	;movem.l d1,a3@-
+	;movem.w a0/usp,a2@
+	;movem.w	d0-d2/a0-a2/a6/a7, long
+	;movem.l sp@+, #456
+	;movem.w long, d0-d2/a0-a2/a6/a7
 
 ; 4. move16
-    move16  a2@+, a4@+
-    move16  long, a3@+
-    move16  sp@, long
+    ;move16  a2@+, a4@+
+    ;move16  long, a3@+
+    ;move16  sp@, long
 
 
 ;	bra	short

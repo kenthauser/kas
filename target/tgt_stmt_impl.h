@@ -266,23 +266,24 @@ template <typename Context>
 auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     operator()(Context const& ctx) -> void
 {
+    static derived_t stmt;
     auto& x3_args = x3::_attr(ctx);
     auto& insn    = boost::fusion::at_c<0>(x3_args);
     if constexpr (std::is_same_v<std::remove_reference_t<decltype(insn)>
                                , decltype(insn_tok)>)
     {
         // insn is `tok`
-        insn_tok = insn;
+        stmt.insn_tok = insn;
     }
     else
     {
         // insn is `std::pair<tok, info>`
-        insn_tok = insn.first;
-        info     = insn.second;
+        stmt.insn_tok = insn.first;
+        stmt.info     = insn.second;
     }
     
-    args          = boost::fusion::at_c<1>(x3_args);
-    x3::_val(ctx) = derived();
+    stmt.args     = boost::fusion::at_c<1>(x3_args);
+    x3::_val(ctx) = &stmt;
 }
 
 }

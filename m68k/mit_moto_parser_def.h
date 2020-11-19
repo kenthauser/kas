@@ -412,7 +412,7 @@ auto const parse_insn = rule<class _, std::pair<parser::kas_token, m68k_stmt_inf
 // NB: since `raw_m68k_stmt` parsed object is created via `semantic action`, 
 // NB: x3 doesn't tag it (see `x3/nonterminal/detail/rule.hpp:311`)
 // NB: Thus create "raw" parser to generate stmt, then use public parser to tag it
-auto const raw_m68k_stmt = rule<class _, m68k_stmt_t> {}
+auto const raw_m68k_stmt = rule<class _, m68k_stmt_t *> {}
     = (parse_insn > m68k_args)[m68k_stmt_t()];  
 
 struct _tag_m68k_stmt : parser::annotate_on_success

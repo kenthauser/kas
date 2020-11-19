@@ -32,13 +32,13 @@ using namespace kas::core::opc;
 
 // NB: all `stmts` must be declared in `bsd_parser_types.h`
 
-struct bsd_stmt_pseudo : kas::parser::parser_stmt<bsd_stmt_pseudo>
+struct bsd_stmt_pseudo : kas::parser::parser_stmt
 {
     // pseduos need out-of-line name definitions
-    std::string name() const;
+    std::string name() const override;
     
-    opcode *gen_insn(opcode::data_t& data);
-    void print_args(print_obj const& fn) const;
+    opcode *gen_insn(opcode::data_t& data) override;
+    void print_args(print_obj const& fn) const override;
     
     template <typename Context>
     void operator()(Context const& ctx);
@@ -48,22 +48,22 @@ struct bsd_stmt_pseudo : kas::parser::parser_stmt<bsd_stmt_pseudo>
 };
 
 
-struct bsd_stmt_label : kas::parser::parser_stmt<bsd_stmt_label>
+struct bsd_stmt_label : kas::parser::parser_stmt
 {
     // labels generate a `opc_label` insn
-    opcode *gen_insn(opcode::data_t& data)
+    opcode *gen_insn(opcode::data_t& data) override
     {
         static opc_label opc;
         opc.proc_args(data, std::move(ident_p->ref()));
         return &opc;
     }
     
-    const char *name() const 
+    std::string name() const override
     {
         return "BSD_LABEL";
     }
     
-    void print_args(print_obj const& fn) const
+    void print_args(print_obj const& fn) const override
     {
         fn(ident_p->ref());
     }
@@ -74,22 +74,22 @@ struct bsd_stmt_label : kas::parser::parser_stmt<bsd_stmt_label>
     core::core_symbol_t *ident_p;
 };
 
-struct bsd_stmt_equ : kas::parser::parser_stmt<bsd_stmt_equ>
+struct bsd_stmt_equ : kas::parser::parser_stmt
 {
     // `equ` statements generate `equ` insns
-    opcode *gen_insn(opcode::data_t& data) 
+    opcode *gen_insn(opcode::data_t& data) override
     {
         static opc_equ opc;
         opc.proc_args(data, *ident_p, value);
         return &opc;
     }
     
-    const char *name() const 
+    std::string name() const override
     {
         return "BSD_EQU";
     }
     
-    void print_args(print_obj const& fn) const
+    void print_args(print_obj const& fn) const override
     {
         fn(*ident_p, value);
     }
@@ -101,22 +101,22 @@ struct bsd_stmt_equ : kas::parser::parser_stmt<bsd_stmt_equ>
     bsd_arg              value;
 };
 
-struct bsd_stmt_org : kas::parser::parser_stmt<bsd_stmt_org>
+struct bsd_stmt_org : kas::parser::parser_stmt
 {
     // `org` statements generate `org` insns
-    opcode *gen_insn(opcode::data_t& data) 
+    opcode *gen_insn(opcode::data_t& data) override
     {
         static bsd_org opc;
         opc.proc_args(data, std::move(v_args));
         return &opc;
     }
     
-    const char *name() const 
+    std::string name() const override
     {
         return "BSD_ORG";
     }
     
-    void print_args(print_obj const& fn) const 
+    void print_args(print_obj const& fn) const override
     {
         fn(v_args);
     }
@@ -135,10 +135,12 @@ struct bsd_stmt_org : kas::parser::parser_stmt<bsd_stmt_org>
 template <typename Context>
 void bsd_stmt_pseudo::operator()(Context const& ctx)
 {
+    static bsd_stmt_pseudo obj;
+    
     auto& args = x3::_attr(ctx);
-    op       = boost::fusion::at_c<0>(args);
-    v_args   = boost::fusion::at_c<1>(args);
-    x3::_val(ctx) = *this;
+    obj.op       = boost::fusion::at_c<0>(args);
+    obj.v_args   = boost::fusion::at_c<1>(args);
+    x3::_val(ctx) = &obj;
 }
 
 
@@ -146,34 +148,40 @@ template <typename Context>
 void bsd_stmt_label::operator()(Context const& ctx)
 {
     // set instruction "location" from parsed ident location
+    static bsd_stmt_label obj;
+    
     auto& ident_tok = x3::_attr(ctx);
-    ident_p = ident_tok.get_p(core::core_symbol_t());
-    x3::_val(ctx) = *this;
+    obj.ident_p = ident_tok.get_p(core::core_symbol_t());
+    x3::_val(ctx) = &obj;
 }
 
 template <typename Context>
 void bsd_stmt_equ::operator()(Context const& ctx)
 {
+    static bsd_stmt_equ obj;
+    
     auto& args      = x3::_attr(ctx);
     auto& ident_tok = boost::fusion::at_c<0>(args);
     auto& value_tok = boost::fusion::at_c<1>(args);
 
-    ident_p = ident_tok.get_p(core::core_symbol_t());
-    value   = value_tok;
+    obj.ident_p = ident_tok.get_p(core::core_symbol_t());
+    obj.value   = value_tok;
 
-    x3::_val(ctx) = *this;
+    x3::_val(ctx) = &obj;
 }
-
+#if 1
 template <typename Context>
 void bsd_stmt_org::operator()(Context const& ctx)
 {
+    static bsd_stmt_org obj;
+
     // .org pseudo-op passed container of args. Emulate.
-    v_args = bsd_args();
+    obj.v_args = bsd_args();
     auto& org_tok = x3::_attr(ctx);     // single token: expr
     v_args.push_back(org_tok);          // `org` pseudo-op need single op
-    x3::_val(ctx) = *this;
+    x3::_val(ctx) = &obj;
 }
-
+#endif
 }
 
 

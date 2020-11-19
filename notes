@@ -410,6 +410,8 @@ Plan 10/2: First fix floating point emit/warning/etc
     variant class alone be tagged? Thus no tagging in `bsd_parser_def`, et.al.
     Easier to tag (in `parser_def.h` alone). No overall rules for insn in `*def.h`
 
+81. `tgt_stmt` is still CRTP. make standard virtual base class
+
 
 
 

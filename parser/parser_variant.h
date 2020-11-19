@@ -29,100 +29,51 @@ namespace detail
     using parser_variant = apply<quote<x3::variant>, all_types_l>;
 }
 
-struct stmt_variant : detail::parser_variant //, kas_position_tagged
-//struct stmt_variant : kas_position_tagged
+struct stmt_t: kas_position_tagged
 {
-    using base_t = detail::parser_variant;
-#if 1
-    using base_t::base_t;
-    template <typename...Ts>
-    stmt_variant(Ts&&...args) : base_t(std::forward<Ts>(args)...) {}
-#else
-    stmt_variant() = default;
-    stmt_variant(base_t&& var) : var(std::move(var)) {}
-    template <typename T,
-              typename = std::enable_if_t<meta::in<detail::all_types_l
-                                      , std::remove_reference_t<T>>::value>>
-    stmt_variant(T&& s) : var(std::forward<T>(s)) {}
-    //stmt_t(stmt_t const&) = default;
-    //template <typename...Ts>
-    //stmt_t(Ts&&...args) : var(std::forward<Ts>(args)...) {}
+    stmt_t(parser_stmt *stmt = {}, kas_position_tagged const& loc = {})
+            : stmt(stmt), kas_position_tagged(loc) {}
 
-    base_t var;
-
-#endif
-    //stmt_t() = default;
-    //stmt_t(detail::parser_variant var) : var{std::move(var)} {}
-
-    // instantiate `stmt_t` from error
-   // stmt_t(kas_diag_t const& err) : stmt_t({stmt_error(err)}) {}
-   //stmt_t(stmt_error err) : var(std::move(err)) {}
-    //stmt_t(stmt_error err) : stmt_t(err) {};
     std::string src() const
     {
-        //return this->where();
-        return apply_visitor(x3::make_lambda_visitor<std::string>(
-            [this](auto&& node) -> std::string
-            {
-                return node.where();
-            }));
+        return where();
     }
 
-    core::core_insn operator()()
+    core::core_insn operator()() const
     {
-        return /* var.*/apply_visitor(x3::make_lambda_visitor<core::core_insn>(
-            [this](auto&& node) -> core::core_insn
-            {
-                static core::opc::opc_error error;
+        core::core_insn insn{*this};
+        std::cout << "stmt_t::operator(): where = " << src() << std::endl;
 
-                // construct empty insn, location tagged
-                //core::core_insn insn{*this};     // get loc
-                core::core_insn insn{node};     // get loc
+        // if valid insn, generate opc_index & size
+        if (auto op_p = stmt->gen_insn(insn.data))
+            insn.opc_index = op_p->index();
 
+        // if size flags error, clear idx
+        if (insn.data.size.is_error())
+            insn.opc_index = {};
 
-                std::cout << "stmt_t::operator(): where = " << src() << std::endl;
+        // if no index, set size to zero. fixed holds `diag`
+        if (!insn.opc_index)
+            insn.data.size = {};
 
-                // if valid insn, get opc_index
-                if (auto op_p = node.gen_insn(insn.data))
-                    insn.opc_index = op_p->index();
-
-                // if size flags error, clear idx
-                if (insn.data.size.is_error())
-                    insn.opc_index = {};
-
-                // if no index, assume `fixed` holds diag
-                if (!insn.opc_index)
-                {
-                    insn.opc_index = error.index();
-                    insn.data.size = {};
-                }
-
-                return insn;
-            }));
+        return insn;
     }
     
-
     void print(std::ostream& os) const
     {
-        //var.apply_visitor(x3::make_lambda_visitor<void>(
-        apply_visitor(x3::make_lambda_visitor<void>(
-            [&os](auto&& node)
-            { 
-                print_obj pobj{os};
-                os << node.name() << "\t";
-                node.print_args(pobj);
-            }
-        ));
+        print_obj pobj{os};
+        os << stmt->name() << "\t";
+        stmt->print_args(pobj);
     }
     
-    friend std::ostream& operator<<(std::ostream& os, stmt_variant const& stmt)
+    friend std::ostream& operator<<(std::ostream& os, stmt_t const& stmt)
     {
         stmt.print(os);
         return os;
     }
 
 private:
-    //detail::parser_variant var;
+    parser_stmt *stmt;
 };
 }
 

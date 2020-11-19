@@ -1,6 +1,35 @@
 #ifndef KAS_PARSER_PARSER_STMT_H
 #define KAS_PARSER_PARSER_STMT_H
 
+////////////////////////////////////////////////////////////////////////////
+//
+// parser_stmt.h: define object resulting from parsing line of assembly code
+//
+////////////////////////////////////////////////////////////////////////////
+//
+// The source code is parsed into "parser_stmt" objects as the first step
+// in assembling the code. Several "parser_stmt" objects
+// are defined to handler the various requirements of different assembler 
+// statements. Examples are:
+//
+//  1. label definitions require only a "symbol" reference
+//  2. "equ" definitions require both a "symbol" and a "value" references
+//  3. "psuedo" definitions require a "opcode" and a list of "arguments"
+//  4. "machine code" definitions vary depending on architecture
+//
+// The "parser_stmt" is a transient object: once a "parser_stmt" object
+// is created, it is immediately translated to a "core_insn" object and
+// added to the "insn_container". 
+//
+// Since only a single "parser_stmt" object is active at any point, a significant
+// simplification is possible: instead of the CRTP + variant pattern which would be 
+// required if multiple "parser_stmt" objects were active at one time, a simple
+// virtual object pattern can be used with a pointer to a single static object
+// of each derived type. 
+// 
+//
+////////////////////////////////////////////////////////////////////////////
+
 #include "expr/expr.h"
 #include "kas_loc.h"
 #include "kas_token.h"
@@ -9,19 +38,6 @@
 
 #include <boost/mpl/string.hpp>
 #include <functional>
-
-/*
- * Declare the statements used by the parser itself.
- *
- * These are the
- *
- * 1) "empty" stmt: `x3` requires stmt expose default type
- * 2) "eoi"   stmt: generated at end-of-input
- *
- * Also support the `print` module.
- * Provide indirection to `print_stmt` as required`
- */
-
 
 namespace kas::parser
 {
@@ -56,38 +72,29 @@ struct annotate_on_success;
 
 using print_obj = print::stmt_print<std::ostream>;
 
-// CRTP base type for elements of `parser_variant`
-template <typename Derived>
-struct parser_stmt : kas_position_tagged
+// ABC for parser statements
+struct parser_stmt 
 {
-    using base_t    = parser_stmt<Derived>;
-    using derived_t = Derived;
     using print_obj = print::stmt_print<std::ostream>;
     using opcode    = core::opcode;
 
     parser_stmt() = default;
-    parser_stmt(const kas_position_tagged& loc)
-        : kas_position_tagged(loc) {}
-
-    // CRTP casts
-    auto& derived() const
-        { return *static_cast<derived_t const*>(this); }
-    auto& derived()
-        { return *static_cast<derived_t*>(this); }
+    // XXX obsolete
+    parser_stmt(const kas_position_tagged& loc) {}
 
     // primary entrypoints:
-    const char *name() const
+    virtual std::string name() const
     {
         return "STMT";
     }
 
-    void  print_args(print_obj const&) const
+    virtual void  print_args(print_obj const&) const
     {
         // no args
     }
 
     // NB: must be implemented in `Derived`
-    opcode *gen_insn(opcode::data_t& data);
+    virtual opcode *gen_insn(opcode::data_t& data) = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -102,9 +109,9 @@ struct parser_stmt : kas_position_tagged
 namespace detail
 {
     template <typename OPC>
-    struct stmt_nop : parser_stmt<stmt_nop<OPC>>
+    struct stmt_nop : parser_stmt
     {
-        using base_t = typename parser_stmt<stmt_nop<OPC>>::base_t;
+        using base_t = parser_stmt;
         
         // w/o braces, clang drops core on name(). 2019/02/15 KBH
         static inline OPC opc{};
@@ -112,18 +119,24 @@ namespace detail
         // inherit default ctor
         using base_t::base_t;
         
-        const char *name() const
+        std::string name() const override
         {
             return opc.name();
         }
 
-        opcode *gen_insn(core::opcode_data& data)
+        base_t *operator()() 
+        {
+            static stmt_nop stmt;
+            return &stmt;
+        }
+
+        opcode *gen_insn(core::opcode_data& data) override
         {
             return &opc;
         }
     };
     
-    struct stmt_diag : parser_stmt<stmt_diag>
+    struct stmt_diag : parser_stmt
     {
         using base_t = parser_stmt;
         
@@ -143,17 +156,24 @@ namespace detail
             diag = kas_diag_t::error("Invalid instruction", token).ref();
         }
         
-        const char *name() const
+        std::string name() const override
         {
             return opc.name();
         }
 
-        void print_args(typename base_t::print_obj const& p_obj) const
+        void print_args(typename base_t::print_obj const& p_obj) const override
         {
             p_obj(diag);
         }
 
-        opcode *gen_insn(core::opcode_data& data)
+        base_t *operator()() 
+        {
+            static stmt_diag stmt;
+            return &stmt;
+        }
+
+
+        opcode *gen_insn(core::opcode_data& data) override
         {
             // fixed area unused otherwise...
             data.fixed.diag = diag;

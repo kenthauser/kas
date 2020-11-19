@@ -26,7 +26,7 @@ using Iter = kas::parser::iterator_type;
 
 struct kas_parser 
 {
-    using value_type = stmt_variant;
+    using value_type = stmt_t;
     
 private:
     using parse_fn_t = bool (*)(kas_parser& obj, Iter&, Iter const&);
@@ -140,13 +140,13 @@ auto inline kas_parser::iter_t::operator*() -> value_type
         obj_p->err_idx = kas_diag_t::error("Invalid instruction", loc).ref();
     }
         
-    stmt_error err(obj_p->err_idx);
+    //stmt_error err(obj_p->err_idx);
 
     // clear errors before next instruction
     obj_p->err_idx = {};
     obj_p->err_msg = {};
 
-    return err;
+    return {};
 }
 
 

@@ -24,7 +24,7 @@ namespace kas::m68k::parser
     // XXX type of `x3::unused_type`. Thus, need to parse with internal rule for
     // XXX `m68k_stmt_t`, and then have second `rule` `tag` it. 
     //using m68k_stmt_x3 = x3::rule<kas::parser::annotate_on_success, m68k_stmt_t>;
-    using m68k_stmt_x3 = x3::rule<struct _tag_m68k_stmt, m68k_stmt_t>;
+    using m68k_stmt_x3 = x3::rule<struct _tag_m68k_stmt, m68k_stmt_t *>;
     BOOST_SPIRIT_DECLARE(m68k_stmt_x3)
 }
 
