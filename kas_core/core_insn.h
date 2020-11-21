@@ -60,6 +60,12 @@ struct core_insn
 
     auto& op() const
     {
+        if (!opc_index)
+        {
+            static const auto idx_error = opc::opc_error().index();
+            opc_index = idx_error;
+        }
+            
         return opcode::get(opc_index);
     }
 
@@ -166,8 +172,10 @@ public:
 //
 ////////////////////////////////////////////////////////////////////////
 
-    opcode_data data {};
-    uint16_t    opc_index{};
+    opcode_data       data {};
+
+    // for "idx_error" update
+    mutable uint16_t  opc_index{};
     
 };
 }

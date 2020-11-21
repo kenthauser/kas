@@ -113,7 +113,7 @@ private:
         // create new segment map entry
         m.emplace_hint(m.end(), last_loc, kas_loc_segment_info{idx, offset});
 
-#undef TRACE_ERROR_HANDLER
+//#undef TRACE_ERROR_HANDLER
 #ifdef TRACE_ERROR_HANDLER
         std::cout << "error_handler: entered segment " << m.size();
         std::cout << ", locs from = " << last_loc;
@@ -188,14 +188,12 @@ public:
 #ifdef TRACE_ERROR_HANDLER
         std::cout << "error_handler::annotate: true_type" << std::endl;
 #endif
-    #ifndef XXX
-        // splice ast
-        ast = { first, last, this };
-    #else
-        ast.set_first  (first);
-        ast.set_last   (last);
-        ast.set_handler(this);
-    #endif
+        if (!ast.tagged())
+            ast = { first, last, this };
+#ifdef TRACE_ERROR_HANDLER
+        else
+            std::cout << "error_handler::annotate: already tagged" << std::endl;
+#endif
     }
 
     // trampoline `kas_position_tagged::get_loc`. Include file issues

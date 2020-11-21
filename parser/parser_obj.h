@@ -101,9 +101,13 @@ private:
 // extract statement from current input.
 auto inline kas_parser::iter_t::operator*() -> value_type
 {
+    // clear errors before next instruction
+    obj_p->err_idx = {};
+    obj_p->err_msg = {};
+
     auto& src = obj_p->src;
     
-    // save `iter` before parsing to check for error
+    // save `iter` before parsing to check for ineffective parse
     auto before = src.iter();
     
     try
@@ -140,13 +144,8 @@ auto inline kas_parser::iter_t::operator*() -> value_type
         obj_p->err_idx = kas_diag_t::error("Invalid instruction", loc).ref();
     }
         
-    //stmt_error err(obj_p->err_idx);
-
-    // clear errors before next instruction
-    obj_p->err_idx = {};
-    obj_p->err_msg = {};
-
-    return {};
+    // `stmt_t` has `kas_error_t` ctor
+    return obj_p->err_idx;
 }
 
 

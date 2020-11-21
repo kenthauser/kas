@@ -34,17 +34,32 @@ struct stmt_t: kas_position_tagged
     stmt_t(parser_stmt *stmt = {}, kas_position_tagged const& loc = {})
             : stmt(stmt), kas_position_tagged(loc) {}
 
+    // allow `diagnostic` to create `stmt_diag` object
+    // NB: location tag imported from diagnostic
+    stmt_t(kas_diag_t const& diag) : stmt_t(diag.ref()) {}
+    stmt_t(kas_error_t const& ref) : kas_position_tagged(ref.get_loc())
+    {
+        static detail::stmt_diag diag;
+        stmt      = &diag;
+        diag.diag = ref;
+    }
+
     std::string src() const
     {
         return where();
     }
 
+    // interpret "parsed" statment as kas `core_insn`
+    // here "parsed" statement has proper syntax. Check semantics.
     core::core_insn operator()() const
     {
+        // init `core_insn` with parsed location
         core::core_insn insn{*this};
         std::cout << "stmt_t::operator(): where = " << src() << std::endl;
 
-        // if valid insn, generate opc_index & size
+        // examine parsed insn for proper semantics
+        // `gen_insn` returns pointer to `core::opcode`
+        // `insn_data` holds calculated size & opcode argument data
         if (auto op_p = stmt->gen_insn(insn.data))
             insn.opc_index = op_p->index();
 
@@ -52,9 +67,17 @@ struct stmt_t: kas_position_tagged
         if (insn.data.size.is_error())
             insn.opc_index = {};
 
-        // if no index, set size to zero. fixed holds `diag`
+        // if no index (ie semantic error), set size to zero.
         if (!insn.opc_index)
             insn.data.size = {};
+
+        // if `opc_index` is zero, `insn.data.fixed.diag`
+        // holds `kas_diag_t` reference with semantic error
+        if (!insn.opc_index)
+            std::cout << "stmt_t::operator(): error = "
+                      << insn.data.fixed.diag
+                      << std::endl;
+
 
         return insn;
     }

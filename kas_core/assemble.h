@@ -145,6 +145,7 @@ private:
         auto stmt_stream = parser::kas_parser(parser::stmt_x3(), src);
          
         // `stmt_stream` iterator returns objects, not references
+        // `stmt_stream` checks syntax, not semantics
         for (auto&& stmt : stmt_stream)
         {
             if (out)
@@ -155,7 +156,8 @@ private:
         
             try
             {
-                auto insn = stmt();
+                // check parsed stmt for proper semantics
+                auto&& insn = stmt();
                 if (out)
                 {
                     *out << "raw:  " << insn.raw() << std::endl;
@@ -166,7 +168,8 @@ private:
             
             catch (std::exception const& e)
             {
-                auto exc_name = typeid(e).name();        // internal error: ugly name is fine
+                // internal error: ugly name is fine
+                auto exc_name = typeid(e).name(); 
             
                 // print diagnostic message
                 std::ostream& diag = out ? *out : std::cout; 

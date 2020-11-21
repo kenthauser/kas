@@ -46,9 +46,6 @@ auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
 x3::rule<class _> skip_eol {"skip_eol"};
 auto const skip_eol_def = stmt_eol | x3::graph >> skip_eol;
 
-using tok_invalid = token_defn_t<KAS_STRING("INVALID")>;
-auto const invalid = token<tok_invalid>[x3::omit[+x3::graph]];
-
 //////////////////////////////////////////////////////////////////////////
 //  Parser List Support Methods
 //      * combine lists of parsers to single parser
@@ -66,7 +63,7 @@ x3::rule<class insn_junk, stmt_t> const statement   = "statement";
 x3::rule<class _tag_stmt, stmt_t> const tagged_stmt = "tagged stmt";
 stmt_x3 stmt { "stmt" };
 
-x3::rule<class _insn_err,  parser_stmt *> parse_insn { "parse_insn" };
+x3::rule<class _insn_err,  stmt_t> parse_insn { "parse_insn" };
 auto const parse_insn_def = combine_parsers(stmt_parsers());
 BOOST_SPIRIT_DEFINE(parse_insn);
 
@@ -77,21 +74,41 @@ BOOST_SPIRIT_DEFINE(parse_insn);
 // Solution: have "statment" perform variant operaion & tag afterwords
 auto const stmt_def  = *stmt_eol > tagged_stmt;
 
-// require statements to extend to end-of-line (or separator)
-// not required for labels
-//x3::rule<struct insn_junk,  typename stmt_variant::base_t> parse_insn { "parse_insn" };
-//auto const parse_insn_def = combine_parsers(stmt_parsers()) > stmt_eol;
-//BOOST_SPIRIT_DEFINE(parse_insn);
+// Parse an "invalid" instruction (invalid opcode, not mismatched args)
+// 
+// Parse is a little tricky because want to tag "opcode", not whole insn.
+// 1. Create an "invalid" token & attach parser which will
+//    match any unmatched graphic sequence.
+// 2. Create a rule which matches "invalid" & absorbs to end-of-line.
+// 3. Create `lambda` to convert "token" (which is position tagged)
+//    to diagnostic. Then create a "stmt_t" with diagnostic & 
+//    is tagged as only the "invalid" token.
 
-auto const parse_invalid = x3::rule<class _, detail::stmt_diag*> { "parse_invalid"} 
-                  = x3::omit[invalid] >> x3::omit[-skip_eol]
-                                      >> x3::attr(detail::stmt_diag()());
 
+// 1. create token & define parser
+using tok_invalid = token_defn_t<KAS_STRING("INVALID")>;
+auto const invalid = token<tok_invalid>[+x3::graph];
+
+// 3. create `lambda` to generate stmt from token
+auto gen_diag = [](auto& ctx)
+    {
+        // get "invalid" token
+        auto& tok = x3::_attr(ctx);
+        
+        // create `stmt_t` from diagnostic (with token `loc`)
+        x3::_val(ctx) = kas_diag_t::error("Invalid opcode", tok);
+    };
+
+// 2. create parse rule to match "junk" and skip to eol
+auto const parse_invalid = x3::rule<class _, stmt_t> {"parse_invalid"} 
+                  = invalid[gen_diag] > x3::omit[-skip_eol];
+
+// Parse actual statemnt: here whitespace lines have been absorbed.
 auto const statement_def =
            parse_insn        > stmt_eol
          | combine_parsers(label_parsers())
          | x3::omit[x3::eoi] >> x3::attr(stmt_eoi()())
- //        | parse_invalid
+         | parse_invalid
          ;
 
 // tag stmt after fully parsed
@@ -107,9 +124,9 @@ BOOST_SPIRIT_DEFINE(skip_eol)
 ///////////////////////////////////////////////////////////////////////////
 
 // parser to find point to restart scan after error
-auto const resync = *(x3::char_ - stmt_eol);// >> stmt_eol;
+auto const resync = *(x3::char_ - stmt_eol);
 
-struct _insn_err
+struct _insn_err : annotate_on_success
 {
     template <typename iterator, typename exception, typename Context>
     auto on_error(iterator& first , iterator const& last
@@ -121,16 +138,27 @@ struct _insn_err
         
         // save parser positions
         auto before = first;
-        auto junk   = exc.where();
+        auto where  = exc.where();
         bool no_eol = false;
 
-        print_type_name{"insn_junk::obj"}.name<decltype(obj)>();
-        std::cout << "insn_junk::on_error: exc = " << exc.what() << std::endl;
-        std::cout << "insn_junk::on_error: which = " << exc.which() << std::endl;
-        kas_position_tagged parsed = { first, junk, &e_handler };
-        std::cout << "insn_junk::parsed: " << parsed.where() << std::endl;
+        print_type_name{"_insn_err::obj"}.name<decltype(obj)>();
+        std::cout << "_insn_err::on_error: exc = " << exc.what() << std::endl;
+        std::cout << "_insn_err::on_error: which = " << exc.which() << std::endl;
+        kas_position_tagged parsed = { first, where, &e_handler };
+        std::cout << "_insn_err::parsed: " << parsed.where() << std::endl;
 
-        return x3::error_handler_result::fail;
+        // find end-of-line: first -> next parse location
+        if (!parse(first, last, resync))
+        {
+            first  = last;
+            no_eol = true;
+        }
+
+        std::string msg = "Expected " + exc.which();
+        kas_position_tagged err_loc = { where, where, &e_handler };
+
+        obj.err_idx = kas_diag_t::error(msg, err_loc).ref();
+        return x3::error_handler_result::accept;
     }
 };
 
@@ -174,14 +202,10 @@ struct insn_junk
 
         if (ignore_junk)
         {
-            // generate warning message about junk & re-parse
+            // put "junk" in a warning message
             kas_diag_t::warning("Junk following statement, ignored", junk_loc);
 
-            // apparently X3 steps on "re-parse" return value if just
-            // return "accept". so come in thru side door.
-            //throw first;
-            
-            // front door, which doesn't seem to work.
+            // "junk" consumed by moving `last`. Just accept
             return x3::error_handler_result::accept;
         }
        

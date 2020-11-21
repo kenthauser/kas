@@ -145,17 +145,12 @@ namespace detail
     
         using base_t::base_t;
        
-        // XXX clean up: don't need 3 ctors...
+        // allow `stmt_diag` to be inited from `diagnostic`
         stmt_diag(kas_error_t diag)
             : diag(diag), base_t(diag.get_loc()) {}
         
         stmt_diag(kas_diag_t const& err) : stmt_diag(err.ref()) {}
        
-        stmt_diag(kas_token const& token)
-        {
-            diag = kas_diag_t::error("Invalid instruction", token).ref();
-        }
-        
         std::string name() const override
         {
             return opc.name();
@@ -166,12 +161,9 @@ namespace detail
             p_obj(diag);
         }
 
-        base_t *operator()() 
-        {
-            static stmt_diag stmt;
-            return &stmt;
-        }
-
+        // support `parse_invalid`
+        template <typename Context>
+        void operator()(Context const& ctx);
 
         opcode *gen_insn(core::opcode_data& data) override
         {
