@@ -11,7 +11,7 @@
 //#if !defined(BOOST_SPIRIT_X3__ANNOTATE_ON_SUCCESS_HPP)
 //#define BOOST_SPIRIT_X3__ANNOTATE_ON_SUCCESS_HPP
 
-#include "parser_types.h"
+// get `kas::parser` definition of `error_handler_tag`
 #include "error_handler.h"
 
 #include <boost/spirit/home/x3/support/ast/variant.hpp>

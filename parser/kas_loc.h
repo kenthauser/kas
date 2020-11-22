@@ -104,6 +104,7 @@ struct kas_position_tagged_t
     }
     
     std::basic_string<value_type> where() const;
+    std::basic_string<value_type> src()   const { return *this; }
 
 private:
     // mutable: can init from `loc`

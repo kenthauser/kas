@@ -46,6 +46,10 @@ auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
 x3::rule<class _> skip_eol {"skip_eol"};
 auto const skip_eol_def = stmt_eol | x3::graph >> skip_eol;
 
+// parser to find point to restart scan after error
+auto const resync = *(x3::char_ - stmt_eol);
+
+
 //////////////////////////////////////////////////////////////////////////
 //  Parser List Support Methods
 //      * combine lists of parsers to single parser
@@ -101,7 +105,7 @@ auto gen_diag = [](auto& ctx)
 
 // 2. create parse rule to match "junk" and skip to eol
 auto const parse_invalid = x3::rule<class _, stmt_t> {"parse_invalid"} 
-                  = invalid[gen_diag] > x3::omit[-skip_eol];
+                  = invalid[gen_diag] > x3::omit[resync];
 
 // Parse actual statemnt: here whitespace lines have been absorbed.
 auto const statement_def =
@@ -122,9 +126,6 @@ BOOST_SPIRIT_DEFINE(skip_eol)
 ///////////////////////////////////////////////////////////////////////////
 // Annotation and Error handling
 ///////////////////////////////////////////////////////////////////////////
-
-// parser to find point to restart scan after error
-auto const resync = *(x3::char_ - stmt_eol);
 
 struct _insn_err : annotate_on_success
 {
@@ -158,6 +159,11 @@ struct _insn_err : annotate_on_success
         kas_position_tagged err_loc = { where, where, &e_handler };
 
         obj.err_idx = kas_diag_t::error(msg, err_loc).ref();
+
+        // record whole line as "matching"
+        //e_handler.tag(x3::_val(context), before, first);
+        
+        // accept error as result
         return x3::error_handler_result::accept;
     }
 };
@@ -203,7 +209,7 @@ struct insn_junk
         if (ignore_junk)
         {
             // put "junk" in a warning message
-            kas_diag_t::warning("Junk following statement, ignored", junk_loc);
+            kas_diag_t::warning("Junk following statement, ignored", junk_loc).ref();
 
             // "junk" consumed by moving `last`. Just accept
             return x3::error_handler_result::accept;
