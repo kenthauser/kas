@@ -18,7 +18,7 @@ namespace kas::z80::parser
     BOOST_SPIRIT_DECLARE(z80_insn_x3)
 
     // parse statements: defined in `z80_parser_def.h`
-    using z80_stmt_x3 = x3::rule<struct _, z80_stmt_t>;
+    using z80_stmt_x3 = x3::rule<struct _, z80_stmt_t *>;
     BOOST_SPIRIT_DECLARE(z80_stmt_x3)
 }
 
@@ -27,12 +27,6 @@ namespace kas::z80::parser
 // NB: insn_t parser used to parse statements in `z80_parser_def.h`
 namespace kas::parser::detail
 {
-    // target types for stmt variant
-    template <> struct parser_type_l<defn_cpu> :
-        meta::list<
-              z80::z80_stmt_t
-            > {};
-
     // statements parsed by parser
     template <> struct stmt_ops_l<defn_cpu> :
         meta::list<

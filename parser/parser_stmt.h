@@ -45,9 +45,6 @@ namespace detail
 {
     using namespace meta;
 
-    // vector of types in variant
-    template <typename tag = void> struct parser_type_l : list<> {};
-
     // vector of rules for statments 
     template <typename tag = void> struct parser_stmt_l : list<> {};
 
@@ -179,18 +176,6 @@ namespace detail
 using stmt_empty = detail::stmt_nop<opc_nop<>>;
 using stmt_eoi   = detail::stmt_nop<opc_nop<KAS_STRING("EOI")>>;
 using stmt_error = detail::stmt_diag;
-
-
-namespace detail
-{
-    // stmts defined by parser
-    template<> struct parser_type_l<defn_parser> : list<
-          stmt_empty        // default value for variant
-        , stmt_eoi          // end-of-input
-        , stmt_error        // undefined instruction
-        > {};
-}
-
 }
 
 

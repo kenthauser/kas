@@ -44,14 +44,6 @@ namespace kas::parser::detail
 template<> struct stmt_separator_str<void> : fmt_separator_str<> {};
 template<> struct stmt_comment_str  <void> : fmt_comment_str<>   {};
 
-// types for stmt variant
-template <> struct parser_type_l<defn_fmt> : meta::list<
-          bsd::bsd_stmt_pseudo
-        , bsd::bsd_stmt_label
-        , bsd::bsd_stmt_equ
-        , bsd::bsd_stmt_org
-        > {};
-
 // parsers for label statements 
 template <> struct label_ops_l<defn_fmt> : meta::list<
           bsd::parser::stmt_label_x3

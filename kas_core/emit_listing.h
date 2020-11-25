@@ -190,8 +190,8 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
     // accumulate listing into `line`
     auto& line = get_line();
     
-    //std::cout << "emit_listing: insn_loc = " << loc.get();
-    //std::cout << ", src = " << loc.where() << std::endl;
+    ////std::cout << "emit_listing: insn_loc = " << loc.get();
+    ////std::cout << ", src = " << loc.where() << std::endl;
 
     // don't generate listing for internally generated insns
     if (!loc)
@@ -297,12 +297,12 @@ void listing_line<Iter>::append_diag(diag_type& new_diags
     {
         auto [key, ptr] = *e.diag_iter;
 
-        //std::cout << "append_diag: insn = " << loc.get();
-        //std::cout << ", next_diag = " << key.get() << std::endl;
+        ////std::cout << "append_diag: insn = " << loc.get();
+        ////std::cout << ", next_diag = " << key.get() << std::endl;
 
         if (loc < key)
             break;
-        //std::cout << "appending diag " << ptr->ref() << std::endl;
+        ////std::cout << "appending diag " << ptr->ref() << std::endl;
         new_diags.push_back(ptr->index());
         ++e.diag_iter;
     }
@@ -338,7 +338,7 @@ Iter listing_line<Iter>::emit_line(Iter first, Iter const& last)
         auto& diag = parser::kas_diag_t::get(diagnostics.front());
         auto message = diag.level_msg() + diag.message;
         out << std::string(addr_size + data_size + 2, ' ');
-        //std::cout << "emit_diag: loc = " << diag.ref() << std::endl;
+        ////std::cout << "emit_diag: loc = " << diag.ref() << std::endl;
         if (diag.loc())
             parser::error_handler<Iter>::err_message(out, diag.loc(), message);
         else 

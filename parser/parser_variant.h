@@ -22,11 +22,8 @@ namespace detail
 {
     using namespace meta;
     
-    using all_types_l  = all_defns<parser_type_l>;
     using all_stmts_l  = all_defns<parser_stmt_l>;
     using all_labels_l = all_defns<parser_label_l>;
-
-    using parser_variant = apply<quote<x3::variant>, all_types_l>;
 }
 
 struct stmt_t: kas_position_tagged

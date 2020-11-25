@@ -403,10 +403,10 @@ Plan 10/2: First fix floating point emit/warning/etc
     error, generate diag from (loc) & msg. Set fixed to diag_ref. Set size.max to size.min.
     Needed for `coldfire_limit_3word` support (and probably others). 
 
-79. "warning: ignoring junk" message displayed one line too late. Because "loc" of warning
+*79. "warning: ignoring junk" message displayed one line too late. Because "loc" of warning
     diag after loc of stmt preceeding junk. Need to update `emit_listing.h` accordingly
 
-80. Does stmt derived class (eg `bsd_equ_t`) need to be location tagged? Can't the 
+&80. Does stmt derived class (eg `bsd_equ_t`) need to be location tagged? Can't the 
     variant class alone be tagged? Thus no tagging in `bsd_parser_def`, et.al.
     Easier to tag (in `parser_def.h` alone). No overall rules for insn in `*def.h`
 
