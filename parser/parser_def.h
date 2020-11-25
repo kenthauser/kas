@@ -209,9 +209,9 @@ struct insn_junk
         if (ignore_junk)
         {
             // put "junk" in a warning message
-            kas_diag_t::warning("Junk following statement, ignored", junk_loc).ref();
+            kas_diag_t::warning("Junk following statement, ignored", junk_loc);
 
-            // "junk" consumed by moving `last`. Just accept
+            // "junk" consumed by moving `first`. Just accept
             return x3::error_handler_result::accept;
         }
        

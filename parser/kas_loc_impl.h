@@ -59,4 +59,22 @@ bool kas_loc::operator < (kas_loc const& o) const
     return w.second.end() < o_w.second.end();
 }
 }
+
+// declare `kas_error_t` diagnostic printer
+namespace kas::core
+{
+template <>
+template <typename OS>
+void parser::kas_error_t::print(OS& os) const
+{
+    auto& obj = get();
+    os << "["  << "kas_error_t: "   << std::dec << index;
+    os << ": " << ": " << obj.level_msg() << obj.message;
+    os << ": " << " loc: " << _loc.get();
+    os << ": " << _loc.where();
+    os << "]"  << std::flush;
+}
+
+}
+
 #endif

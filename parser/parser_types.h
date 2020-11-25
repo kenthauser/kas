@@ -68,6 +68,14 @@ namespace kas
     //using parser::kas_position_tagged;
 }
 
+namespace kas::core
+{
+// declare "printer" for `kas_error_t` object
+template <>
+template <typename OS>
+void parser::kas_error_t::print(OS& os) const;
+}
+
 namespace kas::expression::detail
 {
 

@@ -76,6 +76,7 @@ void kas_diag<REF>::print(OS& os) const
     if (!this->loc())
         where = "*** untagged ***";
     os << level_msg() << message << " : " << where;
+    os << ": loc = " << std::dec << this->loc().get();
 }
 
 

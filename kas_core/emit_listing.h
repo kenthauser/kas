@@ -47,7 +47,7 @@ struct emit_listing : emit_base
     using diag_map_t       = std::map<diag_map_key_t, diag_map_value_t>;
 
     // accumulate "listing" in `listing_line` instance
-    listing_line<Iter>& get_line()
+    auto& get_line()
     {
         static listing_line<Iter> line{out, *this};
         return line;
@@ -163,12 +163,11 @@ struct listing_line
     void gen_data(data_type const&, bool last = false);
     void gen_equ(data_type  const&);
     void set_force_addr(data_type const&);
-    void append_diag(diag_type&);
-    void append_warnings(diag_type&);
+    void append_diag(diag_type&, parser::kas_loc const&);
     void append_reloc(reloc_type&);
-    Iter emit_line(Iter first, Iter last);
+    Iter emit_line(Iter first, Iter const& last);
 private:
-    void do_emit(Iter first, Iter last);
+    void do_emit(Iter first, Iter const& last);
 
     std::string addr_field;
     std::string data_field;
@@ -191,7 +190,7 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
     // accumulate listing into `line`
     auto& line = get_line();
     
-    //std::cout << "emit_listing: loc = " << loc.get();
+    //std::cout << "emit_listing: insn_loc = " << loc.get();
     //std::cout << ", src = " << loc.where() << std::endl;
 
     // don't generate listing for internally generated insns
@@ -210,21 +209,28 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
 
     // get iter to where in the source file we left off
     auto& prev = prev_it(idx)->second;
-    //line.append_diag(diagnostics);
-    //line.append_warnings(diagnostics);
+
+    // finish `prev_loc` insn with any pending diagnostics
+    line.append_diag(diagnostics, prev_loc);
+
+    // emit (comment) lines with no object code before this insn
+    // NB: only emits complete source code lines (which end with new-line)
     prev = line.emit_line(prev, first);
 
-    // collect object code for this insn
+    // format collected object code for this insn
     line.gen_addr(buffers[EMIT_ADDR], dot);
     line.gen_data(buffers[EMIT_DATA]);
     line.gen_equ (buffers[EMIT_EXPR]);
     line.set_force_addr(buffers[EMIT_ADDR]);
     line.append_reloc(relocs);
-    line.append_diag(diagnostics);
-    line.append_warnings(diagnostics);
-    buffers = {};
+    buffers = {};       // data accumulated in buffers is now "emitted"
 
-    // emit this insn
+    // append diagnostics based on `loc`
+    line.append_diag(diagnostics, loc);
+
+    // emit source and formatted object code
+    // NB: only emits complete source code lines (which end with new-line)
+    // NB: lines with comments and/or multiple insns are left in buffers
     prev = line.emit_line(prev, last);
 }
 
@@ -284,22 +290,19 @@ void listing_line<Iter>::gen_equ(data_type const& equ)
 }
 
 template <typename Iter>
-void listing_line<Iter>::append_diag(diag_type& new_diags)
-{
-    diagnostics.splice(diagnostics.end(), new_diags);
-}
-
-template <typename Iter>
-void listing_line<Iter>::append_warnings(diag_type& new_diags)
+void listing_line<Iter>::append_diag(diag_type& new_diags
+                                   , parser::kas_loc const& loc)
 {
     while(e.diag_iter != e.diag_end)
     {
         auto [key, ptr] = *e.diag_iter;
 
-        //std::cout << "append_warnings: prev_loc = " << e.prev_loc.get();
-        //std::cout << ", key = " << key.get() << std::endl;
-        if (!(key < e.prev_loc))
+        //std::cout << "append_diag: insn = " << loc.get();
+        //std::cout << ", next_diag = " << key.get() << std::endl;
+
+        if (loc < key)
             break;
+        //std::cout << "appending diag " << ptr->ref() << std::endl;
         new_diags.push_back(ptr->index());
         ++e.diag_iter;
     }
@@ -313,7 +316,7 @@ void listing_line<Iter>::append_reloc(reloc_type& new_relocs)
 }
 
 template <typename Iter>
-Iter listing_line<Iter>::emit_line(Iter first, Iter last)
+Iter listing_line<Iter>::emit_line(Iter first, Iter const& last)
 {
     // see if source contains newline
     std::match_results<Iter> m;
@@ -335,7 +338,7 @@ Iter listing_line<Iter>::emit_line(Iter first, Iter last)
         auto& diag = parser::kas_diag_t::get(diagnostics.front());
         auto message = diag.level_msg() + diag.message;
         out << std::string(addr_size + data_size + 2, ' ');
-        //std::cout << "emit_diag: loc = " << diag.loc().get() << std::endl;
+        //std::cout << "emit_diag: loc = " << diag.ref() << std::endl;
         if (diag.loc())
             parser::error_handler<Iter>::err_message(out, diag.loc(), message);
         else 
@@ -356,7 +359,7 @@ Iter listing_line<Iter>::emit_line(Iter first, Iter last)
 }
 
 template <typename Iter>
-void listing_line<Iter>::do_emit(Iter first, Iter last)
+void listing_line<Iter>::do_emit(Iter first, Iter const& last)
 {
     if (data_field.empty() && !data_overflow.empty())
     {

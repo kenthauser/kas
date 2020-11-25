@@ -28,3 +28,10 @@ namespace kas::parser
 
     template std::ostream& operator<<(std::ostream&, kas_token const&);
 }
+
+namespace kas::core
+{
+    // instiantiate `kas_error_t` diagnostic printer
+    template void parser::kas_error_t::print(std::ostream&) const;
+}
+

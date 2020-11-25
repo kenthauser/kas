@@ -13,17 +13,16 @@ fixed	= 100
 
 ; 1. test each addression mode for each general move
 
-    nop
-    nop
+    add.l   #0, a0 
     move.l  a0,a1     junk
-    nop
-    nop 
+    add.l   #1, a0 
+    add.l   #2, a0 
     junk ###, a1
-    nop
-    nop
+    add.l   #3, a0 
+    add.l   #4, a0 
     nop ###, a1
-    nop
-    nop
+    add.l   #5, a0 
+    add.l   #6, a0 
 
 	move.l	d0, a1
 	move.w	a1, a2@
