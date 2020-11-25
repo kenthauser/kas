@@ -412,6 +412,9 @@ Plan 10/2: First fix floating point emit/warning/etc
 
 81. `tgt_stmt` is still CRTP. make standard virtual base class
 
+82. convert `m68k::parse_insn` to token. Token operator() returns 
+     `std::pair<m68k_insn, m68k_stmt_info_t>`. Makes `invalid size` error
+     more correct
 
 
 

@@ -408,30 +408,10 @@ auto const parse_insn = rule<class _, std::pair<parser::kas_token, m68k_stmt_inf
                 ];
 
 // Parser external interface
-
-// NB: since `raw_m68k_stmt` parsed object is created via `semantic action`, 
-// NB: x3 doesn't tag it (see `x3/nonterminal/detail/rule.hpp:311`)
-// NB: Thus create "raw" parser to generate stmt, then use public parser to tag it
-auto const raw_m68k_stmt = rule<class _, m68k_stmt_t *> {}
-    = (parse_insn > m68k_args)[m68k_stmt_t()];  
-
-struct _tag_m68k_stmt : parser::annotate_on_success
-{
-#if 1
-    using base_t = parser::annotate_on_success;
-    template <typename T, typename Iterator, typename Context>
-    inline void on_success(Iterator const& first, Iterator const& last
-      , T& ast, Context const& context)
-    {
-        print_type_name{"_tag_m68k_stmt::on_success()"}.name<T>();
-        base_t::on_success(first, last, ast, context);
-    }
-#endif
-};
+auto const m68k_stmt_def = (parse_insn > m68k_args)[m68k_stmt_t()];  
 
 // Boilerplate to define `stmt` parser
 m68k_stmt_x3 m68k_stmt {"m68k_stmt"};
-auto const m68k_stmt_def = raw_m68k_stmt;
 BOOST_SPIRIT_DEFINE(m68k_stmt)
 }
 
