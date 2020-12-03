@@ -94,7 +94,7 @@ public:
     // arg mode: default getter/setter
     auto        mode() const { return _mode; }
     const char *set_mode(unsigned mode);
-    void        set_branch_mode(unsigned size);
+    void        set_branch_mode(unsigned offset_type);  // MODE_BRANCH + n
 
     // save & restore arg "state" when evaluating mcodes. Default to just "mode".
     using arg_state = arg_mode_t;

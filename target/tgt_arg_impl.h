@@ -174,17 +174,13 @@ auto tgt_arg_t<Derived, M, I, R, RS>
 // set mode based on size of branch insn
 template <typename Derived, typename M, typename I, typename R, typename RS>
 void tgt_arg_t<Derived, M, I, R, RS>
-                ::set_branch_mode(unsigned insn_size)
+                ::set_branch_mode(unsigned offset_type)
 { 
-    // increment one "MODE" for each word of insn after base code
-    // if INSN code size is 1, "base code" size is 2;
+    // increment one "MODE" for each power-of-2 increase in displacement size
+    // NB: offset_size == 0 -> byte
+    //     offset_size == 1 -> word, etc
     
-    // NB: don't know `mcode_t`, so use `expression::e_data_t` as proxy
-    using mcode_insn_sz = expression::e_data_t;
-
-    auto base  = std::max<unsigned>(2, sizeof(mcode_insn_sz));
-    auto words = (insn_size - base) / sizeof(mcode_insn_sz);
-    derived().set_mode(arg_mode_t::MODE_BRANCH + words);
+    derived().set_mode(arg_mode_t::MODE_BRANCH + offset_type);
 }
 
 // validate argument

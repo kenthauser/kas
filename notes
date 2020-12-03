@@ -416,5 +416,6 @@ Plan 10/2: First fix floating point emit/warning/etc
      `std::pair<m68k_insn, m68k_stmt_info_t>`. Makes `invalid size` error
      more correct
 
-
+83. update tgt_validate_branch to use `mcode_code_size()` instead of
+    `constexpr code_size`. Makes co-processor insns work directly.
 

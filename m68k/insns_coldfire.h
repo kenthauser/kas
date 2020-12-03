@@ -153,12 +153,12 @@ using cf_supv_v = list<list<>
 , defn<sz_l, STR("remu"),    OP<0x4c40'0000, isa_a>, FMT_0RM_PAIR, INDIRECT, PAIR> 
 
 , defn<sz_v, STR("intouch"), OP<0xf428,      isa_b>, FMT_0, ADDR_INDIR>
-, defn<sz_w, STR("strldsr"), OP<0x40e7'46fc, isa_c>, void,  IMMED>     // immed word
+, defn<sz_w, STR("strldsr"), OP<0x40e7'46fc, isa_c>, void,  IMMED> 
 
 // DEBUG cp
-, defn<sz_l, STR("wdebug"),  OP<0xfbc0'0003, isa_a>, FMT_0RM, ADDR_INDIR>
-, defn<sz_l, STR("wdebug"),  OP<0xfbc0'0003, isa_a>, FMT_0RM, ADDR_DISP> 
-, defn<sz_lwb, STR("wddata"), OP<0xfb00, isa_a, INFO_SIZE_NORM>, FMT_0RM, MEM_ALTER>
+, defn<sz_l  , STR("wdebug"), OP<0xfbc0'0003, isa_a>, FMT_0RM, ADDR_INDIR>
+, defn<sz_l  , STR("wdebug"), OP<0xfbc0'0003, isa_a>, FMT_0RM, ADDR_DISP> 
+, defn<sz_lwb, STR("wddata"), OP<0xfb00     , isa_a>, FMT_0RM, MEM_ALTER>
     
 >; 
 

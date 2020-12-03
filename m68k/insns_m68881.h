@@ -313,9 +313,9 @@ using fp_cc_ops = list<list<>
             , fpcc<0x7a << 16, STR("trap"), sz_w, void, IMMED>
             , fpcc<0x7b << 16, STR("trap"), sz_l, void, IMMED>
             , fpcc<0x40 << 16, STR("s"),    sz_bv, FMT_0RM, DATA_ALTER>
-            , fpcc<0x48 << 16, STR("db"),   sz_void, FMT_CP_DBCC, DATA_REG, DIRECT>
-            , fpcc<0x80 | fp_defn_w, STR("b"), sz_void, FMT_CP_BRANCH, DIRECT>
-            , fpcc<0x80 | fp_defn_w, STR("j"), sz_void, FMT_CP_BRANCH, DIRECT>
+            , fpcc<0x48 << 16, STR("db"),   sz_void, FMT_DBCC, DATA_REG, DIRECT>
+            , fpcc<0x80 | fp_defn_w, STR("b"), sz_void, FMT_BRANCH, DIRECT>
+            , fpcc<0x80 | fp_defn_w, STR("j"), sz_void, FMT_BRANCH, DIRECT>
       >;
 #undef STR
 

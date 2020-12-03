@@ -13,11 +13,14 @@
  * handle offset increments in power-2 (ie 1 byte, 2 bytes, 4 bytes)
  * handle offset sizeof zero as delete branch
  * offsets calculated from end of insn. 
+ *
+ * The branch machine code is assumed to be fixed data followed by
+ * offset value. Offset is calculated from offset location. 
  * 
  * NB: this validator is coded slightly differently to allow core methods
  * to be invoked from `tgt_opc_branch` from size() routine...
  *
- *****************************************************************************/
+ *************************yy****************************************************/
 
 #include "tgt_validate.h"
 
@@ -40,13 +43,13 @@ struct tgt_val_branch : MCODE_T::val_t
 
     using mode_int_t  = std::underlying_type_t<arg_mode_t>;
 
-    static auto constexpr code_size = sizeof(typename mcode_t::mcode_size_t);
+    static auto constexpr word_size = sizeof(typename mcode_t::mcode_size_t);
 
-    // default no-delete (non-zero), one-word insn + sizeof(addr)
+    // default min: no-delete (non-zero), max: zero = code_size() + sizeof(addr)
     // NB: config sizes are not used directly, but thru CRTP functions
-    constexpr tgt_val_branch(uint8_t cfg_min = code_size
-                           , uint8_t cfg_max = (code_size + sizeof(expression::e_addr_t))
-                           , uint8_t shift  = 0     // don't shift offset
+    constexpr tgt_val_branch(uint8_t cfg_min = word_size
+                           , uint8_t cfg_max = sizeof(expression::e_addr_t)
+                           , uint8_t shift   = 0     // don't shift offset
                            )
                    : cfg_min{cfg_min}, cfg_max{cfg_max}, shift{shift} {}
     
@@ -66,22 +69,22 @@ struct tgt_val_branch : MCODE_T::val_t
 
     // calculate size of branch. Use support routine common with `tgt_opc_branch`
     // `do_size` returns insn size. Convert to arg size
-    fits_result size(arg_t& arg, mcode_t const & mc, stmt_info_t const& info
+    fits_result size(arg_t& arg, mcode_t const&  mc, stmt_info_t const& info
                    , expr_fits const& fits, op_size_t& op_size) const override
     {
         // initialize size of insn if not relaxing
         if (op_size.is_relaxed())
-            op_size = { cfg_min, derived().initial() };
+            op_size = derived().initial(mc);
 
         auto& dest = arg.expr;
 
         // while min size is in range
-        while(op_size.min <= derived().max())
+        while(op_size.min <= derived().max(mc))
         {
             expression::fits_result r;
 
-            // increase minimum size by code-word size
-            uint8_t pending_min_size = op_size.min + code_size;
+            // increase minimum size by insn-word size
+            uint8_t pending_min_size = op_size.min + word_size;
             
             // validate opcode elegible for deletion
             // different test if trying to delete insn
@@ -92,15 +95,14 @@ struct tgt_val_branch : MCODE_T::val_t
                 r = fits.disp(dest, 0, 0, op_size.max);
 
                 // if fails deletion test, continue testing with byte offset
-                pending_min_size = derived().min();
+                pending_min_size = derived().min(mc);
             }
             else
             {
                 // first word is INSN, rest is offset
                 // offset from end of INSN
                 // disp_sz calculated to allow 1 word opcode, rest disp
-                auto branch_sz = derived().disp_sz(op_size.min);
-                r = fits.disp_sz(branch_sz,  dest, op_size.min);
+                r = derived().disp_sz(mc, fits, dest, op_size.min);
             }
 
             // process result of test
@@ -112,7 +114,7 @@ struct tgt_val_branch : MCODE_T::val_t
                     continue;
                 case expression::DOES_FIT:
                     op_size.max = op_size.min;
-                    arg.set_branch_mode(op_size.max);  // update insn mode
+                    derived().set_branch_mode(arg, mc, op_size.max);
                     return expr_fits::yes;      // done
                 default:
                     return expr_fits::maybe;    // might-fit: don't further change min/max
@@ -124,22 +126,56 @@ struct tgt_val_branch : MCODE_T::val_t
         return expr_fits::no;
     } 
 
-    // use methods to calculate sizes, so CRTP can override
-    // NB: since instance is constexpr, should resolve at compile time
-    
-    // mininum size of non-deleted insn: 1 byte of opcode, 1 byte of disp
-    // NB: if INSN size is over 1 byte, displacement can be part of INSN
-    constexpr uint8_t min() const { return std::max<uint8_t>(2, cfg_min); }
+/******************************************************************************
+ *
+ * Validator configuration section
+ *
+ * use methods to specify sizes, so CRTP can override
+ *
+ * NB: when referenced, all methods in this section must be prefixed
+ * with `derived().` to allow CRTP override
+ *
+ *****************************************************************************/
+ 
+    // mininum bytes of non-deleted insn: 1 byte of opcode, 1 byte of disp
+    constexpr uint8_t min(mcode_t const& mc) const
+    {
+        // if insn more than 1 byte, can encode byte offset in insn
+        // if insn is single byte, need at least displacement byte
+        return mc.base_size() + uint8_t(word_size == 1);
+    }
     
     // maximum size of insn with largest branch
-    constexpr uint8_t max() const { return cfg_max; }
+    // cfg_max describes largest "offset" value (in bytes)
+    constexpr uint8_t max(mcode_t const& mc) const
+    { 
+        return mc.base_size() + cfg_max;
+    }
 
     // maximum size of "jump" if branch doesn't fit (see `tgt_opc_branch`)
-    constexpr uint8_t initial() const { return cfg_max; }
+    constexpr op_size_t initial(mcode_t const& mc) const
+    {
+        if (cfg_min)
+            return { min(mc), max(mc) };
+
+        return { 0, max(mc) };
+    }
 
     // convert "insn_sz" to branch sz (in bytes)
-    constexpr uint8_t disp_sz(uint8_t insn_sz) const
-        { return std::max<uint8_t>(1, insn_sz - code_size); }
+    template <typename ARG_T>
+    constexpr expression::fits_result disp_sz(mcode_t const&   mc
+                                            , expr_fits const& fits
+                                            , ARG_T const&     dest
+                                            , uint8_t          op_sz_min) const
+    {
+        auto base = mc.base_size();     // fixed opcode data 
+        return fits.disp_sz(op_sz_min - base,  dest, base);
+    }
+
+    void set_branch_mode(arg_t& arg, mcode_t const& mc, uint8_t op_size) const
+    {
+       arg.set_branch_mode(mc.calc_branch_mode(op_size));
+    }
 
     uint8_t cfg_min, cfg_max, shift;
 };

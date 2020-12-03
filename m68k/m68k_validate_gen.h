@@ -102,11 +102,11 @@ struct val_branch : tgt::opc::tgt_val_branch<val_branch, m68k_mcode_t>
     }
 
     // override `tgt_val_branch` methods
-    constexpr uint8_t max() const
+    constexpr uint8_t max(m68k_mcode_t const& mc) const
     {
         if (hw::cpu_defs[hw::branch_long{}])
-            return 4;
-        return base_t::max();
+            return mc.code_size() + 2;
+        return base_t::max(mc);
     }
     
 };

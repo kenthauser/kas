@@ -147,7 +147,9 @@ using isa_a   = cpu_defn<STR("isa_a"), coldfire, divide>;
 using isa_ap  = cpu_defn<STR("isa_a+"), isa_a>;
 
 // isa_b is the successor to isa_a
-using isa_b   = cpu_defn<STR("isa_b"),  isa_a>;
+using isa_b   = cpu_defn<STR("isa_b"),  isa_a
+                    , branch_long
+                    >;
 
 // XXX TST is develment target. Merge with `isa_c` for production
 using isa_c_tst       = cpu_defn<STR("isa_c_tst"), list<isa_b, isa_ap>

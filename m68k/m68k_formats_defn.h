@@ -7,7 +7,7 @@
 // The `formatters` are named as follows:
 //
 // 1. The name "base" (usually FMT_) indicates the "machine_code" virtual type to use.
-//    (these are named in `formats_opc`)
+//    (these are named in `formats_opc`, et.al.)
 //
 // 2. Following the "base", underscores are used to separate inserter for each argument.
 //    Thus `FMT_a1_a2_a3` inserts three arguments, coded `a1`, `a2`, and `a3`.
@@ -21,7 +21,9 @@
 //    `9b2` for a two-bit field shifted 9. '020 CAS2 uses `CAS2` for a one-off formater.
 
 
-#include "m68k_formats_opc.h"
+#include "m68k_formats_opc.h"       // generic target definitions
+#include "opc_dbcc.h"               // support `dbcc` insns
+
 #include "m68k_formats_impl.h"      // XXX an `impl` file???
 
 namespace kas::m68k::opc
@@ -141,11 +143,9 @@ struct FMT_LIST     : fmt_list, arg1_0rm, arg2_6rm {};
 
 // branch formats have implied argument format
 struct FMT_BRANCH   : fmt_branch, fmt_arg<1, fmt_displacement> {};
-using FMT_CP_BRANCH  = fmt_cp_branch;
 
-// dbcc have single argument
+// {cp}dbcc have single argument
 struct FMT_DBCC     : fmt_dbcc,    arg1_0 {};
-struct FMT_CP_DBCC  : fmt_cp_dbcc, arg1_0 {};
 
 // name template: FMT_ <First Arg (src)> _ <Second Arg (dst)>
 struct FMT_X        : fmt_gen {};
@@ -196,6 +196,8 @@ struct FMT_28RM_0RM_BF  : fmt_gen, arg1_1w12rm, arg2_0rm, arg3_bf {};
 
 // specials for `CAS`, `CAS2`
 struct FMT_16_22_0RM    : fmt_gen, arg1_1w0, arg2_1w6, arg3_0rm {};
+
+// CAS2 is only 48-bit insn. define all inserters directly (and unnamed)
 struct FMT_CAS2         : fmt_gen, fmt_arg<1, fmt_reg_pair< 0,  0, 3, 1, 2>>
                                  , fmt_arg<2, fmt_reg_pair< 6,  6, 3, 1, 2>>
                                  , fmt_arg<3, fmt_reg_pair<12, 12, 4, 1, 2>>

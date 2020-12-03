@@ -23,10 +23,11 @@
 //      data.deque()   = ... arg data ...
 //
 // NB: for the case of `long` opcode data, both words are stored in
-// the data.deque(). The inserter automocally groups both "words" together
+// the data.deque(). The inserter groups both "words" together
 //
 ///////////////////////////////////////////////////////////////////
 //
+// XXX remove `z80` reference
 // The routine `z80_insert_args` serializes argument information.
 //
 // void `z80_insert_args(Inserter, args, opcode_p, fmt const&)
@@ -101,7 +102,7 @@ void tgt_insert_args(Inserter& inserter
         std::cout << std::endl;
     }
 #endif
-    auto code   = m_code.code(stmt_info);
+    auto code   = m_code.code(stmt_info);       // `code` is std::array<>
     auto code_p = inserter(code.data(), m_code.code_size());
 
     // retrieve formatters and validators to write args into code (as appropriate)

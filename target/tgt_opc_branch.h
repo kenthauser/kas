@@ -23,8 +23,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     using mcode_t = MCODE_T;
     using base_t  = typename mcode_t::opcode_t;
    
-    // XXX don't know why base_t types aren't found.
-    // XXX expose types & research later
+    // expose base_types from templated ARG type
     using insn_t       = typename base_t::insn_t;
     using bitset_t     = typename base_t::bitset_t;
     using arg_t        = typename base_t::arg_t;
@@ -64,8 +63,10 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     {
         arg_t arg;
         arg.expr = dest;
-        auto  dest_iter  = mcode.vals().last();
-        dest_iter->size(arg, mcode, info, fits, data.size);
+        auto dest_val_p = mcode.vals().last();
+
+        // ask displacement validator (always last) to calculate size
+        dest_val_p->size(arg, mcode, info, fits, data.size);
     }
 
     virtual void do_emit     (data_t const&          data
@@ -75,12 +76,12 @@ struct tgt_opc_branch : MCODE_T::opcode_t
                             , expr_t const&          dest
                             , stmt_info_t const&     info) const
     {
-        // 0. create an "arg" from dest expression
+        // 1. create an "arg" from dest expression
         arg_t arg;
         arg.expr = dest;
-        arg.set_branch_mode(data.size());
+        arg.set_branch_mode(mcode.calc_branch_mode(data.size()));
         
-        // 1. insert `dest` into opcode
+        // 2. insert `dest` into opcode
         // get mcode validators: displacement always "last" arg
         auto  val_it = mcode.vals().last();
         auto  cnt    = mcode.vals().size();
@@ -90,12 +91,12 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         if (!fmt.insert(cnt-1, code_p, arg, &*val_it))
             fmt.emit_reloc(cnt-1, base, code_p, arg, &*val_it);
 
-        // 2. emit base code
+        // 3. emit base code
         auto words = mcode.code_size()/sizeof(mcode_size_t);
         while (words--)
             base << *code_p++;
 
-        // 3. emit `dest`
+        // 4. emit `dest`
         auto sz = info.sz(mcode);
         arg.emit(base, sz);
     }

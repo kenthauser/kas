@@ -3,7 +3,6 @@
 
 #include "m68k_mcode.h"
 #include "m68k_size_lwb.h"
-#include "m68k_opc_branch.h"
 
 #include "target/tgt_format.h"
 
@@ -51,28 +50,24 @@ struct m68k_opc_general : opc_limit3w<tgt::opc::tgt_opc_general<m68k_mcode_t>>
 {
     OPC_INDEX();
 };
-
-
 struct m68k_opc_list: opc_limit3w<tgt::opc::tgt_opc_list<m68k_mcode_t>>
 {
     OPC_INDEX();
 };
 
-
 // declare M68K formatter base types
-// override `tgt_fmt_*` to use m68k opcodes
+// override `tgt_fmt_*` to use m68k opcodes (which enforce coldfire 48-bit limit)
 struct fmt_gen : tgt::opc::tgt_fmt_opc_gen<m68k_mcode_t>
 {
-    virtual opcode_t& get_opc() const override
+    opcode_t& get_opc() const override
     {
         static m68k_opc_general opc;
         return opc;
     }
 };
-
 struct fmt_list: tgt::opc::tgt_fmt_opc_list<m68k_mcode_t>
 {
-    virtual opcode_t& get_opc() const override
+    opcode_t& get_opc() const override
     {
         static m68k_opc_list opc;
         return opc;
@@ -80,15 +75,9 @@ struct fmt_list: tgt::opc::tgt_fmt_opc_list<m68k_mcode_t>
 };
 
 
-// branch insns never exceed 3 words (without full index support)
+// branch insns never exceed 3 words
+// NB: use `target` default implementation
 using fmt_branch = tgt::opc::tgt_fmt_opc_branch<m68k_mcode_t>;
-
-//using fmt_branch    = fmt_gen;
-using fmt_dbcc      = fmt_gen;
-using fmt_cas2      = fmt_gen;
-using fmt_cp_branch = fmt_gen;
-using fmt_cp_dbcc   = fmt_gen;
-
 }
 
 #endif
