@@ -82,7 +82,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     bitset_t ok;
     mcode_t const* matching_mcode_p {};
     bool multiple_matches = false;
-    const char *err_msg{};
+    tagged_msg  err_msg  {};
     int         err_index{};
 
     // loop thru mcodes, recording first error & recording all matches
@@ -92,12 +92,12 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
         if (trace)
             *trace << "validating: " << +i << ": ";
 
-        const char *diag{};
+        tagged_msg  diag;
         int         cur_index{};
 
         // validate supported by arch & by info flags
         diag = derived().validate_stmt(mcode_p);
-
+        
         // test if arguments match mcode
         if (!diag)
             std::tie(diag, cur_index) = mcode_p->validate_mcode(args, info, trace);
@@ -141,14 +141,22 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
         if (err_index > args.size())
             err_index = args.size();
 
+        // location required: initialize with default
         parser::kas_position_tagged const *loc_p = &insn_tok;
 
+        // if `arg` errored, pick up location from arg
         if (err_index)
             loc_p = &args[err_index-1];
+
+        // if `err_msg` tagged, use tagged location
+        if (err_msg.pos_p)
+            loc_p = err_msg.pos_p;
+
+        // if `error` without msg (?!?) generate default
         if (!err_msg)
             err_msg = "X invalid instruction";
 
-        data.fixed.diag = parser::kas_diag_t::error(err_msg, *loc_p).ref();
+        data.fixed.diag = parser::kas_diag_t::error(err_msg.msg, *loc_p).ref();
         return {};
     }
 

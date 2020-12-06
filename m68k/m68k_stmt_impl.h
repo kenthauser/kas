@@ -7,8 +7,28 @@
 namespace kas::m68k
 {
 
+// validate parse of m68k_stmt
+template <typename Context>
+void m68k_stmt_t::operator()(Context const& ctx)
+{
+    static derived_t stmt;
+    auto& x3_args = x3::_attr(ctx);
+
+    // extract "x3" args
+    auto& insn    = boost::fusion::at_c<0>(x3_args);
+    stmt.args     = boost::fusion::at_c<1>(x3_args);
+    
+    // extract "insn" values from tuple
+    stmt.insn_tok  = std::get<0>(insn);
+    stmt.info      = std::get<1>(insn);
+    stmt.width_tok = std::get<2>(insn);
+    
+    x3::_val(ctx) = &stmt;
+}
+
 // Validate single MCODE supported by `TST` & `STMT_FLAGS`
-const char *m68k_stmt_t::validate_stmt(mcode_t const *mcode_p) const
+auto m68k_stmt_t::validate_stmt(mcode_t const *mcode_p) const
+    -> tagged_msg 
 {
     if (auto base_err = base_t::validate_stmt(mcode_p))
         return base_err;
@@ -19,18 +39,18 @@ const char *m68k_stmt_t::validate_stmt(mcode_t const *mcode_p) const
     if (info.arg_size != OP_SIZE_VOID)
     {
         if (!(mcode_p->defn().info & (1 << info.arg_size)))
-            return error_msg::ERR_bad_size;
+            return { error_msg::ERR_bad_size, width_tok };
         
         // if suffix prohibited, error out
         if (sfx_code == opc::SFX_NONE::value)
-            return error_msg::ERR_sfx_none;
+            return { error_msg::ERR_sfx_none, width_tok };
     }
 
     // otherwise, validate "no size" is valid
     else
     {
         if (sfx_code == opc::SFX_NORMAL::value)
-            return error_msg::ERR_sfx_reqd;
+            return { error_msg::ERR_sfx_reqd, width_tok };
     }
 
     // validate "conditional" instructions

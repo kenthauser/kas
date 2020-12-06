@@ -29,13 +29,17 @@ namespace kas::parser
 struct tagged_msg
 {
     tagged_msg() = default;
-    tagged_msg(std::string msg, kas_position_tagged const& pos)
-        : msg(std::move(msg)), pos_p(&pos) {}
+    tagged_msg(const char *msg, kas_position_tagged const& pos)
+        : msg(msg), pos_p(&pos) {}
+    tagged_msg(const char *msg, kas_position_tagged const *pos_p = {})
+        : msg(msg), pos_p(pos_p) {}
 
-    operator bool() const { return !msg.empty(); }
+    operator bool() const { return msg; }
 
-    std::string msg;
-    kas_position_tagged const *pos_p{};
+    template <typename OS> void print(OS&) const;
+
+    const char *msg {};
+    kas_position_tagged const *pos_p {};
 };
 
 // define kas_diag instance as token
@@ -68,10 +72,14 @@ struct kas_diag : core::kas_object<kas_diag<REF>, REF>
         if (!loc)
             throw std::runtime_error{"kas_diag: diag without location: " + message};
     }
+#if 0
+    kas_diag(kas_diag_enum level, const char *msg, kas_position_tagged const *loc_p)
+        : kas_diag(level, msg, *loc_p) {}
 
-    kas_diag(kas_diag_enum level, tagged_msg const& msg)
-        : kas_diag(level, msg.msg, *msg.pos_p) {}
-
+    kas_diag(kas_diag_enum level, tagged_msg const& msg, kas_position_tagged const *loc_p = {})
+        : kas_diag(level, msg.msg, msg.pos_p ? msg.pos_p : loc_p)
+        {}
+#endif
     const char *level_msg() const
     {
         static constexpr const char* _levels[] = {"Fatal Error: ", "Error: ", "Warning: ", "Info: "};
@@ -109,7 +117,7 @@ struct kas_diag : core::kas_object<kas_diag<REF>, REF>
     
 //private:
     kas_diag_enum level {};
-    std::string message;
+    std::string   message;
     static inline core::kas_clear _c{base_t::obj_clear};
 };
 

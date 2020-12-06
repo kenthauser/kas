@@ -57,6 +57,7 @@ struct tgt_stmt : kas::parser::parser_stmt
     using insn_tok_t  = typename insn_t::token_t;
 
     using kas_error_t = parser::kas_error_t;
+    using tagged_msg  = parser::tagged_msg;
 
     // CRTP casts
     auto& derived() const
@@ -73,7 +74,7 @@ struct tgt_stmt : kas::parser::parser_stmt
 
     // method to validate mcode suitable for stmt.
     // Principally for `hw_tst` & `stmt_info_t` validation
-    constexpr const char *validate_stmt(mcode_t const *mcode_p) const { return {}; }
+    tagged_msg validate_stmt(mcode_t const *mcode_p) const { return {}; }
    
     // methods used by test fixtures
     std::string name() const override;

@@ -346,13 +346,11 @@ auto gen_stmt = [](auto& ctx)
         auto& parts    = x3::_attr(ctx);
         auto& insn_tok = boost::fusion::at_c<0>(parts);
         auto& ccode    = boost::fusion::at_c<1>(parts);
-        auto& has_dot  = boost::fusion::at_c<2>(parts);
-        auto& size     = boost::fusion::at_c<3>(parts);
+        auto& width    = boost::fusion::at_c<2>(parts);
      
         // all (and only) floating point insns begin with `f`
         // NB: less obvious than `std::tolower()`, but faster for specific case
         info.is_fp = (insn_tok.begin()[0] | ('f' - 'F')) == 'f';
-        auto sz = OP_SIZE_VOID;     // default "size"
 
         if (ccode)
         {
@@ -365,47 +363,59 @@ auto gen_stmt = [](auto& ctx)
             {
                 // invalid condition code
                 x3::_pass(ctx) = false;
+                return;
             }
             else
                 info.ccode = code;
         }
-
-        if (size)
+        
+        // if `width` suffix specified, process it
+        if (width)
         {
-            switch (*size)
+            auto cp = width->begin();
+            if (*cp == '.')
+                ++cp;           // consume dot
+            switch (*cp)
             {
-                case 'l': case 'L': sz = OP_SIZE_LONG;   break;
-                case 's': case 'S': sz = OP_SIZE_SINGLE; break;
-                case 'x': case 'X': sz = OP_SIZE_XTND;   break;
-                case 'p': case 'P': sz = OP_SIZE_PACKED; break;
-                case 'w': case 'W': sz = OP_SIZE_WORD;   break;
-                case 'd': case 'D': sz = OP_SIZE_DOUBLE; break;
-                case 'b': case 'B': sz = OP_SIZE_BYTE;   break;
+                case 'l': case 'L': info.arg_size = OP_SIZE_LONG;   break;
+                case 's': case 'S': info.arg_size = OP_SIZE_SINGLE; break;
+                case 'x': case 'X': info.arg_size = OP_SIZE_XTND;   break;
+                case 'p': case 'P': info.arg_size = OP_SIZE_PACKED; break;
+                case 'w': case 'W': info.arg_size = OP_SIZE_WORD;   break;
+                case 'd': case 'D': info.arg_size = OP_SIZE_DOUBLE; break;
+                case 'b': case 'B': info.arg_size = OP_SIZE_BYTE;   break;
                 default:
                     x3::_pass(ctx) = false;
-                    break;
+                    return;
             }
+
+            // return parsed "width" to improve diagnostic
+            x3::_val(ctx) =  { insn_tok, info, *width };
         }
+       
+        // else bare opcode. no width specified
         else 
         {
-            if (has_dot)
-                x3::_pass(ctx) = false;     // size req'd if dot present
+            info.arg_size = OP_SIZE_VOID;           // no parsed size
+            x3::_val(ctx) = {insn_tok, info, {} };  // value is <insn, info>
         }
-
-        info.arg_size = sz;                 // store parsed size in info
-        x3::_val(ctx) = {insn_tok, info};   // value is <insn, info> pair
     };
+
+// create `kas_token` to parse m68k width (.W or W)
+using  tok_m68k_insn_width = token_defn_t<KAS_STRING("M68K_INSN_WIDTH")>;
+auto const m68k_insn_width = token<tok_m68k_insn_width>[-char_('.') >> alpha];
 
 // M68K encodes several "options" in insn name. Decode them.
 // invalid options error out in `m68k_insn_t::validate_args` 
-auto const parse_insn = rule<class _, std::pair<parser::kas_token, m68k_stmt_info_t>> {} =
-        lexeme[(m68k_insn_x3()          // insn_base_name
-                >> -m68k_ccode::x3()    // optional condition-code
-                >> -char_('.')          // optional dot
-                >> -alpha               // optional suffix
-                >> !graph               // end token
-                )[gen_stmt]
-                ];
+auto const parse_insn = rule<class _, std::tuple<parser::kas_token
+                                               , m68k_stmt_info_t
+                                               , kas_position_tagged>> {} =
+        lexeme[(m68k_insn_x3()      // insn_base_name
+            >> -m68k_ccode::x3()    // optional condition-code
+            >> -m68k_insn_width     // optional width
+            >> !graph               // end token
+            )[gen_stmt]
+            ];
 
 // Parser external interface
 auto const m68k_stmt_def = (parse_insn > m68k_args)[m68k_stmt_t()];  

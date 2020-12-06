@@ -32,7 +32,7 @@ struct val_branch : tgt::opc::tgt_val_branch<val_branch, z80_mcode_t>
     using base_t::base_t;
 
     // max branch instruction size: z80 is 1 byte opcode, 1 byte displacement 
-    constexpr uint8_t max() const 
+    constexpr uint8_t max(z80_mcode_t const&) const 
     {
         return 2;
     }

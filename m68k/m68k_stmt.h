@@ -55,13 +55,20 @@ struct m68k_stmt_t : tgt::tgt_stmt<m68k_stmt_t, m68k_insn_t, m68k_arg_t, m68k_st
     using base_t::base_t;
     
     // method to validate mcode. Use for `m68k_stmt_info_t` validation
-    const char *validate_stmt(m68k_mcode_t const *mcode_p) const;
+    tagged_msg validate_stmt(m68k_mcode_t const *mcode_p) const;
+
+    // parser returns "width" as token
+    template <typename Context>
+    void operator()(Context const& ctx);
 
     // override method to test if floating-point insn
     bool is_fp() const
     {
         return info.is_fp;
     }
+
+    // save "width" suffix (eg ".w") as token (for diagnostics)
+    kas::parser::kas_position_tagged width_tok;
 };
 
 
