@@ -18,17 +18,14 @@ enum class kas_rela
 // NB: `action` can identify both generic and target specific operations
 struct kas_reloc
 {
-    // 
     static constexpr auto RFLAGS_PC_REL = 1;
     
-    // XXX req'd for `add_reloc` default ctor
-    kas_reloc() = default;
+    kas_reloc() = default;      // NB: not constexpr
 
     constexpr kas_reloc(uint8_t action, uint8_t bits = 0, uint8_t pc_rel = false)
         : action(action)
         , bits(bits)
-        , flags ( pc_rel ? RFLAGS_PC_REL : 0
-                )
+        , flags (pc_rel ? RFLAGS_PC_REL : 0)
         {}
     
     // generate `std::map` key (from 3 8-bit values)
@@ -50,7 +47,7 @@ struct kas_reloc_info
 
     const char *name;       // name to display for decode
     kas_reloc   reloc;      // use `key()` to find operations
-    uint8_t     num;        // magic number for object code
+    uint8_t     num;        // well-known-number for interchange format
 };
 
 // hold info about target relocations
@@ -58,7 +55,7 @@ struct elf_reloc_t
 {
     // cononical constructor
     constexpr elf_reloc_t(kas_reloc_info const *reloc_info
-                        , reloc_ops_t    const *reloc_ops
+                        , reloc_op_fns   const *const *const reloc_ops
                         , std::size_t num_info
                         , std::size_t num_ops
                         , kas_rela    rela = {}
@@ -73,7 +70,7 @@ struct elf_reloc_t
     // pass arrays as arrays...
     template <size_t N, size_t R, typename...Ts>
     constexpr elf_reloc_t(kas_reloc_info const (&reloc_info)[N]
-                        , reloc_ops_t    const (&reloc_ops) [R]
+                        , reloc_op_fns   const * const(&reloc_ops)[R]
                         , Ts... args)
                 : elf_reloc_t(reloc_info, reloc_ops, N, R, std::forward<Ts>(args)...)
                 {}
@@ -105,8 +102,16 @@ struct elf_reloc_t
 
     reloc_op_fns const& get_ops(kas_reloc const& reloc) const
     {
-        static std::map<uint8_t, reloc_op_fns> fn_map{reloc_ops, reloc_ops+num_ops};
+#if 0
+        static std::map<uint8_t, reloc_op_fns> fn_map{reloc_ops_p, reloc_ops_p+num_ops};
         return fn_map.at(reloc.action);
+#else
+        if (reloc.action >= num_ops)
+            throw std::runtime_error{"elf_reloc_t::get_ops: invalid code"};
+        auto p = ops[reloc.action];
+        if (!p) p = ops[0];      // default to "none"
+        return *p;
+#endif
     }
 
     // method for `ostream`
@@ -124,8 +129,8 @@ struct elf_reloc_t
     }
 
 private:
-    kas_reloc_info const * const reloc_info;
-    reloc_ops_t    const * const ops;
+    kas_reloc_info const * const  reloc_info;
+    reloc_op_fns   const * const *ops;
     const std::size_t num_info, num_ops;
     const kas_rela    rela;
 };

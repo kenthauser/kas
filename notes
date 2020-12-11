@@ -406,16 +406,21 @@ Plan 10/2: First fix floating point emit/warning/etc
 *79. "warning: ignoring junk" message displayed one line too late. Because "loc" of warning
     diag after loc of stmt preceeding junk. Need to update `emit_listing.h` accordingly
 
-&80. Does stmt derived class (eg `bsd_equ_t`) need to be location tagged? Can't the 
+*80. Does stmt derived class (eg `bsd_equ_t`) need to be location tagged? Can't the 
     variant class alone be tagged? Thus no tagging in `bsd_parser_def`, et.al.
     Easier to tag (in `parser_def.h` alone). No overall rules for insn in `*def.h`
 
 81. `tgt_stmt` is still CRTP. make standard virtual base class
 
-82. convert `m68k::parse_insn` to token. Token operator() returns 
+*82. convert `m68k::parse_insn` to token. Token operator() returns 
      `std::pair<m68k_insn, m68k_stmt_info_t>`. Makes `invalid size` error
      more correct
 
-83. update tgt_validate_branch to use `mcode_code_size()` instead of
+*83. update tgt_validate_branch to use `mcode_code_size()` instead of
     `constexpr code_size`. Makes co-processor insns work directly.
+
+84. refactor eg m68k_elf.h & z80_aout.h to live in `elf`. Methods moved should be
+    suitable to use in `elf` linker, disassembly, and dump commands.
+
+
 
