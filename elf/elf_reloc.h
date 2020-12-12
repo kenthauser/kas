@@ -27,7 +27,26 @@ struct kas_reloc
         , bits(bits)
         , flags (pc_rel ? RFLAGS_PC_REL : 0)
         {}
-    
+#if 1
+    // allow `action` to be defined as `type`
+    template <typename ACTION, typename...Ts
+            , typename = std::enable_if_t<!std::is_integral_v<ACTION>>>
+    constexpr kas_reloc(ACTION const& action, Ts&&...args)
+        : kas_reloc(action_index(action), std::forward<Ts>(args)...) {}
+#endif
+    template <typename ACTION> 
+    constexpr uint16_t action_index(ACTION const&) const
+    {
+        return meta::find_index<reloc_ops_v,ACTION>::value + 1;
+    }
+
+    const reloc_op_fns& get() const
+    {
+        if (action)
+            return *reloc_ops_p[action-1];
+        throw std::runtime_error{"kas_reloc::get: undefined action"};
+    }
+
     // generate `std::map` key (from 3 8-bit values)
     constexpr auto key() const
     {
