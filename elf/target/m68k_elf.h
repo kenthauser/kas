@@ -1,9 +1,10 @@
-#ifndef KAS_ELF_M68K_M68K_ELF_H
-#define KAS_ELF_M68K_M68K_ELF_H
+#ifndef KAS_ELF_TARGET_M68K_ELF_H
+#define KAS_ELF_TARGET_M68K_ELF_H
 
-#include "kas_core/emit_object.h"      // for `obj_format` template
+#include "kas_core/emit_object.h"       // for `obj_format` template
+#include "m68k.h"
 #include "elf/elf_reloc.h"
-#include "elf/elf_format_elf.h"
+#include "elf/elf_format_elf.h"         // XXX needs to be "relative"
 #include "elf/elf_format_elf_write.h"
 
 namespace kas::elf::m68k
@@ -99,6 +100,11 @@ struct m68k_elf : elf32_format<std::endian::big>
     // relocs is `constexpr
     static constexpr elf_reloc_t relocs { m68k_elf_relocs, reloc_ops_p };
 };
+
+
+// expose obj format
+template <> struct m68k_formats_v<FORMAT_ELF> : meta::id<m68k_elf> {};
+
 }
 
 // set object format

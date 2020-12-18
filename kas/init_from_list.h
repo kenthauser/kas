@@ -1,5 +1,5 @@
-#ifndef KAS_PARSER_INIT_FROM_LIST_H
-#define KAS_PARSER_INIT_FROM_LIST_H   
+#ifndef KAS_INIT_FROM_LIST_H
+#define KAS_INIT_FROM_LIST_H   
 
 // `init_from_list` is a metafunction used to generate a 
 // `constexpr std::array` of definitions from a `meta::list` of definitions.
@@ -14,6 +14,8 @@
 //  2. init_from_list<T, LIST, CTOR, CTOR_ARG>
 //
 // The first format generates `init` type as described above.
+// The second format can be used with `VT_CTOR` (defined below) to generate a
+// "pointer-to-static-instantiated-instance" array for lists of virtual types.
 //
 // The second format transforms the LIST using CTOR<CTOR_ARG> before
 // generating definitions. Usage patterns for this format include replacing
@@ -32,7 +34,7 @@
 #include <type_traits>
 #include <array>
 
-namespace kas::parser
+namespace kas
 {
 namespace detail
 {
@@ -65,7 +67,7 @@ struct init_from_list :
 template <typename T, typename...Ts, typename CTOR_ARG>
 struct init_from_list<T, meta::list<Ts...>, void, CTOR_ARG>
 {
-    // NB: use std::array<> for support of zero-length arrays
+    // NB: disallow zero length arrays...
     static constexpr auto size = sizeof...(Ts);
     static constexpr auto _size = std::max<unsigned>(1, size);
     static constexpr T data[_size] { detail::value_of(Ts())... };

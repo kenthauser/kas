@@ -32,9 +32,9 @@
 //  x3()        // normal token parser: lexeme followed by !x3:alnum
 //  deref()     // parse as `x3`. return `const T` instead of `const T*`
 
-#include "init_from_list.h"
 #include "sym_parser_detail.h"
 #include "sym_parser_xlate.h"
+#include "kas/init_from_list.h"
 
 namespace kas::parser
 {

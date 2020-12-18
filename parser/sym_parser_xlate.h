@@ -53,6 +53,7 @@
 // The result of step 3 is stored as `sym_defns` in the parser.
 //
 
+#include "kas/init_from_list.h"
 
 namespace kas::parser::detail
 {

@@ -12,7 +12,7 @@
 #include "tgt_validate.h"
 #include "tgt_format.h"
 
-#include "parser/init_from_list.h"  // get VT_CTOR
+#include "kas/init_from_list.h"     // get VT_CTOR
 
 namespace kas::tgt::opc
 {
@@ -102,8 +102,8 @@ struct tgt_mcode_defn
     // `ADDER` & `XLATE_LIST` are picked up by `sym_parser_t`
     using ADDER      = adder_t;
     using XLATE_LIST = list<list<const char *       , NAME_LIST>
-                          , list<const fmt_t *      , FMT_LIST, parser::VT_CTOR, fmt_dflt_list>
-                          , list<const val_t *      , VAL_LIST, parser::VT_CTOR>
+                          , list<const fmt_t *      , FMT_LIST, VT_CTOR, fmt_dflt_list>
+                          , list<const val_t *      , VAL_LIST, VT_CTOR>
 
                           // val_combos: don't have the `sym_parser` generate defn
                           , list<void               , VAL_LIST, void, list<>, quote<list>>

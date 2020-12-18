@@ -44,7 +44,7 @@ using EXT = K("Extended");
 using SPL = K("Special");
 
 // due to the `K_STRING` macro 16 character limit, use second macro to prepend "Set "
-#define KS(msg) str_cat<KAS_STRING("Set "), KAS_STRING(msg)>
+#define KS(msg) string::str_cat<KAS_STRING("Set "), KAS_STRING(msg)>
 
 // NB: the rows are arranged in numeric order within each insn type.
 // NB: the column order and count must match `dwarf_defns.inc` order

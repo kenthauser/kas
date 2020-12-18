@@ -37,7 +37,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     using Iter         = typename base_t::Iter;
 
     OPC_INDEX();
-    using NAME = str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_BRANCH")>;
+    using NAME = string::str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_BRANCH")>;
     const char *name() const override { return NAME::value; }
 
     // methods to override

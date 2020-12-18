@@ -113,7 +113,7 @@ struct tgt_opc_quick : tgt_opc_quick_base<typename MCODE_T::mcode_size_t>
 
     OPC_INDEX();
 
-    using NAME = str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_QUICK")>;
+    using NAME = string::str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_QUICK")>;
     const char *name() const override { return NAME::value; }
    
     template <typename ARGS>

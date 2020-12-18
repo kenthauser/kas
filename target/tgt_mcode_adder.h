@@ -58,13 +58,13 @@ struct tgt_defn_adder
                               >;
 
         // store pointer to array of `val_c_t` instances in `defn_t`
-        defn_t::val_c_base = parser::init_from_list<const val_c_t, COMBO>::value;
+        defn_t::val_c_base = init_from_list<const val_c_t, COMBO>::value;
         
         // val list & names are stored in `combo` 
         // the `VT` ctor takes care of the `FN_T, args...` part of `VALS` instantiation
         // extract "NAMEs" to separate list.
         using VAL_NAMES     = transform<VALS, quote<front>>;
-        val_c_t::names_base = parser::init_from_list<const char *, VAL_NAMES>::value;
+        val_c_t::names_base = init_from_list<const char *, VAL_NAMES>::value;
         val_c_t::vals_base  = at_c<all_types_defns, defn_t::XLT_IDX_VAL>::value;
     }
 

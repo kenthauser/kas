@@ -52,8 +52,8 @@ namespace detail
     template <typename tag = void> struct parser_label_l : list<> {};
 
     // declare empty strings for comment and stmt seperator default
-    template <typename = void> struct stmt_separator_str : kas_string<> {};
-    template <typename = void> struct stmt_comment_str   : kas_string<> {};
+    template <typename = void> struct stmt_separator_str : string::kas_string<> {};
+    template <typename = void> struct stmt_comment_str   : string::kas_string<> {};
 }
 
 using namespace ::kas::core::opc;

@@ -15,6 +15,7 @@
 //    the appropriate type. This is the approach taken by `boost::metaparse`
 //
 // This module implements a simplified version of the `boost::metaparse` approach
+// Strings are limited to 16 characters, excluding the NULL.
 
 #include <utility>
 #include <array>

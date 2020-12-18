@@ -48,7 +48,7 @@ struct tgt_insn_t
     using index_t   = INDEX_T;
 
     //using base_name = KAS_STRING("M68K");
-    using insn_name = kas::str_cat<BASE_NAME, KAS_STRING("_INSN")>;
+    using insn_name = string::str_cat<BASE_NAME, KAS_STRING("_INSN")>;
     using token_t   = parser::token_defn_t<insn_name, tgt_insn_t>;
 
     using opcode    = core::opcode;

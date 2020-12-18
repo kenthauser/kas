@@ -59,7 +59,7 @@ struct tgt_reg
 
     using hw_tst      = typename hw_defs::hw_tst;
     
-    using token_name  = kas::str_cat<NAME, KAS_STRING("_REG")>;
+    using token_name  = string::str_cat<NAME, KAS_STRING("_REG")>;
     using token_t     = parser::token_defn_t<token_name, Derived>;
 
     // be sure bits fit into single `BASE_T` value

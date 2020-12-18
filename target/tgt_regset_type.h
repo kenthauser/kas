@@ -21,7 +21,7 @@ struct tgt_reg_set : core::kas_object<Derived, Ref>
     using reg_t       = Reg_t;
     using rs_value_t  = int32_t;     // NB: e_fixed_t
     using core_expr_t = typename core::core_expr_t;
-    using regset_name = kas::str_cat<typename Reg_t::base_name, KAS_STRING("_REGSET")>;
+    using regset_name = string::str_cat<typename Reg_t::base_name, KAS_STRING("_REGSET")>;
     using token_t     = parser::token_defn_t<regset_name, Derived>;
     
     // declare errors

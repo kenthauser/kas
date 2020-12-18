@@ -133,7 +133,7 @@ struct elf_reloc_t
 #endif
     }
 
-    // method for `ostream`
+    // method for `ostream`: direct search, no `map`
     const char *get_info(uint8_t r_num, kas_reloc_info const **info_p = {}) const
     {
         auto p = reloc_info;

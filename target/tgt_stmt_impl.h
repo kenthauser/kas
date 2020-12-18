@@ -225,7 +225,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
 {
     using BASE_NAME = typename INSN_T::mcode_t::BASE_NAME;
     
-    static constexpr auto name_prefix = kas::str_cat<BASE_NAME, KAS_STRING(":")>::value;
+    static constexpr auto name_prefix = string::str_cat<BASE_NAME, KAS_STRING(":")>::value;
     auto& insn  = *insn_tok_t(insn_tok)();
     return name_prefix + insn.name;
 }

@@ -27,7 +27,7 @@ uint8_t m68k_mcode_t::sz(stmt_info_t info) const
     return info.arg_size;
 }
 
-using LWB_SIZES = kas::parser::init_from_list<opc::m68k_insn_lwb, opc::LWB_SIZE_LIST>;
+using LWB_SIZES = init_from_list<opc::m68k_insn_lwb, opc::LWB_SIZE_LIST>;
 
 auto m68k_mcode_t::code(stmt_info_t info) const
     -> std::array<mcode_size_t, MAX_MCODE_WORDS>
