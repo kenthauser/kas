@@ -39,9 +39,9 @@ str: str.cc
 	$(LINK.cc) -o $@ $?
 	./$@
 
-VPATH = parser:expr:kas_core:bsd:m68k:test:kas_exec:z80:arm
+VPATH = parser:expr:kas_core:bsd:elf:m68k:test:kas_exec
 
-OBJS =  kas_core.o expr.o parser.o
+OBJS =  kas_core.o expr.o parser.o elf.o
 OBJS += bsd.o
 #OBJS += m68k.o
 #OBJS += z80.o
@@ -54,12 +54,12 @@ TEST_PARSE_ARGS = test/parse_tests
 TEST_EMIT_ARGS  = test/emit_tests
 
 #CXXFLAGS += -DTRACE_DO_FRAG=3
-expr.o : CXXFLAGS += -DPRINT_EXPR_INFO
+#expr.o : CXXFLAGS += -DPRINT_EXPR_INFO
 #expr.o : CXXFLAGS += -DEXPR_TRACE_EVAL
-CXXFLAGS += -DTOKEN_TRACE
+#CXXFLAGS += -DTOKEN_TRACE
 #CXXFLAGS += -DTRACE_ARG_SERIALIZE
 #arm.o : CXXFLAGS += -DTRACE_ARG_SERIALIZE
-m68k.o : CXXFLAGS += -DTRACE_M68K_PARSE
+#m68k.o : CXXFLAGS += -DTRACE_M68K_PARSE
 #CXXFLAGS += -DTRACE_ERROR_HANDLER
 
 

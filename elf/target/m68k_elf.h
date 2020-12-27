@@ -13,7 +13,7 @@ namespace kas::elf::m68k
 // M68K relocations: fields = WKN Name Action width pc-rel
 constexpr kas_reloc_info const m68k_elf_relocs[] =
 {
-#if 1
+#if 0
     {  0 , "R_68K_NONE"     , { K_REL_NONE      ,  0, 0 }}
   , {  1 , "R_68K_32"       , { K_REL_ADD       , 32, 0 }}
   , {  2 , "R_68K_16"       , { K_REL_ADD       , 16, 0 }}

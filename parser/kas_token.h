@@ -30,8 +30,8 @@ struct kas_token : kas_position_tagged
             >
     kas_token(T&& obj) : defn_p{&TOK().get()}
     {
-        std::cout << "kas_token: ctor: " << defn_p->name();
-        print_type_name{", T = ", ""}.name<T>(); 
+        //std::cout << "kas_token: ctor: " << defn_p->name();
+        //print_type_name{", T = ", ""}.name<T>(); 
 
         set(std::forward<T>(obj));
         
@@ -53,7 +53,7 @@ struct kas_token : kas_position_tagged
     void set(T const& obj)
     {
         //print_type_name{"kas_token::set"}.name<T>();
-        std::cout << "kas_token::set src=" << where() << std::endl;
+        //std::cout << "kas_token::set src=" << where() << std::endl;
         if constexpr (std::is_integral_v<T>)
         {
             _fixed = obj;

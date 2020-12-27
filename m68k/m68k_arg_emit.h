@@ -56,7 +56,7 @@ void m68k_arg_t::emit(core::emit_base& base, uint8_t sz)
             else
                 size = 2;
                
-            static constexpr elf::kas_reloc reloc { elf::K_REL_ADD, 0, true };
+            static constexpr elf::kas_reloc reloc { elf::K_REL_ADD(), 0, true };
             base << core::set_size(size) << core::emit_reloc(reloc) << expr << 0;
             return;
         }

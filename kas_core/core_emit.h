@@ -242,7 +242,7 @@ struct emit_disp
 private:
     friend auto operator<<(emit_base& base, emit_disp r)
     {
-        elf::kas_reloc reloc { elf::K_REL_ADD
+        elf::kas_reloc reloc { elf::K_REL_ADD()
                              , static_cast<uint8_t>(r.size * 8)
                              , true };
         

@@ -84,9 +84,8 @@ struct init_from_list<T, meta::list<Ts...>, void, CTOR_ARG>
 
 namespace detail
 {
-    // NB: This is a special for `tgt::val_t` which passes `list<NAME, T, args...>`
-    // instead of a single type. Special case shouldn't be here, but `kas` is an
-    // assembler, after all...
+    // NB: This special developed for `tgt::val_t` which passes `list<NAME, T, args...>`.
+    // Also used for instantiation of other virtual types, such as `kbfd relocation ops`
     template <typename DFLT, typename T, typename = void>
     struct vt_ctor_impl : vt_ctor_impl<DFLT, meta::list<void, T>> {};
 

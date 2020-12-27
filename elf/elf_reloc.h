@@ -33,12 +33,19 @@ struct kas_reloc
             , typename = std::enable_if_t<!std::is_integral_v<ACTION>>>
     constexpr kas_reloc(ACTION const& action, Ts&&...args)
         : kas_reloc(action_index(action), std::forward<Ts>(args)...) {}
-#endif
     template <typename ACTION> 
     constexpr uint16_t action_index(ACTION const&) const
     {
         return meta::find_index<reloc_ops_v,ACTION>::value + 1;
     }
+#endif
+
+    // allow 'action' to be defined as `string`
+    template <typename...Ts>
+    kas_reloc(const char *action, Ts&&...args)
+        : kas_reloc(reloc_get_action(action), std::forward<Ts>(args)...) 
+        {}
+
 
     const reloc_op_fns& get() const
     {

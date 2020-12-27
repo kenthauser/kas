@@ -41,12 +41,12 @@ deferred_reloc_t& emit_base::add_reloc(elf::kas_reloc r, int64_t addend, uint8_t
 {
     if (reloc_p == std::end(relocs))
         throw std::runtime_error("emit_base: too many relocations for insn");
-
+#if 0
     // set default "RELOC" to `add`
     // XXX ???
-    if (r.action== elf::K_REL_NONE)
-        r.action = elf::K_REL_ADD;
-   
+    if (r.action== elf::K_REL_NONE())
+        r.action = elf::K_REL_ADD();
+#endif
     *reloc_p++ = { r, addend, offset };
     return reloc_p[-1];
 }

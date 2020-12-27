@@ -160,7 +160,7 @@ struct tgt_reg_adder
             // names from defn with `x3` parser to return `tgt_reg` object.
             // finally, update `tgt_reg` object with defn.
 
-            std::cout << "reg_adder:" << *p;
+            //std::cout << "reg_adder:" << *p;
             auto canonical = Reg_t::format_name(p->name());
             if (!x3.find(canonical))
             {
@@ -178,19 +178,19 @@ struct tgt_reg_adder
                     if (!name)
                         break;
                     
-                    std::cout << "reg_adder: adding " << name << std::endl;
+                    //std::cout << "reg_adder: adding " << name << std::endl;
                     x3.add(Reg_t::format_name(name), obj_p);
 
                     // see if alternate names
                     name = Reg_t::format_name(name, 1); 
                     if (name)
                     {
-                        std::cout << "reg_adder: alternate " << name << std::endl;
+                        //std::cout << "reg_adder: alternate " << name << std::endl;
                         x3.add(name, obj_p);
                     }
                 }
             }
-            std::cout << "reg_adder: adding defn for: " << canonical << std::endl; 
+            //std::cout << "reg_adder: adding defn for: " << canonical << std::endl; 
             (*x3.find(canonical))->add_defn(*p, n);
         }
     }

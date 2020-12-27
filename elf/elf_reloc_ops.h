@@ -1,88 +1,27 @@
 #ifndef KAS_ELF_ELF_RELOC_OPS_H
 #define KAS_ELF_ELF_RELOC_OPS_H
 
+#include "elf_reloc_ops_base.h"
+#include "elf.h"
+
 namespace kas::elf
 {
 
-// generic relocation operations
-enum kas_reloc_op : uint8_t
-{
-      K_REL_NONE
-    , K_REL_ADD
-    , K_REL_SUB
-    , K_REL_GOT
-    , K_REL_PLT
-    , K_REL_COPY
-    , K_REL_GLOB_DAT
-    , K_REL_JMP_SLOT
-    , NUM_KAS_RELOC_OP
-};
+
+// define relocation ops as `types`
+using K_REL_NONE     = KAS_STRING("K_REL_NONE");
+using K_REL_ADD      = KAS_STRING("K_REL_ADD");
+using K_REL_SUB      = KAS_STRING("K_REL_SUB");
+using K_REL_GOT      = KAS_STRING("K_REL_GOT");
+using K_REL_PLT      = KAS_STRING("K_REL_PLT");
+using K_REL_COPY     = KAS_STRING("K_REL_COPY");
+using K_REL_GLOB_DAT = KAS_STRING("K_REL_GLOB_DAT");
+using K_REL_JMP_SLOT = KAS_STRING("K_REL_JMP_SLOT");
+
+using ARM_REL_MOVW   = KAS_STRING("ARM_REL_MOVW");
+using ARM_REL_MOVT   = KAS_STRING("ARM_REL_MOVT");
 
 
-// XXX move to ARM
-// ARM specific relocation operations
-enum arm_reloc_op : uint8_t
-{
-      ARM_REL_MOVW  = NUM_KAS_RELOC_OP
-    , ARM_REL_MOVT
-    , NUM_ARM_RELOC
-};
-
-#if 0
-struct reloc_op_fns
-{
-    using read_fn_t   = int64_t(*)(int64_t data);
-    using write_fn_t  = int64_t(*)(int64_t data, int64_t value);
-    using update_fn_t = int64_t(*)(int64_t data, int64_t addend);
-
-    constexpr reloc_op_fns(update_fn_t update_fn = {}
-                         , write_fn_t  write_fn  = {}
-                         , read_fn_t   read_fn   = {}
-                         )
-            : read_fn(read_fn), write_fn(write_fn), update_fn(update_fn) {}
-
-    // prototype update functions
-    static int64_t update_add(int64_t value, int64_t addend) { return value + addend; } 
-    static int64_t update_sub(int64_t value, int64_t addend) { return value - addend; } 
-    static int64_t update_set(int64_t value, int64_t addend) { return addend; } 
-
-    // test if operation is defined
-    constexpr operator bool() const { return update_fn; }
-
-    update_fn_t update_fn;
-    write_fn_t  write_fn;
-    read_fn_t   read_fn;
-};
-
-#else
-
-struct reloc_op_fns
-{
-    using value_t  = int64_t;
-    struct update_t : std::pair<value_t, bool>
-    {
-        constexpr update_t(value_t data = {}, bool defined = true)
-                    : std::pair<value_t, bool>(data, defined) {}
-    };
-
-    constexpr reloc_op_fns() {}
-
-    // default: read/write return data/value un-modified
-    virtual value_t  read  (value_t data)                 const { return data;  }
-    virtual value_t  write (value_t data, value_t value)  const { return value; }
-
-    // bool true if update defined
-    virtual update_t update(value_t data, value_t addend) const { return {}; };
-#if 0
-    // prototype update functions
-    static value_t update_add(value_t value, value_t addend) { return value + addend; } 
-    static value_t update_sub(value_t value, value_t addend) { return value - addend; } 
-    static value_t update_set(value_t value, value_t addend) { return addend; } 
-#endif
-};
-
-
-#endif
 
 namespace detail 
 {
@@ -122,24 +61,27 @@ using k_rel_jmp_slot_t = reloc_op_fns;
 
 struct k_rel_add_t : reloc_op_fns
 {
+    using reloc_op_fns::reloc_op_fns;
     update_t update(value_t data, value_t addend) const override { return data + addend; }  
 };
 
 struct k_rel_sub_t : reloc_op_fns
 {
+    using reloc_op_fns::reloc_op_fns;
     update_t update(value_t data, value_t addend) const override { return data - addend; } 
 };
 
 using reloc_ops_v = meta::list<
-        k_rel_none_t
-      , k_rel_add_t
-      , k_rel_sub_t
-      , k_rel_got_t
-      , k_rel_plt_t
-      , k_rel_copy_t
-      , k_rel_glob_dat_t
-      , k_rel_jmp_slot_t
+        K_REL_NONE
+      , K_REL_ADD
+      , K_REL_SUB
+      , K_REL_GOT
+      , K_REL_PLT
+      , K_REL_COPY
+      , K_REL_GLOB_DAT
+      , K_REL_JMP_SLOT
       >;
+
 
 // much of this is taken care of by `init_from_list`
 static constexpr k_rel_none_t k_rel_none;
@@ -152,5 +94,17 @@ constexpr reloc_op_fns const * const reloc_ops_p [reloc_ops_v::size()] =
         , &k_rel_add
         , &k_rel_sub
     };
+
+template <> struct X_reloc_ops_v<K_REL_NONE> : meta::list<
+        KBFD_ACTION<K_REL_NONE  , reloc_op_fns>
+      , KBFD_ACTION<K_REL_ADD   , k_rel_add_t>
+      , KBFD_ACTION<K_REL_SUB   , k_rel_sub_t>
+      > {};
+
+using reloc_ops_defn_tags = meta::push_front<target_tags, K_REL_NONE>;
+using all_reloc_ops = all_defns<X_reloc_ops_v, reloc_ops_defn_tags>;
+
+uint8_t reloc_get_action(const char *);
+
 }
 #endif

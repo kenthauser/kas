@@ -122,6 +122,6 @@ namespace {
             //auto  cnt   = ops.defns_count;
         }
 
-    } _x;
+    }// _x;
 }
 #endif
