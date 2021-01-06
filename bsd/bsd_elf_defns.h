@@ -1,7 +1,7 @@
 #ifndef KAS_BSD_BSD_ELF_DEFNS_H
 #define KAS_BSD_BSD_ELF_DEFNS_H
 
-#include "elf/elf_common.h"
+#include "kbfd/elf_common.h"
 
 namespace kas::bsd::parser
 {
@@ -48,7 +48,7 @@ namespace detail
                 ("notype"           , STT_NOTYPE)
 
 #if 0
-                // in gas documentation, but not elf/elf_common.h
+                // in gas documentation, but not kbfd/kbfd_common.h
                 // closest is "binding" STB_GNU_UNIQUE
                 ("STT_GNU_UNIQUE"   , STT_GNU_UNIQUE)
                 ("gnu_unique_object", STT_GNU_UNIQUE)

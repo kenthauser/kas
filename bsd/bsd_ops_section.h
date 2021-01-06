@@ -11,7 +11,7 @@
 #include "kas_core/core_symbol.h"
 //#include "parser/ast_parser.h"      // need print functions
 
-#include "elf/elf_external.h"
+#include "kbfd/elf_external.h"
 
 #include "kas/defn_utils.h"
 #include "utility/string_mpl.h"
@@ -204,7 +204,7 @@ struct bsd_section_base :  opc_section
     const char *proc_elf_flags(T const& flags_p)
     {
         for (auto p = flags_p->value().c_str(); *p; ++p) {
-            elf::Elf32_Word bsd_flag{};
+            kbfd::Elf32_Word bsd_flag{};
             switch (*p) {
                 case 'a':
                     bsd_flag = SHF_ALLOC;
@@ -250,11 +250,11 @@ struct bsd_section_base :  opc_section
     }
 
     std::string     sh_name;
-    elf::Elf32_Word sh_type     {};
-    elf::Elf32_Word sh_flags    {};
-    elf::Elf32_Word sh_entsize  {};
+    kbfd::Elf32_Word sh_type     {};
+    kbfd::Elf32_Word sh_flags    {};
+    kbfd::Elf32_Word sh_entsize  {};
     std::string     kas_group   {};
-    elf::Elf32_Word kas_linkage {};
+    kbfd::Elf32_Word kas_linkage {};
 
     bool flag_group   {};
     bool flag_entsize {};

@@ -12,6 +12,7 @@
 #include "kas_core/core_relax.h"
 #include "dwarf/dwarf_impl.h"
 
+#include "kas_core/emit_object.h"
 #include "kas_core/emit_listing.h"
 
 #include "kas_core/assemble.h"
@@ -22,10 +23,11 @@
 #include "machine_out.h"
 #endif
 
-#include "kas_core/elf_stream_impl.h"    // XXX
-#include "kas_core/elf_symbol_util.h"    // XXX
-//#include "elf/elf_format_write.h"       // XXX
-#include "elf/elf_format_elf_ostream.h"     // ostream host format
+#include "kbfd/kbfd.h"
+#include "kas_core/kbfd_stream_impl.h"    // XXX
+#include "kas_core/kbfd_symbol_util.h"    // XXX
+//#include "kbfd/kbfd_format_write.h"       // XXX
+#include "kbfd/kbfd_format_elf_ostream.h"     // ostream host format
 
 
 
@@ -40,9 +42,8 @@
 namespace fs = boost::filesystem;
 namespace testing = boost::spirit::x3::testing;
 
-auto sub_path_ext(std::string const& input, const std::string& new_ext)
+auto sub_path_ext(std::string s, const std::string& new_ext)
 {
-    auto s(input);
     auto i = s.rfind('.', s.length());
 
     if (i != std::string::npos)
@@ -68,14 +69,19 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     // create source object
     kas::parser::parser_src src;
     src.push(source.begin(), source.end(), input_path.c_str());
-    
+#if 0 
     // need object format before assembling
     // `obj_fmt` defines valid relocations
-    //kas::elf::m68k::m68k_elf obj_fmt;
+    //kas::kbfd::m68k::m68k_elf obj_fmt;
     meta::_t<kas::core::detail::obj_format<>> obj_fmt;
+#else
+    // need object format before assembling
+    auto& obj_fmt  = *kbfd::get_obj_format(kbfd::TARGET_M68K());
+    kbfd::kbfd_object kbfd_obj(obj_fmt);
+#endif
     
     // create assembler object
-    kas::core::kas_assemble obj(obj_fmt);
+    kas::core::kas_assemble obj(kbfd_obj);
     obj.assemble(src, &parse_out);
     //obj.assemble(src);
     
@@ -137,14 +143,14 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
 #endif
 #if 1
     // create object output (binary data)
-    kas::core::emit_object elf_obj(obj_fmt);
-    obj.emit(elf_obj);
+    kas::core::emit_object e_obj(kbfd_obj);
+    obj.emit(e_obj);
 
     // get dest for object output
-    auto elf_path = sub_path_ext(input_path.c_str(), "elf");
-    std::ofstream elf_out(elf_path, std::ios_base::binary | std::ios_base::trunc);
+    auto kbfd_path = sub_path_ext(input_path.c_str(), "kbfd");
+    std::ofstream kbfd_out(kbfd_path, std::ios_base::binary | std::ios_base::trunc);
     
-    elf_obj.write(obj_fmt, elf_out);
+    kbfd_obj.write(/* XXX obj_fmt, */ kbfd_out);
 #endif
 #if 1
     parse_out << "LISTING:" << std::endl;

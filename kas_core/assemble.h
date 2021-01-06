@@ -16,11 +16,15 @@ struct kas_assemble
     using INSNS = insn_container<>;
     static inline kas_clear _c{INSNS::obj_clear};
 
+#if 0
     // perform data structure inits -- refactor if need to parameterize...
     // from initial FORMAT, just keep relocs...
     template <typename FORMAT>
     kas_assemble(FORMAT const& format)
         : relocs(format.relocs)
+#else
+    kas_assemble(kbfd::kbfd_object& obj) : obj(obj)
+#endif
     {
         // declare "default" sections
         // NB: put here so they are numbered 1, 2, 3
@@ -113,7 +117,7 @@ struct kas_assemble
         e.set_segment(core_section::get(".text")[0]);
         
         // XXX supply reloc info here, but needed before relax...
-        e.elf_reloc_p = &relocs;
+        // XXX kbfd e.elf_reloc_p = &relocs;
         auto proc_container = [&e](auto& container)
             {
                 container.proc_all_frags(
@@ -246,7 +250,11 @@ private:
     }
 
     INSNS *do_gen_dwarf {};
-    elf::elf_reloc_t const &relocs;
+#if 0
+    kbfd::elf_reloc_t const &relocs;
+#else
+    kbfd::kbfd_object& obj;
+#endif
 };
 }
 #endif

@@ -127,7 +127,7 @@ struct quick_stream : core::emit_stream
     // emit reloc
     void put_symbol_reloc(
               e_chan_num num
-            , elf::kas_reloc_info const& info
+            , kbfd::kas_reloc_info const& info
             , uint8_t offset
             , core::core_symbol_t const& sym
             , int64_t& addend
@@ -138,7 +138,7 @@ struct quick_stream : core::emit_stream
     
     void put_section_reloc(
               e_chan_num num
-            , elf::kas_reloc_info const& info
+            , kbfd::kas_reloc_info const& info
             , uint8_t offset
             , core::core_section const& section
             , int64_t& addend

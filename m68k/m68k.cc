@@ -37,7 +37,7 @@
 #include "mit_arg_ostream.h"
 #include "moto_arg_ostream.h"
 
-#include "elf/elf_convert_elf.h"
+#include "kbfd/kbfd_convert_elf.h"
 
 // instantiate global values controlling assembly
 namespace kas::m68k::hw

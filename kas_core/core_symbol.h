@@ -8,7 +8,7 @@
 
 // Use ELF values for symbol type & symbol binding.
 // BSD pseudo ops can specify type & binding by numeric value, so hard to fake.
-#include "elf/elf_common.h"
+#include "kbfd/elf_common.h"
 
 
 // ELF requires first local symbol be the one-and-only `STT_FILE` symbol.

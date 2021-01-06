@@ -30,8 +30,8 @@ using F = OP_defn<OP_before, struct OP_FILE>;
 // side effects
 using Z = OP_defn<OP_after,  struct OP_ZERO>;    
 
-// shorten name
-#define K           KAS_STRING
+// shorten macro name
+#define K   KAS_STRING
 
 // instruction to emit row: "Yes", "Yes & Init", "No"
 using Y = K("Y");
@@ -43,7 +43,7 @@ using STD = K("Standard");
 using EXT = K("Extended");
 using SPL = K("Special");
 
-// due to the `K_STRING` macro 16 character limit, use second macro to prepend "Set "
+// `K_STRING` macro 16 character limit, use second macro to prepend "Set "
 #define KS(msg) string::str_cat<KAS_STRING("Set "), KAS_STRING(msg)>
 
 // NB: the rows are arranged in numeric order within each insn type.

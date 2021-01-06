@@ -3,7 +3,7 @@
 #include "exec_options.h"
 #include "kas_core/assemble.h"
 #include "kas_core/emit_listing.h"
-#include "elf/elf_emit.h"
+#include "kbfd/kbfd_emit.h"
 #include <iostream>
 #include <boost/filesystem.hpp>
 
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     kas::core::core_symbol::dump(list_stream);
 #endif
 #if 1
-    kas::elf::elf_emit elf_obj(ELFCLASS32, ELFDATA2MSB, EM_68K); 
+    kas::kbfd::elf_emit elf_obj(ELFCLASS32, ELFDATA2MSB, EM_68K); 
     obj.emit(elf_obj);
 
     std::ofstream elf_out(obj_file.native(), std::ios_base::binary);

@@ -102,7 +102,7 @@ struct fmt_displacement : m68k_mcode_t::fmt_t::fmt_impl
             // displacement is from pc + 2, 1 byte offset from base machine code word
             // XXX offset??
             // reloc is 8-bits & pc-relative
-            elf::kas_reloc r { elf::K_REL_ADD(), 8, true }; 
+            kbfd::kas_reloc r { kbfd::K_REL_ADD(), 8, true }; 
             
             // reloc is from end of machine code, with 1 byte offset
             base << core::emit_reloc(r, -2, 1) << arg.expr;

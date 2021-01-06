@@ -2,7 +2,7 @@
 #define KAS_CORE_CORE_RELOC_H
 
 #include "expr/expr.h"
-#include "elf/elf_reloc.h"
+#include "kbfd/kbfd_reloc.h"
 #include "utility/align_as_t.h"
 
 namespace kas::core
@@ -20,7 +20,7 @@ struct deferred_reloc_t
     };
     
     deferred_reloc_t() = default;
-    deferred_reloc_t(elf::kas_reloc reloc, int64_t addend = {}, uint8_t offset = {})
+    deferred_reloc_t(kbfd::kas_reloc reloc, int64_t addend = {}, uint8_t offset = {})
         : reloc(reloc), addend(addend), offset(offset)
     {
 #if 0
@@ -46,7 +46,7 @@ struct deferred_reloc_t
     // return true iff `relocs` emited OK
     static bool done(emit_base& base);
 
-    elf::kas_reloc      reloc;
+    kbfd::kas_reloc      reloc;
     int64_t             addend       {};
     core_symbol_t const *sym_p       {};
     core_expr_t   const *core_expr_p {};

@@ -1,0 +1,18 @@
+a.out symbols:
+
+a.out symbols use `n_type` to define section. Defined sections are
+        N_UNDEF 0
+        N_ABS   2
+        N_TEXT  4
+        N_DATA  6
+        N_BSS   8
+        N_COMM  0x12
+        N_FN    0x1f    // file name of .o
+
+        // others for weak symbols. can derive from above
+
+Currently `kbfd_section_sym::generate_symtab(obj&)` converts host -> obj 
+symbol table. However, need mapping from `section` to `N_*`
+
+
+

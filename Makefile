@@ -1,4 +1,5 @@
 CXXFLAGS += -std=c++17 -I. -g
+//CXXFLAGS += -std=c++2a -I. -g
 CXXFLAGS += -pedantic
 CXXFLAGS += -isystem spirit/include -isystem meta/include   \
                                     -isystem /usr/local/include
@@ -39,9 +40,9 @@ str: str.cc
 	$(LINK.cc) -o $@ $?
 	./$@
 
-VPATH = parser:expr:kas_core:bsd:elf:m68k:test:kas_exec
+VPATH = parser:expr:kas_core:bsd:kbfd:m68k:test:kas_exec
 
-OBJS =  kas_core.o expr.o parser.o elf.o
+OBJS =  kas_core.o expr.o parser.o kbfd.o
 OBJS += bsd.o
 #OBJS += m68k.o
 #OBJS += z80.o

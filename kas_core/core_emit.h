@@ -122,20 +122,20 @@ private:
     void emit_obj_code();
 public:
     void set_chan (e_chan_num);
-    elf::elf_reloc_t const *elf_reloc_p {};
+    kbfd::elf_reloc_t const *elf_reloc_p {};
 private:
 
     // emit relocations (used by `core_reloc`)
-    void put_section_reloc(deferred_reloc_t const&, elf::kas_reloc_info const *info_p
+    void put_section_reloc(deferred_reloc_t const&, kbfd::kas_reloc_info const *info_p
                          , core_section const& section, int64_t& addend);
-    void put_symbol_reloc (deferred_reloc_t const&, elf::kas_reloc_info const *info_p
+    void put_symbol_reloc (deferred_reloc_t const&, kbfd::kas_reloc_info const *info_p
                          , core_symbol_t  const& symbol, int64_t& addend);
     
     // manipulators to configure data stream
     void set_width(std::size_t w);
 
     // utility methods
-    deferred_reloc_t& add_reloc(elf::kas_reloc r = {}, int64_t addend = {}, uint8_t offset = {});
+    deferred_reloc_t& add_reloc(kbfd::kas_reloc r = {}, int64_t addend = {}, uint8_t offset = {});
 
     void assert_width() const;      
     void set_defaults();
@@ -197,7 +197,7 @@ struct emit_reloc
     using emit_value_t = typename emit_base::emit_value_t;
 
 
-    emit_reloc(elf::kas_reloc r, emit_value_t addend = {}, uint8_t offset = {})
+    emit_reloc(kbfd::kas_reloc r, emit_value_t addend = {}, uint8_t offset = {})
         : reloc(r), addend(addend), offset(offset) {}
     
     // expect relocatable expression.
@@ -218,7 +218,7 @@ private:
     emit_base *base_p;
     deferred_reloc_t *r {};
 
-    elf::kas_reloc     reloc;
+    kbfd::kas_reloc     reloc;
     emit_value_t  addend;
     uint8_t       offset;
 };
@@ -242,7 +242,7 @@ struct emit_disp
 private:
     friend auto operator<<(emit_base& base, emit_disp r)
     {
-        elf::kas_reloc reloc { elf::K_REL_ADD()
+        kbfd::kas_reloc reloc { kbfd::K_REL_ADD()
                              , static_cast<uint8_t>(r.size * 8)
                              , true };
         

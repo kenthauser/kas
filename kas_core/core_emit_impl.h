@@ -37,15 +37,15 @@ void emit_base::set_chan(e_chan_num chan)
     width  = sizeof(expression::e_addr_t);  // default size for non-data channels
 }
 
-deferred_reloc_t& emit_base::add_reloc(elf::kas_reloc r, int64_t addend, uint8_t offset)
+deferred_reloc_t& emit_base::add_reloc(kbfd::kas_reloc r, int64_t addend, uint8_t offset)
 {
     if (reloc_p == std::end(relocs))
         throw std::runtime_error("emit_base: too many relocations for insn");
 #if 0
     // set default "RELOC" to `add`
     // XXX ???
-    if (r.action== elf::K_REL_NONE())
-        r.action = elf::K_REL_ADD();
+    if (r.action== kbfd::K_REL_NONE())
+        r.action = kbfd::K_REL_ADD();
 #endif
     *reloc_p++ = { r, addend, offset };
     return reloc_p[-1];
@@ -163,7 +163,7 @@ void emit_base::operator()(T const& e, kas_loc const *loc_p)
 }
 
 
-void emit_base::put_section_reloc(deferred_reloc_t const& r, elf::kas_reloc_info const *info_p
+void emit_base::put_section_reloc(deferred_reloc_t const& r, kbfd::kas_reloc_info const *info_p
                      , core_section const& section, int64_t& addend)
 {
     if (!info_p)
@@ -176,7 +176,7 @@ void emit_base::put_section_reloc(deferred_reloc_t const& r, elf::kas_reloc_info
 
     stream.put_section_reloc(e_chan, *info_p, r.offset, section, addend);
 }
-void emit_base::put_symbol_reloc (deferred_reloc_t const& r, elf::kas_reloc_info const *info_p
+void emit_base::put_symbol_reloc (deferred_reloc_t const& r, kbfd::kas_reloc_info const *info_p
                      , core_symbol_t  const& symbol, int64_t& addend)
 {
     if (!info_p)
