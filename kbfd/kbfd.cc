@@ -1,13 +1,26 @@
 #include "kbfd.h"
 
-#include "kbfd_reloc_ops.h"
+// enumerate architectures
+#include "target/m68k.h"
+
+// define `reloc_ops` to allow targets to be constexpr defined
+#include "kbfd_reloc_ops_impl.h"
+
+// define all supported target formats
+#include "target/m68k_elf.h"
+
 #include "kbfd_object_impl.h"
+#include "kbfd_format_impl.h"
+#include "kbfd_section_impl.h"
+#include "kbfd_section_sym_impl.h"
+#include "kbfd_format_elf_write.h"
+
 
 namespace kbfd
 {
 }
 
-
+#if 0 
 #include "utility/print_type_name.h"
 #include "kas/init_from_list.h"
 
@@ -58,4 +71,4 @@ namespace
         }
     } _x;
 }
-
+#endif

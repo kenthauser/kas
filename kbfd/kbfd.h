@@ -11,7 +11,7 @@
 
 namespace kbfd
 {
-using namespace kas;                // needed after namespace `kbfd` xform
+using namespace kas;                // XXX temp: after namespace `kbfd` xform
 
 
 // declare the object code target architectures
@@ -41,8 +41,9 @@ template <typename tag = void> struct kas_formats_v : meta::list<> {};
 template <typename tag = void> struct kas_targets_v : meta::list<> {};
 
 
-
-kbfd_format const *get_obj_format(const char *target, const char *format = {});
+// retrieve `kbfd_format` object for specified target/format
+kbfd_format const *get_obj_format(const char *target = {}
+                                , const char *format = {});
 }
 
 

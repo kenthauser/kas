@@ -112,7 +112,7 @@ OSTREAM& operator<< (OSTREAM& os, std::pair<kbfd_object const&, Elf64_Rel const&
     auto&    rel     = s.second;
     uint16_t r_sym  = ELF64_R_SYM (rel.r_info);
     uint16_t r_type = ELF64_R_TYPE(rel.r_info);
-
+#if 0
     str << std::hex << "[elf_rel:";
     print(rel.r_offset  , 8, true, nullptr, '0');
     print(r_type        , 2, true, nullptr, '0');
@@ -120,6 +120,9 @@ OSTREAM& operator<< (OSTREAM& os, std::pair<kbfd_object const&, Elf64_Rel const&
     print(obj.sym_name(r_sym)        , 16);
     str << "] ";
     return os << str.str();
+#else
+    return os;
+#endif
 
 }
 
@@ -160,8 +163,8 @@ OSTREAM& operator<< (OSTREAM& os, std::pair<kbfd_object const&, Elf64_Rela const
     print(rel.r_offset  , 8, true, nullptr, '0');
     print(rel.r_addend  , 8, true, nullptr, '0');
     print(r_type        , 2, true, nullptr, '0');
-    print(obj.fmt.relocs.get_info(r_type),  0);
-    print(obj.sym_name(r_sym)        , 16);
+    //print(obj.fmt.relocs.get_info(r_type),  0);
+    //print(obj.sym_name(r_sym)        , 16);
     str << "] ";
     return os << str.str();
 

@@ -8,7 +8,7 @@
 //
 
 #include <cstdint>
-#include "core_reloc.h"
+#include "kbfd/kbfd_target_reloc.h"
 
 
 namespace kas::core
@@ -29,14 +29,14 @@ struct emit_stream
     // emit reloc
     virtual void put_symbol_reloc(
               e_chan_num num
-            , kbfd::kas_reloc_info const& info
+            , kbfd::kbfd_target_reloc const& info
             , uint8_t offset
             , core_symbol_t const& sym
             , emit_value_t& addend
             ) = 0;
     virtual void put_section_reloc(
               e_chan_num num
-            , kbfd::kas_reloc_info const& info
+            , kbfd::kbfd_target_reloc const& info
             , uint8_t offset
             , core_section const& section
             , emit_value_t& addend

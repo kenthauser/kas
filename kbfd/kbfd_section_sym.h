@@ -44,21 +44,12 @@ struct ks_symbol : kbfd_section
     ks_symbol(kbfd_object& obj) : ks_symbol(obj, ".symtab", ".strtab") {}
 
     // actual initializer
-    ks_symbol(kbfd_object& obj, std::string tab_name, std::string str_name)
-        : sym_string (obj, str_name)
-        , kbfd_section(obj, SHT_SYMTAB, tab_name, sizeof(Elf_Sym))
-    {
-        s_header.sh_link    = sym_string.index;
-        s_header.sh_entsize = obj.cvt.tgt_size<Elf64_Sym>();
-
-        // initial symbol is zero entry
-        host_table.emplace_back();
-    }
+    ks_symbol(kbfd_object& obj, std::string tab_name, std::string str_name);
     
     // host objects use "add", not "put"
     void put(void const *, std::size_t) = delete;
 
-    // generate target from host table
+    // generate target symbol table from host table
     // do `static_cast` in object, not calling location
     static void gen_target_data(kbfd_object& obj, kbfd_section *s)
     {
@@ -72,24 +63,7 @@ struct ks_symbol : kbfd_section
     }
     
     // add symbol to host symbol table: Elf64_Sym
-    Elf64_Word add(Elf64_Sym const& new_sym, std::string const& name = {})
-    {
-        // symbol number is index value (zero-based)
-        auto sym_num = host_table.size();
-
-        // allocate symbol
-        Elf64_Sym& sym = host_table.emplace_back(new_sym);
-
-        if (!name.empty())
-            sym.st_name = sym_string.put(name);
-
-        // set `sh_info` to one past last local symbol
-        auto st_bind = ELF64_ST_BIND(sym.st_info);
-        if (st_bind == STB_LOCAL)
-            s_header.sh_info = sym_num + 1;
-        
-        return sym_num;
-    }
+    Elf64_Word add(Elf64_Sym const& new_sym, std::string const& name = {});
 
     const char *sym_name(Elf64_Sym const& sym) const
     {
@@ -110,18 +84,9 @@ struct ks_symbol : kbfd_section
     auto& strtab() const { return sym_string; }
 
 private:
-    // convert "host" object to "target" object
-    void do_gen_target(kbfd_object& obj)
-    {
-        // XXX if passthru just modify pointers...
-        auto cnt = host_table.size();           // get entry count...
-        set_size(cnt * s_header.sh_entsize);    // ... and allocate memory
-        
-        // convert host -> target
-        for (auto& s : host_table)
-            kbfd_section::put(obj.cvt(s));
-    }
-
+    // convert "host" symbol table to "target" object
+    void do_gen_target(kbfd_object& obj);
+    
     std::vector<Elf64_Sym> host_table;
     ks_string sym_string;        // auxillary section for symbol names 
 };

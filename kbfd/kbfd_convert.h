@@ -33,6 +33,7 @@
 #include "elf_common.h"
 #include "kbfd_endian.h"         // byte swapping
 //#include "kbfd_format.h"        // XXX include cycle
+#include "kbfd_target_reloc.h"
 
 #include <type_traits>
 
@@ -132,7 +133,7 @@ struct kbfd_convert
 // used by "assemblers" to create `kas::obj` types
 
 #if 0
-    auto gen_reloc(kas_reloc_info const& info
+    auto gen_reloc(kbfd_target_reloc const& info
                  , uint32_t  sym_num
                  , uint8_t   offset
              //  , uint64_t  data
@@ -143,7 +144,7 @@ struct kbfd_convert
         return reloc;
     }
     
-    auto gen_reloc_a(kas_reloc_info const& info
+    auto gen_reloc_a(kbfd_target_reloc const& info
                    , uint32_t  sym_num
                    , uint8_t   offset
                    , uint64_t  data
@@ -155,7 +156,7 @@ struct kbfd_convert
     }
 #endif
     template <typename HOST_REL>
-    HOST_REL create_reloc(kas_reloc_info const& info
+    HOST_REL create_reloc(kbfd_target_reloc const& info
                         , uint32_t sym_num
                         , uint64_t position
                         , uint8_t  offset

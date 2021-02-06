@@ -120,7 +120,9 @@ void m68k_extension_t::emit(core::emit_base& base, m68k_arg_t const& arg, uint8_
     {
         // lower byte is 8-bit signed expression, not pc-relative
         // use reloc because "expression" is only part of extension word.
-        static constexpr kbfd::kas_reloc reloc { kbfd::K_REL_ADD(), 8, false };
+        static const kbfd::kbfd_reloc reloc { kbfd::K_REL_ADD(), 8, false };
+        
+        // `kas_reloc` has addend of zero and offset of one
         base << core::emit_reloc(reloc, 0, 1) << arg.expr << base_value();
     }
 

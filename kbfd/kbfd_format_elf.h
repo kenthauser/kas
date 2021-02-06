@@ -25,13 +25,22 @@ struct kbfd_format_elf : kbfd_format //kbfd_format<ENDIAN, HEADERS>
         ;
 
     // declare these as int to suppress narrowing messages.
-    constexpr kbfd_format_elf( elf_reloc_t const& relocs
+    constexpr kbfd_format_elf(kbfd_target_reloc const *relocs
+                  , std::size_t num_relocs
                   , int   e_machine
                   , int   ei_flags = {}
                   , int   os_abi = {}
                   , int   abi_version = {}
                   )
-        : e_machine(e_machine),  base_t(relocs, ENDIAN, HEADERS()) {}
+        : e_machine(e_machine),  base_t(relocs, num_relocs, ENDIAN, HEADERS()) {}
+
+
+    // allow initialization via actual array of `kbfd_target_reloc`
+    template <std::size_t N, typename...Args>
+    constexpr kbfd_format_elf(kbfd_target_reloc const relocs[N], Args&&...args)
+        : kbfd_format_elf(relocs, N, std::forward<Args>(args)...)
+        {}
+
 
     Elf64_Ehdr init_header() const override
     {

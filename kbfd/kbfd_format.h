@@ -3,7 +3,7 @@
 
 #include "kbfd_external.h"      // kbfd section headers
 #include "elf_common.h"         // elf magic numbers
-#include "kbfd_reloc.h"
+#include "kbfd_target_reloc.h"
 #include "kbfd_convert.h"
 #include "kas/endian.h"         // temp implementation of c++20 routine
 
@@ -13,62 +13,53 @@ namespace kbfd
 struct ks_string;
 struct kbfd_object;
 
-#if 0
-// base type `kbfd_format` only idenifies ENDIAN & relocations
-// XXX need to make `kbfd_format` virtual type, not templated...
-template <std::endian ENDIAN, typename HEADERS>
-struct kbfd_format
-{
-    using headers = HEADERS;
-    static constexpr std::endian endian = ENDIAN;
-
-    // declare these as int to suppress narrowing messages.
-    // XXX needs work for constexpr xlate
-    kbfd_format(elf_reloc_t const& relocs, int e_machine = {})
-        : relocs(relocs)
-    {
-        header.e_type    = ET_REL;      // Relocatable file
-        header.e_machine = e_machine;
-        header.e_version = EV_CURRENT;
-    }
-
-    void write(kbfd_object&, std::ostream& os) const;
-
-
-    elf_reloc_t relocs;     // supported relocations
-    Elf64_Ehdr  header{};   // prototype header
-};
-#else
 // XXX declare lookup methods & return values
 struct elf_reloc_t;
 struct Elf64_Ehdr;
 struct kbfd_format
 {
+    using target_reloc_index_t = typename kbfd_target_reloc::index_t;
+    using reloc_hash_t         = typename kbfd_reloc::hash_t;
+    using reloc_map_t          = std::map<reloc_hash_t, target_reloc_index_t>;
+
     template <typename HEADERS>
-    constexpr kbfd_format(elf_reloc_t const& relocs
+    constexpr kbfd_format(kbfd_target_reloc const *relocs
+                        , std::size_t num_relocs
                         , std::endian end 
                         , HEADERS const& hdrs
                         , int = {})
         : relocs(relocs)
+        , num_relocs(num_relocs)
         , swap(end)
         , cvt(/* *this,*/ swap, hdrs)
         {}
 
+    // allow array "reloc[N]" to be passed directly
+    template <typename HEADERS, std::size_t N, typename...Ts>
+    constexpr kbfd_format(kbfd_target_reloc const relocs[N], Ts&&...args)
+        : kbfd_format(relocs, N, std::forward<Ts>(args)...)
+        {}
+
+    // configure `kbfd` object using per-arch keyword/value pairs
     virtual const char *config(kbfd_object&, const char *item, uint64_t value) const
     {
         return {};
     };
 
+    // basic target definition methods
     virtual Elf64_Ehdr init_header() const = 0;
     virtual void write(kbfd_object&, std::ostream&) const = 0;
 
-    elf_reloc_t const& relocs;
+    // provide interface to `target_reloc` tables
+    virtual kbfd_target_reloc const *lookup(kbfd_reloc const& reloc) const;
+    virtual kbfd_target_reloc const *get(target_reloc_index_t) const;
+
+    kbfd_target_reloc   const *relocs;
+    unsigned            num_relocs;
     swap_endian         swap;
     kbfd_convert        cvt;
 };
 
-
-#endif
 
 
 // require ostream methods for symbols & relocs

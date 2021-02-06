@@ -1,9 +1,11 @@
 #ifndef KBFD_KBFD_OBJECT_IMPL_H
 #define KBFD_KBFD_OBJECT_IMPL_H
+
 #include "kbfd_object.h"
+#include "kbfd_section_sym.h"
 #include "kbfd_format.h"
 
-#include "target/m68k_elf.h"
+
 
 namespace kbfd
 {
@@ -39,6 +41,7 @@ kbfd_format const *get_obj_format(const char *target, const char *format)
     static m68k::m68k_elf obj;
     return &obj;
 }
+
 }
 #endif
 

@@ -126,7 +126,7 @@ auto kbfd_stream::core2ks_data(core::core_section const& s) const -> kbfd::ks_da
 // actually emit a reloc
 // Generate an ELF64 relocation & then later to target format
 void kbfd_stream::put_kbfd_reloc(core::e_chan_num num
-                , kbfd::kas_reloc_info const& info 
+                , kbfd::kbfd_target_reloc const& info 
                 , uint32_t sym_num
                 , uint8_t  offset
                 , int64_t& data

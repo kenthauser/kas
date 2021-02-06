@@ -31,7 +31,7 @@ namespace kbfd
 
 template <>
 inline auto kbfd_convert::create_reloc<Elf64_Rel>(
-                               kas_reloc_info const& info
+                               kbfd_target_reloc const& info
                              , uint32_t sym_num
                              , uint64_t position
                              , uint8_t  offset
@@ -53,7 +53,7 @@ inline auto kbfd_convert::create_reloc<Elf64_Rel>(
 
 template <>
 inline auto kbfd_convert::create_reloc<Elf64_Rela>(
-                               kas_reloc_info const& info
+                               kbfd_target_reloc const& info
                              , uint32_t sym_num
                              , uint64_t position
                              , uint8_t  offset

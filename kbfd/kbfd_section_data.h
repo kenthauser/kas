@@ -88,7 +88,7 @@ struct ks_data : kbfd_section
 
     // put reloc using reloc (two flavors)
     template <typename Rel = Elf64_Rel>
-    void put_reloc(kas_reloc_info const& info
+    void put_reloc(kbfd_target_reloc const& info
                  , uint32_t sym_num
                  , uint8_t  offset)
     {
@@ -107,7 +107,7 @@ struct ks_data : kbfd_section
     }
 
     template <typename Rel = Elf64_Rela>
-    void put_reloc_a(kas_reloc_info const& info
+    void put_reloc_a(kbfd_target_reloc const& info
                  , uint32_t sym_num
                  , uint8_t  offset
                  , int64_t  data)

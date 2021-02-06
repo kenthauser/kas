@@ -89,11 +89,11 @@ void deferred_reloc_t::emit(emit_base& base, parser::kas_error_t& diag)
     // absorb section_p if PC_REL && matches
     // NB: could be done in `add`, but `deferred_reloc_t` doesn't know `base`
     if (section_p == &base.get_section())
-        if (reloc.flags & kbfd::kas_reloc::RFLAGS_PC_REL)
+        if (reloc.flags & kbfd::kbfd_reloc::RFLAGS_PC_REL)
         {
             section_p    = {};
             addend      -= base.position();
-            reloc.flags &=~ kbfd::kas_reloc::RFLAGS_PC_REL;
+            reloc.flags &=~ kbfd::kbfd_reloc::RFLAGS_PC_REL;
         }
    
     // emit relocations to backend
@@ -115,7 +115,7 @@ void deferred_reloc_t::put_reloc(emit_base& base, parser::kas_error_t& diag
                                 , core_section const& section)
 {
     // get pointer to machine-specific info matching `reloc`
-    kbfd::kas_reloc_info const *info_p {};
+    kbfd::kbfd_target_reloc const *info_p {};
     auto msg = base.elf_reloc_p->get_info(reloc, &info_p);
     if (msg)
     {
@@ -141,7 +141,7 @@ void deferred_reloc_t::put_reloc(emit_base& base, parser::kas_error_t& diag
                                 , core_symbol_t const& sym)
 {
     // get pointer to machine-specific info matching `reloc`
-    kbfd::kas_reloc_info const *info_p {};
+    kbfd::kbfd_target_reloc const *info_p {};
     auto msg = base.elf_reloc_p->get_info(reloc, &info_p);
     if (msg)
     {
@@ -214,7 +214,7 @@ void deferred_reloc_t::apply_reloc(emit_base& base, parser::kas_error_t& diag)
 
     // working copy of data is base `addend`
     auto value = data;
-    
+#if 0 
     // retrieve reloc methods
     auto& ops = base.elf_reloc_p->get_ops(reloc);
     
@@ -252,6 +252,7 @@ void deferred_reloc_t::apply_reloc(emit_base& base, parser::kas_error_t& diag)
         
     // insert new `data` as subfield
     base.data = write_subfield(base.data, value, mask, shift);
+#endif
 };
 
 // static method

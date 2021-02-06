@@ -138,7 +138,7 @@ namespace kas::core
             *position_p += chunk_size * num_chunks;
         }
 
-        auto reloc_msg(kbfd::kas_reloc_info const& info
+        auto reloc_msg(kbfd::kbfd_target_reloc const& info
                      , uint8_t offset
                      , std::string const& base_name
                      , int64_t addend
@@ -171,7 +171,7 @@ namespace kas::core
 
         void put_section_reloc(
                   e_chan_num num
-                , kbfd::kas_reloc_info const& info
+                , kbfd::kbfd_target_reloc const& info
                 , uint8_t offset
                 , core_section const& section
                 , int64_t& addend
@@ -190,7 +190,7 @@ namespace kas::core
 
         void put_symbol_reloc(
                   e_chan_num num
-                , kbfd::kas_reloc_info const& info
+                , kbfd::kbfd_target_reloc const& info
                 , uint8_t offset
                 , core_symbol_t const& sym
                 , int64_t& addend 

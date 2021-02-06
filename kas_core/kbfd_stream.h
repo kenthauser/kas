@@ -88,7 +88,7 @@ public:
 
     void put_symbol_reloc(
                   e_chan_num num
-                , kbfd::kas_reloc_info const& info
+                , kbfd::kbfd_target_reloc const& info
                 , uint8_t offset
                 , core_symbol_t const& sym
                 , int64_t& addend
@@ -102,7 +102,7 @@ public:
 
     void put_section_reloc(
                   e_chan_num num
-                , kbfd::kas_reloc_info const& info
+                , kbfd::kbfd_target_reloc const& info
                 , uint8_t offset
                 , core_section const& section
                 , int64_t& addend 
@@ -155,7 +155,7 @@ private:
     // actually emit a reloc
     void put_kbfd_reloc(
                   e_chan_num num
-                , kbfd::kas_reloc_info const& info 
+                , kbfd::kbfd_target_reloc const& info 
                 , uint32_t sym_num
                 , uint8_t  offset
                 , int64_t& data
