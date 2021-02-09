@@ -218,9 +218,10 @@ private:
     emit_base *base_p;
     deferred_reloc_t *r {};
 
-    kbfd::kbfd_reloc     reloc;
-    emit_value_t  addend;
-    uint8_t       offset;
+    // save ctor values
+    kbfd::kbfd_reloc reloc;
+    emit_value_t     addend;
+    uint8_t          offset;
 };
 
 // emit relocation for displacement from current location (with size & offset)

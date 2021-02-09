@@ -16,12 +16,7 @@
 #include "kas_core/emit_listing.h"
 
 #include "kas_core/assemble.h"
-#if 0
-#include "m68k/m68k_elf.h"
-#include "kas_core/elf_emit.h"
-#else
 #include "machine_out.h"
-#endif
 
 #include "kbfd/kbfd.h"
 #include "kas_core/kbfd_stream_impl.h"    // XXX

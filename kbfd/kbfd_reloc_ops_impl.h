@@ -48,7 +48,7 @@ auto reloc_action::lookup(const char *name) -> index_t
             auto p = names;
             for (index_t i = 0; i < MAX_ACTIONS; ++i, ++p)
             {
-                std::cout << "reloc_action::lookup: installing ";
+                std::cout << "kbfd::reloc_action::lookup: installing ";
                 std::cout << *p << " = " << +i << std::endl;
                 action_map[*p] = i;
             }
@@ -56,7 +56,7 @@ auto reloc_action::lookup(const char *name) -> index_t
         };
 
     static auto map = gen_map();
-    std::cout << "std::reloc_action: resolving " << name;
+    std::cout << "kbfd::reloc_action: resolving " << name;
     std::cout << " as " << +map[name] << std::endl;
     return map[name];
 }

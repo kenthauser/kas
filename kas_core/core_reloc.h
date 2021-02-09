@@ -23,8 +23,10 @@ struct deferred_reloc_t
     deferred_reloc_t(kbfd::kbfd_reloc reloc, int64_t addend = {}, uint8_t offset = {})
         : reloc(reloc), addend(addend), offset(offset)
     {
-#if 0
-        std::cout << "deferred_reloc_t::ctor: addend = " << addend;
+#if 1
+        std::cout << "deferred_reloc_t::ctor: ";
+        std::cout << "reloc = "    << reloc;
+        std::cout << ", addend = " << addend;
         std::cout << ", offset = " << +offset;
         std::cout << std::endl;
 #endif
@@ -46,15 +48,17 @@ struct deferred_reloc_t
     // return true iff `relocs` emited OK
     static bool done(emit_base& base);
 
+    // hold info about relocation
     kbfd::kbfd_reloc    reloc;
+    uint8_t             offset       {};
     int64_t             addend       {};
+    
+    // hold info about resolved value
     core_symbol_t const *sym_p       {};
     core_expr_t   const *core_expr_p {};
     core_section  const *section_p   {};
     parser::kas_diag_t const *diag_p {};
     parser::kas_loc const *loc_p     {};
-    uint8_t             width        {};     // XXX refactor out.
-    uint8_t             offset       {};
 };
 
 }

@@ -53,6 +53,9 @@ struct kbfd_reloc
        return std::make_tuple(action, bits, flags);
     }
 
+    // NB: defined in `kbfd_format_impl.h`
+    friend std::ostream& operator<<(std::ostream&, kbfd_reloc const&);
+
     reloc_action action {};
     uint8_t      bits   {};
     uint8_t      flags  {};
