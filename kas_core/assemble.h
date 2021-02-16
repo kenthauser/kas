@@ -1,7 +1,7 @@
 #ifndef KAS_CORE_ASSEMBLE_H
 #define KAS_CORE_ASSEMBLE_H
 
-#include "core_emit.h"
+#include "core_emit.h"          // forward declares `kbfd_object`
 #include "insn_container.h"
 #include "core_relax.h"
 #include "parser/parser_obj.h"
@@ -16,15 +16,8 @@ struct kas_assemble
     using INSNS = insn_container<>;
     static inline kas_clear _c{INSNS::obj_clear};
 
-#if 0
-    // perform data structure inits -- refactor if need to parameterize...
-    // from initial FORMAT, just keep relocs...
-    template <typename FORMAT>
-    kas_assemble(FORMAT const& format)
-        : relocs(format.relocs)
-#else
+    // `kbfd_object` defines target format
     kas_assemble(kbfd::kbfd_object& obj) : obj(obj)
-#endif
     {
         // declare "default" sections
         // NB: put here so they are numbered 1, 2, 3
@@ -50,6 +43,8 @@ struct kas_assemble
         kas::core::core_segment::dump(std::cout);
         kas::core::core_fragment::dump(std::cout);
 #endif
+        // NB: `at_end` is method to perform after all insns consumed
+        // NB: `at_end` finds undefined symbols & local commons
         auto& obj = INSNS::add(text_seg, at_end);
         assemble_src(obj.inserter(), src, out);
         std::cout << "parse complete" << std::endl;
@@ -97,6 +92,7 @@ struct kas_assemble
     //dwarf::dl_data::dump(std::cout);
     #if 1
         // 5. schedule `dwarf line` output for generation (after obj emit)
+        //    (goes into a third container)
         if (dwarf::dl_data::size() != 0)
         {
             // add "end_sequence" to mark end of `dl_data` instructions 
@@ -113,11 +109,7 @@ struct kas_assemble
 
     void emit(emit_base& e)
     {
-        // always start in ".text" section
-        e.set_segment(core_section::get(".text")[0]);
-        
-        // XXX supply reloc info here, but needed before relax...
-        // XXX kbfd e.elf_reloc_p = &relocs;
+        // define method to emit all frags in container...
         auto proc_container = [&e](auto& container)
             {
                 container.proc_all_frags(
@@ -127,6 +119,13 @@ struct kas_assemble
                     });
             };
 
+        // 1. initialize base (and stream) with `kbfd_object`
+        e.init(obj);
+
+        // 2. always start in ".text" section
+        e.set_segment(core_section::get(".text")[0]);
+       
+        // 3. emit all containers
         INSNS::for_each([&](auto& container)
             {
                 if (&container == do_gen_dwarf)
@@ -187,7 +186,7 @@ private:
 #endif
     }
 
-    // don't need to forward declare static lambdas
+    // NB: don't need to forward declare `static` lambdas
     static constexpr auto resolve_symbols = [](core_segment& seg)
     {
         return [&seg](auto& inserter)
@@ -250,11 +249,7 @@ private:
     }
 
     INSNS *do_gen_dwarf {};
-#if 0
-    kbfd::elf_reloc_t const &relocs;
-#else
     kbfd::kbfd_object& obj;
-#endif
 };
 }
 #endif

@@ -12,7 +12,7 @@
 //         operation (ie what does `result_of` think).
 //         If no match, return "Invalid Expression"
 //
-// Step 3. Test if `op` is a division op (from trait).
+// Step 3. Test if `op` is a binary division op (from trait).
 //         If so, test divisor for zero.
 //
 // Step 4. Evaluate & return.
@@ -35,7 +35,7 @@ struct token_op_eval
         static_assert(sizeof...(Ts) <= expr_op::MAX_ARITY
                      , "expression exceeds expr_op::MAX_ARITY");
 
-        auto h = hash(tokens.data(), sizeof...(Ts));
+        auto h = key(tokens.data(), sizeof...(Ts));
         return op.eval<sizeof...(Ts)>(op_loc, tokens.data(), h, {args...});
     }
 
@@ -66,7 +66,7 @@ struct zero_fn_t<list<Ts...>>
 template <std::size_t N>
 parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
                     , parser::kas_token const* const* tokens
-                    , HASH_T hash
+                    , KEY_T key
                     , EVAL::exec_arg_t<N>&& args
                     ) const noexcept 
 {
@@ -98,10 +98,10 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
         };
 
     // test if args match operator
-    auto it = ops.find(hash);
+    auto it = ops.find(key);
 #ifdef EXPR_TRACE_EVAL
     std::cout << "expr_op::eval: oper = " << op_loc.where();
-    std::cout << ", hash = " << std::hex << hash;
+    std::cout << ", key = " << std::hex << key;
     std::cout << ", supported = " << std::boolalpha << (it != ops.end()) << std::endl;
 #endif
     if (it == ops.end())
@@ -130,7 +130,7 @@ parser::kas_token expr_op::eval(kas_position_tagged const& op_loc
                 return kas::parser::kas_diag_t::error("Divide by zero", *tokens[1]);
     }
 
-    // evaluate (function pointer retrieved from hash table)
+    // evaluate (function pointer retrieved from key table)
     kas_token tok = it->second(std::move(args));
     tag(tok);
     return tok;
@@ -170,69 +170,6 @@ parser::kas_token expr_op::operator()(kas_position_tagged const& loc, Ts&&...arg
 
     return result;
 }
-
-#if 0 
-// From when `expr_op` operated on `expr_t` instances
-
-// look for error type in argument list (meta::npos if none)
-template <typename...Ts>
-using Err_Index = meta::find_index<meta::list<Ts...>, kas::parser::kas_diag_t&>;
-
-struct expr_op_visitor
-{
-    using result_type  = parser::kas_token;
-
-    // NB: visitor replaces "called" types with "visited" types
-    // NB: this is where array of `exprs` turns into array of `types`
-    template <typename...Ts>
-    result_type operator()(Ts&&...args) const noexcept
-    {
-        static_assert(sizeof...(Ts) <= expr_op::MAX_ARITY
-                     , "expression exceeds expr_op::MAX_ARITY");
-
-        // scan args for `e_error_t` 
-        constexpr auto err = Err_Index<Ts...>::value;
-
-        // divide_by_zero needs type_index of denominator for ARITY of 2
-        // NB: make sure list has at least two types
-        constexpr auto dem_type = expr_index<meta::at_c<meta::list<Ts..., void, void>, 1>>;
-        constexpr auto h = hash<Ts...>();
-        std::cout << "expr_op: expr_hash  = " << std::hex << h << std::endl;
-        std::cout << "expr_op: token_hash = " << hash(tokens.data(), sizeof...(Ts)) << std::endl;
-        return op.eval<sizeof...(Ts)>(op_loc, tokens.data(), h, {&args...}, err, dem_type);
-    }
-
-    // references to operator & parsed location
-    expr_op const &op;
-    kas_position_tagged const& op_loc;
-
-    // pointers to tokens (including locations)
-    std::array<result_type const *, expr_op::MAX_ARITY> tokens;
-};
-
-template <typename...Ts>
-parser::kas_token expr_op::operator()(kas_position_tagged const& loc, Ts&&...args) const noexcept 
-{
-#ifdef EXPR_TRACE_EVAL
-    std::cout << "eval: " << name() << " (";
-    print_expr_op_args(std::forward<Ts>(args)...);
-    std::cout << ")" << std::endl;
-#endif
-    // create "visitor" with all `kas_position_tagged` locations
-    auto vis = expr_op_visitor{*this, loc, {&args...}};
-    
-    // NB: can't take address of r-values. Thus, don't std::forward<> args
-    auto result = boost::apply_visitor(vis)(args.raw_expr()...);
-
-#ifdef EXPR_TRACE_EVAL
-    std::cout << "result: " << result << std::endl;
-#endif
-
-    return result;
-}
-#endif
-
-
 }
 
 #endif

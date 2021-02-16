@@ -20,7 +20,9 @@ namespace kbfd
 {
 
 // forward declaration for `format` and member references
-struct kbfd_format;
+struct kbfd_target_format;
+struct kbfd_reloc;
+struct kbfd_target_reloc;
 struct kbfd_convert;
 struct swap_endian;
 
@@ -33,21 +35,7 @@ struct kbfd_object
 {
     // declare appropriate type for "symbol number"
     using kbfd_sym_index_t = Elf64_Half;
-#if 0
-    template <typename ELF_FORMAT>
-    kbfd_object(ELF_FORMAT const& format)
-        : swap(format.endian)
-        , cvt(*this, swap, format)
-        , e_hdr(format.header)
-        , relocs(format.relocs)
-    {}
-#else
-    kbfd_object(kbfd_format const& fmt);
-
-    //    : fmt(fmt)
-    //    , e_hdr(fmt.init_header)
-    //    {}
-#endif
+    kbfd_object(kbfd_target_format const& fmt);
 
     std::size_t add_section_p(kbfd_section *p)
     {
@@ -78,22 +66,22 @@ struct kbfd_object
     const char *sym_name(Elf64_Sym const& sym) const;
     const char *sym_name(Elf64_Word n_sym) const;
 
+    // lookup relocation for target
+    kbfd_target_reloc const *get_reloc(kbfd_reloc const&) const;
+    kbfd_target_reloc const *get_reloc(uint16_t index) const;
+
     // instance data describing `object`
     Elf64_Ehdr e_hdr;           // kbfd (ie elf) header
     ks_symbol *symtab_p    {};  // symbol table for object
     ks_string *sh_string_p {};  // section name table
-#if 0
-    swap_endian swap;
-    kbfd_convert cvt;
-    kbfd_reloc_t const& relocs;
-#endif
+    
     // pointers to allocated sections
     std::vector<kbfd_section *> section_ptrs;
     
     // provide reverences to `fmt` members because incomplete type
-    kbfd_format  const& fmt;
-    kbfd_convert const& cvt;
-    swap_endian  const& swap;
+    kbfd_target_format  const& fmt;
+    kbfd_convert        const& cvt;
+    swap_endian         const& swap;
 };
 
 

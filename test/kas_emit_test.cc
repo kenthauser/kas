@@ -12,7 +12,7 @@
 #include "kas_core/core_relax.h"
 #include "dwarf/dwarf_impl.h"
 
-#include "kas_core/emit_object.h"
+#include "kas_core/emit_binary.h"
 #include "kas_core/emit_listing.h"
 
 #include "kas_core/assemble.h"
@@ -64,23 +64,16 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     // create source object
     kas::parser::parser_src src;
     src.push(source.begin(), source.end(), input_path.c_str());
-#if 0 
-    // need object format before assembling
-    // `obj_fmt` defines valid relocations
-    //kas::kbfd::m68k::m68k_elf obj_fmt;
-    meta::_t<kas::core::detail::obj_format<>> obj_fmt;
-#else
+    
     // need object format before assembling
     auto& obj_fmt  = *kbfd::get_obj_format(kbfd::TARGET_M68K());
     kbfd::kbfd_object kbfd_obj(obj_fmt);
-#endif
     
-    // create assembler object
+    // create assembler object & assemble source
     kas::core::kas_assemble obj(kbfd_obj);
     obj.assemble(src, &parse_out);
     //obj.assemble(src);
     
-
     // dump raw
     auto dump_container = [&parse_out](auto& container)
         {
@@ -138,20 +131,20 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
 #endif
 #if 1
     // create object output (binary data)
-    kas::core::emit_object e_obj(kbfd_obj);
-    obj.emit(e_obj);
-
     // get dest for object output
-    auto kbfd_path = sub_path_ext(input_path.c_str(), "kbfd");
-    std::ofstream kbfd_out(kbfd_path, std::ios_base::binary | std::ios_base::trunc);
-    
-    kbfd_obj.write(/* XXX obj_fmt, */ kbfd_out);
+    {
+        auto kbfd_path = sub_path_ext(input_path.c_str(), "kbfd");
+        kas::core::emit_binary binary(kbfd_path);
+        obj.emit(binary);
+    }
 #endif
 #if 1
-    parse_out << "LISTING:" << std::endl;
-    kas::core::emit_listing<iterator_type> listing(parse_out);
-    obj.emit(listing);
-    kas::core::core_symbol_t::dump(parse_out);
+    {
+        parse_out << "LISTING:" << std::endl;
+        kas::core::emit_listing<iterator_type> listing(parse_out);
+        obj.emit(listing);
+        kas::core::core_symbol_t::dump(parse_out);
+    }
 #endif
 #if 0
     kas::core::core_symbol::dump(out);

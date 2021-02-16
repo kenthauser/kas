@@ -1,16 +1,16 @@
 #ifndef KBFD_KBFD_FORMAT_ELF_H
 #define KBFD_KBFD_FORMAT_ELF_H
 
-#include "kbfd_format.h"
+#include "kbfd_target_format.h"
 #include "kbfd_convert_elf.h"
 
 namespace kbfd
 {
 
 template <std::endian ENDIAN, typename HEADERS, typename...Ts>
-struct kbfd_format_elf : kbfd_format //kbfd_format<ENDIAN, HEADERS>
+struct kbfd_format_elf : kbfd_target_format
 {
-    using base_t = kbfd_format;//<ENDIAN, HEADERS>;
+    using base_t = kbfd_target_format;
 
     // translate template arguments to ELF values
     static constexpr auto ei_data = 

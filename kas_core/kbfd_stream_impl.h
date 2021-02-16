@@ -6,11 +6,8 @@
 namespace kas::core
 {
 
-// INIT `elf` sections & symbols from `kas_core`
-template <typename ELF_OBJECT>
-kbfd_stream::kbfd_stream(ELF_OBJECT& object)
-        : object(object)
-        , swap(object.swap)
+// INIT `kbfd` sections & symbols from `kas_core`
+void kbfd_stream::open(kbfd::kbfd_object& object) 
 {
     // 1. allocate `data_section` memory for maximum number of sections
     // NB: as `kbfd_object` uses std::vector to hold pointers to sections,
@@ -96,13 +93,20 @@ kbfd_stream::kbfd_stream(ELF_OBJECT& object)
     // 9. done
     core::core_symbol_t::dump(std::cout);
 }
-    
+ 
+// write object data to stream
+void kbfd_stream::close(kbfd::kbfd_object& object)
+{
+    object.write(out);
+}
+
+
 // construct new ELF data section from `core::core_section` section
 auto kbfd_stream::core2ks_data(core::core_section const& s) const -> kbfd::ks_data& 
 {
     // retrieve `ks_data *` using callback (if previously created)
     auto p = static_cast<kbfd::ks_data *>(s.kbfd_callback());
-    
+ #if 0   
     if (!p)
     {
         // construct new `ks_data` section in `kbfd_object` from `core_section`
@@ -116,6 +120,7 @@ auto kbfd_stream::core2ks_data(core::core_section const& s) const -> kbfd::ks_da
         p->set_size(s.size());      // allocate memory to hold section data
         s.set_kbfd_callback(p);      // register callback
     }
+    #endif
     return *p;
 }
 

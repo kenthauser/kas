@@ -1,33 +1,36 @@
 #ifndef KAS_CORE_CORE_RELOC_H
 #define KAS_CORE_CORE_RELOC_H
 
+// `core_reloc` holds pending relocation
+// 
+// `core_emit` issues "relocations" before it emits the base value
+// which is "relocated". `kbfd` need the value to be relocated before
+// it applys relocations.
+//
+// Thus `core_reloc` holds the base relocation (a `kbfd_reloc`), 
+// the location offset, the relocation addend, and the expression
+// to be relocated. 
+
 #include "expr/expr.h"
 #include "kbfd/kbfd_reloc.h"
-#include "utility/align_as_t.h"
 
 namespace kas::core
 {
 
 struct emit_base;       // forward declaration
-struct deferred_reloc_t
+struct core_reloc
 {
-    // static flags structure in `emit_base`
-    struct flags_t : kas::detail::alignas_t<flags_t, uint16_t>
-    {
-        using base_t::base_t;
-
-        value_t  error : 1;
-    };
-    
-    deferred_reloc_t() = default;
-    deferred_reloc_t(kbfd::kbfd_reloc reloc, int64_t addend = {}, uint8_t offset = {})
+    core_reloc() = default;
+    core_reloc(kbfd::kbfd_reloc reloc, int64_t addend = {}, uint8_t offset = {})
         : reloc(reloc), addend(addend), offset(offset)
     {
 #if 1
-        std::cout << "deferred_reloc_t::ctor: ";
+        std::cout << "core_reloc::ctor: ";
         std::cout << "reloc = "    << reloc;
-        std::cout << ", addend = " << addend;
-        std::cout << ", offset = " << +offset;
+        if (addend)
+            std::cout << ", addend = " << addend;
+        if (offset)
+            std::cout << ", offset = " << +offset;
         std::cout << std::endl;
 #endif
     }
@@ -53,7 +56,7 @@ struct deferred_reloc_t
     uint8_t             offset       {};
     int64_t             addend       {};
     
-    // hold info about resolved value
+    // hold info about value to be relocated
     core_symbol_t const *sym_p       {};
     core_expr_t   const *core_expr_p {};
     core_section  const *section_p   {};

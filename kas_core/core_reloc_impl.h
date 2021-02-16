@@ -6,7 +6,7 @@
 namespace kas::core
 {
 // complete construction of `reloc`
-void deferred_reloc_t::operator()(expr_t const& e)
+void core_reloc::operator()(expr_t const& e)
 {
     if (!loc_p)
         loc_p = e.get_loc_p();      // if `tagged` store location
@@ -28,12 +28,12 @@ void deferred_reloc_t::operator()(expr_t const& e)
         (*this)(*p, loc_p);
     else
     {
-        std::cout << "deferred_reloc_t::operator(): unsupported type" << std::endl;
+        std::cout << "core_reloc::operator(): unsupported type" << std::endl;
     }
 }
 
-// symbols can `vary`. Sort by type of symbol
-void deferred_reloc_t::operator()(core_symbol_t const& value, kas_loc const *loc_p)
+// symbols can vary. Sort by type of symbol
+void core_reloc::operator()(core_symbol_t const& value, kas_loc const *loc_p)
 {
     this->loc_p = loc_p;
     // see if resolved symbol
@@ -49,20 +49,20 @@ void deferred_reloc_t::operator()(core_symbol_t const& value, kas_loc const *loc
         sym_p = &value;
 }
 
-void deferred_reloc_t::operator()(core_addr_t const& value, kas_loc const *loc_p)
+void core_reloc::operator()(core_addr_t const& value, kas_loc const *loc_p)
 {
     this->loc_p = loc_p;
     addend   +=  value.offset()();
     section_p = &value.section();
 }
 
-void deferred_reloc_t::operator()(parser::kas_diag_t const& value, kas_loc const *loc_p)
+void core_reloc::operator()(parser::kas_diag_t const& value, kas_loc const *loc_p)
 {
     this->loc_p = loc_p;
     diag_p      = &value;
 }
 
-void deferred_reloc_t::operator()(core_expr_t const& value, kas_loc const *loc_p)
+void core_reloc::operator()(core_expr_t const& value, kas_loc const *loc_p)
 {
     this->loc_p = loc_p;
     
@@ -72,7 +72,7 @@ void deferred_reloc_t::operator()(core_expr_t const& value, kas_loc const *loc_p
         core_expr_p = &value;
 }
 
-void deferred_reloc_t::emit(emit_base& base, parser::kas_error_t& diag)
+void core_reloc::emit(emit_base& base, parser::kas_error_t& diag)
 {
     // if symbol, reinterpret before emitting
     if (sym_p)
@@ -87,7 +87,7 @@ void deferred_reloc_t::emit(emit_base& base, parser::kas_error_t& diag)
         reloc.bits = base.width * 8;
     
     // absorb section_p if PC_REL && matches
-    // NB: could be done in `add`, but `deferred_reloc_t` doesn't know `base`
+    // NB: could be done in `add`, but `core_reloc` doesn't know `base`
     if (section_p == &base.get_section())
         if (reloc.flags & kbfd::kbfd_reloc::RFLAGS_PC_REL)
         {
@@ -111,13 +111,18 @@ void deferred_reloc_t::emit(emit_base& base, parser::kas_error_t& diag)
         apply_reloc(base, diag);
 }
 
-void deferred_reloc_t::put_reloc(emit_base& base, parser::kas_error_t& diag 
+void core_reloc::put_reloc(emit_base& base, parser::kas_error_t& diag 
                                 , core_section const& section)
 {
     // get pointer to machine-specific info matching `reloc`
+#if 0
     kbfd::kbfd_target_reloc const *info_p {};
     auto msg = base.elf_reloc_p->get_info(reloc, &info_p);
     if (msg)
+#else
+    auto tgt_reloc_p = base.get_reloc(reloc);
+    if (!tgt_reloc_p)
+#endif
     {
 #if 0
         parser::kas_loc *loc_p = {};
@@ -129,33 +134,47 @@ void deferred_reloc_t::put_reloc(emit_base& base, parser::kas_error_t& diag
             loc_p = &core_expr_p->loc();
 #endif
         if (!loc_p)
-            std::cout << "deferred_reloc_t::put_reloc: no `loc` for error" << std::endl;
+            std::cout << "core_reloc::put_reloc: no `loc` for error" << std::endl;
         else
-            diag = e_diag_t::error(msg, *loc_p).ref();
+            diag = e_diag_t::error("invalid relocation", *loc_p).ref();
     }
     else
-        base.put_section_reloc(*this, info_p, section, addend);
+        base.put_section_reloc(*this, tgt_reloc_p, section, addend);
 }
 
-void deferred_reloc_t::put_reloc(emit_base& base, parser::kas_error_t& diag 
+void core_reloc::put_reloc(emit_base& base, parser::kas_error_t& diag 
                                 , core_symbol_t const& sym)
 {
     // get pointer to machine-specific info matching `reloc`
+#if 0
     kbfd::kbfd_target_reloc const *info_p {};
     auto msg = base.elf_reloc_p->get_info(reloc, &info_p);
     if (msg)
+#else
+    auto tgt_reloc_p = base.get_reloc(reloc);
+    if (!tgt_reloc_p)
+#endif
     {
+#if 0
+        parser::kas_loc *loc_p = {};
+        if (sym_p)
+            loc_p = &sym_p->loc();
+        else if (section_p)
+            loc_p = &section_p->loc();
+        else if (core_expr_p)
+            loc_p = &core_expr_p->loc();
+#endif
         if (!loc_p)
-            std::cout << "deferred_reloc_t::put_reloc: no `loc` for error" << std::endl;
+            std::cout << "core_reloc::put_reloc: no `loc` for error" << std::endl;
         else
-            diag = parser::kas_diag_t::error(msg, *loc_p).ref();
+            diag = e_diag_t::error("invalid relocation", *loc_p).ref();
     }
     else
-        base.put_symbol_reloc(*this, info_p, sym, addend);
+        base.put_symbol_reloc(*this, tgt_reloc_p, sym, addend);
 }
 
 // Apply `reloc_fn`: deal with offsets & width deltas
-void deferred_reloc_t::apply_reloc(emit_base& base, parser::kas_error_t& diag)
+void core_reloc::apply_reloc(emit_base& base, parser::kas_error_t& diag)
 {
     auto read_subfield = [&](int64_t data) -> std::tuple<int64_t, uint64_t, uint8_t>
         {
@@ -245,7 +264,7 @@ void deferred_reloc_t::apply_reloc(emit_base& base, parser::kas_error_t& diag)
             loc_p = &core_expr_p->loc();
 #endif
         if (!loc_p)
-            std::cout << "deferred_reloc_t::apply_reloc: no `loc` for error" << std::endl;
+            std::cout << "core_reloc::apply_reloc: no `loc` for error" << std::endl;
         else
             diag = e_diag_t::error(msg, *loc_p).ref();
     }
@@ -257,7 +276,7 @@ void deferred_reloc_t::apply_reloc(emit_base& base, parser::kas_error_t& diag)
 
 // static method
 // return true iff `relocs` emited OK
-bool deferred_reloc_t::done(emit_base& base) { return true; }
+bool core_reloc::done(emit_base& base) { return true; }
 
 
 }

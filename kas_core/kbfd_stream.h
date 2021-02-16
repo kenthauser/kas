@@ -48,15 +48,19 @@ struct kbfd_stream : emit_stream
     // get target header formats
     //using target_headers = typename KBFD_FORMAT::headers;
 
-    // init from assembler
-    template <typename KBFD_OBJECT>
-    kbfd_stream(KBFD_OBJECT& object);
+    kbfd_stream(std::ostream& out) : out(out) {}
+
+    // initialize symbol table & data sections
+    void open(kbfd::kbfd_object&) override;
+
+    // write data to output stream
+    void close(kbfd::kbfd_object&) override;
             
 public:
     void put_uint(e_chan_num num, uint8_t width, int64_t data) override
     {
         // pass value, not pointer
-        put(num, swap(data, width), width);
+        //XXX put(num, swap(data, width), width);
     }
 
     void put_data(e_chan_num num
@@ -80,7 +84,7 @@ public:
                 // for each chunk in sequence, read, swap endian, & emit
                 // NB: `swap` advances `data_p` as appropriate
                 while (num_chunks--)
-                    put(num, swap(data_p, chunk_size), chunk_size);
+                    ;// XXX put(num, swap(data_p, chunk_size), chunk_size);
                 break;
             }
         }
@@ -164,8 +168,15 @@ private:
     // NB: `core_emit` first directive is `set_section`
     kbfd::ks_data   *ks_data_p{};    // current section
 
+#ifdef XXX
     kbfd::swap_endian const& swap;   // convenience: grab referece to object::swap
     kbfd::kbfd_object& object;        // holds kbfd_section modules
+#else
+//    kbfd::swap_endian const  swap;   // convenience: grab referece to object::swap
+//    kbfd::kbfd_object  object;        // holds kbfd_section modules
+#endif
+
+    std::ostream& out;
 };
 
 }

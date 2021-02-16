@@ -2,7 +2,6 @@
 #define KBFD_KBFD_RELOC_H
 
 #include "kbfd_reloc_ops.h"
-#include <map>
 
 namespace kbfd
 {
@@ -19,7 +18,7 @@ enum class kbfd_rela
 // NB: `action` can identify both generic and target specific operations
 struct kbfd_reloc
 {
-    using hash_t = std::tuple<reloc_action, uint8_t, uint8_t>;
+    using key_t = std::tuple<reloc_action, uint8_t, uint8_t>;
 
     static constexpr auto RFLAGS_PC_REL = 1;
     
@@ -48,7 +47,7 @@ struct kbfd_reloc
     }
 
     // generate `std::map` key (from 3 8-bit values)
-    constexpr hash_t key() const
+    constexpr key_t key() const
     {
        return std::make_tuple(action, bits, flags);
     }

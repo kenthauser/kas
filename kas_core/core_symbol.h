@@ -179,7 +179,7 @@ void core_symbol<REF>::dump(OS& os)
         if (s.s_align)
             os << " align = "   <<  +s.s_align;
         if (s.s_symnum)
-            os << " elf_num = " <<  s.s_symnum;
+            os << " kbfd_num = " <<  s.s_symnum;
         os << std::endl;
     };
 

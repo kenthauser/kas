@@ -41,14 +41,14 @@ namespace kbfd
 {
 
 // XXX include cycle
-struct kbfd_format;
+struct kbfd_target_format;
 
 // external interface -- non-templated
 struct kbfd_convert
 {
     struct cvt_fns 
     {
-        // pick up values from `kbfd_format.h`
+        // pick up values from `kbfd_target_format.h`
         using host_hdrs = detail::host_hdrs;
         using hdrs_size = meta::size<host_hdrs>;
        
@@ -261,7 +261,7 @@ struct kbfd_convert
         }
     }
 
-    //kbfd_format const& fmt;
+    //kbfd_target_format const& fmt;
     swap_endian const& swap;
     cvt_fns fns;
 };

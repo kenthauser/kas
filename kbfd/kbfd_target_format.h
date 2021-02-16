@@ -1,5 +1,5 @@
-#ifndef KBFD_KBFD_FORMAT_H
-#define KBFD_KBFD_FORMAT_H
+#ifndef KBFD_KBFD_TARGET_FORMAT_H
+#define KBFD_KBFD_TARGET_FORMAT_H
 
 #include "kbfd_external.h"      // kbfd section headers
 #include "elf_common.h"         // elf magic numbers
@@ -16,14 +16,14 @@ struct kbfd_object;
 // XXX declare lookup methods & return values
 struct elf_reloc_t;
 struct Elf64_Ehdr;
-struct kbfd_format
+struct kbfd_target_format
 {
     using target_reloc_index_t = typename kbfd_target_reloc::index_t;
-    using reloc_hash_t         = typename kbfd_reloc::hash_t;
-    using reloc_map_t          = std::map<reloc_hash_t, target_reloc_index_t>;
+    using reloc_key_t          = typename kbfd_reloc::key_t;
+    using reloc_map_t          = std::map<reloc_key_t, target_reloc_index_t>;
 
     template <typename HEADERS>
-    constexpr kbfd_format(kbfd_target_reloc const *relocs
+    constexpr kbfd_target_format(kbfd_target_reloc const *relocs
                         , std::size_t num_relocs
                         , std::endian end 
                         , HEADERS const& hdrs
@@ -36,8 +36,8 @@ struct kbfd_format
 
     // allow array "reloc[N]" to be passed directly
     template <typename HEADERS, std::size_t N, typename...Ts>
-    constexpr kbfd_format(kbfd_target_reloc const relocs[N], Ts&&...args)
-        : kbfd_format(relocs, N, std::forward<Ts>(args)...)
+    constexpr kbfd_target_format(kbfd_target_reloc const relocs[N], Ts&&...args)
+        : kbfd_target_format(relocs, N, std::forward<Ts>(args)...)
         {}
 
     // configure `kbfd` object using per-arch keyword/value pairs

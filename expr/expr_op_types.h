@@ -29,8 +29,8 @@ namespace detail
     {
         // declare types used by implementation
         using EVAL      = expr_op_eval;
-        using op_map    = std::unordered_map<HASH_T, EVAL>;
-        using op_data_t = std::pair<HASH_T, EVAL>;
+        using op_map    = std::unordered_map<KEY_T, EVAL>;
+        using op_data_t = std::pair<KEY_T, EVAL>;
         
         // for `sym_parser_t`: ALIAS adder
         using ADDER     = expr_op_adder;
@@ -121,7 +121,7 @@ namespace detail
         parser::kas_token
         eval(kas_position_tagged const& op_loc
                    , parser::kas_token const* const* tokens
-                   , HASH_T hash
+                   , KEY_T key
                    , EVAL::exec_arg_t<N>&& args
                    ) const noexcept;
 

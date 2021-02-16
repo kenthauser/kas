@@ -8,7 +8,7 @@
 //
 
 #include <cstdint>
-#include "kbfd/kbfd_target_reloc.h"
+#include "kbfd/kbfd_object.h"
 
 
 namespace kas::core
@@ -20,6 +20,10 @@ struct emit_stream
 {
     using emit_value_t = int64_t;       // value passed to emit backend
 
+    // initialize/finalize backend for target object
+    virtual void open (kbfd::kbfd_object&) {}
+    virtual void close(kbfd::kbfd_object&) {}
+
     // emit single value
     virtual void put_uint(e_chan_num, uint8_t width, emit_value_t data) = 0;
 
@@ -29,14 +33,14 @@ struct emit_stream
     // emit reloc
     virtual void put_symbol_reloc(
               e_chan_num num
-            , kbfd::kbfd_target_reloc const& info
+            , kbfd::kbfd_target_reloc const& tgt_reloc
             , uint8_t offset
             , core_symbol_t const& sym
             , emit_value_t& addend
             ) = 0;
     virtual void put_section_reloc(
               e_chan_num num
-            , kbfd::kbfd_target_reloc const& info
+            , kbfd::kbfd_target_reloc const& tgt_reloc
             , uint8_t offset
             , core_section const& section
             , emit_value_t& addend

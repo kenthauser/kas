@@ -3,12 +3,10 @@
 
 // `core_emit` is the interface between the assembler `front-end` (where source is interpreted)
 // and the `back-end` (where output is generated).
-//
-// 
 
 #include "expr/expr.h"
-#include "core_reloc.h"
 #include "emit_stream.h"
+#include "core_reloc.h"
 #include "core_fragment.h"
 #include "core_symbol.h"
 #include "core_addr.h"
@@ -32,16 +30,28 @@ struct emit_base
 {
     using result_type  = void;       // for apply_visitor
     using emit_value_t = typename emit_stream::emit_value_t;
-    
-    emit_base(emit_stream& stream) : stream(stream) {} 
+   
+    // housekeeping methods: ctor, init, dtor
+    emit_base(emit_stream& stream) : stream(stream) {}
+
+    // initalize "base" & "stream" with `kbfd_object`
+    void init(kbfd::kbfd_object& obj)
+    { 
+        obj_p = &obj;       // needed for reloc lookup
+        stream.open(obj);   // propogate `obj` to initialize stream
+    }
+  
+    // close stream at end of `emit`
+    virtual ~emit_base()
+    {
+        stream.close(*obj_p);
+    }
 
     // Entry point to create instruction output
     // NB: `dot_p` not to be used to calculate size (via `fits`).
     // NB: `dot_p` can be used to tag location in dwarf `opc_dw_line`,
     // NB: for address in listings, and for other debugging facilities
     virtual void emit(struct core_insn& insn, core_expr_dot const *dot_p = {}) = 0;
-    virtual ~emit_base() = default;
-
     // For each item streamed to `emit_base`, relocations and `width` bytes are emitted
     // to the object (or listing). For integral values streamed to `emit_base`, the size
     // can be infered from the object being streamed. For all others, the object size must
@@ -101,8 +111,8 @@ private:
     friend emit_reloc;
     friend emit_disp;
     friend emit_data;
-    friend deferred_reloc_t;
-    //friend emit_reloc_t;
+    friend core_reloc;
+    //friend core_reloc_t;
 
     // driven entry-points from stream operators above 
     void operator()(expr_t const& e);
@@ -122,37 +132,39 @@ private:
     void emit_obj_code();
 public:
     void set_chan (e_chan_num);
-    kbfd::elf_reloc_t const *elf_reloc_p {};
-private:
 
+private:
     // emit relocations (used by `core_reloc`)
-    void put_section_reloc(deferred_reloc_t const&, kbfd::kbfd_target_reloc const *info_p
+    void put_section_reloc(core_reloc const&, kbfd::kbfd_target_reloc const *info_p
                          , core_section const& section, int64_t& addend);
-    void put_symbol_reloc (deferred_reloc_t const&, kbfd::kbfd_target_reloc const *info_p
+    void put_symbol_reloc (core_reloc const&, kbfd::kbfd_target_reloc const *info_p
                          , core_symbol_t  const& symbol, int64_t& addend);
     
     // manipulators to configure data stream
     void set_width(std::size_t w);
 
     // utility methods
-    deferred_reloc_t& add_reloc(kbfd::kbfd_reloc r = {}, int64_t addend = {}, uint8_t offset = {});
+    core_reloc& add_reloc(kbfd::kbfd_reloc r = {}, int64_t addend = {}, uint8_t offset = {});
 
     void assert_width() const;      
     void set_defaults();
-    
+   
+    // trampoline to translate relocation from working to target format
+    kbfd::kbfd_target_reloc const *get_reloc(kbfd::kbfd_reloc&) const;
+
     // instance data
     emit_stream&         stream;
     core_section const  *section_p {};
+    kbfd::kbfd_object *obj_p {};
     
     // save pending relocs in array
     static constexpr auto MAX_RELOCS_PER_LOCATION = 4;
-    std::array<deferred_reloc_t, MAX_RELOCS_PER_LOCATION> relocs{};
+    std::array<core_reloc, MAX_RELOCS_PER_LOCATION> relocs{};
 
-    emit_value_t         data      {};
-    e_chan_num      e_chan    { EMIT_DATA };
-    uint8_t         width     {};
-    deferred_reloc_t::flags_t reloc_flags;
-    deferred_reloc_t *reloc_p { relocs.begin() };
+    core_reloc     *reloc_p;        // pointer to "next" reloc for insn
+    emit_value_t    data   {};
+    e_chan_num      e_chan { EMIT_DATA };
+    uint8_t         width  {};
 };
 
 //
@@ -203,7 +215,7 @@ struct emit_reloc
     // expect relocatable expression.
     auto& operator<<(expr_t const& e)
     {
-        (*r)(e);
+        (*r_p)(e);
         return *base_p;
     }
     
@@ -211,12 +223,12 @@ private:
     friend auto operator<<(emit_base& base, emit_reloc r)
     {
         r.base_p = &base;
-        r.r      = &base.add_reloc(r.reloc, r.addend, r.offset);
+        r.r_p    = &base.add_reloc(r.reloc, r.addend, r.offset);
         return r;
     }
 
-    emit_base *base_p;
-    deferred_reloc_t *r {};
+    emit_base    *base_p;
+    core_reloc *r_p {};
 
     // save ctor values
     kbfd::kbfd_reloc reloc;
@@ -253,7 +265,7 @@ private:
     }
 
     emit_base *base_p;
-    deferred_reloc_t *r_p;
+    core_reloc *r_p;
     emit_value_t addend, offset;
     uint8_t      size;
 };

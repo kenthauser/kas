@@ -41,9 +41,9 @@ template <typename tag = void> struct kas_formats_v : meta::list<> {};
 template <typename tag = void> struct kas_targets_v : meta::list<> {};
 
 
-// retrieve `kbfd_format` object for specified target/format
-kbfd_format const *get_obj_format(const char *target = {}
-                                , const char *format = {});
+// retrieve `kbfd_target_format` object for specified target/format
+kbfd_target_format const *get_obj_format(const char *target = {}
+                                       , const char *format = {});
 }
 
 

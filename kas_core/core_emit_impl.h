@@ -16,7 +16,13 @@
 
 namespace kas::core
 {
-
+#if 0
+// default dtor: close stream
+emit_base::~emit_base() 
+{
+    stream.close(*obj_p);
+}
+#endif
 void emit_base::assert_width() const
 {
     if (!width)
@@ -37,7 +43,14 @@ void emit_base::set_chan(e_chan_num chan)
     width  = sizeof(expression::e_addr_t);  // default size for non-data channels
 }
 
-deferred_reloc_t& emit_base::add_reloc(kbfd::kbfd_reloc r, int64_t addend, uint8_t offset)
+kbfd::kbfd_target_reloc const* emit_base::get_reloc(kbfd::kbfd_reloc& reloc) const
+{
+    // XXX may need to set "default_width"
+    return obj_p->get_reloc(reloc);
+}
+
+
+core_reloc& emit_base::add_reloc(kbfd::kbfd_reloc r, int64_t addend, uint8_t offset)
 {
     if (reloc_p == std::end(relocs))
         throw std::runtime_error("emit_base: too many relocations for insn");
@@ -64,11 +77,10 @@ void emit_base::set_defaults()
     e_chan      = EMIT_DATA;
     data        = {};
     width       = {};
-    reloc_flags = {};
     reloc_p     = relocs.begin();
 }
 
-// apply relocs, push fixed data to stream, advancing position, reset defaults
+// apply relocs, push fixed data to stream (advancing position), reset defaults
 void emit_base::emit_obj_code()
 {
     // width must be set to emit
@@ -163,7 +175,7 @@ void emit_base::operator()(T const& e, kas_loc const *loc_p)
 }
 
 
-void emit_base::put_section_reloc(deferred_reloc_t const& r, kbfd::kbfd_target_reloc const *info_p
+void emit_base::put_section_reloc(core_reloc const& r, kbfd::kbfd_target_reloc const *info_p
                      , core_section const& section, int64_t& addend)
 {
     if (!info_p)
@@ -176,7 +188,7 @@ void emit_base::put_section_reloc(deferred_reloc_t const& r, kbfd::kbfd_target_r
 
     stream.put_section_reloc(e_chan, *info_p, r.offset, section, addend);
 }
-void emit_base::put_symbol_reloc (deferred_reloc_t const& r, kbfd::kbfd_target_reloc const *info_p
+void emit_base::put_symbol_reloc (core_reloc const& r, kbfd::kbfd_target_reloc const *info_p
                      , core_symbol_t  const& symbol, int64_t& addend)
 {
     if (!info_p)

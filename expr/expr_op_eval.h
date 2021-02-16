@@ -135,49 +135,49 @@ private:
 };
 
 
-// functions to generate a "HASH" to identify type tuple
-using HASH_T = unsigned;
+// functions to generate a "KEY" to identify type tuple
+using KEY_T = unsigned;
 
 template <typename T, typename...Ts>
-constexpr static HASH_T hash(HASH_T N = 0)
+constexpr static KEY_T key(KEY_T N = 0)
 {
-    // sanity check for HASH / ARITY
+    // sanity check for KEY / ARITY
     constexpr auto H_SHIFT = 8;
-    constexpr auto HASH_BITS  = std::numeric_limits<decltype(N)>::digits;
+    constexpr auto KEY_BITS  = std::numeric_limits<decltype(N)>::digits;
 
-    if constexpr (((sizeof...(Ts) + 1) * H_SHIFT) > HASH_BITS)
+    if constexpr (((sizeof...(Ts) + 1) * H_SHIFT) > KEY_BITS)
         static_assert(sizeof...(Ts) == 0, "Invalid Hash for ARITY");
 
-    // fold current `T` into hash
+    // fold current `T` into key
     N = (N << H_SHIFT) + expr_t::index<T>();
 
     // recurse as required
     if constexpr (sizeof...(Ts) == 0)
         return N;
     else
-        return hash<Ts...>(N);
+        return key<Ts...>(N);
 }
 
 template <typename...Ts>
-constexpr static auto hash_fn(meta::list<Ts...>)
+constexpr static auto key_fn(meta::list<Ts...>)
 {
-    return hash<Ts...>();
+    return key<Ts...>();
 }
 
 // XXX quick & dirty equivalent fn. needs to be refactored
-static HASH_T hash(kas_token const * const *tokens, std::size_t n)
+static KEY_T key(kas_token const * const *tokens, std::size_t n)
 {
-    // sanity check for HASH / ARITY
+    // sanity check for KEY / ARITY
     constexpr auto H_SHIFT = 8;
 
-    // use variant index to form "value" for hash_token
-    HASH_T hash {};
+    // use variant index to form "value" for key_token
+    KEY_T key {};
     while (n--)
     {
-        hash <<= H_SHIFT;
-        hash += (*tokens++)->expr_index();
+        key <<= H_SHIFT;
+        key += (*tokens++)->expr_index();
     }
-    return hash;
+    return key;
 }
 
 // generate list of TERMS for [OP, ARITY] 
@@ -195,7 +195,7 @@ struct expr_op_fns_impl<T, EVAL, OP, list<TERMS...>>
 {
     using type = expr_op_fns_impl;
 
-    static constexpr T value[] = {{hash_fn(TERMS()), EVAL(OP(), TERMS())} ...};
+    static constexpr T value[] = {{key_fn(TERMS()), EVAL(OP(), TERMS())} ...};
     static constexpr auto size = sizeof...(TERMS);
 };
 

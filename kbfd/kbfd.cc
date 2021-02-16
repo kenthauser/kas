@@ -10,7 +10,7 @@
 #include "target/m68k_elf.h"
 
 #include "kbfd_object_impl.h"
-#include "kbfd_format_impl.h"
+#include "kbfd_target_format_impl.h"
 #include "kbfd_section_impl.h"
 #include "kbfd_section_sym_impl.h"
 #include "kbfd_format_elf_write.h"

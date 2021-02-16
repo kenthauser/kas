@@ -54,7 +54,9 @@ struct emit_listing : emit_base
     }
     
     // save ostream. init `emit_base` with `put` & `put_diag`
-    emit_listing(std::ostream& out) : out(out), emit_base(fmt)
+    emit_listing(std::ostream& out)
+            : out(out)
+            , emit_base(fmt)
     {
         // create ordered list of diagnostics
         auto add  = [this](auto& obj) { diag_map.emplace(obj.loc(), &obj); };
@@ -127,6 +129,7 @@ private:
     }
 
     friend listing_line<Iter>;
+
     emit_formatted fmt{ put(), put_diag(), put_reloc() };
     std::array<std::vector<std::string>, NUM_EMIT_FMT> buffers{};
     std::list<parser::kas_diag_t::index_t> diagnostics;
