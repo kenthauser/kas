@@ -16,13 +16,6 @@
 
 namespace kas::core
 {
-#if 0
-// default dtor: close stream
-emit_base::~emit_base() 
-{
-    stream.close(*obj_p);
-}
-#endif
 void emit_base::assert_width() const
 {
     if (!width)
@@ -45,22 +38,17 @@ void emit_base::set_chan(e_chan_num chan)
 
 kbfd::kbfd_target_reloc const* emit_base::get_reloc(kbfd::kbfd_reloc& reloc) const
 {
-    // XXX may need to set "default_width"
+    // if no width specified by reloc, use current width
+    reloc.default_width(width);
     return obj_p->get_reloc(reloc);
 }
 
-
-core_reloc& emit_base::add_reloc(kbfd::kbfd_reloc r, int64_t addend, uint8_t offset)
+core_reloc& emit_base::add_reloc(core_reloc&& r)
 {
     if (reloc_p == std::end(relocs))
         throw std::runtime_error("emit_base: too many relocations for insn");
-#if 0
-    // set default "RELOC" to `add`
-    // XXX ???
-    if (r.action== kbfd::K_REL_NONE())
-        r.action = kbfd::K_REL_ADD();
-#endif
-    *reloc_p++ = { r, addend, offset };
+    
+    *reloc_p++ = std::move(r);
     return reloc_p[-1];
 }
 
@@ -145,7 +133,7 @@ void emit_base::operator()(parser::kas_diag_t const& diag, kas_loc const *loc_p)
     set_defaults();
 }
 
-// handle "internal" methods as relocatable
+// handle "internal" methods as adding relocation, then emitting
 void emit_base::operator()(core_addr_t const& addr, kas_loc const *loc_p)
 {
     // add relocation & emit
@@ -174,34 +162,33 @@ void emit_base::operator()(T const& e, kas_loc const *loc_p)
     std::cout << "emit_base: unsupported expression: " << expr_t(e) << std::endl;
 }
 
-
-void emit_base::put_section_reloc(core_reloc const& r, kbfd::kbfd_target_reloc const *info_p
-                     , core_section const& section, int64_t& addend)
+void emit_base::put_section_reloc(core_reloc& r, core_section const& section)
 {
-    if (!info_p)
+    auto tgt_reloc_p = get_reloc(r.reloc);
+    if (!tgt_reloc_p)
     {
-        std::cout << "no info for reloc: code = " << r.reloc.action.name();
+        std::cout << "no target relocation for action = " << r.reloc.action.name();
         std::cout << " bits = " << +r.reloc.bits << std::endl;
         // ** put diag **
         return;
     }
 
-    stream.put_section_reloc(e_chan, *info_p, r.offset, section, addend);
+    stream.put_section_reloc(e_chan, *tgt_reloc_p, r.offset, section, r.addend);
 }
-void emit_base::put_symbol_reloc (core_reloc const& r, kbfd::kbfd_target_reloc const *info_p
-                     , core_symbol_t  const& symbol, int64_t& addend)
+
+void emit_base::put_symbol_reloc (core_reloc& r, core_symbol_t const& symbol)
 {
-    if (!info_p)
+    auto tgt_reloc_p = get_reloc(r.reloc);
+    if (!tgt_reloc_p)
     {
-        std::cout << "no info for reloc: code = " << r.reloc.action.name();
+        std::cout << "no target relocation for action = " << r.reloc.action.name();
         std::cout << " bits = " << +r.reloc.bits << std::endl;
         // ** put diag **
         return;
     }
 
-    stream.put_symbol_reloc(e_chan, *info_p, r.offset, symbol, addend);
-}
-    
+    stream.put_symbol_reloc(e_chan, *tgt_reloc_p, r.offset, symbol, r.addend);
 }
 
+}   // namespace kas_core
 #endif

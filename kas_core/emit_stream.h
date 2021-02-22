@@ -30,7 +30,8 @@ struct emit_stream
     // emit count of size (in bytes) values from buffer
     virtual void put_data(e_chan_num, void const *, uint8_t size, uint8_t count) = 0;
     
-    // emit reloc
+    // NB: if backend emits `REL_A` or otherwise consumes `addend`
+    // it must zero addend
     virtual void put_symbol_reloc(
               e_chan_num num
             , kbfd::kbfd_target_reloc const& tgt_reloc

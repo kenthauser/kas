@@ -6,19 +6,11 @@
 namespace kbfd
 {
 
-enum class kbfd_rela
-{
-      RELA_ALLOW        // use RELA if value doesn't fit
-    , RELA_NONE         // don't allow RELA
-    , RELA_REQUIRE      // always use RELA
-};
-
-
 // Describe generic KBFD relocation operation
 // NB: `action` can identify both generic and target specific operations
 struct kbfd_reloc
 {
-    using key_t = std::tuple<reloc_action, uint8_t, uint8_t>;
+    using key_t = uint32_t;
 
     static constexpr auto RFLAGS_PC_REL = 1;
     
@@ -39,6 +31,19 @@ struct kbfd_reloc
         : kbfd_reloc(reloc_action(action), std::forward<Ts>(args)...) 
         {}
 
+    // operations to modify relocation
+    void default_width(uint8_t bytes)
+    {
+        if (!bits)
+            bits = bytes * 8;
+    }
+
+    // manipulate flags
+    bool has  (uint8_t flag) const { return flags  &  flag; }
+    void clear(uint8_t flag)       {        flags &=~ flag; }
+    void set  (uint8_t flag)       {        flags |=  flag; }
+
+    // retrieve action operations
     const reloc_op_fns& get() const
     {
         return action.get();
@@ -49,7 +54,7 @@ struct kbfd_reloc
     // generate `std::map` key (from 3 8-bit values)
     constexpr key_t key() const
     {
-       return std::make_tuple(action, bits, flags);
+       return (action.key() << 16) | (bits << 8) | flags;
     }
 
     // NB: defined in `kbfd_format_impl.h`

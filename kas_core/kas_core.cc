@@ -3,6 +3,7 @@
 #include "expr/expr.h"
 #include "core_expr_impl.h"
 #include "core_expr_fits.h"
+#include "core_expr_emit.h"
 #include "core_addr.h"
 #include "core_insn.h"
 #include "core_section.h"          // ostream core_fragment
@@ -12,7 +13,6 @@
 #include "core_data_impl.h"
 #include "core_emit_impl.h"
 #include "core_reloc_impl.h"
-//#include "emit_reloc_impl.h"
 
 #include "expr/literal_float.h"
 

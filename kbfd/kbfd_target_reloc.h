@@ -6,6 +6,7 @@
 
 namespace kbfd
 {
+
 struct kbfd_target_reloc
 {
     using index_t = uint8_t;
@@ -23,7 +24,7 @@ struct kbfd_target_reloc
     kbfd_reloc  reloc;      // use `key()` to find operations
     index_t     num;        // well-known-number for interchange format
 };
-
+#if 0
 // hold info about target relocations
 struct elf_reloc_t
 {
@@ -90,7 +91,7 @@ private:
     const uint8_t   num_info;
     const kbfd_rela rela;
 };
-
+#endif
 }
 
 #endif

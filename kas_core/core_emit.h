@@ -20,7 +20,7 @@
 namespace kas::core
 {
 
-// forward declare manipulators
+// forward declare "emit" stream manipulators
 struct set_size;
 struct emit_reloc;
 struct emit_disp;
@@ -39,6 +39,7 @@ struct emit_base
     { 
         obj_p = &obj;       // needed for reloc lookup
         stream.open(obj);   // propogate `obj` to initialize stream
+        set_defaults();     // prepare to receive emitted data 
     }
   
     // close stream at end of `emit`
@@ -93,27 +94,6 @@ struct emit_base
         return fn(*this);
     }
     
-    //
-    // section interface
-    //
-    
-    void set_segment(core_segment const& segment);
-    std::size_t position() const;
-    core_section const& get_section() const;
-
-
-private:
-    friend expr_t;          // for apply_visitor
-    friend core_expr_t;     // implements special `emit` method.
-
-    // friend manipulators
-    friend set_size;
-    friend emit_reloc;
-    friend emit_disp;
-    friend emit_data;
-    friend core_reloc;
-    //friend core_reloc_t;
-
     // driven entry-points from stream operators above 
     void operator()(expr_t const& e);
     void operator()(core_addr_t const&, kas_loc const * = {});
@@ -125,46 +105,65 @@ private:
     template <typename T>
     void operator()(T const&, kas_loc const * = {});
     
+    //
+    // section interface
+    //
+    
+    void set_segment(core_segment const& segment);
+    std::size_t position() const;
+    core_section const& get_section() const;
+
+    // set emit "channel"
+    void set_chan (e_chan_num);
+
+private:
+    // be-friend emit stream manipulators
+    friend set_size;
+    friend emit_reloc;
+    friend emit_disp;
+    friend emit_data;
+
     // set width & emit object code
     void put_fixed(int64_t value, uint8_t obj_width = {});
     
     // apply relocs, push fixed data to stream (advancing position), reset defaults
     void emit_obj_code();
-public:
-    void set_chan (e_chan_num);
 
-private:
     // emit relocations (used by `core_reloc`)
-    void put_section_reloc(core_reloc const&, kbfd::kbfd_target_reloc const *info_p
-                         , core_section const& section, int64_t& addend);
-    void put_symbol_reloc (core_reloc const&, kbfd::kbfd_target_reloc const *info_p
-                         , core_symbol_t  const& symbol, int64_t& addend);
+    friend core_reloc;
+    void put_section_reloc(core_reloc&, core_section  const& section);
+    void put_symbol_reloc (core_reloc&, core_symbol_t const& symbol);
     
-    // manipulators to configure data stream
-    void set_width(std::size_t w);
-
     // utility methods
-    core_reloc& add_reloc(kbfd::kbfd_reloc r = {}, int64_t addend = {}, uint8_t offset = {});
-
+    void set_width(std::size_t w);
     void assert_width() const;      
     void set_defaults();
    
+    core_reloc& add_reloc(core_reloc&&);
+
+    template <typename...Ts>
+    core_reloc& add_reloc(Ts&&...args)
+    {
+        return add_reloc(core_reloc(std::forward<Ts>(args)...));
+    }
+
     // trampoline to translate relocation from working to target format
     kbfd::kbfd_target_reloc const *get_reloc(kbfd::kbfd_reloc&) const;
 
-    // instance data
-    emit_stream&         stream;
-    core_section const  *section_p {};
-    kbfd::kbfd_object *obj_p {};
-    
     // save pending relocs in array
     static constexpr auto MAX_RELOCS_PER_LOCATION = 4;
     std::array<core_reloc, MAX_RELOCS_PER_LOCATION> relocs{};
 
-    core_reloc     *reloc_p;        // pointer to "next" reloc for insn
-    emit_value_t    data   {};
-    e_chan_num      e_chan { EMIT_DATA };
-    uint8_t         width  {};
+    // instance data
+    emit_stream&        stream;
+    kbfd::kbfd_object  *obj_p {};
+    core_section const *section_p {};
+    
+    // info about current data being emitted. initialized by `set_defaults()`
+    core_reloc         *reloc_p;    // pointer to "next" reloc for insn
+    emit_value_t        data;       // base value being emitted
+    e_chan_num          e_chan;     // output channel
+    uint8_t             width;      // width of `data` in bytes
 };
 
 //
@@ -255,9 +254,12 @@ struct emit_disp
 private:
     friend auto operator<<(emit_base& base, emit_disp r)
     {
-        kbfd::kbfd_reloc reloc { kbfd::K_REL_ADD()
-                             , static_cast<uint8_t>(r.size * 8)
-                             , true };
+        // only lookup `K_REL_ADD` once (mark as PC_relative)
+        static kbfd::kbfd_reloc _proto { kbfd::K_REL_ADD(), 0, true };
+
+        // copy prototype & set width
+        auto reloc = _proto;
+        _proto.default_width(r.size * 8);
         
         r.base_p = &base;
         r.r_p    = &base.add_reloc(reloc, r.addend, r.offset);

@@ -9,6 +9,15 @@
 
 namespace kbfd
 {
+// describe relocation formats allowed by format
+enum class kbfd_rela
+{
+      RELA_ALLOW        // use RELA if value doesn't fit
+    , RELA_NONE         // don't allow RELA
+    , RELA_REQUIRE      // always use RELA
+};
+
+
 // forward declare `string` kbfd_section XXX why?
 struct ks_string;
 struct kbfd_object;
@@ -52,10 +61,11 @@ struct kbfd_target_format
 
     // provide interface to `target_reloc` tables
     virtual kbfd_target_reloc const *lookup(kbfd_reloc const& reloc) const;
-    virtual kbfd_target_reloc const *get(target_reloc_index_t) const;
+    virtual kbfd_target_reloc const *get_p(target_reloc_index_t) const;
 
     kbfd_target_reloc   const *relocs;
-    unsigned            num_relocs;
+    target_reloc_index_t       num_relocs;
+    target_reloc_index_t       max_relocs { num_relocs };
     swap_endian         swap;
     kbfd_convert        cvt;
 };

@@ -42,7 +42,7 @@
 // instantiate global values controlling assembly
 namespace kas::m68k::hw
 {
-    cpu_defs_t      cpu_defs{isa_c()};
+    cpu_defs_t      cpu_defs{};
 }
 
 namespace kas::m68k
