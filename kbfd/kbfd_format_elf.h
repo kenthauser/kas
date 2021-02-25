@@ -55,7 +55,7 @@ struct kbfd_format_elf : kbfd_target_format
 #endif
                   };
 
-        Elf64_Ehdr header;
+        Elf64_Ehdr header {};
         std::memcpy(header.e_ident, e_ident, EI_NIDENT);
 
         header.e_type    = ET_REL;      // Relocatable file
@@ -85,7 +85,7 @@ struct kbfd_format_elf : kbfd_target_format
     // write ELF object
     void write(kbfd_object&, std::ostream&) const override;
 
-    int e_machine {};
+    int e_machine;
 };
 
 template <std::endian ENDIAN, typename...Ts>

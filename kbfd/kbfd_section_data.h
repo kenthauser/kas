@@ -85,6 +85,24 @@ struct ks_data : kbfd_section
         : kbfd_section(obj, sh_type, name, alignment)          
         {}
 
+    // append data into section. byte swap from host to target
+    void put_int(int64_t data, uint8_t width)
+    {
+        this->put(object.swap(data, width), width);     
+    }
+
+    // put data (from memory array) into section (with byte-swapping)
+    void put_data(void const *p, uint8_t width, unsigned count)
+    {
+        while (count--)
+            this->put(object.swap(p, width), width);
+    }
+
+    // put raw data into buffer (no byte-swapping)
+    void put_raw(void const *p, unsigned count)
+    {
+        this->put(p, count);
+    }
 
     // put reloc using reloc (two flavors)
     template <typename Rel = Elf64_Rel>

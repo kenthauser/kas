@@ -9,10 +9,21 @@
 
 namespace kbfd
 {
+
 kbfd_object::kbfd_object(kbfd_target_format const& fmt)
-    : fmt(fmt), cvt(fmt.cvt), swap(cvt.swap)
+    : fmt(fmt), cvt(fmt.cvt), swap(cvt.swap), e_hdr(fmt.init_header())
+    {}
+
+std::size_t kbfd_object::add_section_p(kbfd_section *p)
 {
-    e_hdr = fmt.init_header();
+    section_ptrs.emplace_back(p);
+    return section_ptrs.size();
+}
+
+// optional method. reserve std::vector space
+void kbfd_object::reserve_sections(unsigned n_sections)
+{
+    section_ptrs.reserve(n_sections);
 }
 
 const char *kbfd_object::write(std::ostream& os)
@@ -28,7 +39,7 @@ const char *kbfd_object::sym_name(Elf64_Sym const& sym) const
     return "";
 }
 
-const char *kbfd_object::sym_name(Elf64_Word n_sym) const 
+const char *kbfd_object::sym_name(kbfd_sym_index_t n_sym) const 
 {
     if (symtab_p)
         return symtab_p->sym_name(n_sym);

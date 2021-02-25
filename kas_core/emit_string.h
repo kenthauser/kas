@@ -118,14 +118,14 @@ struct emit_formatted : emit_stream
     }
 
     template <typename T>
-    void do_put_data(e_chan_num num, void const *v, uint8_t num_chunks)
+    void do_put_data(e_chan_num num, void const *v, unsigned num_chunks)
     {
         auto p = static_cast<T const *>(v);
         while (num_chunks--)
             put(num, fmt_hex(sizeof(T), *p++));
     }
 
-    void put_data (e_chan_num num, void const *p, uint8_t chunk_size, uint8_t num_chunks) override
+    void put_raw(e_chan_num num, void const *p, uint8_t chunk_size, unsigned num_chunks) override
     {
         switch (chunk_size) 
         {

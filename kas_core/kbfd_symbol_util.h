@@ -56,7 +56,7 @@ void kbfd_stream::add_sym(core_symbol_t& s) const
     sym.st_info  = ELF64_ST_INFO(st_bind, st_type); 
 
     // converted core::symbol values into `ELF`. Now insert symbol
-// XXX    s.set_sym_num(object.symtab_p->add(sym, s.name()));
+    s.set_sym_num(obj_p->symtab_p->add(sym, s.name()));
 }
 
 // create a `STT_SECTION` symbol for a data section
@@ -70,10 +70,9 @@ void kbfd_stream::add_sym(core_section& s) const
 
     sym.st_info  = ELF64_ST_INFO(STB_LOCAL, STT_SECTION);
     sym.st_shndx = data.index;
-#if XXX
+
     // NB: name is convenience for debugging (and may be omitted)
-    data.sym_num = object.symtab_p->add(sym, data.name);
-#endif
+    data.sym_num = obj_p->symtab_p->add(sym, data.name);
 }
 
 

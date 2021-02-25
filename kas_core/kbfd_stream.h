@@ -55,40 +55,62 @@ struct kbfd_stream : emit_stream
 
     // write data to output stream
     void close(kbfd::kbfd_object&) override;
-            
+
+private:
+    // filter out `e_chan_num` values which are not sent to `kbfd` backend
+    static constexpr bool do_emit(uint8_t chan)
+    {
+        switch(chan)
+        {
+            case EMIT_DATA:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
 public:
     void put_uint(e_chan_num num, uint8_t width, int64_t data) override
     {
-        // pass value, not pointer
-        //XXX put(num, swap(data, width), width);
+        if (do_emit(num))
+            ks_data_p->put_int(data, width);
+    }
+
+    void put_raw(e_chan_num num
+                , void const *data_p
+                , uint8_t chunk_size
+                , unsigned num_chunks) override
+    {
+        if (do_emit(num))
+            ks_data_p->put_raw(data_p, chunk_size * num_chunks);
     }
 
     void put_data(e_chan_num num
                 , void const *data_p
                 , uint8_t chunk_size
-                , uint8_t num_chunks) override
+                , unsigned num_chunks) override
     {
-        switch(chunk_size)
-        {
-        case 0:
-            // short circuit null case
-            break;
-
-        case 1:
-            // short circut simple (byte) case
-            put(num, data_p, num_chunks);
-            break;
-
-        default:
+        if (do_emit(num))
+            switch(chunk_size)
             {
-                // for each chunk in sequence, read, swap endian, & emit
-                // NB: `swap` advances `data_p` as appropriate
-                while (num_chunks--)
-                    ;// XXX put(num, swap(data_p, chunk_size), chunk_size);
+            case 0:
+                // short circuit null case
                 break;
+
+            case 1:
+                // short circut simple (byte) case
+                // NB: think ascii strings
+                ks_data_p->put_raw(data_p, num_chunks);
+                break;
+
+            default:
+                // byte swap while emitting
+                ks_data_p->put_data(data_p, chunk_size, num_chunks);
             }
-        }
     }
+
+
 
     void put_symbol_reloc(
                   e_chan_num num
@@ -119,9 +141,10 @@ public:
     void put_diag(e_chan_num num, uint8_t width, parser::kas_diag_t const& diag) override
     {
         static constexpr char zero[8] = {};
-        // diagnostics not emitted into object data.
+
         // emit `width` of zeros
-        put(num, zero, width);
+        if (do_emit(num))
+            ks_data_p->put_raw(zero, width);
     }
 
     // section control
@@ -168,13 +191,7 @@ private:
     // NB: `core_emit` first directive is `set_section`
     kbfd::ks_data   *ks_data_p{};    // current section
 
-#ifdef XXX
-    kbfd::swap_endian const& swap;   // convenience: grab referece to object::swap
-    kbfd::kbfd_object& object;        // holds kbfd_section modules
-#else
-//    kbfd::swap_endian const  swap;   // convenience: grab referece to object::swap
-//    kbfd::kbfd_object  object;        // holds kbfd_section modules
-#endif
+    kbfd::kbfd_object  *obj_p;        // holds kbfd_section modules
 
     std::ostream& out;
 };

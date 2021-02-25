@@ -9,6 +9,8 @@ namespace kas::core
 // INIT `kbfd` sections & symbols from `kas_core`
 void kbfd_stream::open(kbfd::kbfd_object& object) 
 {
+    obj_p = &object;
+
     // 1. allocate `data_section` memory for maximum number of sections
     // NB: as `kbfd_object` uses std::vector to hold pointers to sections,
     // NB: relatively cheap to resize vector. This step may be omitted.
@@ -102,16 +104,17 @@ void kbfd_stream::close(kbfd::kbfd_object& object)
 
 
 // construct new ELF data section from `core::core_section` section
-auto kbfd_stream::core2ks_data(core::core_section const& s) const -> kbfd::ks_data& 
+auto kbfd_stream::core2ks_data(core::core_section const& s) const
+                -> kbfd::ks_data& 
 {
     // retrieve `ks_data *` using callback (if previously created)
     auto p = static_cast<kbfd::ks_data *>(s.kbfd_callback());
- #if 0   
+ #if 1   
     if (!p)
     {
         // construct new `ks_data` section in `kbfd_object` from `core_section`
         //p = new kbfd::ks_data(object, s.sh_type, s.sh_name, s.kas_align);
-        p = new kbfd::ks_data(object, s.sh_type, s.sh_name, 4);
+        p = new kbfd::ks_data(*obj_p, s.sh_type, s.sh_name, 4);
         p->s_header.sh_flags = s.sh_flags;      // R/W, EXEC, ALLOC, etc
 
         // XXX group/linkage?

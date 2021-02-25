@@ -24,11 +24,48 @@ struct emit_stream
     virtual void open (kbfd::kbfd_object&) {}
     virtual void close(kbfd::kbfd_object&) {}
 
-    // emit single value
-    virtual void put_uint(e_chan_num, uint8_t width, emit_value_t data) = 0;
+    // emit single value (with byte swapping)
+    virtual void put_uint(e_chan_num num
+                        , uint8_t    width
+                        , emit_value_t data) = 0;
 
-    // emit count of size (in bytes) values from buffer
-    virtual void put_data(e_chan_num, void const *, uint8_t size, uint8_t count) = 0;
+    // emit memory buffer (without byte swapping)
+    virtual void put_raw(e_chan_num num
+                       , void const *p
+                       , uint8_t     size
+                       , unsigned    count) = 0;
+    
+    // emit memory buffer (with byte swapping)
+    virtual void put_data(e_chan_num num
+                       , void const *p
+                       , uint8_t     width 
+                       , unsigned    count)
+    {
+        auto get_as_width = [width](auto p) -> uint64_t
+            {
+                // NB: if values properly aligned when put in "buffer"
+                // they will be properly aligned when extracted
+                switch (width)
+                {
+                    case 8:
+                        return *static_cast<uint64_t const *>(p);
+                    case 4:
+                        return *static_cast<uint32_t const *>(p);
+                    case 2:
+                        return *static_cast<uint16_t const *>(p);
+                    case 1:
+                        return *static_cast<uint8_t  const *>(p);
+                    default:
+                        throw std::logic_error("emit_stream::put_data: invalid width");
+                }
+            };
+        
+        while (count--)
+        {
+            put_uint(num, width, get_as_width(p));
+            p = static_cast<const char *>(p) + width;
+        }
+    }
     
     // NB: if backend emits `REL_A` or otherwise consumes `addend`
     // it must zero addend

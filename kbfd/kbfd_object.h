@@ -34,54 +34,38 @@ struct ks_string;
 struct kbfd_object
 {
     // declare appropriate type for "symbol number"
-    using kbfd_sym_index_t = Elf64_Half;
+    using kbfd_sym_index_t = unsigned;
+
     kbfd_object(kbfd_target_format const& fmt);
 
-    std::size_t add_section_p(kbfd_section *p)
-    {
-        section_ptrs.emplace_back(p);
-        return section_ptrs.size();
-    }
-
+    std::size_t add_section_p(kbfd_section *p);
+    
     // optional method. reserve std::vector space
-    void reserve_sections(Elf64_Word n_sections)
-    {
-        section_ptrs.reserve(n_sections);
-    }
-
+    void reserve_sections(unsigned n_sections);
+    
     const char *write(std::ostream&);
     
-#if 0
-    template <typename...Ts>
-    decltype(auto) cvt(Ts&&...ts)
-    {
-        return fmt.cvt(std::forward<Ts>(ts)...);
-    }
-#else
-  //  template <typename...Ts>
-  //  cvt_src_rt cvt(Ts&&...ts) const;
-#endif
-
     // lookup symbol name
     const char *sym_name(Elf64_Sym const& sym) const;
     const char *sym_name(Elf64_Word n_sym) const;
 
     // lookup relocation for target
     kbfd_target_reloc const *get_reloc(kbfd_reloc const&) const;
-    kbfd_target_reloc const *get_reloc(uint16_t index) const;
+    kbfd_target_reloc const *get_reloc(kbfd_sym_index_t) const;
 
-    // instance data describing `object`
-    Elf64_Ehdr e_hdr;           // kbfd (ie elf) header
-    ks_symbol *symtab_p    {};  // symbol table for object
-    ks_string *sh_string_p {};  // section name table
+    // expose reverences to `object` support types
+    kbfd_target_format  const& fmt;
+    kbfd_convert        const& cvt;
+    swap_endian         const& swap;
     
     // pointers to allocated sections
     std::vector<kbfd_section *> section_ptrs;
     
-    // provide reverences to `fmt` members because incomplete type
-    kbfd_target_format  const& fmt;
-    kbfd_convert        const& cvt;
-    swap_endian         const& swap;
+    // instance data describing `object`
+    Elf64_Ehdr e_hdr;           // kbfd object header
+    ks_symbol *symtab_p    {};  // symbol table for object
+    ks_string *sh_string_p {};  // section name table
+    
 };
 
 

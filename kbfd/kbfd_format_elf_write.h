@@ -14,7 +14,7 @@ void kbfd_format_elf<ENDIAN, HEADERS, Ts...>::
     write(kbfd_object& obj, std::ostream& os) const
 {
     // write a std::pair<void const *, std::size> pair
-    auto do_write = [](auto& os, std::pair<void const *, std::size_t>d)
+    auto do_write = [&os](std::pair<void const *, std::size_t>d)
         {
             auto p = static_cast<const char *>(d.first);
             os.write(p, d.second);
@@ -95,7 +95,7 @@ void kbfd_format_elf<ENDIAN, HEADERS, Ts...>::
 #if 1
     // now write data: first elf_header
     //os.write((const char *)cvt.cvt(header), header.e_ehsize);
-    do_write(os, cvt(e_hdr));
+    do_write(cvt(e_hdr));
     // next write data: section data
     for (auto& p : section_ptrs)
     {
@@ -123,7 +123,7 @@ void kbfd_format_elf<ENDIAN, HEADERS, Ts...>::
     // followed by actual section headers
     for (auto& p : section_ptrs)
     {
-        do_write(os, cvt(p->s_header));
+        do_write(cvt(p->s_header));
     };
     
 #endif

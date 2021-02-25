@@ -23,7 +23,7 @@ struct swap_endian
     
     constexpr auto operator()(uint64_t value) const
     {
-        if (passthru)       // not constexpr...
+        if (passthru)       // not constexpr expression...
             return value;
         else
         {
@@ -42,10 +42,10 @@ struct swap_endian
             return value;
         else
         {
-            value = (value & 0x000'0FFFF) << 16
-                  | (value & 0xFFF'F0000) >> 16;
-            value = (value & 0x00F'F00FF) << 8
-                  | (value & 0xFF0'0FF00) >> 8;
+            value = (value & 0x0000'FFFF) << 16
+                  | (value & 0xFFFF'0000) >> 16;
+            value = (value & 0x00FF'00FF) << 8
+                  | (value & 0xFF00'FF00) >> 8;
             return value;
         }
     }
@@ -71,8 +71,7 @@ struct swap_endian
         { return (*this)(std::make_unsigned_t<T>(value)); }
    
     // swap memory based on widths
-    using data_iter = void const *;
-    void const *operator()(data_iter& p, uint8_t width) const
+    void const *operator()(void const *& p, uint8_t width) const
     {
         switch(width)
         {

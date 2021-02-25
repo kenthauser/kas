@@ -41,12 +41,14 @@ struct emit_base
         stream.open(obj);   // propogate `obj` to initialize stream
         set_defaults();     // prepare to receive emitted data 
     }
-  
+ 
     // close stream at end of `emit`
-    virtual ~emit_base()
+    void close()
     {
         stream.close(*obj_p);
     }
+
+    virtual ~emit_base() = default;
 
     // Entry point to create instruction output
     // NB: `dot_p` not to be used to calculate size (via `fits`).

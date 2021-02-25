@@ -72,7 +72,7 @@ struct kbfd_section
     // buffer can be pre-allocated or dynamically allocated in `vector`
     // If pre-allocated, `data_base` is set non-zero. If not pre-allocated
     // buffer will expand as required
-    kbfd_object&         object;         // containing object
+    kbfd_object&        object;         // containing object
     std::vector<char>   data;           // memory allocator
     char *              data_base {};
     char *              data_p    {};

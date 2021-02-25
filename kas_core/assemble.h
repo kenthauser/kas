@@ -14,8 +14,7 @@ namespace kas::core
 struct kas_assemble
 {
     using INSNS = insn_container<>;
-    static inline kas_clear _c{INSNS::obj_clear};
-
+    
     // `kbfd_object` defines target format
     kas_assemble(kbfd::kbfd_object& obj) : obj(obj)
     {
@@ -93,6 +92,7 @@ struct kas_assemble
     #if 1
         // 5. schedule `dwarf line` output for generation (after obj emit)
         //    (goes into a third container)
+        //    NB: dwarf requires resolved addresses, so generate after resolved.
         if (dwarf::dl_data::size() != 0)
         {
             // add "end_sequence" to mark end of `dl_data` instructions 
@@ -132,6 +132,9 @@ struct kas_assemble
                     gen_dwarf();
                 proc_container(container);
             });
+
+         // emit complete. close stream.
+         e.close();
     }
 
 private:
@@ -143,7 +146,7 @@ private:
 
         // trace source file operations
         src.set_trace(out);
- #ifndef XXX
+ 
         // create parser object
         auto stmt_stream = parser::kas_parser(parser::stmt_x3(), src);
          
@@ -183,7 +186,6 @@ private:
             if (out)
                 *out  << std::endl;
         }
-#endif
     }
 
     // NB: don't need to forward declare `static` lambdas
@@ -250,6 +252,9 @@ private:
 
     INSNS *do_gen_dwarf {};
     kbfd::kbfd_object& obj;
+    
+    // test fixture support
+    static inline kas_clear _c{INSNS::obj_clear};
 };
 }
 #endif

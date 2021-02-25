@@ -119,7 +119,7 @@ struct quick_stream : core::emit_stream
     }
     
     // error out other backend methods
-    void put_data(e_chan_num num, void const *, uint8_t, uint8_t) override
+    void put_raw(e_chan_num num, void const *, uint8_t, unsigned) override
     {
         set_error(__FUNCTION__);        // always error
     }

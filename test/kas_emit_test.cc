@@ -143,7 +143,6 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
         parse_out << "LISTING:" << std::endl;
         kas::core::emit_listing<iterator_type> listing(parse_out);
         obj.emit(listing);
-        kas::core::core_symbol_t::dump(parse_out);
     }
 #endif
 #if 0

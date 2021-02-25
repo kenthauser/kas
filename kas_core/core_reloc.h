@@ -19,6 +19,7 @@ namespace kas::core
 
 struct emit_base;       // forward declaration of calling type
 
+#define TRACE_CORE_RELOC
 struct core_reloc
 {
     // locally expose constants from `kbfd`
@@ -26,8 +27,9 @@ struct core_reloc
 
     core_reloc()
     {
+#ifdef TRACE_CORE_RELOC
         std::cout << "core_reloc::default ctor" << std::endl;
-
+#endif
         // only lookup `K_REL_ADD` once
         static kbfd::kbfd_reloc _proto { kbfd::K_REL_ADD() };
         reloc = _proto;
@@ -36,7 +38,7 @@ struct core_reloc
     core_reloc(kbfd::kbfd_reloc reloc, int64_t addend = {}, uint8_t offset = {})
         : reloc(std::move(reloc)), addend(addend), offset(offset)
     {
-#if 1
+#ifdef TRACE_CORE_RELOC
         std::cout << "core_reloc::ctor: ";
         std::cout << "reloc = "    << reloc;
         if (addend)

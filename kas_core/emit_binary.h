@@ -20,15 +20,12 @@ namespace kas::core
 
 struct emit_binary : emit_base
 {
-    // ctor using ofstream&
+    // ctor using ostream&
     emit_binary(std::ostream& out)
         : stream(out), emit_base(stream)
         {}
 
-    // ctor using path (allocate local ofstream object)
-    emit_binary(std::string const& path)
-        : emit_binary(path.c_str()) {}
-
+    // ctor using path (allocate ostream object)
     emit_binary(const char *path)
         : out_p(new std::ofstream(
                         path
@@ -36,11 +33,18 @@ struct emit_binary : emit_base
                       ))
         , stream(*out_p)
         , emit_base(stream)
-        {}
+    {
+        std::cout << "emit_binary: allocating \"" << path << "\"" << std::endl;
+    }
+
+    // ctor: allow string for path
+    emit_binary(std::string const& path)
+        : emit_binary(path.c_str()) {}
 
     // dtor: close file if allocated
     ~emit_binary()
     {
+        std::cout << "emit_binary: dtor" << std::endl;
         delete out_p;
     }
 
