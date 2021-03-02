@@ -10,7 +10,7 @@
 namespace kbfd
 {
 // describe relocation formats allowed by format
-enum class kbfd_rela
+enum class kbfd_rela_fmt
 {
       RELA_ALLOW        // use RELA if value doesn't fit
     , RELA_NONE         // don't allow RELA

@@ -14,23 +14,23 @@ namespace kbfd
 // actual initializer
 ks_symbol::ks_symbol(kbfd_object& obj, std::string tab_name, std::string str_name)
     : sym_string (obj, str_name)
-    , kbfd_section(obj, SHT_SYMTAB, tab_name, sizeof(Elf_Sym))
+    , kbfd_section(obj, SHT_SYMTAB, tab_name, sizeof(kbfd_sym))
 {
     s_header.sh_link    = sym_string.index;
-    s_header.sh_entsize = obj.cvt.tgt_size<Elf64_Sym>();
+    s_header.sh_entsize = obj.cvt.tgt_size<kbfd_sym>();
 
     // initial symbol is zero entry
     host_table.emplace_back();
 }
 
-// add symbol to host symbol table: Elf64_Sym
-Elf64_Word ks_symbol::add(Elf64_Sym const& new_sym, std::string const& name)
+// add symbol to host symbol table: kbfd_sym
+Elf64_Word ks_symbol::add(kbfd_sym const& new_sym, std::string const& name)
 {
     // symbol number is index value (zero-based)
     auto sym_num = host_table.size();
 
     // allocate symbol
-    Elf64_Sym& sym = host_table.emplace_back(new_sym);
+    kbfd_sym& sym = host_table.emplace_back(new_sym);
 
     if (!name.empty())
         sym.st_name = sym_string.put(name);

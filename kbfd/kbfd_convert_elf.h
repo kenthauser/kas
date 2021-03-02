@@ -3,8 +3,10 @@
 
 // Convert ELF Class (ELF32/ELF64) and data ENDIAN between host and target formats
 //
-// When headers are in memory, they are stored as ELF64 with host-endian.
-// Data in sections is always stored in target format (class/endian)
+// When headers are in memory, they are formatted as kbfd (ie elf64) 
+// with host-endian. Data in sections is always stored in target 
+// format (class/endian).
+//
 // `kbfd_convert` supports both host->target & target->host translations
 // of headers & byte-swap for endian conversion of data emited to data sections.
 
@@ -14,6 +16,7 @@
 // The exception is the relocation formats beause the `r_info` member formats
 // are slightly different.
 
+#include "elf_external.h"
 #include "kbfd_convert.h"
 
 #include <iostream>
@@ -39,8 +42,8 @@ inline auto kbfd_convert::create_reloc<Elf64_Rel>(
                              ) const -> Elf64_Rel
 {
     // can't shift a uint32 by 32. convert to uint64 before shift
-    Elf64_Xword r_sym  = sym_num;
-    Elf64_Xword r_info = ELF64_R_INFO(r_sym, info.num);
+    kbfd_xword r_sym  = sym_num;
+    kbfd_xword r_info = ELF64_R_INFO(r_sym, info.num);
 
     // XXX offset can use some analysis for `endian` issues...
     Elf64_Rel reloc = { position + offset, r_info };
@@ -61,8 +64,8 @@ inline auto kbfd_convert::create_reloc<Elf64_Rela>(
                              ) const -> Elf64_Rela
 {
     // can't shift a uint32 by 32. convert to uint64 before shift
-    Elf64_Xword r_sym  = sym_num;
-    Elf64_Xword r_info = ELF64_R_INFO(r_sym, info.num);
+    kbfd_xword r_sym  = sym_num;
+    kbfd_xword r_info = ELF64_R_INFO(r_sym, info.num);
 
     // XXX offset can use some analysis for `endian` issues...
     Elf64_Rela reloc = { position + offset, r_info, data };

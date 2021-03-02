@@ -62,10 +62,10 @@ struct ks_symbol : kbfd_section
         host_table.reserve(size);
     }
     
-    // add symbol to host symbol table: Elf64_Sym
-    Elf64_Word add(Elf64_Sym const& new_sym, std::string const& name = {});
+    // add symbol to host symbol table: kbfd_sym
+    Elf64_Word add(kbfd_sym const& new_sym, std::string const& name = {});
 
-    const char *sym_name(Elf64_Sym const& sym) const
+    const char *sym_name(kbfd_sym const& sym) const
     {
         return sym_string.begin() + sym.st_name;
     }
@@ -75,7 +75,7 @@ struct ks_symbol : kbfd_section
         return sym_name(get(index));
     }
 
-    Elf64_Sym const& get(Elf64_Word index) const
+    kbfd_sym const& get(Elf64_Word index) const
     {
         return host_table[index];
     }
@@ -87,7 +87,7 @@ private:
     // convert "host" symbol table to "target" object
     void do_gen_target(kbfd_object& obj);
     
-    std::vector<Elf64_Sym> host_table;
+    std::vector<kbfd_sym> host_table;
     ks_string sym_string;        // auxillary section for symbol names 
 };
    

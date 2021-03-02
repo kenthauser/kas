@@ -1,5 +1,5 @@
-#ifndef KAS_CORE_KBFD_SYMBOL_UTIL_H
-#define KAS_CORE_KBFD_SYMBOL_UTIL_H
+#ifndef KAS_CORE_STREAM_KBFD_SYMBOL_H
+#define KAS_CORE_STREAM_KBFD_SYMBOL_H
 
 //#include "kbfd_file.h"
 
@@ -62,7 +62,7 @@ void kbfd_stream::add_sym(core_symbol_t& s) const
 // create a `STT_SECTION` symbol for a data section
 void kbfd_stream::add_sym(core_section& s) const
 {
-    // get reference to corresponding ELF data secdtion
+    // get reference to corresponding ELF data section
     auto& data = core2ks_data(s);
 
     // create symbol & initialize non-default fields 

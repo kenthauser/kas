@@ -46,8 +46,8 @@ struct kbfd_object
     const char *write(std::ostream&);
     
     // lookup symbol name
-    const char *sym_name(Elf64_Sym const& sym) const;
-    const char *sym_name(Elf64_Word n_sym) const;
+    const char *sym_name(kbfd_sym const& sym) const;
+    const char *sym_name(kbfd_word n_sym) const;
 
     // lookup relocation for target
     kbfd_target_reloc const *get_reloc(kbfd_reloc const&) const;
@@ -62,7 +62,7 @@ struct kbfd_object
     std::vector<kbfd_section *> section_ptrs;
     
     // instance data describing `object`
-    Elf64_Ehdr e_hdr;           // kbfd object header
+    kbfd_ehdr e_hdr;           // kbfd object header
     ks_symbol *symtab_p    {};  // symbol table for object
     ks_string *sh_string_p {};  // section name table
     

@@ -7,20 +7,20 @@
 #include "utility/print_type_name.h"
 #include "kas_core/core_insn.h"
 #include "kas_core/insn_container.h"
-#include "kas_core/emit_string.h"
+#include "kas_core/stream_string.h"
 #include "kas_core/core_fits.h"
 #include "kas_core/core_relax.h"
 #include "dwarf/dwarf_impl.h"
 
-#include "kas_core/emit_binary.h"
+#include "kas_core/emit_kbfd.h"
 #include "kas_core/emit_listing.h"
 
 #include "kas_core/assemble.h"
 #include "machine_out.h"
 
 #include "kbfd/kbfd.h"
-#include "kas_core/kbfd_stream_impl.h"    // XXX
-#include "kas_core/kbfd_symbol_util.h"    // XXX
+#include "kas_core/stream_kbfd_impl.h"    // XXX
+#include "kas_core/stream_kbfd_symbol.h"    // XXX
 //#include "kbfd/kbfd_format_write.h"       // XXX
 #include "kbfd/kbfd_format_elf_ostream.h"     // ostream host format
 

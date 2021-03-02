@@ -1,7 +1,7 @@
-#ifndef KAS_CORE_KBFD_STREAM_IMPL_H
-#define KAS_CORE_KBFD_STREAM_IMPL_H
+#ifndef KAS_CORE_STREAM_KBFD_IMPL_H
+#define KAS_CORE_STREAM_KBFD_IMPL_H
 
-#include "kbfd_stream.h"
+#include "stream_kbfd.h"
 
 namespace kas::core
 {

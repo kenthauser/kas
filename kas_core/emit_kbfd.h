@@ -1,16 +1,16 @@
-#ifndef KAS_CORE_EMIT_BINARY_H
-#define KAS_CORE_EMIT_BINARY_H
+#ifndef KAS_CORE_EMIT_KBFD_H
+#define KAS_CORE_EMIT_KBFD_H
 
-// emit_binary
+// emit_kbfd
 //
-// Generate backend-object to allow generation of object file.
+// Use `kbfd` to generate object file
 //
 // Cobble together an object from kbfd::elf_format, kbfd::elf_object,
 // and core::elf_stream to perform object file creation
 //
 // NB: member declaration order is object creation order
 
-#include "kbfd_stream.h"
+#include "stream_kbfd.h"
 #include "core_emit.h"
 
 #include <fstream>
@@ -62,6 +62,7 @@ struct emit_binary : emit_base
     }
 
 private:
+    // XXX this should be `std::unique_ptr`
     std::ofstream *out_p {};
     kbfd_stream    stream;
 };

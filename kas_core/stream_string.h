@@ -1,5 +1,5 @@
-#ifndef KAS_CORE_EMIT_STRING_H
-#define KAS_CORE_EMIT_STRING_H
+#ifndef KAS_CORE_STREAM_STRING_H
+#define KAS_CORE_STREAM_STRING_H
 
 #include "core_emit.h"
 #include "core_section.h"

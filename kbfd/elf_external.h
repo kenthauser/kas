@@ -6,24 +6,10 @@
 // source: "System V Application Binary Interface - DRAFT - 24 April 2001"
 // retrieved from http://refspecs.linuxfoundation.org/elf/gabi4+
 
-// Add member type `elf_header_t` to facilitate EI_CLASS conversions in `elf_convert`.
-
-// `elf_header_t` defined as the largest coresponding ELF header type.
-// This facilitates EI_CLASS conversions in `elf_convert`.
-
 #include <cstdint>
 
 namespace kbfd
 {
-// declare placeholder types for each ELF structure
-// NB: declare as largest version of each structure
-using Elf_Ehdr = struct Elf32_Ehdr;
-using Elf_Shdr = struct Elf32_Shdr;
-using Elf_Sym  = struct Elf32_Sym;
-using Elf_Rel  = struct Elf32_Rel;
-using Elf_Rela = struct Elf32_Rela;
-using Elf_Phdr = struct Elf32_Phdr;
-
 // declare each ELF data type in terms of c++ standard types
 using Elf32_Addr    = std::uint32_t;
 using Elf32_Off     = std::uint32_t;
@@ -43,7 +29,6 @@ using Elf64_Sxword  = std::int64_t;
 static const unsigned EI_NIDENT = 16;
 
 struct Elf32_Ehdr {
-    using elf_header_t = Elf_Ehdr;
     unsigned char   e_ident[EI_NIDENT];
     Elf32_Half      e_type;
     Elf32_Half      e_machine;
@@ -61,7 +46,6 @@ struct Elf32_Ehdr {
 };
 
 struct Elf64_Ehdr {
-    using elf_header_t = Elf_Ehdr;
     unsigned char   e_ident[EI_NIDENT];
     Elf64_Half      e_type;
     Elf64_Half      e_machine;
@@ -81,7 +65,6 @@ struct Elf64_Ehdr {
 
 // ELF Section Header
 struct Elf32_Shdr {
-    using elf_header_t = Elf_Shdr;
     Elf32_Word      sh_name;
     Elf32_Word      sh_type;
     Elf32_Word      sh_flags;
@@ -95,7 +78,6 @@ struct Elf32_Shdr {
 };
 
 struct Elf64_Shdr {
-    using elf_header_t = Elf_Shdr;
     Elf64_Word      sh_name;
     Elf64_Word      sh_type;
     Elf64_Xword     sh_flags;
@@ -123,7 +105,6 @@ struct Elf64_Shdr {
 
 // ELF Symbol Table Entry
 struct Elf32_Sym {
-    using elf_header_t = Elf_Sym;
     Elf32_Word      st_name;
     Elf32_Addr      st_value;
     Elf32_Word      st_size;
@@ -133,7 +114,6 @@ struct Elf32_Sym {
 };
 
 struct Elf64_Sym {
-    using elf_header_t = Elf_Sym;
     Elf64_Word      st_name;
     unsigned char   st_info;
     unsigned char   st_other;
@@ -145,24 +125,20 @@ struct Elf64_Sym {
 
 //  ELF Relocation Entries
 struct Elf32_Rel {
-    using elf_header_t = Elf_Rel;
     Elf32_Addr      r_offset;
     Elf32_Word      r_info;
 };
 struct Elf32_Rela {
-    using elf_header_t = Elf_Rela;
     Elf32_Addr      r_offset;
     Elf32_Word      r_info;
     Elf32_Sword     r_addend;
 };
 
 struct Elf64_Rel {
-    using elf_header_t = Elf_Rel;
     Elf64_Addr      r_offset;
     Elf64_Xword     r_info;
 };
 struct Elf64_Rela {
-    using elf_header_t = Elf_Rela;
     Elf64_Addr      r_offset;
     Elf64_Xword     r_info;
     Elf64_Sxword    r_addend;
@@ -171,7 +147,6 @@ struct Elf64_Rela {
 
 // ELF Program Table
 struct Elf32_Phdr {
-    using elf_header_t = Elf32_Phdr;
     Elf32_Word      p_type;
     Elf32_Off       p_offset;
     Elf32_Addr      p_vaddr;
@@ -183,7 +158,6 @@ struct Elf32_Phdr {
 };
 
 struct Elf64_Phdr {
-    using elf_header_t = Elf32_Phdr;
     Elf64_Word      p_type;
     Elf64_Word      p_flags;
     Elf64_Off       p_offset;

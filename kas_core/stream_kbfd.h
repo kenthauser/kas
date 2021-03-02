@@ -1,7 +1,7 @@
-#ifndef KAS_CORE_KBFD_STREAM_H
-#define KAS_CORE_KBFD_STREAM_H
+#ifndef KAS_CORE_STREAM_KBFD_H
+#define KAS_CORE_STREAM_KBFD_H
 
-// kbfd_stream.h
+// stream_kbfd.h
 //
 // the `kbfd_stream` object is the interface between `kas_core_emit`
 // and the object file backend. 
@@ -161,7 +161,7 @@ public:
 
 
 private:
-    // data section ctor
+    // construct or retrive reference to `kbfd` ks_data object
     kbfd::ks_data& core2ks_data(core_section const&) const;
 
     // create ELF symbols from `core` structures

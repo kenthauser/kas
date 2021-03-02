@@ -423,4 +423,68 @@ Plan 10/2: First fix floating point emit/warning/etc
     suitable to use in `elf` linker, disassembly, and dump commands.
 
 
+****************
+
+KBFD / kas interface
+
+1. remove "ELF" from `kas` vocabulary
+
+2. make `emit_base` non-virtual. Move `emit` method to 
+   `emit_stream`
+
+3. create `add_sym` vocabulary to `kas_object`. Allow `symbols` 
+   and sections to be inserted into table
+
+4. create `kbfd_section` table (similar to `kbfd_reloc` table)
+   in `kbfd_format`. implement lookup interface to allow 
+   `core_section` to xlate name to "type/flags".
+
+5. Investigate `.text1`, `.data1`, `.rodata` et. al. to answer
+   if using a different `kbfd_section` table would allow 
+   COFF/ELF understanding of different section for .text0/.text1
+   to co-exist with `a.out` understanding of merged table. 
+   If possible, the confusing concept of "section/segment/fragment"    can be reduced to "section/fragment". One possiblilty: global
+   "core_section::max_numbered_section" to trigger combination.
+   a.out table would return it, elf would not. Would need to insure 
+   proper result if "base" section (.text,.data,.bss) not created.
+
+6. `kbfd` symbol members (maybe more) should use `setters` &
+    `getters`. At the risk of getting objective-c, if `kbfd` magic
+    numbers change, interface shouldn't have to. 
+    Problem now because `kbfd/elf_common.h` uses #defines. 
+
+7. Review `COFF` & `mach-o` (and whatever MS uses) to judge
+    using pure ELF64 as base format.
+
+8. DWARF Interface: part of `kbfd` (yes?). Different EMIT_STREAM
+    (yes?). Map `stabs` into dwarf?
+
+9. CLI interface: part of `kbfd` (yes?). Different EMIT_STREAM
+    (yes?). What is CLI really??
+
+10. Research "object alignment" in standards. 
+
+11. need "kbfd_fmt_sections" object to provide: 
+    - current `core_section::kbfd_section` info. ie well-known section
+      names & SHT_*/SHF_* values
+    - xlate between "name" "subsection" values for `a.out` and other formats
+      would xlate "data/1" to ".data1" for coff+ and ".data/1" for a.out
+      allow combining of sections
+    - table of default sections: ie .text/.data/.bss (normally)
+    - definition of required sections (ie TEXT & LCOMM -> (.text & .bss)
+      required semantically
+    - kas_core::assemble should pass to `core_section` to retain reference
+      and init module. Will require `set_format`, `get_initial`,
+      and `get_lcomm` methods (et al for combining) to be added to `core_section`
+
+12. The `kbfd_fmt_sections::subsection` support will eliminate the need for
+    `kbfd_segment`. good riddance if `core_fragment` cooperates. Need a
+    `core_section **base` or similar for each fragment chain. Need to move
+    base of frag chains. Currently "segments" hold first/last pointer.
+    Need frag *first* pointer to find section.
+
+    Even better: when moving fragments, walk the chain & move section_p. done.
+
+
+
 

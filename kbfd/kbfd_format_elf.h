@@ -7,6 +7,18 @@
 namespace kbfd
 {
 
+namespace detail
+{
+    using namespace meta;
+    
+    // declare Elf headers in `canonical` list for conversion
+    using elf32_hdrs  = list<Elf32_Ehdr, Elf32_Shdr, Elf32_Sym
+                                , Elf32_Rel, Elf32_Rela, Elf32_Phdr>;
+    using elf64_hdrs  = list<Elf64_Ehdr, Elf64_Shdr, Elf64_Sym
+                                , Elf64_Rel, Elf64_Rela, Elf64_Phdr>;
+}
+
+
 template <std::endian ENDIAN, typename HEADERS, typename...Ts>
 struct kbfd_format_elf : kbfd_target_format
 {

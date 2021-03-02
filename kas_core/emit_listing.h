@@ -31,7 +31,7 @@ Development plan:
 #endif
 
 
-#include "emit_string.h"
+#include "stream_string.h"
 #include "core_options.h"
 #include <regex>
 

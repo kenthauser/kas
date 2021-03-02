@@ -152,12 +152,12 @@ public:
     {
         return sh_name;
     }
-#if 1
+
     // allow iteration over sub-sections
     // XXX used in relax...
     auto begin() const { return segments.begin(); }
     auto end()   const { return segments.end();   }
-#endif
+
     auto size() const
     {
         std::size_t size{};
@@ -201,14 +201,7 @@ public:
         //std::cout << "sections: clear" << std::endl;
         sections.clear();
     }
-//private:
-#if 0
-    template <typename OS>//, typename = std::enable_if_t<std::is_base_of_v<std::ios_base, OS>>>
-    friend OS& operator<<(OS& os, core_section const& obj)
-    {
-        obj.print(os); return os;
-    }
-#endif
+    
     friend std::ostream& operator<<(std::ostream& os, core_section const& obj)
     {
         obj.print(os); return os;
@@ -226,11 +219,12 @@ public:
     kbfd::Elf32_Word sh_entsize  {};
     std::string     kas_group   {};
     kbfd::Elf32_Word kas_linkage {};
-    kbfd::Elf32_Word kas_align   {};     // only "well-know sections"
+    kbfd::Elf32_Word kas_align   {};
 
-    // backend hook
+    // backend call-back hook to map `kas_section` with `kbfd_section`
     mutable void *_kbfd_callback {};
 
+    // support test fixture
     static inline core::kas_clear _c{base_t::obj_clear};
 };
 
@@ -263,18 +257,6 @@ namespace opc
             data.fixed = index;
         }
 
-#if 0
-        // create an ELF section
-        // NB: args other than `name` are ignored except when
-        // section is first created
-        // NB: see `core_section` ctor for arg list
-        template <typename...Ts>
-        void proc_args(Inserter& di, std::string sh_name, Ts&&...args)
-        {
-            auto& section = core::core_section::get(sh_name, std::forward<Ts>(args)...);
-            this->fixed_p->fixed = section[0].index();
-        }
-#endif
         void fmt(data_t const& data, std::ostream& os) const override
         {
             auto index = data.fixed.fixed;

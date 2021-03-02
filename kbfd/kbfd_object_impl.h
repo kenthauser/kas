@@ -32,7 +32,7 @@ const char *kbfd_object::write(std::ostream& os)
     return {};
 }
 
-const char *kbfd_object::sym_name(Elf64_Sym const& sym) const 
+const char *kbfd_object::sym_name(kbfd_sym const& sym) const 
 {
     if (symtab_p)
         return symtab_p->sym_name(sym);
