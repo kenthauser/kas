@@ -7,7 +7,7 @@
 #include "kas_core/opcode.h"
 #include "kas_core/opc_misc.h"
 #include "kas_core/opc_fixed.h"
-#include "kas_core/core_section.h"
+#include "kas_core/opc_section.h"
 #include "kas_core/core_symbol.h"
 //#include "parser/ast_parser.h"      // need print functions
 
@@ -111,9 +111,9 @@ struct bsd_section_base :  opc_section
         if (subsection)
             sh_name += std::to_string(subsection);
 
-        auto& seg = core::core_section::get(sh_name, sh_type, sh_flags, sh_entsize
-                                    , kas_group, kas_linkage
-                                    );
+        auto& seg = core::core_section::get(sh_name, sh_type, sh_flags
+                                          , kas_group, kas_linkage
+                                          );
 
         return { seg[subsection].index() };
 

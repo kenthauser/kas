@@ -2,12 +2,21 @@
 #define KBFD_KBFD_TARGET_FORMAT_IMPL_H
 
 #include "kbfd_target_format.h"
+#include "kbfd_section_defns.h"
 #include <unordered_map>
 #include <vector>
 #include <typeindex>
 
 namespace kbfd
 {
+//  default `section_defns`
+auto kbfd_target_format::get_section_defns() const
+    -> kbfd_target_sections const&
+{
+    static const kbfd_target_sections defn;
+    return defn;
+}
+
 auto kbfd_target_format::lookup(kbfd_reloc const& reloc) const
     -> kbfd_target_reloc const *
 {

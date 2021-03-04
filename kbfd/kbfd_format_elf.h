@@ -2,6 +2,7 @@
 #define KBFD_KBFD_FORMAT_ELF_H
 
 #include "kbfd_target_format.h"
+#include "kbfd_section_defns_elf.h"
 #include "kbfd_convert_elf.h"
 
 namespace kbfd
@@ -53,7 +54,14 @@ struct kbfd_format_elf : kbfd_target_format
         : kbfd_format_elf(relocs, N, std::forward<Args>(args)...)
         {}
 
+    // get ELF section definitions
+    kbfd_target_sections const& get_section_defns() const override
+    {
+       static const kbfd_target_sections_elf defn;
+       return defn;
+    }
 
+    // ELF specific overrides
     Elf64_Ehdr init_header() const override
     {
         static constexpr unsigned char e_ident[EI_NIDENT] = 

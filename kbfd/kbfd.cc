@@ -15,6 +15,8 @@
 #include "kbfd_section_sym_impl.h"
 #include "kbfd_format_elf_write.h"
 
+#include "kbfd_section_defns.h"
+
 
 namespace kbfd
 {

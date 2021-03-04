@@ -17,14 +17,10 @@ enum class kbfd_rela_fmt
     , RELA_REQUIRE      // always use RELA
 };
 
-
-// forward declare `string` kbfd_section XXX why?
-struct ks_string;
+// forward declare referenced types
 struct kbfd_object;
+struct kbfd_target_sections;
 
-// XXX declare lookup methods & return values
-struct elf_reloc_t;
-struct Elf64_Ehdr;
 struct kbfd_target_format
 {
     using target_reloc_index_t = typename kbfd_target_reloc::index_t;
@@ -56,8 +52,11 @@ struct kbfd_target_format
     };
 
     // basic target definition methods
-    virtual Elf64_Ehdr init_header() const = 0;
+    virtual kbfd_ehdr init_header() const = 0;
     virtual void write(kbfd_object&, std::ostream&) const = 0;
+
+    // provide interface to `target_sections` definitions
+    virtual kbfd_target_sections const& get_section_defns() const;
 
     // provide interface to `target_reloc` tables
     virtual kbfd_target_reloc const *lookup(kbfd_reloc const& reloc) const;

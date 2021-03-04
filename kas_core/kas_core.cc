@@ -8,7 +8,7 @@
 #include "core_insn.h"
 #include "core_section.h"          // ostream core_fragment
 #include "core_symbol_impl.h"
-
+#include "core_section_impl.h"
 #include "core_fragment_impl.h"
 #include "core_data_impl.h"
 #include "core_emit_impl.h"

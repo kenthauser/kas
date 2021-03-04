@@ -1,5 +1,5 @@
-#ifndef KAS_CORE_SECTIONS_H
-#define KAS_CORE_SECTIONS_H
+#ifndef KAS_CORE_CORE_SECTION_H
+#define KAS_CORE_CORE_SECTION_H
 
 /*
  * support for assembler sections
@@ -28,8 +28,7 @@
 #include "core_fragment.h"
 #include "utility/print_type_name.h"
 
-#include "kbfd/elf_common.h"
-#include "kbfd/kbfd_external.h"
+#include "kbfd/kbfd_section_defns.h"        // XXX kbfd forward
 
 #include <map>
 #include <deque>
@@ -45,8 +44,8 @@ struct core_section : kas_object<core_section>
         struct kbfd_section
         {
             const char      *sh_name;
-            kbfd::Elf32_Word  sh_type;
-            kbfd::Elf32_Word  sh_flags;
+            kbfd::kbfd_word  sh_type;
+            kbfd::kbfd_word  sh_flags;
         };
 
         // NB: not all specal sections listed. Only those for assembled data
@@ -81,16 +80,16 @@ struct core_section : kas_object<core_section>
    
     core_section(
             std::string const& sh_name
-          , kbfd::Elf32_Word    sh_type     = {}
-          , kbfd::Elf32_Word    sh_flags    = {}
-          , kbfd::Elf32_Word    sh_entsize  = {}
+          , kbfd::kbfd_word    sh_type     = {}
+          , kbfd::kbfd_word    sh_flags    = {}
+        //  , kbfd::kbfd_word    sh_entsize  = {}
           , std::string        kas_group   = {}
-          , kbfd::Elf32_Word    kas_linkage = {}
+          , kbfd::kbfd_word    kas_linkage = {}
         ) :
             sh_name(sh_name)
           , sh_type(sh_type)
           , sh_flags(sh_flags)
-          , sh_entsize(sh_entsize)
+        //  , sh_entsize(sh_entsize)
           , kas_group(kas_group)
           , kas_linkage(kas_linkage)
     {
@@ -101,6 +100,13 @@ struct core_section : kas_object<core_section>
                 set_align();    // align all
         }
     }
+
+    // initialize sections according to selected `kbfd` target format
+    static void init(kbfd::kbfd_object const& obj);
+
+    // find special sections
+    static core_segment& get_initial();     // where assembler begins
+    static core_segment& get_lcomm();       // section for local commons
 
 public:
     using base_t::get;
@@ -178,7 +184,7 @@ public:
             os << ": " << std::left  << std::setw(20) << s.sh_name;
             os << ": " << std::setw(2) << std::right  << s.sh_type;
             os << " "  << std::setw(8) << std::right  << s.sh_flags;
-            os << " "  << std::setw(2) << std::right  << s.sh_entsize;
+            //os << " "  << std::setw(2) << std::right  << s.sh_entsize;
             os << " "  << std::setw(2) << std::right  << s.kas_linkage;
             os << " "  << std::setw(20) << std::left  << s.kas_group;
             os << std::endl;
@@ -214,63 +220,23 @@ public:
     std::map<uint32_t, core_segment *> segments;
 
     std::string     sh_name;
-    kbfd::Elf32_Word sh_type     {};
-    kbfd::Elf32_Word sh_flags    {};
-    kbfd::Elf32_Word sh_entsize  {};
+    kbfd::kbfd_word sh_type     {};
+    kbfd::kbfd_word sh_flags    {};
+    //kbfd::kbfd_word sh_entsize  {};
     std::string     kas_group   {};
-    kbfd::Elf32_Word kas_linkage {};
-    kbfd::Elf32_Word kas_align   {};
+    kbfd::kbfd_word kas_linkage {};
+    kbfd::kbfd_word kas_align   {};
 
-    // backend call-back hook to map `kas_section` with `kbfd_section`
+    // backend call-back hook to map `kas_section` to `kbfd_section`
     mutable void *_kbfd_callback {};
+
+    // kbfd support for section defns
+    static inline kbfd::kbfd_target_sections const *defn_p {};
 
     // support test fixture
     static inline core::kas_clear _c{base_t::obj_clear};
 };
 
-namespace opc
-{
-
-    struct opc_section : opcode
-    {
-        OPC_INDEX();
-        const char *name() const override { return "SEG"; }
-
-        static inline core_section::index_t current, previous;
-
-        opc_section() = default;
-
-        void operator()(data_t& data, core_section::index_t index) const
-        {
-            data.fixed = index;
-        }
-        
-        void operator()(data_t& data, core_segment const& seg) const
-        {
-            (*this)(data, seg.index());
-        }
-
-        void proc_args(data_t& data, core_section::index_t index)
-        {
-            previous = current;
-            current  = index;
-            data.fixed = index;
-        }
-
-        void fmt(data_t const& data, std::ostream& os) const override
-        {
-            auto index = data.fixed.fixed;
-            os << index << ' ';
-            os << core_segment::get(index);
-        }
-
-        void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
-        {
-            auto& seg = core_segment::get(data.fixed.fixed); 
-            base.set_segment(seg);
-        }
-    };
-}
 }
 
 

@@ -29,12 +29,7 @@ struct emit_formatted : emit_stream
     emit_formatted(decltype(put) put
                  , decltype(emit_diag) diag
                  , decltype(emit_reloc) reloc) :
-            put(put), emit_diag(diag), emit_reloc(reloc)
-    {
-        // XXX: should be in `core_emit`, but test fixture include issue.
-        set_section(core_section::get(".text"));
-    }
-
+            put(put), emit_diag(diag), emit_reloc(reloc) {}
     std::string fmt_hex(uint8_t       bytes
                       , unsigned long value
                       , const char   *suffix = {}

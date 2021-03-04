@@ -18,34 +18,25 @@ struct kas_assemble
     // `kbfd_object` defines target format
     kas_assemble(kbfd::kbfd_object& obj) : obj(obj)
     {
-        // declare "default" sections
-        // NB: put here so they are numbered 1, 2, 3
-        // NB: this normalizes assembly listings
-        // 
-        // NB: just a convention. I can find no requirement.
-        // NB: this can be safely removed. (at risk of modifying listings)
-        
-        core_section::get(".text");
-        core_section::get(".data");
-        core_section::get(".bss");
+        // allocate initial sections per object format
+        core_section::init(obj);
     }
 
     void assemble(parser::parser_src& src, std::ostream *out = {})
     {
+        std::cout << "parse begins" << std::endl;
+
         // 1. assemble source code into ".text". Resolve symbols into ".bss"
-        auto& text_seg  = core_section::get(".text")[0]; 
-        auto& lcomm_seg = core_section::get(".bss") [0]; 
+        auto& text_seg  = core_section::get_initial();
+        auto& lcomm_seg = core_section::get_lcomm();
+
+        // NB: `resolve_symbols` finds undefined symbols & local commons
         auto  at_end    = resolve_symbols(lcomm_seg);
-#if 0
-        std::cout << __FUNCTION__ << ": .text = " << text_seg << std::endl;
-        kas::core::core_section::dump(std::cout);
-        kas::core::core_segment::dump(std::cout);
-        kas::core::core_fragment::dump(std::cout);
-#endif
+        
         // NB: `at_end` is method to perform after all insns consumed
-        // NB: `at_end` finds undefined symbols & local commons
         auto& obj = INSNS::add(text_seg, at_end);
         assemble_src(obj.inserter(), src, out);
+
         std::cout << "parse complete" << std::endl;
 #if 0
         kas::core::core_symbol::dump(std::cout);
@@ -122,8 +113,8 @@ struct kas_assemble
         // 1. initialize base (and stream) with `kbfd_object`
         e.init(obj);
 
-        // 2. always start in ".text" section
-        e.set_segment(core_section::get(".text")[0]);
+        // 2. always rewind to initial (normally ".text") section
+        e.set_segment(core_section::get_initial());
        
         // 3. emit all containers
         INSNS::for_each([&](auto& container)

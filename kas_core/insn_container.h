@@ -45,6 +45,7 @@ Forward-Inserter
 
 #include "opc_misc.h"
 #include "opc_symbol.h"
+#include "opc_section.h"
 
 #include <limits>
 #include <cassert>
@@ -72,11 +73,12 @@ namespace kas::core
         // declare inserter -- implement below.
         struct insn_inserter;
 
-        using DTOR_FN = std::function<void(insn_inserter&)>;
+        // declare method for end-of-parse (eg: resolve symbols)
+        using AT_END_FN = std::function<void(insn_inserter&)>;
 
-        insn_container(core_segment& initial, DTOR_FN fn = {}) 
+        insn_container(core_segment& initial, AT_END_FN fn = {}) 
                 : initial_segment(initial)
-                , dtor_fn(fn)
+                , at_end(fn)
                 , initial_state(value_type::get_initial_state())
                 {}
 
@@ -104,7 +106,7 @@ namespace kas::core
     public:
         initial_state_t initial_state;        // initial state of opcode_data, etc
         core_segment&   initial_segment;
-        DTOR_FN         dtor_fn{};
+        AT_END_FN         at_end{};
 
         // first frag for this container
         core_fragment const *first_frag_p {};
@@ -352,8 +354,8 @@ namespace kas::core
     {
         // apply hook at end of inserting
         // generally used to resolve local commons -> .bss, etc
-        if (c.dtor_fn)
-            c.dtor_fn(*this);
+        if (c.at_end)
+            c.at_end(*this);
         
         // close index_list
         c.insn_index_list.emplace_back(c.insns.size());
