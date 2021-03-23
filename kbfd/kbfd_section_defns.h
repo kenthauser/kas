@@ -57,6 +57,13 @@ struct kbfd_target_sections
         return {};
     }
 
+// normalize "name/subsection" pair:
+//
+// 1. If "name+subsection" is defined, return definition & zero subsection. 
+//
+// 2. Otherwise if "name" defined, return that defn & don's zero subsection.
+//
+// 3. Otherwise return null defn & don't modify subsection
     virtual auto get_section_defn(const char *name
                                 , unsigned sub_section = {}) const
             -> std::pair<kbfd_section_defn const *, unsigned>
@@ -70,11 +77,26 @@ struct kbfd_target_sections
             return !*mixed;     // true if end-of-string
         };
 
+        // 1. if subsection named, see if it is "defined"
+        //    example: ".data" + 1 -> ".data1"
+        if (sub_section)
+        {
+            auto sub_name = name + std::to_string(sub_section);
+            auto [iter, end] = get_all_sections();
+            for (; iter != end; ++iter)
+                if (is_same(iter->name, sub_name.c_str()))
+                    return { iter, 0 };
+
+        }
+
+        // 2. no subsection (or it's non-standard). Just check base name.
         auto [iter, end] = get_all_sections();
-        while (iter != end)
+        for (; iter != end; ++iter)
             if (is_same(iter->name, name))
                 return { iter, sub_section };
-        return {};
+
+        // 3. no standard definition. Leave sub_section un-modified.
+        return { {}, sub_section };
     }
 };
 

@@ -90,9 +90,9 @@ struct opc_dw_line : opcode
 		auto& obj = dl_data::get(data.fixed.fixed);
 
         os << obj.line_num();
-        if (obj.section())
+        if (obj.segment())
         {
-            os << " " << core::core_section::get(obj.section()) << "+";
+            os << " " << core::core_segment::get(obj.segment()) << "+";
             os << std::hex << obj.address();
         }
     }
@@ -101,7 +101,7 @@ struct opc_dw_line : opcode
 	void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
 	{
 		auto& obj     = dl_data::get(data.fixed.fixed);
-		obj.section() = dot_p->section().index();
+		obj.segment() = dot_p->segment().index();
 		obj.address() = dot_p->offset()();
 	}
 };

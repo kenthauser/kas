@@ -1,22 +1,25 @@
-#ifndef KAS_CORE_OPC_SECTION_H
-#define KAS_CORE_OPC_SECTION_H
+#ifndef KAS_CORE_OPC_SEGMENT_H
+#define KAS_CORE_OPC_SEGMENT_H
 
-#include "core_section.h"
+// opc_segment: change `segment`
+
+// implementation: store segment index in fixed area
+
+#include "opcode.h"
+#include "core_segment.h"
 
 namespace kas::core::opc
 {
 
 
-struct opc_section : opcode
+struct opc_segment : opcode
 {
     OPC_INDEX();
     const char *name() const override { return "SEG"; }
 
-    static inline core_section::index_t current, previous;
+    opc_segment() = default;
 
-    opc_section() = default;
-
-    void operator()(data_t& data, core_section::index_t index) const
+    void operator()(data_t& data, core_segment::index_t index) const
     {
         data.fixed = index;
     }
@@ -26,10 +29,8 @@ struct opc_section : opcode
         (*this)(data, seg.index());
     }
 
-    void proc_args(data_t& data, core_section::index_t index)
+    void proc_args(data_t& data, core_segment::index_t index) const
     {
-        previous = current;
-        current  = index;
         data.fixed = index;
     }
 
@@ -40,7 +41,9 @@ struct opc_section : opcode
         os << core_segment::get(index);
     }
 
-    void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
+    void emit(data_t const& data
+            , emit_base& base
+            , core_expr_dot const *dot_p) const override
     {
         auto& seg = core_segment::get(data.fixed.fixed); 
         base.set_segment(seg);

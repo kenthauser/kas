@@ -94,7 +94,7 @@ namespace kas::core
             if (dot_p)
                 if (auto sym_p = e.template get_p<core_symbol_t>())
                     if (auto addr_p = sym_p->addr_p())
-                        if (&addr_p->section() == &dot_p->section())
+                        if (&addr_p->section() == &dot_p->segment().section())
                             return dot_p->seen_this_pass(*addr_p);
 
             // not a symbol, not a label, or not same section

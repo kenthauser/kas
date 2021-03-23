@@ -127,12 +127,14 @@ struct kas_token : kas_position_tagged
     }
 
     // test token type: true if token is specified type
+    // return pointer to tested type definition
     template <typename T>
-    token_defn_base const * is_token_type() const
+    T const * is_token_type() const
     {
         // return pointer to "defn" if type matches
         if (defn_p)
-            return defn_p->is_token_type(typeid(T));
+            return static_cast<T const *>
+                (defn_p->is_token_type(typeid(T)));
 
         return {};
     }

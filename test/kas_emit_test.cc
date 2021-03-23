@@ -24,7 +24,7 @@
 //#include "kbfd/kbfd_format_write.h"       // XXX
 #include "kbfd/kbfd_format_elf_ostream.h"     // ostream host format
 
-#include "kas_core/opc_section.h"
+#include "kas_core/opc_segment.h"
 
 
 

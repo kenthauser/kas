@@ -267,7 +267,7 @@ auto core_fits::operator()
     // initial `fuzz`: just check sections if not seen
     if (fuzz < 0)
     {
-        if (&addr.section() != &dot_p->section())
+        if (&addr.section() != &dot_p->segment().section())
             return no;
 
         // can't test offset if haven't ever seen symbol

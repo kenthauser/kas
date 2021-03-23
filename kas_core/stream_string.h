@@ -92,9 +92,18 @@ struct emit_formatted : emit_stream
         return fmt_hex((ADDR_DIGITS+1)/2, offset() + delta, suffix);
     }
 
+    template <typename T>
+    std::string fmt_addr(core_segment const& segment
+                       , T const& offset
+                       , long delta = {}) const
+    {
+        // XXX check if need to rebase `offset`
+        return fmt_addr(segment.section(), offset, delta);
+    }
+    
     std::string fmt_addr(core_expr_dot const& dot) const
     {
-        return fmt_addr(dot.section(), dot.offset());
+        return fmt_addr(dot.segment(), dot.offset());
     }
 
     std::string fmt_addr(core_addr_t const& addr, long delta = 0) const

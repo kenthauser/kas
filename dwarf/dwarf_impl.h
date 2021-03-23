@@ -356,10 +356,10 @@ bool gen_pgm(dl_data& d, DL_STATE& s, EMIT& emit)
 
     // test if new segment -> requires EMIT_ADDR
     // XXX refactor when section stored in DL_address key
-    if (d.section() != s.state[DL_address]) {
-        auto& addr_ref = gen_addr_ref(d.section(), d.address());
+    if (d.segment() != s.state[DL_address]) {
+        auto& addr_ref = gen_addr_ref(d.segment(), d.address());
         emit_rule<RULE_set_address>(s, emit, expr_t(addr_ref));
-        s.state[DL_address] = d.section();
+        s.state[DL_address] = d.segment();
         s.address           = d.address();
     }
 

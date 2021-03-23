@@ -1,50 +1,17 @@
 #ifndef KAS_CORE_FRAGMENT_H
 #define KAS_CORE_FRAGMENT_H
 
-#if 0
+/*
+ * core_fragment
+ *
+ * `core_fragment` holds a consecutive sequence of object
+ * values. A linked-list of core-fragment objects holds the
+ * object code values for a `core_section` and is managed by
+ * `core_object`
+ *
+ * Refer to "core_segment.h" for more detailed explaination.
+ */
 
-support for assembler sections
-
-The assembler supports putting code (and other items) in mutilple
-sections. In the original `a.out` format there were three sections:
-'.text', '.data', and '.bss'. These sections held, respectively,
-read-only code, read-write data, and zero-initialized data.
-
-The `coff` and `elf` formats added additional user-defined sections.
-Integral subsections (eg text1 and data2) have long been supported:
-subsection code is grouped together before being bundled together to
-make up the section.
-
-To support this abstraction, the assembler defines three concepts:
-
-core_section: the named grouping of code, divided into subsections.
-core_segment: a subsection into which code is assembled.
-core_fragment: consecutive instructions in the same segment.
-
-/******************************************************************************
-
-Implementation notes:
-
-
-Fragments have three immutable attributes: allocation order (int `index`),
-location in "physical" list, and location in "logical" list. The "physical"
-list orders the fragments in parse order. The "logical" list orders the
-fragments according to the `core_section` active when the fragment was allocated.
-
-Both ordered lists are implemented as linked lists: "physical" list via
-`next_p` &  XXX refactor XXX
-
-
-1. A `core_fragment` encapsulates a number of sequential `core_insn` objects.
-
-   The values incorporated are:
-
-   - insn_size()
-
-
-******************************************************************************/
-
-#endif
 
 #include "core_segment.h"
 #include "kas_object.h"

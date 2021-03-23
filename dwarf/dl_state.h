@@ -110,7 +110,7 @@ public:
     // allow address & line# to be directly retrieved
     auto  line_num() const { return dl_line_num; }
     auto& address ()       { return dl_address;  }
-    auto& section ()       { return dl_section;  }
+    auto& segment ()       { return dl_segment;  }
 
     // expose lookup function from DL_STATE...
     static constexpr auto lookup = DL_STATE::lookup;
@@ -121,7 +121,7 @@ public:
     {
         dl_pair value{DL_end_sequence, true};
         auto& d = add(file_num, 0, &value, 1);
-        d.section() = seg.index();
+        d.segment() = seg.index();
         d.address() = seg.size()();
     }
 
@@ -146,8 +146,8 @@ public:
     {
         os << std::right << std::setw(4) << dl_line_num;
 
-        if (dl_section) {
-            os << " " << core::core_section::get(dl_section) << "+";
+        if (dl_segment) {
+            os << " " << core::core_segment::get(dl_segment) << "+";
             os << std::hex << dl_address;
         }
         
@@ -169,7 +169,7 @@ public:
 private:
     dl_value_t dl_line_num;
     uint32_t   dl_address {};      // XXX should be 32-bit/64-bit based on address
-    uint8_t    dl_section {};      // XXX should be ref::index_t
+    uint8_t    dl_segment {};      // XXX should be ref::index_t
     uint8_t    cnt        {};
     static inline dl_value_t file_num;
     

@@ -22,15 +22,18 @@ void core_section::init(kbfd::kbfd_object const& obj)
     core_section::get(".bss");
 }
 
-auto core_section::get_initial() -> core_segment&
+core_section& core_section::get_initial()
 {
-    return get(".text")[0];
+    return get(".text");
 }
 
-auto core_section::get_lcomm() -> core_segment&
+core_section& core_section::get_lcomm()
 {
-    return get(".bss")[0];
+    return get(".bss");
 }
+
+
+
 
 }
 

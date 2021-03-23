@@ -106,9 +106,9 @@ struct core_expr_dot
 {
     // methods to examine `dot`
     // analogous method to those in core_addr
-    auto& section() const
+    auto& segment() const
     {
-        return frag_p->segment().section();
+        return frag_p->segment();
     }
 
     // offset into section

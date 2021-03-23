@@ -45,7 +45,7 @@ Forward-Inserter
 
 #include "opc_misc.h"
 #include "opc_symbol.h"
-#include "opc_section.h"
+#include "opc_segment.h"
 
 #include <limits>
 #include <cassert>
@@ -344,7 +344,7 @@ namespace kas::core
             : c(c), bi(std::back_inserter(c.insns))
     {
         // initialize container with SEG (initial_segment)
-        *this = {opc::opc_section(), c.initial_segment};
+        *this = {opc::opc_segment(), c.initial_segment};
         c.first_frag_p = frag_p;
     }
 
@@ -367,7 +367,7 @@ namespace kas::core
         insn_inserter::operator=(core_insn&& insn) -> insn_inserter&
     {
         // get special opcode indexes
-        static const auto idx_section = opc::opc_section().index();
+        static const auto idx_segment = opc::opc_segment().index();
         static const auto idx_org     = opc::opc_org()    .index();
         static const auto idx_align   = opc::opc_align()  .index();
         static const auto idx_label   = opc::opc_label()  .index();
@@ -390,7 +390,7 @@ namespace kas::core
         // extract size from `insn`
         insn_size = insn.data.size;
         
-        if (opc_index == idx_section)
+        if (opc_index == idx_segment)
             put_segment(std::move(data));
         else if (opc_index == idx_org)
             put_org(std::move(data));

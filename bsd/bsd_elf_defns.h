@@ -62,7 +62,7 @@ namespace detail
     auto lookup(elf_token_base_t const& p, kas::parser::kas_token const& tok, bool skip_first = true)
     {
         static constexpr expression::e_fixed_t err {-1};
-        
+       
         auto  first = tok.begin();
         auto& last  = tok.end();
         

@@ -11,14 +11,31 @@
  *
  * The `coff` and `elf` formats added additional user-defined sections.
  * Integral subsections (eg text1 and data2) have long been supported:
- * subsection code is grouped together before being bundled together to
- * make up the section.
+ * subsection code is appended in subsection order to make up the section.
+ *
+ * `core_section` uses `kbfd_section_defns` to help normalize section
+ * names and metadata.
  *
  * To support this abstraction, the assembler defines three concepts:
  *
  * core_section: the named grouping of code, divided into subsections.
  * core_segment: a subsection into which code is assembled.
  * core_fragment: consecutive instructions in the same segment.
+ *
+ * The `core_section` holds the name and meta-data about section.
+ * The meta-data includes all values needed to properly construct
+ * the `kbfd` section. It does not hold info about the contents of the section.
+ *
+ * The `core_fragment` holds the object code as generated. This object code
+ * can be constant or relocatable values. Consecutive instructions are
+ * located sequentually in a fragment, until a new fragment is created.
+ * New fragments are created when assembler instruction required new fragment
+ * (eg .align) or the fragment "fills".
+ *
+ * The `core_segment` manages the `core_fragment` as a linked list.
+ * One `core_segment` is created for each `section` (and subsection). 
+ * The actual assembly of code uses `core_segments`s not `core_section`s.
+ * 
  *
  */
 
@@ -31,88 +48,42 @@
 #include "kbfd/kbfd_section_defns.h"        // XXX kbfd forward
 
 #include <map>
-#include <deque>
 
 namespace kas::core 
 {
 
 struct core_section : kas_object<core_section>
 {
-    // not sure where this table should go
-    static const auto is_reserved(std::string const& name)
-    {
-        struct kbfd_section
-        {
-            const char      *sh_name;
-            kbfd::kbfd_word  sh_type;
-            kbfd::kbfd_word  sh_flags;
-        };
-
-        // NB: not all specal sections listed. Only those for assembled data
-        // source: System V Application Binary Interface - DRAFT - 24 April 2001
-        static constexpr kbfd_section const kbfd_sections[] =
-        {
-              {".text",     SHT_PROGBITS,   SHF_ALLOC+SHF_EXECINSTR }
-            , {".data",     SHT_PROGBITS,   SHF_ALLOC+SHF_WRITE  }
-            , {".bss",      SHT_NOBITS,     SHF_ALLOC+SHF_WRITE  }
-            , {".comment",  SHT_PROGBITS }
-            , {".data1",    SHT_PROGBITS,   SHF_ALLOC+SHF_WRITE  }
-            , {".debug",    SHT_PROGBITS }
-            , {".fini",     SHT_PROGBITS,   SHF_ALLOC+SHF_EXECINSTR  }
-            , {".fini_array", SHT_PROGBITS, SHF_ALLOC+SHF_WRITE  }
-            , {".init",     SHT_PROGBITS,   SHF_ALLOC+SHF_EXECINSTR  }
-            , {".init_array", SHT_PROGBITS, SHF_ALLOC+SHF_WRITE  }
-            , {".line",     SHT_PROGBITS }
-            , {".note",     SHT_NOTE }
-            , {".preinit_array", SHT_PREINIT_ARRAY, SHF_ALLOC+SHF_WRITE  }
-            , {".rodata",   SHT_PROGBITS,   SHF_ALLOC }
-            , {".rodata1",  SHT_PROGBITS,   SHF_ALLOC }
-            , {".tbss",     SHT_NOBITS,     SHF_ALLOC+SHF_WRITE+SHF_TLS  }
-            , {".tdata",    SHT_PROGBITS,   SHF_ALLOC+SHF_WRITE+SHF_TLS  }
-            , {".tdata1",   SHT_PROGBITS,   SHF_ALLOC+SHF_WRITE+SHF_TLS  }
-        };
-
-        for (auto& entry : kbfd_sections)
-            if (name == entry.sh_name)
-                return &entry;
-        return static_cast<kbfd_section const*>(nullptr);
-    }
-   
     core_section(
             std::string const& sh_name
-          , kbfd::kbfd_word    sh_type     = {}
-          , kbfd::kbfd_word    sh_flags    = {}
-        //  , kbfd::kbfd_word    sh_entsize  = {}
-          , std::string        kas_group   = {}
-          , kbfd::kbfd_word    kas_linkage = {}
+          , kbfd::kbfd_word    sh_type  = {}
+          , kbfd::kbfd_word    sh_flags = {}
         ) :
             sh_name(sh_name)
           , sh_type(sh_type)
           , sh_flags(sh_flags)
-        //  , sh_entsize(sh_entsize)
-          , kas_group(kas_group)
-          , kas_linkage(kas_linkage)
     {
-        if (auto p = is_reserved(sh_name)){
-            this->sh_type   = p->sh_type;
-            this->sh_flags  = p->sh_flags;
-            // XXX if (p->sh_flags & SHF_ALLOC)
-                set_align();    // align all
-        }
+        set_align();        // XXX 
     }
 
     // initialize sections according to selected `kbfd` target format
     static void init(kbfd::kbfd_object const& obj);
 
-    // find special sections
-    static core_segment& get_initial();     // where assembler begins
-    static core_segment& get_lcomm();       // section for local commons
+    // find special sections (with kbfd help)
+    static core_section& get_initial();     // where assembler begins
+    static core_section& get_lcomm();       // section for local commons
+
+    // lookup if "name/subsection" is well-known
+    static auto lookup(const char *name, unsigned sub_section = {})
+    {
+        return defn_p->get_section_defn(name, sub_section);
+    }
 
 public:
     using base_t::get;
     using base_t::for_each;
 
-    // delete `add`: interface uses `get`
+    // delete `add`: interface, use `get`
     template <typename...Ts> static auto& add(Ts&&...) = delete;
 
     // Principle interface function: `get`
@@ -129,38 +100,44 @@ public:
         return *s;
     }
 
-    //
-    // lookup subsection (`core_segment`) by number. Create if needed
-    //
-    auto& operator[](uint32_t n)
+    // by default: translation from section -> segment is via subsection zero
+    operator core_segment& () { return segment(); }
+
+    // core_segment hold actual data for section
+    core_segment& segment(unsigned subsection = {}) const
     {
-        // find `core_segment` for numbered "subsection"
-        // NB: segment indexes are non-zero
-        auto& seg = segments[n];
-        
-        if (!seg)
-            seg = &core_segment::add(*this, n);
-
-        return *seg;
+        auto& seg_p = segments[subsection];
+        if (!seg_p)
+            seg_p = &core_segment::add(*this, subsection);
+        return *seg_p;
     }
-
+    
+    // setters for optional values
+    void set_entsize(unsigned size)
+    {
+        sh_entsize = size;
+    }
     void set_align() 
     {
         kas_align = 4;  // XXX target alignment
     }
-
-    auto align() const
+    void set_group(core_segment const& seg)
     {
-        return kas_align;
+        kas_group_p = &seg;
     }
-
-    auto& name() const
+    void set_linkage(unsigned linkage)
     {
-        return sh_name;
+        kas_linkage = linkage;
     }
+    
+    // getters
+    auto& name()    const { return sh_name;       }
+    auto ent_size() const { return sh_entsize; }
+    auto align()    const { return kas_align;     }
+    auto group_p()  const { return kas_group_p;   }
+    auto linkage()  const { return kas_linkage;   }
 
     // allow iteration over sub-sections
-    // XXX used in relax...
     auto begin() const { return segments.begin(); }
     auto end()   const { return segments.end();   }
 
@@ -202,12 +179,6 @@ public:
     void *kbfd_callback()            const { return _kbfd_callback; } 
 
 public:
-    static void clear()
-    {
-        //std::cout << "sections: clear" << std::endl;
-        sections.clear();
-    }
-    
     friend std::ostream& operator<<(std::ostream& os, core_section const& obj)
     {
         obj.print(os); return os;
@@ -216,16 +187,16 @@ public:
     // map `name` to `core_section`
     static inline std::map<std::string, core_section *> sections;
 
-    // map `subsection` to `core_segment *`
-    std::map<uint32_t, core_segment *> segments;
+    // allow multiple "subsections" -- store in ordered map
+    mutable std::map<unsigned, core_segment *> segments;
 
     std::string     sh_name;
     kbfd::kbfd_word sh_type     {};
     kbfd::kbfd_word sh_flags    {};
-    //kbfd::kbfd_word sh_entsize  {};
-    std::string     kas_group   {};
+    kbfd::kbfd_word sh_entsize  {};
     kbfd::kbfd_word kas_linkage {};
     kbfd::kbfd_word kas_align   {};
+    core_segment const *kas_group_p {};
 
     // backend call-back hook to map `kas_section` to `kbfd_section`
     mutable void *_kbfd_callback {};
@@ -233,8 +204,11 @@ public:
     // kbfd support for section defns
     static inline kbfd::kbfd_target_sections const *defn_p {};
 
-    // support test fixture
-    static inline core::kas_clear _c{base_t::obj_clear};
+    // support test fixture: clear statics
+    static void clear()
+    {
+        defn_p = {};
+    }
 };
 
 }

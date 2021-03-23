@@ -68,7 +68,7 @@ struct kas_assemble
         if (dwarf::df_data::size() != 0) {
             auto& cf = core_section::get(".debug_frame", SHT_PROGBITS);
             cf.set_align();
-            auto& cf_obj = INSNS::add(cf[0]);
+            auto& cf_obj = INSNS::add(cf);
             gen_cframe(cf_obj.inserter());
             do_relax(cf_obj, &std::cout);
             std::cout << "cframe complete" << std::endl;
@@ -89,7 +89,7 @@ struct kas_assemble
             // add "end_sequence" to mark end of `dl_data` instructions 
             dwarf::dl_data::mark_end(text_seg);
             auto& dl = core_section::get(".debug_line", SHT_PROGBITS);
-            auto& dw_obj = INSNS::add(dl[0]);
+            auto& dw_obj = INSNS::add(dl.segment());
 
             // schedule generation after `text` addresses resolved
             do_gen_dwarf = &dw_obj;
@@ -209,7 +209,7 @@ private:
                     // NB: do in loop so as not to create `.bss` data unless used
                     if (seg_index)
                     {
-                        *inserter++ = { opc::opc_section(), seg_index };
+                        *inserter++ = { opc::opc_segment(), seg_index };
                         seg_index = {};     // don't repeat
                     }
                     

@@ -44,18 +44,21 @@ using SLEB  = ARG_defn<KAS_STRING("SLEB"),  opc_sleb128>;
 // NB: only works if the target fragment is "relaxed"
 // XXX see if can refactor to use core_section::for_frags()
 // XXX should move to `core_addr`
-inline decltype(auto) gen_addr_ref(unsigned section_idx, std::size_t offset
+inline decltype(auto) gen_addr_ref(unsigned segment_idx, std::size_t offset
                                   , core::core_fragment const *frag_p = nullptr)
 {
     static std::deque<core::addr_offset_t> offsets;
 
-    auto& section = core::core_section::get(section_idx); 
-    auto& segment = section[0];
     if (!frag_p)
+    {
+        auto& segment = core::core_segment::get(segment_idx); 
         frag_p = segment.initial();
+        std::cout << "gen_addr_ref: segment = " << segment;
+        std::cout << ", frag_p = " << frag_p << std::endl;
+    }
 
     if (!frag_p)
-        throw std::runtime_error("gen_addr_ref: empty section");
+        throw std::runtime_error("gen_addr_ref: empty segment");
 
     // now find fragment for "offset"
     while (frag_p) {
