@@ -13,6 +13,7 @@
 #include "core_data_impl.h"
 #include "core_emit_impl.h"
 #include "core_reloc_impl.h"
+#include "emit_stream_impl.h"
 
 #include "expr/literal_float.h"
 

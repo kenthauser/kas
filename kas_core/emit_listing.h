@@ -40,23 +40,15 @@ namespace kas::core
 template <typename Iter> struct listing_line;
 
 template <typename Iter>
-struct emit_listing : emit_base
+struct emit_listing : emit_formatted
 {
     using diag_map_key_t   = typename parser::kas_loc;
     using diag_map_value_t = parser::kas_diag_t const *;
     using diag_map_t       = std::map<diag_map_key_t, diag_map_value_t>;
 
-    // accumulate "listing" in `listing_line` instance
-    auto& get_line()
-    {
-        static listing_line<Iter> line{out, *this};
-        return line;
-    }
-    
-    // save ostream. init `emit_base` with `put` & `put_diag`
-    emit_listing(std::ostream& out)
-            : out(out)
-            , emit_base(fmt)
+    // override `emit_stream` principle ctor
+    emit_listing(kbfd::kbfd_object& kbfd, std::ostream& out)
+            : emit_formatted(kbfd, out)
     {
         // create ordered list of diagnostics
         auto add  = [this](auto& obj) { diag_map.emplace(obj.loc(), &obj); };
@@ -67,23 +59,54 @@ struct emit_listing : emit_base
         diag_end  = diag_map.end();
     }
 
-    
-    // public interface: push listing after insn
-    void gen_listing(core_expr_dot const& dot, parser::kas_loc loc);
-
-    void emit(core::core_insn& insn, core::core_expr_dot const *dot_p) override
-    {
-        // dot always specified for listing
-        insn.emit(*this, dot_p);
-        gen_listing(*dot_p, insn.loc());
-    }
-
+    // dtor: flush buffers
     ~emit_listing()
     {
         //get_line().flush();
     }
 
+    // override `emit` to generate listing line after each insn
+    void emit(core::core_insn& insn, core::core_expr_dot const *dot_p) override
+    {
+        // dot always specified for listing
+        insn.emit(*base_p, dot_p);
+        gen_listing(*dot_p, insn.loc());
+    }
+
+
 private:
+    // implement `emit_string` ABC methods
+    void do_put(e_chan_num chan, std::string const& s) override
+    {
+        buffers[chan].push_back(std::move(s));
+    }
+
+    void do_put_diag(e_chan_num chan, uint8_t width, parser::kas_diag_t const& diag)
+        override
+    {
+        buffers[chan].push_back(fmt_diag(width));
+    }
+
+    void do_put_reloc(e_chan_num chan, uint8_t width, std::string const& msg)
+        override
+    {
+        if (chan == EMIT_DATA)
+            relocs.push_back(std::move(msg));
+    }
+    
+    //
+    // accumulate "listing" in `listing_line` instance
+    //
+
+    auto& get_line()
+    {
+        static listing_line<Iter> line{out, *this};
+        return line;
+    }
+    
+    // push listing after insn
+    void gen_listing(core_expr_dot const& dot, parser::kas_loc loc);
+
     auto prev_it(size_t num)
     {
         auto it = current_pos.find(num);
@@ -95,7 +118,8 @@ private:
         return result.first;
     }
 
-    auto splice(std::vector<std::string>& v) const
+    // concatinate strings with trailing space (assume leading space)
+    static auto splice(std::vector<std::string>& v) 
     {
         std::string out;
         for (auto const& s : v)
@@ -103,40 +127,14 @@ private:
         return out;
     }
 
-    decltype(emit_formatted::put) put()
-    {
-        return [&](e_chan_num num, std::string const& s)
-        {
-            buffers[num].push_back(std::move(s));
-        };
-    }
-
-    decltype(emit_formatted::emit_diag) put_diag()
-    {
-        return [&](e_chan_num num, std::size_t width, parser::kas_diag_t const& diag)
-        {
-            buffers[num].push_back(fmt.fmt_diag(width));
-        };
-    }
-
-    decltype(emit_formatted::emit_reloc) put_reloc()
-    {
-        return [&](e_chan_num num, std::size_t width, std::string const& msg)
-        {
-            if (num == EMIT_DATA)
-                relocs.push_back(std::move(msg));
-        };
-    }
 
     friend listing_line<Iter>;
 
-    emit_formatted fmt{ put(), put_diag(), put_reloc() };
     std::array<std::vector<std::string>, NUM_EMIT_FMT> buffers{};
     std::list<parser::kas_diag_t::index_t> diagnostics;
     std::list<std::string> relocs;
     std::map<size_t, Iter> current_pos;
     parser::kas_loc  prev_loc;
-    std::ostream& out;
 
     // "map" diagnostics by "loc"
     using diag_iter_t = typename diag_map_t::iterator;
@@ -245,7 +243,7 @@ void listing_line<Iter>::gen_addr(data_type const& addr, core_expr_dot const& do
         if (!addr.empty())
             addr_field = addr.front();
         else
-            addr_field = e.fmt.fmt_addr(dot);
+            addr_field = e.fmt_addr(dot);
     }
 }
 

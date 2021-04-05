@@ -6,10 +6,10 @@
 namespace kas::core
 {
 
-// INIT `kbfd` sections & symbols from `kas_core`
-void kbfd_stream::open(kbfd::kbfd_object& object) 
+// INIT `kbfd` with sections & symbols from `kas_core`
+void kbfd_stream::open() 
 {
-    obj_p = &object;
+    auto& kbfd = *kbfd_p;
 
     // 1. allocate `data_section` memory for maximum number of sections
     // NB: as `kbfd_object` uses std::vector to hold pointers to sections,
@@ -20,7 +20,7 @@ void kbfd_stream::open(kbfd::kbfd_object& object)
     auto SECTION_RESERVE_CNT  = 5;       // for global sections...
          SECTION_RESERVE_CNT += core::core_section::num_objects() * 3; 
 
-    object.reserve_sections(SECTION_RESERVE_CNT);
+    kbfd.reserve_sections(SECTION_RESERVE_CNT);
 
     // 2. create a ELF_SECTION for each core_section
     // NB: This causes data sections of object to be first
@@ -52,8 +52,8 @@ void kbfd_stream::open(kbfd::kbfd_object& object)
     // 4. create the ks_symbol section & store in `kbfd_section` static
     // NB: dynamically allocated so corresponding `kbfd_section` occurs
     //     after actual data sections, as appears is customary
-    object.symtab_p = new kbfd::ks_symbol(object);
-    object.symtab_p->reserve(n_syms);          // reserve entries
+    kbfd.symtab_p = new kbfd::ks_symbol(kbfd);
+    kbfd.symtab_p->reserve(n_syms);          // reserve entries
 
     // 5. Add symbols: start with STT_FILE   
 #ifdef ENFORCE_FILE_FIRST_LOCAL
@@ -97,9 +97,9 @@ void kbfd_stream::open(kbfd::kbfd_object& object)
 }
  
 // write object data to stream
-void kbfd_stream::close(kbfd::kbfd_object& object)
+void kbfd_stream::close()
 {
-    object.write(out);
+    kbfd_p->write(out);
 }
 
 
@@ -114,7 +114,7 @@ auto kbfd_stream::core2ks_data(core::core_section const& s) const
     {
         // construct new `ks_data` section in `kbfd_object` from `core_section`
         //p = new kbfd::ks_data(object, s.sh_type, s.sh_name, s.kas_align);
-        p = new kbfd::ks_data(*obj_p, s.sh_type, s.sh_name, 4);
+        p = new kbfd::ks_data(*kbfd_p, s.sh_type, s.sh_name, 4);
         p->s_header.sh_flags = s.sh_flags;      // R/W, EXEC, ALLOC, etc
 
         // XXX group/linkage?

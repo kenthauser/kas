@@ -8,6 +8,8 @@
 #include "dwarf/dwarf_impl.h"
 #include "dwarf/dwarf_frame.h"
 
+#include "core_symbol.h"        // for dump
+
 namespace kas::core
 {
 
@@ -96,8 +98,40 @@ struct kas_assemble
         }
     #endif
         std::cout << "assemble complete" << std::endl;
+        kas::core::core_symbol_t::dump(std::cout);
     }
-
+#if 1
+    void emit(emit_stream& e)
+    {
+        // define method to emit all frags in container...
+        auto proc_container = [&e](auto& container)
+            {
+                container.proc_all_frags(
+                    [&e](auto& insn, core_expr_dot const& dot)
+                    {
+                        e.emit(insn, &dot);
+                    });
+            };
+#if 0
+        // 1. initialize base (and stream) with `kbfd_object`
+        e.init(obj);
+#endif
+        // 2. always rewind to initial section (normally ".text")
+        e.set_segment(core_section::get_initial());
+       
+        // 3. emit all insns for all containers
+        INSNS::for_each([&](auto& container)
+            {
+                if (&container == do_gen_dwarf)
+                    gen_dwarf();
+                proc_container(container);
+            });
+#if 0
+         // emit complete. close stream.
+         e.close();
+#endif
+    }
+#else
     void emit(emit_base& e)
     {
         // define method to emit all frags in container...
@@ -113,10 +147,10 @@ struct kas_assemble
         // 1. initialize base (and stream) with `kbfd_object`
         e.init(obj);
 
-        // 2. always rewind to initial (normally ".text") section
+        // 2. always rewind to initial section (normally ".text")
         e.set_segment(core_section::get_initial());
        
-        // 3. emit all containers
+        // 3. emit all insns for all containers
         INSNS::for_each([&](auto& container)
             {
                 if (&container == do_gen_dwarf)
@@ -128,6 +162,7 @@ struct kas_assemble
          e.close();
     }
 
+#endif
 private:
     template <typename Inserter>
     void assemble_src(Inserter inserter, parser::parser_src& src, std::ostream *out)
@@ -217,8 +252,8 @@ private:
                     if (sym.align() > 1)
                         *inserter++ = { opc::opc_align(), sym.align() };
                     
-                    // common now Block-Starting-with-Symbol (bss)
-                    // picks up size from symbol  
+                    // local commons: move to Block-Starting-with-Symbol (bss)
+                    // pick up size from symbol  
                     *inserter++ = { opc::opc_label(), sym.ref(), STB_LOCAL };
                 }
             };

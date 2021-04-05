@@ -40,21 +40,26 @@
 namespace kas::core
 {
 
-struct kbfd_stream : emit_stream
+struct kbfd_stream : emit_fstream
 {
-    // used for swap endian (both headers & data)
-    //static auto constexpr target_endian  = KBFD_FORMAT::endian;
-    
-    // get target header formats
-    //using target_headers = typename KBFD_FORMAT::headers;
+    // initialize `kbfd` after allocating `stream`
+    kbfd_stream(kbfd::kbfd_object& kbfd, std::ostream& out)
+        : emit_fstream(kbfd, out)
+    {
+        open();
+    }
 
-    kbfd_stream(std::ostream& out) : out(out) {}
+    // write `kbfd` data before deletion
+    ~kbfd_stream()
+    {
+        close();
+    }
 
     // initialize symbol table & data sections
-    void open(kbfd::kbfd_object&) override;
+    void open();
 
     // write data to output stream
-    void close(kbfd::kbfd_object&) override;
+    void close();
 
 private:
     // filter out `e_chan_num` values which are not sent to `kbfd` backend
@@ -109,8 +114,6 @@ public:
                 ks_data_p->put_data(data_p, chunk_size, num_chunks);
             }
     }
-
-
 
     void put_symbol_reloc(
                   e_chan_num num
@@ -188,12 +191,8 @@ private:
                 , int64_t& data
                 ) const;
 
-    // NB: `core_emit` first directive is `set_section`
+    // NB: first directive in `core_emit` is `set_section`
     kbfd::ks_data   *ks_data_p{};    // current section
-
-    kbfd::kbfd_object  *obj_p;        // holds kbfd_section modules
-
-    std::ostream& out;
 };
 
 }

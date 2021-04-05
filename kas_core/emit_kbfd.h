@@ -14,7 +14,7 @@
 #include "core_emit.h"
 
 #include <fstream>
-
+#if 0
 namespace kas::core
 {
 
@@ -68,6 +68,7 @@ private:
 };
 }
 
+#endif
 
 
 #endif

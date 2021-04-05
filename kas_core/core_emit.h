@@ -19,7 +19,6 @@
 
 namespace kas::core
 {
-
 // forward declare "emit" stream manipulators
 struct set_size;
 struct emit_reloc;
@@ -30,22 +29,27 @@ struct emit_base
 {
     using result_type  = void;       // for apply_visitor
     using emit_value_t = typename emit_stream::emit_value_t;
-   
+    
     // housekeeping methods: ctor, init, dtor
-    emit_base(emit_stream& stream) : stream(stream) {}
+    // NB: `obj_p` required if emitting relocations
+    emit_base(emit_stream& stream, kbfd::kbfd_object *obj_p = {})
+        : stream(stream), obj_p(obj_p)
+    {
+        set_defaults();
+    }
 
     // initalize "base" & "stream" with `kbfd_object`
     void init(kbfd::kbfd_object& obj)
     { 
         obj_p = &obj;       // needed for reloc lookup
-        stream.open(obj);   // propogate `obj` to initialize stream
+        //stream.open(obj);   // propogate `obj` to initialize stream
         set_defaults();     // prepare to receive emitted data 
     }
  
     // close stream at end of `emit`
     void close()
     {
-        stream.close(*obj_p);
+        //stream.close(*obj_p);
     }
 
     virtual ~emit_base() = default;
@@ -54,7 +58,8 @@ struct emit_base
     // NB: `dot_p` not to be used to calculate size (via `fits`).
     // NB: `dot_p` can be used to tag location in dwarf `opc_dw_line`,
     // NB: for address in listings, and for other debugging facilities
-    virtual void emit(struct core_insn& insn, core_expr_dot const *dot_p = {}) = 0;
+    virtual void emit(struct core_insn& insn, core_expr_dot const *dot_p = {}) {}
+
     // For each item streamed to `emit_base`, relocations and `width` bytes are emitted
     // to the object (or listing). For integral values streamed to `emit_base`, the size
     // can be infered from the object being streamed. For all others, the object size must

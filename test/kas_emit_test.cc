@@ -7,12 +7,13 @@
 #include "utility/print_type_name.h"
 #include "kas_core/core_insn.h"
 #include "kas_core/insn_container.h"
-#include "kas_core/stream_string.h"
+
 #include "kas_core/core_fits.h"
 #include "kas_core/core_relax.h"
 #include "dwarf/dwarf_impl.h"
 
 #include "kas_core/emit_kbfd.h"
+#include "kas_core/stream_string.h"
 #include "kas_core/emit_listing.h"
 
 #include "kas_core/assemble.h"
@@ -131,21 +132,48 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     kas::core::core_fragment::dump(out);
     kas::dwarf::dl_data::dump(out);
 #endif
-#if 0
+#if 1
+    {
+        parse_out << "RAW:" << std::endl;
+        kas::core::emit_raw raw(kbfd_obj, parse_out);
+        obj.emit(raw);
+    }
+#endif
+#if 1
     // create object output (binary data)
     // get dest for object output
     {
         auto kbfd_path = sub_path_ext(input_path.c_str(), "kbfd");
-        kas::core::emit_binary binary(kbfd_path);
+        std::ofstream o_file(kbfd_path
+                           , std::ios_base::binary | std::ios_base::trunc);
+        kas::core::kbfd_stream binary(kbfd_obj, o_file);
+        obj.emit(binary);
+    }
+#else
+    // create object output (binary data)
+    // get dest for object output
+    {
+        auto kbfd_path = sub_path_ext(input_path.c_str(), "kbfd");
+        std::ofstream o_file(kbfd_path
+                           , std::ios_base::binary | std::ios_base::trunc);
+        kas::core::emit_binary binary(o_file);
         obj.emit(binary);
     }
 #endif
 #if 1
+#if 1
+    {
+        parse_out << "LISTING:" << std::endl;
+        kas::core::emit_listing<iterator_type> listing(kbfd_obj, parse_out);
+        obj.emit(listing);
+    }
+#else
     {
         parse_out << "LISTING:" << std::endl;
         kas::core::emit_listing<iterator_type> listing(parse_out);
         obj.emit(listing);
     }
+#endif
 #endif
 #if 0
     kas::core::core_symbol::dump(out);

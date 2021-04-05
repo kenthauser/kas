@@ -3,6 +3,7 @@
 
 #include "tgt_data_inserter.h"
 #include "kas_core/core_emit.h"
+#include "kas_core/emit_stream.h"
 #include "kas_core/core_insn.h"
 
 
@@ -109,16 +110,19 @@ struct quick_stream : core::emit_stream
 
     using iter_t = quick_arg_iter<mcode_size_t, emit_value_t>;
 
-    quick_stream(put_uint_fn_t cb_fn, void * cb_handle)
+    quick_stream(put_uint_fn_t cb_fn, void *cb_handle)
             : cb_fn(cb_fn), cb_handle(cb_handle)
             {} 
 
+    // define "fixed" data stream method
     void put_uint(e_chan_num num, uint8_t width, emit_value_t data) override
     {
         cb_fn(cb_handle, width, data);
     }
-    
+
+    //
     // error out other backend methods
+    //
     void put_raw(e_chan_num num, void const *, uint8_t, unsigned) override
     {
         set_error(__FUNCTION__);        // always error
@@ -178,7 +182,8 @@ void quick_stream<mcode_size_t>::set_error(const char *fn) const
     std::string fn_str{fn};
     throw std::logic_error("quick_stream: " + fn_str + " unimplemented");
 }
-   
+
+#if 0
 // basic `emit_base` to forward to quick stream
 template <typename mcode_size_t>
 struct quick_base : core::emit_base
@@ -196,6 +201,7 @@ struct quick_base : core::emit_base
 
     quick_stream<mcode_size_t> stream;
 };
+#endif
 
 }
 

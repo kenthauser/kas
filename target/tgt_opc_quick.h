@@ -113,9 +113,22 @@ struct tgt_opc_quick : tgt_opc_quick_base<typename MCODE_T::mcode_size_t>
 
     OPC_INDEX();
 
-    using NAME = string::str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_QUICK")>;
+    using NAME = string::str_cat<typename MCODE_T::BASE_NAME
+                               , KAS_STRING("_QUICK")>;
     const char *name() const override { return NAME::value; }
-   
+#if 1   
+    template <typename ARGS>
+    void proc_args(core::opcode::data_t& data
+                 , MCODE_T const& mcode
+                 , ARGS& args
+                 , stmt_info_t const& info)
+    {
+        // NB: data.size already set
+        auto writer = typename base_t::write_quick_data(data);
+        auto stream = detail::quick_stream<mcode_size_t>(writer.cb_fn, &writer);
+        mcode.emit(stream.base(), std::move(args), info);
+    }
+#else
     template <typename ARGS>
     void proc_args(core::opcode::data_t& data
                  , MCODE_T const& mcode
@@ -127,6 +140,7 @@ struct tgt_opc_quick : tgt_opc_quick_base<typename MCODE_T::mcode_size_t>
         auto base   = detail::quick_base<mcode_size_t>(writer.cb_fn, &writer);
         mcode.emit(base, std::move(args), info);
     }
+#endif
 };
 
 //

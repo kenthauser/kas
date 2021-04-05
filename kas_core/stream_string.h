@@ -12,24 +12,18 @@
 
 namespace kas::core
 {
-struct emit_formatted : emit_stream
+struct emit_formatted : emit_fstream
 {
-    std::function<void(e_chan_num, std::string const&)> put;
-    std::function<void(e_chan_num, uint8_t, parser::kas_diag_t const&)> emit_diag;
-    std::function<void(e_chan_num, uint8_t, std::string msg)> emit_reloc;
-    std::map<typename core_section::index_t, std::size_t> position_map;
-    const core_section *section_p{};
-    std::size_t *position_p{};
-    const char *suffix_p {};
-    
+    using emit_fstream::emit_fstream;
+    virtual void do_put(e_chan_num, std::string const&) = 0;
+    virtual void do_put_diag(e_chan_num, uint8_t, parser::kas_diag_t const&) = 0;
+    virtual void do_put_reloc(e_chan_num, uint8_t, std::string const&) = 0;
+
+    // configure hex formatter
     static constexpr int DIGITS_PER_BLOCK       = 4;
     static constexpr int DIGIT_BLOCK_SEPERATOR  = '_';
     static constexpr int DIGITS_PER_ADDR        = 6;
 
-    emit_formatted(decltype(put) put
-                 , decltype(emit_diag) diag
-                 , decltype(emit_reloc) reloc) :
-            put(put), emit_diag(diag), emit_reloc(reloc) {}
     std::string fmt_hex(uint8_t       bytes
                       , unsigned long value
                       , const char   *suffix = {}
@@ -114,7 +108,7 @@ struct emit_formatted : emit_stream
     void put_uint (e_chan_num num, uint8_t width, emit_value_t data) override
     {
         const char *sfx = suffix_p ? suffix_p : "ABS";
-        put(num, fmt_hex(width, data, suffix_p));
+        do_put(num, fmt_hex(width, data, suffix_p));
         if (num == EMIT_DATA)
             *position_p += width;
 
@@ -126,7 +120,7 @@ struct emit_formatted : emit_stream
     {
         auto p = static_cast<T const *>(v);
         while (num_chunks--)
-            put(num, fmt_hex(sizeof(T), *p++));
+            do_put(num, fmt_hex(sizeof(T), *p++));
     }
 
     void put_raw(e_chan_num num, void const *p, uint8_t chunk_size, unsigned num_chunks) override
@@ -181,7 +175,6 @@ struct emit_formatted : emit_stream
         return s.str();
     }
 
-
     void put_section_reloc(
               e_chan_num num
             , kbfd::kbfd_target_reloc const& info
@@ -198,7 +191,7 @@ struct emit_formatted : emit_stream
             suffix_p = "?";
 
         auto s = reloc_msg(info, offset, section.name(), addend);
-        emit_reloc(num, 0, s);  // just use zero for width
+        do_put_reloc(num, 0, s);  // just use zero for width
     }
 
     void put_symbol_reloc(
@@ -217,12 +210,12 @@ struct emit_formatted : emit_stream
             suffix_p = "X";
 
         auto s = reloc_msg(info, offset, sym.name(), addend);
-        emit_reloc(num, 0, s);  // just use zero for width
+        do_put_reloc(num, 0, s);  // just use zero for width
     }
 
     void put_diag(e_chan_num num, uint8_t width, parser::kas_diag_t const& diag) override
     {
-        emit_diag(num, width, diag);
+        do_put_diag(num, width, diag);
         if (num == EMIT_DATA)
             *position_p += width;
         suffix_p = {};
@@ -252,72 +245,61 @@ struct emit_formatted : emit_stream
         auto section_n = section.index() - 1;
         return section_n < num_suffixes ? suffixes[section_n] : "+";
     }
-
+    
+    // instance variables
+    std::map<typename core_section::index_t, std::size_t> position_map;
+    const core_section *section_p{};
+    std::size_t *position_p{};
+    const char *suffix_p {};
 };
 
-struct emit_raw : emit_base
+
+//
+// Minimal concrete class using ABC `emit_string`
+//
+
+struct emit_raw : emit_formatted
 {
     // put ascii format to std::string
-    emit_raw() : emit_base(fmt) {}
+    using emit_formatted::emit_formatted;
 
-    // interface functions
-    std::string const& out() const
+    void do_put(e_chan_num chan, std::string const& s) override
     {
-        return buffer;
-    }
-
-    void clear()
-    {
-        buffer.clear();
-    }
-
-private:
-    // implementation
-
-    decltype(emit_formatted::put) put(std::string &out)
-    {
-        return [&](e_chan_num num, std::string const& s)
+        const char *pfx;
+        switch (chan)
         {
-            switch (num)
-            {
-                case EMIT_DATA:
-                    break;
-                case EMIT_ADDR:
-                    out += "A:";
-                    break;
-                case EMIT_EXPR:
-                    out += "E:";
-                    break;
-                case EMIT_INFO:
-                    out += "I:";
-                    break;
-                default:
-                    throw std::runtime_error("emit_raw::num");
-            }
-            out += s + " ";
-        };
+            case EMIT_DATA:
+                pfx = "";
+                break;
+            case EMIT_ADDR:
+                pfx = "A:";
+                break;
+            case EMIT_EXPR:
+                pfx = "E:";
+                break;
+            case EMIT_INFO:
+                pfx = "I:";
+                break;
+            default:
+                throw std::runtime_error("emit_raw::do_put: chan unimplemented");
+        }
+
+        // combine bits before emitting to output stream
+        out << (pfx + s + " ");
     }
 
-    decltype(emit_formatted::emit_diag) emit_diag(std::string &out)
+    void do_put_diag(e_chan_num num, uint8_t width, parser::kas_diag_t const& diag)
+            override
     {
-        return [&](e_chan_num num, uint8_t width, parser::kas_diag_t const& diag)
-        {
-            out += "[Err: " + diag.message + "] ";
-        };
+        out << "[Err: " + diag.message + "](" << +width << " bytes) ";
     }
 
-    decltype(emit_formatted::emit_reloc) emit_reloc(std::string &out)
+    void do_put_reloc(e_chan_num num, uint8_t width, std::string const& msg)
+            override
     {
-        return [&](e_chan_num num, uint8_t width, std::string const& msg)
-        {
-            out += "[Reloc: " + msg + "] ";
-        };
+        out << "[Reloc: " + msg + "] ";
     }
-
-    emit_formatted fmt{put(buffer), emit_diag(buffer), emit_reloc(buffer)};
-    std::string buffer;
 };
-
 }
 
 

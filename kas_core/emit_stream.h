@@ -7,12 +7,18 @@
 // `core::emit_base` writes to this object
 //
 
-#include <cstdint>
 #include "kbfd/kbfd_object.h"
+#include <cstdint>
+#include <fstream>
 
 
 namespace kas::core
 {
+
+// XXX
+struct core_insn;
+struct emit_base;
+struct core_segment;
 
 enum e_chan_num : uint16_t { EMIT_ADDR, EMIT_DATA, EMIT_EXPR, EMIT_INFO, NUM_EMIT_FMT };
 
@@ -20,10 +26,21 @@ struct emit_stream
 {
     using emit_value_t = int64_t;       // value passed to emit backend
 
+    // construct with optional `kbfd_object` ptr.
+    // NB: `kbfd_object` required to emit relocations
+    emit_stream(kbfd::kbfd_object *kbfd_p = {});
+    emit_stream(kbfd::kbfd_object& obj) : emit_stream(&obj) {}
+
+    // declare virtual dtor
+    virtual ~emit_stream();
+#if 0    
     // initialize/finalize backend for target object
     virtual void open (kbfd::kbfd_object&) {}
     virtual void close(kbfd::kbfd_object&) {}
-
+#endif
+    // default emit: drive `insn->emit`
+    virtual void emit(core::core_insn& insn, core::core_expr_dot const *dot_p);
+    
     // emit single value (with byte swapping)
     virtual void put_uint(e_chan_num num
                         , uint8_t    width
@@ -39,33 +56,7 @@ struct emit_stream
     virtual void put_data(e_chan_num num
                        , void const *p
                        , uint8_t     width 
-                       , unsigned    count)
-    {
-        auto get_as_width = [width](auto p) -> uint64_t
-            {
-                // NB: if values properly aligned when put in "buffer"
-                // they will be properly aligned when extracted
-                switch (width)
-                {
-                    case 8:
-                        return *static_cast<uint64_t const *>(p);
-                    case 4:
-                        return *static_cast<uint32_t const *>(p);
-                    case 2:
-                        return *static_cast<uint16_t const *>(p);
-                    case 1:
-                        return *static_cast<uint8_t  const *>(p);
-                    default:
-                        throw std::logic_error("emit_stream::put_data: invalid width");
-                }
-            };
-        
-        while (count--)
-        {
-            put_uint(num, width, get_as_width(p));
-            p = static_cast<const char *>(p) + width;
-        }
-    }
+                       , unsigned    count);
     
     // NB: if backend emits `REL_A` or otherwise consumes `addend`
     // it must zero addend
@@ -84,14 +75,50 @@ struct emit_stream
             , emit_value_t& addend
             ) = 0;
 
+    // access `core_base` (throws if not defined)
+    auto& base()
+    {
+        if (base_p)
+            return *base_p;
+        throw std::logic_error("emit_stream::base: base undefined");
+    };
+
     // emit diagnostics
     virtual void put_diag(e_chan_num, uint8_t, parser::kas_diag_t const&) = 0;
     
     // current section interface
     virtual void set_section(core_section const&) = 0;
     virtual std::size_t position() const = 0;
+   
+    // convience methods
+    void set_segment(core_segment const& segment);
 
-    virtual ~emit_stream() = default;
+
+protected:
+    kbfd::kbfd_object *kbfd_p;
+    emit_base *base_p;
+};
+    
+struct emit_fstream : emit_stream
+{
+    // ctor using ostream&
+    emit_fstream(kbfd::kbfd_object&, std::ostream& out);
+    
+    // ctor using path: allocate file (ie ofstream object)
+    emit_fstream(kbfd::kbfd_object&, const char *path);
+    
+    // ctor: allow string for path
+    emit_fstream(kbfd::kbfd_object&, std::string const& path);
+
+    // dtor: close file if allocated
+    ~emit_fstream();
+
+private:
+    // NB: `file_p` must preceed `out` for proper initialization
+    std::ofstream *file_p {};
+
+protected:
+    std::ostream& out;
 };
 
 }
