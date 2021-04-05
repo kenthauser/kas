@@ -17,7 +17,7 @@
 namespace kas::core
 {
 
-struct emit_base;       // forward declaration of calling type
+struct core_emit;       // forward declaration of calling type
 
 #define TRACE_CORE_RELOC
 struct core_reloc
@@ -57,13 +57,13 @@ struct core_reloc
     void operator()(parser::kas_diag_t const&, kas_loc const *);
 
     // emit relocs & apply to base value (if required)
-    void emit       (emit_base&, parser::kas_error_t&);
-    void put_reloc  (emit_base&, parser::kas_error_t&, core_section  const&);
-    void put_reloc  (emit_base&, parser::kas_error_t&, core_symbol_t const&);
-    void apply_reloc(emit_base&, parser::kas_error_t&);
+    void emit       (core_emit&, parser::kas_error_t&);
+    void put_reloc  (core_emit&, parser::kas_error_t&, core_section  const&);
+    void put_reloc  (core_emit&, parser::kas_error_t&, core_symbol_t const&);
+    void apply_reloc(core_emit&, parser::kas_error_t&);
 
     // return true iff `relocs` emited OK
-    static bool done(emit_base& base);
+    static bool done(core_emit& base);
 
     // hold info about relocation
     kbfd::kbfd_reloc    reloc;

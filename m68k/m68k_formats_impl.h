@@ -84,7 +84,7 @@ struct fmt_displacement : m68k_mcode_t::fmt_t::fmt_impl
     using val_t = m68k_mcode_t::val_t;
    
     // branch `machine code` insertions handled by `emit_reloc`
-    void emit_reloc(core::emit_base& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p) const override
+    void emit_reloc(core::core_emit& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p) const override
     {
         // calculate size here
         switch (arg.mode())

@@ -38,7 +38,7 @@ struct z80_mcode_t : tgt::tgt_mcode_t<z80_mcode_t, z80_stmt_t, error_msg>
 
     // z80: base code & displacement interspersed in output
     template <typename ARGS_T> 
-    void emit(core::emit_base&, ARGS_T&&, stmt_info_t const&) const;
+    void emit(core::core_emit&, ARGS_T&&, stmt_info_t const&) const;
 };
 
 

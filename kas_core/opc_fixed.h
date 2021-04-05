@@ -107,7 +107,7 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
     }
     
         
-    static void emit_one(emit_base& base
+    static void emit_one(core_emit& base
                        , expr_t const& value
                        , core_expr_dot const *dot_p
                        )
@@ -147,7 +147,7 @@ struct opc_float : opc_data<opc_float<NBits>, expression::e_float_t>
 
     static constexpr unsigned sizeof_diag = size_one;
     
-    static void emit_one(emit_base& base
+    static void emit_one(core_emit& base
                        , expr_t const& value
                        , core_expr_dot const *dot_p
                        )

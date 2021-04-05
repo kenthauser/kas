@@ -18,11 +18,11 @@
 namespace kas::core
 {
 
-struct emit_binary : emit_base
+struct emit_binary : core_emit
 {
     // ctor using ostream&
     emit_binary(std::ostream& out)
-        : stream(out), emit_base(stream)
+        : stream(out), core_emit(stream)
         {}
 
     // ctor using path (allocate ostream object)
@@ -32,7 +32,7 @@ struct emit_binary : emit_base
                       , std::ios_base::binary | std::ios_base::trunc 
                       ))
         , stream(*out_p)
-        , emit_base(stream)
+        , core_emit(stream)
     {
         std::cout << "emit_binary: allocating \"" << path << "\"" << std::endl;
     }

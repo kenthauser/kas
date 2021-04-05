@@ -87,7 +87,7 @@ auto m68k_extension_t::size(m68k_arg_t& arg, expression::expr_fits const& fits,
     return result;
 }
 
-void m68k_extension_t::emit(core::emit_base& base, m68k_arg_t const& arg, uint8_t sz) const
+void m68k_extension_t::emit(core::core_emit& base, m68k_arg_t const& arg, uint8_t sz) const
 {
     // calculate common `brief` and `full` formatted values
     auto base_value = [&]() -> uint16_t

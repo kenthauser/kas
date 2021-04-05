@@ -147,7 +147,7 @@ struct tgt_mcode_t
     fits_result size(ARGS_T& args, stmt_info_t const& info, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
 
     template <typename ARGS_T>
-    void emit(core::emit_base&, ARGS_T&&, stmt_info_t const& info) const;
+    void emit(core::core_emit&, ARGS_T&&, stmt_info_t const& info) const;
     
     // retrieve instance from index
     static auto& get(uint16_t idx) { return (*index_base)[idx]; }

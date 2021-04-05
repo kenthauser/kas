@@ -38,7 +38,7 @@ struct fmt_fixed
         val_p->set_arg(arg, *op);
     }
 
-    static void emit(core::emit_base& base, mcode_size_t *op, arm_arg_t& arg, val_t const *val_p)
+    static void emit(core::core_emit& base, mcode_size_t *op, arm_arg_t& arg, val_t const *val_p)
     {
     }
 };
@@ -54,7 +54,7 @@ struct fmt_movw
         return false;
     }
     
-    static void emit(core::emit_base& base, mcode_size_t *op, arm_arg_t& arg, val_t const *val_p)
+    static void emit(core::core_emit& base, mcode_size_t *op, arm_arg_t& arg, val_t const *val_p)
     {
         core::emit_reloc reloc { core::ARM_REL_MOVW };
         base << reloc << arg.expr;

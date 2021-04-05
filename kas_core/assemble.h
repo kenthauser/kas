@@ -101,7 +101,7 @@ struct kas_assemble
         kas::core::core_symbol_t::dump(std::cout);
     }
 #if 1
-    void emit(emit_stream& e)
+    void emit(emit_stream_base& e)
     {
         // define method to emit all frags in container...
         auto proc_container = [&e](auto& container)
@@ -132,7 +132,7 @@ struct kas_assemble
 #endif
     }
 #else
-    void emit(emit_base& e)
+    void emit(core_emit& e)
     {
         // define method to emit all frags in container...
         auto proc_container = [&e](auto& container)

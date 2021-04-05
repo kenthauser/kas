@@ -8,7 +8,7 @@
 namespace kas::m68k
 {
 
-void m68k_arg_t::emit(core::emit_base& base, uint8_t sz)
+void m68k_arg_t::emit(core::core_emit& base, uint8_t sz)
 {
     int size = 0;
 

@@ -395,7 +395,7 @@ void tgt_arg_t<Derived, M, I, R, RS>
 // sizeof data emitted must match value returned from `tgt_arg_t::size()`
 template <typename Derived, typename M, typename I, typename R, typename RS>
 auto tgt_arg_t<Derived, M, I, R, RS>
-            ::emit(core::emit_base& base, uint8_t sz) const -> void
+            ::emit(core::core_emit& base, uint8_t sz) const -> void
 {
     switch (auto m = mode())
     {
@@ -440,7 +440,7 @@ auto tgt_arg_t<Derived, M, I, R, RS>
 // default immediate arg `emit` routine
 template <typename Derived, typename M, typename I, typename R, typename RS>
 void tgt_arg_t<Derived, M, I, R, RS>
-            ::emit_immed(core::emit_base& base, uint8_t sz) const
+            ::emit_immed(core::core_emit& base, uint8_t sz) const
 {
     auto& info = immed_info(sz);
 
@@ -457,7 +457,7 @@ void tgt_arg_t<Derived, M, I, R, RS>
 template <typename Derived, typename M, typename I, typename R, typename RS>
 std::enable_if_t<!std::is_void_v<expression::e_float_t>>
 tgt_arg_t<Derived, M, I, R, RS>
-            ::emit_float(core::emit_base& base, tgt_immed_info const& info) const
+            ::emit_float(core::core_emit& base, tgt_immed_info const& info) const
 {
     // common routine to format and emit
     auto do_emit = [&](e_float_t const& flt)

@@ -17,10 +17,12 @@ struct kbfd_target_sections_elf : kbfd_target_sections
     private:
         static constexpr kbfd_section_defn defns[] =
         {
+            // first three are "initial sections"
               {".text",     SHT_PROGBITS,   SHF_ALLOC+SHF_EXECINSTR }
             , {".data",     SHT_PROGBITS,   SHF_ALLOC+SHF_WRITE  }
             , {".bss",      SHT_NOBITS,     SHF_ALLOC+SHF_WRITE  }
-           
+          
+            // the others happen to be in alphabetical order
             , {".comment",  SHT_PROGBITS }
             , {".data1",    SHT_PROGBITS,   SHF_ALLOC+SHF_WRITE  }
             , {".debug",    SHT_PROGBITS }
@@ -53,6 +55,15 @@ struct kbfd_target_sections_elf : kbfd_target_sections
         {
             return { std::begin(defns), std::end(defns) };
         }
+    
+        auto get_initial_sections() const
+            -> std::pair<kbfd_section_defn const *
+                       , kbfd_section_defn const *> override
+        {
+            // first three are "initial"
+            return { std::begin(defns), std::begin(defns) + 3 };
+        }
+
 };
 
 }

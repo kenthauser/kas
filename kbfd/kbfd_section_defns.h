@@ -1,7 +1,7 @@
 #ifndef KBFD_KBFD_SECTION_DEFNS_H
 #define KBFD_KBFD_SECTION_DEFNS_H
 
-#include "kbfd_target_format.h"
+//#include "kbfd_target_format.h"
 #include "elf_common.h"
 
 namespace kbfd
@@ -41,7 +41,11 @@ struct kbfd_target_sections
     virtual auto get_initial() const
             -> kbfd_section_defn const *
     {
-        return get_initial_sections().first;
+        // return first "initial_section" if defined
+        if (auto p = get_initial_sections().first)
+            return p;
+        // if no "initial_section", return first defined section
+        return get_all_sections().first;
     }
 
     virtual auto get_local_common() const

@@ -34,7 +34,7 @@ struct tgt_format
     using val_t        = typename MCODE_T::val_t;
     using opcode_t     = typename MCODE_T::opcode_t;
 
-    using emit_base    = core::emit_base;
+    using core_emit    = core::core_emit;
 
     static_assert(FMT_MAX_ARGS >= MCODE_T::MAX_ARGS);
 
@@ -55,7 +55,7 @@ struct tgt_format
         }
 
         
-        virtual void emit_reloc(emit_base& base, mcode_size_t* op, arg_t& arg, val_t const * val_p) const
+        virtual void emit_reloc(core_emit& base, mcode_size_t* op, arg_t& arg, val_t const * val_p) const
             {}
     };
     
@@ -105,7 +105,7 @@ public:
             get_impl(n).extract(op, arg, val_p);
     }
     
-    void emit_reloc(unsigned n, emit_base& base, mcode_size_t* op, arg_t& arg, val_t const *val_p) const 
+    void emit_reloc(unsigned n, core_emit& base, mcode_size_t* op, arg_t& arg, val_t const *val_p) const 
     {
         if (val_p)
             get_impl(n).emit_reloc(base, op, arg, val_p);
@@ -166,7 +166,7 @@ struct tgt_fmt_generic : MCODE_T::fmt_t::fmt_impl
     using fmt_t        = typename MCODE_T::fmt_t;
     using mcode_size_t = typename MCODE_T::mcode_size_t;
     
-    using emit_base    = core::emit_base;
+    using core_emit    = core::core_emit;
     
     static constexpr auto MASK = (1 << BITS) - 1;
     bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override

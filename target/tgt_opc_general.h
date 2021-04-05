@@ -116,7 +116,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
         return data.size;
     }
 
-    void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *dot_p) const override
+    void emit(data_t const& data, core::core_emit& base, core::core_expr_dot const *dot_p) const override
     {
         // deserialze insn data
         // format:

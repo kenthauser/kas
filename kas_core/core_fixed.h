@@ -33,7 +33,7 @@ namespace detail
     using op_size_t = typename opc::opcode::data_t::op_size_t;
 
     using SIZE_ONE = op_size_t(*)(expr_t const&, core_fits const&);
-    using EMIT_ONE = void(*)(emit_base&, expr_t const&, core_expr_dot const *);
+    using EMIT_ONE = void(*)(core_emit&, expr_t const&, core_expr_dot const *);
 
     struct opc_fixed_config
     {
@@ -129,7 +129,7 @@ namespace detail
         }
 
         template <typename Iter>
-        void emit(fixed_reader_t<Iter>& reader, emit_base& base, core_expr_dot const *dot_p) const
+        void emit(fixed_reader_t<Iter>& reader, core_emit& base, core_expr_dot const *dot_p) const
         {
             using namespace expression;
             auto fits   = core_fits(dot_p);
@@ -278,7 +278,7 @@ struct opc_data : opcode
         return impl.fmt(reader, os);
     }
 
-    void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
+    void emit(data_t const& data, core_emit& base, core_expr_dot const *dot_p) const override
     { 
         // get_reader requires iter l-value
         auto iter = data.iter();
@@ -311,7 +311,7 @@ private:
         throw std::logic_error("core_fixed::size_one undefined");
     }
 
-    static void emit_one(emit_base&, expr_t const&, core_expr_dot const *)
+    static void emit_one(core_emit&, expr_t const&, core_expr_dot const *)
     {
         throw std::logic_error("core_fixed::emit_one undefined");
     }

@@ -16,43 +16,43 @@
 
 namespace kas::core
 {
-void emit_base::assert_width() const
+void core_emit::assert_width() const
 {
     if (!width)
-        throw std::logic_error("emit_base: width not set");
+        throw std::logic_error("core_emit: width not set");
 }
 
-void emit_base::set_width(std::size_t w)
+void core_emit::set_width(std::size_t w)
 {
     if (width && width != w)
-        throw std::logic_error("emit_base: width previously set to "
+        throw std::logic_error("core_emit: width previously set to "
                                  + std::to_string(width));
     width = w;
 }
 
-void emit_base::set_chan(e_chan_num chan)
+void core_emit::set_chan(e_chan_num chan)
 {
     e_chan = chan;
     width  = sizeof(expression::e_addr_t);  // default size for non-data channels
 }
 
-kbfd::kbfd_target_reloc const* emit_base::get_reloc(kbfd::kbfd_reloc& reloc) const
+kbfd::kbfd_target_reloc const* core_emit::get_reloc(kbfd::kbfd_reloc& reloc) const
 {
     // if no width specified by reloc, use current width
     reloc.default_width(width);
     return obj_p->get_reloc(reloc);
 }
 
-core_reloc& emit_base::add_reloc(core_reloc&& r)
+core_reloc& core_emit::add_reloc(core_reloc&& r)
 {
     if (reloc_p == std::end(relocs))
-        throw std::runtime_error("emit_base: too many relocations for insn");
+        throw std::runtime_error("core_emit: too many relocations for insn");
     
     *reloc_p++ = std::move(r);
     return reloc_p[-1];
 }
 
-void emit_base::put_fixed(int64_t value, uint8_t obj_width)
+void core_emit::put_fixed(int64_t value, uint8_t obj_width)
 {
     if (!width)             // if not explicitly set
         set_width(obj_width);
@@ -60,7 +60,7 @@ void emit_base::put_fixed(int64_t value, uint8_t obj_width)
     emit_obj_code();
 }
 
-void emit_base::set_defaults()
+void core_emit::set_defaults()
 {
     e_chan      = EMIT_DATA;
     data        = {};
@@ -69,7 +69,7 @@ void emit_base::set_defaults()
 }
 
 // apply relocs, push fixed data to stream (advancing position), reset defaults
-void emit_base::emit_obj_code()
+void core_emit::emit_obj_code()
 {
     // width must be set to emit
     assert_width();
@@ -87,18 +87,18 @@ void emit_base::emit_obj_code()
     set_defaults();
 }
 
-void emit_base::set_segment(core_segment const& segment)
+void core_emit::set_segment(core_segment const& segment)
 {
     section_p = &segment.section();
     stream.set_section(*section_p);
 }
 
-std::size_t emit_base::position() const
+std::size_t core_emit::position() const
 {
     return stream.position();
 }
 
-core_section const& emit_base::get_section() const
+core_section const& core_emit::get_section() const
 {
     return *section_p;
 }
@@ -109,7 +109,7 @@ core_section const& emit_base::get_section() const
 //  2) otherwise, treat as relocatable
 //  3) -> emit object code
 
-void emit_base::operator()(expr_t const& e)
+void core_emit::operator()(expr_t const& e)
 {
     auto fixed_p = e.get_fixed_p();
 
@@ -127,14 +127,14 @@ void emit_base::operator()(expr_t const& e)
 }
 
 // handle `diag`: emit error into error stream
-void emit_base::operator()(parser::kas_diag_t const& diag, kas_loc const *loc_p)
+void core_emit::operator()(parser::kas_diag_t const& diag, kas_loc const *loc_p)
 {
     stream.put_diag(e_chan, width, diag);
     set_defaults();
 }
 
 // handle "internal" methods as adding relocation, then emitting
-void emit_base::operator()(core_addr_t const& addr, kas_loc const *loc_p)
+void core_emit::operator()(core_addr_t const& addr, kas_loc const *loc_p)
 {
     // add relocation & emit
     add_reloc()(addr, loc_p);
@@ -142,14 +142,14 @@ void emit_base::operator()(core_addr_t const& addr, kas_loc const *loc_p)
 }
 
 
-void emit_base::operator()(core_symbol_t const& sym, kas_loc const *loc_p)
+void core_emit::operator()(core_symbol_t const& sym, kas_loc const *loc_p)
 {
     // add relocation & emit
     add_reloc()(sym, loc_p);
     emit_obj_code();    
 }
 
-void emit_base::operator()(core_expr_t const& expr, kas_loc const *loc_p)
+void core_emit::operator()(core_expr_t const& expr, kas_loc const *loc_p)
 {
     // add relocation & emit
     add_reloc()(expr, loc_p);
@@ -157,12 +157,12 @@ void emit_base::operator()(core_expr_t const& expr, kas_loc const *loc_p)
 }
 
 template <typename T>
-void emit_base::operator()(T const& e, kas_loc const *loc_p)
+void core_emit::operator()(T const& e, kas_loc const *loc_p)
 {
-    std::cout << "emit_base: unsupported expression: " << expr_t(e) << std::endl;
+    std::cout << "core_emit: unsupported expression: " << expr_t(e) << std::endl;
 }
 
-void emit_base::put_section_reloc(core_reloc& r, core_section const& section)
+void core_emit::put_section_reloc(core_reloc& r, core_section const& section)
 {
     auto tgt_reloc_p = get_reloc(r.reloc);
     if (!tgt_reloc_p)
@@ -176,7 +176,7 @@ void emit_base::put_section_reloc(core_reloc& r, core_section const& section)
     stream.put_section_reloc(e_chan, *tgt_reloc_p, r.offset, section, r.addend);
 }
 
-void emit_base::put_symbol_reloc (core_reloc& r, core_symbol_t const& symbol)
+void core_emit::put_symbol_reloc (core_reloc& r, core_symbol_t const& symbol)
 {
     auto tgt_reloc_p = get_reloc(r.reloc);
     if (!tgt_reloc_p)

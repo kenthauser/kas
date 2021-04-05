@@ -42,7 +42,7 @@ struct opc_segment : opcode
     }
 
     void emit(data_t const& data
-            , emit_base& base
+            , core_emit& base
             , core_expr_dot const *dot_p) const override
     {
         auto& seg = core_segment::get(data.fixed.fixed); 

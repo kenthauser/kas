@@ -113,7 +113,7 @@ private:
 
 #if 0
 // Apply `reloc_fn`: deal with offsets & width deltas
-void core_reloc::apply_reloc(emit_base& base, parser::kas_error_t& diag)
+void core_reloc::apply_reloc(core_emit& base, parser::kas_error_t& diag)
 {
     std::cout << "put_reloc::apply_reloc: reloc = " << reloc;
     std::cout << ", addend = " << addend << ", data = " << base.data;

@@ -124,7 +124,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 template <typename ARGS_T>
 void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-        emit(core::emit_base& base, ARGS_T&& args, stmt_info_t const& info) const
+        emit(core::core_emit& base, ARGS_T&& args, stmt_info_t const& info) const
 {
     // 0. generate base machine code data
     auto machine_code = derived().code(info);

@@ -6,7 +6,7 @@
 namespace kbfd
 {
 
-struct emit_elf : emit_base
+struct emit_elf : core_emit
 {
 
 };

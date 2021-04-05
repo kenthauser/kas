@@ -429,7 +429,7 @@ KBFD / kas interface
 
 1. remove "ELF" from `kas` vocabulary
 
-2. make `emit_base` non-virtual. Move `emit` method to 
+*2. make `emit_base` non-virtual. Move `emit` method to 
    `emit_stream`
 
 3. create `add_sym` vocabulary to `kas_object`. Allow `symbols` 

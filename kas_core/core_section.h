@@ -32,11 +32,10 @@
  * New fragments are created when assembler instruction required new fragment
  * (eg .align) or the fragment "fills".
  *
- * The `core_segment` manages the `core_fragment` as a linked list.
+ * The `core_segment` manages the `core_fragment` objects as a linked list.
  * One `core_segment` is created for each `section` (and subsection). 
  * The actual assembly of code uses `core_segments`s not `core_section`s.
  * 
- *
  */
 
 
@@ -45,7 +44,8 @@
 #include "core_fragment.h"
 #include "utility/print_type_name.h"
 
-#include "kbfd/kbfd_section_defns.h"        // XXX kbfd forward
+#include "kbfd/kbfd_object.h"
+#include "kbfd/kbfd_section_defns.h"
 
 #include <map>
 
@@ -100,18 +100,15 @@ public:
         return *s;
     }
 
-    // by default: translation from section -> segment is via subsection zero
-    operator core_segment& () { return segment(); }
+    // convenience method to initialize well-known sections
+    static core_section& get(kbfd::kbfd_section_defn const&);
 
-    // core_segment hold actual data for section
-    core_segment& segment(unsigned subsection = {}) const
-    {
-        auto& seg_p = segments[subsection];
-        if (!seg_p)
-            seg_p = &core_segment::add(*this, subsection);
-        return *seg_p;
-    }
+    // `core_segment` holds actual data for section
+    core_segment& segment(unsigned subsection = {}) const;
     
+    // by default: translation from section -> segment is via subsection zero
+    operator core_segment& () const { return segment(); }
+
     // setters for optional values
     void set_entsize(unsigned size)
     {
@@ -141,37 +138,9 @@ public:
     auto begin() const { return segments.begin(); }
     auto end()   const { return segments.end();   }
 
-    auto size() const
-    {
-        std::size_t size{};
-        for (auto& seg : segments)
-            size += seg.second->size()();
-        return size;
-    }
-
-    template <typename OS>
-    static void dump(OS& os)
-    {
-        auto print_section = [&](auto const& s)
-        {
-            // print section # in decimal, everything else in hex.
-            os << std::dec;
-            os <<         std::right << std::setw(4)  << s.index() - 1;
-            os << std::hex;
-            os << ": " << std::left  << std::setw(20) << s.sh_name;
-            os << ": " << std::setw(2) << std::right  << s.sh_type;
-            os << " "  << std::setw(8) << std::right  << s.sh_flags;
-            //os << " "  << std::setw(2) << std::right  << s.sh_entsize;
-            os << " "  << std::setw(2) << std::right  << s.kas_linkage;
-            os << " "  << std::setw(20) << std::left  << s.kas_group;
-            os << std::endl;
-        };
-
-        os << "sections:" << std::endl;
-        for_each(print_section);
-        os << std::endl;
-    }
-
+    std::size_t size() const;
+    
+    template <typename OS> static void dump(OS& os);
     template <typename OS> void print(OS&) const;
 
     // support `set_section` in backend. manage single mutable, opaque value
@@ -202,7 +171,7 @@ public:
     mutable void *_kbfd_callback {};
 
     // kbfd support for section defns
-    static inline kbfd::kbfd_target_sections const *defn_p {};
+    static inline kbfd::kbfd_target_sections const *defn_p;
 
     // support test fixture: clear statics
     static void clear()

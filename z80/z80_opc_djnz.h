@@ -31,7 +31,7 @@ struct z80_opc_djnz : tgt::opc::tgt_opc_branch<z80_mcode_t>
     }
 
     void do_emit     (data_t const&          data
-                    , core::emit_base&       base
+                    , core::core_emit&       base
                     , mcode_t const&         mcode
                     , mcode_size_t          *code_p
                     , expr_t const&          dest

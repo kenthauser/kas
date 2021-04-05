@@ -49,11 +49,6 @@ auto bsd_section_base::get_segment(data_t& data
             return {};
         };
 
-    std::cout << "get_segment: ";
-    if (seg_name) std::cout << "name = \"" << seg_name << "\", ";
-    if (subsection) std::cout << "subsection = " << subsection << ", ";
-    std::cout << "arg count = " << args.size() << std::endl;
-
     //
     // name is required. retrieve from `args` if not supplied
     //
@@ -79,23 +74,21 @@ auto bsd_section_base::get_segment(data_t& data
     // lookup name/subsection to get standard type & flags
     // default `sh_type` to SHT_PROGBITS
     auto [defn_p, sub] = core::core_section::lookup(seg_name, subsection);
-    std::cout << "get_segment: name = " << seg_name;
-    std::cout << ", subsection = " << sub;
-    
-    if (defn_p)
-        std::cout << ", defn_p = " << defn_p->name;
-    std::cout << std::endl;
 
     if (defn_p)
     {
         // normalize name & type. allow non-standard "flags" if defined
         seg_name = defn_p->name;
         sh_type  = defn_p->sh_type;
+        sh_flags = defn_p->sh_flags;
     }
-    else 
-        sh_type = SHT_PROGBITS;     // default type (ie not SHT_NULL)
+    else
+    {
+        sh_type  = SHT_PROGBITS;    // default type (ie not SHT_NULL)
+        sh_flags = 0;               // default: all flags off    
+    }
 
-    //
+//
     // now process rest of arguments
     //
 
@@ -148,10 +141,7 @@ const char *bsd_section_base::proc_elf_args(It& it, It const& end)
                 return msg;
         }
         else
-        {
-            std::cout << "tok = " << tok << std::endl;
             return "Expected section flag string";
-        }
     }
     
     // next arg is "type" (if present) (eg @progbits)

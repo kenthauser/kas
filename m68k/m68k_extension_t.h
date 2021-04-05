@@ -155,7 +155,7 @@ struct m68k_extension_t : kas::detail::alignas_t<m68k_extension_t, m68k_ext_size
         return !base_suppress && !has_outer && !is_post_index;
     }
     
-    void emit(core::emit_base&, m68k_arg_t const&, uint8_t sz) const;
+    void emit(core::core_emit&, m68k_arg_t const&, uint8_t sz) const;
 };
 
 

@@ -25,43 +25,21 @@ struct emit_reloc;
 struct emit_disp;
 struct emit_data;
 
-struct emit_base
+struct core_emit
 {
     using result_type  = void;       // for apply_visitor
-    using emit_value_t = typename emit_stream::emit_value_t;
+    using emit_value_t = typename emit_stream_base::emit_value_t;
     
     // housekeeping methods: ctor, init, dtor
     // NB: `obj_p` required if emitting relocations
-    emit_base(emit_stream& stream, kbfd::kbfd_object *obj_p = {})
+    core_emit(emit_stream_base& stream, kbfd::kbfd_object *obj_p = {})
         : stream(stream), obj_p(obj_p)
     {
         set_defaults();
     }
 
-    // initalize "base" & "stream" with `kbfd_object`
-    void init(kbfd::kbfd_object& obj)
-    { 
-        obj_p = &obj;       // needed for reloc lookup
-        //stream.open(obj);   // propogate `obj` to initialize stream
-        set_defaults();     // prepare to receive emitted data 
-    }
- 
-    // close stream at end of `emit`
-    void close()
-    {
-        //stream.close(*obj_p);
-    }
-
-    virtual ~emit_base() = default;
-
-    // Entry point to create instruction output
-    // NB: `dot_p` not to be used to calculate size (via `fits`).
-    // NB: `dot_p` can be used to tag location in dwarf `opc_dw_line`,
-    // NB: for address in listings, and for other debugging facilities
-    virtual void emit(struct core_insn& insn, core_expr_dot const *dot_p = {}) {}
-
-    // For each item streamed to `emit_base`, relocations and `width` bytes are emitted
-    // to the object (or listing). For integral values streamed to `emit_base`, the size
+    // For each item streamed to `core_emit`, relocations and `width` bytes are emitted
+    // to the object (or listing). For integral values streamed to `core_emit`, the size
     // can be infered from the object being streamed. For all others, the object size must
     // be specified (via a size manipulator) prior to streaming the object.
 
@@ -73,22 +51,22 @@ struct emit_base
             , typename = std::enable_if_t<std::is_integral<T>::value>
             , typename = std::enable_if_t<sizeof(T) <= sizeof(uint32_t)>
             >
-    emit_base& operator<<(T t)
+    core_emit& operator<<(T t)
     {
         put_fixed(t, sizeof(T));
         return *this;
     }
 
     // general case emit: accept location-tagged expression
-    emit_base& operator<<(expr_t const& value)
+    core_emit& operator<<(expr_t const& value)
         { (*this)(value); return *this; }
 
     // special case: emits from internal sources (eg dwarf)
-    emit_base& operator<<(core_symbol_t const& value)
+    core_emit& operator<<(core_symbol_t const& value)
         { (*this)(value); return *this; }
-    emit_base& operator<<(core_addr_t   const& value)
+    core_emit& operator<<(core_addr_t   const& value)
         { (*this)(value); return *this; }
-    emit_base& operator<<(core_expr_t   const& value)
+    core_emit& operator<<(core_expr_t   const& value)
         { (*this)(value); return *this; }
 
     // special case: don't allow diagnostics to chain
@@ -96,7 +74,7 @@ struct emit_base
         { (*this)(diag); }
 
     // support manipulator functions..
-    emit_base& operator<<(emit_base& (*fn)(emit_base&))
+    core_emit& operator<<(core_emit& (*fn)(core_emit&))
     {
         return fn(*this);
     }
@@ -162,7 +140,7 @@ private:
     std::array<core_reloc, MAX_RELOCS_PER_LOCATION> relocs{};
 
     // instance data
-    emit_stream&        stream;
+    emit_stream_base&   stream;
     kbfd::kbfd_object  *obj_p {};
     core_section const *section_p {};
     
@@ -182,7 +160,7 @@ struct set_size
 {
     constexpr set_size(uint8_t w) : w(w) {}
 private: 
-    friend emit_base& operator<<(emit_base& b, set_size const& s)
+    friend core_emit& operator<<(core_emit& b, set_size const& s)
     {
         b.set_width(s.w);
         return b;
@@ -199,7 +177,7 @@ static constexpr auto quad  = set_size(8);
 
 // e_chan manipulators
 template <e_chan_num N>
-emit_base& _set_e_chan(emit_base& base)
+core_emit& _set_e_chan(core_emit& base)
 {
     base.set_chan(N);
     return base;
@@ -212,7 +190,7 @@ static constexpr auto emit_addr = _set_e_chan<EMIT_ADDR>;
 // emit relocation manipulator
 struct emit_reloc
 {
-    using emit_value_t = typename emit_base::emit_value_t;
+    using emit_value_t = typename core_emit::emit_value_t;
 
 
     emit_reloc(kbfd::kbfd_reloc r, emit_value_t addend = {}, uint8_t offset = {})
@@ -226,14 +204,14 @@ struct emit_reloc
     }
     
 private:
-    friend auto operator<<(emit_base& base, emit_reloc r)
+    friend auto operator<<(core_emit& base, emit_reloc r)
     {
         r.base_p = &base;
         r.r_p    = &base.add_reloc(r.reloc, r.addend, r.offset);
         return r;
     }
 
-    emit_base    *base_p;
+    core_emit    *base_p;
     core_reloc *r_p {};
 
     // save ctor values
@@ -245,7 +223,7 @@ private:
 // emit relocation for displacement from current location (with size & offset)
 struct emit_disp
 {
-    using emit_value_t = typename emit_base::emit_value_t;
+    using emit_value_t = typename core_emit::emit_value_t;
     
     // declare size in bytes, offset from current location
     emit_disp(uint8_t size, emit_value_t addend = {}, emit_value_t offset = {})
@@ -259,7 +237,7 @@ struct emit_disp
     }
 
 private:
-    friend auto operator<<(emit_base& base, emit_disp r)
+    friend auto operator<<(core_emit& base, emit_disp r)
     {
         // only lookup `K_REL_ADD` once (mark as PC_relative)
         static kbfd::kbfd_reloc _proto { kbfd::K_REL_ADD(), 0, true };
@@ -273,7 +251,7 @@ private:
         return r;
     }
 
-    emit_base *base_p;
+    core_emit *base_p;
     core_reloc *r_p;
     emit_value_t addend, offset;
     uint8_t      size;
@@ -294,13 +272,13 @@ struct emit_data
     }
 
 private:
-    friend emit_data&& operator<<(emit_base& base, emit_data&& data)
+    friend emit_data&& operator<<(core_emit& base, emit_data&& data)
     {
         data.base_p = &base;
         return std::move(data);
     }
     
-    emit_base *base_p;
+    core_emit *base_p;
     uint16_t num_chunks;
     uint16_t chunk_size;
 };
@@ -309,21 +287,21 @@ private:
 // NB: not a `core_emit` friend. Use `emit_data` interface
 struct emit_filler
 {
-    using emit_value_t = typename emit_base::emit_value_t;
+    using emit_value_t = typename core_emit::emit_value_t;
     
     emit_filler(uint8_t n, emit_value_t fill_c = 0, uint8_t fill_w = sizeof(char))
         : num_bytes(n), fill_c(fill_c), fill_w(fill_w) {}
 
 private:
-    // don't return emit_base& because resetting operation to defaults
-    friend void operator<<(emit_base& base, emit_filler const& s)
+    // don't return core_emit& because resetting operation to defaults
+    friend void operator<<(core_emit& base, emit_filler const& s)
     {
         // for now, just put N bytes of zero
         static constexpr emit_value_t zero = 0;
         base << emit_data(sizeof(char), s.num_bytes) << &zero;
     }
 
-    emit_base   *base_p;
+    core_emit   *base_p;
     emit_value_t fill_c;
     uint8_t      fill_w;
     uint8_t      num_bytes;

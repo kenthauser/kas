@@ -70,7 +70,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     }
 
     virtual void do_emit     (data_t const&          data
-                            , core::emit_base&       base
+                            , core::core_emit&       base
                             , mcode_t const&         mcode
                             , mcode_size_t          *code_p
                             , expr_t const&          dest
@@ -201,7 +201,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         return data.size; 
     }
 
-    void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *dot_p) const override
+    void emit(data_t const& data, core::core_emit& base, core::core_expr_dot const *dot_p) const override
     {
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));

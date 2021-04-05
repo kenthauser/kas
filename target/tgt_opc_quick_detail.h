@@ -98,12 +98,12 @@ private:
 
 // allow all 
 template <typename mcode_size_t>
-struct quick_stream : core::emit_stream
+struct quick_stream : core::emit_stream_base
 {
     using e_chan_num   = core::e_chan_num;
 
     // calculate maximum "chunks" data can occupy
-    using emit_value_t  = typename emit_stream::emit_value_t;
+    using emit_value_t  = typename emit_stream_base::emit_value_t;
     using put_uint_fn_t = void(*)(void *cb_handle, uint8_t width, emit_value_t value);
 
     static constexpr auto max_n = log2(sizeof(emit_value_t)/sizeof(mcode_size_t));
@@ -184,14 +184,14 @@ void quick_stream<mcode_size_t>::set_error(const char *fn) const
 }
 
 #if 0
-// basic `emit_base` to forward to quick stream
+// basic `core_emit` to forward to quick stream
 template <typename mcode_size_t>
-struct quick_base : core::emit_base
+struct quick_base : core::core_emit
 {
     template <typename FN>
     quick_base(FN&& cb_fn, void *cb_handle) 
         : stream(std::forward<FN>(cb_fn), cb_handle)
-        , emit_base{stream}
+        , core_emit{stream}
         {}
     void emit(core::core_insn& insn, core::core_expr_dot const *dot_p) override
     {

@@ -16,7 +16,7 @@
 // Implementation notes:
 //
 // A new `core::emit_stream` subclass created which stores formatted data in
-// the `opcode_data` area for insn. A special `core::emit_base` subclass
+// the `opcode_data` area for insn. A special `core::core_emit` subclass
 // created to trampoline data to/from `emit_stream` subclass.
 //
 // Data is stored as a sequence of `{width,value}` pairs. The first element
@@ -40,7 +40,7 @@ namespace kas::tgt::opc
 template <typename mcode_size_t>
 struct tgt_opc_quick_base : core::opcode
 {
-    using emit_value_t = typename core::emit_base::emit_value_t;
+    using emit_value_t = typename core::core_emit::emit_value_t;
     using iter_t       =  detail::quick_arg_iter<mcode_size_t, emit_value_t>;
 
     struct write_quick_data 
@@ -91,7 +91,7 @@ struct tgt_opc_quick_base : core::opcode
         }
     }
 
-    void emit(data_t const& data, core::emit_base& base, core::core_expr_dot const *) const override
+    void emit(data_t const& data, core::core_emit& base, core::core_expr_dot const *) const override
     {
         std::cout << "target_opc_quick" << std::endl;
         auto reader = read_quick_data(data);

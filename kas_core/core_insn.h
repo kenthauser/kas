@@ -102,7 +102,7 @@ struct core_insn
     }
 
     // emit to object file or listing
-    void emit(emit_base& base, core_expr_dot const *dot_p)
+    void emit(core_emit& base, core_expr_dot const *dot_p)
     {
 #define VALIDATE_EMIT
 #ifdef  VALIDATE_EMIT

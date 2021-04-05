@@ -54,7 +54,7 @@ struct opc_label : opcode
         data.size = size;
     }
 
-    void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
+    void emit(data_t const& data, core_emit& base, core_expr_dot const *dot_p) const override
     {
         // XXX override filler pattern
         static constexpr uint16_t filler = 0;
@@ -91,7 +91,7 @@ struct opc_equ : opcode
         os << " = " << *iter;
     }
 
-    void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
+    void emit(data_t const& data, core_emit& base, core_expr_dot const *dot_p) const override
     {
         // use `sizeof addr` to size (listing) output
         // sizeof_addr always larger than sizeof_data
@@ -119,7 +119,7 @@ struct opc_common : opcode
         data.fixed.sym.get().print(os);
     }
     
-    void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
+    void emit(data_t const& data, core_emit& base, core_expr_dot const *dot_p) const override
     {
         // show symbol location in address field of listing
         auto& sym = data.fixed.sym.get();
@@ -160,7 +160,7 @@ struct opc_sym_binding : opcode
             os << *iter++ << " ";
     }
 
-    void emit(data_t const& data, emit_base& base, core_expr_dot const *) const override
+    void emit(data_t const& data, core_emit& base, core_expr_dot const *) const override
     {
         // just error messages
         auto iter = data.iter();
@@ -239,7 +239,7 @@ struct opc_sym_size : opcode
             os << ": fixed = " << sym.size();
     }
     
-    void emit(data_t const& data, emit_base& base, core_expr_dot const *dot_p) const override
+    void emit(data_t const& data, core_emit& base, core_expr_dot const *dot_p) const override
     {
         auto iter = data.iter();
 

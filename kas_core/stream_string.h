@@ -12,9 +12,9 @@
 
 namespace kas::core
 {
-struct emit_formatted : emit_fstream
+struct emit_formatted : emit_stream
 {
-    using emit_fstream::emit_fstream;
+    using emit_stream::emit_stream;
     virtual void do_put(e_chan_num, std::string const&) = 0;
     virtual void do_put_diag(e_chan_num, uint8_t, parser::kas_diag_t const&) = 0;
     virtual void do_put_reloc(e_chan_num, uint8_t, std::string const&) = 0;

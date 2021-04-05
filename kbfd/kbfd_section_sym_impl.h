@@ -14,7 +14,7 @@ namespace kbfd
 // actual initializer
 ks_symbol::ks_symbol(kbfd_object& obj, std::string tab_name, std::string str_name)
     : sym_string (obj, str_name)
-    , kbfd_section(obj, SHT_SYMTAB, tab_name, sizeof(kbfd_sym))
+    , kbfd_section(obj, SHT_SYMTAB, tab_name)
 {
     s_header.sh_link    = sym_string.index;
     s_header.sh_entsize = obj.cvt.tgt_size<kbfd_sym>();

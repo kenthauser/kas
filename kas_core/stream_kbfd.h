@@ -40,11 +40,11 @@
 namespace kas::core
 {
 
-struct kbfd_stream : emit_fstream
+struct kbfd_stream : emit_stream
 {
     // initialize `kbfd` after allocating `stream`
     kbfd_stream(kbfd::kbfd_object& kbfd, std::ostream& out)
-        : emit_fstream(kbfd, out)
+        : emit_stream(kbfd, out)
     {
         open();
     }

@@ -83,7 +83,7 @@ void core_reloc::operator()(core_expr_t const& value, kas_loc const *loc_p)
     core_expr_p = &value;
 }
 
-void core_reloc::emit(emit_base& base, parser::kas_error_t& diag)
+void core_reloc::emit(core_emit& base, parser::kas_error_t& diag)
 {
     std::cout << "put_reloc::emit: reloc = " << reloc;
     std::cout << ", addend = " << addend << ", data = " << base.data;
@@ -120,7 +120,7 @@ void core_reloc::emit(emit_base& base, parser::kas_error_t& diag)
         apply_reloc(base, diag);
 }
 
-void core_reloc::put_reloc(emit_base& base, parser::kas_error_t& diag 
+void core_reloc::put_reloc(core_emit& base, parser::kas_error_t& diag 
                                 , core_section const& section)
 {
     std::cout << "put_reloc::put_reloc (section): reloc = " << reloc;
@@ -140,14 +140,14 @@ void core_reloc::put_reloc(emit_base& base, parser::kas_error_t& diag
     base.put_section_reloc(*this, section);
 }
 
-void core_reloc::put_reloc(emit_base& base, parser::kas_error_t& diag 
+void core_reloc::put_reloc(core_emit& base, parser::kas_error_t& diag 
                                 , core_symbol_t const& sym)
 {
     base.put_symbol_reloc(*this, sym);
 }
 
 // Apply `reloc_fn`: deal with offsets & width deltas
-void core_reloc::apply_reloc(emit_base& base, parser::kas_error_t& diag)
+void core_reloc::apply_reloc(core_emit& base, parser::kas_error_t& diag)
 {
     std::cout << "put_reloc::apply_reloc: reloc = " << reloc;
     std::cout << ", addend = " << addend << ", data = " << base.data;
@@ -172,7 +172,7 @@ void core_reloc::apply_reloc(emit_base& base, parser::kas_error_t& diag)
 
 // static method
 // return true iff `relocs` emited OK
-bool core_reloc::done(emit_base& base) { return true; }
+bool core_reloc::done(core_emit& base) { return true; }
 
 
 }

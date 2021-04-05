@@ -4,7 +4,7 @@
 //
 // Declare interface between `core_emit` and backends
 //
-// `core::emit_base` writes to this object
+// `core::core_emit` writes to this object
 //
 
 #include "kbfd/kbfd_object.h"
@@ -17,22 +17,22 @@ namespace kas::core
 
 // XXX
 struct core_insn;
-struct emit_base;
+struct core_emit;
 struct core_segment;
 
 enum e_chan_num : uint16_t { EMIT_ADDR, EMIT_DATA, EMIT_EXPR, EMIT_INFO, NUM_EMIT_FMT };
 
-struct emit_stream
+struct emit_stream_base
 {
     using emit_value_t = int64_t;       // value passed to emit backend
 
     // construct with optional `kbfd_object` ptr.
     // NB: `kbfd_object` required to emit relocations
-    emit_stream(kbfd::kbfd_object *kbfd_p = {});
-    emit_stream(kbfd::kbfd_object& obj) : emit_stream(&obj) {}
+    emit_stream_base(kbfd::kbfd_object *kbfd_p = {});
+    emit_stream_base(kbfd::kbfd_object& obj) : emit_stream_base(&obj) {}
 
     // declare virtual dtor
-    virtual ~emit_stream();
+    virtual ~emit_stream_base();
 #if 0    
     // initialize/finalize backend for target object
     virtual void open (kbfd::kbfd_object&) {}
@@ -96,22 +96,22 @@ struct emit_stream
 
 protected:
     kbfd::kbfd_object *kbfd_p;
-    emit_base *base_p;
+    core_emit *base_p;
 };
     
-struct emit_fstream : emit_stream
+struct emit_stream : emit_stream_base
 {
     // ctor using ostream&
-    emit_fstream(kbfd::kbfd_object&, std::ostream& out);
+    emit_stream(kbfd::kbfd_object&, std::ostream& out);
     
     // ctor using path: allocate file (ie ofstream object)
-    emit_fstream(kbfd::kbfd_object&, const char *path);
+    emit_stream(kbfd::kbfd_object&, const char *path);
     
     // ctor: allow string for path
-    emit_fstream(kbfd::kbfd_object&, std::string const& path);
+    emit_stream(kbfd::kbfd_object&, std::string const& path);
 
     // dtor: close file if allocated
-    ~emit_fstream();
+    ~emit_stream();
 
 private:
     // NB: `file_p` must preceed `out` for proper initialization
