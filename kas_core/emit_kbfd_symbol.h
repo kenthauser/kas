@@ -1,12 +1,12 @@
-#ifndef KAS_CORE_STREAM_KBFD_SYMBOL_H
-#define KAS_CORE_STREAM_KBFD_SYMBOL_H
+#ifndef KAS_CORE_EMIT_KBFD_SYMBOL_H
+#define KAS_CORE_EMIT_KBFD_SYMBOL_H
 
-//#include "kbfd_file.h"
+#include "emit_kbfd.h"
 
 namespace kas::core
 {
 
-void kbfd_stream::add_sym(core_symbol_t& s) const
+void emit_kbfd::add_sym(core_symbol_t& s) const
 {
     // generate a ELF host format symbol
     kbfd::Elf64_Sym sym {};
@@ -60,7 +60,7 @@ void kbfd_stream::add_sym(core_symbol_t& s) const
 }
 
 // create a `STT_SECTION` symbol for a data section
-void kbfd_stream::add_sym(core_section& s) const
+void emit_kbfd::add_sym(core_section& s) const
 {
     // get reference to corresponding ELF data section
     auto& data = core2ks_data(s);
@@ -76,7 +76,7 @@ void kbfd_stream::add_sym(core_section& s) const
 }
 
 
-bool kbfd_stream::should_emit_local(core_symbol_t& s) const
+bool emit_kbfd::should_emit_local(core_symbol_t& s) const
 {
     // suppress symbols with "Local" names
     bool suppress_local_names = true;
@@ -96,7 +96,7 @@ bool kbfd_stream::should_emit_local(core_symbol_t& s) const
 }
 
 
-bool kbfd_stream::should_emit_non_local(core_symbol_t& s) const
+bool emit_kbfd::should_emit_non_local(core_symbol_t& s) const
 {
     // don't allow skipped LOCAL's to sneek thru
     return s.binding() != STB_LOCAL;

@@ -1,13 +1,13 @@
-#ifndef KAS_CORE_STREAM_KBFD_IMPL_H
-#define KAS_CORE_STREAM_KBFD_IMPL_H
+#ifndef KAS_CORE_EMIT_KBFD_IMPL_H
+#define KAS_CORE_EMIT_KBFD_IMPL_H
 
-#include "stream_kbfd.h"
+#include "emit_kbfd.h"
 
 namespace kas::core
 {
 
 // INIT `kbfd` with sections & symbols from `kas_core`
-void kbfd_stream::open() 
+void emit_kbfd::open() 
 {
     auto& kbfd = *kbfd_p;
 
@@ -72,7 +72,7 @@ void kbfd_stream::open()
     // 6. Add symbols: continue with STT_SECTION proxies
     core::core_section::for_each([&](auto& s)
         {
-            add_sym(s);     // `kbfd_stream` local method
+            add_sym(s);     // `emit_kbfd` local method
         });
 
     // 7. Add symbols: continue with STB_LOCAL symbols from `core_symbol`
@@ -97,14 +97,14 @@ void kbfd_stream::open()
 }
  
 // write object data to stream
-void kbfd_stream::close()
+void emit_kbfd::close()
 {
     kbfd_p->write(out);
 }
 
 
 // construct new ELF data section from `core::core_section` section
-auto kbfd_stream::core2ks_data(core::core_section const& s) const
+auto emit_kbfd::core2ks_data(core::core_section const& s) const
                 -> kbfd::ks_data& 
 {
     // retrieve `ks_data *` using callback (if previously created)
@@ -133,7 +133,7 @@ auto kbfd_stream::core2ks_data(core::core_section const& s) const
 
 // actually emit a reloc
 // Generate an ELF64 relocation & then later to target format
-void kbfd_stream::put_kbfd_reloc(core::e_chan_num num
+void emit_kbfd::put_kbfd_reloc(core::e_chan_num num
                 , kbfd::kbfd_target_reloc const& info 
                 , uint32_t sym_num
                 , uint8_t  offset

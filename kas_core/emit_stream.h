@@ -33,11 +33,7 @@ struct emit_stream_base
 
     // declare virtual dtor
     virtual ~emit_stream_base();
-#if 0    
-    // initialize/finalize backend for target object
-    virtual void open (kbfd::kbfd_object&) {}
-    virtual void close(kbfd::kbfd_object&) {}
-#endif
+    
     // default emit: drive `insn->emit`
     virtual void emit(core::core_insn& insn, core::core_expr_dot const *dot_p);
     

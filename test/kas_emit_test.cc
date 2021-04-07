@@ -3,7 +3,6 @@
 #include "parser/error_handler_base.h"
 #include "parser/parser_obj.h"
 
-// #include "kas_core/core_data_insn.h"
 #include "utility/print_type_name.h"
 #include "kas_core/core_insn.h"
 #include "kas_core/insn_container.h"
@@ -13,16 +12,12 @@
 #include "dwarf/dwarf_impl.h"
 
 #include "kas_core/emit_kbfd.h"
-#include "kas_core/stream_string.h"
 #include "kas_core/emit_listing.h"
 
 #include "kas_core/assemble.h"
 #include "machine_out.h"
 
 #include "kbfd/kbfd.h"
-#include "kas_core/stream_kbfd_impl.h"    // XXX
-#include "kas_core/stream_kbfd_symbol.h"    // XXX
-//#include "kbfd/kbfd_format_write.h"       // XXX
 #include "kbfd/kbfd_format_elf_ostream.h"     // ostream host format
 
 #include "kas_core/opc_segment.h"
@@ -146,7 +141,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
         auto kbfd_path = sub_path_ext(input_path.c_str(), "kbfd");
         std::ofstream o_file(kbfd_path
                            , std::ios_base::binary | std::ios_base::trunc);
-        kas::core::kbfd_stream binary(kbfd_obj, o_file);
+        kas::core::emit_kbfd binary(kbfd_obj, o_file);
         obj.emit(binary);
     }
 #else
