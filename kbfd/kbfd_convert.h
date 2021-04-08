@@ -32,16 +32,12 @@
 #include "kbfd_external.h"
 #include "elf_common.h"
 #include "kbfd_endian.h"         // byte swapping
-//#include "kbfd_format.h"        // XXX include cycle
 #include "kbfd_target_reloc.h"
 
 #include <type_traits>
 
 namespace kbfd
 {
-
-// XXX include cycle
-struct kbfd_target_format;
 
 // external interface -- non-templated
 struct kbfd_convert

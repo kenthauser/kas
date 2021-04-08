@@ -30,6 +30,7 @@ struct swap_endian;
 struct kbfd_section;
 struct ks_symbol;
 struct ks_string;
+struct ks_data;     // kbfd data section
 
 struct kbfd_object
 {

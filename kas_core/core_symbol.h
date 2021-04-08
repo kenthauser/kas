@@ -6,7 +6,7 @@
 #include "core_addr.h"
 #include "kas_object.h"
 
-// Use ELF values for symbol type & symbol binding.
+// KBFD uses ELF values for symbol type & symbol binding.
 // BSD pseudo ops can specify type & binding by numeric value, so hard to fake.
 #include "kbfd/elf_common.h"
 
@@ -19,7 +19,7 @@
 
 namespace kas::core
 {
-// elf defines `bindings` greater than zero. declare internal values < 0
+// KBFD (elf) defines `bindings` greater than zero. declare internal values < 0
 static constexpr int8_t STB_TOKEN    = -1;  // initial binding when parsed
 static constexpr int8_t STB_UNKN     = -2;  // initial binding when value accessed
 static constexpr int8_t STB_INTERNAL = -3;  // used internally: never exported
@@ -98,7 +98,7 @@ public:
     expr_t const* value_p() const;
     e_fixed_t *get_fixed_p() const;
 
-    // elf getters/setters
+    // kbfd getters/setters
     auto sym_num     ()            const { return s_symnum; }
     void set_sym_num(uint32_t num);
 

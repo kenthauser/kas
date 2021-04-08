@@ -1,11 +1,9 @@
 #ifndef KBFD_KBFD_SECTION_DATA_H
 #define KBFD_KBFD_SECTION_DATA_H
 
-
-//#include "elf_external.h"
-//#include "elf_common.h"
-//#include "kbfd_section.h"
+#include "kbfd_section.h"
 #include "kbfd_section_sym.h"
+#include "kbfd_convert.h"
 
 #include <deque>
 

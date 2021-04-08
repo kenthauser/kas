@@ -115,7 +115,7 @@ const char *core_symbol<Ref>::set_file(symbol_ref ref)
 }
 #endif
 
-// elf getters/setters
+// kbfd getters/setters
 template <typename Ref>
 void core_symbol<Ref>::set_sym_num(uint32_t num)
 {

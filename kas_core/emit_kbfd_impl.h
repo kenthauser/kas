@@ -3,6 +3,20 @@
 
 #include "emit_kbfd.h"
 
+#include "kbfd/kbfd_section_sym.h"
+#include "kbfd/kbfd_section_data.h"
+
+// XXX link error w/o file: fix in kbfd
+#include "kbfd/kbfd_convert_elf.h"
+
+#if 0
+// 
+Undefined symbols for architecture x86_64:
+  "kbfd::Elf64_Rel kbfd::kbfd_convert::create_reloc<kbfd::Elf64_Rel>(kbfd::kbfd_target_reloc const&, unsigned int, unsigned long long, unsigned char, long long) const", referenced from:
+      void kbfd::ks_data::put_reloc<kbfd::Elf64_Rel>(kbfd::kbfd_target_reloc const&, unsigned int, unsigned char) in kas_core.o
+#endif
+
+
 namespace kas::core
 {
 
@@ -126,6 +140,82 @@ auto emit_kbfd::core2ks_data(core::core_section const& s) const
     #endif
     return *p;
 }
+
+//
+// kbfd data section methods
+//
+void emit_kbfd::put_uint(e_chan_num num, uint8_t width, int64_t data)
+{
+    if (do_emit(num))
+        ks_data_p->put_int(data, width);
+}
+
+void emit_kbfd::put_raw(e_chan_num num
+            , void const *data_p
+            , uint8_t chunk_size
+            , unsigned num_chunks)
+{
+    if (do_emit(num))
+        ks_data_p->put_raw(data_p, chunk_size * num_chunks);
+}
+
+void emit_kbfd::put_data(e_chan_num num
+            , void const *data_p
+            , uint8_t chunk_size
+            , unsigned num_chunks)
+{
+    if (do_emit(num))
+        switch(chunk_size)
+        {
+        case 0:
+            // short circuit null case
+            break;
+
+        case 1:
+            // short circut simple (byte) case
+            // NB: think ascii strings
+            ks_data_p->put_raw(data_p, num_chunks);
+            break;
+
+        default:
+            // byte swap while emitting
+            ks_data_p->put_data(data_p, chunk_size, num_chunks);
+        }
+}
+
+void emit_kbfd::put_section_reloc(
+              e_chan_num num
+            , kbfd::kbfd_target_reloc const& info
+            , uint8_t offset
+            , core_section const& section
+            , int64_t& addend 
+            ) 
+{
+    auto sym_num = core2ks_data(section).sym_num;
+    put_kbfd_reloc(num, info, sym_num, offset, addend);
+}
+
+void emit_kbfd::put_diag(e_chan_num num, uint8_t width, parser::kas_diag_t const& diag) 
+{
+    static constexpr char zero[8] = {};
+
+    // emit `width` of zeros
+    if (do_emit(num))
+        ks_data_p->put_raw(zero, width);
+}
+
+std::size_t emit_kbfd::position() const 
+{
+    return ks_data_p->position();
+}
+
+// put opaque memory block into data segment
+void emit_kbfd::put(e_chan_num num, void const *p, uint8_t width)
+{
+    if (num == EMIT_DATA)
+        ks_data_p->put(p, width);
+}
+
 
 // binutils defn uses `bfd_vma`. override with the ELF standard defn
 #undef  ELF64_R_INFO
