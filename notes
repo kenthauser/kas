@@ -492,6 +492,13 @@ KBFD / kas interface
     core_section is just holds definitions and pointer to single `core_section`.
     `subsection` is a `core_section` definition. not an array of segments.
 
+14. kbfd_object::get_obj_format(const char *, const char *) needs to be 
+    implemented. Could actually be implemented in `kbfd.cc` where supported
+    headers included.
+
+*15. kas_core/emit_kbfd_impl.h get `create_reloc<kbfd::Elf86_Rel>` link error
+    if `kbfd_convert_elf.h` not included. Need to instantiate in kbfd.
+    *** Just remove `inline` from methods
 
 
 

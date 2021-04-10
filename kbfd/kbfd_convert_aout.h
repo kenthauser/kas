@@ -176,7 +176,7 @@ void elf_convert::cvt_sym(nlist& d, Elf64_Sym const& sym, bool src_is_host) cons
 // `r_info` format is different for ELF32 & ELF64
 
 template <>
-inline void elf_convert::
+void elf_convert::
     cvt_rel(relocation_info& d, Elf64_Rel const& s, bool src_is_host) const
 {
 

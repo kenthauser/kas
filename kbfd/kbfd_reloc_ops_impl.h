@@ -11,7 +11,8 @@
 namespace kbfd
 {
 
-using all_reloc_ops = all_defns<reloc_ops_v, reloc_ops_defn_tags>;
+// XXX use kas namespace (all_defns, init_from_list)
+using all_reloc_ops = kas::all_defns<reloc_ops_v, reloc_ops_defn_tags>;
 using action_names  = meta::transform<all_reloc_ops, meta::quote<meta::front>>;
 using action_ops    = meta::transform<all_reloc_ops, meta::quote<meta::back>>;
 
@@ -20,9 +21,9 @@ using action_ops    = meta::transform<all_reloc_ops, meta::quote<meta::back>>;
 decltype(reloc_action::MAX_ACTIONS) reloc_action::MAX_ACTIONS 
         = all_reloc_ops::size();
 decltype(reloc_action::names) reloc_action::names
-        = init_from_list<const char *, action_names>::value;
+        = kas::init_from_list<const char *, action_names>::value;
 decltype(reloc_action::ops)   reloc_action::ops
-        = init_from_list<const reloc_op_fns *, action_ops, VT_CTOR>::value; 
+        = kas::init_from_list<const reloc_op_fns *, action_ops, kas::VT_CTOR>::value; 
 
 // lookup action by type (constexpr)
 template <typename T>

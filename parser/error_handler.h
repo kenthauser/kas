@@ -202,10 +202,11 @@ public:
         return handler->get_loc(ast);
     }
 
-    // get beginning of file for listing
-    static auto initial(hdl_index_t idx)
+    // get beginning/end of file for listing
+    static auto extent(hdl_index_t idx)
     {
-        return get_handler(idx).first();
+        auto& handler = get_handler(idx);
+        return std::pair(handler.first(), handler.last());
     }
 
     // retrieve boost::iter_range from appropriate error handler

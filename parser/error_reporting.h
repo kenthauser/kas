@@ -175,10 +175,14 @@ public:
         return pos_cache.position_of(pos);    
     }
 
-    // get beginning of file for listing
+    // get beginning/end of file for listing
     auto first() const
     {
         return pos_cache.first();
+    }
+    auto last() const
+    {
+        return pos_cache.last();
     }
 
     auto get_file() const

@@ -1,5 +1,6 @@
-# target is m68k
+# target is z80
 
-OBJS += m68k.o
+VPATH += z80
+OBJS += z80.o
 
 

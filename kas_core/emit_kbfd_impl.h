@@ -6,17 +6,6 @@
 #include "kbfd/kbfd_section_sym.h"
 #include "kbfd/kbfd_section_data.h"
 
-// XXX link error w/o file: fix in kbfd
-#include "kbfd/kbfd_convert_elf.h"
-
-#if 0
-// 
-Undefined symbols for architecture x86_64:
-  "kbfd::Elf64_Rel kbfd::kbfd_convert::create_reloc<kbfd::Elf64_Rel>(kbfd::kbfd_target_reloc const&, unsigned int, unsigned long long, unsigned char, long long) const", referenced from:
-      void kbfd::ks_data::put_reloc<kbfd::Elf64_Rel>(kbfd::kbfd_target_reloc const&, unsigned int, unsigned char) in kas_core.o
-#endif
-
-
 namespace kas::core
 {
 

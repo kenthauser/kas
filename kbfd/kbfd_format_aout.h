@@ -1,9 +1,8 @@
 #ifndef KBFD_KBFD_FORMAT_AOUT_H
 #define KBFD_KBFD_FORMAT_AOUT_H
 
-#include "kbfd_format.h"
-#include "kbfd_format_aout_ostream.h"
-#include "elf_convert_aout.h"
+#include "kbfd_target_format.h"
+#include "kbfd_convert_aout.h"
 
 namespace kbfd
 {

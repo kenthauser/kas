@@ -42,16 +42,11 @@ struct m68k_elf : elf32_format<std::endian::big>
 {
     using base_t = elf32_format<std::endian::big>;
     using elf_use_rela = std::false_type;
-#if 1
-    m68k_elf()
+
+    constexpr m68k_elf()
         : base_t(m68k_elf_relocs
                , std::extent_v<decltype(m68k_elf_relocs)>
-               , EM_68K)
-#else
-    m68k_elf() : base_t(m68k_elf_relocs, EM_68K)
-#endif
-    {
-    }
+               , EM_68K) {}
 };
 
 // register target format

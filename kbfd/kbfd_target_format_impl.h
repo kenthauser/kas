@@ -31,7 +31,7 @@ auto kbfd_target_format::lookup(kbfd_reloc const& reloc) const
     static map_of_maps mom;
     auto& map_p = mom[std::type_index(typeid(*this))];
 
-#if 0
+#ifdef XXX
     // initialize reloc_map on first reference
     if (!map_p)
         map_p = new tgt_reloc_map_t(relocs, relocs + num_relocs);
@@ -45,7 +45,7 @@ auto kbfd_target_format::lookup(kbfd_reloc const& reloc) const
             map_p->emplace(p->reloc.key(), p);
     }
 #endif
-    // find `kbfd__target_reloc` which cooresponds to `reloc` (if any)
+    // find `kbfd__target_reloc` which corresponds to `reloc` (if any)
     auto result = map_p->find(reloc.key());
     if (result != map_p->end())
         return result->second;

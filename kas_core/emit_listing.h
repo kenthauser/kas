@@ -62,7 +62,7 @@ struct emit_listing : emit_formatted
     // dtor: flush buffers
     ~emit_listing()
     {
-        //get_line().flush();
+        flush();
     }
 
     // override `emit` to generate listing line after each insn
@@ -106,16 +106,22 @@ private:
     
     // push listing after insn
     void gen_listing(core_expr_dot const& dot, parser::kas_loc loc);
+    
+    // push listing at end
+    void flush();
 
+    // register source file
     auto prev_it(size_t num)
     {
         auto it = current_pos.find(num);
         if (it != current_pos.end())
             return it;
-
-        auto initial = parser::error_handler<Iter>::initial(num);
-        auto result = current_pos.emplace(num, initial);
-        return result.first;
+        
+        // new file: register begin/end & try again
+        auto [bof, eof] = parser::error_handler<Iter>::extent(num);
+        current_pos.emplace(num, bof);
+        eof_pos    .emplace(num, eof);
+        return prev_it(num);
     }
 
     // concatinate strings with trailing space (assume leading space)
@@ -133,7 +139,8 @@ private:
     std::array<std::vector<std::string>, NUM_EMIT_FMT> buffers{};
     std::list<parser::kas_diag_t::index_t> diagnostics;
     std::list<std::string> relocs;
-    std::map<size_t, Iter> current_pos;
+    std::map<size_t, Iter> current_pos;     // walk thru source files
+    std::map<size_t, Iter> eof_pos;         // end `loc` of source files
     parser::kas_loc  prev_loc;
 
     // "map" diagnostics by "loc"
@@ -157,16 +164,13 @@ struct listing_line
 
     listing_line(std::ostream& out, emit_listing<Iter> &e) : e(e), out(out) {}
 
-    void emit(Iter first, Iter last);
-    //void flush() { emit_line(prev, {}); }
-
     void gen_addr(data_type const&, core_expr_dot const& dot);
     void gen_data(data_type const&, bool last = false);
     void gen_equ(data_type  const&);
     void set_force_addr(data_type const&);
     void append_diag(diag_type&, parser::kas_loc const&);
     void append_reloc(reloc_type&);
-    Iter emit_line(Iter first, Iter const& last);
+    Iter emit_line(Iter first, Iter const& last, bool flush = {});
 private:
     void do_emit(Iter first, Iter const& last);
 
@@ -233,6 +237,24 @@ void emit_listing<Iter>::gen_listing(core_expr_dot const& dot, parser::kas_loc l
     // NB: only emits complete source code lines (which end with new-line)
     // NB: lines with comments and/or multiple insns are left in buffers
     prev = line.emit_line(prev, last);
+}
+
+template <typename Iter>
+void emit_listing<Iter>::flush()
+{
+    if (!prev_loc) return;      // empty listing
+
+    // extract file number from previous loc
+    auto where = parser::error_handler<Iter>::raw_where(prev_loc);
+    auto idx   = where.first;
+
+    // get iter to where in the source file we left off
+    auto& prev = prev_it(idx)->second;
+    
+    // get iter to end-of-file
+    auto& eof  = eof_pos.find(idx)->second;
+
+    get_line().emit_line(prev, eof, true); 
 }
 
 template <typename Iter>
@@ -317,7 +339,7 @@ void listing_line<Iter>::append_reloc(reloc_type& new_relocs)
 }
 
 template <typename Iter>
-Iter listing_line<Iter>::emit_line(Iter first, Iter const& last)
+Iter listing_line<Iter>::emit_line(Iter first, Iter const& last, bool flush)
 {
     // see if source contains newline
     std::match_results<Iter> m;

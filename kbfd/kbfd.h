@@ -1,8 +1,6 @@
 #ifndef KBFD_KBFD_H
 #define KBFD_KBFD_H
 
-//#include "kas_relocations.h"        // declare relocation infrastructure
-
 #include "kbfd_object.h"
 #include "kas/kas_string.h"         // define string types
 #include "kas/defn_utils.h"         // using `all_defns` infrastructure
@@ -11,8 +9,6 @@
 
 namespace kbfd
 {
-using namespace kas;                // XXX temp: after namespace `kbfd` xform
-
 
 // declare the object code target architectures
 using TARGET_M68K   = KAS_STRING("M68K");
@@ -28,17 +24,17 @@ using target_tags   = meta::list<TARGET_M68K
 
 // declare the target object code formats
 using FORMAT_ELF    = KAS_STRING("ELF");
-using FORMAT_AOUT   = KAS_STRING("AOUT");
 using FORMAT_COFF   = KAS_STRING("COFF");
+using FORMAT_AOUT   = KAS_STRING("AOUT");
 
 using format_tags   = meta::list<FORMAT_ELF
-                               , FORMAT_AOUT
                                , FORMAT_COFF
+                               , FORMAT_AOUT
                                >;
 
 // specialize to define implemented formats
-template <typename tag = void> struct kas_formats_v : meta::list<> {};
-template <typename tag = void> struct kas_targets_v : meta::list<> {};
+template <typename tag = void> struct kbfd_formats_v : meta::list<> {};
+template <typename tag = void> struct kbfd_targets_v : meta::list<> {};
 
 
 // retrieve `kbfd_target_format` object for specified target/format

@@ -5,7 +5,7 @@
 #include "kbfd_section_sym.h"
 #include "kbfd_target_format.h"
 
-
+#include "target/z80_aout.h"
 
 namespace kbfd
 {
@@ -49,12 +49,6 @@ const char *kbfd_object::sym_name(kbfd_sym_index_t n_sym) const
 kbfd_target_reloc const *kbfd_object::get_reloc(kbfd_reloc const& reloc) const
 {
     return fmt.lookup(reloc);
-}
-
-kbfd_target_format const *get_obj_format(const char *target, const char *format)
-{
-    static m68k::m68k_elf obj;
-    return &obj;
 }
 
 }

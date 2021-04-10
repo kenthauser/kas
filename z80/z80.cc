@@ -24,8 +24,6 @@
 #include "z80_arg_impl.h"
 #include "z80_mcode_impl.h"
 
-#include "kbfd/kbfd_convert_elf.h"
-
 // instantiate global values controlling assembly
 namespace kas::z80::hw
 {

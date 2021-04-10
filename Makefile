@@ -40,7 +40,7 @@ str: str.cc
 	$(LINK.cc) -o $@ $?
 	./$@
 
-VPATH = parser:expr:kas_core:bsd:kbfd:m68k:test:kas_exec
+VPATH = parser:expr:kas_core:bsd:kbfd:test:kas_exec
 
 OBJS =  kas_core.o expr.o parser.o kbfd.o
 OBJS += bsd.o
