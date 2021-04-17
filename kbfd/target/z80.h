@@ -9,16 +9,15 @@ namespace kbfd
 // boilerplate for target z80
 namespace z80
 {
-    template <typename tag = void> struct z80_formats_v : meta::list<> {};
+    template <typename tag = void> struct z80_formats_v : meta::id<void> {};
 
     // default format is `a.out`
-    template <> struct z80_formats_v<void> : FORMAT_AOUT {};
+    //template <> struct z80_formats_v<void> : FORMAT_AOUT {};
 }
 
 // retrieve all defined target formats
 template <> struct kbfd_targets_v<TARGET_Z80>
-                    : meta::quote<z80::z80_formats_v> {};
-
+                    { using type = meta::quote_trait<z80::z80_formats_v>; };
 }
 
 #endif

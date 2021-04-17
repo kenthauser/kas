@@ -54,7 +54,7 @@ struct z80_aout : elf32_format<std::endian::little>
 
 
 // register target format
-template <> struct z80_formats_v<FORMAT_AOUT> : z80_aout {};
+template <> struct z80_formats_v<FORMAT_AOUT> : meta::id<z80_aout> {};
 }
 
 #endif

@@ -20,6 +20,7 @@
 // The second format transforms the LIST using CTOR<CTOR_ARG> before
 // generating definitions. Usage patterns for this format include replacing
 // members of the `LIST` with indexes into `TYPE_LIST` passed as CTOR_ARG.
+// NB: CTOR_ARG defaults to `void`
 //
 // This header also defines `VT_CTOR`. This `TYPE` allows virtual-base-types
 // to be initializes as well. Since derived types can't be stored in an
@@ -67,6 +68,8 @@ struct init_from_list :
 template <typename T, typename...Ts, typename CTOR_ARG>
 struct init_from_list<T, meta::list<Ts...>, void, CTOR_ARG>
 {
+    using type = init_from_list;        // for lazy evaluation
+
     // NB: disallow zero length arrays...
     static constexpr auto size = sizeof...(Ts);
     static constexpr auto _size = std::max<unsigned>(1, size);
@@ -99,7 +102,16 @@ namespace detail
 
     // if default type specified, use it to replace "void" base-type
     template <typename DFLT>
-    struct vt_ctor_impl<meta::list<DFLT>, void, void> : vt_ctor_impl<meta::list<>, DFLT> {};
+    struct vt_ctor_impl<meta::list<DFLT>, void, void> 
+                    : vt_ctor_impl<meta::list<>, DFLT> {};
+
+    // if no default type specified, initialize as nullptr
+    template <>
+    struct vt_ctor_impl<void, void, void>
+    {
+        using type = vt_ctor_impl;
+        static constexpr std::nullptr_t value{};
+    };
 }
 
 // since virutal base-class can't be default constructed, allow

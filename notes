@@ -492,7 +492,7 @@ KBFD / kas interface
     core_section is just holds definitions and pointer to single `core_section`.
     `subsection` is a `core_section` definition. not an array of segments.
 
-14. kbfd_object::get_obj_format(const char *, const char *) needs to be 
+*14. kbfd_object::get_obj_format(const char *, const char *) needs to be 
     implemented. Could actually be implemented in `kbfd.cc` where supported
     headers included.
 

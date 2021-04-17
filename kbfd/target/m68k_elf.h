@@ -50,7 +50,7 @@ struct m68k_elf : elf32_format<std::endian::big>
 };
 
 // register target format
-template <> struct m68k_formats_v<FORMAT_ELF> : m68k_elf {};
+template <> struct m68k_formats_v<FORMAT_ELF> : meta::id<m68k_elf> {};
 }
 
 #endif

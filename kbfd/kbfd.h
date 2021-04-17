@@ -33,12 +33,16 @@ using format_tags   = meta::list<FORMAT_ELF
                                >;
 
 // specialize to define implemented formats
-template <typename tag = void> struct kbfd_formats_v : meta::list<> {};
-template <typename tag = void> struct kbfd_targets_v : meta::list<> {};
+template <typename tag = void> struct kbfd_targets_v
+{
+    using type = kbfd_targets_v;
 
+    // default to all `void` formats for unknown targets
+    template <typename> using invoke = void;
+};
 
 // retrieve `kbfd_target_format` object for specified target/format
-kbfd_target_format const *get_obj_format(const char *target = {}
+kbfd_target_format const *get_obj_format(const char *target
                                        , const char *format = {});
 }
 

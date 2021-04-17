@@ -64,7 +64,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     src.push(source.begin(), source.end(), input_path.c_str());
     
     // need object format before assembling
-    auto& obj_fmt  = *kbfd::get_obj_format(kbfd::TARGET_M68K());
+    auto& obj_fmt  = *kbfd::get_obj_format(KAS_KBFD_TARGET());
     kbfd::kbfd_object kbfd_obj(obj_fmt);
     
     // create assembler object & assemble source
