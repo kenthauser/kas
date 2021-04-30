@@ -1,6 +1,1 @@
-# target is m68k
-
-VPATH += m68k
-OBJS += m68k.o
-
-
+tiny/tiny_machine_makefile.inc

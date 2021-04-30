@@ -1,3 +1,1 @@
-#include "kbfd/target/m68k.h"
-using KAS_KBFD_TARGET = kbfd::TARGET_M68K;
-
+tiny/tiny_machine_out.h

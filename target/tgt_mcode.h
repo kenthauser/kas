@@ -1,6 +1,7 @@
 #ifndef KAS_TARGET_TGT_MCODE_H
 #define KAS_TARGET_TGT_MCODE_H
 
+
 #include "expr/expr.h"
 #include "kas/kas_string.h"
 
@@ -72,6 +73,7 @@ struct tgt_mcode_t
     using mcode_t      = MCODE_T;
     using stmt_t       = STMT_T;
     using err_msg_t    = ERR_MSG_T;
+    using size_trait_t = SIZE_T;
 
     // extract types from STMT
     using insn_t       = typename stmt_t::insn_t;

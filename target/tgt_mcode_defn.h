@@ -38,7 +38,7 @@ using IS_as_list  = meta::_t<detail::IS_as_list_impl<Seq>>;
 // Special constructor for virtual types (virtual members or virtual bases)
 //
 // Since C++ doesn't allow a virtual base-type to hold a derived type, 
-// construct the derived type as a static, and use a pointer to this
+// construct the derived type as a static, and use a pointer to `this`
 // static instance as `defn` value
 //
 // Two types of "virtual" types are instantiated:

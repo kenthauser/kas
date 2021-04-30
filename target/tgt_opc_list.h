@@ -23,6 +23,8 @@ struct tgt_opc_list : MCODE_T::opcode_t
     using data_t       = typename base_t::data_t;
     using Iter         = typename base_t::Iter;
 
+    using op_size_t    = typename core::opcode::op_size_t;
+
     // expose internal type in base class (without "this->" prefix)
     using base_t::serial_args;
     

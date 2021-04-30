@@ -3,7 +3,7 @@
 
 // Instruction definion patterns
 //
-// The m68k instructions are defined as a sequence of types.
+// The KAS target instructions are defined as a sequence of types.
 //
 // Example:
 //  insn<sz_lwb, STR("move"), OP<0x0000, void, INFO_SIZE_MOVE>, FMT_MOVE_0RM_6RM, GEN, ALTERABLE>

@@ -501,4 +501,17 @@ KBFD / kas interface
     *** Just remove `inline` from methods
 
 
+**************************************
+
+TARGETS
+
+1. create "targets/PROTO" from simpliest target (ie z80)
+
+2. develop `create_tgt.py` script to create compilable "empty" target.
+
+3. rebase z80/m68k/arm to use PROTO base. Interating as required.
+
+4. create "${ROOT}/config.py" to retarget kas using sym-links
+
+***************************************
 
