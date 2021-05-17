@@ -1,1 +1,1 @@
-tiny/tiny_machine_types.h
+m68k/m68k_machine_types.h

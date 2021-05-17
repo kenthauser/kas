@@ -207,12 +207,15 @@ auto overwrite = [](fs::path input_path, fs::path expect_path)
 int main(int argc, char* argv[])
 {
    bool do_overwrite = false;
-    if (argc && !std::strcmp(argv[1], "--overwrite")) {
+
+   // absorb command line arg
+    if (argc > 1 && !std::strcmp(argv[1], "--overwrite")) {
         argc--;
         argv++;
         do_overwrite = true;
     }
 
+    // require "path"
     if (argc < 2)
     {
        std::cout << "usage: " << fs::path(argv[0]).filename() << " path/to/test/files" << std::endl;

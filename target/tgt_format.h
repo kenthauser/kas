@@ -199,11 +199,12 @@ struct tgt_fmt_arg;
 
 // specialize arg formatter for each arg (as a virtual base class)
 // (Override `get_argN` and instantiate formatter `T`)
-#define DEFN_ARG(N)                                                                \
-template <typename MCODE_T, typename T>                                            \
-struct tgt_fmt_arg<MCODE_T, N, T> : virtual MCODE_T::fmt_t                         \
-{   using fmt_impl = typename MCODE_T::fmt_t::fmt_impl;                            \
-    fmt_impl const& get_arg ## N () const override { constexpr static T impl; return impl; } };
+#define DEFN_ARG(N)                                                             \
+template <typename MCODE_T, typename T>                                         \
+struct tgt_fmt_arg<MCODE_T, N, T> : virtual MCODE_T::fmt_t                      \
+{   using fmt_impl = typename MCODE_T::fmt_t::fmt_impl;                         \
+    fmt_impl const& get_arg ## N () const override                              \
+        { constexpr static T impl; return impl; } };
 
 
 // specialize for each of the `FMT_MAX_ARGS` arguments
@@ -213,6 +214,7 @@ DEFN_ARG(3)
 DEFN_ARG(4)
 DEFN_ARG(5)
 DEFN_ARG(6)
+
 #undef DEFN_ARG
 
 }

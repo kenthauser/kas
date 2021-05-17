@@ -110,15 +110,20 @@ struct tgt_val_reg : MCODE_T::val_t
 };
     
 // the "range" validators default to zero size
-template <typename MCODE_T>
+template <typename MCODE_T, typename RANGE_VALUE_T = int16_t>
 struct tgt_val_range : MCODE_T::val_t
 {
+    using base_t      = tgt_val_range;
+    using value_t     = RANGE_VALUE_T;
     using arg_t       = typename MCODE_T::arg_t;
     using arg_mode_t  = typename MCODE_T::arg_mode_t;
     using stmt_info_t = typename MCODE_T::stmt_info_t;
 
-    constexpr tgt_val_range(int32_t min, int32_t max, int8_t zero = 0, int8_t size = 0)
-                            : min(min), max(max), zero(zero), _size(size) {}
+    constexpr tgt_val_range(value_t min
+                          , value_t max
+                          , int8_t  zero = 0
+                          , int8_t  size = 0)
+               : min(min), max(max), zero(zero), _size(size) {}
 
 protected:
     fits_result range_ok(arg_t& arg, expr_fits const& fits) const
@@ -175,7 +180,7 @@ public:
         arg.set_mode(_size ? arg_mode_t::MODE_IMMEDIATE : arg_mode_t::MODE_IMMED_QUICK);
     }
     
-    int32_t  min, max;
+    value_t  min, max;
     int8_t   zero, _size;
 };
 

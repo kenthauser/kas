@@ -185,9 +185,9 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     // 2) if single match, use format for selected opcode
     // 3) otherwise, use opcode for "list"
 
-    // XXX force list or general during debu
+    // XXX force list or general during debug
     //matching_mcode_p = {};      // XXX force list for all
-    ok_for_quick   = {};      // XXX don't use quick
+    //ok_for_quick   = {};      // XXX don't use quick
 
     std::cout << "quick format: " << std::boolalpha << ok_for_quick;
     std::cout << ", single match: " << !!matching_mcode_p << std::endl;

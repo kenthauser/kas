@@ -24,6 +24,13 @@ template <> struct reloc_ops_v<K_REL_NONE> : meta::list<
         KBFD_ACTION<K_REL_NONE  , reloc_op_fns>
       , KBFD_ACTION<K_REL_ADD   , k_rel_add_t>
       , KBFD_ACTION<K_REL_SUB   , k_rel_sub_t>
+
+      // XXX to be defined
+      , KBFD_ACTION<K_REL_GOT   , reloc_op_fns>
+      , KBFD_ACTION<K_REL_PLT   , reloc_op_fns>
+      , KBFD_ACTION<K_REL_COPY  , reloc_op_fns>
+      , KBFD_ACTION<K_REL_GLOB_DAT, reloc_op_fns>
+      , KBFD_ACTION<K_REL_JMP_SLOT, reloc_op_fns>
       > {};
 
 }

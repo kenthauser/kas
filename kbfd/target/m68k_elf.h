@@ -19,7 +19,6 @@ static constexpr kbfd_target_reloc m68k_elf_relocs[] =
   , {  4 , "R_68K_32PC"     , K_REL_ADD()     , 32, 1 }
   , {  5 , "R_68K_16PC"     , K_REL_ADD()     , 16, 1 }
   , {  6 , "R_68K_8PC"      , K_REL_ADD()     ,  8, 1 }
-#if 0
   , {  7 , "R_68K_GOT32"    , K_REL_GOT()     , 32, 1 }
   , {  8 , "R_68K_GOT16"    , K_REL_GOT()     , 16, 1 }
   , {  9 , "R_68K_GOT8"     , K_REL_GOT()     ,  8, 1 }
@@ -35,7 +34,6 @@ static constexpr kbfd_target_reloc m68k_elf_relocs[] =
   , { 19 , "R_68K_COPY"     , K_REL_COPY()    , 32, 0 }
   , { 20 , "R_68K_GLOB_DAT" , K_REL_GLOB_DAT(), 32, 0 }
   , { 21 , "R_68K_JMP_SLOT" , K_REL_JMP_SLOT(), 32, 0 }
-#endif
 };
 
 struct m68k_elf : elf32_format<std::endian::big>

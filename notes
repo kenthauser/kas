@@ -515,3 +515,12 @@ TARGETS
 
 ***************************************
 
+REBASE:
+
+1. w/o m68k: `mcode_idx_t` = indexes are truncated w/o warning 
+
+2. M68K List format: info shows spurious condition codes
+
+3. Should append "info" to `out` format
+
+

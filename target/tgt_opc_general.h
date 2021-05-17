@@ -14,8 +14,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
     using mcode_t = MCODE_T;
     using base_t  = typename mcode_t::opcode_t;
    
-    // XXX don't know why base_t types aren't found.
-    // XXX expose types & research later
+    // expose types from `base_t`
     using insn_t       = typename base_t::insn_t;
     using bitset_t     = typename base_t::bitset_t;
     using arg_t        = typename base_t::arg_t;

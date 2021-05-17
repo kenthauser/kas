@@ -26,7 +26,7 @@ struct tgt_immed_info
 
 // NB: the `REG_T` & `REGSET_T` also to allow lookup of type names
 template <typename Derived
-        , typename MODE_T               // register mode definitions
+        , typename MODE_T               // argument mode definitions
         , typename REG_T                // target register type
         , typename REGSET_T    = void   // target register set (or offset) type
         , typename STMT_INFO_T = void   // stmt immed size info (or void)

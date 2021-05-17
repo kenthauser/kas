@@ -15,13 +15,11 @@ using TARGET_M68K   = KAS_STRING("M68K");
 using TARGET_Z80    = KAS_STRING("Z80");
 using TARGET_I386   = KAS_STRING("I386");
 using TARGET_ARM    = KAS_STRING("ARM");
-using TARGET_TINY   = KAS_STRING("TINY");       // XXX dummy target
 
 using target_tags   = meta::list<TARGET_M68K
                                , TARGET_Z80
                                , TARGET_I386
                                , TARGET_ARM
-                               , TARGET_TINY
                                >;
 
 // declare the target object code formats

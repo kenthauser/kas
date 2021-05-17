@@ -214,10 +214,11 @@ template <typename VALUE_T, typename EMIT_VALUE_T>
 auto tgt_data_inserter_t<VALUE_T, EMIT_VALUE_T>::insert_fixed(emit_value_t i, int size) -> value_type *
 {
     // recurse to save chunks in big-endian order
-    // add support lambda `_save` because c++ loves indirection...
-    auto save = [this](int n, unsigned chunks)
+    // add support lambda `_save` to recurse
+    auto save = [this](emit_value_t n, unsigned chunks)
     {
-        auto _save = [this](int n, unsigned chunks, const auto& _save) -> value_type *
+        auto _save = [this](emit_value_t n, unsigned chunks, const auto& _save)
+                                -> value_type *
             {
                 // if multiple chunks, need to return first. 
                 if (--chunks)

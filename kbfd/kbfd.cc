@@ -1,5 +1,10 @@
 #include "kbfd.h"
 
+// include target declaration files
+#include "target/m68k.h"
+#include "target/z80.h"
+#include "target/arm.h"
+
 // include implementation files
 #include "kbfd_reloc_ops_impl.h"
 #include "kbfd_object_impl.h"
@@ -11,6 +16,7 @@
 #include "kbfd_format_elf_write.h"
 
 // include all supported target formats
+#include "target/arm_elf.h"
 #include "target/m68k_elf.h"
 #include "target/z80_aout.h"
 

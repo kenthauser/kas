@@ -12,18 +12,25 @@ struct kbfd_reloc
 {
     using key_t = uint32_t;
 
-    static constexpr auto RFLAGS_PC_REL = 1;
+    static constexpr auto RFLAGS_DEPR   = 0x80;
+    static constexpr auto RFLAGS_PC_REL = 0x40;
     
     kbfd_reloc() = default;      // NB: not constexpr
 
     constexpr kbfd_reloc(reloc_action action
                        , uint8_t bits = 0
                        , uint8_t pc_rel = false
+                       , uint8_t flags = 0
                        )
         : action(action)
         , bits(bits)
         , flags (pc_rel ? RFLAGS_PC_REL : 0)
         {}
+
+    // XXX
+    template <typename...Ts>
+    constexpr kbfd_reloc(reloc_action action, Ts&&...)
+        : action(action) {}
 
     // allow 'action' to be defined as `string`
     template <typename...Ts>

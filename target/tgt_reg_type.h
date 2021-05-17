@@ -46,7 +46,8 @@ template <typename Derived
         , typename IDX_T  = void
         , typename BASE_T = uint16_t
         , unsigned REG_C_BITS = 8
-        , unsigned VALUE_BITS = std::numeric_limits<BASE_T>::digits - REG_C_BITS> 
+        , unsigned VALUE_BITS = std::numeric_limits<BASE_T>::digits - REG_C_BITS
+        > 
 struct tgt_reg
 {
     using base_t      = tgt_reg;
