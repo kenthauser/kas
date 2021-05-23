@@ -105,7 +105,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
         if (trace)
         {
             if (diag)
-                *trace << " -> " << diag << std::endl;
+                *trace << " -> " << diag.msg << std::endl;
             else
                 *trace << " = OK" << std::endl;
         }

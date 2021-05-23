@@ -523,4 +523,6 @@ REBASE:
 
 3. Should append "info" to `out` format
 
+4. Inserter needs to access remaining args
+
 

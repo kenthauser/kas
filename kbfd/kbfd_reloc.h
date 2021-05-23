@@ -11,8 +11,7 @@ namespace kbfd
 struct kbfd_reloc
 {
     using key_t = uint32_t;
-
-    static constexpr auto RFLAGS_DEPR   = 0x80;
+static constexpr auto RFLAGS_DEPR   = 0x80;
     static constexpr auto RFLAGS_PC_REL = 0x40;
     
     kbfd_reloc() = default;      // NB: not constexpr
