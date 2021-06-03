@@ -70,6 +70,9 @@ using arg2_1w3b2  = fmt_arg<2, gen_1w3b2>;
 using arg1_1w4b2  = fmt_arg<1, gen_1w4b2>;
 using arg2_1w4b2  = fmt_arg<2, gen_1w4b2>;
 #endif
+
+using arg2_shifter = fmt_arg<2, fmt_shifter>;
+using arg3_shifter = fmt_arg<3, fmt_shifter>;
 //
 // Declare types used in INSN definitions
 //
@@ -78,18 +81,21 @@ using arg2_1w4b2  = fmt_arg<2, gen_1w4b2>;
 // NB: VALIDATORs are REG_GEN, REG_GEN
 // NB: purposefully make unique (arg order doesn't match move)
 //struct FMT_LIST     : fmt_list, arg1_0b3, arg2_3b3 {};
-struct FMT_LIST : fmt_list {};
+struct FMT_LIST : fmt_list, arg1_12b4 {};
 
 // conventional name for `no-args` formatter
 struct FMT_X       : fmt_gen {};
 
-struct FMT_0       : fmt_gen, arg1_00b4 {};
-struct FMT_S   : FMT_X {};
-struct FMT_16_S : FMT_X {};
-struct FMT_16_RS : FMT_X {};
-struct FMT_12_S : FMT_X {};
-struct FMT_12_RS : FMT_X {};
-struct FMT_LD  : FMT_X {};
+struct FMT_0     : fmt_gen, arg1_00b4 {};
+struct FMT_S     : fmt_gen {};
+
+// support ARM5 addressing mode 1
+struct FMT_12_0     : fmt_gen, arg1_12b4, arg2_00b4 {};
+struct FMT_12_0_S   : FMT_12_0, arg3_shifter {};
+struct FMT_16_0     : fmt_gen, arg1_16b4, arg2_00b4 {};
+struct FMT_16_0_S   : FMT_16_0, arg3_shifter {};
+
+struct FMT_LD  : fmt_gen, arg1_12b4, arg2_shifter {};
 struct FMT_ST  : FMT_X {};
 struct FMT_PLD : FMT_X {};
 struct FMT_LDH : FMT_X {};
@@ -107,12 +113,12 @@ struct FMT_STM : FMT_X {};
 struct FMT_JR      : fmt_jr           {};
 struct FMT_JRCC    : fmt_jr, arg1_3b2 {};
 struct FMT_DJNZ    : fmt_djnz         {};
-#endif
 
 struct FMT_12_F    : fmt_gen, arg1_12b4, arg2_fixed {};
 struct FMT_12_0    : fmt_gen, arg1_12b4, arg2_00b4 {};
 struct FMT_12_0_F  : fmt_gen, arg1_12b4, arg2_00b4, arg3_fixed {};
 struct FMT_12_MOVW : fmt_gen, arg1_12b4, fmt_arg<2, fmt_movw> {};
+#endif
 #if 0
 // general registers are 3-bits shifted 0 or 3 bits
 struct FMT_0       : fmt_gen, arg1_0b3 {};

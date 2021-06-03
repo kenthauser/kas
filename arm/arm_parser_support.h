@@ -399,19 +399,32 @@ auto gen_stmt = [](auto& ctx)
         auto& ccode    = boost::fusion::at_c<1>(parts);
         auto& sfx      = boost::fusion::at_c<2>(parts);
         auto& s_flag   = boost::fusion::at_c<3>(parts);
+        auto& nw_flag  = boost::fusion::at_c<4>(parts);
 
-        arm_sfx_t suffix;       // zero value is no suffix
+        // save parsed condition code
+        if (ccode)
+            info.ccode = *ccode;
+        else
+            info.ccode = 0xf;       // unconditional or all
+
+        // save parsed suffix code in info
         if (sfx)
-            suffix = *sfx;
-       
+            info.sfx_code = (*sfx)->index();
+        
+        // save s-flag
         if (s_flag)
             info.has_sflag = true;
-        if (ccode)
-        {
-            info.has_ccode = true;
-            info.ccode     = *ccode;
-        }
-        _val(ctx) = {insn_tok, info, suffix};
+
+        // .N & .W not supported by ARM5. Add later
+        if (nw_flag)
+            switch (*nw_flag)
+            {
+                case 'n': case 'N': info.has_nflag = true; break;
+                case 'w': case 'W': info.has_nflag = true; break;
+                default:    break; // parser should not generate;
+            }
+
+        _val(ctx) = {insn_tok, info};
     };
 
     

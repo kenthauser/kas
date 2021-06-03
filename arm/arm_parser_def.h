@@ -202,14 +202,12 @@ auto const arm_args = x3::rule<class _, std::vector<arm_arg_t>> {"arm_args"}
 // ARM encodes several "options" in insn name. Decode them.
 // invalid options error out in `arm_insn_t::validate_args`
 auto const parse_insn = rule<class _, std::tuple<kas_token
-                                               , arm_stmt_info_t
-                                               , arm_sfx_t>> {} = 
+                                               , arm_stmt_info_t>> {} =
             lexeme[(arm_insn_x3()       // insn_base_name
                 >> -arm_ccode::x3()     // optional condition-code
                 >> -arm_suffix::x3()    // optional suffix (after ccode)
                 >> -char_("sS")         // s-flag (update flags)
-                // arm V7 Ref: A8.2: for ARM `.N` is error, `.W` is ignored
-                >> omit[-(lit('.') >> char_("wW"))]
+                >> -(lit('.') >> char_("nNwW"))
                 >> !graph               // no trailing characters
                 )[gen_stmt]
                 ];

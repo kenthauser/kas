@@ -3,7 +3,6 @@
 
 #include "m68k_mcode.h"             // need op-size defns
 #include "target/tgt_opc_base.h"    // extending `tgt_opc_base`
-#include "utility/align_as_t.h"
 
 namespace kas::m68k::opc
 {
@@ -184,6 +183,7 @@ private:
         return -1;
     }
 public:
+    // used by m68k_mcode_t::code() to generate size code
     uint16_t operator()(uint8_t sz) const
     {
         auto code = get_code(sz_seq, sz);
@@ -192,6 +192,7 @@ public:
         return code << sz_bit;
     }
    
+    // used by m68k_mcode_t::extract_info() to decode embedded size code
     uint8_t extract(uint16_t const *code_p) const
     {
         auto lwb_code = code_p[sz_word] >> sz_bit;

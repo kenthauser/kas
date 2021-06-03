@@ -3,6 +3,30 @@
 
 // implement `arm_mcode_t` methods overriden in CRTP derived class
 
+// Status bits in ARM:
+//
+// 1. condition-code: everywhere...
+//
+// 2. addressing mode 1: only S_BIT (and Immed_bit)
+//     NB: 32-bit immed (means no U-bit)
+//
+// 3. addressing mode 2: P/U/B/W/L (P=0/W=1 -> T)
+//
+// 4. addressing mode 3: P/U/W/L. Also SH-> bits 6&5 differ on L/S bit
+//
+// 5. addressing mode 4: P/U/S/W/L: P/U set from SFX differ on L/S bit
+//
+// 6. addressing mode 5: (coprocessor): P/U/N/W/L (N sits at 22 (s-bit)
+//                                                  and depends on co-processor)
+//
+// Status bits in T16:
+//
+// 1. ccode shifted 8 for branch. 
+//
+
+
+
+
 #include "arm_mcode.h"
 
 namespace kas::arm
@@ -12,6 +36,21 @@ auto arm_mcode_t::code(stmt_info_t stmt_info) const
 {
     // init code array using base method
     auto code_data = base_t::code(stmt_info);
+    auto& m_info = defn().info;
+#if 1
+    code_data[0] = stmt_info.value() << 16;
+#else
+    // map no-ccode -> ccode = ALL
+    auto ccode = stmt_info.ccode;
+    if (m_info & SZ_DEFN_COND && ccode == arm_stmt_info_t::ARM_CC_OMIT)
+        ccode = arm_stmt_info_t::ARM_CC_ALL;
+
+    code_data[0] |= ccode << 28;
+
+    // process s-flg
+    if (stmt_info.has_sflag)
+        code_data[0] |= 1 << 20;
+
 #ifdef XXX    
     // add ccode & s_flags as appropriate
     auto sz = stmt_info.sz();
@@ -37,10 +76,16 @@ auto arm_mcode_t::code(stmt_info_t stmt_info) const
     if (high_word)
         code_data[0] |= high_word << 16;
 #endif
+#endif
     return code_data;
 }
 
 
+auto arm_mcode_t::extract_info(mcode_size_t const * code) const
+    -> stmt_info_t 
+{
+    return code[0] >> 16;
+}
 
 }
 

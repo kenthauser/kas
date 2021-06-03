@@ -30,7 +30,7 @@ struct tgt_stmt_info_t
     template <typename MCODE_T>
     static constexpr const char *ok(MCODE_T const& mc)
     {   
-        return {};          // all mcodes match
+        return {};          // all mcodes match info
     }
 
     void print(std::ostream& os) const
@@ -75,13 +75,19 @@ struct tgt_stmt : kas::parser::parser_stmt
     // method to validate mcode suitable for stmt.
     // Principally for `hw_tst` & `stmt_info_t` validation
     tagged_msg validate_stmt(mcode_t const *mcode_p) const { return {}; }
-   
+  
     // methods used by test fixtures
     std::string name() const override;
 
     void print_args(parser::print_obj const& p_obj) const override
     {
         p_obj(args);
+    }
+    
+    void print_info(parser::print_obj const& p_obj) const override
+    {
+        p_obj(" info = ");
+        p_obj(info);
     }
     
     // allow floating point constants

@@ -298,18 +298,6 @@ bool tgt_arg_t<Derived, M, I, R, RS>
                 wb_p->has_data = false;     // supress write 
                 return false;               // and no expression.
             }
-#if 0
-        // XXX 2020/02/18: `typename e_float_t...` fails because `e_float_t`
-        // XXX is `void`, inside constexpr `!is_void` if. Find another solution.
-            // if possibly `e_float_t` perform tests 
-            if constexpr (!std::is_void_v<e_float_t>)
-            {
-                std::cout << "tgt_arg_t::serialize: " << tok << std::endl;
-                using fmt = typename e_float_t::object_t::fmt;
-                if (!p)
-                    fmt::ok_for_fixed(tok.expr(), sz * 8);
-            }
-#endif
             return !inserter(std::move(expr), bytes);
         };
     

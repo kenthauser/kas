@@ -525,4 +525,9 @@ REBASE:
 
 4. Inserter needs to access remaining args
 
+5. tgt_stmt_info_t::ok needs to be a `stmt` method. Needs access to all stmt 
+   variables.
+
+6. need `mcode_size_t` for sizeof arg_serial_t chunk size.
+
 

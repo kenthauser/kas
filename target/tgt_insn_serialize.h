@@ -211,7 +211,7 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
 
     // read until end flag: eg: MODE_NONE or reader.empty()
     detail::arg_serial_t *p;
-    for (unsigned n = 0; true ;++n, ++arg_p, ++p)
+    for (unsigned n = 0; true ;++n, ++arg_p)
     {
         typename MCODE_T::val_t const *val_p {};
         const char *val_name {};

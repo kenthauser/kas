@@ -32,9 +32,9 @@ using cpu_reg_l = list<
  
 // declare aliases and make alias names canonical
 using arm_reg_aliases_l = meta::list<
-      list<REG_STR("r13"), REG_STR("sp")>   //, std::true_type>
-    , list<REG_STR("r14"), REG_STR("lr")>   //, std::true_type>
-    , list<REG_STR("r15"), REG_STR("pc")>   //, std::true_type>
+      list<REG_STR("r13"), REG_STR("sp"), std::true_type>
+    , list<REG_STR("r14"), REG_STR("lr"), std::true_type>
+    , list<REG_STR("r15"), REG_STR("pc"), std::true_type>
     >;
  
 

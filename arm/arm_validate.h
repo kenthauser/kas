@@ -25,26 +25,6 @@ using op_size_t   = core::opcode::op_size_t;
 struct val_reg : tgt::opc::tgt_val_reg<val_reg, arm_mcode_t>
 {
     using base_t::base_t;
-
-    fits_result ok(arm_arg_t& arg, expr_fits const& fits) const override
-    {
-        if (arg.mode() != MODE_REG)
-            return fits.no;
-        if (arg.reg_p->kind(RC_GEN) != RC_GEN)
-            return fits.no;
-        return fits.yes;
-    }
-
-    // standard ARM encoding
-    unsigned get_value(arm_arg_t& arg) const override
-    {
-        return arg.reg_p->value(RC_GEN);
-    }
-
-    void set_arg(arm_arg_t& arg, unsigned value) const override
-    {
-        arg.reg_p = &arm_reg_t::find(RC_GEN, value);
-    }
 };
 
 struct val_range: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
@@ -52,7 +32,7 @@ struct val_range: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
     using base_t::base_t;
 };
 
- 
+// ARM5 Adddressing mode 1: Data processing instructions: Shifts
 struct val_shift : arm_mcode_t::val_t
 {
     constexpr val_shift() {}
@@ -86,6 +66,7 @@ struct val_shift : arm_mcode_t::val_t
     }
 };
 
+// ARM5 Adddressing mode 2: Load and Store word or unsigned byte
 struct val_indir : arm_mcode_t::val_t
 {
     constexpr val_indir() {}
@@ -104,14 +85,16 @@ struct val_indir : arm_mcode_t::val_t
         value += arg.reg_p->value(RC_GEN);
         value <<= 16;
 
-        // if "register" format
+        // if "register" format (may specify shift)
         if (arg.indir.flags & arm_indirect::R_FLAG)
         {
-            value += arg.indir.reg;
-            if (arg.indir.flags & arm_indirect::S_FLAG)
-                value += val_shift().get_value(arg);
-        }
+            value += arg.indir.reg;       // 4 lsbs
 
+            // if specified, only immed-shift allowed
+            if (arg.shift)
+                value += (arg.shift.ext << 7) | (arg.shift.type << 5);
+
+        }
         // else "immed" format
         else
         {
@@ -128,9 +111,46 @@ struct val_indir : arm_mcode_t::val_t
 
     void set_arg(arm_arg_t& arg, unsigned value) const override
     {
+        auto msw = value >> 16;     // get most significant word
+        arg.reg_p = &arm_reg_t::find(RC_GEN, msw & 0xf);
+        arg.indir.flags = msw >> 4;
+        arg.indir.reg   = value & 0xf;
+
+        // restore "shift" if specified
+        if (value & 0xff0)
+        {
+            arg.shift.type = (value >> 5) & 3;
+            arg.shift.ext  = (value >> 7) & 0x1f;
+        }
     }
 };
  
+// ARM5: addressing mode 3: 8-bit value split into bytes
+struct val_imm8: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
+{
+    // XXX is there a relocation: may need to validate constant
+    constexpr val_imm8(...) : base_t(-255, 255) {}
+    
+    unsigned get_value(arm_arg_t& arg) const override
+    {
+        auto value = base_t::get_value(arg);
+
+        // XXX U flag?
+        if (auto p = arg.expr.get_fixed_p())
+        {
+            value += (*p & 0x0f) << 0;
+            value += (*p & 0xf0) << 4;
+        }
+        return value;
+    }
+
+    void set_arg(arm_arg_t& arg, unsigned value) const override
+    {
+        base_t::set_arg(arg, value);
+        auto n = ((value & 0xf00) >> 4) + (value & 0x0f);
+        arg.expr = n;       // XXX U flag?
+    }
+};
 
 // use preprocessor to define string names used in definitions & debugging...
 #define VAL_REG(NAME, ...) using NAME = _val_reg<KAS_STRING(#NAME), __VA_ARGS__>
@@ -147,22 +167,24 @@ VAL_REG(REG         , RC_GEN);
 VAL_REG(FLT_SGL     , RC_FLT_SGL);
 VAL_REG(FLT_DBL     , RC_FLT_DBL);
 
-VAL_REG(APSR        , RC_GEN);
-VAL_REG(CPSR        , RC_GEN);
-VAL_REG(SPSR        , RC_GEN);
-
-// XXX DUMMY
-VAL_REG(MEMORY      , RC_GEN);
-VAL_REG(POST_INDEX  , RC_GEN);
-VAL_REG(MEMORY_8    , RC_GEN);
-VAL_REG(OFFSET12    , RC_GEN);
-
-
 // Named Registers
 VAL_REG(SP          , RC_GEN, 13);
 VAL_REG(LR          , RC_GEN, 14);
 VAL_REG(PC          , RC_GEN, 15);
+VAL_REG(APSR        , RC_CPU, REG_CPU_APSR);
+VAL_REG(CPSR        , RC_CPU, REG_CPU_CPSR);
+VAL_REG(SPSR        , RC_CPU, REG_CPU_SPSR);
 
+// ARM5 addressing mode validators
+VAL_GEN(REG_INDIR   , val_indir);
+VAL_GEN(OFFSET8     , val_imm8);
+
+// XXX DUMMY
+VAL_REG(POST_INDEX  , RC_GEN);
+VAL_REG(OFFSET12    , RC_GEN);
+
+
+// XXX
 // unsigned validators
 VAL_GEN(U16         , val_range, 0, (1<<16) - 1);
 VAL_GEN(U12         , val_range, 0, (1<<12) - 1);
@@ -176,12 +198,10 @@ VAL_GEN(IMM4        , val_range, 0, (1<<5 ) - 1);
 
 VAL_GEN(ZERO        , val_range, 0, 0);
 VAL_GEN(LABEL       , val_range, 0, (1<<12) - 1);
-VAL_GEN(INDIR       , val_indir);
 VAL_GEN(SHIFT       , val_shift);
 VAL_GEN(SHIFT_Z     , val_range, 0, 0);
 VAL_GEN(SHIFT_NZ    , val_range, 0, 0);
 VAL_GEN(REGSET      , val_range, 0, 0);
-VAL_GEN(REG_INDIR   , val_range, 0, 0);
 VAL_GEN(REG_OFFSET  , val_range, 0, 0);
 VAL_GEN(REG_UPDATE  , val_range, 0, 0);
 VAL_GEN(SP_UPDATE   , val_range, 0, 0);

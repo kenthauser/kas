@@ -23,17 +23,16 @@ enum arm_arg_mode : uint8_t
       MODE_NONE             // 0 when parsed: indicates missing: always zero
     , MODE_ERROR            // 1 set error message
     , MODE_DIRECT           // 2 direct address
-    , MODE_INDIRECT         // 3 indirect address (NB: NOT ARM)
-    , MODE_IMMEDIATE        // 4 immediate arg (expression)
-    , MODE_IMMED_QUICK      // 5 immediate arg (constant stored in opcode)
-    , MODE_REG              // 6 register
-    , MODE_REG_INDIR        // 7 register indirect (NB: All ARM register indirects)
-    , MODE_REGSET           // 8 register set 
-    , MODE_BRANCH           // 9 branch instruction
+    , MODE_IMMEDIATE        // 3 immediate arg (expression)
+    , MODE_IMMED_QUICK      // 4 immediate arg (constant stored in opcode)
+    , MODE_REG              // 5 register
+    , MODE_REG_INDIR        // 6 register indirect (NB: All ARM register indirects)
+    , MODE_REGSET           // 7 register set 
+    , MODE_BRANCH           // 8 branch instruction
 
 // Processor required modes
-    , MODE_REG_UPDATE       // 10 update register after use (usage ex: STM)
-    , MODE_SHIFT            // 11 shift instruction
+    , MODE_REG_UPDATE       //  9 update register after use (usage ex: STM)
+    , MODE_SHIFT            // 10 shift instruction
 
 // Immediate Sub-fields
     , MODE_IMMED_LOWER      // :lower:
@@ -46,11 +45,14 @@ enum arm_arg_mode : uint8_t
 // Required enumeration
     , NUM_ARG_MODES
     , MODE_REG_OFFSET       // register + offset (indirect) (NB: NOT ARM)
-    , NUM_BRANCH = 1        // only 1 branch insn
+    
+    , MODE_INDIRECT         // 3 indirect address (NB: NOT ARM)
     
 // special handles...
     , MODE_IMMED_MODE_FIRST = MODE_IMMED_LOWER
     , MODE_IMMED_MODE_LAST  = MODE_IMMED_BYTE_3
+    
+    , NUM_BRANCH = 1        // only 1 branch insn
 };
 
 // allow `arm_shift` to be initialized & treaded as `uint8_t`
@@ -80,11 +82,19 @@ struct arm_indirect: detail::alignas_t<arm_indirect, uint16_t>
     constexpr arm_indirect() {};
     
     // ARM7 flags (all shifted 20 bits)
+    static constexpr auto L_FLAG = 0x01;    // 1 = load, 0 = store
     static constexpr auto W_FLAG = 0x02;    // 1 = write-back
+    static constexpr auto B_FLAG = 0x04;    // 1 = unsigned byte, 0 = word
     static constexpr auto U_FLAG = 0x08;    // 1 = up (ie add)
     static constexpr auto P_FLAG = 0x10;    // 1 = pre-index
     static constexpr auto R_FLAG = 0x20;    // 1 = use REGISTER form (LDR/STR) (bit 25)
     static constexpr auto S_FLAG = 0x40;    // 1 = KAS: shift (needed for serialize)
+
+    static constexpr auto M_HFLAG = 0x20;   // 1 = Halfword (ARM 4...)
+    static constexpr auto M_SFLAG = 0x40;   // 1 = Signed   (ARM 4...)
+    // NB: Load Signed ^Halfword mapped to Load  doubleword (even registers)
+    // NB: Load Signed  Halfword mapped to Store doubleword
+
 #if 0
     // XXX must determine via MODE_INDIR
     // true iff "indirect" argument

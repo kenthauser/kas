@@ -84,6 +84,7 @@ struct stmt_t: kas_position_tagged
         print_obj pobj{os};
         os << stmt->name() << "\t";
         stmt->print_args(pobj);
+        stmt->print_info(pobj);
     }
     
     friend std::ostream& operator<<(std::ostream& os, stmt_t const& stmt)

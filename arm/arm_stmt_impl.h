@@ -5,6 +5,7 @@
 
 #include "arm_stmt.h"
 #include "arm_mcode.h"
+#include "arm_stmt_flags.h"
 
 namespace kas::arm
 {
@@ -21,101 +22,41 @@ void arm_stmt_t::operator()(Context const& ctx)
     stmt.args     = boost::fusion::at_c<1>(x3_args);
     
     // extract "insn" values from tuple
-    stmt.insn_tok  = std::get<0>(insn);
-    stmt.info      = std::get<1>(insn);
-    auto& suffix   = std::get<2>(insn);
+    stmt.insn_tok = std::get<0>(insn);
+    stmt.info     = std::get<1>(insn);
 
-    sfx = suffix.value();
-    
-    // merge optional ldr/str suffix values into info
-    switch (suffix.type)
-    {
-        case SFX_B: stmt.info.has_bflag = 1; break;
-        case SFX_T: stmt.info.has_tflag = 1; break;
-        case SFX_H: stmt.info.has_hflag = 1; break;
-        case SFX_M: stmt.info.has_mflag = 1; break;
-        default:
-            // error...
-            break;
-    }
     x3::_val(ctx) = &stmt;
 }
 
-#if 1
-uint8_t arm_stmt_info_t::sz(arm_mcode_t const&) const
-{
-    return {};
-}
-#endif
-// Validate single MCODE supported by `TST` & `STMT_FLAGS`
+// Validate single MCODE for parsed STMT
 auto arm_stmt_t::validate_stmt(mcode_t const *mcode_p) const
     -> tagged_msg 
 {
-    if (auto base_err = base_t::validate_stmt(mcode_p))
-        return base_err;
-#if 0
-    // XXX m68k code
-    auto sfx_code = mcode_p->defn().info & opc::SFX_MASK;
-    
-    // if size specified, validate it's supported
-    if (info.arg_size != OP_SIZE_VOID)
-    {
-        if (!(mcode_p->defn().info & (1 << info.arg_size)))
-            return { error_msg::ERR_bad_size, width_tok };
-        
-        // if suffix prohibited, error out
-        if (sfx_code == opc::SFX_NONE::value)
-            return { error_msg::ERR_sfx_none, width_tok };
-    }
+    // XXX deal with stmt_t.sfx...
 
-    // otherwise, validate "no size" is valid
-    else
-    {
-        if (sfx_code == opc::SFX_NORMAL::value)
-            return { error_msg::ERR_sfx_reqd, width_tok };
-    }
-
-    // validate "conditional" instructions
-    if (mcode_p->defn().info & opc::SFX_CCODE_BIT::value)
-    {
-        // here ccode insn: require ccode suffix
-        if (!info.has_ccode)
-            return error_msg::ERR_ccode_reqd;
-
-        // disallow T/F ccode if mcode disallows it 
-        if (sfx_code == opc::SFX_NONE::value && !is_fp() && info.ccode < 2)
-            return error_msg::ERR_no_cc_tf;
-    }
-
-    // don't allow condition codes on non-ccode insns
-    else
-    {
-        if (info.has_ccode)
-            return error_msg::ERR_no_ccode;
-    }
-    // XXX end m68k code
-#endif
-    return {};
+    return base_t::validate_stmt(mcode_p);
 }
+
 // NB: This method rejects single `MCODE` not `STMT`
+// NB: Doesn't process flags associted with LDR/STR statements
 const char *arm_stmt_info_t::ok(arm_mcode_t const &mcode) const
 {
     //std::cout << "validate_mcode: info = " << *this << std::endl;
 
     // check condition code, s-flag, and arch match MCODE & mode
     auto m_info = mcode.defn().info;
-    if (has_ccode)
+    if (ccode == ARM_CC_OMIT)
         if (~m_info & SZ_DEFN_COND)
             return "condition code not allowed";
 
-    if (ccode == 0xe)
+    if (ccode >= ARM_CC_ALL)    // _ALL, or _OMIT
         if (m_info & SZ_DEFN_NO_AL)
             return "AL condition code not allowed";
 
     if (has_sflag)
         if (~m_info & SZ_DEFN_S_FLAG)
             return "s-flag not allowed";
-
+#if 0
     // T-flag allowed for `movT` & required for `ldrT`
     if (m_info & SZ_DEFN_REQ_T)
     {
@@ -138,27 +79,36 @@ const char *arm_stmt_info_t::ok(arm_mcode_t const &mcode) const
     if (m_info & SZ_DEFN_REQ_M)
         if (!has_tflag)
             return "m-flag required";
-
+#endif
     return {};
 }
 
 void arm_stmt_info_t::print(std::ostream& os) const
 {
+    const char *sep = ", ";
     os << "[";
-    if (has_ccode)
-        os << "cc = " << std::dec << ccode;
-    if (value() &~ INFO_CCODE_MASK)
+   
+    os << "value = " << std::hex << value();
+    
+    if (auto p = arm_ccode::name(ccode))
     {
-        if (has_ccode) os << ", ";
-        os << "flags = ";
-        if (has_sflag) os << "S";
-        if (has_nflag) os << "N";
-        if (has_wflag) os << "W";
-        if (has_bflag) os << "B";
-        if (has_tflag) os << "T";
-        if (has_hflag) os << "H";
-        if (has_mflag) os << "M";
+        os << ", cc = " << p;
     }
+
+    if (sfx_code != 0)
+        os << ", sfx = " << arm_sfx_t::get_p(sfx_code)->name;
+
+    auto put_flag = [&](const char *flag)
+        {
+            if (sep)
+                os << sep << "flags = ";
+            sep = {};
+            os << flag;
+        };
+    
+    if (has_sflag) put_flag("S");
+    if (has_nflag) put_flag("N");
+    if (has_wflag) put_flag("W");
     
     os << "]";
 };

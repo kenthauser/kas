@@ -16,8 +16,8 @@ namespace kas
 {
 namespace detail
 {
-    template <typename Derived_t, typename Align_t>
-    struct alignas(Align_t) alignas_t
+    template <typename Derived_t, typename Align_t, typename...Bases>
+    struct alignas(Align_t) alignas_t : Bases...
     {
         using derived_t = Derived_t;
         using value_t   = Align_t;
@@ -76,8 +76,8 @@ namespace detail
         constexpr void _size_ok();
     };
 
-    template <typename Derived_t, typename Align_t>
-    constexpr void alignas_t<Derived_t, Align_t>::_size_ok()
+    template <typename Derived_t, typename Align_t, typename...Bases>
+    constexpr void alignas_t<Derived_t, Align_t, Bases...>::_size_ok()
     {
         static_assert(sizeof(*this) == sizeof(Derived_t),
                 "alignas_t sizeof mismatch");

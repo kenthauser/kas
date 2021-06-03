@@ -34,7 +34,7 @@ bool arm_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
     // here the `has_reg` bit may be set spuriously
     // (happens when no appropriate validator present)
     // don't save if no register present
-    if (reg_p)
+    if (!reg_p)
         info_p->has_reg = false;
     if (info_p->has_reg)
         inserter(std::move(*reg_p));

@@ -25,11 +25,12 @@ namespace kas::arm::opc::gen
 {
 #define STR KAS_STRING
 
+using arm_insn_list_l = list<defn<void, STR("*LIST*"), OP<0>, FMT_LIST, REG>>;
+
 using arm_insn_common_l = list<list<>
 
 // Dummy machine-code for "list" opcode
 //, defn<void, STR("*LIST*"), OP<0>, FMT_LIST, REG, REG>
-, defn<void, STR("*LIST*"), OP<0>, FMT_LIST>
 
 // "override" special cases to prefer different encodings
 // classic case is "ld reg, #0" -> mapped to "clr <reg>"
@@ -47,18 +48,18 @@ using arm_insn_common_l = list<list<>
 , defn<void, STR("pop")  , OP<0x8001>, FMT_X   , REG>
 , defn<void, STR("ldr")  , OP<0x8001>, FMT_X   , REG, REG>
 
-, defn<a7_cs, STR("mov") , OP<0x1a0'0000, void, void, 0xf000 >, FMT_12_0   , REG, REG> 
+//, defn<a7_cs, STR("mov") , OP<0x1a0'0000, void, void, 0xf000 >, FMT_12_0   , REG, REG> 
 //, defn<a7_u  , STR("mov") , OP<0x1a0'0000, void, void, 0xf000 >, FMT_12_0   , REG, REG> 
-, defn<a7_cs, STR("mov") , OP<0x3a0'0000, void, void, 0xf000 >, FMT_12_F   , REG, U12> 
-, defn<a7_c , STR("movw"), OP<0x300'0000, hw::v6t2           >, FMT_12_MOVW, REG, U16>
-, defn<a7_c , STR("mov") , OP<0x300'0000, hw::v6t2           >, FMT_12_MOVW, REG, U16>
+//, defn<a7_cs, STR("mov") , OP<0x3a0'0000, void, void, 0xf000 >, FMT_12_F   , REG, U12> 
+//, defn<a7_c , STR("movw"), OP<0x300'0000, hw::v6t2           >, FMT_12_MOVW, REG, U16>
+//, defn<a7_c , STR("mov") , OP<0x300'0000, hw::v6t2           >, FMT_12_MOVW, REG, U16>
 // disassembles as LSR, ASR, etc.
-, defn<a7_c , STR("mov") , OP<0xF00'0000                     >, FMT_12_0_F, REG, REG, SHIFT>
+//, defn<a7_c , STR("mov") , OP<0xF00'0000                     >, FMT_12_0_F, REG, REG, SHIFT>
 
-, defn<a7_cb, STR("ldr"), OP<0x410'0000>, FMT_12_F, REG, INDIR>
-, defn<a7_cb, STR("ldr"), OP<0x41f'0000>, FMT_12_F, REG, LABEL>
-, defn<a7_cb, STR("str"), OP<0x400'0000>, FMT_12_F, REG, INDIR>
-, defn<a7_cb, STR("str"), OP<0x40f'0000>, FMT_12_F, REG, LABEL>
+//, defn<a7_cb, STR("ldr"), OP<0x410'0000>, FMT_12_F, REG, INDIR>
+//, defn<a7_cb, STR("ldr"), OP<0x41f'0000>, FMT_12_F, REG, LABEL>
+//, defn<a7_cb, STR("str"), OP<0x400'0000>, FMT_12_F, REG, INDIR>
+//, defn<a7_cb, STR("str"), OP<0x40f'0000>, FMT_12_F, REG, LABEL>
 
 
 >;
@@ -121,22 +122,22 @@ using arm_insn_data_l = list<list<>
 , data_processing<a7_cs, STR("bic"), 14>
 
 // No Rd, S-implied & not allowed
-, dp_one<a7_c , STR("tst"),  8, FMT_16_S, FMT_16_RS>
-, dp_one<a7_c , STR("teq"),  9, FMT_16_S, FMT_16_RS>
-, dp_one<a7_c , STR("cmp"), 10, FMT_16_S, FMT_16_RS>
-, dp_one<a7_c , STR("cmn"), 11, FMT_16_S, FMT_16_RS>
+, dp_one<a7_c , STR("tst"),  8, FMT_16_0, FMT_16_0_S>
+, dp_one<a7_c , STR("teq"),  9, FMT_16_0, FMT_16_0_S>
+, dp_one<a7_c , STR("cmp"), 10, FMT_16_0, FMT_16_0_S>
+, dp_one<a7_c , STR("cmn"), 11, FMT_16_0, FMT_16_0_S>
 
 // No Rn, S allowed
-, dp_one<a7_cs, STR("mov"), 13, FMT_12_S, FMT_12_RS>
-, dp_one<a7_cs, STR("mvn"), 15, FMT_12_S, FMT_12_RS>
+, dp_one<a7_cs, STR("mov"), 13, FMT_12_0, FMT_12_0_S>
+, dp_one<a7_cs, STR("mvn"), 15, FMT_12_0, FMT_12_0_S>
 >;
 
 // Load & stores
 using arm_insn_load_store_l = list<list<>
 // addressing mode 2: Load & Store word or unsigned byte
 // load word & unsigned byte
-, defn<a7_cb , STR("ldr") , OP<0x410'0000>, FMT_LD, REG, MEMORY>
-, defn<a7_cb , STR("str") , OP<0x400'0000>, FMT_LD, REG, MEMORY>
+, defn<a7_cb , STR("ldr") , OP<0x410'0000>, FMT_LD, REG, REG_INDIR>
+, defn<a7_cb , STR("str") , OP<0x400'0000>, FMT_LD, REG, REG_INDIR>
 
 // load user; require suffix T or BT
 , defn<a7_cT , STR("ldr") , OP<0x410'0000>, FMT_LD, REG, POST_INDEX>
@@ -147,8 +148,8 @@ using arm_insn_load_store_l = list<list<>
 
 // addressing mode 3: Miscellaneous loads & stores
 // require suffix from: H, SH, SB, D
-, defn<a7_cHs, STR("ldr"), OP<0x000'0090>, FMT_LDH, REG, MEMORY_8>
-, defn<a7_cHs, STR("str"), OP<0x000'0090>, FMT_LDH, REG, MEMORY_8>
+, defn<a7_cHs, STR("ldr"), OP<0x000'0090>, FMT_LDH, REG, OFFSET8>
+, defn<a7_cHs, STR("str"), OP<0x000'0090>, FMT_LDH, REG, OFFSET8>
 
 // addressing mode 4: Load & Store Multiple
 // required suffix from: IA, IB, DA, DB, { or alises FA, FD, EA, ED }
@@ -423,7 +424,8 @@ using arm_insn_uncond_l     = list<list<>
 
 using arm_gen_v =
              list<list<>
-                 , arm_insn_common_l        // prefered mappings: eg ld <reg>, #0 -> clr <reg>
+                 , arm_insn_list_l
+//                 , arm_insn_common_l        // prefered mappings: eg ld <reg>, #0 -> clr <reg>
                  , arm_insn_data_l          // A5.2: data insns 
                  , arm_insn_load_store_l    // A5.3: load/store 
                  , arm_insn_branch_l        // A5.5: branch & related

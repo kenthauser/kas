@@ -20,16 +20,21 @@ namespace kas::arm
 {
 // info: accumulate info from parsing insn not captured in `args`
 // NB: bitfields don't zero-init. use `aliagn_as` support type to zero-init
-struct arm_stmt_info_t : detail::alignas_t<arm_stmt_info_t, uint16_t>
+struct arm_stmt_info_t : detail::alignas_t<arm_stmt_info_t
+                                         , uint16_t
+                                         , tgt::tgt_stmt_info_t>
 {
     using base_t::base_t;
-    static constexpr auto INFO_CCODE_MASK = 0x1f;
-
-    // get sz() (byte/word/long/etc) for a `mcode`
-    uint8_t sz(arm_mcode_t const&) const;
+    
+    // special values of condition codes
+    static constexpr auto ARM_CC_OMIT = 0xf;    // condition code: not specified
+    static constexpr auto ARM_CC_ALL  = 0xe;    // condition code: all specified
 
     // test if mcode supported for `info`
     const char *ok(arm_mcode_t const&) const;
+
+    // XXX should not be needed
+    static constexpr uint8_t sz(arm_mcode_t const&) { return {}; }
 
     // format `info`
     void print(std::ostream&) const;
@@ -40,14 +45,10 @@ struct arm_stmt_info_t : detail::alignas_t<arm_stmt_info_t, uint16_t>
     }
 
     value_t ccode     : 4;      // conditional instruction code
-    value_t has_ccode : 1;      // is conditional
-    value_t has_sflag : 1;      // opcode has `S` suffix (ie: set flags)
-    value_t has_nflag : 1;      // opcode has `.N` suffix (ie: only narrow)
-    value_t has_wflag : 1;      // opcode has `.W` suffix (ie: only wide)
-    value_t has_bflag : 1;      // unsigned byte
-    value_t has_tflag : 1;      // user space access
-    value_t has_hflag : 1;      // misc size access
-    value_t has_mflag : 1;      // ldm/stm update type
+    value_t sfx_code  : 5;      // code deduced from `stmt.sfx`
+    value_t has_sflag : 1;      // opcode has `S`  suffix (NB: set flags)
+    value_t has_nflag : 1;      // opcode has `.N` suffix (NB: only narrow)
+    value_t has_wflag : 1;      // opcode has `.W` suffix (NB: only wide)
 };
 
 // declare result of parsing
@@ -55,6 +56,9 @@ using arm_insn_t = tgt::tgt_insn_t<struct arm_mcode_t
                                   , hw::arm_hw_defs
                                   , KAS_STRING("ARM")
                                   >;
+
+// forward declare "instruction suffix code" type (from "arm_stmt_flags.h")
+struct arm_sfx_t;
 
 struct arm_stmt_t : tgt::tgt_stmt<arm_stmt_t
                                 , arm_insn_t
@@ -71,8 +75,11 @@ struct arm_stmt_t : tgt::tgt_stmt<arm_stmt_t
     template <typename Context>
     void operator()(Context const& ctx);
 
-    // suffix info for ldr/str
-    uint32_t sfx;
+    // suffix codes for ldr/str: xlate code in `info` into pointer
+    arm_sfx_t const& sfx();
+
+private:
+    arm_sfx_t const *_sfx {};
 };
 
 

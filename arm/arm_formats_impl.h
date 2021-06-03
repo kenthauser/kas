@@ -25,7 +25,29 @@ using fmt_generic = tgt::opc::tgt_fmt_generic<arm_mcode_t, Ts...>;
  //
  // arm specific formatters
  //
- 
+
+// ARM5: Addressing Mode 1: Immediate Shifts & Register Shifts
+// NB: `val_shift` does encoding/decoding
+// XXX should be `fmt_abs`
+struct fmt_shifter: arm_mcode_t::fmt_t::fmt_impl
+{
+    using mcode_size_t = arm_mcode_t::mcode_size_t;
+    using val_t        = arm_mcode_t::val_t;
+  
+    bool insert(mcode_size_t* op, arm_arg_t& arg, val_t const *val_p) const override
+    {
+        *op |= val_p->get_value(arg);
+        return true;
+    }
+    
+    void extract(mcode_size_t const* op, arm_arg_t& arg, val_t const *val_p) const override
+    {
+        val_p->set_arg(arg, *op);
+    }
+};
+
+
+// XXX old
 struct fmt_fixed : arm_mcode_t::fmt_t::fmt_impl
 {
     using mcode_size_t = arm_mcode_t::mcode_size_t;

@@ -76,19 +76,18 @@ struct parser_stmt
     using opcode    = core::opcode;
 
     parser_stmt() = default;
-    // XXX obsolete
     parser_stmt(const kas_position_tagged& loc) {}
-
+    
     // primary entrypoints:
     virtual std::string name() const
     {
         return "STMT";
     }
 
-    virtual void  print_args(print_obj const&) const
-    {
-        // no args
-    }
+    // print: NAME args info
+    virtual void print_args(print_obj const&) const {}
+    virtual void print_info(print_obj const&) const {}
+
 
     // NB: must be implemented in `Derived`
     virtual opcode *gen_insn(opcode::data_t& data) = 0;

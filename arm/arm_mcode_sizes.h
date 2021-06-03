@@ -46,7 +46,7 @@ template <int OP_ARCH, int...OP_FLAGS>
 using arm_sz = meta::int_<(OP_ARCH | ... | OP_FLAGS)>;
 
 #endif
-#if 1
+#if 0
 template <>
 struct tgt_mcode_sizes<arm::arm_mcode_t>
 {

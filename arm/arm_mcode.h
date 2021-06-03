@@ -27,13 +27,6 @@ static constexpr auto SZ_DEFN_REQ_T   = 0x0200;
 static constexpr auto SZ_DEFN_REQ_H   = 0x0400;
 static constexpr auto SZ_DEFN_REQ_M   = 0x0800;
 
-// XXX should these be moved to `arm_stmt.h`: part of `info` field
-static constexpr auto INFO_CCODE_MASK = 0x0f;
-static constexpr auto INFO_S_FLAG     = 0x10;
-static constexpr auto INFO_B_FLAG     = 0x20;
-static constexpr auto INFO_H_FLAG     = 0x40;
-static constexpr auto INFO_M_FLAG     = 0x80;
-
 // single arm insn size
 enum arm_op_size_t
 {
@@ -70,9 +63,10 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t
     // override default methods
     //
     
-    // Insert condition code & s_flag as required
+    // Methods to insert & extract `stmt_info`
     auto code(stmt_info_t stmt_info) const
                 -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
+    stmt_info_t extract_info(mcode_size_t const *) const;
 };
 
 }

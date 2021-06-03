@@ -35,14 +35,14 @@ using arm_reg_set_t = typename arm_rs_ref::object_t;
 // Declare Register "Classes" for ARM
 enum { RC_NONE
      , RC_GEN
+     , RC_CPU
      , RC_FLT_SGL
      , RC_FLT_DBL
      , RC_FLT_QUAD
-     , RC_CPU
      , NUM_RC
      };
 
-// Declare "named" registers for ARM
+// Declare RC_CPU "named" registers for ARM
 enum { REG_CPU_APSR             // Application Program Status Register
      , REG_CPU_FPSCR            // Floating-point Status and Control Register
      , REG_CPU_PSR              // Program Status Register

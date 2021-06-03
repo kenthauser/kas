@@ -68,6 +68,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
         // format:
         //  0) fixed area: OK bitset in host order
         //  1) insn index
+        //  2) dummy base opcode (store stmt_info & some arg_info)
         //  2) dummy word to hold args
         //  3) serialized args
 
@@ -82,7 +83,8 @@ struct tgt_opc_list : MCODE_T::opcode_t
         auto  info =  args.info;        // stmt_info
 
         // print OK bits & name...
-        os << ok.to_string().substr(ok.size() - insn.mcodes.size()) << " " << insn.name;
+        os << ok.to_string().substr(ok.size() - insn.mcodes.size())
+           << " " << insn.name;
 
         // ...and args
         auto delim = " : ";
@@ -104,6 +106,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
         // format:
         //  0) fixed area: OK bitset in host order
         //  1) insn index
+        //  2) dummy base opcode (store stmt_info & some arg_info)
         //  2) dummy word to hold args
         //  3) serialized args
 
@@ -131,7 +134,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
         // format:
         //  0) fixed area: OK bitset in host order
         //  1) insn index
-        //  2) dummy word to hold args
+        //  2) dummy base opcode (store stmt_info & some arg_info)
         //  3) serialized args
 
         // test for deleted instruction
