@@ -49,11 +49,13 @@ namespace kas::tgt
     template std::string   tgt_stmt<stmt_t, insn_t, arg_t, info_t>
                                 ::name() const;
 
+#if 1
     // instantiate printers
     template void tgt_reg_set<regset_t, reg_t, regset_ref>
-                    ::print<std::ostream>(std::ostream&) const;
-    template void tgt_reg_set<regset_t, reg_t, regset_ref>
-                    ::print<std::ostringstream>(std::ostringstream&) const;
+                    ::print(std::ostream&) const;
+//    template void tgt_reg_set<regset_t, reg_t, regset_ref>
+//                    ::print<std::ostringstream>(std::ostringstream&) const;
+#endif
 }
 
 

@@ -1,3 +1,4 @@
+    str r1, [r2, -r3, asr #4]
 	mov 	r7, sp
 	movs	r7, sp
 	movne   r7, sp
@@ -5,7 +6,7 @@
 	movne  	r7, sp
 	movpl.n	r7, sp
 	movge  	r7, sp
-	movge.Q	r7, sp
+	movge.w	r7, sp
     
     mov r1, r2, LSR #5
     mov r8, r9, ror #0
@@ -51,6 +52,12 @@
     ldreqb r1, [r2]
     ldrcct  r1, [r2]!
     ldrplbt r1, [r2]
+
+    ldmia   r1
+    ldmia   r1, { r2 }
+    ldmib   r2!, { r3 - r4 }
+    ldmda   r2 , { r5, r6 }
+
 
 l_label:
     .long   1234

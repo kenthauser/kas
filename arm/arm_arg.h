@@ -55,7 +55,7 @@ enum arm_arg_mode : uint8_t
     , NUM_BRANCH = 1        // only 1 branch insn
 };
 
-// allow `arm_shift` to be initialized & treaded as `uint8_t`
+// allow `arm_shift` to be initialized & treated as `uint8_t`
 struct arm_shift : detail::alignas_t<arm_shift, uint8_t>
 {
     using base_t::base_t;
@@ -75,41 +75,20 @@ struct arm_shift : detail::alignas_t<arm_shift, uint8_t>
     value_t     is_reg : 1;     // use register shift
  };
  
-// allow `arm_indirect` to be initialized & treaded as `uint16_t`
-struct arm_indirect: detail::alignas_t<arm_indirect, uint16_t>
+// allow `arm_indirect` to be initialized & treated as `uint8_t`
+struct arm_indirect: detail::alignas_t<arm_indirect, uint8_t>
 {
     using base_t::base_t;
-    constexpr arm_indirect() {};
     
-    // ARM7 flags (all shifted 20 bits)
-    static constexpr auto L_FLAG = 0x01;    // 1 = load, 0 = store
-    static constexpr auto W_FLAG = 0x02;    // 1 = write-back
-    static constexpr auto B_FLAG = 0x04;    // 1 = unsigned byte, 0 = word
-    static constexpr auto U_FLAG = 0x08;    // 1 = up (ie add)
-    static constexpr auto P_FLAG = 0x10;    // 1 = pre-index
-    static constexpr auto R_FLAG = 0x20;    // 1 = use REGISTER form (LDR/STR) (bit 25)
-    static constexpr auto S_FLAG = 0x40;    // 1 = KAS: shift (needed for serialize)
-
-    static constexpr auto M_HFLAG = 0x20;   // 1 = Halfword (ARM 4...)
-    static constexpr auto M_SFLAG = 0x40;   // 1 = Signed   (ARM 4...)
-    // NB: Load Signed ^Halfword mapped to Load  doubleword (even registers)
-    // NB: Load Signed  Halfword mapped to Store doubleword
-
-#if 0
-    // XXX must determine via MODE_INDIR
-    // true iff "indirect" argument
-    operator bool() const
-    {
-        return flags & (W_FLAG | P_FLAG);
-    }
-#endif
+    value_t reg     : 4;    // save RC_GEN value, not reg_p
+    value_t p_flag  : 1;    // pre-index (or offset) addressing
+    value_t w_flag  : 1;    // write-back for pre-index
+    value_t u_flag  : 1;    // UP-flag (offset or reg is added)
+    value_t r_flag  : 1;    // has register
 
     // shift & immed stored in `arg_t`
     template <typename OS>
     void print(OS& os, arm_arg_t const&) const;
-    
-    uint8_t     flags{};
-    uint8_t     reg{};              // save RC_GEN value, not reg_p
 };
 
 
@@ -117,7 +96,8 @@ struct arm_indirect: detail::alignas_t<arm_indirect, uint16_t>
 struct arm_arg_t : tgt::tgt_arg_t<arm_arg_t
                                  , arm_arg_mode
                                  , arm_reg_t
-                                 , arm_reg_set_t>
+                                 , arm_reg_set_t
+                                 , struct arm_stmt_info_t>
 {
     // inherit basic ctors
     using base_t::base_t;

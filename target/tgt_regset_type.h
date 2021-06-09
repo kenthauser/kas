@@ -98,7 +98,7 @@ public:
     OFFSET_T offset() const;
     auto reg_p() const { return &ops.front().second; }
 
-    template <typename OS> void print(OS&) const;
+    void print(std::ostream&) const;
     
     // expose binop to facilitate manual regset manipulation
     derived_t& binop(const char op, derived_t const& r);

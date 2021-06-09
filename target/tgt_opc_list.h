@@ -91,7 +91,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
         for (auto& arg : args)
         {
             os << delim << arg;
-            delim = ",";
+            delim = ", ";
         }
         
         // ...finish with `info`

@@ -55,7 +55,7 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
     if (!reg_p)
         info_p->has_reg = false;
     if (info_p->has_reg)
-        inserter(*reg_p);
+        inserter(reg_p->index());
     if (mode() == MODE_REGSET)
         inserter(*regset_p);
     

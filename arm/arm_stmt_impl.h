@@ -85,18 +85,21 @@ const char *arm_stmt_info_t::ok(arm_mcode_t const &mcode) const
 
 void arm_stmt_info_t::print(std::ostream& os) const
 {
-    const char *sep = ", ";
+    constexpr const char *SEP_STR = ", ";
+    const char *sep = "";
     os << "[";
    
-    os << "value = " << std::hex << value();
-    
     if (auto p = arm_ccode::name(ccode))
     {
-        os << ", cc = " << p;
+        os << "cc = " << p;
+        sep = SEP_STR;
     }
 
     if (sfx_code != 0)
-        os << ", sfx = " << arm_sfx_t::get_p(sfx_code)->name;
+    {
+        os << sep << "sfx = " << arm_sfx_t::get_p(sfx_code)->name;
+        sep = SEP_STR;
+    }
 
     auto put_flag = [&](const char *flag)
         {

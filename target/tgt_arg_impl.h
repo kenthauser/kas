@@ -25,8 +25,8 @@ template <typename Derived, typename M, typename I, typename R, typename RS>
 tgt_arg_t<Derived, M, I, R, RS>
         ::tgt_arg_t(arg_mode_t mode, kas_token const& tok, kas_position_tagged_t const& pos) : kas_position_tagged_t(pos) 
 {
-    std::cout << "arg_t::ctor mode = " << +mode << " expr = " << expr;
-    std::cout << " *this::loc = " << static_cast<parser::kas_loc>(*this) << std::endl;
+    //std::cout << "arg_t::ctor mode = " << +mode << " expr = " << expr;
+    //std::cout << " *this::loc = " << static_cast<parser::kas_loc>(*this) << std::endl;
    
     if (!static_cast<parser::kas_loc>(*this))
         static_cast<kas_position_tagged_t>(*this) = tok;
@@ -36,13 +36,16 @@ tgt_arg_t<Derived, M, I, R, RS>
     
     // extract regset & register-set values
     reg_p = reg_tok(tok)();
-
-    if (reg_p)
-        std::cout << "tgt_arg_t::ctor: reg = " << *reg_p << std::endl;
-
     // `rs_tok` can be void, so code slightly differently
     if constexpr (!std::is_void_v<rs_tok>)
-        regset_p = rs_tok(tok)(); 
+        regset_p = rs_tok(tok)();
+
+#if 0
+    if (reg_p)
+        std::cout << "tgt_arg_t::ctor: reg = " << *reg_p << std::endl;
+    if (regset_p)
+        std::cout << "tgt_arg_t::ctor: regset = " << *regset_p << std::endl;
+#endif
 
     // big switch to evaluate DIRECT/INDIRECT/IMMEDIATE
     switch (mode)
@@ -147,7 +150,7 @@ tgt_arg_t<Derived, M, I, R, RS>
         derived().set_mode(arg_mode_t::MODE_ERROR);
     }
 
-    std::cout << "tgt_arg_t::ctor: expr = " << expr << std::endl;
+    //std::cout << "tgt_arg_t::ctor: expr = " << expr << std::endl;
 }
 
 // error message for invalid `mode`. msg used by ctor only.

@@ -31,8 +31,8 @@ int16_t tgt_reg_set<Derived, Reg_t, Ref>::kind() const
     if (front.first == '+')
         return -RS_OFFSET;
    
-    std::cout << "tgt_regset::kind: " << front.second;
-    std::cout << " = " << +derived().reg_kind(front.second) << std::endl;
+    //std::cout << "tgt_regset::kind: " << front.second;
+    //std::cout << " = " << +derived().reg_kind(front.second) << std::endl;
     return derived().reg_kind(front.second);
 }
 
@@ -188,8 +188,7 @@ OFFSET_T tgt_reg_set<Derived, Reg_t, Ref>::offset() const
 
 
 template <typename Derived, typename Reg_t, typename Ref>
-template <typename OS>
-void tgt_reg_set<Derived, Reg_t, Ref>::print(OS& os) const
+void tgt_reg_set<Derived, Reg_t, Ref>::print(std::ostream& os) const
 {
     // print register-set
     auto print_rs = [&]

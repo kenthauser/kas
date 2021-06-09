@@ -52,7 +52,7 @@ struct stmt_t: kas_position_tagged
     {
         // init `core_insn` with parsed location
         core::core_insn insn{*this};
-        std::cout << "stmt_t::operator(): where = " << src() << std::endl;
+        //std::cout << "stmt_t::operator(): where = " << src() << std::endl;
 
         // examine parsed insn for proper semantics
         // `gen_insn` returns pointer to `core::opcode`

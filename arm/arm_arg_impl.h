@@ -107,6 +107,10 @@ void arm_arg_t::print(OS& os) const
         case MODE_SHIFT:
             shift.print(os);
             break;
+
+        case MODE_REGSET:
+            regset_p->print(os);
+            break;
         
         case MODE_ERROR:
             if (err)
@@ -154,19 +158,19 @@ void arm_indirect::print(OS& os, arm_arg_t const& arg) const
 {
     auto get_sign = [this](bool invert = false) -> const char *
         {
-            bool minus = !(flags & U_FLAG) ^ invert;
-            return minus ? "-" : "+";
+            bool plus = u_flag ^ invert;
+            return plus ? "+" : "-";
         };
 
     //std::cout << "arm_indirect: flags = " << std::hex << +flags << std::endl;
 
     // for post-increment
-    if ((flags & P_FLAG) == 0)
+    if (!p_flag)
        os << "]";
 
     // now add offset (immed, reg, shift)
     // 1. if register format
-    if (flags & R_FLAG)
+    if (r_flag)
     {
         os << ", " << get_sign() << arm_reg_t::find(RC_GEN, reg);
             
@@ -206,9 +210,9 @@ void arm_indirect::print(OS& os, arm_arg_t const& arg) const
     }
 
     // 3. now close if P_FLAG set
-    if ((flags & P_FLAG) != 0)
+    if (p_flag)
     {
-        if (flags & W_FLAG)
+        if (w_flag)
             os << "]!";
         else
             os << "]";

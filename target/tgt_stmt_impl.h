@@ -50,8 +50,8 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     // get kas types from opcode
     using core::opcode;
     auto trace  = opcode::trace;
-    //trace = nullptr;
-    trace = &std::cout;
+    trace = nullptr;
+    //trace = &std::cout;
     
     // convenience references
     auto& insn  = *insn_tok_t(insn_tok)();
@@ -73,7 +73,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     bool ok_for_quick = true;
     if (auto diag = derived().validate_args(insn, args, ok_for_quick, trace))
     {
-        std::cout << "tgt_stmt::gen_insn: err = " << diag << std::endl;
+        //std::cout << "tgt_stmt::gen_insn: err = " << diag << std::endl;
         data.fixed.diag = diag;
         return {};              // nullptr xlated into opc_diag{}
     }
@@ -189,8 +189,8 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     matching_mcode_p = {};      // XXX force list for all
     ok_for_quick   = {};      // XXX don't use quick
 
-    std::cout << "quick format: " << std::boolalpha << ok_for_quick;
-    std::cout << ", single match: " << !!matching_mcode_p << std::endl;
+    //std::cout << "quick format: " << std::boolalpha << ok_for_quick;
+    //std::cout << ", single match: " << !!matching_mcode_p << std::endl;
     
     // all const args: emit selected opcode
     if (ok_for_quick)

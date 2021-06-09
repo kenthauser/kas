@@ -76,7 +76,7 @@ struct tgt_arg_t : parser::kas_position_tagged
                                         , kas_position_tagged_t(err.get_loc()) {}
 
     // ctor(s) for default parser
-    tgt_arg_t(std::pair<kas_token, MODE_T> const& p) : tgt_arg_t(p.second, p.first) {}
+    tgt_arg_t(std::pair<kas_token, MODE_T> const& p) : tgt_arg_t(p.second, p.first, p.first) {}
     tgt_arg_t(std::tuple<MODE_T, kas_token, kas_position_tagged_t> const& p)
             : tgt_arg_t(std::get<0>(p), std::get<1>(p), std::get<2>(p)) {}
 

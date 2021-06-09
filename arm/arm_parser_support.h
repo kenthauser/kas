@@ -190,10 +190,9 @@ struct arm_indirect_arg
     };
 
     arm_reg_t const *base_reg_p  {};
-    arm_reg_t const *offset_reg_p{};
     kas_token        offset;
     arm_shift        shift;
-    uint8_t          flags{};
+    arm_indirect     indir;
     arm_arg_mode     mode {MODE_REG_INDIR};
 };
 
@@ -204,15 +203,15 @@ void arm_indirect_arg::operator()(Context const& ctx)
     auto& wb_flag  = x3::_attr(ctx);
 
     // for zero offset, set U_FLAG & P_FLAG
-    flags = arm_indirect::U_FLAG | arm_indirect::P_FLAG;
+    // (which means clearing the complement flags: a nop)
 
     // set W_FLAG according to write_back flag
     if (wb_flag)
-        flags |= arm_indirect::W_FLAG;
+        indir.w_flag = true;
     x3::_val(ctx)  = *this;
 }
 
-struct arm_indirect_post_index: arm_indirect_arg
+struct arm_indirect_post_index : arm_indirect_arg
 {
     // valid parsed data
     template <typename Context>
@@ -226,21 +225,22 @@ struct arm_indirect_post_index: arm_indirect_arg
         auto& has_shift = boost::fusion::at_c<3>(parts);
 
         // for `post_index`, both P_FLAG & W_FLAG are cleared
-        // leave untouched as for when use by `pre_index` subclass
+        // leave flags cleared as initialized
 
-        // set U_FLAG if not minus
-        if (!is_minus) flags |= arm_indirect::U_FLAG;
+        // set nu_flag if minus
+        if (!is_minus) indir.u_flag = true;
 
         // test if arg is general register
         using tok_reg = typename arm_arg_t::reg_t::token_t;
-        offset_reg_p = tok_reg(tok)();
+        auto offset_reg_p = tok_reg(tok)();
         if (offset_reg_p)
         {
             if (offset_reg_p->kind() != RC_GEN)
                 return make_error("general register required", tok);
             if (has_hash)
                 return make_error("expression required", tok);
-            //std::cout << "pre_index: " << *offset_reg_p << std::endl;
+            indir.reg    = offset_reg_p->value();
+            indir.r_flag = true;
         }
         else
             offset = tok;
@@ -249,7 +249,6 @@ struct arm_indirect_post_index: arm_indirect_arg
         if (has_shift)
         {
             auto shift_arg = *has_shift;
-            print_type_name{"has_shift::shift_arg"}(shift_arg);
             shift = has_shift->shift;
             if (shift.is_reg)
                 return make_error("register shift not allowed", has_shift->tok);
@@ -264,6 +263,7 @@ struct arm_indirect_post_index: arm_indirect_arg
 
 };
 
+// also process "offset" formats
 struct arm_indirect_pre_index : arm_indirect_post_index
 {
     // valid parsed data
@@ -275,10 +275,12 @@ struct arm_indirect_pre_index : arm_indirect_post_index
         auto& wb_flag  = boost::fusion::at_c<4>(parts);
 
         // set P_FLAG & W_FLAG according to args
+        // offset & pre-index set p_flag
+        indir.p_flag = true;
+
+        // pre-index also set w_flag
         if (wb_flag)
-            flags = arm_indirect::P_FLAG | arm_indirect::W_FLAG;
-        else
-            flags = arm_indirect::P_FLAG;
+            indir.w_flag = true;
         
         // use `post_index` to process rest of args
         static_cast<arm_indirect_post_index>(*this)(ctx);
@@ -294,6 +296,69 @@ void arm_indirect_arg::set_base(kas_token const& tok)
     if (!base_reg_p || base_reg_p->kind() != RC_GEN)
         make_error("Base must be general register", tok);
 }
+
+struct gen_regset
+{
+    // extract types
+    using ARG_T = arm_arg_t;
+    using regset_t    = typename ARG_T::regset_t;
+    using tok_reg     = typename ARG_T::reg_t::token_t;
+    using tok_regset  = typename regset_t::token_t;
+
+    template <typename Context>
+    void operator()(Context const& ctx) const
+    {
+        // grab args & types from context (b_nodes is a std::vector<T>)
+        auto& args    = x3::_attr(ctx);
+        auto& initial = boost::fusion::at_c<0>(args);
+        auto& b_nodes = boost::fusion::at_c<1>(args);
+
+        //bool is_reg = initial.is_token_type(tok_reg());
+        //std::cout << "gen_regset: is_reg = " << std::boolalpha << is_reg << std::endl;
+
+        auto reg_p = tok_reg()(&initial);
+        //std::cout << "gen_regset: initial = " << *reg_p << std::endl;
+        auto& rs = regset_t::add(*reg_p);
+        
+        // parser ensures `initial` is a tok_reg
+        //print_type_name("gen_regset::initial")(initial);
+        //print_type_name("gen_regset::reg_p")(reg_p);
+
+        //std::cout << "gen_regset: ";
+        //rs.print(std::cout);
+        //std::cout << std::endl;
+        
+
+        // use type system to combine registers -> register set
+        // NB: type system ops are "-" for range, "/" to add
+        // NB: precedence is range over add. Handled by `tgt_regset_t`
+
+        for (auto&& node : b_nodes)
+        {
+            //print_type_name{"gen_regset::node"}(node.second);
+            auto reg_p = tok_reg()(&node.second);
+            //print_type_name{"gen_regset::node"}(reg_p);
+            switch (node.first)
+            {
+#if 1
+                case '-':   // range
+                    rs.operator-(*reg_p);
+                    //initial = initial - node.second;
+                    break;
+                case ',':   // add
+                    rs.operator/(*reg_p);
+                    //initial = initial / node.second;
+#endif
+                default:
+                    break;  // XXX gen error message
+            }
+        }
+   
+        kas_token tok(rs);
+        //tok.tag(initial.loc());
+        x3::_val(ctx) = std::move(tok);
+    }
+};
 
 
 #if 0
@@ -363,22 +428,12 @@ void arm_indirect_arg::operator()(Context const& ctx)
 // constuct `arm_arg` from parsed indirectd args
 arm_indirect_arg::operator arm_arg_t() 
 {
-    arm_indirect  indir;
-     
-    //std::cout << "arm_indirect: arg_t: " << offset_reg_p << std::endl;
-    if (offset_reg_p)
-    {
-      //  std::cout << "arm_indirect: has register" << std::endl;
-        indir.reg = offset_reg_p->value(RC_GEN);
-        flags |= arm_indirect::R_FLAG;
-    }
-    indir.flags = flags;
-
     // values sorted, so construct arg
     arm_arg_t arg({offset, mode});
     arg.reg_p = base_reg_p;
     arg.shift = shift;
     arg.indir = indir;
+
     //std::cout << "arm_indirect_arg::arm_arg_t: flags = " << std::hex << +flags << std::endl;
     //std::cout << "arm_indirect_arg::arm_arg_t: indir.flags = " << std::hex << +indir.flags << std::endl;
     return arg;
@@ -405,7 +460,7 @@ auto gen_stmt = [](auto& ctx)
         if (ccode)
             info.ccode = *ccode;
         else
-            info.ccode = 0xf;       // unconditional or all
+            info.ccode = arm_stmt_info_t::ARM_CC_OMIT;
 
         // save parsed suffix code in info
         if (sfx)
@@ -415,12 +470,12 @@ auto gen_stmt = [](auto& ctx)
         if (s_flag)
             info.has_sflag = true;
 
-        // .N & .W not supported by ARM5. Add later
+        // save `.N` and `.W`
         if (nw_flag)
             switch (*nw_flag)
             {
                 case 'n': case 'N': info.has_nflag = true; break;
-                case 'w': case 'W': info.has_nflag = true; break;
+                case 'w': case 'W': info.has_wflag = true; break;
                 default:    break; // parser should not generate;
             }
 

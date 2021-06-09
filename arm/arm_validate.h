@@ -20,7 +20,9 @@ using expr_fits   = expression::expr_fits;
 using fits_result = expression::fits_result;
 using op_size_t   = core::opcode::op_size_t;
 
+//
 // Derive common validators from generic templates
+//
 
 struct val_reg : tgt::opc::tgt_val_reg<val_reg, arm_mcode_t>
 {
@@ -30,6 +32,26 @@ struct val_reg : tgt::opc::tgt_val_reg<val_reg, arm_mcode_t>
 struct val_range: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
 {
     using base_t::base_t;
+};
+
+//
+// ARM Specific Validators
+//
+
+struct val_regset : arm_mcode_t::val_t
+{
+    fits_result ok(arm_arg_t& arg, expr_fits const& fits) const override
+    {
+        return arg.mode() == MODE_REGSET ? fits.yes : fits.no;
+    }
+};
+
+struct val_reg_update : arm_mcode_t::val_t
+{
+    fits_result ok(arm_arg_t& arg, expr_fits const& fits) const override
+    {
+        return arg.mode() == MODE_REG_UPDATE ? fits.yes : fits.no;
+    }
 };
 
 // ARM5 Adddressing mode 1: Data processing instructions: Shifts
@@ -79,6 +101,9 @@ struct val_indir : arm_mcode_t::val_t
     // standard ARM encoding
     unsigned get_value(arm_arg_t& arg) const override
     {
+#if 1
+        auto value  = arg.indir.value();
+#else
         auto value  = arg.indir.flags & 0x3f;
          
         value <<= 4;
@@ -103,7 +128,7 @@ struct val_indir : arm_mcode_t::val_t
             else
                 ; // deal with relocs.
         }
-
+#endif
         std::cout << "indir::get_value() -> " << std::hex << value << std::endl;
         
         return value;
@@ -113,9 +138,10 @@ struct val_indir : arm_mcode_t::val_t
     {
         auto msw = value >> 16;     // get most significant word
         arg.reg_p = &arm_reg_t::find(RC_GEN, msw & 0xf);
+#if 0
         arg.indir.flags = msw >> 4;
         arg.indir.reg   = value & 0xf;
-
+#endif
         // restore "shift" if specified
         if (value & 0xff0)
         {
@@ -152,6 +178,7 @@ struct val_imm8: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
     }
 };
 
+
 // use preprocessor to define string names used in definitions & debugging...
 #define VAL_REG(NAME, ...) using NAME = _val_reg<KAS_STRING(#NAME), __VA_ARGS__>
 #define VAL_GEN(NAME, ...) using NAME = _val_gen<KAS_STRING(#NAME), __VA_ARGS__>
@@ -177,6 +204,10 @@ VAL_REG(SPSR        , RC_CPU, REG_CPU_SPSR);
 
 // ARM5 addressing mode validators
 VAL_GEN(REG_INDIR   , val_indir);
+VAL_GEN(REGSET      , val_regset);
+VAL_GEN(REG_UPDATE  , val_reg_update);
+VAL_GEN(SHIFT       , val_shift);
+
 VAL_GEN(OFFSET8     , val_imm8);
 
 // XXX DUMMY
@@ -198,12 +229,9 @@ VAL_GEN(IMM4        , val_range, 0, (1<<5 ) - 1);
 
 VAL_GEN(ZERO        , val_range, 0, 0);
 VAL_GEN(LABEL       , val_range, 0, (1<<12) - 1);
-VAL_GEN(SHIFT       , val_shift);
 VAL_GEN(SHIFT_Z     , val_range, 0, 0);
 VAL_GEN(SHIFT_NZ    , val_range, 0, 0);
-VAL_GEN(REGSET      , val_range, 0, 0);
 VAL_GEN(REG_OFFSET  , val_range, 0, 0);
-VAL_GEN(REG_UPDATE  , val_range, 0, 0);
 VAL_GEN(SP_UPDATE   , val_range, 0, 0);
 
 VAL_GEN(IFLAGS      , val_range, 0, 0);

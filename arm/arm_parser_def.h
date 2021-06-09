@@ -51,7 +51,7 @@ auto get_wb = rule<class _, int> {}
                 | attr(0)
                 ;
 auto const parse_indir_terms = rule<class _, arm_indirect_arg> {"indir_terms"}
-        // pre-indexed: immed, register, or register shift
+        // offset or pre-indexed: immed, register, or register shift
         // Modes: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6
         = (',' >> (-char_('#') > is_minus > expr() > -(',' > parse_shift) >> ']'
                  > get_wb))[arm_indirect_pre_index()]
@@ -82,7 +82,7 @@ auto const parse_indir = rule<class _, arm_arg_t> {"parse_indirect"}
 //
 // Parse `register-set arg`
 //
-#if 1
+#if 0
 // allocate `regset` from first `reg`
 auto regset_init = [](auto& ctx) 
         {
@@ -114,44 +114,19 @@ auto const parse_regset = rule<class _, arm_rs_ref> {} =
 auto const arg_regset = parse_regset > '}' > attr(MODE_REGSET);
 #else
 
-struct gen_regset
-{
-    template <typename Context>
-    void operator()(Context const& ctx) const
-    {
-        // grab args & types from context (b_nodes is a std::vector<T>)
-        auto& args    = x3::_attr(ctx);
-        auto& initial = boost::fusion::at_c<0>(args);
-        auto& b_nodes = boost::fusion::at_c<1>(args);
+using tok_reg    = typename arm_arg_t::reg_t   ::token_t;
+using tok_regset = typename arm_arg_t::regset_t::token_t;
 
-        // use type system to combine registers -> register set
-        // NB: type system ops are "-" for range, "/" to add
-        // NB: precidence is range over add. Handled by `tgt_regset_t`
+using arm_parsed_arg_t = std::pair<kas_token, arm_arg_mode>;
 
-        for (auto&& node : b_nodes)
-            switch (node.first)
-            {
-                case '-':   // range
-                    initial = initial - node.second;
-                    break;
-                case ',':   // add
-                    initial = initial / node.second;
-                default:
-                    break;  // XXX gen error message
-            }
-    
-        x3::_val(ctx) = std::move(initial);
-    }
-};
-
-using tok_reg = typename arm_reg_t::token_t;
-auto const regset_terms = rule<class _, std::pair<char, tok_reg>>{"regset term"}
+auto const regset_terms = rule<class _, std::pair<char, kas_token>>{"regset term"}
         = char_("-,") > arm_reg_x3();
 
-auto const parse_regset = rule<class _, tok_reg> {"parse regset"}
-        = (arm_reg_x3() > *regset_terms)[gen_regset()];
+auto const parse_regset = rule<class _, kas_token> {"parse regset"}
+       = (arm_reg_x3() > *regset_terms)[gen_regset()];
 
-auto const arg_regset = parse_regset > '}' > attr(MODE_REGSET);
+auto const arg_regset = rule<class _, arm_parsed_arg_t> {"regset"}
+       = parse_regset > '}' > attr(MODE_REGSET);
 
 #endif
 //
@@ -160,7 +135,6 @@ auto const arg_regset = parse_regset > '}' > attr(MODE_REGSET);
 // Direct, Immediate, Register-set
 //
 
-using arm_parsed_arg_t = std::pair<kas_token, arm_arg_mode>;
 auto const simple_parsed_arg = rule<class _, arm_parsed_arg_t> {"arm_parsed_arg"}
         = (expr() > (('!' > attr(MODE_REG_UPDATE))
                      |      attr(MODE_DIRECT)
@@ -174,7 +148,7 @@ auto const simple_parsed_arg = rule<class _, arm_parsed_arg_t> {"arm_parsed_arg"
           | (":upper8_15:"  > expr() > attr(MODE_IMMED_BYTE_3))
           | (                 expr() > attr(MODE_IMMEDIATE))
           ))
-     //   | ('{' > arg_regset)
+        | ('{' > arg_regset)
         ;
 
 //

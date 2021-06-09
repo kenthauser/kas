@@ -18,17 +18,17 @@ namespace kas::arm
 template <typename Inserter, typename ARG_INFO>
 bool arm_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
 {
-    auto save_expr = [&](auto size) -> bool
+    auto save_expr = [&](expr_t expr, uint8_t bytes) -> bool
         {
             // suppress writes of zero size or zero value
             auto p = expr.get_fixed_p();
-            if ((p && !*p) || !size)
+            if ((p && !*p) || !bytes)
             {
-                info_p->has_data = false;   // supress write 
+                info_p->has_data = false;   // suppress write 
                 return false;               // and no expression.
             }
             info_p->has_data = true;    
-            return !inserter(std::move(expr), size);
+            return !inserter(std::move(expr), bytes);
         };
     
     // here the `has_reg` bit may be set spuriously
@@ -37,23 +37,24 @@ bool arm_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
     if (!reg_p)
         info_p->has_reg = false;
     if (info_p->has_reg)
-        inserter(std::move(*reg_p));
+        inserter(reg_p->index());
     
-    // if completely saved, return `has_expr == false`
-    if (!info_p->has_data)
-        return false;
-
-    // if `REG_INDIR`, save `indirect`
+    // if `REG_INDIR`, always save `indirect`
     if (mode() == MODE_REG_INDIR)
-        inserter(indir.value(), sizeof(indir));
+    {
+        // save indir + shift as 16-bit constant
+        auto value = (indir.value() << 8) | shift.value();
+        inserter(value, 2);     // always save 2 bytes
+    }
 
-    // if `SHIFT` present, save
-    if (mode() == MODE_SHIFT || indir.flags & arm_indirect::S_FLAG)
-        inserter(shift.value(), sizeof(shift.value()));
+    // if `SHIFT` present, always save `shift`
+    if (mode() == MODE_SHIFT)
+        inserter(shift.value(), 1);
 
-    // needs to be `typedef`
-    // XXX zero ??
-    return save_expr(sizeof(uint32_t));
+    if (mode() == MODE_REGSET)
+        return save_expr(regset_p->index(), 2);
+
+    return save_expr(expr, 2);
 }
 
 
@@ -63,23 +64,33 @@ void arm_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
 {
     if (info_p->has_reg)
     {
-        // register stored as expression
-        auto p = reader.get_expr().template get_p<arm_reg_t>();
-        if (!p)
-            throw std::logic_error{"arm_arg_t::extract: has_reg"};
-        reg_p = p;
+        // register stored as index
+        auto reg_idx = reader.get_fixed(sizeof(typename reg_t::reg_name_idx_t));
+        reg_p = &reg_t::get(reg_idx);
     } 
 
+    // for indirect, always read aux data
+    if (mode() == MODE_REG_INDIR)
+    {
+        auto value = reader.get_fixed(2);
+        shift = value;
+        indir = value >> 8;
+    }
+
+    // for shift, always read aux data
+    if (mode() == MODE_SHIFT)
+        shift = reader.get_fixed(1);
+
+    if (mode() == MODE_REGSET)
+    {
+        auto rs_idx = reader.get_fixed(2);
+        regset_p = &regset_t::get(rs_idx);
+        return;
+    }
+
+    // if no `expr`, return
     if (!info_p->has_data)
         return;
-
-    // read `indirect`
-    if (mode() == MODE_REG_INDIR)
-        indir = reader.get_fixed(sizeof(indir));
-
-    // read `shift`
-    if (mode() == MODE_SHIFT || indir.flags & arm_indirect::S_FLAG)
-        shift = decltype(shift)(reader.get_fixed(sizeof(shift.value()))); 
 
     // read expression. Check for register
     if (info_p->has_expr)
@@ -99,6 +110,7 @@ void arm_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
     {
         bool is_signed {false};
         int  bytes = this->size(sz, {}, &is_signed);
+        bytes = 2;
         if (is_signed)
             bytes = -bytes;
         expr = reader.get_fixed(bytes);
