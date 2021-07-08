@@ -115,16 +115,18 @@ struct tgt_mcode_defn
     static constexpr auto XLT_IDX_VAL  = 2;
     static constexpr auto XLT_IDX_VALC = 3;
 
-    // CTOR: passed list<defn_list, xlt_list>
-    template <typename NAME, typename FMT, typename...VALs, typename VAL_C,
-              typename INFO, typename N, typename CODE, typename TST, typename...X>
+    // CTOR: passed list<xlt_list, defn_list>
+    template <typename NAME, typename FMT, typename...VALs, typename VAL_C
+            , typename INFO, typename FN, typename N, typename CODE, typename TST
+            , typename...X>
     constexpr tgt_mcode_defn(list<list<list<NAME>, list<FMT>
                                      , list<VALs...>, list<VAL_C>>
-                                , list<INFO, N, CODE, TST, X...>>)
+                                , list<INFO, FN, N, CODE, TST, X...>>)
             : name_index  { NAME::value  + 1   }
             , fmt_index   { FMT::value   + 1   }
             , val_c_index { VAL_C::value + 1   }
-            , info        { INFO::value        }
+            // XXX, info        { INFO::value, FN::value }
+            , info        { INFO::value, 0 }
             , code        { CODE::value        }
             , code_words  { code_to_words<mcode_size_t>(CODE::value) }
             , tst         { TST()              }

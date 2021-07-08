@@ -6,7 +6,7 @@
 	movne  	r7, sp
 	movpl.n	r7, sp
 	movge  	r7, sp
-	movge.w	r7, sp
+	moval.w	r7, sp
     
     mov r1, r2, LSR #5
     mov r8, r9, ror #0

@@ -44,13 +44,11 @@ struct arm_ccode : x3::symbols<uint8_t>
         // NB: Multiple ccodes map to same value. Create local table;
         static std::array<const char *, 16> names;
         
-        // first time, initalize map
+        // if first time, initalize map
         if (!names[0])
-        {
             for (auto& p : data)
                 if (!names[p.second])
                     names[p.second] = p.first;
-        }
 
         if (code < names.size())
             return names[code];
@@ -62,20 +60,20 @@ struct arm_ccode : x3::symbols<uint8_t>
 // NB: put values in array to allow conversion to index for `stmt_info`
 
 // define "type" to match against types in `arm_insn_common`
-enum arm_sfx_enum : uint8_t { SFX_NONE, SFX_B, SFX_T, SFX_U, SFX_H, SFX_M };
+enum arm_sfx_enum : uint8_t { SFX_NONE, SFX_B, SFX_T, SFX_H, SFX_M };
 
 struct arm_sfx_t
 {
-    // default constexpr ctor required (ctors are all or nothing)
+    // default constexpr ctor required (constexpr ctors are all or nothing)
     constexpr arm_sfx_t() {}
     constexpr arm_sfx_t(const char *name
                       , arm_sfx_enum type
-                      , uint8_t ldr
-                      , uint8_t str) 
-        : name(name), type(type), ldr(ldr), str(str) {}
+                      , uint8_t ldr = {}
+                      , uint8_t str = {}) 
+        : name{*name}, type{type}, ldr{ldr}, str{str} {}
 
     // put values in an array to allow conversion to index
-    // code values depend if "LDR" or "STR" instruction
+    // code values depend if load or store instruction
     static arm_sfx_t const * const data()
     {
         static constexpr arm_sfx_t data[] = 
@@ -83,17 +81,17 @@ struct arm_sfx_t
         // NB: `symbols<>` requires lower case data for `no_case`
         // addressing Mode 3: miscellaneous loads and stores
         // ldr/str signed/unsigned byte/halfword/doubleword
-           {"h"     , SFX_H, 0, 0 } 
-         , {"sh"    , SFX_H, 1, 1 }
-         , {"sb"    , SFX_H, 2, 2 }
-         , {"d"     , SFX_H, 3, 3 }
+           {"h"     , SFX_H, 0x20, 0x20 }
+         , {"sh"    , SFX_H, 0x60, 0x60 }
+         , {"sb"    , SFX_H, 0x40, 0x40 }
+         , {"d"     , SFX_H, 0x40, 0x60 }
 
         // ldr/str unsigned byte
-          , {"b"    , SFX_B, 4, 4 }   // principle info flags
+          , {"b"    , SFX_B }
 
         // ldr/str unprivileged
-         , {"t"     , SFX_T, 8, 8 }             // parse movT correctly
-         , {"bt"    , SFX_U, 9, 9 }
+         , {"t"     , SFX_T, 8, 8 }
+         , {"bt"    , SFX_T, 9, 9 }
 
         // load/store multiple
          , {"ia"    , SFX_M, 4, 4 }
@@ -125,7 +123,7 @@ struct arm_sfx_t
         return {};
     }
 
-    const char *    name {};
+    const char      name[3] = {};
     arm_sfx_enum    type {};
     uint8_t         ldr  {};
     uint8_t         str  {};
@@ -136,7 +134,7 @@ struct arm_suffix : x3::symbols<arm_sfx_t const *>
 {
     arm_suffix()
     {
-        for (auto p = arm_sfx_t::data(); p->name; ++p)
+        for (auto p = arm_sfx_t::data(); p->name[0]; ++p)
             add(p->name, p);
     }
 

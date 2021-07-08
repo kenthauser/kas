@@ -28,22 +28,31 @@
 
 
 #include "arm_mcode.h"
+#include "arm_info_impl.h"
 
 namespace kas::arm
 {
-auto arm_mcode_t::code(stmt_info_t stmt_info) const
+
+static constexpr auto info_fns = init_from_list<const opc::arm_info_insn_data *
+                                              , opc::arm_info_fns
+                                              , VT_CTOR>::value;
+
+
+auto arm_mcode_t::code(stmt_info_t info) const
     -> std::array<mcode_size_t, MAX_MCODE_WORDS>
 {
+    auto& defn_info = defn().info;
+    std::cout << "mcode_t::ccode: info_idx = " << +defn_info.info_idx << std::endl;
+    
     // init code array using base method
-    auto code_data = base_t::code(stmt_info);
-    auto& m_info = defn().info;
+    auto code_data = base_t::code(info);
+    
 #if 1
-    code_data[0] = stmt_info.value() << 16;
+    //code_data[0] = info.value() << 16;
+    //arm_info_list data;
+    //data.insert(code_data, info, defn_info);
+    info_fns[defn_info.info_idx]->insert(code_data, info, defn_info);
 #else
-    // map no-ccode -> ccode = ALL
-    auto ccode = stmt_info.ccode;
-    if (m_info & SZ_DEFN_COND && ccode == arm_stmt_info_t::ARM_CC_OMIT)
-        ccode = arm_stmt_info_t::ARM_CC_ALL;
 
     code_data[0] |= ccode << 28;
 
@@ -81,10 +90,12 @@ auto arm_mcode_t::code(stmt_info_t stmt_info) const
 }
 
 
-auto arm_mcode_t::extract_info(mcode_size_t const * code) const
+auto arm_mcode_t::extract_info(mcode_size_t const *code_p) const
     -> stmt_info_t 
 {
-    return code[0] >> 16;
+    auto& defn_info = defn().info;
+    std::cout << "mcode_t::ccode: info_idx = " << +defn_info.info_idx << std::endl;
+    return info_fns[defn_info.info_idx]->extract(code_p, defn_info);
 }
 
 }

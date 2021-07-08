@@ -46,15 +46,15 @@ const char *arm_stmt_info_t::ok(arm_mcode_t const &mcode) const
     // check condition code, s-flag, and arch match MCODE & mode
     auto m_info = mcode.defn().info;
     if (ccode == ARM_CC_OMIT)
-        if (~m_info & SZ_DEFN_COND)
+        if (~m_info.flags & SZ_DEFN_COND)
             return "condition code not allowed";
 
     if (ccode >= ARM_CC_ALL)    // _ALL, or _OMIT
-        if (m_info & SZ_DEFN_NO_AL)
+        if (m_info.flags & SZ_DEFN_NO_AL)
             return "AL condition code not allowed";
 
     if (has_sflag)
-        if (~m_info & SZ_DEFN_S_FLAG)
+        if (~m_info.flags & SZ_DEFN_S_FLAG)
             return "s-flag not allowed";
 #if 0
     // T-flag allowed for `movT` & required for `ldrT`

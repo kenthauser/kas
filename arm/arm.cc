@@ -104,5 +104,23 @@ namespace kas::tgt
     using ARCH_MCODE = arm::arm_mcode_t;
 }
 
+namespace kas::arm::opc
+{
+    struct xxx
+    {
+        xxx()
+        {
+            using LIST_IDX = meta::find_index<arm_info_fns, arm_info_list>;
+            print_type_name{"LIST_IDX"}.name<LIST_IDX>();
+            
+            using A7_CS_IDX = meta::find_index<arm_info_fns, arm_info_a7_cs>;
+            print_type_name{"A7_CS_IDX"}.name<A7_CS_IDX>();
+            
+            using IDX_VOID = meta::find_index<arm_info_fns, void>;
+            print_type_name{"IDX::void"}.name<IDX_VOID>();
+        }
+    } _xxx;
+}
+
 // instantiate target types
 #include "target/tgt_impl.h"

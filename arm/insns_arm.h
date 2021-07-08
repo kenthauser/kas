@@ -25,15 +25,15 @@ namespace kas::arm::opc::gen
 {
 #define STR KAS_STRING
 
-using arm_insn_list_l = list<defn<void, STR("*LIST*"), OP<0>, FMT_LIST, REG>>;
+// Dummy machine-code for "list" opcode
+using arm_insn_list_l = list<list<>
+, defn<void, STR("*LIST*"), OP<0, arm_info_list>, FMT_LIST, REG>
+>;
 
 using arm_insn_common_l = list<list<>
 
-// Dummy machine-code for "list" opcode
-//, defn<void, STR("*LIST*"), OP<0>, FMT_LIST, REG, REG>
-
 // "override" special cases to prefer different encodings
-// classic case is "ld reg, #0" -> mapped to "clr <reg>"
+// classic case is "ld <reg>, #0" -> mapped to "clr <reg>"
 
 // XXX SUB/ADD with PC: form PC-relative address
 

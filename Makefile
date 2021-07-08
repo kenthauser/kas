@@ -2,7 +2,9 @@ CXXFLAGS += -std=c++17 -I. -g
 //CXXFLAGS += -std=c++2a -I. -g
 CXXFLAGS += -pedantic
 CXXFLAGS += -isystem spirit/include -isystem meta/include   \
+                                    -isystem /opt/homebrew/include \
                                     -isystem /usr/local/include
+                                    
 CXXFLAGS += -ftemplate-depth=4096
 #CXXFLAGS += -O2 -fomit-frame-pointer
 #CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
@@ -14,7 +16,7 @@ CXXFLAGS += -ftemplate-depth=4096
 OUTPUT_OPTION = -MMD -MP
 # OUTPUT_OPTION = -MD -MP
 # CXXFLAGS += -DBOOST_SPIRIT_X3_DEBUG
-LINK.o = $(LINK.cc)
+LINK.o = $(LINK.cc) -L /opt/homebrew/lib
 # LINK.o += -Xlinker -v
 CXXFLAGS += -ftemplate-backtrace-limit=0
 

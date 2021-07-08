@@ -30,6 +30,9 @@ struct arm_stmt_info_t : detail::alignas_t<arm_stmt_info_t
     static constexpr auto ARM_CC_OMIT = 0xf;    // condition code: not specified
     static constexpr auto ARM_CC_ALL  = 0xe;    // condition code: all specified
 
+    // default info is no-ccode, no suffix
+    arm_stmt_info_t() : ccode{ARM_CC_OMIT}, base_t() {}
+
     // test if mcode supported for `info`
     const char *ok(arm_mcode_t const&) const;
 

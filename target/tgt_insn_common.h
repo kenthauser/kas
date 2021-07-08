@@ -70,32 +70,40 @@ struct OP
     using size_fn = SIZE_FN;
     
     // default tst "value" is always zero. Approximate
-    using tst     = meta::if_<std::is_void<TST>, meta::int_<0>, TST>;
+    //using tst     = meta::if_<std::is_void<TST>, meta::int_<0>, TST>;
+    using tst = TST;
 };
 
 // NAME the INDEXES into the `meta::list` where types are located
 // NB: this is only for reference. The list
 // is passed as a whole to the ctor, so any changes
 // in defn must also be reflected there.
-static constexpr auto DEFN_IDX_SZ   = 0;
-static constexpr auto DEFN_IDX_NAME = 1;
-static constexpr auto DEFN_IDX_CODE = 2;
-static constexpr auto DEFN_IDX_TST  = 3;
-static constexpr auto DEFN_IDX_FMT  = 4;
-static constexpr auto DEFN_IDX_VAL  = 5;
+static constexpr auto DEFN_IDX_SZ      = 0;
+static constexpr auto DEFN_IDX_INFO_FN = 1;
+static constexpr auto DEFN_IDX_NAME    = 2;
+static constexpr auto DEFN_IDX_CODE    = 3;
+static constexpr auto DEFN_IDX_TST     = 4;
+static constexpr auto DEFN_IDX_FMT     = 5;
+static constexpr auto DEFN_IDX_VAL     = 6;
 
 // general definition: SZ list, NAME type, OP type, optional FMT & VALIDATORS
-template <typename SZ, typename NAME, typename OP_INFO, typename FMT = void, typename...Ts>
+template <typename SZ, typename INFO_FN, typename NAME, typename OP_INFO
+        , typename FMT = void, typename...Ts>
 struct insn_defn
 {
-    // default "size" is `int_<0>`
-    using DEFN_SZ = meta::if_<std::is_same<void, SZ>, meta::int_<0>, SZ>;
+    // map default "suffix" (void) to `int_<0>`  (ie: none)
+    using DEFN_SZ = meta::if_<std::is_void<SZ>, meta::int_<0>, SZ>;
+
+    // map default "test" (void) to `int_<0>` (ie always allowed)
+    using TST     = meta::if_<std::is_void<  typename OP_INFO::tst>
+                            , meta::int_<0>, typename OP_INFO::tst>;
 
     // six fixed types, plus additional `VALIDATORs`
     using type = meta::list<DEFN_SZ
+                          , INFO_FN
                           , NAME
                           , typename OP_INFO::code
-                          , typename OP_INFO::tst
+                          , TST
                           , FMT             // formatter
                           , Ts...           // validators
                           >;
