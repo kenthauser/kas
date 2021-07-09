@@ -36,8 +36,9 @@ struct tgt_defn_adder
         using all_types_defns = typename PARSER::all_types_defns; 
 
         // store pointers to arrays of instances in `defn_t`
-        defn_t::names_base = at_c<all_types_defns, defn_t::XLT_IDX_NAME>::value;
-        defn_t::fmts_base  = at_c<all_types_defns, defn_t::XLT_IDX_FMT>::value;
+        defn_t::names_base    = at_c<all_types_defns, defn_t::XLT_IDX_NAME>::value;
+        defn_t::info_fns_base = at_c<all_types_defns, defn_t::XLT_IDX_INFO_FN>::value;
+        defn_t::fmts_base     = at_c<all_types_defns, defn_t::XLT_IDX_FMT>::value;
 
         // Generate the `val_combo` definitions and instances
         // xlate VAL_C types as indexes into VAL array

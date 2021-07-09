@@ -70,6 +70,7 @@ struct tgt_mcode_defn
     using mcode_t       = MCODE_T;
     using mcode_size_t  = typename mcode_t::mcode_size_t;
     using fmt_t         = typename mcode_t::fmt_t;
+    using info_fn_t     = typename mcode_t::info_fn_t;
     using val_t         = typename mcode_t::val_t;
     using val_c_t       = typename mcode_t::val_c_t;
     using adder_t       = typename mcode_t::adder_t;
@@ -87,9 +88,10 @@ struct tgt_mcode_defn
     static constexpr auto MAX_ARGS = mcode_t::MAX_ARGS;
 
     // define LISTS for `adder::XLATE_LIST`
-    using NAME_LIST = list<int_<traits::DEFN_IDX_NAME>>;
-    using SIZE_LIST = list<int_<traits::DEFN_IDX_SZ>>;
-    using FMT_LIST  = list<int_<traits::DEFN_IDX_FMT>>;
+    using NAME_LIST    = list<int_<traits::DEFN_IDX_NAME>>;
+    using INFO_FN_LIST = list<int_<traits::DEFN_IDX_INFO_FN>>;
+    using SIZE_LIST    = list<int_<traits::DEFN_IDX_SZ>>;
+    using FMT_LIST     = list<int_<traits::DEFN_IDX_FMT>>;
     
     // create list with integer sequence <IDX_VAL...(IDX_VAL+MAX_ARGS)>
     using VAL_LIST  = drop_c<IS_as_list<std::make_index_sequence<traits::DEFN_IDX_VAL + MAX_ARGS>>
@@ -102,6 +104,7 @@ struct tgt_mcode_defn
     // `ADDER` & `XLATE_LIST` are picked up by `sym_parser_t`
     using ADDER      = adder_t;
     using XLATE_LIST = list<list<const char *       , NAME_LIST>
+                          , list<const info_fn_t *  , INFO_FN_LIST, VT_CTOR>
                           , list<const fmt_t *      , FMT_LIST, VT_CTOR, fmt_dflt_list>
                           , list<const val_t *      , VAL_LIST, VT_CTOR>
 
@@ -110,34 +113,36 @@ struct tgt_mcode_defn
                           >;
 
     // declare indexes into XLATE list (used by `adder`)
-    static constexpr auto XLT_IDX_NAME = 0;
-    static constexpr auto XLT_IDX_FMT  = 1;
-    static constexpr auto XLT_IDX_VAL  = 2;
-    static constexpr auto XLT_IDX_VALC = 3;
+    static constexpr auto XLT_IDX_NAME    = 0;
+    static constexpr auto XLT_IDX_INFO_FN = 1;
+    static constexpr auto XLT_IDX_FMT     = 2;
+    static constexpr auto XLT_IDX_VAL     = 3;
+    static constexpr auto XLT_IDX_VALC    = 4;
 
     // CTOR: passed list<xlt_list, defn_list>
-    template <typename NAME, typename FMT, typename...VALs, typename VAL_C
+    template <typename NAME, typename INFO_FN, typename FMT, typename...VALs, typename VAL_C
             , typename INFO, typename FN, typename N, typename CODE, typename TST
             , typename...X>
-    constexpr tgt_mcode_defn(list<list<list<NAME>, list<FMT>
+    constexpr tgt_mcode_defn(list<list<list<NAME>, list<INFO_FN>, list<FMT>
                                      , list<VALs...>, list<VAL_C>>
                                 , list<INFO, FN, N, CODE, TST, X...>>)
             : name_index  { NAME::value  + 1   }
             , fmt_index   { FMT::value   + 1   }
             , val_c_index { VAL_C::value + 1   }
-            // XXX, info        { INFO::value, FN::value }
-            , info        { INFO::value, 0 }
+            , info        { INFO::value, INFO_FN::value }
             , code        { CODE::value        }
             , code_words  { code_to_words<mcode_size_t>(CODE::value) }
             , tst         { TST()              }
             {}
     
     // index base values initialized by `adder`
-    static inline const char  *const *names_base;
-    static inline const fmt_t *const *fmts_base;
-    static inline val_c_t      const *val_c_base;
+    static inline const char      *const *names_base;
+    static inline const info_fn_t *const *info_fns_base;
+    static inline const fmt_t     *const *fmts_base;
+    static inline val_c_t          const *val_c_base;
 
     auto  name() const { return  names_base[name_index - 1];  }
+    //auto& info_fn() const { return info_fns_base[info.info_fn_index - 1]; }
     auto& fmt()  const { return *fmts_base [fmt_index   - 1]; }
     auto& vals() const { return  val_c_base[val_c_index - 1]; }
     //auto  sz()   const { return  info.sz();                   }

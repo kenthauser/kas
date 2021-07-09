@@ -32,17 +32,11 @@
 
 namespace kas::arm
 {
-
-static constexpr auto info_fns = init_from_list<const opc::arm_info_insn_data *
-                                              , opc::arm_info_fns
-                                              , VT_CTOR>::value;
-
-
 auto arm_mcode_t::code(stmt_info_t info) const
     -> std::array<mcode_size_t, MAX_MCODE_WORDS>
 {
     auto& defn_info = defn().info;
-    std::cout << "mcode_t::ccode: info_idx = " << +defn_info.info_idx << std::endl;
+    std::cout << "mcode_t::ccode: fn_idx = " << +defn_info.fn_idx << std::endl;
     
     // init code array using base method
     auto code_data = base_t::code(info);
@@ -51,7 +45,8 @@ auto arm_mcode_t::code(stmt_info_t info) const
     //code_data[0] = info.value() << 16;
     //arm_info_list data;
     //data.insert(code_data, info, defn_info);
-    info_fns[defn_info.info_idx]->insert(code_data, info, defn_info);
+    //info_fns[defn_info.fn_idx]->insert(code_data, info, defn_info);
+    defn().info_fns_base[defn_info.fn_idx]->insert(code_data, info, defn_info);
 #else
 
     code_data[0] |= ccode << 28;
@@ -94,8 +89,9 @@ auto arm_mcode_t::extract_info(mcode_size_t const *code_p) const
     -> stmt_info_t 
 {
     auto& defn_info = defn().info;
-    std::cout << "mcode_t::ccode: info_idx = " << +defn_info.info_idx << std::endl;
-    return info_fns[defn_info.info_idx]->extract(code_p, defn_info);
+    std::cout << "mcode_t::ccode: fn_idx = " << +defn_info.fn_idx << std::endl;
+    return defn().info_fns_base[defn_info.fn_idx]->extract(code_p, defn_info);
+    //return info_fns[defn_info.fn_idx]->extract(code_p, defn_info);
 }
 
 }

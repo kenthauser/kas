@@ -129,7 +129,7 @@ struct val_indir : arm_mcode_t::val_t
                 ; // deal with relocs.
         }
 #endif
-        std::cout << "indir::get_value() -> " << std::hex << value << std::endl;
+        std::cout << "indir::get_value() -> 0x" << std::hex << +value << std::endl;
         
         return value;
     }

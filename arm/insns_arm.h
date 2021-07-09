@@ -27,7 +27,7 @@ namespace kas::arm::opc::gen
 
 // Dummy machine-code for "list" opcode
 using arm_insn_list_l = list<list<>
-, defn<void, STR("*LIST*"), OP<0, arm_info_list>, FMT_LIST, REG>
+, defn<void, STR("*LIST*"), OP<0, void, arm_info_list>, FMT_LIST, REG>
 >;
 
 using arm_insn_common_l = list<list<>

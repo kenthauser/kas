@@ -1,41 +1,18 @@
 #ifndef KAS_ARM_ARM_INFO_IMPL_H
 #define KAS_ARM_ARM_INFO_IMPL_H
 
+#include "target/tgt_info_fn.h"
 #include "arm_stmt_flags.h"
 #include "arm_mcode.h"
 
 namespace kas::arm::opc
 {
 
-
-template <typename MCODE_T>
-struct tgt_info_insn_data
+struct arm_info_fn_base : arm_mcode_t::info_fn_t
 {
-    // expose dependent types & values
-    using mcode_size_t = typename MCODE_T::mcode_size_t;
-    using stmt_info_t  = typename MCODE_T::stmt_info_t;
-    using defn_info_t  = typename MCODE_T::defn_info_t;
+    using base_t = typename arm_mcode_t::info_fn_t;
+    using code_t = typename base_t::code_t;
 
-    static constexpr auto MAX_MCODE_WORDS = MCODE_T::MAX_MCODE_WORDS;
-
-    // declare object-code format
-    using code_t = std::array<mcode_size_t, MAX_MCODE_WORDS>;
-
-    constexpr tgt_info_insn_data() {}
-
-    virtual void insert(code_t&     code
-                      , stmt_info_t const& stmt_info
-                      , defn_info_t const& defn_info) const {}
-    
-    virtual stmt_info_t extract(mcode_size_t const *code_p
-                      , defn_info_t const& defn_info) const { return {}; }
-
-    virtual code_t mask(stmt_info_t const& stmt_info
-                      , defn_info_t const& defn_info) const { return {}; }
-};          
-
-struct arm_info_insn_data : tgt_info_insn_data<arm_mcode_t>
-{
     // CCODE: 4 bits shifted 28
     void insert_ccode(code_t& code, stmt_info_t const& stmt_info) const
     {
@@ -109,7 +86,7 @@ struct arm_info_insn_data : tgt_info_insn_data<arm_mcode_t>
 
 };
 
-struct arm_info_list : arm_info_insn_data
+struct arm_info_list : arm_info_fn_base
 {
     void insert(code_t&     code
               , stmt_info_t const& stmt_info
@@ -125,7 +102,7 @@ struct arm_info_list : arm_info_insn_data
     }
 };
 
-struct arm_info_a7_c : arm_info_insn_data
+struct arm_info_a7_c : arm_info_fn_base
 {
     void insert(code_t&     code
               , stmt_info_t const& stmt_info
@@ -144,7 +121,7 @@ struct arm_info_a7_c : arm_info_insn_data
 
 };
 
-struct arm_info_a7_cs : arm_info_insn_data
+struct arm_info_a7_cs : arm_info_fn_base
 {
     void insert(code_t&     code
               , stmt_info_t const& stmt_info
@@ -164,12 +141,6 @@ struct arm_info_a7_cs : arm_info_insn_data
     }
 };
 
-using arm_info_fns = meta::list<
-          arm_info_insn_data        // zero: don't modify base code
-        , arm_info_list             // list: list format
-        , arm_info_a7_c             // arm7: ccode
-        , arm_info_a7_cs            // arm7: ccode, sflag
-        >;
 }
 
 #endif

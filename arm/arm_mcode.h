@@ -32,11 +32,11 @@ static constexpr auto SZ_DEFN_REQ_M   = 0x05 << 8;
 // single arm insn size
 enum arm_op_size_t
 {
-      OP_SIZE_LONG      // 0
-    , OP_SIZE_WORD
+      OP_SIZE_WORD  // 0
+    , OP_SIZE_HALF
     , OP_SIZE_BYTE
     , OP_SIZE_QUAD
-    , OP_SIZE_SWORD
+    , OP_SIZE_SHALF
     , OP_SIZE_SBYTE
     , NUM_OP_SIZE
 };
@@ -44,10 +44,10 @@ enum arm_op_size_t
 struct arm_defn_info_t
 {
     using value_t = uint16_t;
-    constexpr arm_defn_info_t(value_t flags, value_t info_idx)
-        : flags(flags), info_idx(info_idx) {}
+    constexpr arm_defn_info_t(value_t flags, value_t fn_idx)
+        : flags(flags), fn_idx(fn_idx) {}
 
-    value_t info_idx :  4;
+    value_t fn_idx   :  4;
     value_t flags    : 12;
 };
 

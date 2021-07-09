@@ -10,7 +10,7 @@
 #include "arm_validate.h"           // actual validate types
 #include "arm_mcode_sizes.h"        // defin ARM insn variants
 
-#include "arm_info_impl.h"
+//#include "arm_info_impl.h"
 
 #include "target/tgt_insn_common.h"  // declare "trait" for definition
 
@@ -49,96 +49,71 @@ using a7_cM  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_REQ_M                >;
 
 // map "suffix" flag `sz` types to `info` manipulation types
 using arm_sz_info_map = meta::list<
-      meta::pair<void       , meta::int_<1>>     // handle void & simplify meta-code
-    , meta::pair<a7_c       , arm_info_a7_c>
-    , meta::pair<a7_cs      , arm_info_a7_cs>
-    , meta::pair<a7_n       , arm_info_a7_c>
-    , meta::pair<a7_ns      , arm_info_a7_cs>
+      meta::pair<a7_c       , struct arm_info_a7_c>
+    , meta::pair<a7_cs      , struct arm_info_a7_cs>
+    , meta::pair<a7_n       , struct arm_info_a7_c>
+    , meta::pair<a7_ns      , struct arm_info_a7_cs>
     >;
-    
+
+// forward declare "list" info_fn
+struct arm_info_list;
 
 template <std::size_t OPCODE, typename TST = void, typename INFO_FN = void, std::size_t MASK = 0>
 struct OP
 {
     // expose template args as member types
     using type    = OP;
-    //using tst     = TST;
     using info_fn = INFO_FN;
+    using tst     = TST;
 
+    // wrap integral vaues in `size_t` types
     using code    = std::integral_constant<std::size_t, OPCODE>;
     using mask    = std::integral_constant<std::size_t, MASK>;
-    
-    // map `void` to `always pass` test
-    using tst     = meta::if_<std::is_void<TST>, meta::int_<0>, TST>;
 };
 
-// general definition: IF type, NAME type, OP type, optional FMT & VALIDATORS
-template <typename SZ, typename NAME, typename OP, typename FMT = void, typename...Ts>
+// general definition: INFO_FLAGS type, NAME type, OP type, optional FMT & VALIDATORS
+template <typename INFO_FLAGS, typename NAME, typename OP, typename FMT = void, typename...VALs>
 struct defn
 {
-    // default "info" of `void` maps to zero
-    using DEFN_INFO = meta::if_<std::is_same<void, SZ>, meta::int_<0>, SZ>;
+    // prep the info-fn map values
+    using ZIPPED    = meta::zip<arm_sz_info_map>;
+    
+    // see if INFO_FLAGS is in the info-fn map
+    using FLAGS_IDX = meta::find_index<meta::front<ZIPPED>, INFO_FLAGS>;
 
-    // see if SZ is in the sz->info map
-    using ZIPPED   = meta::zip<arm_sz_info_map>;
-    using SZ_IDX   = meta::find_index<meta::front<ZIPPED>, SZ>;
+    // extract INFO_FN if INFO_FLAGS in map
+    // if `OP::info_fn` specified, don't override
+    // default to `info_fn_t` if not specified
+    using DFLT_INFO_FN = meta::if_<std::is_void<typename OP::info_fn>
+                                 , typename arm_mcode_t::info_fn_t
+                                 , typename OP::info_fn
+                                 >;
 
-    // if not found, map info to index zero (void)
-    using INFO_IDX = std::conditional_t<std::is_same_v<SZ_IDX, meta::npos>
-                                      , meta::int_<0>, SZ_IDX>;
-#if 0
-    // if OP_FN specified use that, otherwise use mapped fn (may be void)
-    using INFO_FN  = std::conditional_t<std::is_void_v<typename OP::info_fn>
-                                      , meta::at<meta::back<ZIPPED>, INFO_IDX>
-                                      , typename OP::info_fn
+    // if FN not specified in `OP` and the FLAGS in in `map`, retrieve appropriate `INFO_FN`
+    // NB: need to defer evaluation (prevent `at` from possibly being evaluated with `npos`)
+    using INFO_FN = std::conditional_t<!std::is_void_v<typename OP::info_fn> ||
+                                        std::is_same_v<FLAGS_IDX, meta::npos>
+                                      , meta::id<DFLT_INFO_FN>
+                                      , meta::lazy::at<meta::back<ZIPPED>, FLAGS_IDX>
                                       >;
-#else
-    using INFO_FN = meta::at<meta::back<ZIPPED>, INFO_IDX>;
-#endif
-#if 0
-    // XXX goes into common... 
-    using INFO_FN_IDX = std::conditional_t<std::is_void_v<INFO_FN>
-                                         , meta::int_<0>
-                                         , meta::find_index<arm_info_fns, INFO_FN>
-                                         >;
-    //using INFO_FN = meta::at<meta::back<ZIPPED>, INFO_IDX>;
-#else
-    //using INFO_FN_IDX = meta::find_index<arm_info_fns, INFO_FN>;
-    //using INFO_FN_IDX = INFO_FN;
-    using INFO_FN_IDX  = meta::int_<0>;
-    using DEFN_INFO_FN = void;
-#endif
-    static_assert(!std::is_same_v<INFO_FN_IDX, meta::npos>
-                                , "Invalid info function");
-    
-#if 0
+   
+    // *** CLEAN UP VALUES *** 
+    // NB: `meta::if_` is less typing, not better than, `std::conditional_t`
 
-    // default `INFO_FN` index to zero
-    using info_fn_idx = meta::if_<std::is_void<INFO_FN>
-                            , meta::int_<0>
-                            , meta::find_index<INFO_FN_LIST, INFO_FN>
-                            >;
+    // map `void` FLAGS to zero
+    using DEFN_INFO_FLAGS = meta::if_<std::is_void<INFO_FLAGS>, meta::int_<0>, INFO_FLAGS>;
 
-    // select IDX_NONE if single type in SZ
-    using INFO_IDX = std::conditional_t<MULTIPLE_SZ<SZ>
-                                    , typename OP::size_fn_idx
-                                    , meta::int_<1>
-                                    >;
-
-    
-    // M68K_INFO picks up additional value from `OP`
-    using M68K_INFO = meta::int_<DEFN_INFO::value | (INFO_IDX::value << 12)>;
-    static_assert(!std::is_same_v<info_fn_idx, meta::npos>, "Invalid INFO_FN");
-
-#endif
+    // map `void` test to `int_<0>` (always matches)
+    using DEFN_TST        = meta::if_<std::is_void<typename OP::tst>, meta::int_<0>, typename OP::tst>;
+   
     // six fixed types, plus additional `VALIDATORs`
-    using type = meta::list<DEFN_INFO
-                          , DEFN_INFO_FN
-                          , NAME
-                          , typename OP::code
-                          , typename OP::tst
-                          , FMT             // formatter
-                          , Ts...           // validators
+    using type = meta::list<DEFN_INFO_FLAGS         // rationalized FLAGS
+                          , typename INFO_FN::type  // evaluate deferred calculation
+                          , NAME                    // opcode base NAME
+                          , typename OP::code       // retrieve base binary code
+                          , DEFN_TST                // rationalized TST
+                          , FMT                     // formatter
+                          , VALs...                 // validators
                           >;
 };
 

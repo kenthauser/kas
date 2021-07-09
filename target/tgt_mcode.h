@@ -14,6 +14,7 @@ namespace kas::tgt::opc
 // forward declare templates
 template <typename MCODE_T> struct tgt_validate;
 template <typename MCODE_T> struct tgt_format;
+template <typename MCODE_T> struct tgt_info_fn_t;
 template <typename MCODE_T> struct tgt_validate_args;
 template <typename MCODE_T> struct tgt_defn;
 template <typename MCODE_T> struct tgt_defn_adder;
@@ -95,6 +96,7 @@ struct tgt_mcode_t
 
     // supporting types
     using fmt_t         = opc::tgt_format       <MCODE_T>;
+    using info_fn_t     = opc::tgt_info_fn_t    <MCODE_T>;
     using val_t         = opc::tgt_validate     <MCODE_T>;
     using val_c_t       = opc::tgt_validate_args<MCODE_T>;
     using defn_t        = opc::tgt_mcode_defn   <MCODE_T>;
