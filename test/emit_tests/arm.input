@@ -1,4 +1,3 @@
-    str r1, [r2, -r3, asr #4]
 	mov 	r7, sp
 	movs	r7, sp
 	movne   r7, sp
@@ -12,7 +11,7 @@
     mov r8, r9, ror #0
     mov r3, r4, asr r5
     
-    str r0, [r1, -r2, asr #4]
+    str r1, [r2, -r3, asr #4]
     str r2, [r3, +r4, rrx]!
     str r3, [r4], r5, ror #0
 

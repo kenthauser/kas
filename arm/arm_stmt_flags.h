@@ -70,7 +70,7 @@ struct arm_sfx_t
                       , arm_sfx_enum type
                       , uint8_t ldr = {}
                       , uint8_t str = {}) 
-        : name{*name}, type{type}, ldr{ldr}, str{str} {}
+        : name{name}, type{type}, ldr{ldr}, str{str} {}
 
     // put values in an array to allow conversion to index
     // code values depend if load or store instruction
@@ -123,7 +123,7 @@ struct arm_sfx_t
         return {};
     }
 
-    const char      name[3] = {};
+    const char *    name {};
     arm_sfx_enum    type {};
     uint8_t         ldr  {};
     uint8_t         str  {};
@@ -134,7 +134,7 @@ struct arm_suffix : x3::symbols<arm_sfx_t const *>
 {
     arm_suffix()
     {
-        for (auto p = arm_sfx_t::data(); p->name[0]; ++p)
+        for (auto p = arm_sfx_t::data(); p->name; ++p)
             add(p->name, p);
     }
 

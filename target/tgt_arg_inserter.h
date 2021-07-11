@@ -37,21 +37,23 @@ namespace kas::tgt::opc::detail
 //              
 
 // declare meta-data value stored when serialized
-struct arg_serial_t : alignas_t<arg_serial_t, uint16_t>
+// XXX struct arg_serial_t : alignas_t<arg_serial_t, uint16_t>
+struct arg_serial_t : alignas_t<arg_serial_t, uint8_t>
 {
     static constexpr std::size_t MODE_FIELD_SIZE = 5;
 
-    arg_serial_t(value_t mode = {}) : init_mode(mode), cur_mode(mode) {}
+    // XXX arg_serial_t(value_t mode = {}) : init_mode(mode), cur_mode(mode) {}
+    arg_serial_t(value_t mode = {}) : init_mode{mode} {}
 
     value_t init_mode : MODE_FIELD_SIZE;    // mode when serialized
     value_t has_reg   : 1;                  // register stored
     value_t has_data  : 1;                  // additional data stored
     value_t has_expr  : 1;                  // data stored as expression
-    value_t cur_mode  : MODE_FIELD_SIZE;    // current mode
-    value_t xtra_info : 3;                  // undefined arg data: must be const
+// XXX    value_t cur_mode  : MODE_FIELD_SIZE;    // current mode
+// XXX    value_t xtra_info : 3;                  // undefined arg data: must be const
 
-    // update saved mode
-    void operator()(unsigned n) { cur_mode = n; }
+    // XXX // update saved mode
+    // XXX void operator()(unsigned n) { cur_mode = n; }
 };
 
 // store as many infos as will fit in `mcode` word
@@ -101,7 +103,7 @@ void insert_one (Inserter& inserter
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "write_one: " << arg;
     std::cout << ": completely_saved = " << std::boolalpha << completely_saved;
-    std::cout << " has_validator = " << bool(val_p) << std::endl;
+    std::cout << ", has_validator = " << bool(val_p) << std::endl;
 #endif
 
     // write arg data
@@ -149,7 +151,8 @@ void extract_one(Reader& reader
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "\nextract one 1: mode = " << +arg.mode();
     std::cout << ", init_mode = " << +p->init_mode;
-    std::cout << ", cur_mode = " << +p->cur_mode << std::endl;
+    // XXX std::cout << ", cur_mode = " << +p->cur_mode << std::endl;
+    std::cout << std::endl;
 #endif
 
     // extract additional info as required
@@ -161,21 +164,17 @@ void extract_one(Reader& reader
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "\nextract one 2: mode = " << +arg.mode();
     std::cout << ", init_mode = " << +p->init_mode;
-    std::cout << ", cur_mode = " << +p->cur_mode << std::endl;;
+    // XXX std::cout << ", cur_mode = " << +p->cur_mode << std::endl;;
+    std::cout << std::endl;
 #endif
 
-    // update mode to current value
-    arg.set_mode(p->cur_mode);
+    // XXX // update mode to current value
+    // XXX arg.set_mode(p->cur_mode);
 
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "\nextract one 3: mode = " << +arg.mode();
     std::cout << ", init_mode = " << +p->init_mode;
-    std::cout << ", cur_mode = " << +p->cur_mode;
-    std::cout << ", arg = " << arg << std::endl;;
-#endif
-
-#ifdef TRACE_ARG_SERIALIZE
-    std::cout << " -> " << arg << "] ";;
+    std::cout << " -> " << arg << "] " << std::endl;
 #endif
 }
 

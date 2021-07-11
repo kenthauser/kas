@@ -54,7 +54,7 @@ struct arm_defn_info_t
 struct arm_mcode_size_t : tgt::tgt_mcode_size_t
 {
     static constexpr auto MAX_ARGS = 4;
-    using mcode_size_t  = uint32_t;
+    using mcode_size_t  = uint16_t;     // THUMB emits 16-bit insns
     using defn_info_t   = arm_defn_info_t;
     using val_idx_t     = uint16_t;
     using val_c_idx_t   = uint16_t;

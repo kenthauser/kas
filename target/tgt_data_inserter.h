@@ -149,6 +149,7 @@ struct tgt_data_inserter_t
         auto p = insert_one(*code_p);
         while (--count)
             insert_one(*++code_p);
+        
         return p;
     }
 

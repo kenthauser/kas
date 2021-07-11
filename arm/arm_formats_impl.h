@@ -36,13 +36,13 @@ struct fmt_shifter: arm_mcode_t::fmt_t::fmt_impl
   
     bool insert(mcode_size_t* op, arm_arg_t& arg, val_t const *val_p) const override
     {
-        *op |= val_p->get_value(arg);
+        op[1] |= val_p->get_value(arg);
         return true;
     }
     
     void extract(mcode_size_t const* op, arm_arg_t& arg, val_t const *val_p) const override
     {
-        val_p->set_arg(arg, *op);
+        val_p->set_arg(arg, op[1]);
     }
 };
 

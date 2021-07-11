@@ -10,7 +10,10 @@ namespace kas::arm::opc
 // derive arm version of `tgt` classes
 // use generic bit inserter/extractor
 template <unsigned...Ts>
-using fmt_generic = tgt::opc::tgt_fmt_generic<arm_mcode_t, Ts...>;
+using fmt32_generic = tgt::opc::tgt_fmt_generic<arm_mcode_t, uint32_t, Ts...>;
+
+template <unsigned...Ts>
+using fmt16_generic = tgt::opc::tgt_fmt_generic<arm_mcode_t, uint16_t, Ts...>;
 
 // use generic template to generate argument `mix-in` type
 template <unsigned N, typename T>

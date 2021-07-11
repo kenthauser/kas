@@ -20,32 +20,32 @@ struct arm_info_fn_base : arm_mcode_t::info_fn_t
         if (ccode == arm_stmt_info_t::ARM_CC_OMIT)
             ccode = arm_stmt_info_t::ARM_CC_ALL;
 
-        code[0] |= ccode << 28;
+        code[0] |= ccode << (28 - 16);
     }
     
     void extract_ccode(mcode_size_t const *code_p, stmt_info_t& info) const
     {
-        auto ccode = code_p[0] >> 28;
+        auto ccode = code_p[0] >> (28 - 16);
         if (ccode == arm_stmt_info_t::ARM_CC_ALL)
             ccode = arm_stmt_info_t::ARM_CC_OMIT;
         info.ccode = ccode;
     }
 
-    void mask_ccode(code_t& code) { code[0] |= 0xf << 28; }
+    void mask_ccode(code_t& code) { code[0] |= 0xf << (28 - 16); }
 
     // SFX: S_FLAG : 1 bit shifted 20
     void insert_sflag(code_t& code, stmt_info_t const& stmt_info) const
     {
         if (stmt_info.has_sflag)
-            code[0] |= 1 << 20;
+            code[0] |= 1 << (20 - 16);
     }
 
     void extract_sflag(mcode_size_t const *code_p, stmt_info_t& info) const
     {
-        info.has_sflag = !!(code_p[0] & (1<<20));
+        info.has_sflag = !!(code_p[0] & (1<<(20-16)));
     }
     
-    void mask_sflag(code_t& code) { code[0] |= 1 << 20; }
+    void mask_sflag(code_t& code) { code[0] |= 1 << (20-16); }
 
 
     // SFX: B_FLAG: 1 bit shifted 22
@@ -53,7 +53,7 @@ struct arm_info_fn_base : arm_mcode_t::info_fn_t
     {
         auto sfx_p = arm_sfx_t::get_p(stmt_info.sfx_code);
         if (sfx_p && sfx_p->type == SFX_B)
-            code[0] |= 1 << 22;
+            code[0] |= 1 << (22 - 16);
     }
 
     void extract_bflag(mcode_size_t const *code_p, stmt_info_t& info) const
@@ -61,7 +61,7 @@ struct arm_info_fn_base : arm_mcode_t::info_fn_t
         // "find b-flag"
     }
     
-    void mask_bflag(code_t& code) { code[0] |= 1 << 22; }
+    void mask_bflag(code_t& code) { code[0] |= 1 << (22 - 16); }
     
     // SFX_H: 2 bits shifted 5, plus L bit = 20,
     void insert_hflag(code_t& code, stmt_info_t const& info, bool l_flag) const
@@ -72,11 +72,11 @@ struct arm_info_fn_base : arm_mcode_t::info_fn_t
         // value based on LDR/STR instr code 
         auto value = l_flag ? sfx_p->ldr : sfx_p->str;
         
-        // MSB goes to L-BIT (<< 20). Others or'd into LSB
+        // MSB goes to L-BIT (<< 20). Others or'd into LSByte
         if (value & 0x80)
-            code[0] |= 1 << 20;
+            code[0] |= 1 << (20 - 16);
 
-        code[0] |= value & 0x7f;
+        code[0+1] |= value & 0x7f;
     }
 
 
@@ -92,13 +92,14 @@ struct arm_info_list : arm_info_fn_base
               , stmt_info_t const& stmt_info
               , defn_info_t const& defn_info) const override
     {
-        code[0] = stmt_info.value() << 16;
+        // XXX need so generalized "set code value" method...
+        code[0] = stmt_info.value();// << 16;
     }
     
     stmt_info_t extract(mcode_size_t const *code_p
                       , defn_info_t const& defn_info) const override
     {
-        return code_p[0] >> 16;
+        return code_p[0];// >> 16;
     }
 };
 

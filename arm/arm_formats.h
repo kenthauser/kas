@@ -14,10 +14,10 @@ namespace kas::arm::opc
 // NB: fmt_generic args are: shift, width, word = 0
 
 // insert/extract from first word
-using gen_00b4 = fmt_generic< 0, 4>;
-using gen_12b4 = fmt_generic<12, 4>;
-using gen_16b4 = fmt_generic<16, 4>;
-using gen_20b4 = fmt_generic<20, 4>;
+using gen_00b4 = fmt32_generic< 0, 4>;
+using gen_12b4 = fmt32_generic<12, 4>;
+using gen_16b4 = fmt32_generic<16, 4>;
+using gen_20b4 = fmt32_generic<20, 4>;
 
 #if 0
 using gen_4b2 = fmt_generic<4, 2>;

@@ -38,7 +38,7 @@ bool arm_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
         info_p->has_reg = false;
     if (info_p->has_reg)
         inserter(reg_p->index());
-    
+#if 0    
     // if `REG_INDIR`, always save `indirect`
     if (mode() == MODE_REG_INDIR)
     {
@@ -46,11 +46,12 @@ bool arm_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p)
         auto value = (indir.value() << 8) | shift.value();
         inserter(value, 2);     // always save 2 bytes
     }
-
+#endif
+#if 0
     // if `SHIFT` present, always save `shift`
     if (mode() == MODE_SHIFT)
         inserter(shift.value(), 1);
-
+#endif
     if (mode() == MODE_REGSET)
         return save_expr(regset_p->index(), 2);
 
@@ -68,7 +69,7 @@ void arm_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
         auto reg_idx = reader.get_fixed(sizeof(typename reg_t::reg_name_idx_t));
         reg_p = &reg_t::get(reg_idx);
     } 
-
+#if 0
     // for indirect, always read aux data
     if (mode() == MODE_REG_INDIR)
     {
@@ -76,11 +77,12 @@ void arm_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p)
         shift = value;
         indir = value >> 8;
     }
-
+#endif
+#if 0
     // for shift, always read aux data
     if (mode() == MODE_SHIFT)
         shift = reader.get_fixed(1);
-
+#endif
     if (mode() == MODE_REGSET)
     {
         auto rs_idx = reader.get_fixed(2);

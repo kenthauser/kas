@@ -104,6 +104,9 @@ struct tgt_val_reg : MCODE_T::val_t
             arg.reg_p = &reg_t::find(r_class, r_num);
     }
 
+    // "register" format has no other data to save
+    bool has_data(arg_t&) const override { return false; }
+
     reg_value_t r_num;
     reg_class_t r_class;
     mode_int_t  r_mode;

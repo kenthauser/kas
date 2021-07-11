@@ -159,8 +159,8 @@ const char *tgt_arg_t<Derived, M, I, R, RS>
                 ::set_mode(unsigned mode)
 { 
     _mode = static_cast<arg_mode_t>(mode);
-    if (wb_serial_p)
-        (*wb_serial_p)(mode);
+    // XXX if (wb_serial_p)
+    // XXX    (*wb_serial_p)(mode);
 
     return {};
 }

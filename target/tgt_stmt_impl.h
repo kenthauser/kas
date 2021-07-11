@@ -186,7 +186,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     // 3) otherwise, use opcode for "list"
 
     // XXX force list or general during debug
-    matching_mcode_p = {};      // XXX force list for all
+    //matching_mcode_p = {};      // XXX force list for all
     ok_for_quick   = {};      // XXX don't use quick
 
     //std::cout << "quick format: " << std::boolalpha << ok_for_quick;

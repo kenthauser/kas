@@ -18,6 +18,8 @@
 #include "tgt_opc_general.h"
 #include "tgt_opc_branch.h"
 
+#include <limits>
+
 namespace kas::tgt::opc
 {
 
@@ -154,35 +156,96 @@ struct tgt_fmt_opc_branch : virtual MCODE_T::fmt_t
 // generic `fmt_impl` to extract N bits at OFFSET for WORD (0-baased)
 // always paired: insert & extract
 //
+// SHIFT, BITS, and WORD are based on `INSN_T` sized word value.
+// 
+// Normally, `mcode_size_t` and `INSN_T` will be same size. However for architectures
+// which have multiple insn sizes (looking at you ARM + THUMB), `mcode_size_t` will match
+// smallest insn size & `INSN_T` will match current insn size. 
+//
+// use constexpr calculations to make it just work.
+//
 
 // Insert/Extract N bits from machine code
 // NB: must work correctly for BITS == 0 (ie, do nothing)
-template <typename MCODE_T, unsigned SHIFT, unsigned BITS, unsigned WORD = 0>
+template <typename MCODE_T, typename INSN_T, unsigned SHIFT, unsigned BITS, unsigned WORD = 0>
 struct tgt_fmt_generic : MCODE_T::fmt_t::fmt_impl
 {
+    using core_emit    = core::core_emit;
+    
     // extract types from `MCODE_T`
     using arg_t        = typename MCODE_T::arg_t;
     using val_t        = typename MCODE_T::val_t;
     using fmt_t        = typename MCODE_T::fmt_t;
     using mcode_size_t = typename MCODE_T::mcode_size_t;
-    
-    using core_emit    = core::core_emit;
-    
-    static constexpr auto MASK = (1 << BITS) - 1;
+
+    // NB: require INSN size to be multiple of `mcode_size_t`
+    static constexpr auto insn_per_mcode  = sizeof(INSN_T) / sizeof(mcode_size_t);
+    static constexpr auto insn_size_bits  = std::numeric_limits<INSN_T>::digits;
+    static constexpr auto mcode_size_bits = std::numeric_limits<mcode_size_t>::digits;
+
+    static_assert(mcode_size_bits * insn_per_mcode == insn_size_bits);
+   
+    // allow values to span max of two `mcode_size_t` code-array values
+    static constexpr auto M_FRAG0  = (SHIFT + 0       ) / mcode_size_bits;
+    static constexpr auto M_FRAG1  = (SHIFT + BITS - 1) / mcode_size_bits;
+    static constexpr auto M_WORD0  = insn_per_mcode - M_FRAG0 - 1 + (WORD * insn_per_mcode);
+    static constexpr auto M_WORD1  = insn_per_mcode - M_FRAG1 - 1 + (WORD * insn_per_mcode);
+    static constexpr auto M_SHIFT0 = (SHIFT + 0)        % mcode_size_bits;
+    static constexpr auto M_SHIFT1 = (SHIFT + BITS - 1) % mcode_size_bits;
+    // XXX not quite right
+    static constexpr auto M_BITS0  = BITS - (SHIFT + BITS - 1) / mcode_size_bits;
+    static constexpr auto M_BITS1  = BITS - M_BITS0;
+
+    static_assert((M_WORD1 - M_WORD0) < 2); // max two writes
+
+    static constexpr auto MASK0 = (1 << M_BITS0) - 1;
+    static constexpr auto MASK1 = (1 << M_BITS1) - 1;
+
     bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
     {
         auto value = val_p->get_value(arg);
+#if 0
         auto code  = op[WORD]; 
              code &= ~(MASK << SHIFT);
              code |= (value & MASK) << SHIFT;
         op[WORD]   = code;
-
+#else
+        if constexpr (M_BITS0 != 0)
+        {
+//            std::cout << "INSERT: " << +WORD << "/" << +SHIFT << "/" << +BITS << std::endl; 
+//            std::cout << "insert: " << +M_WORD0 << "/" << +M_SHIFT0 << "/" << +M_BITS0;
+//            std::cout << ", value = " << +value << std::endl;
+            // lower word
+            auto code  = op[M_WORD0]; 
+                 code &= ~(MASK0 << M_SHIFT0);
+                 code |= (value & MASK0) << M_SHIFT0;
+            op[M_WORD0]   = code;
+        }
+        if constexpr (M_BITS1 != 0)
+        {
+//            std::cout << "insert: " << +M_WORD1 << "/" << +M_SHIFT1 << "/" << +M_BITS1;
+//            std::cout << ", value = " << (value >> M_BITS0) << std::endl;
+            // upper word
+            auto code  = op[M_WORD1]; 
+                 code &= ~MASK1;        // WORD1 always continues from bit0
+                 code |= (value >> M_BITS0) & MASK1;
+            op[M_WORD1]   = code;
+        }
+#endif
         return !val_p->has_data(arg);
     }
 
     void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const override
     {
-        auto value = MASK & (op[WORD] >> SHIFT);
+        INSN_T value{};
+        if constexpr (M_BITS0 != 0)
+        {
+            value = MASK0 & (op[M_WORD0] >> M_SHIFT0);
+        }
+        if constexpr (M_BITS1 != 0)
+        {
+            value |= (MASK1 & op[M_WORD1]) << M_BITS0;
+        }
         val_p->set_arg(arg, value);
     }
     

@@ -89,28 +89,34 @@ void tgt_insert_args(Inserter& inserter
     // modify `mcode` to store `stmt_info` before writing
 #ifdef TRACE_ARG_SERIALIZE
     {
-        auto p = m_code.code(stmt_info).data();
+        auto c = m_code.code(stmt_info);    // calculate "code"
+        auto p = c.begin();                 // walk thru values
         auto n = m_code.code_size();
 
         std::cout << "tgt_insert_args: base_size = " << +n;
         std::cout << ", base_code = " << std::hex;
+        std::cout << std::setfill('0');
         while (n > 0)
         {
-            std::cout << *p++;
-            n -= sizeof(mcode_size_t);
+            std::cout << std::setw(sizeof(*p) * 2) << *p++;
+            n -= sizeof(*p);
+            if (n > 0) std::cout << "'";
         }
+        std::cout << std::setfill(' ');
         std::cout << std::endl;
     }
 #endif
+    // insert "code" array
+    // NB: `inserter` value_t is `mcode_size_t`, thus code_array is directly inserted
     auto code   = m_code.code(stmt_info);       // `code` is std::array<>
     auto code_p = inserter(code.data(), m_code.code_size());
 
     // retrieve formatters and validators to write args into code (as appropriate)
-    auto& fmt         = m_code.fmt();           // arg formatting instructions
-    auto  sz          = stmt_info.sz(m_code);   // byte/word/long, etc
-    auto& vals        = m_code.vals();          // arg validation list
-    auto val_iter     = vals.begin();
-    auto val_iter_end = vals.end();
+    auto& fmt          = m_code.fmt();          // arg formatting instructions
+    auto  sz           = stmt_info.sz(m_code);  // byte/half/word/long, etc
+    auto& vals         = m_code.vals();         // arg validation list
+    auto  val_iter     = vals.begin();
+    auto  val_iter_end = vals.end();
 
     unsigned n = 0;                             // arg index
     detail::arg_serial_t *p;                    // current arg info data chunk
