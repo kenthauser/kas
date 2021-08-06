@@ -28,15 +28,6 @@ void arm_stmt_t::operator()(Context const& ctx)
     x3::_val(ctx) = &stmt;
 }
 
-// Validate single MCODE for parsed STMT
-auto arm_stmt_t::validate_stmt(mcode_t const *mcode_p) const
-    -> tagged_msg 
-{
-    // XXX deal with stmt_t.sfx...
-
-    return base_t::validate_stmt(mcode_p);
-}
-
 // NB: This method rejects single `MCODE` not `STMT`
 // NB: Doesn't process flags associted with LDR/STR statements
 const char *arm_stmt_info_t::ok(arm_mcode_t const &mcode) const
@@ -55,31 +46,52 @@ const char *arm_stmt_info_t::ok(arm_mcode_t const &mcode) const
 
     if (has_sflag)
         if (~m_info.flags & SZ_DEFN_S_FLAG)
-            return "s-flag not allowed";
-#if 0
-    // T-flag allowed for `movT` & required for `ldrT`
-    if (m_info & SZ_DEFN_REQ_T)
+            return "S flag not allowed";
+
+    // suffix tests should mirror defns in `arm_mcode.h`
+    auto msg   = "suffix required";
+    auto sfx_p = arm_sfx_t::get_p(sfx_index);
+    auto flags = m_info.flags & SZ_DEFN_SFX_MASK;
+
+    // if suffix present, try to "consume" it
+    if (sfx_p)
     {
-        if (!has_tflag)
-            return "t-flag required";
+        switch (flags)
+        {
+            // consume if allowed
+            case SZ_DEFN_B_FLAG: if (sfx_p->type == SFX_B) sfx_p = {}; break;
+            case SZ_DEFN_T_FLAG: if (sfx_p->type == SFX_T) sfx_p = {}; break;
+
+            // consume if required
+            case SZ_DEFN_REQ_T:  if (sfx_p->type == SFX_T) msg = {}; break;
+            case SZ_DEFN_REQ_H:  if (sfx_p->type == SFX_H) msg = {}; break;
+            case SZ_DEFN_REQ_M:  if (sfx_p->type == SFX_M) msg = {}; break;
+           
+            // not consumed
+            case 0: break;
+            
+            // keeping it honest
+            // unknown flags -- raise configuration error
+            default:
+                return "INTERNAL ERROR: a7_info_flags: unknown value";
+        }
     }
-    else if (has_tflag)
-        if (~m_info & SZ_DEFN_T_FLAG)
-            return "t-flag not allowed";
 
+    // error if suffix and not consumed by above switch
+    if (!msg)  return {};
+    if (sfx_p) return "invalid suffix";
 
-    if (has_bflag)
-        if (~m_info & SZ_DEFN_B_FLAG)
-            return "b-flag not allowed";
+    // check if required suffix not present
+    switch (flags)
+    {
+        case SZ_DEFN_REQ_T:
+        case SZ_DEFN_REQ_H:
+        case SZ_DEFN_REQ_M:
+            return msg;
+        default:
+            break;
+    }
 
-    if (m_info & SZ_DEFN_REQ_H)
-        if (!has_tflag)
-            return "h-flag required";
-
-    if (m_info & SZ_DEFN_REQ_M)
-        if (!has_tflag)
-            return "m-flag required";
-#endif
     return {};
 }
 
@@ -95,9 +107,10 @@ void arm_stmt_info_t::print(std::ostream& os) const
         sep = SEP_STR;
     }
 
-    if (sfx_code != 0)
+    auto sfx_p = arm_sfx_t::get_p(sfx_index);
+    if (sfx_p)
     {
-        os << sep << "sfx = " << arm_sfx_t::get_p(sfx_code)->name;
+        os << sep << "sfx = " << sfx_p->name;
         sep = SEP_STR;
     }
 
@@ -112,6 +125,13 @@ void arm_stmt_info_t::print(std::ostream& os) const
     if (has_sflag) put_flag("S");
     if (has_nflag) put_flag("N");
     if (has_wflag) put_flag("W");
+
+    // suffix size...
+    if (sfx_p)
+    {
+        if (auto sz = sfx_p->size)
+            os << ", sz = " << arm_mcode_t::size_names[sz]; 
+    }
     
     os << "]";
 };

@@ -52,7 +52,7 @@ auto eval_insn_list
 
         std::cout << "eval_insn_list: initial state: ";
         for (auto s : initial_state)
-            std::cout << s << ", ";
+            std::cout << +s << ", ";
         std::cout << std::endl;
     }
 

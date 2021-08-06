@@ -48,8 +48,8 @@ struct arm_stmt_info_t : detail::alignas_t<arm_stmt_info_t
     }
 
     value_t ccode     : 4;      // conditional instruction code
-    value_t sfx_code  : 5;      // code deduced from `stmt.sfx`
-    value_t has_sflag : 1;      // opcode has `S`  suffix (NB: set flags)
+    value_t sfx_index : 5;      // index of matched suffix from `arm_sfx_t`
+    value_t has_sflag : 1;      // opcode has `S`  suffix (NB: set condition code flags)
     value_t has_nflag : 1;      // opcode has `.N` suffix (NB: only narrow)
     value_t has_wflag : 1;      // opcode has `.W` suffix (NB: only wide)
 };
@@ -71,9 +71,6 @@ struct arm_stmt_t : tgt::tgt_stmt<arm_stmt_t
 {
     using base_t::base_t;
     
-    // HOOK: method to validate mcode. Use for `arm_stmt_info_t` validation
-    tagged_msg validate_stmt(arm_mcode_t const *mcode_p) const;
-
     // process info_t from parse
     template <typename Context>
     void operator()(Context const& ctx);

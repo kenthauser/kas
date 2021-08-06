@@ -15,6 +15,11 @@ using gen_reg_l    = make_reg_seq<reg_seq<RC_GEN>    , REG_STR("r"), 16>;
 using fp_sgl_reg_l = make_reg_seq<reg_seq<RC_FLT_SGL>, REG_STR("s"), 32>;
 using fp_dbl_reg_l = make_reg_seq<reg_seq<RC_FLT_DBL>, REG_STR("d"), 16>;
 
+// define "generic" coprocessor names
+using cproc_reg_l  = make_reg_seq<reg_seq<RC_COPROC> , REG_STR("p") , 16>;
+using c_reg_l      = make_reg_seq<reg_seq<RC_C_REG>  , REG_STR("c") , 16>;
+using cr_reg_l     = make_reg_seq<reg_seq<RC_CR_REG> , REG_STR("cr"), 16>;
+
 #if 0
 // dbl 16-31 is an extension. quad 0-16 is an extension
 // condition on `hw_test`

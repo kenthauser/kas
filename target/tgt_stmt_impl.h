@@ -50,8 +50,8 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     // get kas types from opcode
     using core::opcode;
     auto trace  = opcode::trace;
-    trace = nullptr;
     //trace = &std::cout;
+    //trace = nullptr;
     
     // convenience references
     auto& insn  = *insn_tok_t(insn_tok)();
@@ -82,8 +82,11 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     bitset_t ok;
     mcode_t const* matching_mcode_p {};
     bool multiple_matches = false;
-    tagged_msg  err_msg  {};
-    int         err_index{};
+
+    // flag MCODE in error: fails `TST` or `ARCH`
+    static constexpr auto ERR_IDX_MCODE = -1;
+    const char *err_msg  {};
+    int         err_index{ERR_IDX_MCODE};
 
     // loop thru mcodes, recording first error & recording all matches
     int i = 0; 
@@ -92,12 +95,10 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
         if (trace)
             *trace << "validating: " << +i << ": ";
 
-        tagged_msg  diag;
-        int         cur_index{};
+        // validate supported by arch & `TST`
+        int         cur_index {ERR_IDX_MCODE};
+        const char *diag = derived().validate_stmt(mcode_p);
 
-        // validate supported by arch & by info flags
-        diag = derived().validate_stmt(mcode_p);
-        
         // test if arguments match mcode
         if (!diag)
             std::tie(diag, cur_index) = mcode_p->validate_mcode(args, info, trace);
@@ -105,7 +106,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
         if (trace)
         {
             if (diag)
-                *trace << " -> " << diag.msg << std::endl;
+                *trace << " -> " << diag << std::endl;
             else
                 *trace << " = OK" << std::endl;
         }
@@ -133,30 +134,35 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     }
     
     if (trace)
-        *trace << "result: " << ok.count() << " OK" << std::endl;
+    {
+        *trace << "result: ";
+        if (ok.count())
+            *trace << ok.count() << " passed";
+        else
+            *trace << "FAIL: " << err_msg << ", err_index = " << +err_index;
+        *trace << std::endl;
+    }
 
-    // no match: generate message
+    // no match: error INSN is result
     if (!matching_mcode_p)
     {
-        if (err_index > args.size())
-            err_index = args.size();
+        // if `error` without msg (?!?) generate diagnostic
+        if (!err_msg)
+        {
+            err_msg   = "X internal error";
+            err_index = 0;      // blame INSN
+        }
 
-        // location required: initialize with default
+        // error location required: default to INSN
         parser::kas_position_tagged const *loc_p = &insn_tok;
 
         // if `arg` errored, pick up location from arg
-        if (err_index)
+        if (err_index > args.size())
+            err_index = args.size();
+        if (err_index > 0)
             loc_p = &args[err_index-1];
 
-        // if `err_msg` tagged, use tagged location
-        if (err_msg.pos_p)
-            loc_p = err_msg.pos_p;
-
-        // if `error` without msg (?!?) generate default
-        if (!err_msg)
-            err_msg = "X invalid instruction";
-
-        data.fixed.diag = parser::kas_diag_t::error(err_msg.msg, *loc_p).ref();
+        data.fixed.diag = parser::kas_diag_t::error(err_msg, *loc_p).ref();
         return {};
     }
 

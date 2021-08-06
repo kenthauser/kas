@@ -36,18 +36,22 @@ struct fmt_shifter: arm_mcode_t::fmt_t::fmt_impl
   
     bool insert(mcode_size_t* op, arm_arg_t& arg, val_t const *val_p) const override
     {
-        op[1] |= val_p->get_value(arg);
+        auto value = val_p->get_value(arg);
+        op[1] |= value;
+        op[0] |= value >> 16;
         return true;
     }
     
     void extract(mcode_size_t const* op, arm_arg_t& arg, val_t const *val_p) const override
     {
-        val_p->set_arg(arg, op[1]);
+        auto value = (op[0] << 16) | op[1];
+        val_p->set_arg(arg, value);
     }
 };
 
 
-// XXX old
+// ARM5: Addressing Mode 1: immediate 12-bit value with 8 significant bits
+// relocations: R_ARM_ALU_SB_Gx{_NC}
 struct fmt_fixed : arm_mcode_t::fmt_t::fmt_impl
 {
     using mcode_size_t = arm_mcode_t::mcode_size_t;
@@ -55,13 +59,13 @@ struct fmt_fixed : arm_mcode_t::fmt_t::fmt_impl
 
     bool insert(mcode_size_t* op, arm_arg_t& arg, val_t const *val_p) const override
     {
-        *op |= val_p->get_value(arg);
+        op[1] |= val_p->get_value(arg);     // 12-bits into LSBs
         return true;
     }
     
     void extract(mcode_size_t const* op, arm_arg_t& arg, val_t const *val_p) const override
     {
-        val_p->set_arg(arg, *op);
+        val_p->set_arg(arg, op[1]);
     }
 #if 0
     void emit(core::core_emit& base, mcode_size_t *op, arm_arg_t& arg, val_t const *val_p) const override

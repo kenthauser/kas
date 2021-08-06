@@ -203,7 +203,8 @@ void arm_indirect_arg::operator()(Context const& ctx)
     auto& wb_flag  = x3::_attr(ctx);
 
     // for zero offset, set U_FLAG & P_FLAG
-    // (which means clearing the complement flags: a nop)
+    indir.u_flag = true;
+    indir.p_flag = true;
 
     // set W_FLAG according to write_back flag
     if (wb_flag)
@@ -225,9 +226,10 @@ struct arm_indirect_post_index : arm_indirect_arg
         auto& has_shift = boost::fusion::at_c<3>(parts);
 
         // for `post_index`, both P_FLAG & W_FLAG are cleared
-        // leave flags cleared as initialized
+        // leave flags as initialized
+        // (for when method is driven from `arm_indirect_pre_index`)
 
-        // set nu_flag if minus
+        // set u_flag if not minus
         if (!is_minus) indir.u_flag = true;
 
         // test if arg is general register
@@ -263,7 +265,7 @@ struct arm_indirect_post_index : arm_indirect_arg
 
 };
 
-// also process "offset" formats
+// process "offset" and "pre-indexed" formats
 struct arm_indirect_pre_index : arm_indirect_post_index
 {
     // valid parsed data
@@ -276,7 +278,7 @@ struct arm_indirect_pre_index : arm_indirect_post_index
 
         // set P_FLAG & W_FLAG according to args
         // offset & pre-index set p_flag
-        indir.p_flag = true;
+        indir.p_flag = true;        // untouched by `...post_index`
 
         // pre-index also set w_flag
         if (wb_flag)
@@ -428,14 +430,11 @@ void arm_indirect_arg::operator()(Context const& ctx)
 // constuct `arm_arg` from parsed indirectd args
 arm_indirect_arg::operator arm_arg_t() 
 {
-    // values sorted, so construct arg
+    // values sorted, so construct arg (NB: untagged)
     arm_arg_t arg({offset, mode});
     arg.reg_p = base_reg_p;
     arg.shift = shift;
     arg.indir = indir;
-
-    //std::cout << "arm_indirect_arg::arm_arg_t: flags = " << std::hex << +flags << std::endl;
-    //std::cout << "arm_indirect_arg::arm_arg_t: indir.flags = " << std::hex << +indir.flags << std::endl;
     return arg;
 }
 
@@ -464,7 +463,7 @@ auto gen_stmt = [](auto& ctx)
 
         // save parsed suffix code in info
         if (sfx)
-            info.sfx_code = (*sfx)->index();
+            info.sfx_index = (*sfx)->index();
         
         // save s-flag
         if (s_flag)

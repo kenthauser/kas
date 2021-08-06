@@ -1,10 +1,14 @@
+    str r1, [r2, -r3, asr #4]
+    strb r1, [r2, -r3, asr #4]
+    ldr r2, [r3, +r4, rrx]!
+    ldrb r2, [r3, +r4, rrx]!
+    str r3, [r4], r5, ror #0
+
 	mov 	r7, sp
 	movs	r7, sp
-	movne   r7, sp
-	movT	r7, sp
+	movT	r7, sp  ; arm6T2
 	movne  	r7, sp
 	movpl.n	r7, sp
-	movge  	r7, sp
 	moval.w	r7, sp
     
     mov r1, r2, LSR #5
@@ -43,6 +47,11 @@
     str r2, [r3, #-4]
     str r3, [r4, #5]!
     str r6, [r7], #-8
+    
+    strb    r6, [r7]
+    strsb   r6, [r7]
+    strh    r6, [r7]
+    strsh   r6, [r7]
 
     str r7, l_label
    @ str r8, g_label

@@ -13,6 +13,7 @@
 #include "expr/operators.h"     // for regset
 #include "parser/parser.h"
 #include "parser/token_parser.h"
+#include "parser/annotate_on_success.hpp"
 
 #include <boost/fusion/include/std_pair.hpp>
 
@@ -126,7 +127,10 @@ auto const parse_regset = rule<class _, kas_token> {"parse regset"}
        = (arm_reg_x3() > *regset_terms)[gen_regset()];
 
 auto const arg_regset = rule<class _, arm_parsed_arg_t> {"regset"}
-       = parse_regset > '}' > attr(MODE_REGSET);
+       = (parse_regset > '}' > ( ('^' > attr(MODE_REGSET_USER))
+                              |        attr(MODE_REGSET)))
+         | (ushort_     > '}' > attr(MODE_CP_OPTION))
+         ;
 
 #endif
 //
@@ -146,15 +150,18 @@ auto const simple_parsed_arg = rule<class _, arm_parsed_arg_t> {"arm_parsed_arg"
           | (":lower8_15:"  > expr() > attr(MODE_IMMED_BYTE_1))
           | (":upper0_7:"   > expr() > attr(MODE_IMMED_BYTE_2))
           | (":upper8_15:"  > expr() > attr(MODE_IMMED_BYTE_3))
-          | (                 expr() > attr(MODE_IMMEDIATE))
+          | (                 expr() > (('!' > attr(MODE_IMMED_UPDATE)
+                                        |      attr(MODE_IMMEDIATE))
+                                        ))
           ))
         | ('{' > arg_regset)
         ;
 
 //
-// include more complex parsed args 
+// include more complex parsed args (and annotate if untagged)
 //
-auto const arm_arg = rule<class _, arm_arg_t> { "arm_arg" }
+struct _tag_arg : annotate_on_success {};
+auto const arm_arg = rule<_tag_arg, arm_arg_t> { "arm_arg" }
        = '[' > parse_indir
        | parse_shift
        | simple_parsed_arg

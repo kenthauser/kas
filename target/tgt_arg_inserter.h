@@ -98,25 +98,22 @@ void insert_one (Inserter& inserter
                )
 {
     // write arg data into machine code if possible (dependent on validator)
+    // example when not completely saved: immediate arg or expression
     // returns false if no validator
     bool completely_saved = fmt.insert(n, code_p, arg, val_p);
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << "write_one: " << arg;
+    std::cout << "insert_one: " << arg;
     std::cout << ": completely_saved = " << std::boolalpha << completely_saved;
     std::cout << ", has_validator = " << bool(val_p) << std::endl;
 #endif
 
-    // write arg data
     // NB: `serialize` can destroy arg.
     *p = arg.mode();
     if (!completely_saved)
-    {
-        p->has_reg  = !val_p;           // if no validator, check for register
-        p->has_data = true;
-        p->has_expr = arg.serialize(inserter, sz, p);
-    }
+        p->has_expr = arg.serialize(inserter, sz, p, val_p);
+    
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << "write_one: " << arg;
+    std::cout << "insert_one: " << arg;
     std::cout << ": mode = "   << std::dec << std::setw(2) << +p->init_mode;
     std::cout << " reg/data/expr = ";
     std::cout << +p->has_reg << "/" << +p->has_data << "/" << +p->has_expr;
@@ -138,12 +135,11 @@ void extract_one(Reader& reader
                     )
 {
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << "\n[read_one:  mode = " << std::dec << std::setw(2) << +p->init_mode;
+    std::cout << "\n[extract_one:  mode = " << std::dec << std::setw(2) << +p->init_mode;
     std::cout << " reg/data/expr = ";
     std::cout << +p->has_reg  << "/" << +p->has_data << "/" << +p->has_expr;
 #endif
-    // extract arg from machine code (dependent on validator)
-    // extract info from `opcode`
+    // extract arg from machine code (if validator present)
     arg.set_mode(p->init_mode);
     if (val_p)
         fmt.extract(n, code_p, arg, val_p);
@@ -159,7 +155,7 @@ void extract_one(Reader& reader
     // NB: extract may look at arg mode. Set to mode value when serialized
     arg.set_mode(p->init_mode);
     
-    arg.extract(reader, sz, p);
+    arg.extract(reader, sz, p, bool(val_p));
     
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "\nextract one 2: mode = " << +arg.mode();

@@ -40,10 +40,13 @@ struct tgt_val_reg : MCODE_T::val_t
 
     using mode_int_t  = std::underlying_type_t<arg_mode_t>;
 
+    // value to allow all registers (ie: only test r_class)
+    static constexpr auto all_regs = -1;
+
     constexpr tgt_val_reg(reg_class_t r_class
-                        , reg_value_t r_num     = ~0
-                        , mode_int_t mode       = arg_mode_t::MODE_REG)
-                   : r_class{r_class}, r_num(r_num), r_mode(mode) {}
+                        , int         r_num = all_regs
+                        , mode_int_t  mode  = arg_mode_t::MODE_REG)
+                   : r_class{r_class}, r_num(r_num), r_mode{mode} {}
 
     // CRTP cast
     auto constexpr& derived() const
@@ -67,7 +70,7 @@ struct tgt_val_reg : MCODE_T::val_t
     }
 
     // test if reg or reg_class
-    constexpr bool is_single_register() const { return r_num != static_cast<reg_value_t>(~0); } 
+    constexpr bool is_single_register() const { return r_num != static_cast<reg_value_t>(all_regs); } 
    
     // test argument against validation
     fits_result ok(arg_t& arg, expr_fits const& fits) const override

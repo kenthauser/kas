@@ -33,6 +33,9 @@ enum arm_arg_mode : uint8_t
 // Processor required modes
     , MODE_REG_UPDATE       //  9 update register after use (usage ex: STM)
     , MODE_SHIFT            // 10 shift instruction
+    , MODE_REGSET_USER      // 11 regster set (user regs, not current regs)
+    , MODE_IMMED_UPDATE     // 12 immediate with "update" flag
+    , MODE_CP_OPTION        // 13 co-processor option (load/store coprocessor)
 
 // Immediate Sub-fields
     , MODE_IMMED_LOWER      // :lower:
@@ -70,6 +73,10 @@ struct arm_shift : detail::alignas_t<arm_shift, uint8_t>
         return value() != 0;
     }
 
+    // utilities to xlate to/from ARM7 binary formats
+    uint16_t arm7_value() const;
+    void     arm7_set(uint16_t);
+
     value_t     ext    : 5;     // shift constant (NB: not relocatable)
     value_t     type   : 2;     // shift type
     value_t     is_reg : 1;     // use register shift
@@ -79,11 +86,13 @@ struct arm_shift : detail::alignas_t<arm_shift, uint8_t>
 struct arm_indirect: detail::alignas_t<arm_indirect, uint8_t>
 {
     using base_t::base_t;
-    
+   
+    // some of these flags are stored as "complements" to help
+    // with parser heirarchy
     value_t reg     : 4;    // save RC_GEN value, not reg_p
     value_t p_flag  : 1;    // pre-index (or offset) addressing
     value_t w_flag  : 1;    // write-back for pre-index
-    value_t u_flag  : 1;    // UP-flag (offset or reg is added)
+    value_t u_flag  : 1;    // UP-flag: (offset or reg is added)
     value_t r_flag  : 1;    // has register
 
     // shift & immed stored in `arg_t`
@@ -120,10 +129,10 @@ struct arm_arg_t : tgt::tgt_arg_t<arm_arg_t
     bool is_immed() const;
     
     template <typename Inserter, typename ARG_INFO>
-    bool serialize(Inserter& inserter, uint8_t sz, ARG_INFO *);
+    bool serialize(Inserter& inserter, uint8_t sz, ARG_INFO *, bool has_val);
     
     template <typename Reader, typename ARG_INFO>
-    void extract(Reader& reader, uint8_t sz, ARG_INFO const*);
+    void extract(Reader& reader, uint8_t sz, ARG_INFO const*, bool has_val);
 
     // override default print
     template <typename OS> void print(OS&) const;

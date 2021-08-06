@@ -58,21 +58,27 @@ namespace kas::tgt::opc::traits
 //
 ///////////////////////////////////////////////////////////////////////    
 // The `OP` alias is used for to allow specification of the TST & SIZE_FN arguments.
-// NB: default SIZE_FN passed as void, as `tgt_defn_sizes` is needed for access
-// to target `mcode_t`. Correct in `defn`
-template <std::size_t OPCODE, typename TST = void, typename SIZE_FN = void, std::size_t MASK = 0>
+template <std::size_t OPCODE, typename TST = void, typename INFO_FN = void, std::size_t MASK = 0>
 struct OP
 {
+    // expose template args as member types
     using type    = OP;
+    using info_fn = INFO_FN;
+    using tst     = TST;
 
+    // wrap integral vaues in `size_t` types
     using code    = std::integral_constant<std::size_t, OPCODE>;
     using mask    = std::integral_constant<std::size_t, MASK>;
-    using size_fn = SIZE_FN;
-    
-    // default tst "value" is always zero. Approximate
-    //using tst     = meta::if_<std::is_void<TST>, meta::int_<0>, TST>;
-    using tst = TST;
 };
+
+// add value to OP
+template <typename OP, unsigned N, unsigned SHIFT>
+struct OP_ADD : OP
+{
+    static constexpr auto value = OP::code + (N << SHIFT);
+    using code = std::integral_constant<std::size_t, value>;
+};
+
 
 // NAME the INDEXES into the `meta::list` where types are located
 // NB: this is only for reference. The list
@@ -86,69 +92,64 @@ static constexpr auto DEFN_IDX_TST     = 4;
 static constexpr auto DEFN_IDX_FMT     = 5;
 static constexpr auto DEFN_IDX_VAL     = 6;
 
-// general definition: SZ list, NAME type, OP type, optional FMT & VALIDATORS
-template <typename SZ, typename INFO_FN, typename NAME, typename OP_INFO
-        , typename FMT = void, typename...Ts>
-struct insn_defn
+// general definition: INFO_FLAGS type, NAME type, OP type, optional FMT & VALIDATORS
+template <typename MCODE_T, typename INFO_MAP, typename INFO_FLAGS
+        , typename NAME, typename OP, typename FMT = void, typename...VALs>
+struct tgt_insn_defn
 {
-    // map default "suffix" (void) to `int_<0>`  (ie: none)
-    using DEFN_SZ = meta::if_<std::is_void<SZ>, meta::int_<0>, SZ>;
+    // provide default for INFO_MAP (if defined as void)
+    using X_INFO_MAP = meta::if_<std::is_void<INFO_MAP>
+                               , meta::pair<void, void>
+                               , INFO_MAP>;
 
-    // map default "test" (void) to `int_<0>` (ie always allowed)
-    using TST     = meta::if_<std::is_void<  typename OP_INFO::tst>
-                            , meta::int_<0>, typename OP_INFO::tst>;
+    // prep the info-fn map values
+    using ZIPPED    = meta::zip<INFO_MAP>;
+    
+    // see if INFO_FLAGS is in the info-fn map
+    using FLAGS_IDX = meta::find_index<meta::front<ZIPPED>, INFO_FLAGS>;
 
+    // extract INFO_FN if INFO_FLAGS in map
+    // if `OP::info_fn` specified, don't override
+    // default to `info_fn_t` if not specified
+    using DFLT_INFO_FN = meta::if_<std::is_void<typename OP::info_fn>
+                                 , typename MCODE_T::info_fn_t
+                                 , typename OP::info_fn
+                                 >;
+
+    // if FN not specified in `OP` and the FLAGS in in `map`, retrieve appropriate `INFO_FN`
+    // NB: need to defer evaluation (prevent `at` from possibly being evaluated with `npos`)
+    using INFO_FN = std::conditional_t<
+                                    !std::is_void_v<typename OP::info_fn> ||
+                                    std::is_same_v<FLAGS_IDX, meta::npos>
+                                  , meta::id<DFLT_INFO_FN>
+                                  , meta::lazy::at<meta::back<ZIPPED>, FLAGS_IDX>
+                                  >;
+   
+    // *** CLEAN UP VALUES *** 
+    // NB: `meta::if_` is less typing, not better than, `std::conditional_t`
+
+    // map `void` FLAGS to zero
+    using DEFN_INFO_FLAGS = meta::if_<std::is_void<INFO_FLAGS>
+                                    , meta::int_<0>
+                                    , INFO_FLAGS
+                                    >;
+
+    // map `void` test to `int_<0>` (always matches)
+    using DEFN_TST        = meta::if_<std::is_void<typename OP::tst>
+                                    , meta::int_<0>
+                                    , typename OP::tst
+                                    >;
+   
     // six fixed types, plus additional `VALIDATORs`
-    using type = meta::list<DEFN_SZ
-                          , INFO_FN
-                          , NAME
-                          , typename OP_INFO::code
-                          , TST
-                          , FMT             // formatter
-                          , Ts...           // validators
+    using type = meta::list<DEFN_INFO_FLAGS     // rationalized FLAGS
+                          , meta::_t<INFO_FN>   // evaluate deferred calculation
+                          , NAME                // opcode base NAME
+                          , typename OP::code   // retrieve base binary code
+                          , DEFN_TST            // rationalized TST
+                          , FMT                 // formatter
+                          , VALs...             // validators
                           >;
 };
-
-#if 0
-// define specializations to default TGT & SIZE_FN: CODE holds BINARY code
-template <typename SZ, typename NAME, std::size_t CODE, typename...Ts>
-struct defn : insn_defn<SZ, NAME, OP<CODE>, Ts...> {};
-
-template <typename SZ, typename NAME, typename CODE, typename...Ts>
-struct defn<SZ, NAME, CODE::code, Ts...> : insn_defn<SZ, NAME, CODE, Ts...> {};
-#else
-
-template <typename...Ts>
-using defn   = insn_defn<Ts...>;
-
-template <typename...Ts>
-using x_defn = insn_defn<sz_void, Ts...>;
-
-#endif
-#if 0
-
-// define alias which omits size (default as `sz_void`)
-template <typename...Ts> 
-struct v_defn : defn<sz_void, Ts...> {};
-
-//template <typename NAME, std::size_t CODE, typename...Ts>
-//struct v_defn<NAME, meta::size_t<CODE>, Ts...> : v_defn<NAME, OP<CODE>, Ts...> {};
-#endif
-
-
-// a `callable` to create `insn` for each condition code
-template <unsigned SHIFT, typename SZ, typename NAME, typename...Args>
-struct cc_gen_defn
-{
-    template <typename CC>
-    using invoke = defn<SZ
-                      , string::str_cat<NAME, typename CC::name>
-                      , Args...
-                      >;
-};
-
-
-
 }
 
 

@@ -13,24 +13,16 @@ namespace kas::arm
 
 const char *arm_arg_t::set_mode(unsigned mode)
 {
+    base_t::set_mode(mode);
+    
     // implement non-generic modes
     switch (mode)
     {
         case MODE_REG_UPDATE:
             {
-#ifdef XXX
-                reg_t *reg_p = expr.template get_p<reg_t>();
-                if (reg_p && reg_p->kind(RC_GEN) == RC_GEN)
-                {
-                    reg = *reg_p;
-                    expr = {};
-                }
-                else
+                // `reg_p` not set before extract
+                if (reg_p && reg_p->kind(RC_GEN) != RC_GEN)
                     return "general register required";
-#else
-                if (!reg_p || reg_p->kind(RC_GEN) != RC_GEN)
-                    return "general register required";
-#endif
             }
             break;
         
@@ -38,8 +30,6 @@ const char *arm_arg_t::set_mode(unsigned mode)
             break;
             
     }
-
-    base_t::set_mode(mode);
     return {};
 }
 
@@ -63,6 +53,27 @@ bool arm_arg_t::is_immed() const
     }
 }
 
+// `shift` binary helpers
+uint16_t arm_shift::arm7_value() const
+{
+    if (is_reg)
+        return (type << 5) | (ext << 8) | 0x10;    
+    return (type << 5) | ((ext & 0x1f) << 7);
+}
+
+void arm_shift::arm7_set(uint16_t value)
+{
+    // extract "shift" from opcode.
+    is_reg = !!(value & 0x10);
+    value >>= 5;
+    type = value & 3;
+    value >>= 2;
+    value &=  0x1f;
+    if (is_reg)
+        ext = value >> 1;
+    else 
+        ext = value;
+}
 
 template <typename OS>
 void arm_arg_t::print(OS& os) const
@@ -110,6 +121,11 @@ void arm_arg_t::print(OS& os) const
 
         case MODE_REGSET:
             regset_p->print(os);
+            break;
+        
+        case MODE_REGSET_USER:
+            regset_p->print(os);
+            os << '^';
             break;
         
         case MODE_ERROR:
@@ -164,7 +180,7 @@ void arm_indirect::print(OS& os, arm_arg_t const& arg) const
 
     //std::cout << "arm_indirect: flags = " << std::hex << +flags << std::endl;
 
-    // for post-increment
+    // for post-indexed
     if (!p_flag)
        os << "]";
 

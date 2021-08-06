@@ -39,6 +39,11 @@ enum { RC_NONE
      , RC_FLT_SGL
      , RC_FLT_DBL
      , RC_FLT_QUAD
+// define generic "coprocessor" register classes
+     , RC_COPROC
+     , RC_C_REG
+     , RC_CR_REG
+//
      , NUM_RC
      };
 

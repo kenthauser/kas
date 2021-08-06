@@ -73,8 +73,8 @@ struct tgt_stmt : kas::parser::parser_stmt
     kas_error_t validate_args(insn_t const&, ARGS_T&, bool& args_arg_const, TRACE * = {});
 
     // method to validate mcode suitable for stmt.
-    // Principally for `hw_tst` & `stmt_info_t` validation
-    tagged_msg validate_stmt(mcode_t const *mcode_p) const { return {}; }
+    // Principally for `hw_tst` validation
+    const char *validate_stmt(mcode_t const *mcode_p) const { return {}; }
   
     // methods used by test fixtures
     std::string name() const override;
