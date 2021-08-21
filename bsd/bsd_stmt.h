@@ -15,6 +15,8 @@ namespace detail
 {
     using bsd_pseudo_tags = meta::list<
           struct bsd_basic_tag
+        , struct bsd_fixed_tag
+        , struct bsd_float_tag
         , struct bsd_macro_tag
         , struct bsd_elf_tag
         , struct bsd_dwarf_tag
@@ -54,7 +56,7 @@ struct bsd_stmt_label : kas::parser::parser_stmt
     opcode *gen_insn(opcode::data_t& data) override
     {
         static opc_label opc;
-        opc.proc_args(data, std::move(ident_p->ref()));
+        opc.proc_args(data, *ident_p, loc);
         return &opc;
     }
     
@@ -65,13 +67,14 @@ struct bsd_stmt_label : kas::parser::parser_stmt
     
     void print_args(print_obj const& fn) const override
     {
-        fn(ident_p->ref());
+        fn(*ident_p);
     }
 
     template <typename Context>
     void operator()(Context const& ctx);
     
     core::core_symbol_t *ident_p;
+    parser::kas_loc loc;
 };
 
 struct bsd_stmt_equ : kas::parser::parser_stmt
@@ -99,6 +102,7 @@ struct bsd_stmt_equ : kas::parser::parser_stmt
     
     core::core_symbol_t *ident_p;
     bsd_arg              value;
+    parser::kas_loc      loc;
 };
 
 struct bsd_stmt_org : kas::parser::parser_stmt
@@ -138,8 +142,8 @@ void bsd_stmt_pseudo::operator()(Context const& ctx)
     static bsd_stmt_pseudo obj;
     
     auto& args = x3::_attr(ctx);
-    obj.op       = boost::fusion::at_c<0>(args);
-    obj.v_args   = boost::fusion::at_c<1>(args);
+    obj.op        = boost::fusion::at_c<0>(args);
+    obj.v_args    = boost::fusion::at_c<1>(args);
     x3::_val(ctx) = &obj;
 }
 
@@ -147,12 +151,13 @@ void bsd_stmt_pseudo::operator()(Context const& ctx)
 template <typename Context>
 void bsd_stmt_label::operator()(Context const& ctx)
 {
-    // set instruction "location" from parsed ident location
+    // set object "location" from parsed ident location
     static bsd_stmt_label obj;
     
     auto& ident_tok = x3::_attr(ctx);
-    obj.ident_p = ident_tok.get_p(core::core_symbol_t());
-    x3::_val(ctx) = &obj;
+    obj.ident_p     = ident_tok.get_p(core::core_symbol_t());
+    obj.loc         = ident_tok;
+    x3::_val(ctx)   = &obj;
 }
 
 template <typename Context>
@@ -165,23 +170,24 @@ void bsd_stmt_equ::operator()(Context const& ctx)
     auto& value_tok = boost::fusion::at_c<1>(args);
 
     obj.ident_p = ident_tok.get_p(core::core_symbol_t());
+    obj.loc     = ident_tok;
     obj.value   = value_tok;
 
     x3::_val(ctx) = &obj;
 }
-#if 1
+
 template <typename Context>
 void bsd_stmt_org::operator()(Context const& ctx)
 {
     static bsd_stmt_org obj;
 
     // .org pseudo-op passed container of args. Emulate.
-    obj.v_args = bsd_args();
     auto& org_tok = x3::_attr(ctx);     // single token: expr
+    obj.v_args = bsd_args();
     v_args.push_back(org_tok);          // `org` pseudo-op need single op
     x3::_val(ctx) = &obj;
 }
-#endif
+
 }
 
 

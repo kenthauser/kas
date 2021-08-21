@@ -9,7 +9,7 @@
 // lookup of insn names
 // lookup of register names
 // lookup of expression operators (including aliases such as .or.)
-// lookup of pseudo-op names
+// lookup of directive names
 //
 // several of the above involve several instances in `sym_parser_t`.
 //
@@ -84,7 +84,7 @@ struct sym_parser_t
     sym_parser_t() = default;
 
     using VALUE_P_T = std::remove_pointer_t<typename ADDER::VALUE_T>;
-#if 1
+
     template <typename...Ts>
     sym_parser_t(Ts&&...ts)
     {
@@ -92,21 +92,11 @@ struct sym_parser_t
         //print_type_name{"sym_parser_t"}.name<VALUE_P_T>();
         //VALUE_P_T::hw_cpu_p = &arg;
     };
-#else
-    template <typename A, typename...Ts>
-    sym_parser_t(A&& arg, Ts&&...ts) //: VALUE_P_T(std::forward<Ts>(ts)...)
-    {
-        print_type_name{"sym_parser_t"}.name<VALUE_P_T>();
-        VALUE_P_T::hw_cpu_p = &arg;
-    };
-#endif
+    
     //
     // Perform all "run-time" operations
     //
-#if 0
-    // allocate parser at runtime
-    static inline x3_parser_t *parser;
-#endif
+    
     // use `ADDER` to initialize parser from `constexpr defns`
     void do_add() const
     {

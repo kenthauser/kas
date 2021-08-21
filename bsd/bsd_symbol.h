@@ -67,7 +67,6 @@ public:
 private:
     static void clear()
     {
-        //std::cout << "bsd_ident: clear" << std::endl;
         sym_table().clear();
     }
 
@@ -112,7 +111,7 @@ public:
 
         if (!sym_p)
         {
-            // insert occurred. create the symbol.
+            // insert required. create the symbol.
             // generate name stored in symbol table. not used by kas
             auto name = last() + bsd_sym_sep_str + std::to_string(n) + '$';
             sym_p = &symbol_type::add(name, tok, STB_LOCAL);

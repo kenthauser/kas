@@ -73,7 +73,7 @@ struct arm_shift_arg_rrx : arm_shift_arg
     template <typename Context>
     void operator()(Context const& ctx)
     {
-        shift.type = 3;  // RRX looks like ROR #0
+        shift.type = 3;  // RRX encoded like ROR #0
         x3::_val(ctx) = *this;
     }
 };

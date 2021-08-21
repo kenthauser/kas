@@ -27,10 +27,12 @@ struct bsd_common :  opc_common
         // validate first arg: symbol
         auto iter = args.begin();
         auto& loc = *iter;
-        auto sym_ref_p  = iter++->get_p<core::symbol_ref>();
-        if (!sym_ref_p)
+
+        print_type_name{"bsd_common::proc_args::loc"}(loc);
+        auto sym_p = iter++->get_p<core::core_symbol_t>();
+        if (!sym_p)
             return make_error(data, "symbol name required", loc);
-        
+
         // validate second arg: size
         auto size_p = iter->get_fixed_p();
         if (!size_p)
@@ -50,9 +52,8 @@ struct bsd_common :  opc_common
             else 
                 return make_error(data, "alignment must be fixed", *iter);
         }
-        
         // execute
-        opc_common::proc_args(data, binding, *size_p, align, sym_ref_p->get(), loc);
+        opc_common::proc_args(data, binding, *size_p, align, *sym_p, loc);
     }
 };
 
@@ -121,13 +122,12 @@ struct bsd_elf_size : opc_sym_size
             return make_error(data, err);
         auto iter = args.begin();
 
-        auto sym_p = iter->template get_p<core::symbol_ref>();
+        auto sym_p = iter->template get_p<core::core_symbol_t>();
         if (!sym_p)
             return make_error(data, "symbol required", *iter);
-
-        ++iter;
-        // args are `sym&, value const&, loc const&
-        opc_sym_size::proc_args(data, sym_p->get(), iter->expr(), *iter);
+    
+        // base_t::args are `sym&, value&&, loc const&
+        opc_sym_size::proc_args(data, *sym_p, iter[1].expr(), *iter);
     }
 };
 

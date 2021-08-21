@@ -10,7 +10,7 @@ namespace kas::core::opc
 using expression::e_fixed_t;
 using expression::e_string_t;
 
-// label & equ opcodes defined here to solve include problem...
+// define labels & equ's
 struct opc_label : opcode
 {
     // inherit default case
@@ -21,36 +21,40 @@ struct opc_label : opcode
 
     opc_label() = default;
 
-    // Constructor used to programatically create symbols
+    // method used to programatically create symbols
     // Examples of use:
     //  1. converting local common -> blocks starting with symbol (BSS)
     //  2. generating dwarf programs
 
-    void operator()(data_t& data, core_symbol_t& sym, short binding = STB_INTERNAL) const
+    const char *operator()(data_t& data, core_symbol_t& sym, short binding = STB_INTERNAL) const
     {
-        if (auto msg = sym.make_label(binding)) { 
+        if (auto msg = sym.make_label(binding))
+        { 
             //throw std::logic_error(std::string(__FUNCTION__) + ": " + msg);
             std::cout << __FUNCTION__ << ": " << msg << std::endl;
+            return msg;
         }
         
         // for case of block starting with symbol
         data.size = sym.size();
+        return {};
     }
 
-    void operator()(data_t& data, symbol_ref ref, short binding = STB_INTERNAL) const
+    const char *operator()(data_t& data, symbol_ref ref, short binding = STB_INTERNAL) const
     {
-        (*this)(data, ref.get(), binding);
+        return (*this)(data, ref.get(), binding);
     }
 
     // ctor used for `labels`
-    void proc_args(data_t& data, symbol_ref&& ref, uint32_t size = 0)
+    void proc_args(data_t& data, core_symbol_t& sym, kas_loc const& loc
+                 , uint16_t size = 0)
     {
-        if (auto msg = ref.get().make_label(STB_LOCAL))
-           return make_error(data, msg, ref);
-
-        if (auto msg = ref.get().size(size))
-            return make_error(data, msg, ref);
-
+        std::cout << "opc_label::proc_args: sym = " << sym << ", loc = " << loc.get() << std::endl;
+        if (auto msg = sym.make_label(STB_LOCAL))
+           return make_error(data, msg, loc);
+        if (size)
+            if (auto msg = sym.size(size))
+                return make_error(data, msg, loc);
         data.size = size;
     }
 
@@ -108,7 +112,7 @@ struct opc_common : opcode
     void proc_args(data_t& data, short binding, short comm_size, short align
                    , core_symbol_t& sym, kas_loc const& loc)
     {
-        if (auto result = sym.make_common(comm_size, binding, align))
+        if (auto result = sym.make_common(&loc, comm_size, binding, align))
             return make_error(data, result, loc);
 
         data.fixed.sym = sym.ref();

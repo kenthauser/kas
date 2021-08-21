@@ -75,9 +75,11 @@ public:
     void set_visibility(int8_t value) { s_visibility = value; }
 
     // methods to convert symbol type (returning error string)
-    const char *make_label (uint32_t binding = STB_LOCAL);
-    const char *make_common(uint32_t comm_size, int8_t binding, uint16_t align = 0);
-    const char *make_error( const char *msg = "Invalid Symbol");
+    const char *make_label (uint32_t binding = STB_LOCAL, parser::kas_loc const * = {});
+    const char *make_common(parser::kas_loc const *, uint32_t comm_size
+                         , int8_t binding, uint16_t align = 0);
+
+    const char *make_error(const char *msg = "Invalid Symbol", parser::kas_loc const * = {});
 
 #ifdef ENFORCE_FILE_FIRST_LOCAL
     // ELF requires `file` symbol to be first. Methods to enforce this...
@@ -122,11 +124,11 @@ public:
     template <typename OS> void print(OS&) const;
 
 private:
-#if 0
+
     template <typename OS>
     friend OS& operator<<(OS& os, core_symbol const& sym)
         { sym.print(os); return os; }
-#endif       
+
     std::string  s_name;
     typename addr_ref::object_t   *s_addr_p     {};
     expr_t      *s_value_p    {};
@@ -139,6 +141,12 @@ private:
     int8_t       s_visibility {};   // used by back end
 
     mutable uint32_t s_symnum {};   // assigned by "back end"
+    
+    // declare location where symbol is "defined" (eg label or common)
+    // base_t::obj_loc is where symbol is "allocated" (ie first referenced)
+    parser::kas_loc defined_loc;
+
+    // XXX no local statics...
     static inline core::kas_clear _c{base_t::obj_clear};
 };
 
@@ -147,7 +155,7 @@ template <typename REF>
 template <typename OS>
 void core_symbol<REF>::print(OS& os) const
 {
-    os << "[" << s_name << "(index: " << this->index() << ")]";
+    os << "[" << s_name << " (index: " << this->index() << ")]";
 }
 
 template <typename REF>

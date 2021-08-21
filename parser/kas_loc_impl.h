@@ -70,8 +70,8 @@ void parser::kas_error_t::print(OS& os) const
     auto& obj = get();
     os << "["  << "kas_error_t: "   << std::dec << index;
     os << ": " << ": " << obj.level_msg() << obj.message;
-    os << ": " << " loc: " << _loc.get();
-    os << ": " << _loc.where();
+    os << ": " << " loc: " << obj.loc().get();
+    os << ": " << obj.loc().where();
     os << "]"  << std::flush;
 }
 

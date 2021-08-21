@@ -7,7 +7,9 @@
 
 // get target stmt definitions
 #include "arm_stmt.h"
+#include "arm_directives.h"
 #include "parser/parser_stmt.h"
+#include "kas/kas_string.h"
 
 // Declare reg_t, insn_t & stmt_t parsers
 namespace kas::arm::parser
@@ -15,23 +17,29 @@ namespace kas::arm::parser
     namespace x3 = boost::spirit::x3;
     
     // parse insn names: defined by `insn_adder`
-    using arm_insn_x3 = x3::rule<struct _, kas::parser::kas_token>;
+    using arm_insn_x3 = x3::rule<struct _arm_insn, kas::parser::kas_token>;
     BOOST_SPIRIT_DECLARE(arm_insn_x3)
 
+    using arm_dir_op_x3 = x3::rule<struct _arm_op, kas::parser::kas_token>;
+    BOOST_SPIRIT_DECLARE(arm_dir_op_x3)
+
     // parse statements: defined in `arm_parser_def.h`
-    using arm_stmt_x3 = x3::rule<struct _, arm_stmt_t *>;
+    using arm_stmt_x3 = x3::rule<struct _arm_stmt, arm_stmt_t *>;
     BOOST_SPIRIT_DECLARE(arm_stmt_x3)
+    
+    using arm_dir_x3 = x3::rule<struct _arm_dir, arm_directive_t *>;
+    BOOST_SPIRIT_DECLARE(arm_dir_x3)
 }
 
-
-// Add stmt_t parser to `kas::parser` lists
-// NB: insn_t parser used to parse statements in `arm_parser_def.h`
+// Add ARM parsers to `kas::parser` lists
+// Conform `kas::parser` to ARM definitions 
 namespace kas::parser::detail
 {
     // statements parsed by parser
     template <> struct stmt_ops_l<defn_cpu> :
         meta::list<
               arm::parser::arm_stmt_x3
+     //       , arm::parser::arm_dir_x3
             > {};
 }
 

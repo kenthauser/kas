@@ -82,6 +82,24 @@ private:
     arm_sfx_t const *_sfx {};
 };
 
+// for `ARM` directives
+using arg_t = kas_token;
+using arg_v = std::vector<arg_t>;
+
+struct arm_directive_t : kas::parser::parser_stmt
+{
+    //std::string name() const override;
+    //void print_args(print_obj const& fn) const override;
+
+    opcode *gen_insn(opcode::data_t& data) override
+    {
+        return nullptr;
+    }
+
+    //template <typename Context>
+    //void operator()(Context const& ctx);
+};
+
 
 }
 

@@ -34,15 +34,15 @@ using bsd_args = std::vector<bsd_arg>;
 
 namespace kas::parser
 {
-    // Declare `token_defn_t` types with specialized `gen_data_p`
-    template <> void const *bsd::tok_bsd_ident::
-        gen_data_p(kas_token const&, std::type_info const&, void const *) const;
-    template <> void const *bsd::tok_bsd_local_ident::
-        gen_data_p(kas_token const&, std::type_info const&, void const *) const;
-    template <> void const *bsd::tok_bsd_numeric_ident::
-        gen_data_p(kas_token const&, std::type_info const&, void const *) const;
-    template <> void const *bsd::tok_bsd_dot::
-        gen_data_p(kas_token const&, std::type_info const&, void const *) const;
+// Declare `token_defn_t` types with specialized `gen_data_p`
+template <> void const *bsd::tok_bsd_ident::
+    gen_data_p(kas_token const&, std::type_info const&, void const *) const;
+template <> void const *bsd::tok_bsd_local_ident::
+    gen_data_p(kas_token const&, std::type_info const&, void const *) const;
+template <> void const *bsd::tok_bsd_numeric_ident::
+    gen_data_p(kas_token const&, std::type_info const&, void const *) const;
+template <> void const *bsd::tok_bsd_dot::
+    gen_data_p(kas_token const&, std::type_info const&, void const *) const;
 }
 
 #endif

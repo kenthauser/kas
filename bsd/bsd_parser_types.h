@@ -40,7 +40,13 @@ BOOST_SPIRIT_DECLARE(stmt_label_x3)
 // parser public interface
 namespace kas::parser::detail
 {
+
+// declare "name" of `defn_fmt` configuration
+// NB: must be one of declared names in "parser/paser_types.h"
+template <> struct fmt_defn_name<void> : fmt_bsd_type {};
+
 // use BSD comment & separator values as system values
+// XXX marked for deletion 
 template<> struct stmt_separator_str<void> : fmt_separator_str<> {};
 template<> struct stmt_comment_str  <void> : fmt_comment_str<>   {};
 

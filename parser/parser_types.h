@@ -11,10 +11,37 @@ namespace kas::parser
 {
 namespace x3 = boost::spirit::x3;
 
+// declare "global" override templates
 namespace detail
 {
-    template <typename = void> struct label_ops_l : meta::list<> {};
-    template <typename = void> struct stmt_ops_l  : meta::list<> {};
+    using namespace meta;
+    
+    // combine parser instructions from various subsystems
+    template <typename = void> struct label_ops_l : list<> {};
+    template <typename = void> struct stmt_ops_l  : list<> {};
+
+    // This "works" when there are only a few "formats"
+    // defns should match "fmt_defn_name" in "<fmt>/<fmt>_parser_types.h"
+    using fmt_bsd_type = KAS_STRING("bsd");
+    using fmt_arm_type = KAS_STRING("arm");
+
+    using fmt_defn_names_l = list<
+          fmt_bsd_type
+        , fmt_arm_type
+        >;
+
+    // override with selected `fmt_defn_name`
+    template <typename = void> struct fmt_defn_name : id<void> {};
+
+    // allow declaration of comment and seperation parsers
+    template <typename = void> struct parser_comment   : id<void> {};
+    template <typename = void> struct parser_separator : id<void> {};
+    
+    // override fixed-value pseudo ops based on architecture
+    // list values: target_value, <defn_fmt_name>...
+    // "void" default type allows per-fmt default if not defined
+    template <typename = void> struct fixed_directives : id<void> {};
+    template <typename = void> struct float_directives : id<void> {};
 }
 
 

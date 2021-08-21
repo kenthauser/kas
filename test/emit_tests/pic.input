@@ -1,0 +1,387 @@
+	@@ test
+dummy1:
+    .size   dummy1, 2
+    .size   myglob, 2
+    .size   2, dummy2
+    .globl  dummy1
+    .globl  myglob
+myglob:
+    @@ end
+    .cpu arm7tdmi
+	.eabi_attribute 20, 1
+	.eabi_attribute 21, 1
+	.eabi_attribute 23, 3
+	.eabi_attribute 24, 1
+	.eabi_attribute 25, 1
+	.eabi_attribute 26, 1
+	.eabi_attribute 30, 6
+	.eabi_attribute 34, 0
+	.eabi_attribute 18, 4
+	.file	"pic.c"
+	.text
+.Ltext0:
+	.cfi_sections	.debug_frame
+	.global	myglob
+	.data
+	.align	2
+	.type	myglob, %object
+	.size	myglob, 4
+myglob:
+	.word	42
+	.text
+	.align	2
+	.global	ml_util_func
+	.arch armv4t
+	.syntax unified
+	.arm
+	.fpu softvfp
+	.type	ml_util_func, %function
+ml_util_func:
+.LFB0:
+	.file 1 "pic.c"
+	.loc 1 4 1
+	.cfi_startproc
+	@ Function supports interworking.
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	@ link register save eliminated.
+	str	fp, [sp, #-4]!
+	.cfi_def_cfa_offset 4
+	.cfi_offset 11, -4
+	add	fp, sp, #0
+	.cfi_def_cfa_register 11
+	sub	sp, sp, #12
+	str	r0, [fp, #-8]
+	.loc 1 5 14
+	ldr	r3, [fp, #-8]
+	add	r3, r3, #1
+	.loc 1 6 1
+	mov	r0, r3
+	add	sp, fp, #0
+	.cfi_def_cfa_register 13
+	@ sp needed
+	ldr	fp, [sp], #4
+	.cfi_restore 11
+	.cfi_def_cfa_offset 0
+	bx	lr
+	.cfi_endproc
+.LFE0:
+	.size	ml_util_func, .-ml_util_func
+	.align	2
+	.global	ml_funct
+	.syntax unified
+	.arm
+	.fpu softvfp
+	.type	ml_funct, %function
+ml_funct:
+.LFB1:
+	.loc 1 8 1
+	.cfi_startproc
+	@ Function supports interworking.
+	@ args = 0, pretend = 0, frame = 16
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{fp, lr}
+	.cfi_def_cfa_offset 8
+	.cfi_offset 11, -8
+	.cfi_offset 14, -4
+	add	fp, sp, #4
+	.cfi_def_cfa 11, 4
+	sub	sp, sp, #16
+	str	r0, [fp, #-16]
+	str	r1, [fp, #-20]
+	.loc 1 9 17
+	ldr	r0, [fp, #-16]
+	bl	ml_util_func
+	mov	r2, r0
+	.loc 1 9 9
+	ldr	r3, [fp, #-20]
+	add	r3, r3, r2
+	str	r3, [fp, #-8]
+	.loc 1 10 12
+	ldr	r3, .L5
+	ldr	r2, [r3]
+	ldr	r3, [fp, #-8]
+	add	r3, r2, r3
+	ldr	r2, .L5
+	str	r3, [r2]
+	.loc 1 11 14
+	ldr	r3, .L5
+	ldr	r2, [r3]
+	ldr	r3, [fp, #-20]
+	add	r3, r2, r3
+	.loc 1 12 1
+	mov	r0, r3
+	sub	sp, fp, #4
+	.cfi_def_cfa 13, 8
+	@ sp needed
+	pop	{fp, lr}
+	.cfi_restore 14
+	.cfi_restore 11
+	.cfi_def_cfa_offset 0
+	bx	lr
+.L6:
+	.align	2
+.L5:
+	.word	myglob
+	.cfi_endproc
+.LFE1:
+	.size	ml_funct, .-ml_funct
+.Letext0:
+	.section	.debug_info,"",%progbits
+.Ldebug_info0:
+	.4byte	0xa1
+	.2byte	0x4
+	.4byte	.Ldebug_abbrev0
+	.byte	0x4
+	.uleb128 0x1
+	.4byte	.LASF0
+	.byte	0xc
+	.4byte	.LASF1
+	.4byte	.LASF2
+	.4byte	.Ltext0
+	.4byte	.Letext0-.Ltext0
+	.4byte	.Ldebug_line0
+	.uleb128 0x2
+	.4byte	.LASF3
+	.byte	0x1
+	.byte	0x1
+	.byte	0x5
+	.4byte	0x37
+	.uleb128 0x5
+	.byte	0x3
+	.4byte	myglob
+	.uleb128 0x3
+	.byte	0x4
+	.byte	0x5
+	.ascii	"int\000"
+	.uleb128 0x4
+	.4byte	.LASF4
+	.byte	0x1
+	.byte	0x7
+	.byte	0x5
+	.4byte	0x37
+	.4byte	.LFB1
+	.4byte	.LFE1-.LFB1
+	.uleb128 0x1
+	.byte	0x9c
+	.4byte	0x80
+	.uleb128 0x5
+	.ascii	"a\000"
+	.byte	0x1
+	.byte	0x7
+	.byte	0x12
+	.4byte	0x37
+	.uleb128 0x2
+	.byte	0x91
+	.sleb128 -20
+	.uleb128 0x5
+	.ascii	"b\000"
+	.byte	0x1
+	.byte	0x7
+	.byte	0x19
+	.4byte	0x37
+	.uleb128 0x2
+	.byte	0x91
+	.sleb128 -24
+	.uleb128 0x6
+	.ascii	"c\000"
+	.byte	0x1
+	.byte	0x9
+	.byte	0x9
+	.4byte	0x37
+	.uleb128 0x2
+	.byte	0x91
+	.sleb128 -12
+	.byte	0
+	.uleb128 0x7
+	.4byte	.LASF5
+	.byte	0x1
+	.byte	0x3
+	.byte	0x5
+	.4byte	0x37
+	.4byte	.LFB0
+	.4byte	.LFE0-.LFB0
+	.uleb128 0x1
+	.byte	0x9c
+	.uleb128 0x5
+	.ascii	"a\000"
+	.byte	0x1
+	.byte	0x3
+	.byte	0x16
+	.4byte	0x37
+	.uleb128 0x2
+	.byte	0x91
+	.sleb128 -12
+	.byte	0
+	.byte	0
+	.section	.debug_abbrev,"",%progbits
+.Ldebug_abbrev0:
+	.uleb128 0x1
+	.uleb128 0x11
+	.byte	0x1
+	.uleb128 0x25
+	.uleb128 0xe
+	.uleb128 0x13
+	.uleb128 0xb
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x1b
+	.uleb128 0xe
+	.uleb128 0x11
+	.uleb128 0x1
+	.uleb128 0x12
+	.uleb128 0x6
+	.uleb128 0x10
+	.uleb128 0x17
+	.byte	0
+	.byte	0
+	.uleb128 0x2
+	.uleb128 0x34
+	.byte	0
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.uleb128 0x39
+	.uleb128 0xb
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x3f
+	.uleb128 0x19
+	.uleb128 0x2
+	.uleb128 0x18
+	.byte	0
+	.byte	0
+	.uleb128 0x3
+	.uleb128 0x24
+	.byte	0
+	.uleb128 0xb
+	.uleb128 0xb
+	.uleb128 0x3e
+	.uleb128 0xb
+	.uleb128 0x3
+	.uleb128 0x8
+	.byte	0
+	.byte	0
+	.uleb128 0x4
+	.uleb128 0x2e
+	.byte	0x1
+	.uleb128 0x3f
+	.uleb128 0x19
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.uleb128 0x39
+	.uleb128 0xb
+	.uleb128 0x27
+	.uleb128 0x19
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x11
+	.uleb128 0x1
+	.uleb128 0x12
+	.uleb128 0x6
+	.uleb128 0x40
+	.uleb128 0x18
+	.uleb128 0x2116
+	.uleb128 0x19
+	.uleb128 0x1
+	.uleb128 0x13
+	.byte	0
+	.byte	0
+	.uleb128 0x5
+	.uleb128 0x5
+	.byte	0
+	.uleb128 0x3
+	.uleb128 0x8
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.uleb128 0x39
+	.uleb128 0xb
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x2
+	.uleb128 0x18
+	.byte	0
+	.byte	0
+	.uleb128 0x6
+	.uleb128 0x34
+	.byte	0
+	.uleb128 0x3
+	.uleb128 0x8
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.uleb128 0x39
+	.uleb128 0xb
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x2
+	.uleb128 0x18
+	.byte	0
+	.byte	0
+	.uleb128 0x7
+	.uleb128 0x2e
+	.byte	0x1
+	.uleb128 0x3f
+	.uleb128 0x19
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.uleb128 0x39
+	.uleb128 0xb
+	.uleb128 0x27
+	.uleb128 0x19
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x11
+	.uleb128 0x1
+	.uleb128 0x12
+	.uleb128 0x6
+	.uleb128 0x40
+	.uleb128 0x18
+	.uleb128 0x2117
+	.uleb128 0x19
+	.byte	0
+	.byte	0
+	.byte	0
+	.section	.debug_aranges,"",%progbits
+	.4byte	0x1c
+	.2byte	0x2
+	.4byte	.Ldebug_info0
+	.byte	0x4
+	.byte	0
+	.2byte	0
+	.2byte	0
+	.4byte	.Ltext0
+	.4byte	.Letext0-.Ltext0
+	.4byte	0
+	.4byte	0
+	.section	.debug_line,"",%progbits
+.Ldebug_line0:
+	.section	.debug_str,"MS",%progbits,1
+.LASF3:
+	.ascii	"myglob\000"
+.LASF0:
+	.ascii	"GNU C17 10.3.1 20210621 (release) -mcpu=arm7tdmi -m"
+	.ascii	"float-abi=soft -marm -march=armv4t -g\000"
+.LASF1:
+	.ascii	"pic.c\000"
+.LASF2:
+	.ascii	"/Users/kent/projects/kas\000"
+.LASF4:
+	.ascii	"ml_funct\000"
+.LASF5:
+	.ascii	"ml_util_func\000"
+@	.ident	"GCC: (GNU Arm Embedded Toolchain 10.3-2021.07) 10.3.1 20210621 (release)"

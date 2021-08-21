@@ -15,6 +15,9 @@
 // instruction definitions
 #include "insns_arm.h"
 
+// directives implementation
+#include "arm_ops.h"
+
 // parse instruction + args
 #include "arm_parser_def.h"
 
@@ -45,7 +48,7 @@ namespace kas::arm::parser
     using namespace kas::parser;
 
     //////////////////////////////////////////////////////////////////////////
-    // Register Parser Definition
+    // ARM Register Parser Definition
     //////////////////////////////////////////////////////////////////////////
 
     // generate symbol parser for register names
@@ -69,7 +72,7 @@ namespace kas::arm::parser
 
     
     //////////////////////////////////////////////////////////////////////////
-    // Instruction Parser Definition
+    // ARM Instruction Parser Definition
     //////////////////////////////////////////////////////////////////////////
 
     // combine all `insn` defns into single list & create symbol parser 
@@ -96,6 +99,22 @@ namespace kas::arm::parser
     // instantiate parsers
     BOOST_SPIRIT_INSTANTIATE(arm_insn_x3, iterator_type, stmt_context_type)
     BOOST_SPIRIT_INSTANTIATE(arm_stmt_x3, iterator_type, stmt_context_type)
+    
+    //////////////////////////////////////////////////////////////////////////
+    // ARM Directive Parser Definition
+    //////////////////////////////////////////////////////////////////////////
+
+    using arm_dir_op_parser_t = sym_parser_t<directive_op_t, arm_ops>;
+    arm_dir_op_x3 arm_dir_op_parser {"arm directives"};
+
+    auto const arm_dir_op_parser_def = 
+            x3::no_case[arm_dir_op_parser_t().x3()];
+
+    BOOST_SPIRIT_DEFINE(arm_dir_op_parser)
+
+//    BOOST_SPIRIT_INSTANTIATE(arm_dir_op_x3, iterator_type, stmt_context_type)
+//    BOOST_SPIRIT_INSTANTIATE(arm_dir_x3   , iterator_type, stmt_context_type)
+
 }
 
 namespace kas::tgt

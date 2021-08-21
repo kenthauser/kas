@@ -93,7 +93,7 @@ auto const at_ident = token<tok_bsd_at_ident>[(at_token_initial >> !digit) > +bs
 auto const at_num   = token<tok_bsd_at_num>  [(at_token_initial >>  uint_) > !bsd_charset];
 
 // 
-// define dot and idents `expr` parsers declared as `expr` types
+// define dot and idents `expr` parsers used to calculate `expr` values
 //
 // NB: these parsers declared in `bsd_expr_types.h`
 //
@@ -118,11 +118,12 @@ BOOST_SPIRIT_DEFINE(sym_parser, dot_parser)
 // local labels restart each time standard label defined.
 auto set_last = [](auto& ctx) { bsd_local_ident::set_last(ctx); };
 
-auto const ident_label = rule<class _lbl_ident, kas_token> {} =
+auto const ident_label = rule<class _, kas_token> {} =
         (label >> ':')[set_last];
-auto const local_label = rule<class _lbl_local, kas_token> {} =
+auto const local_label = rule<class _, kas_token> {} =
         (l_ident >> ':');
-auto const numeric_label = rule<class _lbl_numeric, kas_token> {} =
+// numeric label definitions have different format that label references
+auto const numeric_label = rule<class _, kas_token> {} =
         token<tok_bsd_numeric_ident>[omit[digit] >> ':'];
 
 // parse labels as `token`

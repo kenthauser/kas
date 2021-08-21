@@ -12,8 +12,8 @@
 #include "annotate_on_success.hpp"
 
 #include "parser_src.h"
+#include "parser_def.h"
 #include "token_parser.h"
-
 
 #include <boost/spirit/home/x3.hpp>
 #include <utility>
@@ -22,8 +22,13 @@ namespace kas::parser
 {
 namespace x3 = boost::spirit::x3;
 
-using stmt_comment   = meta::_t<detail::stmt_comment_str<>>;
-using stmt_separator = meta::_t<detail::stmt_separator_str<>>;
+// get "fmt" index
+using fmt_index = meta::find_index<detail::fmt_defn_names_l
+                                 , meta::_t<detail::fmt_defn_name<>>>;
+
+// extract "per-fmt" index from "per-arch" type array of separators
+using stmt_comment   = meta::at<meta::_t<detail::parser_comment  <>>, fmt_index>;
+using stmt_separator = meta::at<meta::_t<detail::parser_separator<>>, fmt_index>;
 
 //////////////////////////////////////////////////////////////////////////
 //  Parser Support Methods
@@ -34,11 +39,11 @@ using stmt_separator = meta::_t<detail::stmt_separator_str<>>;
 
 // parse to comment, separator, or end-of-line
 auto const stmt_eol = x3::rule<class _> {"stmt_eol"} =
-      ( x3::lit(stmt_comment()()) >> 
+      ( x3::lit(stmt_comment{}()) >> 
         x3::omit[*(x3::char_ - x3::eol)] >> 
         -x3::eol
       )
-    | x3::lit(stmt_separator()())
+    | x3::lit(stmt_separator{}())
     | x3::eol
     ;
 

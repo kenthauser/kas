@@ -91,7 +91,7 @@ using v7     = cpu_defn<STR("arm_v7"), v6t2>;
 using v7a    = cpu_defn<STR("arm_v7a"), v7>;
 using v7r    = cpu_defn<STR("arm_v7r"), v7>;
 using v7m    = cpu_defn<STR("arm_v7m"), v7>;
- 
+
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -169,5 +169,6 @@ using hw_tst  = typename cpu_defs_t::hw_tst;
 using hw_void  = std::integral_constant<int, 0>;
 extern cpu_defs_t cpu_defs;
 
+#undef STR
 }
 #endif

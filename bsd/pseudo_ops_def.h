@@ -93,14 +93,23 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
     template<> struct comma_ops_v<bsd_basic_tag> : list<
     // fixed data ops
           list<STR("byte"),         bsd_fixed<opc_fixed<std::int8_t>>>
-        , list<STR("word"),         bsd_fixed<opc_fixed<std::int16_t>>>
-        , list<STR("long"),         bsd_fixed<opc_fixed<std::int32_t>>>
+        , list<STR("2byte"),        bsd_fixed<opc_fixed<std::int16_t>>>
+        , list<STR("4byte"),        bsd_fixed<opc_fixed<std::int32_t>>>
+        , list<STR("8byte"),        bsd_fixed<opc_fixed<std::int64_t>>>
+        
+        // XXX, list<STR("word"),         bsd_fixed<opc_fixed<std::int16_t>>>
+        // XXX, list<STR("long"),         bsd_fixed<opc_fixed<std::int32_t>>>
+        , list<STR("half"),         bsd_fixed<opc_fixed<std::int16_t>>>
+        , list<STR("word"),         bsd_fixed<opc_fixed<std::int32_t>>>
+        , list<STR("long"),         bsd_fixed<opc_fixed<std::int64_t>>>
+
         , list<STR("quad"),         bsd_fixed<opc_fixed<std::int64_t>>>
         , list<STR("sleb128"),      bsd_fixed<opc_sleb128>>
         , list<STR("uleb128"),      bsd_fixed<opc_uleb128>>
         , list<STR("ascii"),        bsd_fixed<opc_string<std::false_type>>>
         , list<STR("asciz"),        bsd_fixed<opc_string<std::true_type>>>
         , list<STR("string"),       bsd_fixed<opc_string<std::true_type>>>
+
 //        , list<STR("single"),       bsd_fixed<opc_float<m68k::m68k_format_float::FMT_IEEE_32_SINGLE>>>
 //        , list<STR("double"),       bsd_fixed<opc_float<m68k::m68k_format_float::FMT_IEEE_64_DOUBLE>>>
 //        , list<STR("extended"),     bsd_fixed<opc_float<m68k::m68k_format_float::FMT_M68K_80_EXTEND>>>
@@ -129,8 +138,9 @@ using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<s
         , list<STR("data2"),        bsd_section, _SEG_DATA, _TWO>
         , list<STR("bss"),          bsd_section, _SEG_BSS>
     // symbol ops
-        , list<STR("globl"),        bsd_sym_binding, _STB_GLOBAL>
+        , list<STR("global"),       bsd_sym_binding, _STB_GLOBAL>
         , list<STR("local"),        bsd_sym_binding, _STB_LOCAL>
+        , list<STR("globl"),        bsd_sym_binding, _STB_GLOBAL>
 
         , list<STR("comm"),         bsd_common, _STB_GLOBAL>
         , list<STR("lcomm"),        bsd_common, _STB_LOCAL>

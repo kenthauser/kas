@@ -8,6 +8,7 @@
 #include "arm.h"
 #include "arm_stmt.h"
 #include "arm_stmt_flags.h"
+#include "arm_directives.h"
 #include "arm_parser_support.h"
 
 #include "expr/operators.h"     // for regset
@@ -196,9 +197,28 @@ auto const parse_insn = rule<class _, std::tuple<kas_token
 // Define statement rule:
 auto const arm_stmt_def = (parse_insn > arm_args)[arm_stmt_t()];
 
+//
+// ARM Directives
+//
+
+// comma separated tokens. Identifiers can have additional characters
+auto const arm_ident = token<tok_arm_ident>[char_("a-zA-Z_.0-9-")];
+auto const arm_dir_arg = rule<struct _, kas_token> {"arm directive arg"}
+    = arm_ident | expr();
+
+auto const arm_dir_args = rule<class _, std::vector<kas_token>> {}
+    = (arm_dir_arg % ',') % ','
+    | repeat(1)[expression::tok_missing()];
+
+auto const arm_dir_def = (arm_dir_op_x3() > arm_dir_args)[arm_directive_t()];
+
+//
 // c++ magic for external linkage
+//
+
 arm_stmt_x3 arm_stmt {"arm_stmt"};
-BOOST_SPIRIT_DEFINE(arm_stmt)
+arm_dir_x3  arm_dir  {"arm directive"};
+BOOST_SPIRIT_DEFINE(arm_stmt, arm_dir)
 }
 
 #endif

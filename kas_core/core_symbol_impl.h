@@ -51,7 +51,7 @@ const char *core_symbol<Ref>::set_value(expression::ast::expr_t& value, int8_t t
 }
 
 template <typename Ref>
-const char *core_symbol<Ref>::make_label(uint32_t binding)
+const char *core_symbol<Ref>::make_label(uint32_t binding, parser::kas_loc const *loc_p)
 {
     // if TOKEN or UNDEF, apply binding
     if (s_binding == STB_TOKEN || s_binding == STB_UNKN)
@@ -67,13 +67,19 @@ const char *core_symbol<Ref>::make_label(uint32_t binding)
     if (s_addr_p)
         return "Symbol previously defined";
 
+    if (loc_p)
+        defined_loc = *loc_p;
+
     s_addr_p = &core_addr_t::get_dot();
     return nullptr;
 }
 
 
 template <typename Ref>
-const char *core_symbol<Ref>::make_common(uint32_t comm_size, int8_t binding, uint16_t align)
+const char *core_symbol<Ref>::make_common(parser::kas_loc const *loc_p
+                                        , uint32_t comm_size
+                                        , int8_t binding
+                                        , uint16_t align)
 {
     if (auto err = set_type(STT_COMMON))
         return err;
@@ -85,19 +91,25 @@ const char *core_symbol<Ref>::make_common(uint32_t comm_size, int8_t binding, ui
     if (s_binding < 0)
         s_binding = binding;
 
+    if (loc_p)
+        defined_loc = *loc_p;
+
+
     s_align = align;
     return {};
 }
 
 template <typename Ref>
-const char *core_symbol<Ref>::make_error(const char *msg)
+const char *core_symbol<Ref>::make_error(const char *msg, parser::kas_loc const *loc_p)
 {
     // make global so backend symbol created (gen object on error...)
 #if 0
     s_binding = STB_GLOBAL;
     s_type    = STT_ERROR; 
 #endif
-    s_value_p = new expr_t(parser::kas_diag_t::error(msg, this->loc()));
+    if (!loc_p)
+        loc_p = &this->loc();
+    s_value_p = new expr_t(parser::kas_diag_t::error(msg, *loc_p));
     return msg;
 }
 
@@ -183,9 +195,9 @@ const char *core_symbol<Ref>::size(uint32_t new_size)
 
 template const char *core_symbol<symbol_ref>::set_type(int8_t new_type);
 template const char *core_symbol<symbol_ref>::set_value(expression::ast::expr_t& value, int8_t type);
-template const char *core_symbol<symbol_ref>::make_label(uint32_t binding);
-template const char *core_symbol<symbol_ref>::make_common(uint32_t comm_size, int8_t binding, uint16_t align);
-template const char *core_symbol<symbol_ref>::make_error(const char *msg);
+template const char *core_symbol<symbol_ref>::make_label(uint32_t binding, parser::kas_loc const *);
+template const char *core_symbol<symbol_ref>::make_common(parser::kas_loc const *, uint32_t comm_size, int8_t binding, uint16_t align);
+template const char *core_symbol<symbol_ref>::make_error(const char *msg, parser::kas_loc const *);
 template void core_symbol<symbol_ref>::set_sym_num(uint32_t num);
 
 template expr_t const*  core_symbol<symbol_ref>::value_p() const;
