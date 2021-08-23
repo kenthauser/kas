@@ -22,12 +22,12 @@ namespace detail
 
     // This "works" when there are only a few "formats"
     // defns should match "fmt_defn_name" in "<fmt>/<fmt>_parser_types.h"
-    using fmt_bsd_type = KAS_STRING("bsd");
-    using fmt_arm_type = KAS_STRING("arm");
+    using fmt_type_bsd = KAS_STRING("bsd");
+    using fmt_type_arm = KAS_STRING("arm");
 
     using fmt_defn_names_l = list<
-          fmt_bsd_type
-        , fmt_arm_type
+          fmt_type_bsd
+        , fmt_type_arm
         >;
 
     // override with selected `fmt_defn_name`

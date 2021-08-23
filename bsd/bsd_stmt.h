@@ -11,9 +11,11 @@
 
 namespace kas::bsd
 {
-namespace detail
+namespace parser::detail
 {
-    using bsd_pseudo_tags = meta::list<
+    using namespace meta;
+
+    using bsd_pseudo_tags = list<
           struct bsd_basic_tag
         , struct bsd_fixed_tag
         , struct bsd_float_tag
@@ -23,8 +25,8 @@ namespace detail
         >;
 
     // pseudos with "comma"-separated or "space"-separated args
-    template <typename tag = void> struct comma_ops_v : meta::list<> {};
-    template <typename tag = void> struct space_ops_v : meta::list<> {};
+    template <typename tag = void> struct comma_ops_v : list<> {};
+    template <typename tag = void> struct space_ops_v : list<> {};
 
     // forward declare pseudo-op type
     struct pseudo_op_t;
@@ -45,7 +47,7 @@ struct bsd_stmt_pseudo : kas::parser::parser_stmt
     template <typename Context>
     void operator()(Context const& ctx);
     
-    detail::pseudo_op_t const *op;
+    parser::detail::pseudo_op_t const *op;
     bsd_args v_args;
 };
 

@@ -52,7 +52,6 @@
 
 #include "parser/kas_token.h"
 #include "parser/token_parser.h"
-#include "parser/annotate_on_success.hpp"
 
 #include <boost/spirit/home/x3.hpp>
 
@@ -79,8 +78,8 @@ auto const label = token<tok_bsd_ident>[!digit >> +bsd_charset];
 auto const l_ident = token<tok_bsd_local_ident>[uint_ >> '$' >> !bsd_charset];
 
 // 3. numeric labels are single digit followed by `b` or `f` (ie back or forward)
-//    don't allow c++ binary character to match (eg: 0b'100'1101)
-//    omit value, pick up from matched "source"
+//    - don't allow c++ binary character to match (eg: 0b'100'1101)
+//    - omit value, pick up from matched "source"
 auto const n_ident = token<tok_bsd_numeric_ident>
                     [omit[digit >> char_("bBfF") >> !lit('\'') >> !bsd_charset]];
 
@@ -165,10 +164,15 @@ auto const comma_args = rule<class _, bsd::bsd_args> {}
         = comma_arg % ',';
 
 // NB: `comma_ops` have comma separated args. `space_ops` have space separated 
+comma_op_x3    comma_op     {"bsd::comma_op"};
+space_op_x3    space_op     {"bsd::space_op"};
+
+// NB: `BOOST_SPRIRIT_DEFN` defn in `bsd_stmt_impl.h`
+//BOOST_SPIRIT_DEFINE(comma_op, space_op)
 
 // Parse actual statements
-auto const stmt_comma_def = (comma_op_x3 > comma_args)[bsd_stmt_pseudo()];
-auto const stmt_space_def = (space_op_x3 > space_args)[bsd_stmt_pseudo()]; 
+auto const stmt_comma_def = (comma_op > comma_args)[bsd_stmt_pseudo()];
+auto const stmt_space_def = (space_op > space_args)[bsd_stmt_pseudo()]; 
 auto const stmt_equ_def   = ((label           >> '=') > space_arg)[bsd_stmt_equ()];
 auto const stmt_org_def   = ((omit[dot_ident] >> '=') > space_arg)[bsd_stmt_org()];
 
