@@ -18,14 +18,19 @@
 
 namespace kas::bsd::parser
 {
+// add namespace lookups for `bsd::parser`
 namespace x3 = boost::spirit::x3;
 using namespace kas::parser;
+}
 
+
+namespace kas::bsd::parser::bnf
+{
 // don't need to annotate location, since parsed as "tokens"
-using dot_parser_x3 = x3::rule<struct _bsd_dot, parser::kas_token>;
+using dot_parser_x3 = x3::rule<struct _bsd_dot, kas_token>;
 BOOST_SPIRIT_DECLARE(dot_parser_x3)
 
-using sym_parser_x3 = x3::rule<struct _bsd_sym, parser::kas_token>;
+using sym_parser_x3 = x3::rule<struct _bsd_sym, kas_token>;
 BOOST_SPIRIT_DECLARE(sym_parser_x3)
 }
 
@@ -53,8 +58,8 @@ template<> struct string_p<void> : id<quote<literal::c_string_parser>> {};
 //     Need `dot` to be searched before `sym` to
 //     prevent "." being parsed as symbol
 template<> struct term_parsers_v<defn_fmt> : meta::list<
-                         bsd::parser::sym_parser_x3
-                       , bsd::parser::dot_parser_x3
+                         bsd::parser::bnf::sym_parser_x3
+                       , bsd::parser::bnf::dot_parser_x3
                        > {};
 
 // declare bsd operator precedence rules:

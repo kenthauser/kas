@@ -42,13 +42,15 @@ namespace kas::tgt
                     ::binop(const char, core::core_expr_t const&) -> derived_t&;
     template auto tgt_reg_set<regset_t, reg_t, regset_ref>
                     ::binop(const char, int)   -> derived_t&;
-    
+   
+namespace parser
+{
     // instantiate routines referenced from stmt parsers
     template core::opcode *tgt_stmt<stmt_t, insn_t, arg_t, info_t>
                                 ::gen_insn(core::opcode::data_t&);
     template std::string   tgt_stmt<stmt_t, insn_t, arg_t, info_t>
                                 ::name() const;
-
+}
 #if 1
     // instantiate printers
     template void tgt_reg_set<regset_t, reg_t, regset_ref>

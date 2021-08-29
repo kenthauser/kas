@@ -55,7 +55,7 @@
 
 #include <boost/spirit/home/x3.hpp>
 
-namespace kas::bsd::parser
+namespace kas::bsd::parser::bnf
 {
 using namespace boost::spirit::x3;
 

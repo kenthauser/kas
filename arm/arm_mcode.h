@@ -65,8 +65,10 @@ struct arm_mcode_size_t : tgt::tgt_mcode_size_t
     using val_c_idx_t   = uint16_t;
 };
 
+
+
 struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t
-                                    , arm_stmt_t
+                                    , parser::arm_stmt_t
                                     , error_msg
                                     , arm_mcode_size_t
                                     >

@@ -20,10 +20,12 @@
 namespace kas::bsd
 {
 
-struct bsd_section_base : opc_segment
+struct bsd_section_base : bsd_opcode
 {
     // this is a helper-base class. restrict access
 protected:
+    static inline core::opc::opc_segment base_op;
+
 
     using seg_index_t  = typename core::core_segment::index_t;
     using kas_loc      = ::kas::parser::kas_loc;
@@ -32,14 +34,14 @@ protected:
     // NB: emit error & return zero if args invalid
     auto get_segment(data_t& data, bsd_args&& args
                    , const char *name = {}
-                   , short subsection = {}) -> seg_index_t;
+                   , short subsection = {}) const -> seg_index_t;
 
     // implement "set_segment" via `opc_segment` 
-    void set_segment(data_t& data, seg_index_t index)
+    void set_segment(data_t& data, seg_index_t index) const
     {
         previous = current;
         current  = index;
-        opc_segment::proc_args(data, index);
+        base_op.proc_args(data, index);
     }
     
     // support the BSD section stack.
@@ -51,26 +53,35 @@ protected:
     
     // get_segment support routines
     template <typename It>
-    const char *proc_elf_args(It& it, It const& end);
+    const char *proc_elf_args(It& it, It const& end) const;
     
     // ELF flags are passed as quoted string
-    const char *proc_elf_flags(e_string_t const& flags);
+    const char *proc_elf_flags(e_string_t const& flags) const;
     
     // for section flag calculation
-    kbfd::kbfd_word sh_type     {};
-    kbfd::kbfd_word sh_flags    {};
-    kbfd::kbfd_word kas_entsize  {};
-    kbfd::kbfd_word kas_linkage {};
-    core::core_segment const *kas_group_p {};   // support ELF section groups
+    // XXX needs to be structure, locally instantiated and passed as required
+    mutable kbfd::kbfd_word sh_type     {};
+    mutable kbfd::kbfd_word sh_flags    {};
+    mutable kbfd::kbfd_word kas_entsize  {};
+    mutable kbfd::kbfd_word kas_linkage {};
+    mutable core::core_segment const *kas_group_p {};   // support ELF section groups
 
     // for "push" "pop" section support
     static inline seg_index_t current, previous;
+public:
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
+    }
 };
 
 struct bsd_section : bsd_section_base
 {
-    void proc_args(data_t& data, bsd_args&& args
-                 , short arg_c, const char * const *str_v, short const *num_v)
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         // if `name` and `subsection` fixed args present, use them 
         if (arg_c > 1)
@@ -82,7 +93,7 @@ struct bsd_section : bsd_section_base
     }
 
     void proc_args(data_t& data, bsd_args&& args,
-                    const char *name = {}, short subsection = {})
+                    const char *name = {}, short subsection = {}) const
     {
         // if `name` and `subsection` specified, no args allowed
         // if `name` specified, max is 1 (subsection)
@@ -104,8 +115,11 @@ struct bsd_section : bsd_section_base
 
 struct bsd_push_section : bsd_section_base
 {
-    void proc_args(data_t& data, bsd_args&& args
-                    , short arg_c, const char * const *str_v, short const *num_v)
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         // examine arguments to get "new" segment index
         auto new_seg = get_segment(data, std::move(args));
@@ -121,8 +135,11 @@ struct bsd_push_section : bsd_section_base
 
 struct bsd_pop_section : bsd_section_base
 {
-    void proc_args(data_t& data, bsd_args&& args
-                    , short arg_c, const char * const *str_v, short const *num_v)
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         if (auto msg = validate_min_max(args, 0, 0))
             return make_error(data, msg);
@@ -136,8 +153,11 @@ struct bsd_pop_section : bsd_section_base
 
 struct bsd_previous_section : bsd_section_base
 {
-    void proc_args(data_t& data, bsd_args&& args
-                    , short arg_c, const char * const *str_v, short const *num_v)
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         if (auto msg = validate_min_max(args, 0, 0))
             return make_error(data, msg);
@@ -149,8 +169,11 @@ struct bsd_previous_section : bsd_section_base
 
 struct bsd_subsection : bsd_section_base
 {
-    void proc_args(data_t& data, bsd_args&& args
-                 , short arg_c, const char * const *str_v, short const *num_v)
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         // single argument required
         if (auto msg = validate_min_max(args, 1, 1))

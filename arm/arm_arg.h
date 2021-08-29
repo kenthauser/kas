@@ -6,7 +6,7 @@
 #include "arm_reg_types.h"
 #include "target/tgt_arg.h"
 
-namespace kas::arm
+namespace kas::arm::parser
 {
 
 // forward declare type

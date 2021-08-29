@@ -43,11 +43,6 @@ namespace kas::core::opc
 using parser::kas_error_t;
 using parser::kas_diag_t;
 
-#define OPC_INDEX()   \
-    uint16_t& opc_index() const override            \
-    {  static uint16_t index_; return index_; }     \
-    uint16_t opc_size() const override { return sizeof(*this); }
-
 struct opcode
 {
 #if 0
@@ -70,9 +65,7 @@ struct opcode
     virtual ~opcode() = default;
 
     // default call operator is no-op
-    void operator()(data_t&) const
-    {
-    }
+    void operator()(data_t&) const {}
     
     // declare virtual functions for evaluating opcodes
     virtual const char *name() const
@@ -80,7 +73,6 @@ struct opcode
         return typeid(*this).name();
     }
 
-    // NB: the `Iter` args are passed by value to generate a local copy
     virtual op_size_t calc_size(opcode_data& data, core_fits const& fits) const
     {
         return data.size;
@@ -90,31 +82,48 @@ struct opcode
     virtual void emit(opcode_data const& data, core_emit& base, core_expr_dot const *dot_p) const
     {}
 
-private:
-    // XXX Predates unbound opcode
-    virtual uint16_t& opc_index() const = 0;
-    virtual uint16_t  opc_size()  const = 0;
+//
+// Implement dynamic `opcode` definition system
+//
+// 1. Disallow member values in derived types by asserting
+//    sizeof(*this) is exactly "sizeof(void*)", ie the vtable pointer
+// 2. Define per-type static value `opc_index` to hold run-time defined
+//    opcode code. Require `final` opcodes to include `OPC_INDEX()` macro.
+//    OPC_INDEX macro defines a per-opcode static value (via a unique virtual 
+//    method exposed via vtable) to hold `index`
+// 3. Copy `vtable` pointer to "deque" and save index in `opc_index` value
+//    from `OPC_INDEX()` macro
+//
 
-    static constexpr uint16_t V_OPCODE_SZ = 64;
+// MACRO to allow for dynamic definition of opcodes.
+// This macro should be defined in each "final" `opcode`
+#define OPC_INDEX()   \
+    uint16_t& opc_index() const override            \
+    {  static uint16_t index_; return index_; }     \
+
+private:
+    // method holds local static to identify opcode
+    virtual uint16_t& opc_index() const = 0;
+
+    // synthensize "opcode"
+    // data member holds copy of `vtable` pointer.
+    // NB: conforms to "c++ object model", but not standard
     struct V_OPCODE
     {
         V_OPCODE(opcode const *p)
         {
-            auto n = p->opc_size();
-            if (n > V_OPCODE_SZ)
-                throw std::length_error(p->name() +
-                    std::string(" = ") + std::to_string(n));
-            std::memcpy(data, (void *)p, n);
-        }
-        
-        operator opcode *()
-        {
-            return reinterpret_cast<opcode *>(data);
+            // copy opcode vtable to instance data member
+            std::memcpy(data, (void *)p, sizeof(void *));
         }
 
-        uint8_t data[V_OPCODE_SZ];
+        operator opcode const *() const
+        {
+            return reinterpret_cast<opcode const *>(data);
+        }
+
+        uint8_t data[sizeof(void *)];
     };
-    
+
     static auto& opc_indexes ()
     {
         static auto _indexes = new std::deque<V_OPCODE>;
@@ -127,20 +136,24 @@ private:
         indexes.emplace_back(p);
         return indexes.size();
     }
-    // XXX
+
 public:
     uint16_t index() const
     {
         auto& idx = opc_index();
-        if (idx == 0)
+        if (!idx)
             idx = add_index(this);
         return idx;
     }
-    
-    static auto& get(uint16_t n)
+   
+    static opcode const& get(uint16_t n)
     {
-        return *opc_indexes()[n - 1];
+        return *opc_indexes()[n-1];
     }
+
+//
+// opcode definition methods
+//
 
     // if no arguments -- presumably result stored in fixed.
     void proc_args(opcode_data&) {}
@@ -157,25 +170,25 @@ public:
 
     // declare methods for creating opcodes
     template <typename C> 
-    kas_error_t validate(C&) { return {}; }
+    kas_error_t validate(C&) const { return {}; }
 
     template <typename C>
-    static kas_error_t validate_min_max(C&, uint16_t = 0, uint16_t = ~0);
+    kas_error_t validate_min_max(C&, uint16_t = 0, uint16_t = ~0) const;
 
-    void make_error(opcode_data& data, parser::kas_error_t err)
+    void make_error(opcode_data& data, parser::kas_error_t err) const
     {
         data.fixed.diag = err;
         data.size.set_error();
     }
 
     // convenience method: pass msg & `loc`
-    void make_error(opcode_data& data, std::string&& msg, kas::parser::kas_loc const& loc)
+    void make_error(opcode_data& data, std::string&& msg, kas::parser::kas_loc const& loc) const
     {
         return make_error(data, kas_diag_t::error(std::move(msg), loc));
     }
 
     template <typename REF, typename = std::enable_if_t<std::is_base_of_v<ref_loc_tag, REF>>>
-    void make_error(opcode_data& data, const char *msg, REF const& ref)
+    void make_error(opcode_data& data, const char *msg, REF const& ref) const
     {
         return make_error(data, msg, *ref.template get_p<kas::parser::kas_loc>());
     }
@@ -185,7 +198,7 @@ public:
 };
 
 template <typename C>
-kas_error_t opcode::validate_min_max(C& c, uint16_t min, uint16_t max)
+kas_error_t opcode::validate_min_max(C& c, uint16_t min, uint16_t max) const
 {
     // single arg can be "missing" or real arg.
     // clear container if "missing"
@@ -230,7 +243,7 @@ struct opc_error : opcode
         return "ERROR";
     }
 
-    void proc_args(opcode_data& data, kas::parser::kas_error_t diag)
+    void proc_args(opcode_data& data, kas::parser::kas_error_t diag) const
     {
         data.fixed.diag = diag;
     }
@@ -253,7 +266,7 @@ struct opc_error : opcode
 };
 }
 
-// copy "opcode" into kas::core
+// expose `opcode` in kas::core
 
 namespace kas::core
 {

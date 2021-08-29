@@ -10,9 +10,10 @@
 #include <boost/fusion/include/at.hpp>
 #include <vector>
 
-namespace kas::tgt
+namespace kas::tgt::parser
 {
 
+using namespace kas::parser;
 // default a default "info" for arch's which don't derive any info
 // from parsed stmt except for `name` and `args`
 struct tgt_stmt_info_t
@@ -102,6 +103,63 @@ struct tgt_stmt : kas::parser::parser_stmt
     std::vector<arg_t>      args;
 };
 
+//
+// Support per-target directives
+//
+
+using tgt_dir_arg  = parser::kas_token;
+using tgt_dir_args = std::vector<tgt_dir_arg>;
+
+namespace parser::detail
+{
+    // forward declare "definition" to hold directives
+    struct tgt_directive_t;
+}
+
+using parser::detail::tgt_directive_t;
+
+template <typename DERIVED_T>
+struct tgt_stmt_directive : kas::parser::parser_stmt
+{
+    using derived_t = DERIVED_T;
+    using opcode    = core::opcode;
+
+    // CRTP casts
+    auto& derived() const
+        { return *static_cast<derived_t const*>(this); }
+    auto& derived()
+        { return *static_cast<derived_t*>(this); }
+
+    // method used to assemble instruction
+    opcode *gen_insn(core::opcode::data_t&) override;
+
+    // methods used by test fixtures
+    std::string name() const override;
+
+    void print_args(print_obj const& p_obj) const override
+    {
+        p_obj(args);
+    }
+    
+    // generate `tgt_stmt` from args (used by parser)
+    template <typename Context>
+    void operator()(Context const& ctx);
+    
+    parser::detail::tgt_directive_t *op;
+    tgt_dir_args                     args;
+};
+
+struct tgt_dir_opcode : core::opc::opc_nop<KAS_STRING("TGT_DIRECTIVE")>
+{
+    // provide method to interpret args
+    virtual void tgt_proc_args(data_t& data, tgt_dir_args&& args) const {}
+
+    // get base opcode type
+    virtual core::opc::opcode const& op() const
+    {
+        return *this;
+    }
+};
 
 }
 

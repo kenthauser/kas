@@ -26,6 +26,7 @@
 #include "arm_mcode_impl.h"
 #include "arm_arg_impl.h"
 #include "arm_arg_serialize.h"
+#include "target/tgt_directives_impl.h"
 
 // instantiate global values controlling assembly
 namespace kas::arm::hw
@@ -41,7 +42,7 @@ namespace kas::arm
 }
 #endif
 
-namespace kas::arm::parser
+namespace kas::arm::parser::bnf
 {
     namespace x3 = boost::spirit::x3;
     using namespace x3;
@@ -99,12 +100,12 @@ namespace kas::arm::parser
     // instantiate parsers
     BOOST_SPIRIT_INSTANTIATE(arm_insn_x3, iterator_type, stmt_context_type)
     BOOST_SPIRIT_INSTANTIATE(arm_stmt_x3, iterator_type, stmt_context_type)
-    
+#if 0 
     //////////////////////////////////////////////////////////////////////////
     // ARM Directive Parser Definition
     //////////////////////////////////////////////////////////////////////////
 
-    using arm_dir_op_parser_t = sym_parser_t<directive_op_t, arm_ops>;
+    using arm_dir_op_parser_t = sym_parser_t<tgt_directive_t, arm_ops>;
     arm_dir_op_x3 arm_dir_op_parser {"arm directives"};
 
     auto const arm_dir_op_parser_def = 
@@ -114,7 +115,7 @@ namespace kas::arm::parser
 
 //    BOOST_SPIRIT_INSTANTIATE(arm_dir_op_x3, iterator_type, stmt_context_type)
 //    BOOST_SPIRIT_INSTANTIATE(arm_dir_x3   , iterator_type, stmt_context_type)
-
+#endif
 }
 
 namespace kas::tgt

@@ -11,15 +11,21 @@
 
 namespace kas::bsd
 {
-struct bsd_common :  opc_common
+struct bsd_common :  bsd_opcode
 {
-    void proc_args(data_t& data, bsd_args&& args
-                    , short arg_c, const char * const *str_v, short const *num_v)
+    static inline core::opc::opc_common base_op;
+
+
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         proc_args(data, std::move(args), num_v[0]);
     }
     
-    void proc_args(data_t& data, bsd_args&& args, short binding)
+    void proc_args(data_t& data, bsd_args&& args, short binding) const
     {
         if (auto result = validate_min_max(args, 2, 3))
             return make_error(data, result);
@@ -53,38 +59,60 @@ struct bsd_common :  opc_common
                 return make_error(data, "alignment must be fixed", *iter);
         }
         // execute
-        opc_common::proc_args(data, binding, *size_p, align, *sym_p, loc);
+        base_op.proc_args(data, binding, *size_p, align, *sym_p, loc);
+    }
+
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
     }
 };
 
-struct bsd_sym_binding :  opc_sym_binding
+struct bsd_sym_binding :  bsd_opcode
 {
-    void proc_args(data_t& data, bsd_args&& args
-                    , short arg_c, const char * const *str_v, short const *num_v)
+    static inline core::opc::opc_sym_binding base_op;
+
+
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         proc_args(data, std::move(args), num_v[0]);
     }
     
-    void proc_args(data_t& data, bsd_args&& args, short binding)
+    void proc_args(data_t& data, bsd_args&& args, short binding) const
     {
         if (auto result = validate_min_max(args, 1))
             return make_error(data, result);
 
         // get per-arg processing fn 
-        auto proc_fn = gen_proc_one(data, binding);
+        auto proc_fn = base_op.gen_proc_one(data, binding);
 
         for (auto& e : args) {
             //std::cout << "sym_binding: " << e << " -> " << binding << std::endl;
             proc_fn(e, e);      // pass arg & loc
         }
     }
+
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
+    }
 };
 
 
-struct bsd_elf_type : opc_sym_type
+struct bsd_elf_type : bsd_opcode
 {
-    template <typename...Ts>
-    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
+    static inline core::opc::opc_sym_type base_op;
+
+
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         if (auto err = validate_min_max(args, 2, 2))
             return make_error(data, err);
@@ -109,14 +137,25 @@ struct bsd_elf_type : opc_sym_type
         if (value < 0)
             return make_error(data, "invalid symbol type", *iter);
 
-        opc_sym_type::proc_args(data, value, sym_p->get(), loc);
+        base_op.proc_args(data, value, sym_p->get(), loc);
+    }
+
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
     }
 };
 
-struct bsd_elf_size : opc_sym_size
+struct bsd_elf_size : bsd_opcode
 {
-    template <typename...Ts>
-    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
+    static inline core::opc::opc_sym_size base_op;
+
+
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         if (auto err = opcode::validate_min_max(args, 2, 2))
             return make_error(data, err);
@@ -127,7 +166,12 @@ struct bsd_elf_size : opc_sym_size
             return make_error(data, "symbol required", *iter);
     
         // base_t::args are `sym&, value&&, loc const&
-        opc_sym_size::proc_args(data, *sym_p, iter[1].expr(), *iter);
+        base_op.proc_args(data, *sym_p, iter[1].expr(), *iter);
+    }
+
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
     }
 };
 

@@ -4,7 +4,7 @@
 // already included by `arm_parser_def.h`, but utilized in file
 #include "arm_stmt_flags.h"
 
-namespace kas::arm::parser
+namespace kas::arm::parser::bnf
 {
 using namespace x3;
 using namespace kas::parser;

@@ -34,7 +34,7 @@ namespace kas::bsd
 auto bsd_section_base::get_segment(data_t& data
                                  , bsd_args&& args
                                  , const char *seg_name
-                                 , short subsection) -> seg_index_t
+                                 , short subsection) const -> seg_index_t
 {
     auto it  = args.begin();
     auto end = args.end();
@@ -125,7 +125,7 @@ auto bsd_section_base::get_segment(data_t& data
 }
 
 template <typename It>
-const char *bsd_section_base::proc_elf_args(It& it, It const& end)
+const char *bsd_section_base::proc_elf_args(It& it, It const& end) const
 {
     // first arg must be a "string" of flags
     {
@@ -210,7 +210,7 @@ const char *bsd_section_base::proc_elf_args(It& it, It const& end)
 }
 
 // interpret elf flags
-const char *bsd_section_base::proc_elf_flags(e_string_t const& flags)
+const char *bsd_section_base::proc_elf_flags(e_string_t const& flags) const
 {
     // passed string object. examine & set `sh_flags`
     for (auto& c : flags())

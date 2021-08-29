@@ -10,7 +10,7 @@
 namespace kas::bsd
 {
 
-struct bsd_cfi_sections : core::opcode
+struct bsd_cfi_sections : bsd_opcode
 {
     OPC_INDEX();
 
@@ -20,8 +20,11 @@ struct bsd_cfi_sections : core::opcode
     //
     // default is `.eh_frame`
 
-    template <typename...Ts>
-    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         // single value sets ELF name
         if (auto err = opcode::validate_min_max(args, 1, 2))
@@ -37,13 +40,24 @@ struct bsd_cfi_sections : core::opcode
         }
 #endif
     }
+    
+    core::opc::opcode const& op() const override
+    {
+        return *this;
+    }
 };
 
 
-struct bsd_cfi_startproc : opc_df_startproc
+struct bsd_cfi_startproc : bsd_opcode
 {
-    template <typename...Ts>
-    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
+    static inline core::opc::opc_df_startproc base_op;
+
+
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         // optional arg "simple" omits prologue
         if (auto err = opcode::validate_min_max(args, 0, 1))
@@ -62,34 +76,56 @@ struct bsd_cfi_startproc : opc_df_startproc
                                 );
         }
 
-        opc_df_startproc::proc_args(data, args.front(), omit_prologue);
+        base_op.proc_args(data, args.front(), omit_prologue);
+    }
+    
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
     }
 
 };
 
-struct bsd_cfi_endproc : opc_df_endproc
+struct bsd_cfi_endproc : bsd_opcode
 {
-    template <typename...Ts>
-    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
+    static inline core::opc::opc_df_endproc base_op;
+
+
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         ::kas::parser::kas_position_tagged loc = args.front();
         if (auto err = opcode::validate_min_max(args, 0))
             return make_error(data, err);
-        opc_df_endproc::proc_args(data, loc);
+        base_op.proc_args(data, loc);
     }
 
+
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
+    }
 };
 
-struct bsd_cfi_oper : opc_df_oper
+struct bsd_cfi_oper : bsd_opcode
 {
-    void proc_args(data_t& data, bsd_args&& args
-                    , short arg_c, const char * const *str_v, short const *num_v)
+    static inline core::opc::opc_df_oper base_op;
+
+
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         proc_args(data, std::move(args), num_v[0], num_v[1]);
     }
 
     // don't inline common routine
-    void proc_args(data_t& data, bsd_args&& args, uint32_t cmd, uint32_t num_args);
+    void proc_args(data_t& data, bsd_args&& args, uint32_t cmd, uint32_t num_args) const;
     
     template <typename ARG_T>
     static const char *get_int_reg(ARG_T const& arg, uint32_t& result)
@@ -104,10 +140,15 @@ struct bsd_cfi_oper : opc_df_oper
             return "expected register or integer";
         return nullptr;
     }
+
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
+    }
 };
 
 
-void bsd_cfi_oper::proc_args(data_t& data, bsd_args&& args, uint32_t cmd, uint32_t num_args)
+void bsd_cfi_oper::proc_args(data_t& data, bsd_args&& args, uint32_t cmd, uint32_t num_args) const
 {
     // currently
     if (auto err = opcode::validate_min_max(args, num_args, num_args))
@@ -121,10 +162,10 @@ void bsd_cfi_oper::proc_args(data_t& data, bsd_args&& args, uint32_t cmd, uint32
     if (auto p = get_int_reg(*++arg_p, arg2))
         return make_error(data, p, *arg_p);
 
-    opc_df_oper::proc_args(data, cmd, arg1, arg2);
+    base_op.proc_args(data, cmd, arg1, arg2);
 }
 
-struct bsd_cfi_undef: core::opcode
+struct bsd_cfi_undef: bsd_opcode
 {
     OPC_INDEX();
 
@@ -144,22 +185,28 @@ struct bsd_cfi_undef: core::opcode
         , DEFN_CFI<CFI("lsda")> encoding, [exp] // define LSDA & encoding
         , DEFN_CFI<CFI("inline_lsda")>  [align] // LSDA data section (compact)
 #endif
-    void proc_args(data_t& data, bsd_args&& args
-                    , short arg_c, const char * const *str_v, short const *num_v);
+    static inline core::opc::opc_dw_file base_op;
+
+
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
+    {
+        auto cmd = str_v[0];
+        std::cout << "warning: " << cmd << " undefined " << std::endl;
+        // // single value sets ELF name
+        // if (opcode::validate_min_max(args, 1, 1))
+        //     return opc_sym_file::proc_args(di, std::move(args.front()));
+        // make_error("DWARF file");
+    }
+
+    core::opc::opcode const& op() const override
+    {
+        return *this;
+    }
 };
-
-void bsd_cfi_undef::proc_args(data_t& data, bsd_args&& args
-                    , short arg_c, const char * const *str_v, short const *num_v)
-{
-    auto cmd = str_v[0];
-    std::cout << "warning: " << cmd << " undefined " << std::endl;
-    // // single value sets ELF name
-    // if (opcode::validate_min_max(args, 1, 1))
-    //     return opc_sym_file::proc_args(di, std::move(args.front()));
-    // make_error("DWARF file");
 }
-}
-
-
 #endif
 

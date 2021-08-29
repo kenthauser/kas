@@ -33,8 +33,9 @@ struct fmt_shifter: arm_mcode_t::fmt_t::fmt_impl
 {
     using mcode_size_t = arm_mcode_t::mcode_size_t;
     using val_t        = arm_mcode_t::val_t;
+    using arg_t        = arm_mcode_t::arg_t;
   
-    bool insert(mcode_size_t* op, arm_arg_t& arg, val_t const *val_p) const override
+    bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
     {
         auto value = val_p->get_value(arg);
         op[1] |= value;
@@ -42,7 +43,7 @@ struct fmt_shifter: arm_mcode_t::fmt_t::fmt_impl
         return true;
     }
     
-    void extract(mcode_size_t const* op, arm_arg_t& arg, val_t const *val_p) const override
+    void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const override
     {
         auto value = (op[0] << 16) | op[1];
         val_p->set_arg(arg, value);
@@ -56,19 +57,20 @@ struct fmt_fixed : arm_mcode_t::fmt_t::fmt_impl
 {
     using mcode_size_t = arm_mcode_t::mcode_size_t;
     using val_t        = arm_mcode_t::val_t;
+    using arg_t        = arm_mcode_t::arg_t;
 
-    bool insert(mcode_size_t* op, arm_arg_t& arg, val_t const *val_p) const override
+    bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
     {
         op[1] |= val_p->get_value(arg);     // 12-bits into LSBs
         return true;
     }
     
-    void extract(mcode_size_t const* op, arm_arg_t& arg, val_t const *val_p) const override
+    void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const override
     {
         val_p->set_arg(arg, op[1]);
     }
 #if 0
-    void emit(core::core_emit& base, mcode_size_t *op, arm_arg_t& arg, val_t const *val_p) const override
+    void emit(core::core_emit& base, mcode_size_t *op, arg_t& arg, val_t const *val_p) const override
     {
     }
 #endif
@@ -78,19 +80,20 @@ struct fmt_movw : arm_mcode_t::fmt_t::fmt_impl
 {
     using mcode_size_t = arm_mcode_t::mcode_size_t;
     using val_t        = arm_mcode_t::val_t;
+    using arg_t        = arm_mcode_t::arg_t;
 
-    bool insert(mcode_size_t* op, arm_arg_t& arg, val_t const *val_p) const override
+    bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
     {
         // let reloc code insert value
         return false;
     }
     
-    void extract(mcode_size_t const* op, arm_arg_t& arg, val_t const *val_p) const override
+    void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const override
     {
         
     }
 #if 0
-    void emit(core::core_emit& base, mcode_size_t *op, arm_arg_t& arg, val_t const *val_p)
+    void emit(core::core_emit& base, mcode_size_t *op, arg_t& arg, val_t const *val_p)
     {
         static const kbfd::kbfd_reloc reloc { kbfd::ARM_REL_MOVW(), 4 };
         base << core::emit_reloc(reloc) << arg.expr;
@@ -117,7 +120,7 @@ struct fmt_reg_mode
     // shifted word mask (operates on 6-bit value)
     static constexpr auto MODE_MASK = ((1 << MODE_BITS) - 1) << 3;
 
-    static bool insert(uint16_t* op, arm_arg_t& arg, val_t const *val_p)
+    static bool insert(uint16_t* op, arg_t& arg, val_t const *val_p)
     {
         kas::expression::expr_fits fits;
         
@@ -135,7 +138,7 @@ struct fmt_reg_mode
         return fits.zero(arg.expr) == fits.yes;
     }
     
-    static void extract(uint16_t const* op, arm_arg_t& arg, val_t const *val_p)
+    static void extract(uint16_t const* op, arg_t& arg, val_t const *val_p)
     {
         auto value     = op[WORD];
         auto reg_num   = (value >>  SHIFT)                & 7;
@@ -161,7 +164,7 @@ struct fmt_reg_pair
     static constexpr auto MASK_0 = (BITS_MASK << SHIFT_0);
     static constexpr auto MASK_1 = (BITS_MASK << SHIFT_1);
  
-    static bool insert(uint16_t* op, arm_arg_t& arg, val_t const *val_p)
+    static bool insert(uint16_t* op, arg_t& arg, val_t const *val_p)
     {
         auto get_reg = [](auto& e)
             {
@@ -209,7 +212,7 @@ struct fmt_reg_pair
         return true;
     }
     
-    static void extract(uint16_t const* op, arm_arg_t& arg, val_t const *val_p)
+    static void extract(uint16_t const* op, arg_t& arg, val_t const *val_p)
     {
         // XXX if pair is resolved to same reg twice, should disassembler report
         // XXX `REG` or `REG:REG`. I belive all insns assemble the same with
@@ -244,8 +247,9 @@ template <unsigned SHIFT, int B4_OFFSET, unsigned SUB_BIT, unsigned WORD = 0, un
 struct fmt_subreg
 {
     using val_t = arm_mcode_t::val_t;
+    using arg_t = arm_mcode_t::arg_t;
 
-    static bool insert(uint16_t* op, arm_arg_t& arg, val_t const *val_p)
+    static bool insert(uint16_t* op, arg_t& arg, val_t const *val_p)
     {
 #if 0
         // validator return 6 bits: mode + reg
@@ -262,7 +266,7 @@ struct fmt_subreg
         return true;
     }
     
-    static void extract(uint16_t const* op, arm_arg_t& arg, val_t const *val_p)
+    static void extract(uint16_t const* op, arg_t& arg, val_t const *val_p)
     {
 #if 0
         auto value = op[WORD];
@@ -280,9 +284,10 @@ template <bool INVERT_LSB = false>
 struct fmt_emac_an
 {
     using val_t = arm_mcode_t::val_t;
+    using arg_t = arm_mcode_t::arg_t;
     //static constexpr auto MASK = (7 << SHIFT) | (7 << (SHIFT+MODE_OFFSET));
 
-    static bool insert(uint16_t* op, arm_arg_t& arg, val_t const *val_p)
+    static bool insert(uint16_t* op, arg_t& arg, val_t const *val_p)
     {
 #if 0
         // validator return 6 bits: mode + reg
@@ -299,7 +304,7 @@ struct fmt_emac_an
         return true;
     }
     
-    static void extract(uint16_t const* op, arm_arg_t& arg, val_t const *val_p)
+    static void extract(uint16_t const* op, arg_t& arg, val_t const *val_p)
     {
 #if 0
         auto value = op[WORD];

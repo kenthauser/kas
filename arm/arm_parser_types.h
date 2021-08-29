@@ -10,11 +10,11 @@
 #include "arm_directives.h"
 
 // Declare reg_t, insn_t & stmt_t parsers
-namespace kas::arm::parser
+namespace kas::arm::parser::bnf
 {
 // parse insn names: defined by `insn_adder`
-using arm_insn_x3   = x3::rule<struct _arm_insn, kas::parser::kas_token>;
-using arm_dir_op_x3 = x3::rule<struct _arm_op  , kas::parser::kas_token>;
+using arm_insn_x3   = x3::rule<struct _arm_insn, kas_token>;
+using arm_dir_op_x3 = x3::rule<struct _arm_op  , tgt_directive_t const *>;
 BOOST_SPIRIT_DECLARE(arm_insn_x3, arm_dir_op_x3)
 
 // parse statements: defined in `arm_parser_def.h`
@@ -29,7 +29,7 @@ namespace kas::parser::detail
 {
 // statements parsed by parser
 template <> struct stmt_ops_l<defn_cpu> : meta::list<
-              arm::parser::arm_stmt_x3
+              arm::parser::bnf::arm_stmt_x3
      //       , arm::parser::arm_dir_x3
             > {};
 }

@@ -30,7 +30,7 @@
 // XXX target dependent and expected by validators
 //  2)  bitfield arguments (the offset, width portion) are not separated
 //      by commas, but are a separate "tgt_arg_t" instance.
-namespace kas::tgt
+namespace kas::tgt::parser
 {
 
 using namespace kas::core::opc;
@@ -154,7 +154,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
         }
 
         // error location required: default to INSN
-        parser::kas_position_tagged const *loc_p = &insn_tok;
+        kas_position_tagged const *loc_p = &insn_tok;
 
         // if `arg` errored, pick up location from arg
         if (err_index > args.size())
@@ -162,7 +162,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
         if (err_index > 0)
             loc_p = &args[err_index-1];
 
-        data.fixed.diag = parser::kas_diag_t::error(err_msg, *loc_p).ref();
+        data.fixed.diag = kas_diag_t::error(err_msg, *loc_p).ref();
         return {};
     }
 
@@ -247,7 +247,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
 {
     // if no mcodes, error was saved instead of mcode
     if (insn.mcodes.empty())
-        return parser::kas_diag_t::error(insn.err(), insn_tok).ref();
+        return kas_diag_t::error(insn.err(), insn_tok).ref();
     
     // if first is dummy, no args to check
     if (args.front().is_missing())

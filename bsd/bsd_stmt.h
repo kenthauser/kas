@@ -7,10 +7,24 @@
 
 #include "kas_core/opc_symbol.h"
 #include "kas_core/opc_misc.h"
-#include "bsd_ops_core.h"
 
 namespace kas::bsd
 {
+
+struct bsd_opcode : core::opc::opc_nop<KAS_STRING("BSD_OPCODE")>
+{
+    // provide method to interpret args
+    virtual void bsd_proc_args(data_t& data, bsd_args&& args
+                             , short arg_c
+                             , const char  **str_v
+                             , short const *num_v
+                             ) const = 0;
+
+    // get base opcode type
+    virtual core::opc::opcode const& op() const = 0;
+};
+
+
 namespace parser::detail
 {
     using namespace meta;
@@ -41,7 +55,7 @@ struct bsd_stmt_pseudo : kas::parser::parser_stmt
     // pseduos need out-of-line name definitions
     std::string name() const override;
     
-    opcode *gen_insn(opcode::data_t& data) override;
+    opcode const *gen_insn(opcode::data_t& data) override;
     void print_args(print_obj const& fn) const override;
     
     template <typename Context>
@@ -55,7 +69,7 @@ struct bsd_stmt_pseudo : kas::parser::parser_stmt
 struct bsd_stmt_label : kas::parser::parser_stmt
 {
     // labels generate a `opc_label` insn
-    opcode *gen_insn(opcode::data_t& data) override
+    opcode const *gen_insn(opcode::data_t& data) override
     {
         static opc_label opc;
         opc.proc_args(data, *ident_p, loc);
@@ -82,7 +96,7 @@ struct bsd_stmt_label : kas::parser::parser_stmt
 struct bsd_stmt_equ : kas::parser::parser_stmt
 {
     // `equ` statements generate `equ` insns
-    opcode *gen_insn(opcode::data_t& data) override
+    opcode const *gen_insn(opcode::data_t& data) override
     {
         static opc_equ opc;
         opc.proc_args(data, *ident_p, value);
@@ -109,11 +123,12 @@ struct bsd_stmt_equ : kas::parser::parser_stmt
 
 struct bsd_stmt_org : kas::parser::parser_stmt
 {
-    // `org` statements generate `org` insns
-    opcode *gen_insn(opcode::data_t& data) override
+    // `stmt_org` parsed from ". = xxx"
+    // always one arg. no need to validate min/max etc
+    opcode const *gen_insn(opcode::data_t& data) override
     {
-        static bsd_org opc;
-        opc.proc_args(data, std::move(v_args));
+        static core::opc::opc_org opc;
+        opc.proc_args(data, v_args.front());
         return &opc;
     }
     

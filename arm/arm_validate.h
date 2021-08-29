@@ -58,17 +58,17 @@ struct val_range_update : val_range
 
 struct val_regset : arm_mcode_t::val_t
 {
-    fits_result ok(arm_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
-        return arg.mode() == MODE_REGSET ? fits.yes : fits.no;
+        return arg.mode() == arg_mode_t::MODE_REGSET ? fits.yes : fits.no;
     }
 };
 
 struct val_regset_user : val_regset
 {
-    fits_result ok(arm_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
-        return arg.mode() == MODE_REGSET_USER ? fits.yes : fits.no;
+        return arg.mode() == arg_mode_t::MODE_REGSET_USER ? fits.yes : fits.no;
     }
 };
 
@@ -77,18 +77,18 @@ struct val_shift : arm_mcode_t::val_t
 {
     constexpr val_shift() {}
 
-    fits_result ok(arm_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
-        return arg.mode() == MODE_SHIFT ? fits.yes : fits.no;
+        return arg.mode() == arg_mode_t::MODE_SHIFT ? fits.yes : fits.no;
     }
 
     // standard ARM encoding
-    unsigned get_value(arm_arg_t& arg) const override
+    unsigned get_value(arg_t& arg) const override
     {
         return arg.shift.arm7_value();
     }
 
-    void set_arg(arm_arg_t& arg, unsigned value) const override
+    void set_arg(arg_t& arg, unsigned value) const override
     {
         arg.shift.arm7_set(value);
     }
@@ -104,9 +104,9 @@ struct val_indir : arm_mcode_t::val_t
         return true;
     }
 
-    fits_result ok(arm_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
-        if (arg.mode() != MODE_REG_INDIR)
+        if (arg.mode() != arg_mode_t::MODE_REG_INDIR)
             return fits.no;
         if (auto p = arg.get_fixed_p())
             if (!only_8_significant_bits(*p))
@@ -123,7 +123,7 @@ struct val_indir : arm_mcode_t::val_t
     //
     // NB: L_flag && B_flag handled via `info` methods
 
-    uint32_t get_value(arm_arg_t& arg) const override
+    uint32_t get_value(arg_t& arg) const override
     {
         // first calculate upper word
         uint32_t value  = arg.reg_p->value(RC_GEN);
@@ -144,7 +144,7 @@ struct val_indir : arm_mcode_t::val_t
         return value;
     }
 
-    void set_arg(arm_arg_t& arg, uint32_t value) const override
+    void set_arg(arg_t& arg, uint32_t value) const override
     {
         // analyze upper word values first
         auto msw = value >> 16;
@@ -173,7 +173,7 @@ struct val_indir : arm_mcode_t::val_t
 // allow subset of address-mode-2 addressing modes
 struct val_post_index : val_indir
 {
-    fits_result ok(arm_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
         // p-flag indicates offset or pre-indexed addressing
         if (arg.indir.p_flag)
@@ -186,7 +186,7 @@ struct val_post_index : val_indir
 // allow subset of address-mode-2 addressing modes
 struct val_indir_offset : val_indir
 {
-    fits_result ok(arm_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
         // p_flag == 1 && w_flag == 0 indicates offset addressing
         if (!(arg.indir.p_flag && !arg.indir.w_flag))
@@ -199,7 +199,7 @@ struct val_indir_offset : val_indir
 // ARM5 Adddressing mode 3: subset of ARM5 addressing mode 2
 struct val_ls_misc : val_indir
 {
-    fits_result ok(arm_arg_t& arg, expr_fits const& fits) const override
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
         // shift arg not allowed for misc loads/stores
         if (arg.shift.value() != 0)
@@ -213,7 +213,7 @@ struct val_ls_misc : val_indir
     }
    
     // addressing mode 3 is similar to addressing mode 2 w/o shifts
-    uint32_t get_value(arm_arg_t& arg) const override
+    uint32_t get_value(arg_t& arg) const override
     {
         // first calculate "base" value
         uint32_t value  = val_indir::get_value(arg);
@@ -228,7 +228,7 @@ struct val_ls_misc : val_indir
         return value;
     }
 
-    void set_arg(arm_arg_t& arg, uint32_t value) const override
+    void set_arg(arg_t& arg, uint32_t value) const override
     {
         // mask out "shifter" values, but allow Rm
         val_indir::set_arg(arg, value & ~0xff0);
@@ -248,7 +248,7 @@ struct val_imm8: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
     // XXX is there a relocation: may need to validate constant
     constexpr val_imm8(...) : base_t(-255, 255) {}
     
-    unsigned get_value(arm_arg_t& arg) const override
+    unsigned get_value(arg_t& arg) const override
     {
         auto value = base_t::get_value(arg);
 
@@ -261,7 +261,7 @@ struct val_imm8: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
         return value;
     }
 
-    void set_arg(arm_arg_t& arg, unsigned value) const override
+    void set_arg(arg_t& arg, unsigned value) const override
     {
         base_t::set_arg(arg, value);
         auto n = ((value & 0xf00) >> 4) + (value & 0x0f);
@@ -277,13 +277,13 @@ struct val_s_off25_8: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
     static const auto min = -(1 << 25) + 8;
     constexpr val_s_off25_8(...) : base_t(max, min) {}
     
-    unsigned get_value(arm_arg_t& arg) const override
+    unsigned get_value(arg_t& arg) const override
     {
         auto value = base_t::get_value(arg) - 8;
         return (value >> 2) & 0xfff;
     }
 
-    void set_arg(arm_arg_t& arg, unsigned value) const override
+    void set_arg(arg_t& arg, unsigned value) const override
     {
         // convert 24-bit signed to 32-bit signed
         int32_t disp = value << 8;      // move "sign" to MSB.
@@ -309,7 +309,7 @@ using _val_reg = _val_gen<NAME, val_reg, Ts...>;
 
 // register-class and reg+mode validations
 VAL_REG(REG         , RC_GEN);
-VAL_REG(REG_UPDATE  , RC_GEN, val_reg::all_regs, MODE_REG_UPDATE);
+VAL_REG(REG_UPDATE  , RC_GEN, val_reg::all_regs, parser::MODE_REG_UPDATE);
 VAL_REG(FLT_SGL     , RC_FLT_SGL);
 VAL_REG(FLT_DBL     , RC_FLT_DBL);
 

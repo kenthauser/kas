@@ -50,15 +50,13 @@ struct k_string : STR
 };
 
 // create a "fixed constant" type which has:
-//    -- a `value` member holding type's value
-//    -- an `operator const char *()` for initing test fixture messages
-template<typename T, T N>
-struct k_constant : std::integral_constant<T, N>
+//    -- derives from kas_string for test fixure messages
+//    -- an `operator const T()` for retrieving constant value
+
+template <typename T, T N>
+struct k_constant : i2s<N>
 {
-    constexpr operator const char *() const
-    {
-        return i2s<N>();
-    }
+    constexpr operator T () const { return N; }
 };
 
 #define STR KAS_STRING 
@@ -120,6 +118,7 @@ template<> struct comma_ops_v<bsd_basic_tag> : list<
 , list<STR("quad"),         bsd_fixed<opc_fixed<std::int64_t>>>
 , list<STR("sleb128"),      bsd_fixed<opc_sleb128>>
 , list<STR("uleb128"),      bsd_fixed<opc_uleb128>>
+
 , list<STR("ascii"),        bsd_fixed<opc_string<std::false_type>>>
 , list<STR("asciz"),        bsd_fixed<opc_string<std::true_type>>>
 , list<STR("string"),       bsd_fixed<opc_string<std::true_type>>>
@@ -133,7 +132,6 @@ template<> struct comma_ops_v<bsd_basic_tag> : list<
 //, list<STR("string32"),     opc_string<std::true_type>, std::uint32_t>
 //, list<STR("string64"),     opc_string<std::true_type>, std::uint64_t>
 #endif
-
 // program counter ops
 , list<STR("skip"),         bsd_skip>
 , list<STR("org"),          bsd_org>

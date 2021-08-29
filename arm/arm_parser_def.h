@@ -18,7 +18,7 @@
 
 #include <boost/fusion/include/std_pair.hpp>
 
-namespace kas::arm::parser
+namespace kas::arm::parser::bnf
 {
 using namespace x3;
 using namespace kas::parser;

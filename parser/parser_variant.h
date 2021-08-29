@@ -36,7 +36,7 @@ struct stmt_t: kas_position_tagged
     stmt_t(kas_diag_t const& diag) : stmt_t(diag.ref()) {}
     stmt_t(kas_error_t const& ref) : kas_position_tagged(ref.get_loc())
     {
-        static detail::stmt_diag diag;
+        static impl::stmt_diag diag;
         stmt      = &diag;
         diag.diag = ref;
     }

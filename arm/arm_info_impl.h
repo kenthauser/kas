@@ -12,13 +12,15 @@ struct arm_info_fn_base : arm_mcode_t::info_fn_t
 {
     using base_t = typename arm_mcode_t::info_fn_t;
     using code_t = typename base_t::code_t;
+    using arm_stmt_info_t = parser::arm_stmt_info_t;
+    using arm_sfx_t       = parser::arm_sfx_t;
 
     // CCODE: 4 bits shifted 28
     void insert_ccode(code_t& code, stmt_info_t const& stmt_info) const
     {
         auto ccode = stmt_info.ccode;
-        if (ccode == arm_stmt_info_t::ARM_CC_OMIT)
-            ccode = arm_stmt_info_t::ARM_CC_ALL;
+        if (ccode == parser::arm_stmt_info_t::ARM_CC_OMIT)
+            ccode = parser::arm_stmt_info_t::ARM_CC_ALL;
 
         code[0] |= ccode << (28 - 16);
     }
@@ -26,8 +28,8 @@ struct arm_info_fn_base : arm_mcode_t::info_fn_t
     void extract_ccode(mcode_size_t const *code_p, stmt_info_t& info) const
     {
         auto ccode = code_p[0] >> (28 - 16);
-        if (ccode == arm_stmt_info_t::ARM_CC_ALL)
-            ccode = arm_stmt_info_t::ARM_CC_OMIT;
+        if (ccode == parser::arm_stmt_info_t::ARM_CC_ALL)
+            ccode = parser::arm_stmt_info_t::ARM_CC_OMIT;
         info.ccode = ccode;
     }
 
@@ -211,13 +213,13 @@ struct arm_info_a7_c_sfx : arm_info_fn_base
 
         switch (sfx_p->type)
         {
-            case SFX_B:
-            case SFX_T:
-            case SFX_M:
+            case parser::SFX_B:
+            case parser::SFX_T:
+            case parser::SFX_M:
                 msw = value << 4;
                 break;
 
-            case SFX_H:
+            case parser::SFX_H:
                 msw = (value & 1) << 4;     // get L-bit
                 lsw = (value & 0x60);
                 break;
@@ -241,16 +243,16 @@ struct arm_info_a7_c_sfx : arm_info_fn_base
         // interesting flags depend on `arm_sfx_enum`
         switch (type)
         {
-            case SFX_B:
+            case parser::SFX_B:
                 return ms_flags & 4;    // just return `B` bit
-            case SFX_T:
+            case parser::SFX_T:
                 // validate P_FLAG == 0 && W_FLAG == 1
                 if (ms_flags & 0x10)
                     break;
                 return ms_flags & 6;
-            case SFX_M:
+            case parser::SFX_M:
                 break;
-            case SFX_H:
+            case parser::SFX_H:
             {
                 return (code_p[1] & 0x60) ^ (ms_flags & 1);
             }

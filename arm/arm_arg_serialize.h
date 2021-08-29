@@ -12,7 +12,7 @@
 #include "arm_arg.h"
 
 
-namespace kas::arm
+namespace kas::arm::parser
 {
 
 template <typename Inserter, typename ARG_INFO>

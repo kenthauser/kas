@@ -6,7 +6,7 @@
 #include "bsd_ops_section_impl.h"
 
 
-namespace kas::bsd::parser
+namespace kas::bsd::parser::bnf
 {
 using namespace x3;
 using namespace kas::parser;

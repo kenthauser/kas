@@ -11,10 +11,17 @@
 
 namespace kas::bsd
 {
-struct bsd_file : core::opc::opc_dw_file
+//struct bsd_file : core::opc::opc_dw_file
+struct bsd_file : bsd_opcode
 {
-    template <typename...Ts>
-    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
+    static inline core::opc::opc_dw_file base_op;
+
+
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         if (auto err = validate_min_max(args, 1, 2))
             return make_error(data, err);
@@ -32,18 +39,26 @@ struct bsd_file : core::opc::opc_dw_file
         if (!name_p)
             return make_error(data, "file name required", *iter);
 
-        opc_dw_file::proc_args(data, index, (*name_p)().c_str(), args.back());
+        base_op.proc_args(data, index, (*name_p)().c_str(), args.back());
+    }
+
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
     }
 };
 
-struct bsd_elf_ident : core::opcode
+struct bsd_elf_ident : bsd_opcode
 {
     OPC_INDEX();
 
     const char *name() const override { return "IDENT"; }
 
-    template <typename...Ts>
-    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         if (auto err = opcode::validate_min_max(args, 1, 1))
             return make_error(data, err);
@@ -64,6 +79,11 @@ struct bsd_elf_ident : core::opcode
         auto& di = data.di();
         *di++ = std::move(iter->expr());
     }
+    
+    core::opc::opcode const& op() const override
+    {
+        return *this;
+    }
 };
 
 // the ".loc" opcode is fundamental for dwarf line debugging
@@ -80,9 +100,9 @@ struct bsd_elf_ident : core::opcode
 // keyword valided against "official" names in "dwarf::dwarf_defns.inc"
 // NB: processing is liberal: no order is enforced. positional can be passed as keyword.
 
-struct bsd_loc : opc_dw_line 
+struct bsd_loc : bsd_opcode
 {
-    using base_t = opc_dw_line;
+    static inline core::opc::opc_dw_line base_op;
         
     // name positional arguments
     // NB: names must match values in "dwarf::dwarf_defns.inc"
@@ -96,8 +116,11 @@ struct bsd_loc : opc_dw_line
             , "epilogue_begin"
         };
 
-    template <typename...Ts>
-    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         // first two positional args are required.
         // pick absurdly large number for max, so as to limit fixed buffer size
@@ -107,7 +130,7 @@ struct bsd_loc : opc_dw_line
         if (auto err = opcode::validate_min_max(args, MIN_LOC_ARGS, MAX_LOC_ARGS))
             return make_error(data, err);
         // create array of "key/value" pairs for output
-        dl_data::dl_pair values[MAX_LOC_ARGS];
+        dwarf::dl_data::dl_pair values[MAX_LOC_ARGS];
 
         auto out    = std::begin(values);
         auto in     = args.begin();
@@ -136,7 +159,7 @@ struct bsd_loc : opc_dw_line
                     } else {
                         // optional arg: ignore if zero
                         if (*p)
-                            *out++ = { dl_data::lookup(*name_p), *p };
+                            *out++ = { dwarf::dl_data::lookup(*name_p), *p };
                     }
 
                     // check for end of positional args
@@ -158,7 +181,7 @@ struct bsd_loc : opc_dw_line
             if (!key_p)
                 return make_error(data, "expected a dwarf line keyword", *in);
 
-            auto key = dl_data::lookup(key_p->get().name().c_str());
+            auto key = dwarf::dl_data::lookup(key_p->get().name().c_str());
 
             if (!key)
                 return make_error(data, "unknown dwarf line keyword", *in);
@@ -177,7 +200,12 @@ struct bsd_loc : opc_dw_line
         auto cnt = out - values;
 
         // pass first two values (file, line) as fixed arguments
-        base_t::proc_args(data, values[0].second, values[1].second, &values[2], cnt-2);
+        base_op.proc_args(data, values[0].second, values[1].second, &values[2], cnt-2);
+    }
+    
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
     }
 };
 

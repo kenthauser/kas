@@ -10,7 +10,7 @@
 #include "bsd_stmt.h"
 #include <boost/spirit/home/x3.hpp>
 
-namespace kas::bsd::parser
+namespace kas::bsd::parser::bnf
 {
 // declare directive name parsers
 using comma_op_x3 = x3::rule<class _bsd_comma, detail::pseudo_op_t const *>;
@@ -39,15 +39,15 @@ template <> struct fmt_defn_name<void> : fmt_type_bsd {};
 
 // parsers for label statements 
 template <> struct label_ops_l<defn_fmt> : meta::list<
-          bsd::parser::stmt_label_x3
+          bsd::parser::bnf::stmt_label_x3
         > {};
 
 // parsers for non-label statements
 template <> struct stmt_ops_l<defn_fmt> : meta::list<
-          bsd::parser::stmt_comma_x3
-        , bsd::parser::stmt_space_x3
-        , bsd::parser::stmt_equ_x3
-        , bsd::parser::stmt_org_x3
+          bsd::parser::bnf::stmt_comma_x3
+        , bsd::parser::bnf::stmt_space_x3
+        , bsd::parser::bnf::stmt_equ_x3
+        , bsd::parser::bnf::stmt_org_x3
         > {};
 }
 

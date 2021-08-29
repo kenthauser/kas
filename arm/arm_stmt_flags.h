@@ -3,7 +3,7 @@
 
 #include "kas/kas_string.h"
 
-namespace kas::arm
+namespace kas::arm::parser
 {
 
 // parse condition codes

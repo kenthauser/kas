@@ -16,13 +16,15 @@
 
 #include "kbfd/target/arm.h"
 
-namespace kas::arm
+namespace kas::arm::parser
 {
+
+using namespace tgt::parser;
 // info: accumulate info from parsing insn not captured in `args`
 // NB: bitfields don't zero-init. use `aliagn_as` support type to zero-init
-struct arm_stmt_info_t : detail::alignas_t<arm_stmt_info_t
-                                         , uint16_t
-                                         , tgt::tgt_stmt_info_t>
+struct arm_stmt_info_t : alignas_t<arm_stmt_info_t
+                                , uint16_t
+                                , tgt_stmt_info_t>
 {
     using base_t::base_t;
     
@@ -63,11 +65,11 @@ using arm_insn_t = tgt::tgt_insn_t<struct arm_mcode_t
 // forward declare "instruction suffix code" type (from "arm_stmt_flags.h")
 struct arm_sfx_t;
 
-struct arm_stmt_t : tgt::tgt_stmt<arm_stmt_t
-                                , arm_insn_t
-                                , arm_arg_t
-                                , arm_stmt_info_t
-                                >
+struct arm_stmt_t : tgt_stmt<arm_stmt_t
+                           , arm_insn_t
+                           , arm_arg_t
+                           , arm_stmt_info_t
+                           >
 {
     using base_t::base_t;
     

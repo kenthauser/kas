@@ -7,7 +7,7 @@
 #include "arm_mcode.h"
 #include "arm_stmt_flags.h"
 
-namespace kas::arm
+namespace kas::arm::parser
 {
 
 // validate parse of arm_stmt

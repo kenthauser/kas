@@ -8,7 +8,7 @@
 #include "arm_float_format.h"
 #include "arm_error_messages.h"
 
-namespace kas::arm
+namespace kas::arm::parser
 {
 
 const char *arm_arg_t::set_mode(unsigned mode)

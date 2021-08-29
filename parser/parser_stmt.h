@@ -90,7 +90,7 @@ struct parser_stmt
 
 
     // NB: must be implemented in `Derived`
-    virtual opcode *gen_insn(opcode::data_t& data) = 0;
+    virtual opcode const *gen_insn(opcode::data_t& data) = 0;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -102,7 +102,7 @@ struct parser_stmt
 //
 ////////////////////////////////////////////////////////////////////////
 
-namespace detail
+namespace impl 
 {
     template <typename OPC>
     struct stmt_nop : parser_stmt
@@ -172,9 +172,9 @@ namespace detail
     };
 }
 
-using stmt_empty = detail::stmt_nop<opc_nop<>>;
-using stmt_eoi   = detail::stmt_nop<opc_nop<KAS_STRING("EOI")>>;
-using stmt_error = detail::stmt_diag;
+using stmt_empty = impl::stmt_nop<opc_nop<>>;
+using stmt_eoi   = impl::stmt_nop<opc_nop<KAS_STRING("EOI")>>;
+using stmt_error = impl::stmt_diag;
 }
 
 

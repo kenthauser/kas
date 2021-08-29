@@ -11,16 +11,22 @@
 
 namespace kas::bsd
 {
-struct bsd_align : core::opc::opc_align
+struct bsd_align :  bsd_opcode
 {
+    static inline core::opc::opc_align base_op;
+
+
     // allow "pseudo-op" to specify alignment (eg: .even)
-    void proc_args(data_t& data, bsd_args&& args
-                    , short arg_c, const char * const *str_v, short const *num_v)
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         proc_args(data, std::move(args), num_v[0]);
     }
 
-    void proc_args(data_t& data, bsd_args&& args, short n = 0)
+    void proc_args(data_t& data, bsd_args&& args, short n = 0) const
     {
         // copy location_tagged value
         parser::kas_position_tagged loc = args.front();
@@ -35,54 +41,87 @@ struct bsd_align : core::opc::opc_align
             else
                 return make_error(data, "fixed alignment required", loc);
         }
-        opc_align::proc_args(data, loc, n);
+        base_op.proc_args(data, loc, n);
+    }
+
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
     }
 };
 
-struct bsd_org : core::opc::opc_org
+struct bsd_org : bsd_opcode
 {
-    template <typename...Ts>
-    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
+    static inline core::opc::opc_org base_op;
+
+
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         if (auto result = validate_min_max(args, 1, 1))
             return make_error(data, result);
 
-        opc_org::proc_args(data, args.front());
+        base_op.proc_args(data, args.front());
+    }
+
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
     }
 };
 
-struct bsd_skip : core::opc::opc_skip
+struct bsd_skip : bsd_opcode
 {
-    template <typename...Ts>
-    void proc_args(data_t& data, bsd_args&& args, Ts&&...)
+    static inline core::opc::opc_skip base_op;
+
+
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         if (auto result = validate_min_max(args, 1, 2))
             return make_error(data, result);
         
         args.emplace_back();        // add `fill` if not specified
-        opc_skip::proc_args(data, args[0], args[1]);
+        base_op.proc_args(data, args[0], args[1]);
+    }
+
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
     }
 };
 
 // front-end for `core_fixed` opcodes with BSD args
 template <typename T>
-struct bsd_fixed : T
+struct bsd_fixed : bsd_opcode
 {
+    static inline T base_op;
+
+
     template <typename...Ts>
-    auto validate(bsd_args& args, Ts&...)
+    auto validate(bsd_args& args, Ts&...) const
     {
         // handle the solo "missing_arg" case
         return core::opcode::validate_min_max(args);
     }
 
-    template <typename...Ts>
-    void proc_args(core::opcode::data_t& data, bsd_args&& args, Ts&&...)
+    void bsd_proc_args(data_t& data, bsd_args&& args
+                     , short arg_c
+                     , const char  **str_v
+                     , short const *num_v
+                     ) const override
     {
         if (auto result = validate(args))
             return core::opcode::make_error(data, result);
     
         // get per-arg processing fn 
-        auto proc_fn = T::gen_proc_one(data);
+        auto proc_fn = base_op.gen_proc_one(data);
 
         core::opcode::op_size_t size{}; 
 
@@ -96,7 +135,11 @@ struct bsd_fixed : T
 
         data.size = size;
     }
-    
+
+    core::opc::opcode const& op() const override
+    {
+        return base_op;
+    }
 };
 }
 

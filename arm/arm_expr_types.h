@@ -19,7 +19,7 @@ namespace kas
 }
 
 // declare X3 parser for `reg_t`
-namespace kas::arm::parser
+namespace kas::arm::parser::bnf
 {
     namespace x3 = boost::spirit::x3;
 
@@ -62,7 +62,7 @@ namespace kas::expression::detail
     // parsers for directly parsed types
     template <> struct term_parsers_v<defn_cpu> :
         meta::list<
-              arm::parser::arm_reg_x3
+              arm::parser::bnf::arm_reg_x3
             > {};
 }
 

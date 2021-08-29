@@ -25,29 +25,15 @@ using tok_arm_ident  = token_defn_t<STR(ARM_IDENT)>;
 // Declare directives specific to ARM architecture
 //
 
-struct directive_op_t
-{
-    template <typename NAME, typename FN>
-    constexpr directive_op_t(meta::list<NAME, FN>)
-        : name { NAME::value }
-        , fn   { nullptr }
-        {}
-
-    const char *name;
-    void *fn;
-};
-
 using arm_ops = meta::list<
-  meta::list<STR(cpu)         , struct arm_opc_cpu>
-, meta::list<STR(eabi_attribute), struct arm_opc_eabi>
-, meta::list<STR(arch)        , struct arm_opc_arch>
-, meta::list<STR(arm)         , struct arm_opc_arm>
-, meta::list<STR(syntax)      , struct arm_opc_syntax>
-, meta::list<STR(fpu)         , struct arm_opc_fpu>
+  meta::list<struct arm_opc_cpu     , STR(cpu)>
+, meta::list<struct arm_opc_eabi    , STR(eabi_attribute)>
+, meta::list<struct arm_opc_arch    , STR(arch)>
+, meta::list<struct arm_opc_arm     , STR(arm)>
+, meta::list<struct arm_opc_syntax  , STR(syntax)>
+, meta::list<struct arm_opc_fpu     , STR(fpu)>
 #if 0
-, meta::list<STR()            , struct arm_opc_>
-, meta::list<STR()            , struct arm_opc_>
-, meta::list<STR()            , struct arm_opc_>
+, meta::list<struct arm_opc_, STR()>
 #endif
 >;
 

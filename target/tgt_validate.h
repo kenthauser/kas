@@ -77,6 +77,7 @@ struct tgt_validate
     using base_t      = tgt_validate;
     using mcode_t     = MCODE_T;
     using arg_t       = typename mcode_t::arg_t;
+    using arg_mode_t  = typename mcode_t::arg_mode_t;
     using stmt_info_t = typename mcode_t::stmt_info_t;
 
     // need constexpr ctor for literal type
