@@ -110,7 +110,7 @@ struct tgt_stmt : kas::parser::parser_stmt
 using tgt_dir_arg  = parser::kas_token;
 using tgt_dir_args = std::vector<tgt_dir_arg>;
 
-namespace parser::detail
+namespace detail
 {
     // forward declare "definition" to hold directives
     struct tgt_directive_t;
@@ -122,6 +122,7 @@ template <typename DERIVED_T>
 struct tgt_stmt_directive : kas::parser::parser_stmt
 {
     using derived_t = DERIVED_T;
+    using base_t    = tgt_stmt_directive;
     using opcode    = core::opcode;
 
     // CRTP casts
@@ -131,7 +132,7 @@ struct tgt_stmt_directive : kas::parser::parser_stmt
         { return *static_cast<derived_t*>(this); }
 
     // method used to assemble instruction
-    opcode *gen_insn(core::opcode::data_t&) override;
+    opcode const *gen_insn(core::opcode::data_t&) override;
 
     // methods used by test fixtures
     std::string name() const override;
@@ -145,12 +146,14 @@ struct tgt_stmt_directive : kas::parser::parser_stmt
     template <typename Context>
     void operator()(Context const& ctx);
     
-    parser::detail::tgt_directive_t *op;
-    tgt_dir_args                     args;
+    tgt_directive_t const *op;
+    tgt_dir_args           args;
 };
 
 struct tgt_dir_opcode : core::opc::opc_nop<KAS_STRING("TGT_DIRECTIVE")>
 {
+    constexpr tgt_dir_opcode() {}
+
     // provide method to interpret args
     virtual void tgt_proc_args(data_t& data, tgt_dir_args&& args) const {}
 

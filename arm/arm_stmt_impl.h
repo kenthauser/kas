@@ -28,6 +28,7 @@ void arm_stmt_t::operator()(Context const& ctx)
     x3::_val(ctx) = &stmt;
 }
 
+
 // NB: This method rejects single `MCODE` not `STMT`
 // NB: Doesn't process flags associted with LDR/STR statements
 const char *arm_stmt_info_t::ok(arm_mcode_t const &mcode) const
@@ -137,5 +138,7 @@ void arm_stmt_info_t::print(std::ostream& os) const
 };
 
 }
+
+
 
 #endif

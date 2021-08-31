@@ -5,6 +5,7 @@
 
 #include "parser/kas_token.h"
 #include "parser/token_parser.h"
+#include "kas_core/opcode.h"
 
 #include <boost/spirit/home/x3.hpp>
 
@@ -21,7 +22,8 @@ namespace detail
     // type for pseudo-op definitions
     struct tgt_directive_t
     {
-        using ADDER = tgt_directive_adder;
+        using ADDER  = tgt_directive_adder;
+        using OPCODE = tgt_dir_opcode;
 
         // XXX parameterize when working...
         using NAME_LIST = list<int_<1>>;
@@ -38,8 +40,8 @@ namespace detail
             {}
 
 
-        static inline const char           *const *names_base;
-        static inline const tgt_dir_opcode *const *opcodes_base;
+        static inline const char          *const *names_base;
+        static inline const OPCODE *const *opcodes_base;
 
         const char *name() const
         {
@@ -106,17 +108,32 @@ namespace kas::tgt::parser
 template <typename DERIVED_T>
 std::string tgt_stmt_directive<DERIVED_T>::name() const
 {
-    return std::string("TGT_DIRECTIVE:");// + op->name();
+   return std::string("TGT_DIRECTIVE:") + op->name();
+   // XXX
+  // using OPCODE = decltype(*op);
+  // return std::declval<OPCODE>().name() + std::string(":") + op->name();
 }
 
-#if 0
 template <typename DERIVED_T>
 auto tgt_stmt_directive<DERIVED_T>::gen_insn(opcode::data_t& data)
-    -> const *opcode
+    -> opcode const *
 {
     return op->gen_insn(data, std::move(args));
 }
-#endif
+
+template <typename DERIVED_T>
+template <typename Context>
+void tgt_stmt_directive<DERIVED_T>::operator()(Context const& ctx)
+{
+    static derived_t stmt;
+    auto& x3_args = x3::_attr(ctx);
+
+    // extract "x3" args
+    stmt.op       = boost::fusion::at_c<0>(x3_args);
+    stmt.args     = boost::fusion::at_c<1>(x3_args);
+    
+    x3::_val(ctx) = &stmt;
+}
 }
 
 #endif

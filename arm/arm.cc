@@ -100,7 +100,7 @@ namespace kas::arm::parser::bnf
     // instantiate parsers
     BOOST_SPIRIT_INSTANTIATE(arm_insn_x3, iterator_type, stmt_context_type)
     BOOST_SPIRIT_INSTANTIATE(arm_stmt_x3, iterator_type, stmt_context_type)
-#if 0 
+
     //////////////////////////////////////////////////////////////////////////
     // ARM Directive Parser Definition
     //////////////////////////////////////////////////////////////////////////
@@ -109,13 +109,12 @@ namespace kas::arm::parser::bnf
     arm_dir_op_x3 arm_dir_op_parser {"arm directives"};
 
     auto const arm_dir_op_parser_def = 
-            x3::no_case[arm_dir_op_parser_t().x3()];
+            x3::no_case[x3::lexeme['.' >> arm_dir_op_parser_t().x3()]];
 
     BOOST_SPIRIT_DEFINE(arm_dir_op_parser)
 
-//    BOOST_SPIRIT_INSTANTIATE(arm_dir_op_x3, iterator_type, stmt_context_type)
-//    BOOST_SPIRIT_INSTANTIATE(arm_dir_x3   , iterator_type, stmt_context_type)
-#endif
+    BOOST_SPIRIT_INSTANTIATE(arm_dir_op_x3, iterator_type, stmt_context_type)
+    BOOST_SPIRIT_INSTANTIATE(arm_dir_x3   , iterator_type, stmt_context_type)
 }
 
 namespace kas::tgt

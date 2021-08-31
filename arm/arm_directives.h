@@ -9,6 +9,17 @@
 #include "parser/parser_stmt.h"
 #include <meta/meta.hpp>
 
+// forward declare ARM directive "opcode" methods
+namespace kas::arm::opc
+{
+    struct arm_opc_cpu;
+    struct arm_opc_eabi;
+    struct arm_opc_arch;
+    struct arm_opc_arm;
+    struct arm_opc_syntax;
+    struct arm_opc_fpu;
+}
+
 namespace kas::arm::parser
 {
 using namespace kas::parser;
@@ -18,7 +29,7 @@ using namespace kas::parser;
 // Declare TOKENs used to parse ARM directives
 //
 
-// allow `.` and `-` in ident to match ARM `arch` definitions
+// TOKEN which allows `.` and `-` in ident to match ARM `arch` definitions
 using tok_arm_ident  = token_defn_t<STR(ARM_IDENT)>;
 
 //
@@ -26,14 +37,14 @@ using tok_arm_ident  = token_defn_t<STR(ARM_IDENT)>;
 //
 
 using arm_ops = meta::list<
-  meta::list<struct arm_opc_cpu     , STR(cpu)>
-, meta::list<struct arm_opc_eabi    , STR(eabi_attribute)>
-, meta::list<struct arm_opc_arch    , STR(arch)>
-, meta::list<struct arm_opc_arm     , STR(arm)>
-, meta::list<struct arm_opc_syntax  , STR(syntax)>
-, meta::list<struct arm_opc_fpu     , STR(fpu)>
+  meta::list<opc::arm_opc_cpu     , STR(cpu)>
+, meta::list<opc::arm_opc_eabi    , STR(eabi_attribute)>
+, meta::list<opc::arm_opc_arch    , STR(arch)>
+, meta::list<opc::arm_opc_arm     , STR(arm)>
+, meta::list<opc::arm_opc_syntax  , STR(syntax)>
+, meta::list<opc::arm_opc_fpu     , STR(fpu)>
 #if 0
-, meta::list<struct arm_opc_, STR()>
+, meta::list<opc::arm_opc_, STR()>
 #endif
 >;
 
