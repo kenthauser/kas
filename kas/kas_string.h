@@ -16,6 +16,8 @@
 //
 // This module implements a simplified version of the `boost::metaparse` approach
 // Strings are limited to 16 characters, excluding the NULL.
+//
+// Extend limit to 32 characters to support ARM EABI names
 
 #include <utility>
 #include <array>
@@ -114,7 +116,7 @@ using str_cat = meta::_t<detail::str_cat_impl<Strs...>>;
 // Define string literal conversion function
 //
 
-#define KAS_STRING_MAX_STR  16
+#define KAS_STRING_MAX_STR  32
 #define KAS_STRING_GET_C(s)                 \
 	::kas::string::detail::getc_n((s), 0),  \
 	::kas::string::detail::getc_n((s), 1),  \
@@ -131,7 +133,23 @@ using str_cat = meta::_t<detail::str_cat_impl<Strs...>>;
 	::kas::string::detail::getc_n((s), 12), \
 	::kas::string::detail::getc_n((s), 13), \
 	::kas::string::detail::getc_n((s), 14), \
-	::kas::string::detail::getc_n((s), 15)
+	::kas::string::detail::getc_n((s), 15), \
+	::kas::string::detail::getc_n((s), 16), \
+	::kas::string::detail::getc_n((s), 17), \
+	::kas::string::detail::getc_n((s), 18), \
+	::kas::string::detail::getc_n((s), 19), \
+	::kas::string::detail::getc_n((s), 20), \
+	::kas::string::detail::getc_n((s), 21), \
+	::kas::string::detail::getc_n((s), 22), \
+	::kas::string::detail::getc_n((s), 23), \
+	::kas::string::detail::getc_n((s), 24), \
+	::kas::string::detail::getc_n((s), 25), \
+	::kas::string::detail::getc_n((s), 26), \
+	::kas::string::detail::getc_n((s), 27), \
+	::kas::string::detail::getc_n((s), 28), \
+	::kas::string::detail::getc_n((s), 29), \
+	::kas::string::detail::getc_n((s), 30), \
+	::kas::string::detail::getc_n((s), 31)
 
 #define KAS_STRING(s) ::kas::string::detail::make_string<         \
                   ::kas::string::detail::get_size((s))            \

@@ -1,6 +1,11 @@
 #ifndef KAS_BSD_OPS_CLI_H
 #define KAS_BSD_OPS_CLI_H
 
+//
+// `personality` & `lsda` are GNU extensions to support `eh_frame` unwind
+// See https://binutils.sourceware.narkive.com\
+//          /rIZxL70x/patch-support-cfi-personality-and-cfi-lsda-directives
+
 #include "kas_core/opc_symbol.h"
 #include "kas_core/opc_dw_frame.h"
 #include "bsd_stmt.h"

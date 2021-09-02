@@ -16,7 +16,8 @@
 #include "insns_arm.h"
 
 // directives implementation
-#include "arm_ops.h"
+#include "arm_opc_directives.h"
+#include "arm_opc_eabi.h"
 
 // parse instruction + args
 #include "arm_parser_def.h"
