@@ -173,11 +173,13 @@ template<> struct comma_ops_v<bsd_basic_tag> : list<
 , X_DEFN_CFI<CFI_CFA("register")>
 , X_DEFN_CFI<CFI_CFA("offset")>
 , X_DEFN_CFI<CFI("offset")>
+, X_DEFN_CFI<CFI_ADJ("cfa_offset")>
+
+// GNU Extension
 , X_DEFN_CFI<CFI("personality")>
 , X_DEFN_CFI<CFI("personality_id")>
 , X_DEFN_CFI<CFI("lsda")>
 , X_DEFN_CFI<CFI("inline_lsda")>
-, X_DEFN_CFI<CFI_ADJ("cfa_offset")>
 #undef CFI
 #undef CFI_CFA
 #undef CFI_ADJ

@@ -88,6 +88,11 @@ namespace kas::core
             return insn_inserter(*this);
         }
         
+        void set_deferred_ops(core_section::deferred_ops& ops)
+        {
+            deferred_ops_p = &ops;
+        }
+
         // getter for dot()
         auto& get_insn_dot() const
         {
@@ -107,6 +112,9 @@ namespace kas::core
         initial_state_t initial_state;        // initial state of opcode_data, etc
         core_segment&   initial_segment;
         AT_END_FN         at_end{};
+
+        // deferred generation attributes
+        core_section::deferred_ops *deferred_ops_p {};
 
         // first frag for this container
         core_fragment const *first_frag_p {};

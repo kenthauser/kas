@@ -82,7 +82,7 @@ struct kas_assemble
         kas::core::core_fragment::dump(std::cout);
 #endif
     //dwarf::dl_data::dump(std::cout);
-    #if 1
+    #if 0
         // 5. schedule `dwarf line` output for generation (after obj emit)
         //    (goes into a third container)
         //    NB: dwarf requires resolved addresses, so generate after resolved.
@@ -91,12 +91,26 @@ struct kas_assemble
             // add "end_sequence" to mark end of `dl_data` instructions 
             dwarf::dl_data::mark_end(text_seg);
             auto& dl = core_section::get(".debug_line", SHT_PROGBITS);
-            auto& dw_obj = INSNS::add(dl.segment());
+            auto& dw_obj = INSNS::add(dl);
 
             // schedule generation after `text` addresses resolved
             do_gen_dwarf = &dw_obj;
         }
     #endif
+        core_section::for_each([&](auto& s)
+            {
+                // if deferred generation:
+                //   1. execute `end_of_parse` method
+                //   2. add container for deferred INSNs
+                if (auto p = s.deferred_ops_p)
+                {
+                    p->end_of_parse(s);
+                    auto& dw_obj = INSNS::add(s);
+                    do_gen_dwarf = &dw_obj;
+                    dw_obj.set_deferred_ops(*p);
+                }
+            });
+
         std::cout << "assemble complete" << std::endl;
         kas::core::core_symbol_t::dump(std::cout);
     }
@@ -124,7 +138,23 @@ struct kas_assemble
             {
                 if (&container == do_gen_dwarf)
                     gen_dwarf();
+                if (auto p = container.deferred_ops_p)
+                {
+                    std::cout << "Container::deferred: " << container.index() << std::endl;
+                    auto inserter = container.inserter();
+                    p->set_inserter(inserter);
+                    if (p->gen_data())
+                        std::cout << "Container::deferred: need relax" << std::endl;
+                }
+#if 0
                 proc_container(container);
+#else
+                container.proc_all_frags(
+                    [&e](auto& insn, core_expr_dot const& dot)
+                    {
+                        e.emit(insn, &dot);
+                    });
+#endif
             });
 #if 0
          // emit complete. close stream.
@@ -231,7 +261,7 @@ private:
 
                 // 2. mark undefined & "referenced" symbols as GLOBAL
                 // XXX wrong...
-                if (sym.binding() == STB_TOKEN)
+                else if (sym.binding() == STB_TOKEN)
                     sym.set_binding(STB_UNKN);
 
                 if (sym.binding() == STB_UNKN)

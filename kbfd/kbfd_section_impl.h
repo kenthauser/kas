@@ -7,8 +7,6 @@
 
 #include "kbfd_section.h"
 
-#include <string>
-
 namespace kbfd
 {
 
@@ -43,20 +41,23 @@ kbfd_section::kbfd_section(kbfd_object& obj
 // append binary data to buffer
 void kbfd_section::put(void const *p, std::size_t n)
 {
-    // validate room in buffer
+    // if not enough room in buffer, expand buffer
     while ((data_p + n) > data_endb)
     {
-        // if not pre-allocated, resize vector
+        // if pre-allocated, no-room is logic error
         if (data_base)
             throw section_error(*this, __FUNCTION__, "buffer overflow");
 
-        // double memory each alloc
-        static constexpr auto INITIAL_ALLOC = 1024;
-        auto alloc_size = data_endb - data_base;
-        if (alloc_size == 0)
-            alloc_size = INITIAL_ALLOC;
+        // if dynamically allocated, double memory allocated each iteration
+        static constexpr auto INITIAL_ALLOCATION = 1024;
 
-        data_endb += alloc_size;
+        // if not first allocation, double buffer size
+        if (auto buf_size = data_endb - data_base)
+            data_endb += buf_size;
+        else
+            data_endb += INITIAL_ALLOCATION;
+
+        // extend buffer to new size
         if (s_header.sh_type != SHT_NOBITS)
             data.reserve(data_endb - data_base);
     }
@@ -66,7 +67,7 @@ void kbfd_section::put(void const *p, std::size_t n)
         std::memcpy(data_p, p, n);
     else if (s_header.sh_type != SHT_NOBITS)
     {
-        // void * arithmetic not allowed...sigh
+        // c++: void * arithmetic not allowed...sigh
         auto first = static_cast<const char *>(p);
         data.insert(data.end(), first, first + n);
     }

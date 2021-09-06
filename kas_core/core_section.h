@@ -54,6 +54,10 @@ namespace kas::core
 
 struct core_section : kas_object<core_section>
 {
+    // forward declare type for deferred section data generation.
+    // used in `assemble`. `core_section` knows it only as pointer
+    struct deferred_ops;
+
     core_section(
             std::string const& sh_name
           , kbfd::kbfd_word    sh_type  = {}
@@ -127,6 +131,11 @@ public:
         kas_linkage = linkage;
     }
     
+    auto set_deferred_ops(deferred_ops& ops)
+    {
+        deferred_ops_p = &ops;
+    }
+
     // getters
     auto& name()    const { return sh_name;       }
     auto ent_size() const { return sh_entsize; }
@@ -167,6 +176,9 @@ public:
     kbfd::kbfd_word kas_align   {};
     core_segment const *kas_group_p {};
 
+    // for deferred generation support
+    deferred_ops *deferred_ops_p {};
+
     // backend call-back hook to map `kas_section` to `kbfd_section`
     mutable void *_kbfd_callback {};
 
@@ -179,6 +191,45 @@ public:
         defn_p = {};
     }
 };
+
+
+// Declare structure for deferred opertions.
+// These sections hold debug and attribute information. 
+
+struct core_section::deferred_ops
+{
+    virtual void end_of_parse(core_section&) {}
+
+    // method to emit deferred data to insn container
+    virtual void do_gen_data()
+    {
+        std::cout << "deferred_ops::do_gen_data" << std::endl;
+    }
+  
+    // returns true if data generated.
+    // normally just want to generate data once. 
+    // override `do_gen_data` for normal single generation case.
+    virtual bool gen_data() 
+    {   
+        std::cout << "deferred_ops::gen_data" << std::endl;
+        
+        static bool done;
+        if (!done)
+        {
+            do_gen_data();
+            return done = true;
+        }
+        return false;       // no data emitted
+    }
+
+    // interact with `deferred_emit` ecostructure
+    template <typename INSERTER>
+    void set_inserter(INSERTER& i)
+    {}
+
+    void *emit_p {};
+};
+
 
 }
 

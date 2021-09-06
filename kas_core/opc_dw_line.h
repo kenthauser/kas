@@ -69,6 +69,30 @@ struct opc_dw_file : opcode
 	}	
 };
 
+struct gen_debug_line : core_section::deferred_ops
+{
+    gen_debug_line()
+    {
+        std::cout << "gen_debug_line::ctor" << std::endl;
+        auto& dl = core_section::get(".debug_line", SHT_PROGBITS);
+        dl.set_deferred_ops(*this);
+    }
+
+    void end_of_parse(core_section& s) override
+    {
+        std::cout << "gen_debug_line::end_of_parse" << std::endl;
+
+        s.set_align();  // XXX ???
+        dwarf::dl_data::mark_end(core_section::get_initial());
+    }
+
+    void do_gen_data() override
+    {
+        std::cout << "gen_debug_line::do_gen_data" << std::endl;
+    }
+};
+
+
 struct opc_dw_line : opcode
 {
 	OPC_INDEX();
@@ -81,6 +105,8 @@ struct opc_dw_line : opcode
     void proc_args(data_t& data, unsigned file, unsigned line
                   , dl_pair const *dw_data, unsigned cnt)
     {
+        static gen_debug_line _;    // schedule generation of `.debug_line`
+
 		auto& obj = dl_data::add(file, line, dw_data, cnt);
 		data.fixed.fixed = obj.index();
 	}

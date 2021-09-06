@@ -34,6 +34,7 @@ struct core_segment : kas_object<core_segment>
     core_segment(core_section const& section, unsigned subsection = {})
              : section_p(&section), subsection(subsection) {}
 
+
     // instance variable getter's
     auto&      section() const   { return *section_p; }
     addr_offset_t size() const;
