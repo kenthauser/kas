@@ -18,6 +18,7 @@
 
 // declare dwarf line state variables
 // NB: the order of definition *must* match order in `FSM` table
+// NB: dwarf line argument types are defined in the FSM
 DWARF_LINE_STATE (address)
 DWARF_LINE_STATE (line)
 DWARF_LINE_STATE (file)
@@ -37,43 +38,38 @@ DWARF_LINE_STATE (discriminator)
 //
 
 // declare dwarf call frame instructions
-// The arguments are: "name", high 2 bits, low 6 bits, arg_cnt, operand 1, operand 2
+// The arguments are: "name", code, operand...
 
-// row creation instructions
-DWARF_CALL_FRAME (set_loc           , 0, 0x01, 1, ADDR)        // relocatable address
-DWARF_CALL_FRAME (advance_loc       , 1, 0,    0)              // low6 = delta (factored)
-DWARF_CALL_FRAME (advance_loc1      , 0, 0x02, 1, BYTE)        // (factored)
-DWARF_CALL_FRAME (advance_loc2      , 0, 0x03, 1, WORD)        // (factored)
-DWARF_CALL_FRAME (advance_loc4      , 0, 0x04, 1, LONG)        // (factored)
+// Major codes use 2 msbs
+DWARF_CALL_FRAME (advance_loc       , 0x40)             // low6 = delta (factored)
+DWARF_CALL_FRAME (offset            , 0x80, ULEB)       // low6 = register, offset
+DWARF_CALL_FRAME (restore           , 0xc0)             // low6 = register
 
-// CFA definition instructions
-DWARF_CALL_FRAME (def_cfa           , 0, 0x0c, 2, ULEB, ULEB)  // register, offset (non-factored)
-DWARF_CALL_FRAME (def_cfa_sf        , 0, 0x12, 2, ULEB, SLEB)  // register, offset
-DWARF_CALL_FRAME (def_cfa_register  , 0, 0x0d, 1, UELB)        // register
-DWARF_CALL_FRAME (def_cfa_offset    , 0, 0x0e, 1, ULEB)        // offset (non-factored)
-DWARF_CALL_FRAME (def_cfa_offset_sf , 0, 0x13, 1, SLEB)        // register
-DWARF_CALL_FRAME (def_cfa_expression, 0, 0x0f, 1, BLOCK)       // BLOCK
-
-// Register rule instructions
-DWARF_CALL_FRAME (undefined         , 0, 0x07, 1, ULEB)        // register
-DWARF_CALL_FRAME (same_value        , 0, 0x08, 1, ULEB)        // register
-DWARF_CALL_FRAME (offset            , 2, 0   , 1, ULEB)        // low6 = register, offset
-DWARF_CALL_FRAME (offset_extended   , 0, 0x05, 2, ULEB, ULEB)  // register, offset 
-DWARF_CALL_FRAME (offset_extended_sf, 0, 0x11, 2, ULEB, SLEB)  // register, offset
-DWARF_CALL_FRAME (val_offset        , 0, 0x14, 2, ULEB, ULEB)  // ULEB, ULEB
-DWARF_CALL_FRAME (val_offset_sf     , 0, 0x15, 2, ULEB, SLEB)  // ULEB, SLEB 
-DWARF_CALL_FRAME (register          , 0, 0x09, 2, ULEB, ULEB)  // register, register
-DWARF_CALL_FRAME (expression        , 0, 0x10, 2, ULEB, BLOCK) // register, BLOCK
-DWARF_CALL_FRAME (val_expression    , 0, 0x16, 2, ULEB, BLOCK) // ULEB, BLOCK
-DWARF_CALL_FRAME (restore           , 3, 0,    0)              // low6 = register
-DWARF_CALL_FRAME (restore_extended  , 0, 0x06, 1, ULEB)        // register
-
-// Row state instructions
-DWARF_CALL_FRAME (remember_state    , 0, 0x0a, 0)
-DWARF_CALL_FRAME (restore_state     , 0, 0x0b, 0)
-
-// Padding instruction
-DWARF_CALL_FRAME (nop               , 0, 0,    0)
+// Normal codes are less than 64
+// NB: `_sf` versions (with SLEB args) are factored versions of base command
+DWARF_CALL_FRAME (nop               ,  0)               // Padding instruction
+DWARF_CALL_FRAME (set_loc           ,  1, ADDR)         // relocatable address
+DWARF_CALL_FRAME (advance_loc1      ,  2, BYTE)         // (factored)
+DWARF_CALL_FRAME (advance_loc2      ,  3, WORD)         // (factored)
+DWARF_CALL_FRAME (advance_loc4      ,  4, LONG)         // (factored)
+DWARF_CALL_FRAME (offset_extended   ,  5, ULEB, ULEB)   // register, offset 
+DWARF_CALL_FRAME (restore_extended  ,  6, ULEB)         // register
+DWARF_CALL_FRAME (undefined         ,  7, ULEB)         // register
+DWARF_CALL_FRAME (same_value        ,  8, ULEB)         // register
+DWARF_CALL_FRAME (register          ,  9, ULEB, ULEB)   // register, register
+DWARF_CALL_FRAME (remember_state    , 10)
+DWARF_CALL_FRAME (restore_state     , 11)
+DWARF_CALL_FRAME (def_cfa           , 12, ULEB, ULEB)   // register, offset
+DWARF_CALL_FRAME (def_cfa_register  , 13, ULEB)         // register
+DWARF_CALL_FRAME (def_cfa_offset    , 14, ULEB)         // offset (non-factored)
+DWARF_CALL_FRAME (def_cfa_expression, 15, BLOCK)        // BLOCK
+DWARF_CALL_FRAME (expression        , 16, ULEB, BLOCK)  // register, BLOCK
+DWARF_CALL_FRAME (offset_extended_sf, 17, ULEB, SLEB)   // register, offset
+DWARF_CALL_FRAME (def_cfa_sf        , 18, ULEB, SLEB)   // register, offset
+DWARF_CALL_FRAME (def_cfa_offset_sf , 19, SLEB)         // offset (factored)
+DWARF_CALL_FRAME (val_offset        , 20, ULEB, ULEB)   // ULEB, ULEB
+DWARF_CALL_FRAME (val_offset_sf     , 21, ULEB, SLEB)   // ULEB, SLEB
+DWARF_CALL_FRAME (val_expression    , 22, ULEB, BLOCK)  // ULEB, BLOCK
 
 //
 // END

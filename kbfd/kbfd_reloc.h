@@ -11,11 +11,12 @@ namespace kbfd
 struct kbfd_reloc
 {
     using key_t = uint32_t;
-static constexpr auto RFLAGS_DEPR   = 0x80;
+    static constexpr auto RFLAGS_DEPR   = 0x80;
     static constexpr auto RFLAGS_PC_REL = 0x40;
     
     kbfd_reloc() = default;      // NB: not constexpr
 
+    // actual constructor
     constexpr kbfd_reloc(reloc_action action
                        , uint8_t bits = 0
                        , uint8_t pc_rel = false
@@ -26,15 +27,16 @@ static constexpr auto RFLAGS_DEPR   = 0x80;
         , flags (pc_rel ? RFLAGS_PC_REL : 0)
         {}
 
-    // XXX
-    template <typename...Ts>
-    constexpr kbfd_reloc(reloc_action action, Ts&&...)
-        : action(action) {}
+    // ctor: bridge between `kbfd_target_reloc` & actual ctor
+    template <typename...FLAGS>
+    constexpr kbfd_reloc(reloc_action action, uint8_t bits, uint8_t pc_rel, FLAGS&&...)
+        : kbfd_reloc(action, bits, pc_rel /*, gen_flags(FLAGS) */) {}
 
     // allow 'action' to be defined as `string`
+    // NB: used by `kbfd_target_reloc` constructor in definitions
     template <typename...Ts>
-    kbfd_reloc(const char *action, Ts&&...args)
-        : kbfd_reloc(reloc_action(action), std::forward<Ts>(args)...) 
+    kbfd_reloc(const char *action, uint8_t bits = {}, uint8_t pc_rel = {}, Ts&&...args)
+        : kbfd_reloc(reloc_action(action), bits, pc_rel, std::forward<Ts>(args)...) 
         {}
 
     // operations to modify relocation

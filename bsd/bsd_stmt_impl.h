@@ -23,8 +23,10 @@ namespace detail
 
     // support routines for `pseudo_op_t`
     static constexpr short to_short(const char *) { return 0; }
-    template <short N>
-    static constexpr short to_short(std::integral_constant<short, N>) { return N; }
+
+    // extra ugly...
+    template <typename T, T N>
+    static constexpr short to_short(k_constant<T, N>) { return N; }
     
     // type for pseudo-op definitions
     struct pseudo_op_t

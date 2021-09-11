@@ -40,32 +40,18 @@ struct kas_assemble
         assemble_src(obj.inserter(), src, out);
 
         std::cout << "parse complete" << std::endl;
-#if 0
-        kas::core::core_symbol::dump(std::cout);
-        kas::core::core_section::dump(std::cout);
-        kas::core::core_segment::dump(std::cout);
-        kas::core::core_fragment::dump(std::cout);
-#endif
+        
         // 2. combine sections according to run-time flags
         // XXX here combine sections (ie .text + .text1, .data + .bss, etc
-        // XXX according to run-time flags. Then relax
+        // XXX according to run-time flags. Then relax.
 
         // 3. relax object code
-        //do_relax(obj, &std::cout);
-    #if 1
-        // XXX need reloc info before relax...
         do_relax(obj, out);
         std::cout << "relax complete" << std::endl;
-    #endif
-#if 0
-        kas::core::core_symbol::dump(std::cout);
-        kas::core::core_section::dump(std::cout);
-        kas::core::core_segment::dump(std::cout);
-        kas::core::core_fragment::dump(std::cout);
-#endif
+        
         kas::parser::kas_diag_t::dump(std::cout);
         
-    #if 1
+    #if 0
         // 4. generate `cframe` data into a second container
         if (dwarf::df_data::size() != 0) {
             auto& cf = core_section::get(".debug_frame", SHT_PROGBITS);
@@ -76,126 +62,51 @@ struct kas_assemble
             std::cout << "cframe complete" << std::endl;
         }
     #endif
-#if 0
-        kas::core::core_section::dump(std::cout);
-        kas::core::core_segment::dump(std::cout);
-        kas::core::core_fragment::dump(std::cout);
-#endif
-    //dwarf::dl_data::dump(std::cout);
-    #if 0
-        // 5. schedule `dwarf line` output for generation (after obj emit)
-        //    (goes into a third container)
-        //    NB: dwarf requires resolved addresses, so generate after resolved.
-        if (dwarf::dl_data::size() != 0)
-        {
-            // add "end_sequence" to mark end of `dl_data` instructions 
-            dwarf::dl_data::mark_end(text_seg);
-            auto& dl = core_section::get(".debug_line", SHT_PROGBITS);
-            auto& dw_obj = INSNS::add(dl);
-
-            // schedule generation after `text` addresses resolved
-            do_gen_dwarf = &dw_obj;
-        }
-    #endif
-        core_section::for_each([&](auto& s)
+        
+        // schedule sections with deferred generation for output
+        core_section::for_each([](auto& s)
             {
                 // if deferred generation:
                 //   1. execute `end_of_parse` method
-                //   2. add container for deferred INSNs
+                //   2. if required, add container for deferred INSNs
                 if (auto p = s.deferred_ops_p)
-                {
-                    p->end_of_parse(s);
-                    auto& dw_obj = INSNS::add(s);
-                    do_gen_dwarf = &dw_obj;
-                    dw_obj.set_deferred_ops(*p);
-                }
+                    if (p->end_of_parse(s))
+                        INSNS::add(s).set_deferred_ops(*p);
             });
 
         std::cout << "assemble complete" << std::endl;
         kas::core::core_symbol_t::dump(std::cout);
     }
-#if 1
+
     void emit(emit_stream_base& e)
     {
-        // define method to emit all frags in container...
-        auto proc_container = [&e](auto& container)
-            {
-                container.proc_all_frags(
-                    [&e](auto& insn, core_expr_dot const& dot)
-                    {
-                        e.emit(insn, &dot);
-                    });
-            };
-#if 0
-        // 1. initialize base (and stream) with `kbfd_object`
-        e.init(obj);
-#endif
-        // 2. always rewind to initial section (normally ".text")
+        // 1. rewind to initial section (normally ".text")
         e.set_segment(core_section::get_initial());
        
-        // 3. emit all insns for all containers
+        // 2. emit all insns for all containers
         INSNS::for_each([&](auto& container)
             {
-                if (&container == do_gen_dwarf)
-                    gen_dwarf();
-                if (auto p = container.deferred_ops_p)
+                // if deferred generation, exec `gen_data` when first seen
+                if (auto& p = container.deferred_ops_p)
                 {
-                    std::cout << "Container::deferred: " << container.index() << std::endl;
-                    auto inserter = container.inserter();
-                    p->set_inserter(inserter);
-                    if (p->gen_data())
-                        std::cout << "Container::deferred: need relax" << std::endl;
+                    // generate data & relax container
+                    p->gen_data(container.inserter());
+                    do_relax(container, &std::cout);
+                    p = {};     // don't generate again
                 }
-#if 0
-                proc_container(container);
-#else
+                
+                // emit all insns in container
                 container.proc_all_frags(
                     [&e](auto& insn, core_expr_dot const& dot)
                     {
                         e.emit(insn, &dot);
                     });
-#endif
             });
-#if 0
-         // emit complete. close stream.
-         e.close();
-#endif
-    }
-#else
-    void emit(core_emit& e)
-    {
-        // define method to emit all frags in container...
-        auto proc_container = [&e](auto& container)
-            {
-                container.proc_all_frags(
-                    [&e](auto& insn, core_expr_dot const& dot)
-                    {
-                        e.emit(insn, &dot);
-                    });
-            };
-
-        // 1. initialize base (and stream) with `kbfd_object`
-        e.init(obj);
-
-        // 2. always rewind to initial section (normally ".text")
-        e.set_segment(core_section::get_initial());
-       
-        // 3. emit all insns for all containers
-        INSNS::for_each([&](auto& container)
-            {
-                if (&container == do_gen_dwarf)
-                    gen_dwarf();
-                proc_container(container);
-            });
-
-         // emit complete. close stream.
-         e.close();
     }
 
-#endif
 private:
     template <typename Inserter>
-    void assemble_src(Inserter inserter, parser::parser_src& src, std::ostream *out)
+    void assemble_src(Inserter&& inserter, parser::parser_src& src, std::ostream *out)
     {
     
         kas::core::opcode::trace = out;
@@ -295,18 +206,9 @@ private:
     template <typename Inserter>
     void gen_cframe(Inserter inserter)
     {
-        dwarf::dwarf_frame_gen(inserter);
+        dwarf::dwarf_frame_gen(std::move(inserter));
     }
-
-    void gen_dwarf()
-    {
-        dwarf::dwarf_gen(do_gen_dwarf->inserter());
-        //do_relax(*do_gen_dwarf);
-        do_relax(*do_gen_dwarf, &std::cout);
-        do_gen_dwarf = {};
-    }
-
-    INSNS *do_gen_dwarf {};
+    
     kbfd::kbfd_object& obj;
     
     // test fixture support

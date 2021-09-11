@@ -38,6 +38,7 @@ Forward-Inserter
   */
 
 #include "insn_container_data.h"
+#include "insn_inserter.h"
 #include "core_section.h"
 #include "core_addr.h"
 #include "core_expr_dot.h"
@@ -71,10 +72,14 @@ namespace kas::core
         using base_t::for_each;
 
         // declare inserter -- implement below.
+    #if 0
         struct insn_inserter;
+#else
+        using inserter_t = insn_inserter<value_type>;
+#endif
 
         // declare method for end-of-parse (eg: resolve symbols)
-        using AT_END_FN = std::function<void(insn_inserter&)>;
+        using AT_END_FN = std::function<void(inserter_t&)>;
 
         insn_container(core_segment& initial, AT_END_FN fn = {}) 
                 : initial_segment(initial)
@@ -85,7 +90,7 @@ namespace kas::core
         // create container inserter
         auto inserter()
         {
-            return insn_inserter(*this);
+            return inserter_t(*this);
         }
         
         void set_deferred_ops(core_section::deferred_ops& ops)
@@ -93,7 +98,7 @@ namespace kas::core
             deferred_ops_p = &ops;
         }
 
-        // getter for dot()
+        // getter for dot(). used in `core_relax.h`
         auto& get_insn_dot() const
         {
             return dot;
@@ -105,6 +110,28 @@ namespace kas::core
 
     public:
         friend base_t;
+
+        // inserter callbacks: `back_inserter`, `reserve`, `at_end`
+        static value_type& cb_bi(void *cb, value_type&& value)
+        {
+            auto& c = *static_cast<insn_container *>(cb);
+            return c.insns.emplace_back(std::move(value));
+        }
+    
+        static void cb_end_frag(void *cb)
+        {
+            auto& c = *static_cast<insn_container *>(cb);
+            c.insn_index_list.emplace_back(c.insns.size());
+        }
+
+        static void cb_at_end(void *cb, inserter_t& inserter)
+        {
+            auto& c = *static_cast<insn_container *>(cb);
+            if (c.at_end)
+                c.at_end(inserter);
+            c.insn_index_list.emplace_back(c.insns.size());
+        }
+
     
     // XXX temp
     // private:
@@ -129,7 +156,7 @@ namespace kas::core
         std::vector<frag_iter_t> *insn_iters{};
         core_expr_dot dot;
     };
-
+#if 0
     //////////////////////////////////////////////////////////////////////////
     //
     // declare `inserter` object in `insn_container`
@@ -139,7 +166,7 @@ namespace kas::core
     template <typename Insn_Deque_t>
     struct insn_container<Insn_Deque_t>::insn_inserter
     {
-        //using value_type = typename insn_container::value_type;
+        using value_t = typename insn_container::value_type;
 
         insn_inserter(insn_container&);
         ~insn_inserter();
@@ -156,20 +183,28 @@ namespace kas::core
     // XXX temp
     //private:
         // references to associated container
-        insn_container &c;
-        std::back_insert_iterator<Insn_Deque_t> bi;
-        core_segment *lcomm_segment_p{};
+    //    insn_container &c;
+    //    std::back_insert_iterator<Insn_Deque_t> bi;
         core_fragment *frag_p {};
         op_size_t      insn_size;     // size of current insn
 
         // insn types (generic & special requirements)
-        void put_insn   (value_type&&);
+        value_type& put_insn   (value_type&&);
         void put_label  (value_type&&);
-        void put_segment(value_type&&);
+        value_type& put_segment(value_type&&);
         void put_align  (value_type&&);
-        void put_org    (value_type&&);
+        value_type& put_org    (value_type&&);
 
         void reserve(op_size_t const&);
+
+        // container callback interface
+        void     *cb_container_p {};
+        value_t& (*bi_fn)(void *, value_t&&)            {};
+        void     (*end_frag)(void *)                    {};
+        void     (*at_end_fn)(void *, insn_inserter&)   {};
+
+        // `dot` used while inserting insns
+        core_expr_dot dot;
 
         // frag tuning variables...
         addr_offset_t offset;
@@ -179,7 +214,7 @@ namespace kas::core
         uint16_t frag_insn_cnt;
         uint16_t frag_relax_cnt;
     };
-
+#endif
     //////////////////////////////////////////////////////////////////////////
     //
     // container methods
@@ -338,7 +373,7 @@ namespace kas::core
         std::cout << std::endl;
 #endif
     }
-
+#if 0
     //////////////////////////////////////////////////////////////////////////
     //
     // inserter methods
@@ -349,24 +384,36 @@ namespace kas::core
     template <typename Insn_Deque_t>
     insn_container<Insn_Deque_t>::
         insn_inserter::insn_inserter(insn_container& c)
-            : c(c), bi(std::back_inserter(c.insns))
+         //   : c(c), bi(std::back_inserter(c.insns))
     {
+        // initialize with container methods
+        cb_container_p = &c;            // pointer to container
+        bi_fn          = c.cb_bi;       // implement `back-inserter`
+        end_frag       = c.cb_end_frag; // record end of fragment
+        at_end_fn      = c.cb_at_end;   // implement `at_end`
+ 
         // initialize container with SEG (initial_segment)
         *this = {opc::opc_segment(), c.initial_segment};
         c.first_frag_p = frag_p;
+
     }
 
     // inserter `dtor`: resolve symbols
     template <typename Insn_Deque_t>
     insn_container<Insn_Deque_t>::insn_inserter::~insn_inserter()
     {
-        // apply hook at end of inserting
-        // generally used to resolve local commons -> .bss, etc
+#if 0
+        // apply hook at end of inserting.
+        // used to close `index_list` in container.
+        // can also be used to resolve local commons -> .bss, etc
         if (c.at_end)
             c.at_end(*this);
         
         // close index_list
         c.insn_index_list.emplace_back(c.insns.size());
+#else
+        at_end_fn(cb_container_p, *this);
+#endif
     }
     
     // `inserter` primary method
@@ -411,7 +458,7 @@ namespace kas::core
         if (insn_size.max)
         {
             core_addr_t::new_dot();
-            c.dot.dot_offset += insn_size;
+            dot.dot_offset += insn_size;
         }
 
         return *this;
@@ -419,10 +466,14 @@ namespace kas::core
 
     // insert insn: generic instruction
     template <typename Insn_Deque_t>
-    void insn_container<Insn_Deque_t>::
-        insn_inserter::put_insn(value_type&& data)
+    auto insn_container<Insn_Deque_t>::
+        insn_inserter::put_insn(value_type&& data) -> value_type&
     {
+#if 0
         *bi++ = std::move(data);
+#else
+        return bi_fn(cb_container_p, std::move(data));
+#endif
     }
 
     // insert insn: label
@@ -448,10 +499,13 @@ namespace kas::core
 
         // use "fixed" area of insn for `offset`...
         // ...and initialize frag_p
-	
+#if 0	
         put_insn(std::move(data));
         auto& fixed  = c.insns.back().fixed;
-        fixed.offset = c.dot.frag_offset();     // init with first pass value
+#else
+        auto& fixed = put_insn(std::move(data)).fixed;
+#endif
+        fixed.offset = dot.frag_offset();     // init with first pass value
         
         // init `core:addr` instance for this location
         core_addr_t::cur_dot().init_addr(frag_p, &fixed.offset);
@@ -459,8 +513,8 @@ namespace kas::core
 
     // insert insn: segment
     template <typename Insn_Deque_t>
-    void insn_container<Insn_Deque_t>::
-        insn_inserter::put_segment(value_type&& data)
+    auto insn_container<Insn_Deque_t>::
+        insn_inserter::put_segment(value_type&& data) -> value_type&
     {
         // get segment from insn & start new frag
         auto& segment = core_segment::get(data.fixed.fixed);
@@ -482,8 +536,8 @@ namespace kas::core
 
     // insert insn: org
     template <typename Insn_Deque_t>
-    void insn_container<Insn_Deque_t>::
-        insn_inserter::put_org(value_type&& data)
+    auto insn_container<Insn_Deque_t>::
+        insn_inserter::put_org(value_type&& data) -> value_type&
     {
 #if 0
         // determine if new "org" address is org or skip...
@@ -537,7 +591,11 @@ namespace kas::core
     {
         // update container accounting of fragments
         // NB: here, size is instruction index in container
+#if 0
         c.insn_index_list.emplace_back(c.insns.size());
+#else
+        end_frag(cb_container_p);
+#endif
 
         // make sure locations in previous frag remain in previous frag
         // NB: new segment might not be same, creating *total* error.
@@ -549,14 +607,14 @@ namespace kas::core
         // screws up `frag.frag_is_relaxed` calculation
         // close old frag, recording it's size
         if (frag_p)
-            frag_p->set_size(c.dot.frag_offset());
+            frag_p->set_size(dot.frag_offset());
 #endif
             
         // allocate new frag. possibly in new segment
         frag_p = &core_fragment::add(seg_p, align);
 
         // clear fragment tuning counts
-        c.dot.set_frag(*frag_p);
+        dot.set_frag(*frag_p);
         frag_insn_cnt  = 0;
         frag_relax_cnt = 0;
     }
@@ -576,6 +634,7 @@ namespace kas::core
             if (frag_relax_max && frag_relax_max > ++frag_relax_cnt)
                 return new_frag();
     }
+#endif
 
 }
 #endif

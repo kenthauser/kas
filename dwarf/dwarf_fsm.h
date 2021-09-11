@@ -43,38 +43,34 @@ using STD = K("Standard");
 using EXT = K("Extended");
 using SPL = K("Special");
 
-// `K_STRING` macro 16 character limit, use second macro to prepend "Set "
-#define KS(msg) string::str_cat<KAS_STRING("Set "), KAS_STRING(msg)>
-
 // NB: the rows are arranged in numeric order within each insn type.
 // NB: the column order and count must match `dwarf_defns.inc` order
 using DW_INSNS = meta::list<
 //    type    name               emits  state machine values (in list order) args...
-//                                      AD LI FI CO OP ST BB ES PE EB IS DI
-  list<STD,  K("Copy"),              Y,  _, _, _, _, _, _, Z, _, Z, Z, _, Z >
-, list<STD,  K("Advance PC"),        _,  P, _, _, _, P, _, _, _, _, _, _, _, ULEB>
-, list<STD,  K("Advance Line"),      _,  _, A, _, _, _, _, _, _, _, _, _, _, SLEB>
-, list<STD,  K("Set File"),          _,  _, _, U, _, _, _, _, _, _, _, _, _, ULEB>
-, list<STD,  K("Set Column"),        _,  _, _, _, U, _, _, _, _, _, _, _, _, ULEB>
-, list<STD,  K("Set is_stmt"),       _,  _, _, _, _, _, X, _, _, _, _, _, _ >
-, list<STD,  K("Set Basic Block"),   _,  _, _, _, _, _, _, S, _, _, _, _, _ > 
-, list<STD,  K("Constant Add PC"),   _,  P, _, _, _, P, _, _, _, _, _, _, _ > 
-, list<STD,  K("Fixed Advance PC"),  _,  A, _, _, _, Z, _, _, _, _, _, _, _, UHALF>
-, list<STD, KS("Prologue End"),      _,  _, _, _, _, _, _, _, _, S, _, _, _ > 
-, list<STD, KS("Epilogue Begin"),    _,  _, _, _, _, _, _, _, _, _, S, _, _ >
-, list<STD,  K("Set isa"),           _,  _, _, _, _, _, _, _, _, _, _, U, _, ULEB>
-, list<EXT,  K("End Sequence"),      I,  _, _, _, _, _, _, _, S, _, _, _, _ > 
-, list<EXT,  K("Set Address"),       _,  U, _, _, _, Z, _, _, _, _, _, _, _, ADDR>
-, list<EXT,  K("Define File"),       _,  _, _, F, _, _, _, _, _, _, _, _, _, 
-                                      // define file args: NAME  NUMBER  MTIME SIZE
-                                                           NAME, ULEB,   ULEB, ULEB>
-, list<EXT, KS("Discriminator"),     _,  _, _, _, _, _, _, _, _, _, _, _, U, ULEB>
-, list<SPL,  K("Special"),           Y,  P, A, _, _, P, _, Z, _, Z, Z, _, Z >
+//                                     AD LI FI CO OP ST BB ES PE EB IS DI
+ list<STD,K("Copy"),               Y,  _, _, _, _, _, _, Z, _, Z, Z, _, Z >
+,list<STD,K("Advance PC"),         _,  P, _, _, _, P, _, _, _, _, _, _, _, ULEB>
+,list<STD,K("Advance Line"),       _,  _, A, _, _, _, _, _, _, _, _, _, _, SLEB>
+,list<STD,K("Set File"),           _,  _, _, U, _, _, _, _, _, _, _, _, _, ULEB>
+,list<STD,K("Set Column"),         _,  _, _, _, U, _, _, _, _, _, _, _, _, ULEB>
+,list<STD,K("Set is_stmt"),        _,  _, _, _, _, _, X, _, _, _, _, _, _ >
+,list<STD,K("Set Basic Block"),    _,  _, _, _, _, _, _, S, _, _, _, _, _ > 
+,list<STD,K("Constant Add PC"),    _,  P, _, _, _, P, _, _, _, _, _, _, _ > 
+,list<STD,K("Fixed Advance PC"),   _,  A, _, _, _, Z, _, _, _, _, _, _, _, UHALF>
+,list<STD,K("Set Prologue End"),   _,  _, _, _, _, _, _, _, _, S, _, _, _ > 
+,list<STD,K("Set Epilogue Begin"), _,  _, _, _, _, _, _, _, _, _, S, _, _ >
+,list<STD,K("Set isa"),            _,  _, _, _, _, _, _, _, _, _, _, U, _, ULEB>
+,list<EXT,K("End Sequence"),       I,  _, _, _, _, _, _, _, S, _, _, _, _ > 
+,list<EXT,K("Set Address"),        _,  U, _, _, _, Z, _, _, _, _, _, _, _, ADDR>
+,list<EXT,K("Define File"),        _,  _, _, F, _, _, _, _, _, _, _, _, _, 
+                                   // define file args: NAME  NUMBER  MTIME SIZE
+                                                        NAME, ULEB,   ULEB, ULEB>
+,list<EXT,K("Set Discriminator"),  _,  _, _, _, _, _, _, _, _, _, _, _, U, ULEB>
+,list<SPL,K("Special"),            Y,  P, A, _, _, P, _, Z, _, Z, Z, _, Z >
 >;
 
 // undefine the local macros
 #undef K
-#undef KS
 
 // defined state columns. compare against `LINE_STATES`
 using DW_INSN_STATE_COLS = std::integral_constant<std::size_t, 12>;

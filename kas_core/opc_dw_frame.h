@@ -2,10 +2,37 @@
 #define KAS_CORE_OPC_DW_FRAME_H
 
 #include "opcode.h"
+#include "dwarf/dwarf_impl.h"
+#include "dwarf/dwarf_frame.h"
 #include "dwarf/dwarf_frame_data.h"
 
 namespace kas::core::opc
 {
+
+
+struct gen_debug_frame : core_section::deferred_ops
+{
+    gen_debug_frame()
+    {
+        std::cout << "gen_debug_frame::ctor" << std::endl;
+        auto& s = core_section::get(".debug_frame", SHT_PROGBITS);
+        s.set_deferred_ops(*this);
+    }
+
+    bool end_of_parse(core_section& s) override
+    {
+        std::cout << "gen_debug_frame::end_of_parse" << std::endl;
+        return true;    // need to generate data
+    }
+
+    void gen_data(insn_inserter_t&& inserter) override
+    {
+        std::cout << "gen_debug_frame::gen_data" << std::endl;
+        dwarf::dwarf_frame_gen(std::move(inserter));
+    }
+};
+
+
 
 
 struct opc_df_startproc : opcode
@@ -18,6 +45,8 @@ struct opc_df_startproc : opcode
 
     void proc_args(data_t& data, parser::kas_loc& loc, bool omit_prologue = false)
     {
+        static gen_debug_frame _;    // schedule generation of `.debug_frame`
+
         auto p = df_data::current_frame_p();
         if (p) {
             return make_error(data, "startproc: already in frame", loc);

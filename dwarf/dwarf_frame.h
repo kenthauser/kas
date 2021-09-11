@@ -35,12 +35,12 @@ auto& gen_cie_32(T& emit)
     emit(ULEB(), 2);                        // code alignment factor
     emit(SLEB(), -4);
     emit(ULEB(), 24);                       // return address register
-
+#if 0
     //emit(UBYTE(), ...initial insns...);
     uint32_t cmds[] = {0x0c, 0x0f, 0x04, 0x98, 0x01};
     for (auto&& cmd : cmds)
         emit(UBYTE(), cmd);
-
+#endif
     emit(opc_align(), 4);                     // pad to multiple of addr_size
     emit(opc_label(), end_cie.ref());
     return bgn_cie;
@@ -131,7 +131,7 @@ void emit_cf_cmd(T& emit, df_insn_data const& d)
 }
 
 template <typename Inserter>
-void dwarf_frame_gen(Inserter& inserter)
+void dwarf_frame_gen(Inserter&& inserter)
 {
     std::cout << __FUNCTION__ << std::endl;
     
@@ -140,13 +140,15 @@ void dwarf_frame_gen(Inserter& inserter)
 
     // generate header. Return "end" label to be emitted at end
     auto& cie = gen_cie_32(emit);
-
+#if 0
     // iterate thru dwarf_line data instructions to generate FSM program
     auto gen_frame = [&emit, &cie](auto& d)
         {
             gen_fde_32(emit, d, cie);
         };
     df_data::for_each(gen_frame);
+#endif
+    //emit(cie);
 }
 }
 #endif

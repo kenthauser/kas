@@ -27,3 +27,14 @@ BOOST_SPIRIT_INSTANTIATE(stmt_org_x3  , iterator_type, stmt_context_type)
 BOOST_SPIRIT_INSTANTIATE(stmt_label_x3, iterator_type, stmt_context_type)
 
 }
+
+namespace kas::bsd::parser::detail
+{
+struct xxx
+{
+    xxx()
+    {
+        print_type_name{"bsd_dwarf"}.name<_t<comma_ops_v<bsd_dwarf_tag>>>();
+    }
+} _xxx;
+}

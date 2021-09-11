@@ -3,6 +3,7 @@
 
 #include "dwarf_emit.h"
 #include "kas_core/kas_map_object.h"
+#include "kas/kas_string.h"
 #include "meta/meta.hpp"
 
 
@@ -18,25 +19,29 @@ namespace kas::dwarf
 //
 // use "repeated include" technique
 
-using df_cmd_types = meta::list<
-#define DWARF_CALL_FRAME(name, ...) struct df_ ## name ## _t,
+template <typename N, int CODE, typename...Ts>
+using dw_frame_defn = meta::list<N, meta::int_<CODE>, Ts...>;
+
+using df_cmd_types = meta::drop_c<meta::list<
+    void   // dropped from list
+#define DWARF_CALL_FRAME(name, ...) ,dw_frame_defn<KAS_STRING(#name),__VA_ARGS__>
 #include "dwarf_defns.inc"
-    struct dummy_df_cmd       // handle trailing ','
->;
+>, 1>;      // drop `void`. Macro syntax limitation
 
 static constexpr auto NUM_DWARF_CALL_FRAME_CMDS = meta::size<df_cmd_types>::value - 1;
 
 enum df_cmds {
-#define DWARF_CALL_FRAME(name, high, low, ...)  \
-            DF_ ## name = (high << 6) + low,
+#define DWARF_CALL_FRAME(name, ...)  DF_ ## name,
 #include "dwarf_defns.inc"
+           NUM_DWARF_FRAME_CMDS
 };
 
 // declare name array as type
+// XXX can get names from `df_cmd_types` via init-from-list
 struct df_cmd_names
 {
     using type = df_cmd_names;
-    static constexpr std::array<const char *, NUM_DWARF_CALL_FRAME_CMDS> value = {
+    static constexpr std::array<const char *, NUM_DWARF_CALL_FRAME_CMDS + 1> value = {
 #define DWARF_CALL_FRAME(name, ...) #name,
 #include "dwarf_defns.inc"
         };

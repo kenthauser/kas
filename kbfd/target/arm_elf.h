@@ -133,9 +133,9 @@ static constexpr kbfd_target_reloc arm_elf_relocs[] =
 
 };
 
-struct arm_elf : elf32_format<std::endian::big>
+struct arm_elf : elf32_format<std::endian::little>
 {
-    using base_t = elf32_format<std::endian::big>;
+    using base_t = elf32_format<std::endian::little>;
     using elf_use_rela = std::false_type;
 
     constexpr arm_elf()

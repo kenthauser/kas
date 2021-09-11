@@ -198,36 +198,11 @@ public:
 
 struct core_section::deferred_ops
 {
-    virtual void end_of_parse(core_section&) {}
+    // method diven after all source code parsed
+    virtual bool end_of_parse(core_section&) { return true; }
 
     // method to emit deferred data to insn container
-    virtual void do_gen_data()
-    {
-        std::cout << "deferred_ops::do_gen_data" << std::endl;
-    }
-  
-    // returns true if data generated.
-    // normally just want to generate data once. 
-    // override `do_gen_data` for normal single generation case.
-    virtual bool gen_data() 
-    {   
-        std::cout << "deferred_ops::gen_data" << std::endl;
-        
-        static bool done;
-        if (!done)
-        {
-            do_gen_data();
-            return done = true;
-        }
-        return false;       // no data emitted
-    }
-
-    // interact with `deferred_emit` ecostructure
-    template <typename INSERTER>
-    void set_inserter(INSERTER& i)
-    {}
-
-    void *emit_p {};
+    virtual void gen_data(insn_inserter_t&&) = 0;
 };
 
 

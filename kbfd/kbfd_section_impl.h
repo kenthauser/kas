@@ -78,6 +78,7 @@ void kbfd_section::put(void const *p, std::size_t n)
 
 void kbfd_section::set_size(Elf64_Xword new_size)
 {
+    std::cout << "kbfd_section::set_size: " << name << " = " << new_size << std::endl;
     // can't resize
     if (s_header.sh_size)
         throw section_error(*this, __FUNCTION__, "can't resize");

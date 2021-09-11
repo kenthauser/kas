@@ -2,9 +2,17 @@
 #define KAS_CORE_CORE_DWARF_2_H
 
 #include "kas/kas_string.h"
+#include "kas_core/insn_inserter.h"
+#if 0
+#include "kas_core/opc_fixed.h"
+#include "kas_core/opc_leb.h"
+#include "kas_core/opc_symbol.h"
+#include "kas_core/opc_segment.h"
+#endif
 #include "dwarf_fsm.h"
 #include "dwarf_opc.h"
 #include "dwarf_emit.h"
+
 #include <meta/meta.hpp>
 
 namespace kas::dwarf
@@ -74,7 +82,7 @@ auto& gen_dwarf_32_header(T& emit)
 }
 
 // select rule to update Dwarf Line state variable
-// NB: there's a rule to update
+// NB: there is always a rule to update
 namespace detail
 {
     using namespace meta;
@@ -161,7 +169,8 @@ constexpr void emit_side_effects(DL_STATE& s, EMIT& emit, meta::list<COLS...>, u
     using col_list = meta::find_if<meta::list<COLS...>, detail::is_after>;
 
     constexpr auto to_do = meta::size<col_list>::value;
-    if constexpr (to_do != 0) {
+    if constexpr (to_do != 0)
+    {
         N += sizeof...(COLS) - to_do;
         using oper = typename meta::front<col_list>::oper;
         oper{}(s, emit, N, meta::list<>());
@@ -169,14 +178,17 @@ constexpr void emit_side_effects(DL_STATE& s, EMIT& emit, meta::list<COLS...>, u
     }
 }
 
-// c++17 `if constexpr` allows single recursive function
+// c++17 `if constexpr` allows single constexpr recursive function
 template <typename...Args>
 constexpr int ext_arg_len(meta::list<Args...> args, int n = 0)
 {
     using arg_t = decltype(args);
-    if constexpr (sizeof...(Args) == 0) {
+    if constexpr (sizeof...(Args) == 0)
+    {
         return n;
-    } else {
+    } 
+    else
+    {
         constexpr int arg_size = meta::front<arg_t>::size;
         if (arg_size < 0)
             return -1;      // variable size: emit labels
@@ -412,7 +424,7 @@ bool gen_pgm(dl_data& d, DL_STATE& s, EMIT& emit)
 
 
 template <typename Inserter>
-void dwarf_gen(Inserter inserter)
+void dwarf_gen(Inserter&& inserter)
 {
     std::cout << __FUNCTION__ << std::endl;
     
@@ -421,10 +433,7 @@ void dwarf_gen(Inserter inserter)
 
     // generate header. Return "end" symbol to be defined after data emited
     auto& end= gen_dwarf_32_header(emit);
-#if 0
-    fsm_xlate(std::make_index_sequence<meta::size<DW_INSNS>::value>(),
-              std::make_index_sequence<NUM_DWARF_LINE_STATES>());
-#endif
+    
     // iterate thru dwarf_line data instructions to generate FSM program
     auto gen_line = [&state, &emit](auto& d)
         {
@@ -432,8 +441,6 @@ void dwarf_gen(Inserter inserter)
             if (do_init)
                 state.init();
         };
-    
-    
     dl_data::for_each(gen_line);
 
     // now emit end label.
@@ -447,7 +454,8 @@ struct OP_ZERO
     using dl_value_t = typename DL_STATE::dl_value_t;
 
     template <typename EMIT, typename...FMTS>
-    void operator()(DL_STATE& s, EMIT& emit, unsigned col, meta::list<FMTS...>, dl_value_t value = {})
+    void operator()(DL_STATE& s, EMIT& emit, unsigned col
+                  , meta::list<FMTS...>, dl_value_t value = {})
     {
         s.state[col] = {};
     }

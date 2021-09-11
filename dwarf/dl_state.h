@@ -26,6 +26,9 @@
 
 namespace kas::dwarf
 {
+// XXX temp forward declaration
+template <typename Inserter>
+void dwarf_gen(Inserter&& inserter);
 
 struct dl_data : core::kas_object<dl_data>
 {

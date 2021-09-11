@@ -24,6 +24,7 @@ struct bsd_cfi_sections : bsd_opcode
     // specify CFI sections to be emitted: [.eh_frame | .eh_frame_entry] [.debug_frame]
     //
     // default is `.eh_frame`
+    // multiple types allowed
 
     void bsd_proc_args(data_t& data, bsd_args&& args
                      , short arg_c
@@ -201,6 +202,10 @@ struct bsd_cfi_undef: bsd_opcode
     {
         auto cmd = str_v[0];
         std::cout << "warning: " << cmd << " undefined " << std::endl;
+        std::cout << "warning: num = " << num_v[0] << std::endl;
+
+        if (num_v[0] == dwarf::DF_offset)
+            std::cout << "warning: found offset" << std::endl;
         // // single value sets ELF name
         // if (opcode::validate_min_max(args, 1, 1))
         //     return opc_sym_file::proc_args(di, std::move(args.front()));

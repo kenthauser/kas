@@ -192,7 +192,7 @@ auto _str2char(e_string_code code, It& it, It const& end, const char *& fail)
             uint64_t ch = *it++;    // consume initial character
 
             if (ch != '\\')
-                return ch;      // i'm just a `char`
+                return ch;          // just a `char`
 
             if (it == end)
             {
@@ -200,27 +200,21 @@ auto _str2char(e_string_code code, It& it, It const& end, const char *& fail)
                 return {};
             }
 
-            // octal sequences begin immediately after escape
+            ch = *it++;             // get continuation character
             switch (ch)
             {
+                // octal sequences begin immediately after escape
                 case '0': case '1': case '2': case '3':
                 case '4': case '5': case '6': case '7':
                     // c/c++: max length: 3 chars
                     code = str_code_none;       // flag raw value
                     fail = _str2int<8>(it, end, ch, 3);
                     return ch;
-                
-                default:
-                    break;
-            }
-
-            ch = *it++;         // get continuation character
-
-            // from: cppreference.com: escape sequences (c/c++)
-            // c requires diagnostic for non-enumerated escapes
-            switch (ch)
-            {
+            
+                // c requires diagnostic for non-enumerated escapes
                 default:    return ch;
+           
+                // from: cppreference.com: escape sequences (c/c++)
                 case '\'':  return '\'';
                 case '"':   return '\"';
                 case '?':   return '\?';

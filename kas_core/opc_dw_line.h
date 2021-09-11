@@ -78,17 +78,19 @@ struct gen_debug_line : core_section::deferred_ops
         dl.set_deferred_ops(*this);
     }
 
-    void end_of_parse(core_section& s) override
+    bool end_of_parse(core_section& s) override
     {
         std::cout << "gen_debug_line::end_of_parse" << std::endl;
 
         s.set_align();  // XXX ???
         dwarf::dl_data::mark_end(core_section::get_initial());
+        return true;    // need to generate data
     }
 
-    void do_gen_data() override
+    void gen_data(insn_inserter_t&& inserter) override
     {
-        std::cout << "gen_debug_line::do_gen_data" << std::endl;
+        std::cout << "gen_debug_line::gen_data" << std::endl;
+        dwarf::dwarf_gen(std::move(inserter));
     }
 };
 
@@ -123,7 +125,7 @@ struct opc_dw_line : opcode
         }
     }
 
-	// emit records `dot` in the `dwarf_line` entry for use generating `.debug_line`
+	// emit records `dot` in `dwarf_line` entry for use generating `.debug_line`
 	void emit(data_t const& data, core_emit& base, core_expr_dot const *dot_p) const override
 	{
 		auto& obj     = dl_data::get(data.fixed.fixed);

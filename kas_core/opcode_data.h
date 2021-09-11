@@ -78,6 +78,11 @@ namespace opc
     }
 }
 
+// forward declare `insn_container_data` and inserter
+struct insn_container_data;
+template <typename DATA> struct insn_inserter;
+using insn_inserter_t = insn_inserter<insn_container_data>;
+
 
 struct opcode_data 
 {

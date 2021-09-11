@@ -16,6 +16,8 @@
 #include "kas/kas_string.h"
 #include "utility/string_mpl.h"
 
+#include "dwarf/dwarf_frame_data.h"
+
 
 namespace kas::bsd::parser::detail
 {
@@ -46,7 +48,8 @@ using namespace kas::core::opc;
 template <typename STR>
 struct k_string : STR
 {
-    static constexpr const char *value = STR{}; 
+    //static constexpr const char *value = STR{};
+    static constexpr short n_value = 0;
 };
 
 // create a "fixed constant" type which has:
@@ -56,7 +59,8 @@ struct k_string : STR
 template <typename T, T N>
 struct k_constant : i2s<N>
 {
-    constexpr operator T () const { return N; }
+    static constexpr T n_value = N;
+   // constexpr operator T () const { return N; }
 };
 
 #define STR KAS_STRING 
@@ -101,6 +105,39 @@ template<> struct space_ops_v<bsd_basic_tag> : list<
 //
 // comma separated directives: name, bsd_opcode, [<additional args>]
 //
+
+template <typename NAME, typename VALUE>
+struct gen_dwarf_cmd
+{
+    using name  = string::str_cat<KAS_STRING("cfi_"), NAME>;
+    using type  = list<name, bsd_cfi_undef, k_constant<short, VALUE::value>>;
+};
+
+struct gen_dwarf_op_cmds
+{
+    using dw_cmd_types = dwarf::df_cmd_types;
+#if 0
+    using names        = at_c<zip<dw_cmd_types>, 0>;
+    using indexes      = std::make_index_sequence<names.size()>;
+    using type         = transform<names, indexes, quote_trait<gen_dwarf_cmd>>;
+#else
+    template <typename CMD>
+    struct op2cmd
+    {
+        using index = find_index<dw_cmd_types, CMD>;
+        using type = _t<gen_dwarf_cmd<at_c<CMD, 0>, index>>;
+    };
+
+    using type = transform<dw_cmd_types, quote_trait<op2cmd>>;
+#endif
+};
+
+
+using dwarf_op_cmds  = _t<gen_dwarf_op_cmds>;
+using dwarf_bsd_cmds = list<>;
+
+template<> struct comma_ops_v<bsd_dwarf_tag> : //dwarf_op_cmds{};
+        concat<dwarf_op_cmds, dwarf_bsd_cmds> {};
 
 template<> struct comma_ops_v<bsd_basic_tag> : list<
 // fixed data ops indenpendent of architecture
@@ -164,7 +201,7 @@ template<> struct comma_ops_v<bsd_basic_tag> : list<
 , list<CFI("sections"),     	    bsd_cfi_sections>
 , list<CFI("startproc"),            bsd_cfi_startproc>
 , list<CFI("endproc"),              bsd_cfi_endproc>
-
+#if 0
 , DEFN_CFI<CFI("offset"), dwarf::DF_offset, 2> 
 , DEFN_CFI<CFI("def_cfa"), dwarf::DF_def_cfa, 2>
 
@@ -174,7 +211,7 @@ template<> struct comma_ops_v<bsd_basic_tag> : list<
 , X_DEFN_CFI<CFI_CFA("offset")>
 , X_DEFN_CFI<CFI("offset")>
 , X_DEFN_CFI<CFI_ADJ("cfa_offset")>
-
+#endif
 // GNU Extension
 , X_DEFN_CFI<CFI("personality")>
 , X_DEFN_CFI<CFI("personality_id")>

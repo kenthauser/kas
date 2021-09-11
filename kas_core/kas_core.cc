@@ -17,6 +17,7 @@
 #include "emit_kbfd_impl.h"
 #include "emit_kbfd_symbol.h"
 
+#include "dwarf/dwarf_impl.h"
 
 #include "expr/literal_float.h"
 
@@ -80,4 +81,9 @@ namespace kas::expression::print
     // template void print_expr(core::core_addr  const&, std::ostream&);
     // template void print_expr(core::symbol_ref const&, std::ostream&);
     // template void print_expr(core::addr_ref   const&, std::ostream&);
+}
+
+namespace kas::dwarf
+{   
+    template void dwarf_gen(core::insn_inserter_t&&);
 }

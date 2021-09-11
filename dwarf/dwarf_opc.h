@@ -29,9 +29,14 @@ struct ARG_defn : NAME
 
 using namespace kas::core::opc;
 
-using UBYTE = ARG_defn<KAS_STRING("UBYTE"), opc_fixed<uint8_t>,  1>;
+using UBYTE = ARG_defn<KAS_STRING("UBYTE"), opc_fixed<uint8_t> , 1>;
 using UHALF = ARG_defn<KAS_STRING("UHALF"), opc_fixed<uint16_t>, 2>;
 using UWORD = ARG_defn<KAS_STRING("UWORD"), opc_fixed<uint32_t>, 4>;
+
+using BYTE  = ARG_defn<KAS_STRING("BYTE") , opc_fixed<int8_t>  , 1>;
+using WORD  = ARG_defn<KAS_STRING("WORD") , opc_fixed<int32_t> , 2>;
+using LONG  = ARG_defn<KAS_STRING("LONG") , opc_fixed<int64_t> , 4>;
+
 using ADDR  = ARG_defn<KAS_STRING("ADDR"),  opc_fixed<uint32_t>
                                             , sizeof(DL_STATE::dl_addr_t)>;
 using NAME  = ARG_defn<KAS_STRING("NAME"),  opc_string<std::true_type>>;
@@ -39,6 +44,24 @@ using TEXT  = NAME;
 
 using ULEB  = ARG_defn<KAS_STRING("ULEB"),  opc_uleb128>;
 using SLEB  = ARG_defn<KAS_STRING("SLEB"),  opc_sleb128>;
+
+using BLOCK = LONG; // XXX made up
+
+// name all `ops`. Facilitate index->op
+using dwarf_arg_ops = meta::list<
+      UBYTE
+    , UHALF
+    , UWORD
+    , BYTE
+    , WORD
+    , LONG
+    , ADDR
+    , NAME
+    , TEXT
+    , ULEB
+    , SLEB
+    , BLOCK
+    >;
 
 // create an "core_addr()" entry
 // NB: only works if the target fragment is "relaxed"

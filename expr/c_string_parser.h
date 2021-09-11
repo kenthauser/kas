@@ -34,7 +34,7 @@ struct c_string_parser : x3::parser<c_string_parser<T>>
 
         x3::skip_over(first, last, context);
         Iterator iter(first);     // copy iterator
-       
+      
         // look for c-language prefixes (u, u8, U, L)
         auto code = parse_str_pfx(iter, last);
 
