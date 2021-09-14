@@ -45,7 +45,7 @@ auto& gen_cie_32(T& emit)
     emit(opc_label(), end_cie.ref());
     return bgn_cie;
 }
-
+#if 0
 template <typename T, typename CIE>
 void gen_fde_32(T& emit, df_data const& d, CIE& cie)
 {
@@ -80,37 +80,46 @@ void gen_fde_32(T& emit, df_data const& d, CIE& cie)
     emit(opc_align(), 4);                     // pad to multiple of addr_size
     emit(opc_label(), end_fde.ref());
 }
-
+#endif
 template <typename T>
 void advance_loc(T& emit, uint32_t& loc, uint32_t new_loc)
 {
     int32_t delta = new_loc - loc;
     loc = new_loc;          // update address
-    delta /= 2;             // code alignment factor
+    delta /= 2;             // XXX code alignment factor
 
-#if 1
-    // suppress insn if zero delta?
+    // generate appropriate insn based on `delta`
     if (delta == 0)
+    {
+        // suppress insn if zero delta?
         return;
-#endif
-
-    if (delta < (1<< 6)) {      // small delta stored in insn
+    }
+    else if (delta < (1<< 6))
+    {      
+        // small delta stored in insn
         emit(UBYTE(), (int)DF_advance_loc + delta);
-    } else if (delta < (1 << 8)) {
+    } 
+    else if (delta < (1 << 8))
+    {
         emit(UBYTE(), (int)DF_advance_loc1);
         emit(UBYTE(), delta);
-    } else if (delta < (1 << 16)) {
+    } 
+    else if (delta < (1 << 16))
+    {
         emit(UBYTE(), (int)DF_advance_loc2);
         emit(UHALF(), delta);
-    } else {
+    } 
+    else
+    {
         emit(UBYTE(), (int)DF_advance_loc4);
         emit(UWORD(), delta);
     }
 }
 
 template <typename T>
-void emit_cf_cmd(T& emit, df_insn_data const& d)
+void emit_cf_cmd(T& emit, dw_frame_data const& d)
 {
+#if 0
     switch (d.cmd) {
     case DF_offset:
     {
@@ -128,13 +137,14 @@ void emit_cf_cmd(T& emit, df_insn_data const& d)
 
         break;
     }
+#endif
 }
 
 template <typename Inserter>
 void dwarf_frame_gen(Inserter&& inserter)
 {
     std::cout << __FUNCTION__ << std::endl;
-    
+#if 0    
     emit_insn<Inserter> emit(inserter);
     DL_STATE state;
 
@@ -149,6 +159,7 @@ void dwarf_frame_gen(Inserter&& inserter)
     df_data::for_each(gen_frame);
 #endif
     //emit(cie);
+#endif
 }
 }
 #endif

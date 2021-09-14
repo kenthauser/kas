@@ -40,12 +40,18 @@ DWARF_LINE_STATE (discriminator)
 // declare dwarf call frame instructions
 // The arguments are: "name", code, operand...
 
-// Major codes use 2 msbs
-DWARF_CALL_FRAME (advance_loc       , 0x40)             // low6 = delta (factored)
-DWARF_CALL_FRAME (offset            , 0x80, ULEB)       // low6 = register, offset
-DWARF_CALL_FRAME (restore           , 0xc0)             // low6 = register
+// Internal commands to facilitate frame generation
+// XXX these are the `BSD` names to start and end procs
+// NB: `code` is ignored
+DWARF_CALL_FRAME(startproc          , 0xc1)
+DWARF_CALL_FRAME(endproc            , 0xc2, ULEB)       // frame #
 
-// Normal codes are less than 64
+// Major commands use 2 msbs
+DWARF_CALL_FRAME (advance_loc       , 0x40)             // low6 = delta (factored)
+DWARF_CALL_FRAME (offset            , 0x80, ULEB, ULEB) // low6 = register, offset
+DWARF_CALL_FRAME (restore           , 0xc0, ULEB)       // low6 = register
+
+// Normal commands are less than 64
 // NB: `_sf` versions (with SLEB args) are factored versions of base command
 DWARF_CALL_FRAME (nop               ,  0)               // Padding instruction
 DWARF_CALL_FRAME (set_loc           ,  1, ADDR)         // relocatable address

@@ -65,52 +65,20 @@ struct k_constant : i2s<N>
 
 #define STR KAS_STRING 
 
-using _ZERO         = k_constant<short, 0>;
-using _ONE          = k_constant<short, 1>;
-using _TWO          = k_constant<short, 2>;
-
-using _STB_LOCAL    = k_constant<short, STB_LOCAL>;
-using _STB_GLOBAL   = k_constant<short, STB_GLOBAL>;
-
-using _SEG_TEXT     = STR(".text");
-using _SEG_DATA     = STR(".data");
-using _SEG_BSS      = STR(".bss");
+//
+// Define dwarf frame directives
+//
 
 // Canonical frame address
-// NB: Some of the CFI names are so long they exceeded 16 character macro limit.
 // Create a MACRO to prepend "cfi_", et al., thus easing name creation
-#define CFI(s)      ::kas::string::str_cat<STR("cfi_"), STR((s))>
-#define CFI_CFA(s)  ::kas::string::str_cat<STR("cfi_def_cfa_"), STR((s))>
-#define CFI_ADJ(s)  ::kas::string::str_cat<STR("cfi_adjust_"), STR((s))>
 
-template <typename CMD>
-using X_DEFN_CFI = list<CMD, bsd_cfi_undef, CMD>;
-
-template <typename CMD, int DW_CMD, int num_args>
-using DEFN_CFI = list<CMD, bsd_cfi_oper, k_constant<short, DW_CMD>, k_constant<short, num_args>>;
-
-//
-// space separated directives: name, bsd_opcode, [<additional args>]
-//
-
-template<> struct space_ops_v<bsd_basic_tag> : list<
-  list<STR("loc"),          bsd_loc>
-, list<STR("file"),         bsd_file>
-
-// NB .type can be space separated in GNU STT_ variant...
-, list<STR("type"),         bsd_elf_type>
-
-> {};
-
-//
-// comma separated directives: name, bsd_opcode, [<additional args>]
-//
+#define CFI(s)      string::str_cat<STR("cfi_"), s>
 
 template <typename NAME, typename VALUE>
 struct gen_dwarf_cmd
 {
-    using name  = string::str_cat<KAS_STRING("cfi_"), NAME>;
-    using type  = list<name, bsd_cfi_undef, k_constant<short, VALUE::value>>;
+    using name  = CFI(NAME);
+    using type  = list<name, bsd_cfi_cmd, k_constant<short, VALUE::value>>;
 };
 
 struct gen_dwarf_op_cmds
@@ -132,9 +100,57 @@ struct gen_dwarf_op_cmds
 #endif
 };
 
-
+// pick up dwarf frame commands from dwarf definitions
 using dwarf_op_cmds  = _t<gen_dwarf_op_cmds>;
-using dwarf_bsd_cmds = list<>;
+
+// additional BSD pseudo-ops for frame generation
+using dwarf_bsd_cmds = list<
+    // bsd pseudo-op to generate call frame
+      list<CFI(STR("sections")),   bsd_cfi_sections>
+#if 0
+// GNU Extensions
+    , X_DEFN_CFI<CFI("personality")>
+    , X_DEFN_CFI<CFI("personality_id")>
+    , X_DEFN_CFI<CFI("lsda")>
+    , X_DEFN_CFI<CFI("inline_lsda")>
+// BSD (and GNU) Aliases
+    , gen_dwarf_cmd<STR("def_cfa_factored"), dwarf::DW_def_cfa_sf>
+#endif
+    >;
+
+#undef CFI
+
+//
+//
+// 
+
+using _ZERO         = k_constant<short, 0>;
+using _ONE          = k_constant<short, 1>;
+using _TWO          = k_constant<short, 2>;
+
+using _STB_LOCAL    = k_constant<short, STB_LOCAL>;
+using _STB_GLOBAL   = k_constant<short, STB_GLOBAL>;
+
+using _SEG_TEXT     = STR(".text");
+using _SEG_DATA     = STR(".data");
+using _SEG_BSS      = STR(".bss");
+
+//
+// space separated directives: name, bsd_opcode, [<additional args>]
+//
+
+template<> struct space_ops_v<bsd_basic_tag> : list<
+  list<STR("loc"),          bsd_loc>
+, list<STR("file"),         bsd_file>
+
+// NB .type can be space separated in GNU STT_ variant...
+, list<STR("type"),         bsd_elf_type>
+
+> {};
+
+//
+// comma separated directives: name, bsd_opcode, [<additional args>]
+//
 
 template<> struct comma_ops_v<bsd_dwarf_tag> : //dwarf_op_cmds{};
         concat<dwarf_op_cmds, dwarf_bsd_cmds> {};
@@ -197,29 +213,6 @@ template<> struct comma_ops_v<bsd_basic_tag> : list<
 , list<STR("size"),         bsd_elf_size>
 , list<STR("ident"),        bsd_elf_ident>
 
-// I have no idea where this list of insns comes from. I copied from `gas::dw2gencfi.c`
-, list<CFI("sections"),     	    bsd_cfi_sections>
-, list<CFI("startproc"),            bsd_cfi_startproc>
-, list<CFI("endproc"),              bsd_cfi_endproc>
-#if 0
-, DEFN_CFI<CFI("offset"), dwarf::DF_offset, 2> 
-, DEFN_CFI<CFI("def_cfa"), dwarf::DF_def_cfa, 2>
-
-, X_DEFN_CFI<CFI("fde_data")>
-, X_DEFN_CFI<CFI("def_cfa")>
-, X_DEFN_CFI<CFI_CFA("register")>
-, X_DEFN_CFI<CFI_CFA("offset")>
-, X_DEFN_CFI<CFI("offset")>
-, X_DEFN_CFI<CFI_ADJ("cfa_offset")>
-#endif
-// GNU Extension
-, X_DEFN_CFI<CFI("personality")>
-, X_DEFN_CFI<CFI("personality_id")>
-, X_DEFN_CFI<CFI("lsda")>
-, X_DEFN_CFI<CFI("inline_lsda")>
-#undef CFI
-#undef CFI_CFA
-#undef CFI_ADJ
 > {};
 
 #undef STR

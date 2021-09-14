@@ -10,6 +10,8 @@ namespace kas::core::opc
 {
 
 
+
+// schedule deferrred ops
 struct gen_debug_frame : core_section::deferred_ops
 {
     gen_debug_frame()
@@ -22,6 +24,7 @@ struct gen_debug_frame : core_section::deferred_ops
     bool end_of_parse(core_section& s) override
     {
         std::cout << "gen_debug_frame::end_of_parse" << std::endl;
+        // XXX ensure not in `proc` -- close if so...
         return true;    // need to generate data
     }
 
@@ -32,74 +35,65 @@ struct gen_debug_frame : core_section::deferred_ops
     }
 };
 
-
-
-
-struct opc_df_startproc : opcode
+// generic dwarf_frame opcode
+struct opc_df_oper : opcode
 {
 	OPC_INDEX();
 
-    using df_data = dwarf::df_data;
+    using dw_frame_data = dwarf::dw_frame_data;
 
-	const char *name() const override { return "DW_START_FRAME"; }
+	const char *name() const override { return "DW_FRAME"; }
 
-    void proc_args(data_t& data, parser::kas_loc& loc, bool omit_prologue = false)
+    void proc_args(data_t& data
+                 , uint32_t cmd
+                 , parser::kas_position_tagged const& loc
+                 , std::vector<parser::kas_token>&& args)
     {
         static gen_debug_frame _;    // schedule generation of `.debug_frame`
 
-        auto p = df_data::current_frame_p();
-        if (p) {
-            return make_error(data, "startproc: already in frame", loc);
+        // special processing for `startproc`
+        dw_frame_data::frame_info *info_p {};
+        if (cmd == dwarf::DF_startproc)
+        {
+            info_p = &dw_frame_data::add_frame(args.size());
+            args.clear();
         }
-
-        auto& obj = df_data::add(omit_prologue);
-        obj.set_begin(core_addr_t::get_dot().ref());
+        
+        // allocate a frame_data instance
+        auto& obj = dw_frame_data::add(cmd, std::move(args));
         data.fixed.fixed = obj.index();
+        
+        // special processing for `startproc` & `end_proc`
+        switch (cmd)
+        {
+            case dwarf::DF_startproc:
+                info_p->set_start(data.fixed.fixed);
+                break;
+            case dwarf::DF_endproc:
+                info_p = dw_frame_data::get_frame_p();
+                if (info_p && !info_p->has_end())
+                    info_p->set_end(data.fixed.fixed);
+                else
+                    return make_error(data, "X endproc without startproc", loc);
+                break;
+            default:
+                break;
+        }
+    }
+	
+    void fmt(data_t const& data, std::ostream& os) const override
+	{
+		auto& obj = dw_frame_data::get(data.fixed.fixed);
+        obj.print(os);
+    }
+
+	// emit records `dot` in `dwarf_line` entry for use generating `.debug_line`
+	void emit(data_t const& data, core_emit& base, core_expr_dot const *dot_p) const override
+	{
+		auto& obj     = dw_frame_data::get(data.fixed.fixed);
+		obj.segment() = dot_p->segment().index();
+		obj.address() = dot_p->offset()();
 	}
-};
-
-struct opc_df_endproc : opcode
-{
-	OPC_INDEX();
-
-    using df_data = dwarf::df_data;
-
-	const char *name() const override { return "DW_END_FRAME"; }
-
-    void proc_args(data_t& data, parser::kas_loc& loc)
-    {
-        auto& p = df_data::current_frame_p();
-        if (!p)
-            return make_error(data, "endproc: not in frame", loc);
-
-        // record current address in frame. error if different section
-        p->set_end(core_addr_t::get_dot().ref());
-        data.fixed.fixed = p->index();
-        p = nullptr;                // no longer in frame
-	}
-};
-
-// generic dwarf_frame opcode
-struct opc_df_oper: opcode
-{
-	OPC_INDEX();
-
-    using df_insn_data = dwarf::df_insn_data;
-    //using df_data = dwarf::dl_data;
-    //using dl_pair = typename dl_data::dl_pair;
-
-	const char *name() const override { return "DW_FRAME_CMD"; }
-
-    void proc_args(data_t& data, uint32_t cmd, uint32_t arg1 = {}, uint32_t arg2 = {})
-    {
-        // allocate a insn_data instance
-        auto& obj = df_insn_data::add(cmd, arg1, arg2);
-        data.fixed.fixed = obj.index();
-
-        // XXX Need better way to set "offset". For now just allocate label
-        obj.set_addr(core_addr_t::get_dot().ref());
-	}
-
 };
 }
 #endif
