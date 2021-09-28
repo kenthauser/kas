@@ -28,6 +28,7 @@ struct opc_label : opcode
 
     const char *operator()(data_t& data, core_symbol_t& sym, short binding = STB_INTERNAL) const
     {
+        // define symbol address as pointing to `core_addr_t::get_dot()`
         if (auto msg = sym.make_label(binding))
         { 
             //throw std::logic_error(std::string(__FUNCTION__) + ": " + msg);
@@ -44,6 +45,18 @@ struct opc_label : opcode
     {
         return (*this)(data, ref.get(), binding);
     }
+
+    const char *operator()(data_t& data, core_addr_t& addr) const
+    {
+        data.fixed.fixed = addr.index();    // non-zero
+        return {};                          // won't fail
+    }
+
+    const char *operator()(data_t& data, addr_ref ref) const
+    {
+        return (*this)(data, ref.get());
+    }
+
 
     // ctor used for `labels`
     void proc_args(data_t& data, core_symbol_t& sym, kas_loc const& loc

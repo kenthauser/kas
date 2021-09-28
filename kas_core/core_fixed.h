@@ -5,6 +5,7 @@
 #include "core_print.h"     // `fmt`
 #include "core_insn.h"      // back-inserter
 #include "core_fixed_inserter.h"
+#include "parser/parser.h"  // kas_position_tagged
 #include <cstdint>
 
 // Opcode support for fixed data types
@@ -150,6 +151,7 @@ namespace detail
                     // evaluate expression & emit
                     auto& value = reader.get_expr();        // what
                     auto loc_p = value.get_loc_p();         // where
+#if 0
 #ifdef XXX
                     // check for error conditions
                     if (value.template get_p<missing_ref>() && loc_p)
@@ -157,6 +159,7 @@ namespace detail
                     else if (!fits.ufits_sz(value, config.value_sz) && loc_p)
                         //value = kas_diag::error("value out of range");
                         ; /* XXX don't error */
+#endif
 #endif
                     config.emit_one(base, value, dot_p);
                 }
@@ -183,76 +186,34 @@ struct opc_data : opcode
     using derived_t = INSN;
     using value_t   = VALUE_T;
 
-#if 0
-    // return "inserter" for instances of type `E`
-    template <typename E, typename Arg_Inserter>
-    auto inserter(Arg_Inserter& di)
-    {
-        // create fixed-back-inserter
-        auto bi = detail::fixed_inserter_t<value_t>(di, *fixed_p);
+    using kas_position_tagged = parser::kas_position_tagged;
 
-        // move fixed-inserter into lambda context
-        return [bi=std::move(bi)](expr_t&& e, kas_loc const& loc = {}) mutable
-        {
-            return derived_t::proc_one(bi, std::move(e), loc);
-        };
-    }
-#else
-#endif
-#if 0
-    // since only one insn can happen at a time, can use methods with statics...
-    // this technique used to support `dwarf` emit methods
-    auto& bi(data_t *p = {})
+    //
+    // NB: no `proc_args` for `opc_data`
+    // NB: instead, use `gen_proc_one` to allocate single argument method
+    // NB: and pass individual arguments to it
+    //
+
+    // separate out generation of inserter so `deferred_emit` can also use
+    static auto gen_inserter(data_t& data)
     {
-        static detail::fixed_inserter_t<value_t> *bi_p;
-        
-        if (p)
-        {
-            if (!bi_p)
-                bi_p = new std::remove_reference_t<decltype(*bi_p)>{p->di(), p->fixed};
-            else
-                *bi_p = {p->di(), p->fixed};
-        }
-        return *bi_p;
+        return detail::fixed_inserter_t<value_t>(data.di(), data.fixed);
     }
-#endif
+
     auto gen_proc_one(data_t& data)
     {
         // create chunk back-inserter
-        auto bi = detail::fixed_inserter_t<value_t>(data.di(), data.fixed);
+        auto bi = gen_inserter(data);
 
         // move fixed-inserter into lambda context
         // NB: if `loc` not provided, don't pass args that could generate errors...
         return [bi=std::move(bi)](auto&&...args) mutable -> op_size_t
             {
-                return derived_t::proc_one(bi, std::forward<decltype(args)>(args)...);
+                return derived_t::
+                            proc_one(bi, std::forward<decltype(args)>(args)...);
             };
     }
-   
-   // each type represents a different inserter. Instantiated as `opcode::proc_args`
-    template <typename C>
-    void proc_args(data_t& data, C&& c)
-    {
-        // handle the solo "missing_arg" case
-        opcode::validate_min_max(c);
-        
-        auto fn = gen_proc_one(data);
-        op_size_t size = 0;
-
-        // loop to move data from `parsed` expressions to `opc` data
-        // NB: no loc for errors...so don't pass error values!
-        if constexpr (std::is_same_v<C, parser::kas_token>)
-            for (auto const& tok : c)
-                size += fn(tok, tok);
-        else
-            for (auto const& e : c)
-                size += fn(e);
-
-
-        // accumulated size
-        data.size = size;
-    }
-
+    
     // override `opcode` virtual methods
     const char *name() const override
     { 
@@ -294,7 +255,7 @@ private:
             derived_t::size_one,
             derived_t::emit_one,
             sizeof(VALUE_T),
-            derived_t::sizeof_diag
+            derived_t::sizeof_diag      // allow derived_t to override
         };
     
     static constexpr detail::opc_fixed_impl impl{config};
@@ -316,7 +277,8 @@ private:
         throw std::logic_error("core_fixed::emit_one undefined");
     }
 
-    // declare size to use for diagnostics 
+    // declare size to use for diagnostics
+    // allow `derived_t` to override
     static constexpr unsigned sizeof_diag = sizeof(VALUE_T);
 };
 

@@ -20,6 +20,48 @@ namespace kas::dwarf
 using namespace meta;
 using namespace meta::placeholders;
 
+// create an "core_addr()" entry
+// NB: only works if the target fragment is "relaxed"
+// XXX see if can refactor to use core_section::for_frags()
+// XXX should move to `core_addr`
+inline decltype(auto) gen_addr_ref(unsigned segment_idx, std::size_t offset
+                                  , core::core_fragment const *frag_p = nullptr)
+{
+    static std::deque<core::addr_offset_t> offsets;
+
+    if (!frag_p)
+    {
+        auto& segment = core::core_segment::get(segment_idx); 
+        frag_p = segment.initial();
+    }
+
+    if (!frag_p)
+        throw std::runtime_error("gen_addr_ref: empty segment");
+
+    // now find fragment for "offset"
+    while (frag_p) {
+        // is address in this frag?
+        // NB: allow at end for zero size or no following frag
+        // NB: address is relaxed -- don't let `best` beat `good`
+        auto end = frag_p->base_addr()() + frag_p->size()();
+        if (offset <= end)
+            break;
+
+        // advance to next    
+        frag_p  = frag_p->next_p();
+    }
+
+    if (!frag_p)
+        throw std::runtime_error("gen_addr_ref: offset out of range");
+
+    // save offset in static area
+    offset -= frag_p->base_addr()();
+    offsets.emplace_back(offset);
+
+    // create address with frag_p/offset_p pair
+    return core::core_addr_t::add(frag_p, &offsets.back());
+}
+
 template <typename T>
 auto& gen_dwarf_32_header(T& emit)
 {
@@ -28,8 +70,8 @@ auto& gen_dwarf_32_header(T& emit)
 
     // declare symbols forward referenced
     parser::kas_loc loc{};
-    auto& end_data_line = core_symbol_t::add("dwarf_end", loc, core::STB_INTERNAL);
-    auto& end_hdr       = core_symbol_t::add("dwarf_ehdr", loc, core::STB_INTERNAL); 
+    auto& end_data_line = core::core_addr_t::add();
+    auto& end_hdr       = core::core_addr_t::add();
 
     // section length (not including section length field)
    // emit(UWORD(), end_ref.get() - emit.get_dot(core::core_addr_t::DOT_NEXT));
@@ -428,7 +470,7 @@ void dwarf_gen(Inserter&& inserter)
 {
     std::cout << __FUNCTION__ << std::endl;
     
-    emit_insn<Inserter> emit{inserter};
+    emit_insn emit{inserter};
     DL_STATE state;
 
     // generate header. Return "end" symbol to be defined after data emited

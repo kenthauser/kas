@@ -55,6 +55,10 @@ struct opc_df_oper : opcode
         dw_frame_data::frame_info *info_p {};
         if (cmd == dwarf::DF_startproc)
         {
+            // NB: args.size() (ignoring values) defines prologue
+            // NB: case 0: emit "std" prologue
+            // NB: case 1: omit prologue
+            // ... future....
             info_p = &dw_frame_data::add_frame(args.size());
             args.clear();
         }
@@ -63,7 +67,7 @@ struct opc_df_oper : opcode
         auto& obj = dw_frame_data::add(cmd, std::move(args));
         data.fixed.fixed = obj.index();
         
-        // special processing for `startproc` & `end_proc`
+        // special processing for `startproc` & `endproc`
         switch (cmd)
         {
             case dwarf::DF_startproc:
@@ -83,16 +87,21 @@ struct opc_df_oper : opcode
 	
     void fmt(data_t const& data, std::ostream& os) const override
 	{
-		auto& obj = dw_frame_data::get(data.fixed.fixed);
-        obj.print(os);
+        // use `dw_frame_data` print routine
+		dw_frame_data::get(data.fixed.fixed).print(os);
     }
 
-	// emit records `dot` in `dwarf_line` entry for use generating `.debug_line`
+	// emit records `dot` in `dwarf` entry
 	void emit(data_t const& data, core_emit& base, core_expr_dot const *dot_p) const override
 	{
+#if 1
 		auto& obj     = dw_frame_data::get(data.fixed.fixed);
 		obj.segment() = dot_p->segment().index();
 		obj.address() = dot_p->offset()();
+#else
+        // record address of frame insn
+        dw_frame_data::get(data.fixed.fixed) = *dot_p;
+#endif
 	}
 };
 }

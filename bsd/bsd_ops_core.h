@@ -13,7 +13,7 @@ namespace kas::bsd
 {
 struct bsd_align :  bsd_opcode
 {
-    static inline core::opc::opc_align base_op;
+    static inline opc_align base_op;
 
 
     // allow "pseudo-op" to specify alignment (eg: .even)
@@ -44,7 +44,7 @@ struct bsd_align :  bsd_opcode
         base_op.proc_args(data, loc, n);
     }
 
-    core::opc::opcode const& op() const override
+    opcode const& op() const override
     {
         return base_op;
     }
@@ -52,7 +52,7 @@ struct bsd_align :  bsd_opcode
 
 struct bsd_org : bsd_opcode
 {
-    static inline core::opc::opc_org base_op;
+    static inline opc_org base_op;
 
 
     void bsd_proc_args(data_t& data, bsd_args&& args
@@ -67,7 +67,7 @@ struct bsd_org : bsd_opcode
         base_op.proc_args(data, args.front());
     }
 
-    core::opc::opcode const& op() const override
+    opcode const& op() const override
     {
         return base_op;
     }
@@ -75,8 +75,7 @@ struct bsd_org : bsd_opcode
 
 struct bsd_skip : bsd_opcode
 {
-    static inline core::opc::opc_skip base_op;
-
+    static inline opc_skip base_op;
 
     void bsd_proc_args(data_t& data, bsd_args&& args
                      , short arg_c
@@ -91,7 +90,7 @@ struct bsd_skip : bsd_opcode
         base_op.proc_args(data, args[0], args[1]);
     }
 
-    core::opc::opcode const& op() const override
+    opcode const& op() const override
     {
         return base_op;
     }
@@ -103,40 +102,46 @@ struct bsd_fixed : bsd_opcode
 {
     static inline T base_op;
 
-
-    template <typename...Ts>
-    auto validate(bsd_args& args, Ts&...) const
-    {
-        // handle the solo "missing_arg" case
-        return core::opcode::validate_min_max(args);
-    }
-
     void bsd_proc_args(data_t& data, bsd_args&& args
                      , short arg_c
                      , const char  **str_v
                      , short const *num_v
                      ) const override
     {
-        if (auto result = validate(args))
-            return core::opcode::make_error(data, result);
+        // require at least one argument to be well formed
+        if (auto result = validate_min_max(args, 1))
+            return make_error(data, result);
     
         // get per-arg processing fn 
         auto proc_fn = base_op.gen_proc_one(data);
 
-        core::opcode::op_size_t size{}; 
-
         // process container
+        op_size_t size{}; 
         for (auto& tok : args)
         {
-            if (expression::tok_missing(tok))
-                tok = e_diag_t::error("Missing value", tok);
-            size += proc_fn(tok);
+            // tokens hold both location (for error) and value
+            // interpret `token` into core types
+            if (auto p = tok.get_fixed_p())
+                size += proc_fn(tok, *p);
+#if 1
+            else if (auto p = expression::tok_float(tok))
+                size += proc_fn(tok, p(&tok)->value());
+#endif
+            else if (auto p = expression::tok_string(tok))
+                size += proc_fn(tok, p(&tok)->value());
+            else if (expression::tok_missing(tok))
+            {
+                expr_t e = e_diag_t::error("Missing value", tok);
+                size += proc_fn(tok, e);
+            }
+            else
+                size += proc_fn(tok, tok.expr());
         }
 
         data.size = size;
     }
 
-    core::opc::opcode const& op() const override
+    opcode const& op() const override
     {
         return base_op;
     }

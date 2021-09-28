@@ -51,18 +51,6 @@ struct kas_assemble
         
         kas::parser::kas_diag_t::dump(std::cout);
         
-    #if 0
-        // 4. generate `cframe` data into a second container
-        if (dwarf::df_data::size() != 0) {
-            auto& cf = core_section::get(".debug_frame", SHT_PROGBITS);
-            cf.set_align();
-            auto& cf_obj = INSNS::add(cf);
-            gen_cframe(cf_obj.inserter());
-            do_relax(cf_obj, &std::cout);
-            std::cout << "cframe complete" << std::endl;
-        }
-    #endif
-        
         // schedule sections with deferred generation for output
         core_section::for_each([](auto& s)
             {
@@ -202,13 +190,8 @@ private:
             core_symbol_t::for_each(resolve_one_symbol);
         };
     };
+   
 
-    template <typename Inserter>
-    void gen_cframe(Inserter inserter)
-    {
-        dwarf::dwarf_frame_gen(std::move(inserter));
-    }
-    
     kbfd::kbfd_object& obj;
     
     // test fixture support

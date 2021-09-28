@@ -25,13 +25,38 @@ namespace detail
         using op_size_t = typename opc::opcode::op_size_t;
         using NAME      = typename leb_t::NAME;
 
+        // primary entry is `MAX_T` (integral value)
         template <typename CI>
-        static op_size_t proc_one(CI& ci, kas_token const& tok)
+        static op_size_t proc_one(CI& ci, kas_position_tagged const&, MAX_T value)
         {
-            // confirm token represents a `value` token, not `syntax` token
-            if (!tok.expr_index())
-                *ci++ = e_diag_t::error("Invalid value", tok);
+            auto fn = [&ci](value_t n) { *ci++ = n; };
+            return leb_t::write(fn, value);
+        }
+    
+        // allow expressions
+        template <typename CI>
+        static op_size_t proc_one(CI& ci, kas_position_tagged const&, expr_t e)
+        {
+            *ci++ = e;
+            return { 1, leb_t::max_size() };
+        }
 
+        // non-matching args are errors
+        template <typename CI, typename ARG_T>
+        std::enable_if_t<!std::is_integral_v<std::remove_reference_t<ARG_T>>
+                        , op_size_t>
+        static proc_one(CI& ci, kas_position_tagged const &loc, ARG_T)
+        {
+            print_type_name{"opc_leb::ARG_T"}.name<ARG_T>();
+            *ci++ = e_diag_t::error("Invalid value", loc);
+            return 1;
+        }
+#if 0
+
+
+        template <typename CI>
+        static op_size_t proc_one(CI& ci, kas_position_tagged const& loc, kas_token const& tok)
+        {
             // if fixed, emit `bytes` into stream
             else if (auto p = tok.get_fixed_p())
                 return proc_one(ci, *p);
@@ -42,24 +67,7 @@ namespace detail
             return { 1, leb_t::max_size() };
         }
        
-        // for internal use by dwarf: no error checking
-        template <typename CI>
-        static op_size_t proc_one(CI& ci, expr_t e)
-        {
-            if (auto p = e.get_fixed_p())
-                return proc_one(ci, *p);
-            *ci++ = e;
-            return { 1, leb_t::max_size() };
-        }
-
-        template <typename CI>
-        static op_size_t proc_one(CI& ci, MAX_T value)
-        {
-            auto fn = [&ci](value_t n) { *ci++ = n; };
-            return leb_t::write(fn, value);
-        }
-    
-        
+#endif   
         static op_size_t size_one(expr_t const& v, core_fits const& fits)
         {
             std::cout << "\nopc_leb::size_one: " << v << std::endl;

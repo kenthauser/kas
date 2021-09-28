@@ -35,7 +35,6 @@ struct insn_inserter
     ~insn_inserter();
 
     // inserter iterator methods
-    //insn_inserter& operator=(value_t&&);
     insn_inserter& operator=(core_insn&&);
     auto& operator++()    { return *this; }
     auto& operator++(int) { return *this; }
@@ -104,18 +103,7 @@ insn_inserter<INSN_DATA_T>::insn_inserter(CONTAINER_T& c)
 template <typename INSN_DATA_T>
 insn_inserter<INSN_DATA_T>::~insn_inserter()
 {
-#if 0
-    // apply hook at end of inserting.
-    // used to close `index_list` in container.
-    // can also be used to resolve local commons -> .bss, etc
-    if (c.at_end)
-        c.at_end(*this);
-    
-    // close index_list
-    c.insn_index_list.emplace_back(c.insns.size());
-#else
     at_end_fn(cb_container_p, *this);
-#endif
 }
 
 // `inserter` primary method
@@ -137,7 +125,7 @@ auto insn_inserter<INSN_DATA_T>::operator=(core_insn&& insn) -> insn_inserter&
 
     // see if special insn & process accordingly
     // if `dot` referenced: drop a label
-    auto  opc_index = insn.opc_index;
+    auto opc_index = insn.opc_index;
     if (opc_index == idx_label)
         put_label(std::move(data));
     else if (core_addr_t::must_init_dot())
@@ -169,11 +157,7 @@ auto insn_inserter<INSN_DATA_T>::operator=(core_insn&& insn) -> insn_inserter&
 template <typename INSN_DATA_T>
 auto insn_inserter<INSN_DATA_T>::put_insn(value_t&& data) -> value_t&
 {
-#if 0
-    *bi++ = std::move(data);
-#else
     return bi_fn(cb_container_p, std::move(data));
-#endif
 }
 
 // insert insn: label
@@ -186,9 +170,14 @@ void insn_inserter<INSN_DATA_T>::put_label(value_t&& data)
     // called. This routine creates the `core_addr` infrastructure
     // to initialize `dot` at this location.
 
+    // if defining existing `addr` instance, retrieve pointer
+    core_addr_t *addr_p {};
+    if (auto idx = data.fixed.fixed)
+        addr_p = &core_addr_t::get(idx);
+
     // NB: don't allocate two `labels` at the same address. 
     // convert INSN to `nop`
-    if (!core_addr_t::must_init_dot())
+    if (!addr_p && !core_addr_t::must_init_dot())
     {
         static opc::opc_nop opc{};
         data.set_opc_index(opc.index());
@@ -198,16 +187,15 @@ void insn_inserter<INSN_DATA_T>::put_label(value_t&& data)
 
     // use "fixed" area of insn for `offset`...
     // ...and initialize frag_p
-#if 0	
-    put_insn(std::move(data));
-    auto& fixed  = c.insns.back().fixed;
-#else
     auto& fixed = put_insn(std::move(data)).fixed;
-#endif
     fixed.offset = dot.frag_offset();     // init with first pass value
     
-    // init `core:addr` instance for this location
-    core_addr_t::cur_dot().init_addr(frag_p, &fixed.offset);
+    // init `core_addr_t` instance for this location
+    // default is current_dot
+    if (!addr_p)
+        addr_p = &core_addr_t::cur_dot();
+
+    addr_p->init_addr(frag_p, &fixed.offset);
 }
 
 // insert insn: segment
@@ -286,11 +274,7 @@ void insn_inserter<INSN_DATA_T>::new_frag(uint8_t align, core_segment *seg_p)
 {
     // update container accounting of fragments
     // NB: here, size is instruction index in container
-#if 0
-    c.insn_index_list.emplace_back(c.insns.size());
-#else
     end_frag(cb_container_p);
-#endif
 
     // make sure locations in previous frag remain in previous frag
     // NB: new segment might not be same, creating *total* error.

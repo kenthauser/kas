@@ -37,10 +37,10 @@ template <typename REF, typename VALUE, typename FMT>
 auto float_host_t<REF, VALUE, FMT>::get_flags() const -> flag_t
 {
     // get sign & zero the other flags
-    flag_t flags = { std::signbit(value) };
+    flag_t flags = { std::signbit(value_) };
 
     // look for special cases
-    switch (std::fpclassify(value))
+    switch (std::fpclassify(value_))
     {
         case FP_ZERO:
             flags.is_zero = true;
@@ -72,7 +72,7 @@ auto float_host_t<REF, VALUE, FMT>::
 
     // normalized number must be positive
     auto flags    = get_flags();
-    auto fraction = flags.is_neg ? -value : value;
+    auto fraction = flags.is_neg ? -value_ : value_;
     
     // extract normalized fraction, exponent
     int exponent;

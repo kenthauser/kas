@@ -111,6 +111,8 @@ public:
     // named method easier to call with pointer 
     auto& value() const { return (*this)(); }
 
+    auto size() const { return str.end() - str.begin(); }
+
 private:
     std::basic_string<value_t> str;
 };

@@ -22,6 +22,7 @@
 // structures and might be best viewed as a black box...
 
 
+#include "dwarf_opc_impl.h"
 #include "kas/kas_string.h"
 #include "kas_core/opc_fixed.h"
 #include "kas_core/opc_leb.h"
@@ -30,7 +31,6 @@
 
 namespace kas::dwarf
 {
-
 // retrieve `value_t` member type, if present (default: void)
 // `core::opc::opc_data` types have this member type
 template <typename OP, typename = void>
@@ -43,28 +43,36 @@ struct get_value_impl<OP, std::void_t<typename OP::value_t>>
 template <typename OP>
 using get_value_t = meta::_t<get_value_impl<OP>>;
 
-template <typename INSN_INSERTER>
 struct emit_insn
 {
-    emit_insn(INSN_INSERTER& inserter) : inserter(inserter) {}
+    using insn_inserter_t = core::insn_inserter_t;
+
+
+    emit_insn(insn_inserter_t& inserter) : inserter(inserter) {}
 
     // destructor: emit current in-progress insn
-    ~emit_insn() { do_emit(); }
+    ~emit_insn() { flush(); }
 
     // emit dwarf "named" insn as `core::core_insn`
     template <typename DEFN, typename Arg
             , typename OP = typename  DEFN::op>
-    void operator()(DEFN, Arg&& arg)
+    void operator()(DEFN&& d, Arg&& arg)
     {
 #define TRACE_DWARF_EMIT
 #ifdef TRACE_DWARF_EMIT
-        std::cout << " " << std::string(DEFN()) << ": arg = ";
-        if constexpr (!std::is_same_v<std::decay_t<Arg>, const char *>)
-            std::cout << expr_t(arg) << std::endl;
-        else
-            std::cout << "\"" << arg << "\"" << std::endl;
+        std::cout << " " << DEFN() << ": arg = " << arg << std::endl;
 #endif
-        do_fixed_emit<OP>(std::forward<Arg>(arg));
+        // if currently inserting fixed, verify same `OP` type
+        if (!insn_p || !op_p->is_same(d))
+        {
+            std::cout << "OP is different" << std::endl;
+            set_opcode(d);
+        }
+#ifdef TRACE_DWARF_EMIT
+        else 
+            std::cout << "OP is same" << std::endl;
+#endif
+        do_fixed_emit(std::forward<Arg>(arg));
     }
 
     // emit other ops (eg labels, align)
@@ -80,7 +88,7 @@ struct emit_insn
         else
             std::cout << ": arg count = " << sizeof...(Ts) << std::endl;
 #endif
-        do_emit();                  // emit pending insn
+        flush();                  // emit pending insn
         *inserter++ = { op, std::forward<Ts>(args)...};
     }
 
@@ -88,151 +96,116 @@ struct emit_insn
     void operator()(core::symbol_ref const& sym)
     {
 #ifdef TRACE_DWARF_EMIT
-        std::cout << " LABEL: arg = " << sym << std::endl;
+        std::cout << " label: arg = " << sym << std::endl;
 #endif
-        do_emit();                  // emit pending insn
+        flush();                  // emit pending insn
         *inserter++ = { core::opc::opc_label{}, sym };
+    }
+
+    // emit addr as label
+    void operator()(core::core_addr_t const& addr)
+    {
+#ifdef TRACE_DWARF_EMIT
+        std::cout << " label: arg = " << addr << std::endl;
+#endif
+        flush();                  // emit pending insn
+        *inserter++ = { core::opc::opc_label{}, addr };
     }
 
     auto& get_dot(int which = core::core_addr_t::DOT_CUR)
     {
 #ifdef TRACE_DWARF_EMIT
-        const char *msg = !which ? "CURRENT" : "NEXT";
+        const char *msg = 
+                (which == core::core_addr_t::DOT_NEXT) ? "NEXT" : "CURRENT";
         std::cout << " GET_DOT: " << msg << std::endl;
 #endif
         // if `dot` requested, must flush pending data before evaluating
-        do_emit();                      // next opcode may not match
+        // NB: `dot_after` implemented in `insn_container`, which doesn't
+        // understand `pending_insns`
+        flush(); 
         if (which == core::core_addr_t::DOT_NEXT)
             pending_dot_after = true;   // dot after next insn
         return core::core_addr_t::get_dot(which);
     }
 
-#undef TRACE_DWARF_EMIT
     
 private:
-    // fixed emit ops require a data inserter. Declare type
-    template <typename value_t>
-    using di_t = core::opc::detail::fixed_inserter_t<value_t>;
-
     // emit arg using `core_data` derived type
-    template <typename OP, typename Arg>
+    template <typename Arg>
     void do_fixed_emit(Arg&& arg)
     {
-        set_opcode<OP>();                       // make `OP` current insn type
-        
-        using value_t = get_value_t<OP>;        // defined for `core_data` types
-        auto& di = this->di.get(value_t());     // retrieve data inserter
+        insn_p->data.size += (*op_p)(di_p, std::forward<Arg>(arg));
 
-        // NB: normal OP::proc_one methods take `kas_tokens`.
-        // Overloads for dwarf types have been impemented in relevent `OP`
-        if constexpr (std::is_integral_v<Arg>)
-            insn.data.size += OP::proc_one(di, arg);
-        else if constexpr (std::is_same_v<std::decay_t<Arg>, const char *>)
-            insn.data.size += OP::proc_one(di, arg);
-        else
-            insn.data.size += OP::proc_one(di, expr_t(std::forward<Arg>(arg)));
+        // limit size of INSN
+        static constexpr auto MAX_INSN_SIZE = 1024;
+
+        if (insn_p->data.size() >= MAX_INSN_SIZE)
+            flush();
 
         // part of `get_dot(DOT_NEXT)` implementation.
         if (pending_dot_after)
         {
+#ifdef TRACE_DWARF_EMIT
+            std::cout << "do_fixed_emit: have pending dot" << std::endl;
+#endif
             pending_dot_after = false;
-            do_emit();
+            flush();
         }
     }
 
     // emit insn if partial one is pending
-    void do_emit()
+    void flush()
     {
-        if (insn.opc_index != 0)
+#ifdef TRACE_DWARF_EMIT
+        if (insn_p)
         {
-            std::cout << "do_emit: raw : ";
-            insn.raw(std::cout);
+            std::cout << "emit_insn::flush: raw : ";
+            insn_p->raw(std::cout);
             std::cout << std::endl;
-            std::cout << "do_emit: fmt : ";
-            insn.fmt(std::cout);
+            std::cout << "emit_insn::flush: fmt : ";
+            insn_p->fmt(std::cout);
             std::cout << std::endl;
         }
-
-        if (insn.opc_index != 0)
-            *inserter++ = std::move(insn);
-        insn.opc_index    = 0;      // insn is empty
+#endif
+        // insert & destroy `insn`, destroy `data_inserter`
+        if (insn_p)
+        {
+            *inserter++ = std::move(*insn_p.release());
+            op_p->delete_inserter(di_p);
+        }
     }
 
-    template <typename OP>
-    void set_opcode()
+    void set_opcode(dwarf_emit_fixed const& d)
     {
-        // fixed data opcodes all have a `value_t` member type
-        using value_t = get_value_t<OP>;
+        // flush current insn if required
+        if (insn_p) flush();
+
+        // start new instruction 
+        // create new `insn` for current opcode
+        // for reference, inspect stmt_t::operator() method
+        // in "parser/parser_variant.h"
         
-        // don't allow excessive data in insns...
-        if (insn.data.size() > 1024)
-            do_emit();          // that's big enough...
-
-        OP op;                  // default construct opcode
-
-        // if different `OP`, need to emit old insn & start new one
-        if (op.index() != insn.opc_index)
-        {
-            do_emit();          // insert previous insn into container
-
-            // create new `insn` for current opcode
-            // for reference, inspect stmt_t::operator() method
-            // in "parser/parser_variant.h"
-            
-            // NB: insn & data_inserter (& members) don't have dtors. 
-            // NB: no need to destruct before re-construct...
-            static_assert(std::is_trivially_destructible_v<decltype(insn)>);
-            static_assert(std::is_trivially_destructible_v<di_t<value_t>>);
-
-            // reconstruct insn as `op`
-            new(&insn) decltype(insn)();
-            insn.opc_index = op.index();
-
-            // reconstruct the `data_inserter` needed to emulate `core_data`
-            new(&di.get(value_t())) di_t<value_t>(insn.data.di(), insn.data.fixed);
-        }
+        // construct insn from `op`
+        insn_p = std::make_unique<core::core_insn>();
+        insn_p->opc_index = d.get_opc_index();
+        
+        // create a fixed data inserter appropriate for `op`
+        di_p = d.make_inserter(insn_p->data);   // delete in flush
+        
+        // save pointer to `op` routines
+        op_p = d.get_p();
     }
 
 private:
-    // data inserter part of the `opc_data` emulation
-    union data_inserter
-    {
-        // needs default ctor
-        data_inserter() {}
-
-        template <typename T>
-        auto& get(T)
-        {
-            if constexpr (std::is_same_v<T, char>)
-                return di_8;
-            else if constexpr (std::is_same_v<T, std::uint8_t>)
-                return di_u8;
-            else if constexpr (std::is_same_v<T, std::uint16_t>)
-                return di_u16;
-            else if constexpr (std::is_same_v<T, std::uint32_t>)
-                return di_u32;
-            else if constexpr (std::is_same_v<T, std::uint64_t>)
-                return di_u64;
-            else
-                // pick templated assertion that will fail...
-                static_assert(std::is_same_v<T, char>,
-                              "invalid data_inserter type");
-        }
-        
-        // data inserters
-        di_t<char>          di_8;
-        di_t<std::uint8_t > di_u8;
-        di_t<std::uint16_t> di_u16;
-        di_t<std::uint32_t> di_u32;
-        di_t<std::uint64_t> di_u64;
-    } di;
-    
     // inserter to emit insn into container
-    INSN_INSERTER& inserter;
-    core::core_insn insn;       // current insn
-    bool pending_dot_after{};   // dot-after requested & pending
-
+    insn_inserter_t& inserter;
+    
+    std::unique_ptr<core::core_insn> insn_p;// current insn
+    dwarf_emit_fixed const * op_p;          // fixed_insn operations
+    void                   * di_p;          // pointer to data_inserter
+    bool pending_dot_after{};               // dot-after requested & pending
 };
+#undef TRACE_DWARF_EMIT
 
 }
 

@@ -67,7 +67,7 @@ struct float_host_t<REF, VALUE, FMT, void>
     };
 #if 1   
     float_host_t(value_type value = {}, parser::kas_loc loc = {})
-            : value(value), base_t(loc)
+            : value_(value), base_t(loc)
         {
             std::cout << "float_host_t::ctor: " << value << std::endl;
         }
@@ -78,7 +78,7 @@ struct float_host_t<REF, VALUE, FMT, void>
     // operator() extracts value
     value_type const& operator()() const
     {
-        return value;
+        return value_;
     }
 
     // allow standard expression operations on type 
@@ -86,11 +86,14 @@ struct float_host_t<REF, VALUE, FMT, void>
     {
         return (*this)();
     }
+    
+    // named method easier to call with pointer 
+    auto& value() const { return (*this)(); }
 
     template <typename...Ts>
     auto format(Ts&&...args) const
     {
-        return fmt_t().flt(value, std::forward<Ts>(args)...);
+        return fmt_t().flt(value_, std::forward<Ts>(args)...);
     }
 
 //protected:
@@ -120,7 +123,7 @@ struct float_host_t<REF, VALUE, FMT, void>
 private:
     ast::expr_t as_fixed_n(int n) const;
 
-    value_type value;
+    value_type value_;
 };
 
 }

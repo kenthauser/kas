@@ -41,13 +41,12 @@ DWARF_LINE_STATE (discriminator)
 // The arguments are: "name", code, operand...
 
 // Internal commands to facilitate frame generation
-// XXX these are the `BSD` names to start and end procs
-// NB: `code` is ignored
+// NB: `code` is ignored. Args processed outside standard facilities
 DWARF_CALL_FRAME(startproc          , 0xc1)
-DWARF_CALL_FRAME(endproc            , 0xc2, ULEB)       // frame #
+DWARF_CALL_FRAME(endproc            , 0xc2)
 
 // Major commands use 2 msbs
-DWARF_CALL_FRAME (advance_loc       , 0x40)             // low6 = delta (factored)
+DWARF_CALL_FRAME (advance_loc       , 0x40, BYTE)       // low6 = delta (factored)
 DWARF_CALL_FRAME (offset            , 0x80, ULEB, ULEB) // low6 = register, offset
 DWARF_CALL_FRAME (restore           , 0xc0, ULEB)       // low6 = register
 

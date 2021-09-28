@@ -55,6 +55,8 @@ struct opcode
     using fixed_t    = typename DATA::fixed_t;
     using op_size_t  = typename DATA::op_size_t;
 #endif
+    // expose global type used by `opcodes`
+    using kas_position_tagged = parser::kas_position_tagged;
 
     // pick up some types from `opcode_data`
     using data_t     = opcode_data;

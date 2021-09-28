@@ -92,7 +92,8 @@ struct has_value<T, std::void_t<decltype(T::value)>>
 namespace kas
 {
     using parser::kas_token;
-    //using parser::kas_position_tagged;
+    using parser::kas_loc;
+    using parser::kas_position_tagged;
 }
 
 namespace kas::core

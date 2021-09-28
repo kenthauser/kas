@@ -53,14 +53,61 @@ using m_name = string::str_cat<NAME, KAS_STRING("<"), i2s<N>, KAS_STRING(">")>;
 template <typename T>
 struct opc_fixed : opc_data<opc_fixed<T>, T>
 {
+    using base_t     = opc_data<opc_fixed<T>, T>;
     using value_type = T;
     using op_size_t  = typename opcode::op_size_t;
+    using kas_position_tagged = typename base_t::kas_position_tagged;
 
 
     using NAME = m_name<sizeof(T), KAS_STRING("INT")>;
-
+#if 1
+    // primary entry is `e_fixed_t` arg
     template <typename CI>
-    static op_size_t proc_one(CI& ci, kas_token const& tok)
+    static op_size_t proc_one(CI& ci
+                            , kas_position_tagged const& loc 
+                            , e_fixed_t arg)
+    {
+        if (expression::expr_fits().ufits<T>(arg) == core_fits::yes)
+            *ci++ = arg; 
+        else
+        {
+            // must mark diagnostic here, as numbers don't carry `loc`
+            *ci++ = e_diag_t::error("Value out-of-range", loc);
+        }
+        return sizeof(T);
+    }
+
+    // allow expressions
+    template <typename CI>
+    static op_size_t proc_one(CI& ci, kas_position_tagged const&, expr_t e)
+    {
+        ci++ = std::move(e);
+        return sizeof(T);
+    }
+
+    // support other integral values (which fit in `e_fixed_t`)
+    template <typename CI, typename ARG_T>
+    std::enable_if_t<std::is_integral_v<std::remove_reference_t<ARG_T>>
+                    && sizeof(ARG_T) <= sizeof(e_fixed_t), op_size_t>
+    static proc_one(CI& ci, kas_position_tagged const& loc, ARG_T&& arg)
+    {
+        return proc_one(ci, loc, static_cast<e_fixed_t>(arg));
+    }
+
+    // non-matching args are errors
+    // NB: integral values too big for `e_fixed_t` are to be processed as `expr_t`
+    template <typename CI, typename ARG_T, typename = void>
+    std::enable_if_t<!std::is_integral_v<std::remove_reference_t<ARG_T>>, op_size_t>
+    static proc_one(CI& ci, kas_position_tagged loc, ARG_T)
+    {
+        print_type_name{"opc_fixed::ARG_T"}.name<ARG_T>();
+        *ci++ = e_diag_t::error("Invalid value", loc);
+        return sizeof(T);
+    }
+
+#else
+    template <typename CI>
+    static op_size_t proc_one(CI& ci, kas_position_tagged const& loc, kas_token const& tok)
     {
         // confirm token represents a `value` token, not `syntax` token
         if (!tok.expr_index())
@@ -89,7 +136,7 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
     
     // for internal use by dwarf: no error checking
     template <typename CI>
-    static op_size_t proc_one(CI& ci, T value)
+    static op_size_t proc_one(CI& ci, kas_position_tagged const& loc, T value)
     {
         *ci++ = value;
         return sizeof(T);
@@ -97,15 +144,20 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
 
     template <typename CI, typename ARG_T>
     std::enable_if_t<!std::is_integral_v<ARG_T>, op_size_t>
-    static proc_one(CI& ci, ARG_T const& arg)
+    static proc_one(CI& ci, kas_position_tagged const& loc, ARG_T const& arg)
     {
-        if (auto p = arg.get_fixed_p())
-            *ci++ = *p;
-        else
-            *ci++ = arg;    // convert to arg
+        if constexpr (std::is_same_v<ARG_T, const char *>)
+            throw std::logic_error {"opc_fixed: const char *"};
+        else 
+        {
+            if (auto p = arg.get_fixed_p())
+                *ci++ = *p;
+            else
+                *ci++ = arg;    // convert to arg
+        }
         return sizeof(T);
     }
-    
+#endif
         
     static void emit_one(core_emit& base
                        , expr_t const& value
@@ -139,7 +191,7 @@ struct opc_float : opc_data<opc_float<NBits>, expression::e_float_t>
     static constexpr unsigned size_one  = words_one * (32/8);
 
     template <typename CI>
-    static op_size_t proc_one(CI& ci, kas_token const& tok)
+    static op_size_t proc_one(CI& ci, kas_position_tagged const& loc, kas_token const& tok)
     {
         *ci++ = tok.expr();
         return size_one;
@@ -172,63 +224,39 @@ struct opc_string : opc_data<opc_string<ZTerm, char_type>, char_type>
     using NAME = m_name<ZTerm::value, KAS_STRING("STR")>;
 
     template <typename CI>
-    static op_size_t proc_one(CI& ci, kas_token const& tok)
+    static op_size_t proc_one(CI& ci
+                            , kas_position_tagged const& loc
+                            , std::basic_string<char_type> const& str)
     {
-        std::size_t size = 0;
-        
-        // confirm token represents a `value` token, not `syntax` token
-        if (!tok.expr_index())
-            *ci++ = e_diag_t::error("Invalid value", tok);
-        else if (!tok.is_token_type<expression::tok_string>())
-            *ci++ = e_diag_t::error("String required", tok);
-
-        else
-        {
-            auto ks_p = expression::tok_string(tok)();       // get string value
-            auto str = (*ks_p)();
-                
-            size += str.size() + ZTerm::value;
-            for (auto& c : str)
-                *ci++ = c;
-            if (ZTerm::value)
-                *ci++ = 0;
-        }
-        return size;
-    }
-
-    // for internal use by dwarf: no error checking
-    template <typename CI>
-    static op_size_t proc_one(CI& ci, expr_t const& e)
-    {
-        auto str_p = e.get_p<e_string_t>();
-        auto& s = str_p->value();
-            
-        auto size = s.size() + 1;
-        for (auto& c : s)
+        for (auto& c : str)
             *ci++ = c;
-        *ci++ = 0;
-        return size;
+        if (ZTerm::value)
+            *ci++ = 0;
+        
+        return str.size() + ZTerm::value;
     }
 
-
+    // dwarf passes null-terminated strings
     template <typename CI>
-    static op_size_t proc_one(CI& ci, char_type const *p)
+    static op_size_t proc_one(CI& ci, kas_position_tagged const&, char_type const *p)
     {
-        auto size = std::strlen(p) + 1;
+        auto size = std::strlen(p) + ZTerm::value;
         while (*p)
             *ci++ = *p++;
-        *ci++ = 0;
+        if (ZTerm::value)
+            *ci++ = 0;
         return size * sizeof(char_type);
     }
-#if 0
-    // in DWARF emit, empty strings translated as integer 0
-    template <typename CI>
-    static op_size_t proc_one(CI& ci, int)
+    
+    // non-matching args are errors
+    template <typename CI, typename ARG_T>
+    static op_size_t proc_one(CI& ci, kas_position_tagged loc, ARG_T)
     {
-        *ci++ = 0;
-        return 1;
+        print_type_name{"opc_string::ARG_T"}.name<ARG_T>();
+        *ci++ = e_diag_t::error("Invalid value", loc);
+        return 0;
     }
-#endif
+
 };
 }
 #endif
