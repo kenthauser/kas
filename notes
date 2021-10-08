@@ -530,4 +530,26 @@ REBASE:
 
 6. need `mcode_size_t` for sizeof arg_serial_t chunk size.
 
+******************************************
+
+Notes: dwarf
+
+1. need to parameterize dwarf configs: several parameters for `debug_line` 
+   && `debug_frame`
+
+2. Probably want to move `dwarf_emit` to `kas_core` & rename `deferred_emit`
+
+3. Probably want to add `cout` arg to `dwarf_emit` ctor to allow `emit` object
+   to control debug output
+
+4. ARM: need to have configure for `aeabi` target
+
+5. ARM: need to link `cpu`, `float`, etc, etc to `aeabi` attributes
+
+6. DWARF: need to link `.file x "xxx.s"` to `.debug_line` file attributes
+
+7. DWARF: need to support other `frame` formats
+
+8. DWARF: need to support "BLOCK" arg format (expression??)
+
 

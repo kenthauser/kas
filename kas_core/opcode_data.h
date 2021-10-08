@@ -126,11 +126,6 @@ public:
         return opcode_expr_data.size();
     }
 
-    static auto empty()
-    {
-        return opcode_expr_data.empty();
-    }
-
     // set insn to `error`
     void set_error(const char *msg);
     

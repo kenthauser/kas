@@ -5,8 +5,6 @@
 #include "insn_container.h"
 #include "core_relax.h"
 #include "parser/parser_obj.h"
-#include "dwarf/dwarf_impl.h"
-#include "dwarf/dwarf_frame.h"
 
 #include "core_symbol.h"        // for dump
 

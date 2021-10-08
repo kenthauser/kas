@@ -176,7 +176,7 @@ protected:
             // print index
             os << std::endl;
             os << std::dec << std::right;
-            os << std::setw(4) << s.obj_index - 1 << ": ";
+            os << std::setw(4) << s.obj_index << ": ";
             
             s.dump_one(os);
         }

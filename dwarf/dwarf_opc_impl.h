@@ -108,7 +108,7 @@ struct ARG_defn : dwarf_emit_fixed
                , std::declval<kas_position_tagged>()
                , std::forward<ARG_T>(arg)))
     {
-        print_type_name{"proc_one: ARG_T"}.name<ARG_T>();
+        //print_type_name{"proc_one: ARG_T"}.name<ARG_T>();
         auto& di = *static_cast<di_t *>(v);
         kas_position_tagged loc;
 
@@ -120,7 +120,6 @@ struct ARG_defn : dwarf_emit_fixed
                               , std::forward<ARG_T>(arg));
         else
         {
-            std::cout << "proc_one: dummy" << std::endl;
             return {};
         }
     }

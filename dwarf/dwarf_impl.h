@@ -74,8 +74,10 @@ auto& gen_dwarf_32_header(T& emit)
     auto& end_hdr       = core::core_addr_t::add();
 
     // section length (not including section length field)
-   // emit(UWORD(), end_ref.get() - emit.get_dot(core::core_addr_t::DOT_NEXT));
-    emit(UWORD(), end_data_line - emit.get_dot(core::core_addr_t::DOT_NEXT));
+    auto& length = end_data_line - emit.get_dot(core::core_addr_t::DOT_NEXT);
+    emit(UWORD(), length);
+    //emit(UWORD(), end_data_line - emit.get_dot(core::core_addr_t::DOT_NEXT));
+    std::cout << "dwarf_32_header: end_data_line = " << end_data_line << std::endl;
     emit(UHALF(), 4);                       // dwarf version
     emit(UWORD(), end_hdr - emit.get_dot(core::core_addr_t::DOT_NEXT));
 
@@ -410,7 +412,8 @@ bool gen_pgm(dl_data& d, DL_STATE& s, EMIT& emit)
 
     // test if new segment -> requires EMIT_ADDR
     // XXX refactor when section stored in DL_address key
-    if (d.segment() != s.state[DL_address]) {
+    if (d.segment() != s.state[DL_address])
+    {
         auto& addr_ref = gen_addr_ref(d.segment(), d.address());
         emit_rule<RULE_set_address>(s, emit, expr_t(addr_ref));
         s.state[DL_address] = d.segment();
@@ -572,14 +575,14 @@ struct OP_ADD_PC
         std::cout << " by " << addr_delta;
         std::cout << std::hex << " to 0x" << s.address << std::dec;
         
-        if (line_delta) {
+        if (line_delta)
+        {
             s.state[DL_line] += line_delta;
             std::cout << " and " << dl_state_names::value[DL_line];
             std::cout << " by " << (int)line_delta << " to " << s.state[DL_line];
         }
-        if constexpr (sizeof...(FMTS)) {
+        if constexpr (sizeof...(FMTS))
             emit(FMTS{}..., (int)op_adv_delta);
-        }
     }
 };
 }

@@ -114,9 +114,11 @@ struct sleb128
     template <typename WRITE_FN>
     static int write(WRITE_FN& fn, value_t value)
     {
-        int size = 0;
-        bool done = false;
-        do {
+        static_assert(std::is_signed_v<value_t>, "sleb128 requires signed arg");
+        int  size = 0;
+        bool done;
+        do
+        {
             uint8_t byte = value & 0x7f;
             bool    bit6_clear = !(byte & 0x40);
             value >>= 7;
@@ -136,18 +138,20 @@ struct sleb128
     template <typename READ_FN>
     static value_t read(READ_FN const& fn)
     {
+        static_assert(std::is_signed_v<value_t>, "sleb128 requires signed arg");
 
         // make sure `fixed` is unsigned
         value_t result = 0;
         int     shift  = 0;
         uint8_t byte;
 
-        for(;;) {
+        for(;;)
+        {
             byte = fn();
             result |= (byte & 0x7f) << shift;
-            if (!(result & 0x80))
-                break;
             shift += 7;
+            if (!(byte & 0x80))
+                break;
         }
 
         // sign extend if negative

@@ -37,6 +37,7 @@ DW_EMIT_OP(NAME , const char *, opc_string<std::true_type>);
 
 DW_EMIT_OP(ULEB , uintmax_t   , opc_uleb128);
 DW_EMIT_OP(SLEB , intmax_t    , opc_sleb128);
+DW_EMIT_OP(FLEB , intmax_t    , opc_sleb128);   // factored
 
 using TEXT  = NAME;     // alias
 using BLOCK = LONG;     // XXX made up
@@ -56,6 +57,7 @@ using dwarf_arg_ops = meta::list<
     , TEXT
     , ULEB
     , SLEB
+    , FLEB
     , BLOCK
     >;
 }

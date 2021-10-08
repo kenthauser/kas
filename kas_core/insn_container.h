@@ -80,12 +80,12 @@ namespace kas::core
         insn_container(core_segment& initial, AT_END_FN fn = {}) 
                 : initial_segment(initial)
                 , at_end(fn)
-                , initial_state(value_type::get_initial_state())
                 {}
 
         // create container inserter
         auto inserter()
         {
+            initial_state = value_type::get_initial_state();
             return inserter_t(*this);
         }
         
@@ -134,7 +134,7 @@ namespace kas::core
     public:
         initial_state_t initial_state;        // initial state of opcode_data, etc
         core_segment&   initial_segment;
-        AT_END_FN         at_end{};
+        AT_END_FN       at_end{};
 
         // deferred generation attributes
         core_section::deferred_ops *deferred_ops_p {};

@@ -8,7 +8,10 @@
 
 
 #include "target/tgt_directives_impl.h"
+#include "kas_core/core_section.h"
+#include "dwarf/dwarf_opc.h"
 #include "kas/kas_string.h"
+#include "dwarf/dwarf_emit.h"
 #include <meta/meta.hpp>
 
 namespace kas::arm::opc
@@ -139,6 +142,7 @@ namespace detail
         uint8_t coding;
     };
 
+
     // ADDER adds instances to directives parser
     struct eabi_tag_adder
     {
@@ -172,14 +176,50 @@ namespace detail
     using eabi_tag_parser_t = parser::sym_parser_t<eabi_tag_t, eabi_defns>;
 }
 
+// generate `.ARM.attributes` after parse complete
+struct gen_arm_attributes : core::core_section::deferred_ops
+{
+    gen_arm_attributes()
+    {
+        std::cout << "gen_arm_attributes::ctor" << std::endl;
+        
+        // see addenda32, section 3.2.1
+        static const auto SHT_ARM_ATTRIBUTES = SHT_LOPROC + 3;
+        auto& s = core_section::get(".ARM.attributes", SHT_ARM_ATTRIBUTES);
+        s.set_deferred_ops(*this);
+    }
+
+    void gen_data(core::insn_inserter_t&& inserter) override;
+};
+
 struct arm_opc_eabi : parser::tgt_dir_opcode
 {
     OPC_INDEX();
     const char *name() const override { return "EABI"; }
 
+    struct attribute
+    { 
+        int       number;   // if name set, not a number
+        std::string name;
+
+        friend std::ostream& operator<<(std::ostream& os, attribute const& a)
+        {
+            if (a.name.size()) os << a.name; else os << a.number;
+            return os;
+        }
+    };
+
+    static auto& get_values()
+    {
+        static auto _values = new std::map<detail::eabi_tag_t const *, attribute>;
+        return *_values;
+    }
+
     // provide method to interpret args
     void tgt_proc_args(data_t& data, parser::tgt_dir_args&& args) const override
     {
+        static gen_arm_attributes _;
+
         // access system tokens
         using expression::detail::tok_fixed;
 
@@ -190,61 +230,75 @@ struct arm_opc_eabi : parser::tgt_dir_opcode
 
         if (auto err = validate_min_max(args, 2, 2))
             return make_error(data, err);
-#if 0
-        auto iter = args.begin();
-
-        auto sym_p = iter->template get_p<core::symbol_ref>();
-        if (!sym_p)
-            return make_error(data, "symbol required", *iter);
-
-        // several formats for symbol type:
-        // eg: the following are equiv: @function, @2, STT_FUNC
-        auto& loc = *++iter;
-        auto value = -1;
-        if (iter->is_token_type(tok_bsd_at_ident()))
-            value = parser::get_symbol_type(*iter, true);
-        else if (iter->is_token_type(tok_bsd_at_num()))
-            value = *iter->get_fixed_p();
-        else if (iter->is_token_type(tok_bsd_ident()))
-            value = parser::get_symbol_type(*iter, false);
-
-        if (value < 0)
-            return make_error(data, "invalid symbol type", *iter);
-
-        base_op.proc_args(data, value, sym_p->get(), loc);
-#else
         auto iter = args.begin();
 
         auto& tok_tag   = *iter++;
         auto& tok_value = *iter;
 
-        unsigned tag_value{};
-        unsigned value_value{};
+        unsigned  tag_value{};
+        attribute value_value;
         
         if (auto p = tok_value.get_fixed_p())
-            value_value = *p;
+            value_value.number = *p;
+        else
+            value_value.name   = tok_value.src();
 
         if (tok_tag.is_token_type(tok_fixed()))
         {
             tag_value = *tok_tag.get_fixed_p();
-#if 1
             auto p = detail::eabi_tag_t::lookup(tag_value);
             if (p)
             {
                 std::cout << "EABI TAG: " << tag_value;
-                std::cout << ": " << p->name()  << " = " << value_value << std::endl;
+                std::cout << ": "  << p->name();
+                std::cout << " = " << value_value << std::endl;
             }
             else
                 std::cout << "EABI TAG: unknown" << std::endl;
-#endif
+
+            if (p)
+                get_values().emplace(p, value_value);
         }
-#endif
+    }
+};
+
+
+void gen_arm_attributes::gen_data(core::insn_inserter_t&& inserter) 
+{
+    std::cout << "gen_arm_attributes::gen_data" << std::endl;
+
+    auto& values = arm_opc_eabi::get_values();
+    for (auto& obj : values)
+    {
+        std::cout << "EABI: " << obj.first->name();
+        std::cout << " = " << obj.second << std::endl;
     }
 
+    // emit `aeabi` section
+    dwarf::emit_insn emit{inserter};
 
+    // version header: version 'A'
+    emit(dwarf::UBYTE(), 'A');
+
+    // subsection header: length + zero-terminated vendor name
+    auto& bgn = emit.get_dot();
+    auto& end = core::core_addr_t::add();
+    emit(dwarf::UWORD(), end - bgn);
+    emit(dwarf::TEXT(), "aeabi");
+
+    // declare attributes with `file` scope (along with length)
+    auto& bgn_file = emit.get_dot();
+    emit(dwarf::ULEB(), 1);         // file
+    emit(dwarf::UWORD(), end - bgn_file);
+
+    for (auto& obj : values)
+    {
+        emit(dwarf::ULEB(), obj.first->value);
+        emit(dwarf::ULEB(), obj.second.number);
+    }
     
-    
-};
+    emit(end);      // drop the `end` address label
+}
     
 }
 #endif

@@ -37,17 +37,23 @@ struct bsd_cfi_sections : bsd_opcode
         if (auto err = opcode::validate_min_max(args, 1, 2))
             return make_error(data, err);
 
-        // grab first arg
-        auto& e = args.front();
-#if 0
-        if (auto p = e.template get_p<core::symbol_ref>())
+        using df_oper = core::opc::opc_df_oper;
+
+        // case matters
+        for (auto& tok : args)
         {
-            auto& sym = p->get();
-            //sym.set_flags(core::ST_TEMP);     // don't define as symbol just yet
+            auto arg = tok.src();
+            if (!strcmp(arg.c_str(), ".eh_frame"))
+                df_oper::gen_eh_frame();
+            else if (!strcmp(arg.c_str(), ".eh_frame_entry"))
+                df_oper::gen_eh_frame_entry();
+            else if (!strcmp(arg.c_str(), ".debug_frame"))
+                df_oper::gen_debug_frame();
+            else
+                return make_error(data, "X invalid argument", tok);
         }
-#endif
     }
-    
+
     core::opc::opcode const& op() const override
     {
         return *this;
@@ -57,6 +63,7 @@ struct bsd_cfi_sections : bsd_opcode
 struct bsd_cfi_cmd : bsd_opcode
 {
     static inline core::opc::opc_df_oper base_op;
+    OPC_INDEX();
 
     void bsd_proc_args(data_t& data, bsd_args&& args
                      , short arg_c
@@ -90,9 +97,7 @@ struct bsd_cfi_cmd : bsd_opcode
                 ci_string arg {args[0].begin(), args[0].end()};
 
                 if (arg.compare("simple"))
-                    return make_error(data
-                                    , "X invalid argument"
-                                    , args[0]);
+                    return make_error(data, "X invalid argument", args[0]);
 
                 // NB: `base_op` understands any arg suppresses `prologue`
                 break;

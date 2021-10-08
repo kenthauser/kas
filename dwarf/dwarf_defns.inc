@@ -47,11 +47,11 @@ DWARF_CALL_FRAME(endproc            , 0xc2)
 
 // Major commands use 2 msbs
 DWARF_CALL_FRAME (advance_loc       , 0x40, BYTE)       // low6 = delta (factored)
-DWARF_CALL_FRAME (offset            , 0x80, ULEB, ULEB) // low6 = register, offset
+DWARF_CALL_FRAME (offset            , 0x80, ULEB, FLEB) // low6 = register, offset
 DWARF_CALL_FRAME (restore           , 0xc0, ULEB)       // low6 = register
 
 // Normal commands are less than 64
-// NB: `_sf` versions (with SLEB args) are factored versions of base command
+// NB: `_sf` versions (with FLEB args) are factored versions of base command
 DWARF_CALL_FRAME (nop               ,  0)               // Padding instruction
 DWARF_CALL_FRAME (set_loc           ,  1, ADDR)         // relocatable address
 DWARF_CALL_FRAME (advance_loc1      ,  2, BYTE)         // (factored)
@@ -69,11 +69,12 @@ DWARF_CALL_FRAME (def_cfa_register  , 13, ULEB)         // register
 DWARF_CALL_FRAME (def_cfa_offset    , 14, ULEB)         // offset (non-factored)
 DWARF_CALL_FRAME (def_cfa_expression, 15, BLOCK)        // BLOCK
 DWARF_CALL_FRAME (expression        , 16, ULEB, BLOCK)  // register, BLOCK
-DWARF_CALL_FRAME (offset_extended_sf, 17, ULEB, SLEB)   // register, offset
-DWARF_CALL_FRAME (def_cfa_sf        , 18, ULEB, SLEB)   // register, offset
-DWARF_CALL_FRAME (def_cfa_offset_sf , 19, SLEB)         // offset (factored)
-DWARF_CALL_FRAME (val_offset        , 20, ULEB, ULEB)   // ULEB, ULEB
-DWARF_CALL_FRAME (val_offset_sf     , 21, ULEB, SLEB)   // ULEB, SLEB
+DWARF_CALL_FRAME (offset_extended_sf, 17, ULEB, FLEB)   // register, offset
+DWARF_CALL_FRAME (def_cfa_sf        , 18, ULEB, FLEB)   // register, offset
+DWARF_CALL_FRAME (def_cfa_offset_sf , 19, FLEB)         // offset (factored)
+// XXX Dwarf4, Section 6.4.2.3 6) says `val_offset` is factored, but 7) is _sf 
+DWARF_CALL_FRAME (val_offset        , 20, ULEB, ULEB)   // ULEB, ULEB (factored)
+DWARF_CALL_FRAME (val_offset_sf     , 21, ULEB, FLEB)   // ULEB, SLEB
 DWARF_CALL_FRAME (val_expression    , 22, ULEB, BLOCK)  // ULEB, BLOCK
 
 //

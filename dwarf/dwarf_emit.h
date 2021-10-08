@@ -23,10 +23,17 @@
 
 
 #include "dwarf_opc_impl.h"
-#include "kas/kas_string.h"
+
+// includes for insertion into container
+#include "kas_core/insn_container.h"
+#include "kas_core/insn_container_data.h"
+
+// includes for `opcodes`
 #include "kas_core/opc_fixed.h"
 #include "kas_core/opc_leb.h"
-#include "kas_core/core_fixed_inserter.h"
+
+// includes for `kas` utilities
+#include "kas/kas_string.h"
 #include "utility/print_type_name.h"
 
 namespace kas::dwarf
@@ -58,20 +65,17 @@ struct emit_insn
             , typename OP = typename  DEFN::op>
     void operator()(DEFN&& d, Arg&& arg)
     {
-#define TRACE_DWARF_EMIT
+//#define TRACE_DWARF_EMIT
 #ifdef TRACE_DWARF_EMIT
-        std::cout << " " << DEFN() << ": arg = " << arg << std::endl;
+        if constexpr (std::is_integral_v<std::remove_reference_t<Arg>>)
+            std::cout << " " << DEFN() << ": arg = " << +arg << std::endl;
+        else
+            std::cout << " " << DEFN() << ": arg = " << arg << std::endl;
 #endif
         // if currently inserting fixed, verify same `OP` type
         if (!insn_p || !op_p->is_same(d))
-        {
-            std::cout << "OP is different" << std::endl;
             set_opcode(d);
-        }
-#ifdef TRACE_DWARF_EMIT
-        else 
-            std::cout << "OP is same" << std::endl;
-#endif
+
         do_fixed_emit(std::forward<Arg>(arg));
     }
 
@@ -84,7 +88,7 @@ struct emit_insn
         std::cout << " OPCODE:" << op.name();
         auto tpl = std::make_tuple(args...);
         if constexpr (sizeof...(Ts) == 1)
-            std::cout << ": arg = " << std::get<0>(tpl) << std::endl;
+            std::cout << ": arg = " << +std::get<0>(tpl) << std::endl;
         else
             std::cout << ": arg count = " << sizeof...(Ts) << std::endl;
 #endif
@@ -170,8 +174,11 @@ private:
         // insert & destroy `insn`, destroy `data_inserter`
         if (insn_p)
         {
-            *inserter++ = std::move(*insn_p.release());
             op_p->delete_inserter(di_p);
+            *inserter++ = std::move(*insn_p);
+            insn_p = {};
+            op_p   = {};
+            di_p   = {};
         }
     }
 
@@ -201,8 +208,8 @@ private:
     insn_inserter_t& inserter;
     
     std::unique_ptr<core::core_insn> insn_p;// current insn
-    dwarf_emit_fixed const * op_p;          // fixed_insn operations
-    void                   * di_p;          // pointer to data_inserter
+    dwarf_emit_fixed const * op_p {};       // fixed_insn operations
+    void                   * di_p {};       // pointer to data_inserter
     bool pending_dot_after{};               // dot-after requested & pending
 };
 #undef TRACE_DWARF_EMIT
