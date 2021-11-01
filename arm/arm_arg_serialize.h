@@ -41,6 +41,7 @@ bool arm_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p, boo
         switch (mode())
         {
             case MODE_REG_INDIR:
+            case MODE_REG_IEXPR:
             case MODE_SHIFT:
             {
                 auto value = (indir.value() << 8) | shift.value();
@@ -81,6 +82,7 @@ void arm_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p, bool
         switch (mode())
         {
             case MODE_REG_INDIR:
+            case MODE_REG_IEXPR:
             case MODE_SHIFT:
             {
                 auto value = reader.get_fixed(2);

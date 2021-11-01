@@ -3,28 +3,13 @@
 
 
 #include "arm_mcode.h"
+#include "arm_formats_opc.h"
 #include "target/tgt_format.h"
 
 namespace kas::arm::opc
 {
 // tinker-toy functions to put args into various places...
 // always paired: insert & extract
-
-#ifdef XXX
-//
-// arm specific formatters
-//
-// use generic template to generate `mix-in` type
-template <unsigned N, typename T>
-using fmt_arg = tgt::opc::tgt_fmt_arg<arm_mcode_t, N, T>;
-
-// use generic bit inserter/extractor
-template <unsigned...Ts>
-using fmt_generic = tgt::opc::tgt_fmt_generic<arm_mcode_t, Ts...>;
-#endif
- //
- // arm specific formatters
- //
 
 // ARM5: Addressing Mode 1: Immediate Shifts & Register Shifts
 // NB: `val_shift` does encoding/decoding
@@ -74,6 +59,63 @@ struct fmt_fixed : arm_mcode_t::fmt_t::fmt_impl
     {
     }
 #endif
+};
+
+// ARM5: Addressing Mode 2: various forms of indirect in bottom 12 bits + flags
+// requires validator `val_indir`
+struct fmt_reg_indir :  arm_mcode_t::fmt_t::fmt_impl
+{
+    using mcode_size_t = arm_mcode_t::mcode_size_t;
+    using val_t        = arm_mcode_t::val_t;
+    using arg_t        = arm_mcode_t::arg_t;
+  
+    bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
+    {
+        auto value = val_p->get_value(arg);
+        //std::cout << "\nfmt_reg_indir::insert: arg = " << arg << ", value = " << std::hex << value << std::endl;
+        op[1] |= value;
+        op[0] |= value >> 16;
+
+        // if non-constant expression, need reloc
+        return arg.expr.get_fixed_p();
+    }
+   
+    // associated reloc: R_ARM_ABS12
+    // use for unresolved immediate offset or conversion of `DIRECT` to PC-REL
+    void emit_reloc(core::core_emit& base
+                  , mcode_size_t *op
+                  , arg_t& arg
+                  , val_t const *val_p) const override
+    {
+        using ARM_REL_OFF12 = kbfd::ARM_REL_OFF12;
+        static const kbfd::kbfd_reloc r_ind { ARM_REL_OFF12(), 32, false }; 
+        static const kbfd::kbfd_reloc r_dir { ARM_REL_OFF12(), 32, true  }; 
+
+        //std::cout << "\nfmt_reg_indir::emit_reloc: arg = " << arg << std::endl;
+        switch (arg.mode())
+        {
+            // handle DIRECT xlated to PC-REL
+            // NB: offset must match `val_indir::ok` value to ensure no overflow
+            case arg_t::arg_mode_t::MODE_DIRECT:
+                base << core::emit_reloc(r_dir, -8) << arg.expr;
+                break;
+
+            // handle REG_INDIR with unresolved offset
+            case arg_t::arg_mode_t::MODE_REG_IEXPR:
+                base << core::emit_reloc(r_ind) << arg.expr;
+                break;
+            default:
+            
+                // internal error
+                break;
+        }
+    }
+    
+    void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const override
+    {
+        auto value = (op[0] << 16) | op[1];
+        val_p->set_arg(arg, value);
+    }
 };
 
 struct fmt_movw : arm_mcode_t::fmt_t::fmt_impl

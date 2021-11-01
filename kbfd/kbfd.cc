@@ -5,6 +5,9 @@
 #include "target/z80.h"
 #include "target/arm.h"
 
+// include target support files
+#include "target/arm_reloc_impl.h"
+
 // include implementation files
 #include "kbfd_reloc_ops_impl.h"
 #include "kbfd_object_impl.h"
@@ -19,6 +22,7 @@
 #include "target/arm_elf.h"
 #include "target/m68k_elf.h"
 #include "target/z80_aout.h"
+
 
 // include utility files
 #include "kas/init_from_list.h"

@@ -1,9 +1,12 @@
 // NB: this file included several times, so no header guard
 
+// Defintions in this file are derived from:
+//
+// DWARF Debugging Information Format, Version 4, Dated June 10, 2010
+// http://dwarfstd.org/doc/DWARF4.pdf
 
 // Declare features which control assembly
 
-// NOP sections not currently being processed 
 #ifndef DWARF_LINE_STATE
 #define DWARF_LINE_STATE(...)
 #endif

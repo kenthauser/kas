@@ -162,7 +162,7 @@ void core_emit::operator()(T const& e, kas_loc const *loc_p)
     std::cout << "core_emit: unsupported expression: " << expr_t(e) << std::endl;
 }
 
-void core_emit::put_section_reloc(core_reloc& r, core_section const& section)
+void core_emit::put_reloc(core_reloc& r, core_section const& section)
 {
     auto tgt_reloc_p = get_reloc(r.reloc);
     if (!tgt_reloc_p)
@@ -176,7 +176,7 @@ void core_emit::put_section_reloc(core_reloc& r, core_section const& section)
     stream.put_section_reloc(e_chan, *tgt_reloc_p, r.offset, section, r.addend);
 }
 
-void core_emit::put_symbol_reloc (core_reloc& r, core_symbol_t const& symbol)
+void core_emit::put_reloc (core_reloc& r, core_symbol_t const& symbol)
 {
     auto tgt_reloc_p = get_reloc(r.reloc);
     if (!tgt_reloc_p)
@@ -188,6 +188,20 @@ void core_emit::put_symbol_reloc (core_reloc& r, core_symbol_t const& symbol)
     }
 
     stream.put_symbol_reloc(e_chan, *tgt_reloc_p, r.offset, symbol, r.addend);
+}
+
+void core_emit::put_reloc (core_reloc& r)
+{
+    auto tgt_reloc_p = get_reloc(r.reloc);
+    if (!tgt_reloc_p)
+    {
+        std::cout << "no target relocation for action = " << r.reloc.action.name();
+        std::cout << " bits = " << +r.reloc.bits << std::endl;
+        // ** put diag **
+        return;
+    }
+
+    stream.put_bare_reloc(e_chan, *tgt_reloc_p, r.offset);
 }
 
 }   // namespace kas_core

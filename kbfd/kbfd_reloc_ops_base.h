@@ -67,7 +67,7 @@ struct reloc_op_subfield : virtual reloc_op_fns
 template <typename = void> struct reloc_ops_v : meta::list<> {};
 
 // format each "defn" as "list" as required for `init_from_list`
-template <typename NAME, typename OP, int...Ts>
+template <typename NAME, typename OP = reloc_op_fns, int...Ts>
 using KBFD_ACTION = meta::list<NAME, OP>;//, NAME, meta::int_<Ts>...>;
 
 

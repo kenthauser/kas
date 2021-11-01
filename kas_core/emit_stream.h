@@ -70,6 +70,13 @@ struct emit_stream_base
             , core_section const& section
             , emit_value_t& addend
             ) = 0;
+    // NB: some relocs (i'm looking at you `ARM_V4BX`) don't have
+    // symbol or section component.
+    virtual void put_bare_reloc(
+              e_chan_num num
+            , kbfd::kbfd_target_reloc const& tgt_reloc
+            , uint8_t offset
+            ) = 0;              
 
     // access `core_base` (throws if not defined)
     auto& base()

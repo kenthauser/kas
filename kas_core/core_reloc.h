@@ -19,7 +19,6 @@ namespace kas::core
 
 struct core_emit;       // forward declaration of calling type
 
-#define TRACE_CORE_RELOC
 struct core_reloc
 {
     // locally expose constants from `kbfd`
@@ -60,6 +59,7 @@ struct core_reloc
     void emit       (core_emit&, parser::kas_error_t&);
     void put_reloc  (core_emit&, parser::kas_error_t&, core_section  const&);
     void put_reloc  (core_emit&, parser::kas_error_t&, core_symbol_t const&);
+    void put_reloc  (core_emit&, parser::kas_error_t&);
     void apply_reloc(core_emit&, parser::kas_error_t&);
 
     // return true iff `relocs` emited OK

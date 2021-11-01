@@ -1,0 +1,111 @@
+Object in assemble / emit / listing
+
+
+1. In exec: create `kbfd_object` with target type. Know as "kbfd_obj".
+   Strictly `kbfd`
+
+2. To assemble: create `kas_assemble` object, passing `kbfd_obj`.
+   This object known as `obj`.
+   The ctor inits `core_section` to create default sections.
+
+   Parsing completed using `obj` and `parser_src` object via `assemble` method.
+
+3. After parse complete, ready for "emit"
+
+   1. create path with extension or pass "ostream"
+   2. create `core_emit` derived virtual object. pass ostream. known as `e`
+   3. drive `e.init(obj)`
+   4. foreach (insn : obj) drive e.emit(insn, &dot). NB: dot from `proc_frags`
+   5. drive `e.close()`
+
+Repeat step 3 as required (binary, listing, etc)
+
+**************
+
+Emit binary:
+
+kbfd_binary: vitual base: core_emit
+
+ctor:
+1. if required, create `ofstream`.
+2. pass `ofstream` to `kbfd_stream` ctor to create `stream`
+3. init base `emit_base` with `stream`
+
+Single virtual method:
+
+emit: insn.emit(*this, dot_p);
+
+dtor:
+1. flush `ofstream`
+
+
+kbfd_stream: virtual base: emit_stream
+
+ctor: save ostream `out`
+
+open(kbfd_object&)
+    -> reserve sections
+    -> allocate sections
+    -> init symbol_table
+    -> etc, etc.
+
+
+close(kbfd_object& k)
+    -> k.write(out)  // KBFD method
+
+************
+
+Emit listing:
+
+kbfd_listing: virtual base: core_emit
+
+ctor:
+1. save `ostream` as `out` 
+2. pass `emit_formatted` object to `emit_base`
+3. init listing structures
+
+emit:
+    insn.emit(*this, dot_p)
+    gen_listing(*dot_p, insn.loc())
+
+emit_formatted: virtual base: emit_stream
+
+**************
+
+Currently:
+
+emit_base(emit_stream&) saving stream in ctor.
+
+method: init(kbfd_objectd& obj)
+1. save object_p (for reloc lookup)
+2. stream.open(obj)
+3. set_defaults()
+
+method: close()
+1. stream.close(obj)
+
+
+*****************
+
+Refactored:
+
+in emit_stream base class:
+
+ctor: arg is `obj`
+1. if required, create `ofstream`.
+2. init member `core_emit`. Pass `*this, obj` to its ctor.
+3. invoke `init` virtual member (formerly `open`)
+
+dtor:
+1. close `ofstream` if created
+
+emit:
+    virtual void emit(core_insn&, core_expr_dot const *dot_p)
+       
+
+
+
+
+
+
+

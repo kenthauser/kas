@@ -51,7 +51,7 @@ static constexpr kbfd_target_reloc arm_elf_relocs[] =
   , {  37, "R_ARM_LDR_SBREL_27_20_NC", K_REL_NONE(), 32, 0, T_ARM, T_DEPR }
   , {  38, "R_ARM_TARGET1"  , K_REL_NONE() }
   , {  39, "R_ARM_SBREL31"  , K_REL_NONE()          , 32, 0, T_DEPR }
-  , {  40, "R_ARM_V4BX"     , K_REL_NONE() }
+  , {  40, "R_ARM_V4BX"     , ARM_REL_V4BX()        , 32 }
   , {  41, "R_ARM_TARGET2"  , K_REL_NONE() }
   , {  42, "R_ARM_PREL31"   , K_REL_NONE()          , 31, 1 }
   , {  43, "R_ARM_MOVW_ABS_NC", ARM_REL_MOVW()        , 32, 0 }

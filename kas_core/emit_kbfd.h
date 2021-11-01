@@ -17,7 +17,7 @@
 namespace kas::core
 {
 
-struct emit_kbfd: emit_stream
+struct emit_kbfd : emit_stream
 {
     // initialize `kbfd` after allocating `stream`
     emit_kbfd(kbfd::kbfd_object& kbfd, std::ostream& out)
@@ -86,6 +86,16 @@ public:
                 , core_section const& section
                 , int64_t& addend 
                 ) override;
+
+    void put_bare_reloc(
+                  e_chan_num num
+                , kbfd::kbfd_target_reloc const& info
+                , uint8_t offset
+                ) override
+    {
+        int64_t dummy;
+        put_kbfd_reloc(num, info, 0, offset, dummy);
+    }
 
     void put_diag(e_chan_num num
                 , uint8_t width

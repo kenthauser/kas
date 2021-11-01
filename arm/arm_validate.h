@@ -64,6 +64,16 @@ struct val_regset : arm_mcode_t::val_t
     }
 };
 
+struct val_regset_single : val_regset
+{
+    using base_t = val_regset;
+
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        return base_t::ok(arg, fits);   // XXX
+    }
+};
+
 struct val_regset_user : val_regset
 {
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
@@ -97,34 +107,47 @@ struct val_shift : arm_mcode_t::val_t
 // ARM5 Adddressing mode 2: Load and Store word or unsigned byte
 struct val_indir : arm_mcode_t::val_t
 {
-    constexpr val_indir() {}
+    // declare 12-bit limits
+    static constexpr auto offset12_min = -(1 << 12);
+    static constexpr auto offset12_max = (1 << 12) - 1;
 
-    bool only_8_significant_bits(uint32_t value) const
-    {
-        return true;
-    }
+    // require constexpr default ctor
+    constexpr val_indir() {}
 
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
-        if (arg.mode() != arg_mode_t::MODE_REG_INDIR)
-            return fits.no;
-        if (auto p = arg.get_fixed_p())
-            if (!only_8_significant_bits(*p))
-                return fits.no;
-
-        return fits.yes;
+        switch (arg.mode())
+        {
+            // allow indirect addressing modes
+            case arg_mode_t::MODE_REG_INDIR:
+            case arg_mode_t::MODE_REG_IEXPR:
+                return fits.yes;
+            // try convert direct arg to pc-relative indirect
+            case arg_mode_t::MODE_DIRECT:
+                return fits.disp(arg.expr, offset12_min, offset12_max, 8);
+            default:
+                break;
+        }
+        return fits.no;
     }
 
     // standard ARM encoding (32-bit value)
-    // 1. 12 LSBs hold shifter values
+    // 1. 12 LSBs hold shifter or offset values
     // 2. 4 bits << 16 hold Rn (ie indirect base register)
     // 3. next 6 bits (ie shifted 20) hold following:
     //      R_flag, P_flag, U_flag, B_flag, W_flag, L_flag
     //
     // NB: L_flag && B_flag handled via `info` methods
 
+    // addressing modes are interpreted in `arm_parser_support.h`
+    // most `indir` values and modes are validated there
+
     uint32_t get_value(arg_t& arg) const override
     {
+        // xlate DIRECT to INDIRECT with: reg = R15, p_flag set
+        if (arg.mode() == arg_mode_t::MODE_DIRECT)
+            return 0x10f0000;
+        
         // first calculate upper word
         uint32_t value  = arg.reg_p->value(RC_GEN);
         if (arg.indir.p_flag)
@@ -138,9 +161,16 @@ struct val_indir : arm_mcode_t::val_t
         value <<= 16;
 
         // now lower word
+#if 0
+        // XXX needs work
         value += arg.shift.arm7_value();
         if (arg.indir.r_flag)
             value += arg.indir.reg;
+#else
+        // offset value
+        if (auto p = arg.get_fixed_p())
+            value += *p;
+#endif
         return value;
     }
 
@@ -163,10 +193,14 @@ struct val_indir : arm_mcode_t::val_t
         if (msw & (1 << (25-16)))
             arg.indir.r_flag = true;
 
+#if 0
         // extract lower word values 
         arg.shift.arm7_set(value);
         if (arg.indir.r_flag)
             arg.indir.reg = value & 15;
+#else
+        arg.expr = value & 0xfff;
+#endif
     }
 };
 
@@ -269,14 +303,23 @@ struct val_imm8: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
     }
 };
 
-// displacement calculated as "words" from after instruction following branch
-struct val_s_off25_8: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
+struct val_branch24 : arm_mcode_t::val_t
 {
-    // branch requires signed  25-bit range, with 8-byte offset
-    static const auto max = +(1 << 25) + 8;
-    static const auto min = -(1 << 25) + 8;
-    constexpr val_s_off25_8(...) : base_t(max, min) {}
+    // out-of-range displacement handled by linker
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        return fits.yes;
+    }
     
+    // set `arg_mode` to MODE_BRANCH
+    fits_result size(arg_t& arg, mcode_t const&, stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& op_size) const override
+    {
+        arg.set_mode(arg_t::arg_mode_t::MODE_BRANCH);
+        return fits.yes;
+    }
+
+    // XXX these methods need work
     unsigned get_value(arg_t& arg) const override
     {
         auto value = base_t::get_value(arg) - 8;
@@ -287,12 +330,20 @@ struct val_s_off25_8: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
     {
         // convert 24-bit signed to 32-bit signed
         int32_t disp = value << 8;      // move "sign" to MSB.
-        base_t::set_arg(arg, (disp >> 6) + 8);
+        base_t::set_arg(arg, (disp >> 6) - 8);
     }
 };
 
-struct val_ts_off25_8 : val_s_off25_8
+// special validator to support `bl` ARM_CALL reloc
+struct val_arm_call24 : val_branch24
 {
+    // indicate `ARM_CALL`: set `arg_mode` to MODE_CALL
+    fits_result size(arg_t& arg, mcode_t const&, stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& op_size) const override
+    {
+        arg.set_mode(arg_t::arg_mode_t::MODE_CALL);
+        return fits.yes;
+    }
 };
 
 
@@ -340,14 +391,16 @@ VAL_GEN(OFFSET8     , val_imm8);
 
 // ARM V5: addressing mode 4 validators
 VAL_GEN(REGSET      , val_regset);
+VAL_GEN(REGSET_SGL  , val_regset_single);
 VAL_GEN(REGSET_USER , val_regset_user);
 
 // XXX DUMMY
 //VAL_REG(OFFSET12    , RC_GEN);
 
 // validate branch and thumb branch displacements
-VAL_GEN( S_OFFSET25_8 , val_s_off25_8);
-VAL_GEN(TS_OFFSET25_8 , val_ts_off25_8);
+// name by reloc generated. linker validates displacements
+VAL_GEN(ARM_JUMP24  , val_branch24);
+VAL_GEN(ARM_CALL24  , val_arm_call24);
 
 // XXX
 // unsigned validators

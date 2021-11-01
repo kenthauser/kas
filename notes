@@ -552,4 +552,35 @@ Notes: dwarf
 
 8. DWARF: need to support "BLOCK" arg format (expression??)
 
+***********************************************
+
+Notes: Reloc:
+
+1. To implement ARM_CALL reloc, need to always emit a symbol label, instead of trying to convert to section label.
+
+2. To implement ARM_JUMP24 reloc, need to "see if fits". Can emit a section label
+    if fits, must emit "symbol label" if overflow. XXX use existing tools.
+
+3. Need to implement $d/$a/$t labels for start of ARM sections. See ARM Elf Documentation, Section 4.5.5 Mapping symbols
+
+4. ARM "modified immediate constants" Arm7-AR, A5.2.4 allows constants to be specified #<byte>, #<rot> where byte = 0-255, rot is twice rotation, even value in [0-30]
+
+5. Need "MODE_REG_IEXPR" for offsets that don't parse to constants. These args need "reloc" support to set u-bit or add/sub
+
+6. Need to link ADD/SUB Immed into reloc code
+
+7. WHen converting symbol-relocs to section-relocs, don't if symbol-reloc is global.
+
+
+
+
+
+
+
+
+
+
+
+
+
 

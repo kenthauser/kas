@@ -94,6 +94,50 @@ auto arm_mcode_t::extract_info(mcode_size_t const *code_p) const
     //return info_fns[defn_info.fn_idx]->extract(code_p, defn_info);
 }
 
+template <typename ARGS_T>
+void arm_mcode_t::emit(core::core_emit& base
+                     , ARGS_T&& args
+                     , stmt_info_t const& info) const
+{
+    //print_type_name{"arm_mcode_t::emit: ARGS_T"}.name<ARGS_T>();
+#if 0
+    base_t::emit(base, std::forward<ARGS_T>(args), info);
+#else
+    // 0. generate base machine code data
+    auto machine_code = derived().code(info);
+    auto code_p       = machine_code.data();
+
+    // 1. apply args & emit relocs as required
+    // NB: matching mcodes have a validator for each arg
+    
+    // Insert args into machine code "base" value
+    // if base code has "relocation", emit it
+    auto val_iter = vals().begin();
+    unsigned n = 0;
+    for (auto& arg : args)
+    {
+        auto val_p = &*val_iter++;
+        if (!fmt().insert(n, code_p, arg, val_p))
+            fmt().emit_reloc(n, base, code_p, arg, val_p);
+        ++n;
+    }
+
+    // 2. emit base code
+    auto words = code_size()/sizeof(mcode_size_t);
+    for (auto end = code_p + words; code_p < end;)
+    {
+        // convert mcode_size_t (16-bits) to 32-bits
+        uint32_t value = *code_p++ << 16;
+        value |= *code_p++;
+        base << value;
+    }
+
+    // 3. emit arg information
+    auto sz = info.sz(derived());
+    for (auto& arg : args)
+        arg.emit(base, sz);
+#endif
+}
 }
 
 #endif

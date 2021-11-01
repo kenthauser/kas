@@ -91,6 +91,9 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t
     static constexpr const char size_names[][4] =
         { "W", "H", "B", "Q", "SH", "SB" };
 
+    template <typename ARGS_T>
+    void emit(core::core_emit&, ARGS_T&&, stmt_info_t const&) const;
+
 };
 
 }

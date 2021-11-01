@@ -193,7 +193,8 @@ struct arm_indirect_arg
     kas_token        offset;
     arm_shift        shift;
     arm_indirect     indir;
-    arm_arg_mode     mode {MODE_REG_INDIR};
+    //arm_arg_mode     mode {MODE_REG_INDIR};
+    arm_arg_mode     mode {MODE_REG_IEXPR};
 };
 
 template <typename Context>

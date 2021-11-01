@@ -1,8 +1,8 @@
 #ifndef KAS_KBFD_TARGET_ARM_H
 #define KAS_KBFD_TARGET_ARM_H
 
-#include "kbfd/kbfd.h"        // boilerplate
-#include "arm_reloc_ops.h"
+#include "kbfd/kbfd.h"          // boilerplate
+#include "arm_reloc_ops.h"      // name relocations
 
 namespace kbfd
 {

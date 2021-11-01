@@ -81,6 +81,8 @@ void arm_arg_t::print(OS& os) const
     switch (mode())
     {
         case MODE_DIRECT:
+        case MODE_BRANCH:
+        case MODE_CALL:
             os << expr;
             break;
         case MODE_IMMED_QUICK:
@@ -111,6 +113,7 @@ void arm_arg_t::print(OS& os) const
             break;
 
         case MODE_REG_INDIR:
+        case MODE_REG_IEXPR:
             os << "[" << *reg_p;
             indir.print(os, *this);
             break;

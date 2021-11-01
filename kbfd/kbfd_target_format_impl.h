@@ -6,6 +6,11 @@
 #include <unordered_map>
 #include <vector>
 #include <typeindex>
+#include <ostream>
+
+
+#undef KBFD_TRACE_RELOC
+
 
 namespace kbfd
 {
@@ -20,8 +25,9 @@ auto kbfd_target_format::get_section_defns() const
 auto kbfd_target_format::lookup(kbfd_reloc const& reloc) const
     -> kbfd_target_reloc const *
 {
+#ifdef KBFD_TRACE_RELOC
     std::cout << "kbfd_target_format::lookup: reloc = " << reloc << std::endl;
-    
+#endif
     // use `unordered_map`s for `derived type` & `reloc` lookup
     using tgt_reloc_map_t = std::unordered_map<kbfd_reloc::key_t
                                              , kbfd_target_reloc const *>;
@@ -55,8 +61,10 @@ auto kbfd_target_format::lookup(kbfd_reloc const& reloc) const
 auto kbfd_target_format::get_p(target_reloc_index_t index) const
     -> kbfd_target_reloc const *
 {
+#ifdef KBFD_TRACE_RELOC
     std::cout << "kbfd_target_format::get: index = " << +index << std::endl;
-    
+#endif
+
     using tgt_index_map_t = std::vector<kbfd_target_reloc const *>;
     using map_of_maps     = std::unordered_map<std::type_index, tgt_index_map_t *>;
     

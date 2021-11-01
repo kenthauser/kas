@@ -1,0 +1,46 @@
+
+
+Dwarf Emit
+
+Interface:
+
+0. `emit_insn(INSN_INSERTER&)` -> stores inserter in instance
+
+1. void operator([virtual]dwarf_emit_base, kas_token&&) -> do_fixed_emit
+
+2. void operator(opcode&, ...) -> do_emit
+
+3. void operator(core::symbol_ref& sym) -> do_emit(LABEL)
+
+4. void operator(core::addr_ref& addr)  -> do_emit(ADDR)
+
+5. auto get_dot(CUR_DOT, NEXT_DOT) -> &core_addr_t&
+
+Primary Methods:
+1. `do_emit()` -> flush pending `do_fixed_emit()`
+
+2. `set_opcode<opc_fixed<xxx>>` ->
+        - if too large, or different, flush
+        - if flushed
+            - allocate a `core_insn`
+            - allocate a `data_inserter_p` for insn
+            - store data_inserter_p in union
+
+3. `do_fixed_emit` ->
+        - set_opcode -> flush if required
+        - convert data_inserter_p from union to typed reference
+        - drive `proc_one` method for integral or `const char *` args
+        - otherwise convert to `expr_t` & drive `proc_one expr_t`
+        - `proc_one` returns bytes added. update `insn` size
+        - if `pending_dot_after` -> flush
+
+******************
+
+*1. convert `new` to `unique_ptr`
+
+*2. add `DO_EMIT` ADDR support...
+
+3. virtual fns to perform `do_fixed_emit`
+
+
+

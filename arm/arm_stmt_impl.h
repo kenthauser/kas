@@ -37,7 +37,7 @@ const char *arm_stmt_info_t::ok(arm_mcode_t const &mcode) const
 
     // check condition code, s-flag, and arch match MCODE & mode
     auto m_info = mcode.defn().info;
-    if (ccode == ARM_CC_OMIT)
+    if (ccode != ARM_CC_OMIT)
         if (~m_info.flags & SZ_DEFN_COND)
             return "condition code not allowed";
 

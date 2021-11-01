@@ -1,0 +1,26 @@
+1/21/21
+
+Relocation notes:
+
+1. Define `actions` in kbfd. 
+
+Action is operation function set (such as ADD, SUB, ARM_REL_MOVW).
+Defined in arch file (eg kbfd/target/arm.h, kbfd/target/i386.h, etc.)
+Defined as KAS_STRING types.
+Added to `all_defns` list specialized with arch name.
+
+
+
+2. Define `kbfd_reloc` as Action + Width + Flags (Relative, Thread-local, etc)
+
+Action is index in `all_reloc_ops` list: start with 8-bits
+Width is converted to 3-bit field of flags for supported widths
+Or'd with additional flags: 8-bits
+
+3. Need to add `get_reloc_info(kbfd_obj const&, kbfd_reloc const&)` to
+return `kbfd_reloc_info`. Must lookup reloc in `kas_core` so that listing
+and object can generate same info. Matches current `kbfd emit` interface.
+
+
+
+

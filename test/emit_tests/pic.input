@@ -1,12 +1,3 @@
-	@@ test
-dummy1:
-    .size   dummy1, 2
-    .size   myglob, 2
-    .size   2, dummy2
-    .globl  dummy1
-    .globl  myglob
-myglob:
-    @@ end
     .cpu arm7tdmi
 	.eabi_attribute 20, 1
 	.eabi_attribute 21, 1

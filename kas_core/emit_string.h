@@ -213,6 +213,22 @@ struct emit_formatted : emit_stream
         do_put_reloc(num, 0, s);  // just use zero for width
     }
 
+    void put_bare_reloc(
+              e_chan_num num
+            , kbfd::kbfd_target_reloc const& info
+            , uint8_t offset
+            ) override
+    {
+        // use suffix `X` if multiple relocations at same address
+        if (!suffix_p)
+            suffix_p = "*";
+        else
+            suffix_p = "X";
+
+        auto s = reloc_msg(info, offset, "", 0);
+        do_put_reloc(num, 0, s);  // just use zero for width
+    }
+
     void put_diag(e_chan_num num, uint8_t width, parser::kas_diag_t const& diag) override
     {
         do_put_diag(num, width, diag);

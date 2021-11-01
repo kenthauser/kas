@@ -39,12 +39,15 @@ using arm_insn_common_l = list<list<>
 // Declare ARM 5 Instructions. Section references from ARM V5 ARchitecture Manual
 
 // ARM5: A3.3
+// NB: out-of-range branches handled by linker, not assembler
+// NB: ARM_CALL24 validator causes `ARM_CALL` reloc to be emitted
 using arm_insn_branch_l = list<list<>
-, defn<a7_c, STR("b")   , OP<0x0a00'0000>, FMT_B , S_OFFSET25_8>
-, defn<a7_c, STR("bl")  , OP<0x0b00'0000>, FMT_B , S_OFFSET25_8>
-, defn<a7_u, STR("blx") , OP<0xfa00'0000>, FMT_BT, TS_OFFSET25_8>
+, defn<a7_c, STR("b")   , OP<0x0a00'0000>, FMT_B , ARM_JUMP24>
+, defn<a7_u, STR("bl")  , OP<0xeb00'0000>, FMT_B , ARM_CALL24>
+, defn<a7_c, STR("bl")  , OP<0x0b00'0000>, FMT_B , ARM_JUMP24>
+, defn<a7_u, STR("blx") , OP<0xfa00'0000>, FMT_B , ARM_CALL24>
 , defn<a7_c, STR("blx") , OP<0x012f'ff30>, FMT_0 , REG>
-, defn<a7_c, STR("bx")  , OP<0x012f'ff10>, FMT_0 , REG>
+, defn<a7_c, STR("bx")  , OP<0x012f'ff10>, FMT_BX, REG>     // emit ARM_V4BX reloc
 , defn<a7_c, STR("bxj") , OP<0x012f'ff20>, FMT_0,  REG>
 >;
 
@@ -125,6 +128,10 @@ using arm_insn_ls_misc_l = list<list<>
 // ARM V5: A5.4 addressing mode 3: load & store multiple
 // require suffix from: IA, IB, DA, DB, { or alises FA, FD, EA, ED }
 using arm_insn_ls_multiple_l = list<list<>
+, defn<a7_c , STR("push"), OP<0x92d'0000>, FMT_0, REGSET>
+, defn<a7_c , STR("push"), OP<0x52d'0000>, FMT_0, REGSET_SGL>   // XXX should be first
+, defn<a7_c , STR("pop") , OP<0x8bd'0000>, FMT_0, REGSET>
+, defn<a7_c , STR("pop") , OP<0x49d'0000>, FMT_0, REGSET_SGL>
 , defn<a7_cM, STR("ldm"), OP<0x810'0000>, FMT_LDM, REG       , REGSET>
 , defn<a7_cM, STR("ldm"), OP<0x850'0000>, FMT_LDM, REG       , REGSET_USER>
 , defn<a7_cM, STR("ldm"), OP<0x830'0000>, FMT_LDM, REG_UPDATE, REGSET>

@@ -26,7 +26,7 @@ enum arm_arg_mode : uint8_t
     , MODE_IMMEDIATE        // 3 immediate arg (expression)
     , MODE_IMMED_QUICK      // 4 immediate arg (constant stored in opcode)
     , MODE_REG              // 5 register
-    , MODE_REG_INDIR        // 6 register indirect (NB: All ARM register indirects)
+    , MODE_REG_INDIR        // 6 register indirect (NB: offset is constant)
     , MODE_REGSET           // 7 register set 
     , MODE_BRANCH           // 8 branch instruction
 
@@ -45,11 +45,14 @@ enum arm_arg_mode : uint8_t
     , MODE_IMMED_BYTE_2     // :upper0_7:#
     , MODE_IMMED_BYTE_3     // :upper8_15:#
 
-// Required enumeration
+// Special modes to support particular RELOCs
+    , MODE_REG_IEXPR        // register indirect, but `core_expr` for offset
+    , MODE_CALL             // emit `R_ARM_CALL` reloc
+
+// Required enumerations
     , NUM_ARG_MODES
     , MODE_REG_OFFSET       // register + offset (indirect) (NB: NOT ARM)
-    
-    , MODE_INDIRECT         // 3 indirect address (NB: NOT ARM)
+    , MODE_INDIRECT         // indirect address (NB: NOT ARM)
     
 // special handles...
     , MODE_IMMED_MODE_FIRST = MODE_IMMED_LOWER
@@ -127,6 +130,11 @@ struct arm_arg_t : tgt::tgt_arg_t<arm_arg_t
    
     // some non-generic modes are immediate
     bool is_immed() const;
+
+    // arm args are always embedded, never appended
+    void emit       (core::core_emit&, uint8_t) const {};
+    void emit_immed (core::core_emit&, uint8_t) const {};
+    void emit_float (core::core_emit&, tgt::tgt_immed_info const&) const {};
     
     template <typename Inserter, typename ARG_INFO>
     bool serialize(Inserter& inserter, uint8_t sz, ARG_INFO *, bool has_val);

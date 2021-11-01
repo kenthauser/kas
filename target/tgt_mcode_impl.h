@@ -79,6 +79,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
            , std::ostream *trace) const
     -> fits_result
 {
+    std::cout << "tgt_mcode_t::size" << std::endl;
     // hook into validators
     auto& val_c = vals();
     auto  val_p = val_c.begin();

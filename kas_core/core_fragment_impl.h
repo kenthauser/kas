@@ -153,7 +153,7 @@ auto core_fragment::set_org(uint32_t org) -> frag_offset_t
 // propogate to next frag's "base_addr" until this frag is "relaxed"
 void core_fragment::set_size(frag_offset_t const& size)
 {
-    std::cout << "frag: set_size: " << *this << " " << frag_size << " -> " << size << std::endl;
+    //std::cout << "frag: set_size: " << *this << " " << frag_size << " -> " << size << std::endl;
     // ignore noise from `insn_container::do_proc`
     // size updated on relaxed frags when emitting
     // object code or listings...
@@ -171,37 +171,37 @@ void core_fragment::set_size(frag_offset_t const& size)
 // when size is relaxed, but base address may not be.
 void core_fragment::set_size()
 {
-    std::cout << "frag: set_size: " << *this << " (push) " << frag_size << std::endl;
+    //std::cout << "frag: set_size: " << *this << " (push) " << frag_size << std::endl;
     // update base_address() in next frag (if not last...)
     // NB: don't propogate if have previously pushed a "relaxed" address.
     // This to prevent overwriting addresses modified by "align" & "org" 
 
     auto end = end_addr();
-    std::cout << "frag: set_size: " << *this << " end_addr = " << end << std::endl;
+    //std::cout << "frag: set_size: " << *this << " end_addr = " << end << std::endl;
     if (next_p_)
         next_p_->set_base(end);
 
     // are addresses final?
     frag_is_relaxed = end.is_relaxed();
-
+#if 0
     if (seg_p->relax_frag)   
         std::cout << "frag:set_size: relax_frag = " << *seg_p->relax_frag << std::endl;
     else
         std::cout << "frag:set_size: relax_frag = nullptr" << std::endl;
-
+#endif
     // start relax at next frag.
     if (frag_is_relaxed)
         seg_p->relax_frag = {};
     else if (!seg_p->relax_frag)
         seg_p->relax_frag = this;
-       
+#if 0 
     if (seg_p->relax_frag)   
         std::cout << "frag:set_size: relax_frag = " << *seg_p->relax_frag << std::endl;
     else
         std::cout << "frag:set_size: relax_frag = nullptr" << std::endl;
-
     if (frag_is_relaxed)
         std::cout << "frag: set_size: " << *this << " is relaxed" << std::endl;
+#endif
 
 }
 

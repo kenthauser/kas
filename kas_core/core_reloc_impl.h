@@ -38,6 +38,9 @@ void core_reloc::operator()(expr_t const& e)
 // symbols can vary. Sort by type of symbol
 void core_reloc::operator()(core_symbol_t const& value, kas_loc const *loc_p)
 {
+#ifdef TRACE_CORE_RELOC
+    std::cout << "core_reloc::()(core_symbol_t const&): " << value << std::endl;
+#endif
     // save location if specified
     if (loc_p)
         this->loc_p = loc_p;
@@ -57,6 +60,13 @@ void core_reloc::operator()(core_symbol_t const& value, kas_loc const *loc_p)
 
 void core_reloc::operator()(core_addr_t const& value, kas_loc const *loc_p)
 {
+#ifdef TRACE_CORE_RELOC
+    std::cout << "core_reloc::()(core_addr_t const&): " << value;
+    std::cout << " section = " << value.section();
+    std::cout << " offset  = " << value.offset()();
+    std::cout << std::endl;
+#endif
+    
     // save location if specified
     if (loc_p)
         this->loc_p = loc_p;
@@ -76,6 +86,10 @@ void core_reloc::operator()(parser::kas_diag_t const& value, kas_loc const *loc_
 
 void core_reloc::operator()(core_expr_t const& value, kas_loc const *loc_p)
 {
+#ifdef TRACE_CORE_RELOC
+    std::cout << "core_reloc::()(core_expr_t const&): " << value << std::endl;
+#endif
+
     // save location if specified
     if (loc_p)
         this->loc_p = loc_p;
@@ -85,7 +99,8 @@ void core_reloc::operator()(core_expr_t const& value, kas_loc const *loc_p)
 
 void core_reloc::emit(core_emit& base, parser::kas_error_t& diag)
 {
-    std::cout << "put_reloc::emit: reloc = " << reloc;
+#ifdef TRACE_CORE_RELOC
+    std::cout << "core_reloc::emit: reloc = " << reloc;
     std::cout << ", addend = " << addend << ", data = " << base.data;
     if (sym_p)
         std::cout << " sym = " << *sym_p;
@@ -95,7 +110,10 @@ void core_reloc::emit(core_emit& base, parser::kas_error_t& diag)
         std::cout << " section = " << *section_p;
     else if (diag_p)
         std::cout << " *diag*";
+    else 
+        std::cout << " *bare reloc*";
     std::cout << std::endl;
+#endif
 
     // if symbol, reinterpret before emitting
     if (sym_p)
@@ -114,6 +132,8 @@ void core_reloc::emit(core_emit& base, parser::kas_error_t& diag)
         core_expr_p->emit(base, *this, diag);
     else if (diag_p)
         diag = *diag_p;
+    else
+        put_reloc(base, diag);
 
     // if "addend", apply as relocation to base
     if (addend)
@@ -123,9 +143,11 @@ void core_reloc::emit(core_emit& base, parser::kas_error_t& diag)
 void core_reloc::put_reloc(core_emit& base, parser::kas_error_t& diag 
                                 , core_section const& section)
 {
+#ifdef TRACE_CORE_RELOC
     std::cout << "put_reloc::put_reloc (section): reloc = " << reloc;
     std::cout << ", addend = " << addend << ", data = " << base.data;
     std::cout << std::endl;
+#endif
 
     // absorb section_p if PC_REL && matches
     // NB: could be done in `add`, but `core_reloc` doesn't know `base`
@@ -137,19 +159,25 @@ void core_reloc::put_reloc(core_emit& base, parser::kas_error_t& diag
             reloc.clear(RFLAGS_PC_REL);
             return;
         }
-    base.put_section_reloc(*this, section);
+    base.put_reloc(*this, section);
 }
 
 void core_reloc::put_reloc(core_emit& base, parser::kas_error_t& diag 
                                 , core_symbol_t const& sym)
 {
-    base.put_symbol_reloc(*this, sym);
+    base.put_reloc(*this, sym);
+}
+
+void core_reloc::put_reloc(core_emit& base, parser::kas_error_t& diag)
+{
+    base.put_reloc(*this);
 }
 
 // Apply `reloc_fn`: deal with offsets & width deltas
 void core_reloc::apply_reloc(core_emit& base, parser::kas_error_t& diag)
 {
-    std::cout << "put_reloc::apply_reloc: reloc = " << reloc;
+#ifdef TRACE_CORE_RELOC
+    std::cout << "core_reloc::apply_reloc: reloc = " << reloc;
     std::cout << ", addend = " << addend << ", data = " << base.data;
     if (sym_p)
         std::cout << " sym = " << *sym_p;
@@ -160,6 +188,7 @@ void core_reloc::apply_reloc(core_emit& base, parser::kas_error_t& diag)
     else if (diag_p)
         std::cout << " *diag*";
     std::cout << std::endl;
+#endif
 
     // apply reloc(addend) to data
     auto& ops = reloc.get();
@@ -167,7 +196,9 @@ void core_reloc::apply_reloc(core_emit& base, parser::kas_error_t& diag)
     auto value = ops.update(ops.read(base.data), addend).first;
     base.data  = ops.write(base.data, value);
 
+#ifdef TRACE_CORE_RELOC
     std::cout << "put_reloc::apply_reloc: result = " << base.data << std::endl;
+#endif
 }
 
 // static method

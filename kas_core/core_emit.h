@@ -116,8 +116,10 @@ private:
 
     // emit relocations (used by `core_reloc`)
     friend core_reloc;
-    void put_section_reloc(core_reloc&, core_section  const& section);
-    void put_symbol_reloc (core_reloc&, core_symbol_t const& symbol);
+
+    void put_reloc(core_reloc&, core_section  const& section);
+    void put_reloc(core_reloc&, core_symbol_t const& symbol);
+    void put_reloc(core_reloc&);
     
     // utility methods
     void set_width(std::size_t w);
@@ -191,7 +193,7 @@ static constexpr auto emit_addr = _set_e_chan<EMIT_ADDR>;
 struct emit_reloc
 {
     using emit_value_t = typename core_emit::emit_value_t;
-
+    struct flush {};
 
     emit_reloc(kbfd::kbfd_reloc r, emit_value_t addend = {}, uint8_t offset = {})
         : reloc(r), addend(addend), offset(offset) {}
@@ -200,6 +202,12 @@ struct emit_reloc
     auto& operator<<(expr_t const& e)
     {
         (*r_p)(e);
+        return *base_p;
+    }
+
+    auto& operator<<(flush const&)
+    {
+        (*r_p)(0);
         return *base_p;
     }
     

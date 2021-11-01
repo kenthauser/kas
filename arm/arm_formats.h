@@ -58,6 +58,9 @@ using arg2_shifter = fmt_arg<2, fmt_shifter>;
 using arg3_shifter = fmt_arg<3, fmt_shifter>;
 using arg4_shifter = fmt_arg<4, fmt_shifter>;
 
+// declare reg_indir for arg2
+using arg2_reg_indir = fmt_arg<2, fmt_reg_indir>;
+
 //
 // Declare types used in INSN definitions
 //
@@ -69,14 +72,12 @@ struct FMT_LIST : fmt_list, arg1_12b4 {};
 struct FMT_X     : fmt_gen {};
 
 // Branches:
-// XXX insert 24-bit offset. need to handle out-of-range case
-#if 0
-struct FMT_B     : fmt_gen, fmt_arg<1, fmt32_generic<0, 24>> {};
-struct FMT_BT    : fmt_gen, fmt_arg<1, fmt32_generic<0, 25>> {};
-#else
-using FMT_B = FMT_X;
+// insert 24-bit offset. linker handles out-of-range case
+using FMT_B  = FMT_X;
 using FMT_BT = FMT_X;
-#endif
+
+// `bx` instruction needs to drop a ARM_V4BX reloc to help linker
+struct FMT_BX : fmt_bx, arg1_00b4 {};
 
 // single arg formats
 struct FMT_0     : fmt_gen, arg1_00b4 {};
@@ -100,8 +101,8 @@ struct FMT_16_0   : fmt_gen, arg1_16b4, arg2_00b4  {};
 struct FMT_16_0_S : FMT_16_0, arg3_shifter         {};
 struct FMT_16_F   : fmt_gen, arg1_16b4, arg2_fixed {};
 
-// support ARM5 addressing mode 2
-struct FMT_LD  : fmt_gen, arg1_12b4, arg2_shifter {};
+// support ARM5 addressing mode 2 (aka register indirect)
+struct FMT_LD  : fmt_gen, arg1_12b4, arg2_reg_indir {};
 struct FMT_PLD : FMT_X {};
 
 // support ARM5 addressing mode 3

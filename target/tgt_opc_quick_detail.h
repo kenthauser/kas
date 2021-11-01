@@ -151,6 +151,15 @@ struct quick_stream : core::emit_stream_base
         set_error(__FUNCTION__);
     }
 
+    void put_bare_reloc(
+              e_chan_num num
+            , kbfd::kbfd_target_reloc const& info
+            , uint8_t offset
+            ) override
+    {
+        set_error(__FUNCTION__);
+    }
+
     // emit diagnostics
     void put_diag(e_chan_num num, uint8_t, parser::kas_diag_t const&) override
     {

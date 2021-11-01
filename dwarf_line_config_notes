@@ -1,0 +1,10 @@
+Configuration variables for dwarf line
+
+1. version
+2. 32-bit/64-bit (extra arg?)
+3. minimum instruction length
+4. maximum ops per instruction  ; emit for dwarf v4
+5. standard opcodes: default 9 for dwarf v2, 12 for dwarf v3/v4
+6. initial value is_stmt
+7. line base
+8. line range
