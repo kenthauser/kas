@@ -165,7 +165,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
 
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
-        auto  code_p = reader.get_fixed_p(mcode.code_size());
+        auto  code_p = reader.get_fixed_p(sizeof(mcode_size_t));
         auto& dest   = reader.get_expr();
         
         auto  info   = mcode.extract_info(code_p);
@@ -192,7 +192,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
 
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
-        auto  code_p = reader.get_fixed_p(mcode.code_size());
+        auto  code_p = reader.get_fixed_p(sizeof(mcode_size_t));
         auto& dest   = reader.get_expr();
         
         auto  info   = mcode.extract_info(code_p);
@@ -205,14 +205,17 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     {
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
-        auto  code_p = reader.get_fixed_p(mcode.code_size());
+        auto  code_p = reader.get_fixed_p(sizeof(mcode_size_t));
         auto& dest   = reader.get_expr();
         
         auto  info   = mcode.extract_info(code_p);
+
+        // expand `code` from one word to max words -- zero-initing 
+        mcode_size_t code[mcode_t::MAX_MCODE_WORDS] { *code_p };
        
         // check for deleted instruction
         if (data.size())
-            do_emit(data, base, mcode, code_p, dest, info);
+            do_emit(data, base, mcode, code, dest, info);
     }
 };
 }

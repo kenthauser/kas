@@ -22,7 +22,6 @@ template <typename MCODE_T> struct tgt_opc_base;
 template <typename MCODE_T> struct tgt_mcode_defn;
 template <typename MOCDE_T> struct tgt_mcode_sizes;
 template <typename MCODE_T> struct tgt_size;
-template <typename MCODE_T> struct tgt_fmt_opc_gen;
 }
 // instruction per-size run-time object
 // NB: not allocated if info->hw_tst fails, unless no

@@ -16,6 +16,8 @@
 #include "kas/kas_string.h"
 #include "utility/string_mpl.h"
 
+#include "expr/format_ieee754.h"
+
 #include "dwarf/dwarf_frame_data.h"
 
 
@@ -155,43 +157,57 @@ template<> struct space_ops_v<bsd_basic_tag> : list<
 template<> struct comma_ops_v<bsd_dwarf_tag> : //dwarf_op_cmds{};
         concat<dwarf_op_cmds, dwarf_bsd_cmds> {};
 
-template<> struct comma_ops_v<bsd_basic_tag> : list<
-// fixed data ops indenpendent of architecture
-  list<STR("byte"),         bsd_fixed<opc_fixed<std::int8_t>>>
-, list<STR("2byte"),        bsd_fixed<opc_fixed<std::int16_t>>>
-, list<STR("4byte"),        bsd_fixed<opc_fixed<std::int32_t>>>
-, list<STR("8byte"),        bsd_fixed<opc_fixed<std::int64_t>>>
+using bsd_fixed_cmds = list<
+// fixed data ops independent of architecture
+  list<STR("byte"),         opc_fixed<std::int8_t>>
+, list<STR("2byte"),        opc_fixed<std::int16_t>>
+, list<STR("4byte"),        opc_fixed<std::int32_t>>
+, list<STR("8byte"),        opc_fixed<std::int64_t>>
 
-// XXX, list<STR("word"),         bsd_fixed<opc_fixed<std::int16_t>>>
-// XXX, list<STR("long"),         bsd_fixed<opc_fixed<std::int32_t>>>
-, list<STR("half"),         bsd_fixed<opc_fixed<std::int16_t>>>
-, list<STR("word"),         bsd_fixed<opc_fixed<std::int32_t>>>
-, list<STR("long"),         bsd_fixed<opc_fixed<std::int64_t>>>
+// XXX, list<STR("word"),         opc_fixed<std::int16_t>>
+// XXX, list<STR("long"),         opc_fixed<std::int32_t>>
+, list<STR("hword"),        opc_fixed<std::int16_t>>
+, list<STR("short"),        opc_fixed<std::int16_t>>
+, list<STR("word"),         opc_fixed<std::int32_t>>
+, list<STR("long"),         opc_fixed<std::int64_t>>
 
-, list<STR("quad"),         bsd_fixed<opc_fixed<std::int64_t>>>
-, list<STR("sleb128"),      bsd_fixed<opc_sleb128>>
-, list<STR("uleb128"),      bsd_fixed<opc_uleb128>>
+, list<STR("quad"),         opc_fixed<std::int64_t>>
+, list<STR("sleb128"),      opc_sleb128>
+, list<STR("uleb128"),      opc_uleb128>
 
-, list<STR("ascii"),        bsd_fixed<opc_string<std::false_type>>>
-, list<STR("asciz"),        bsd_fixed<opc_string<std::true_type>>>
-, list<STR("string"),       bsd_fixed<opc_string<std::true_type>>>
+, list<STR("ascii"),        opc_string<std::false_type>>
+, list<STR("asciz"),        opc_string<std::true_type>>
+, list<STR("string"),       opc_string<std::true_type>>
 
-//        , list<STR("single"),       bsd_fixed<opc_float<m68k::m68k_format_float::FMT_IEEE_32_SINGLE>>>
-//        , list<STR("double"),       bsd_fixed<opc_float<m68k::m68k_format_float::FMT_IEEE_64_DOUBLE>>>
-//        , list<STR("extended"),     bsd_fixed<opc_float<m68k::m68k_format_float::FMT_M68K_80_EXTEND>>>
+, list<STR("string8"),      opc_string<std::true_type, std::uint8_t>>
+, list<STR("string16"),     opc_string<std::true_type, std::uint16_t>>
+, list<STR("string32"),     opc_string<std::true_type, std::uint32_t>>
+, list<STR("string64"),     opc_string<std::true_type, std::uint64_t>>
+>;
+
+
+template <typename ARG>
+struct combine_fixed
+{
+    using type = list<at_c<ARG, 0>, bsd_fixed<at_c<ARG, 1>>>;
+};
+
+using X_bsd_fixed = transform<bsd_fixed_cmds, quote_trait<combine_fixed>>;
+
+template <> struct comma_ops_v<bsd_fixed_tag> : X_bsd_fixed {};
+
 #if 0
-//, list<STR("string8"),      opc_string<std::true_type>, std::uint8_t>
-//, list<STR("string16"),     opc_string<std::true_type>, std::uint16_t>
-//, list<STR("string32"),     opc_string<std::true_type>, std::uint32_t>
-//, list<STR("string64"),     opc_string<std::true_type>, std::uint64_t>
+template<> struct comma_ops_v<bsd_float_tag> : list<
+// fixed data ops independent of architecture
+  list<STR("single"),       opc_float<expression::ieee754::FMT_IEEE_32_SINGLE>>
+//, list<STR("double"),       bsd_fixed<opc_float<m68k::m68k_format_float::FMT_IEEE_64_DOUBLE>>>
+//, list<STR("extended"),     bsd_fixed<opc_float<m68k::m68k_format_float::FMT_M68K_80_EXTEND>>>
+> {};
 #endif
-// program counter ops
-, list<STR("skip"),         bsd_skip>
-, list<STR("org"),          bsd_org>
-, list<STR("align"),        bsd_align>
-, list<STR("even"),         bsd_align, _ONE>
+
+template<> struct comma_ops_v<bsd_basic_tag> : list<
 // section ops
-, list<STR("section"),      bsd_section>
+  list<STR("section"),      bsd_section>
 , list<STR("pushsection"),  bsd_push_section>
 , list<STR("popsection"),   bsd_pop_section>
 , list<STR("previous"),     bsd_previous_section>
@@ -201,10 +217,17 @@ template<> struct comma_ops_v<bsd_basic_tag> : list<
 , list<STR("data1"),        bsd_section, _SEG_DATA, _ONE>
 , list<STR("data2"),        bsd_section, _SEG_DATA, _TWO>
 , list<STR("bss"),          bsd_section, _SEG_BSS>
+
+// program counter ops
+, list<STR("skip"),         bsd_skip>
+, list<STR("org"),          bsd_org>
+, list<STR("align"),        bsd_align>
+, list<STR("even"),         bsd_align, _ONE>
+
 // symbol ops
-, list<STR("global"),       bsd_sym_binding, _STB_GLOBAL>
 , list<STR("local"),        bsd_sym_binding, _STB_LOCAL>
 , list<STR("globl"),        bsd_sym_binding, _STB_GLOBAL>
+, list<STR("global"),       bsd_sym_binding, _STB_GLOBAL>
 
 , list<STR("comm"),         bsd_common, _STB_GLOBAL>
 , list<STR("lcomm"),        bsd_common, _STB_LOCAL>

@@ -10,7 +10,6 @@
 // BSD pseudo ops can specify type & binding by numeric value, so hard to fake.
 #include "kbfd/elf_common.h"
 
-
 // ELF requires first local symbol be the one-and-only `STT_FILE` symbol.
 // Compilers generally just emit a `.file` symbol first to comply.
 // Assembler can force compilance using a `static` pointer, but can be overkill
@@ -157,7 +156,15 @@ void core_symbol<REF>::print(OS& os) const
 {
     os << "[" << s_name << " (index: " << this->index() << ")]";
 }
+}
+namespace kas::arm
+{
+    template <typename REF>
+    const char *arm_addr_map_t(core::core_symbol<REF> const&);
+}
 
+namespace kas::core
+{
 template <typename REF>
 template <typename OS>
 void core_symbol<REF>::dump(OS& os)
@@ -188,6 +195,8 @@ void core_symbol<REF>::dump(OS& os)
             os << " align = "   <<  +s.s_align;
         if (s.s_symnum)
             os << " kbfd_num = " <<  s.s_symnum;
+
+        os << " arm_mapped_t: = " << arm::arm_addr_map_t(s);
         os << std::endl;
     };
 

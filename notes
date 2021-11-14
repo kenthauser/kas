@@ -569,7 +569,7 @@ Notes: Reloc:
 
 6. Need to link ADD/SUB Immed into reloc code
 
-7. WHen converting symbol-relocs to section-relocs, don't if symbol-reloc is global.
+7. When converting symbol-relocs to section-relocs, don't if symbol-reloc is global.
 
 
 

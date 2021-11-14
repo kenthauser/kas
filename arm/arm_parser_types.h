@@ -8,6 +8,7 @@
 // get target stmt definitions
 #include "arm_stmt.h"
 #include "arm_directives.h"
+#include "arm_addr_mapping.h"
 
 // Declare reg_t, insn_t & stmt_t parsers
 namespace kas::arm::parser::bnf
@@ -27,6 +28,8 @@ BOOST_SPIRIT_DECLARE(arm_stmt_x3, arm_dir_x3)
 // Conform `kas::parser` to ARM definitions 
 namespace kas::parser::detail
 {
+template<> struct fixed_hook<void> : arm::arm_data_seg {};
+
 // statements parsed by parser
 template <> struct stmt_ops_l<defn_cpu> : meta::list<
               arm::parser::bnf::arm_stmt_x3

@@ -40,6 +40,7 @@ namespace kas::arm::hw
 namespace kas::arm
 {
     arm_reg_prefix arm_reg_t::reg_pfx { PFX_ALLOW };
+    template arm_addr_map_t<
 }
 #endif
 

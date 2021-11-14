@@ -56,7 +56,7 @@ using arm_fixed = meta::list<meta::list<>
     , meta::list<int32_t, STR(word)>
     , meta::list<int64_t, STR(quad)>
     , meta::list<int64_t, STR(long)>
-    , meta::list<int16_t, STR(half)>
+    , meta::list<int16_t, STR(hword)>
     >;
 
 #if 0

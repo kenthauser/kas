@@ -111,7 +111,16 @@ struct bsd_fixed : bsd_opcode
         // require at least one argument to be well formed
         if (auto result = validate_min_max(args, 1))
             return make_error(data, result);
-    
+        
+        // XXX need better method...
+        using hook_t = std::true_type;
+        if constexpr (!std::is_void_v<meta::_t<hook_t>>)
+#if 0
+            //hook_t()(*this);
+            print_type_name{"bsd_fixed::hook"}.name<hook_t>();
+#else
+            arm::arm_data_seg();
+#endif
         // get per-arg processing fn 
         auto proc_fn = base_op.gen_proc_one(data);
 

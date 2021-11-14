@@ -49,6 +49,30 @@ struct core_addr : kas_object<core_addr<REF>, REF>
     // bool true iff `core_addr` is initialized
     bool empty() const { return !frag_p; }
 
+    bool operator<(core_addr const& o) const
+    {
+        // return "not greater-equal"
+        {
+#if 0
+        return (frag_p >= o.frag_p)
+                || offset_p->min >= o.offset_p->min);
+#else
+
+        //bool result_frag = !(*frag_p < *o.frag_p);
+        bool result_frag = frag_p->operator<(*o.frag_p);
+        bool result_off  = offset_p->max < o.offset_p->max;
+
+//        std::cout << std::endl;
+//        std::cout << "[addr< frag = " << std::boolalpha << result_frag;
+//        std::cout << ", offset = " << result_off << "] ";
+    
+        if (frag_p == o.frag_p)
+            return result_off;
+        return result_frag;
+#endif
+        }
+    }
+
     //
     // Routines which allocate addresses
     // (default ctor) returns dummy address
@@ -140,6 +164,9 @@ inline bool core_fragment::operator<(core_fragment const& other) const
     // since relax a segment at a time, not-looking is same as has-seen.
     if (segment() != other.segment())
         return true;
+    auto result = frag_num() < other.frag_num();
+//    std::cout << "\n[frag< " << frag_num() << " < " << other.frag_num();
+//    std::cout << " -> " << std::boolalpha << result << "] ";
     return frag_num() < other.frag_num();
 }
 

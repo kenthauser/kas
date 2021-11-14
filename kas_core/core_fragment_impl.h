@@ -96,6 +96,8 @@ core_fragment::core_fragment(core_segment *seg_p, uint8_t align)
     // locate first fragment not relaxed
     if (!seg_p->relax_frag)
         seg_p->relax_frag = this;
+
+    cur_frag = this;
 }
 
 

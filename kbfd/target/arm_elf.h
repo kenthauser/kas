@@ -42,9 +42,9 @@ static constexpr kbfd_target_reloc arm_elf_relocs[] =
   , {  25, "R_ARM_BASE_PREL", K_REL_NONE() }
   , {  26, "R_ARM_GOT_BREL" , K_REL_NONE() }
   , {  27, "R_ARM_PLT32"    , K_REL_NONE()      , 32, 0, T_ARM, T_DEPR }
-  , {  28, "R_ARM_CALL"     , K_REL_NONE()      , 32, 0, T_ARM }
-  , {  29, "R_ARM_JUMP24"   , K_REL_NONE()      , 32, 0, T_ARM }
-  , {  30, "R_ARM_THM_JUMP24", K_REL_NONE()     , 32, 0, T_T32}
+  , {  28, "R_ARM_CALL"     , K_REL_ADD()      , 24, 0, T_ARM }
+  , {  29, "R_ARM_JUMP24"   , K_REL_ADD()      , 24, 1, T_ARM }
+  , {  30, "R_ARM_THM_JUMP24", K_REL_NONE()     , 24, 0, T_T32}
   , {  31, "R_ARM_BASE_ABS" , K_REL_NONE() }
   , {  35, "R_ARM_LDR_SBREL_11_0_NC" , K_REL_NONE(), 32, 0, T_ARM, T_DEPR }
   , {  36, "R_ARM_LDR_SBREL_19_12_NC", K_REL_NONE(), 32, 0, T_ARM, T_DEPR }

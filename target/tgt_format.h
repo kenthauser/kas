@@ -118,35 +118,35 @@ public:
 };
 
 // generic types to support `opc_general`, `opc_list` & `opc_branch` opcodes
-template <typename MCODE_T>
+template <typename MCODE_T, typename OPC = tgt_opc_general<MCODE_T>>
 struct tgt_fmt_opc_gen : virtual MCODE_T::fmt_t
 {
     using opcode_t = typename MCODE_T::opcode_t;
     virtual opcode_t& get_opc() const override 
     {
-        static tgt_opc_general<MCODE_T> opc; 
+        static OPC opc;
         return opc;
     }
 };
 
-template <typename MCODE_T>
+template <typename MCODE_T, typename OPC = tgt_opc_list<MCODE_T>>
 struct tgt_fmt_opc_list : virtual MCODE_T::fmt_t
 {
     using opcode_t = typename MCODE_T::opcode_t;
     virtual opcode_t& get_opc() const override 
     {
-        static tgt_opc_list<MCODE_T> opc; 
+        static OPC opc;
         return opc;
     }
 };
 
-template <typename MCODE_T>
+template <typename MCODE_T, typename OPC = tgt_opc_branch<MCODE_T>>
 struct tgt_fmt_opc_branch : virtual MCODE_T::fmt_t
 {
     using opcode_t = typename MCODE_T::opcode_t;
     virtual opcode_t& get_opc() const override 
     {
-        static tgt_opc_branch<MCODE_T> opc; 
+        static OPC opc; 
         return opc;
     }
 };

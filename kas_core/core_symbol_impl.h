@@ -53,14 +53,14 @@ const char *core_symbol<Ref>::set_value(expression::ast::expr_t& value, int8_t t
 template <typename Ref>
 const char *core_symbol<Ref>::make_label(uint32_t binding, parser::kas_loc const *loc_p)
 {
-    // if TOKEN or UNDEF, apply binding
-    if (s_binding == STB_TOKEN || s_binding == STB_UNKN)
+    // if internal pseudo-binding, use new binding
+    if (s_binding < 0)
         s_binding = binding;
     
     // test if converting common to Block-Starting-with-Symbol
     if (s_type == STT_COMMON)
     {
-        s_type = STT_NOTYPE;
+        s_type = STT_OBJECT;
         s_addr_p = {};
     }
 

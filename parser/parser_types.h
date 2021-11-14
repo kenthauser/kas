@@ -42,6 +42,10 @@ namespace detail
     // "void" default type allows per-fmt default if not defined
     template <typename = void> struct fixed_directives : id<void> {};
     template <typename = void> struct float_directives : id<void> {};
+
+    // XXX is this the best way??
+    // allow "hook" to be executed during fixed directives
+    template <typename = void> struct fixed_hook : id<void> {};
 }
 
 

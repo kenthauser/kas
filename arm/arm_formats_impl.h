@@ -143,6 +143,48 @@ struct fmt_movw : arm_mcode_t::fmt_t::fmt_impl
 #endif
 };
 
+// ARM5: 24-bit branch
+struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
+{
+    using mcode_size_t = arm_mcode_t::mcode_size_t;
+    using val_t        = arm_mcode_t::val_t;
+    using arg_t        = arm_mcode_t::arg_t;
+
+    // branch `machine code` insertions handled by `emit_reloc`
+    void emit_reloc(core::core_emit& base
+                  , mcode_size_t *op
+                  , arg_t& arg
+                  , val_t const *val_p) const override
+    {
+        std::cout << "fmt_branch24: emit: arg = " << arg << std::endl;
+        // calculate size here
+        switch (arg.mode())
+        {
+        default:
+            std::cout << "emit_relocation: bad arg: " << arg << ", mode = " << +arg.mode() << std::endl;
+           break;
+           throw std::logic_error{"invalid fmt_displacement mode"};
+
+        case arg_t::arg_mode_t::MODE_BRANCH:
+        {
+            // byte displacement stored in LSBs. Use reloc mechanism
+            std::cout << "fmt_displacement: MODE_JUMP" << std::endl;
+#if 1           
+            // reloc is 24-bits & pc-relative
+            static const kbfd::kbfd_reloc r { kbfd::ARM_REL_OFF24(), 24, true }; 
+            
+            // reloc is from end of 2-byte machine code, stored with 1 byte offset
+            base << core::emit_reloc(r, -8, 1) << arg.expr;
+#endif
+            break;
+        }
+        case arg_t::arg_mode_t::MODE_CALL:
+            std::cout << "fmt_displacement: MODE_CALL" << std::endl;
+            break;
+        }
+    }
+};
+
 #if 0
 // For `reg_mode` & `fmt_reg`, the validator passes 6-bit mode+reg
 // to be inserted/retrieved. `reg_mode` inserts 6 bits. Both

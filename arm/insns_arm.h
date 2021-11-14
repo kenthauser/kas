@@ -128,10 +128,10 @@ using arm_insn_ls_misc_l = list<list<>
 // ARM V5: A5.4 addressing mode 3: load & store multiple
 // require suffix from: IA, IB, DA, DB, { or alises FA, FD, EA, ED }
 using arm_insn_ls_multiple_l = list<list<>
-, defn<a7_c , STR("push"), OP<0x92d'0000>, FMT_0, REGSET>
-, defn<a7_c , STR("push"), OP<0x52d'0000>, FMT_0, REGSET_SGL>   // XXX should be first
-, defn<a7_c , STR("pop") , OP<0x8bd'0000>, FMT_0, REGSET>
-, defn<a7_c , STR("pop") , OP<0x49d'0000>, FMT_0, REGSET_SGL>
+, defn<a7_c , STR("push"), OP<0x52d'0004>, FMT_12, REGSET_SGL>
+, defn<a7_c , STR("push"), OP<0x92d'0000>, FMT_RS, REGSET>
+, defn<a7_c , STR("pop") , OP<0x49d'0004>, FMT_12, REGSET_SGL>
+, defn<a7_c , STR("pop") , OP<0x8bd'0000>, FMT_RS, REGSET>
 , defn<a7_cM, STR("ldm"), OP<0x810'0000>, FMT_LDM, REG       , REGSET>
 , defn<a7_cM, STR("ldm"), OP<0x850'0000>, FMT_LDM, REG       , REGSET_USER>
 , defn<a7_cM, STR("ldm"), OP<0x830'0000>, FMT_LDM, REG_UPDATE, REGSET>

@@ -45,10 +45,14 @@ void core_reloc::operator()(core_symbol_t const& value, kas_loc const *loc_p)
     if (loc_p)
         this->loc_p = loc_p;
 
-    // see if resolved symbol
+    // see if resolved *LOCAL* symbol
     if (auto p = value.addr_p())
-        (*this)(*p);
-
+    {
+        if (value.binding() != STB_GLOBAL)
+            (*this)(*p);        // relocate based on segment
+        else
+            sym_p = &value;     // global: relocate using symbol
+    }
     // if `EQU`, interpret value
     else if (auto p = value.value_p())
         (*this)(*p);

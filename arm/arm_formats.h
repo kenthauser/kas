@@ -21,6 +21,8 @@ using gen_12b4 = fmt32_generic<12, 4>;
 using gen_16b4 = fmt32_generic<16, 4>;
 using gen_20b4 = fmt32_generic<20, 4>;
 
+using gen_0b16 = fmt32_generic<0, 16>;  // register-set
+
 // register/value inserters: declare 4-bit locations for several args
 using arg1_00b4 = fmt_arg<1, gen_00b4>;
 using arg1_04b4 = fmt_arg<1, gen_04b4>;
@@ -61,6 +63,10 @@ using arg4_shifter = fmt_arg<4, fmt_shifter>;
 // declare reg_indir for arg2
 using arg2_reg_indir = fmt_arg<2, fmt_reg_indir>;
 
+// declare register-set for arg1, arg2
+using arg1_regset  = fmt_arg<1, gen_0b16>;
+using arg2_regset  = fmt_arg<2, gen_0b16>;
+
 //
 // Declare types used in INSN definitions
 //
@@ -73,7 +79,7 @@ struct FMT_X     : fmt_gen {};
 
 // Branches:
 // insert 24-bit offset. linker handles out-of-range case
-using FMT_B  = FMT_X;
+struct FMT_B : fmt_branch, fmt_arg<1, fmt_branch24> {};
 using FMT_BT = FMT_X;
 
 // `bx` instruction needs to drop a ARM_V4BX reloc to help linker
@@ -113,11 +119,15 @@ struct FMT_STH : FMT_X {};
 struct FMT_I00B5 : fmt_gen, fmt_arg<1, fmt32_generic<0, 5>> {};
 
 // addressing mode 4
-struct FMT_LDM : FMT_X {};
-struct FMT_STM : FMT_X {};
+struct FMT_RS    : fmt_gen, arg1_regset            {};
+struct FMT_16_RS : fmt_gen, arg1_16b4, arg2_regset {};
+using  FMT_LDM = FMT_16_RS;
+using  FMT_STM = FMT_16_RS;
+
 struct FMT_8_12_M4 : FMT_X {};
 struct FMT_8_20_12_16_0 : fmt_gen, arg1_08b4, arg2_20b4, arg3_12b4, arg4_16b4, arg5_00b4 {};
 struct FMT_8_20_12_16_0_05B3 : FMT_8_20_12_16_0, fmt_arg<6, fmt32_generic<5, 3>> {};
+
 
 // unconditional instructions
 struct FMT_4_0  : fmt_gen, arg1_04b4, arg2_00b4 {};

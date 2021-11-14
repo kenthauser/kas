@@ -18,9 +18,7 @@
 #include "core_size.h"
 #include "kas/kas_string.h"
 
-
 #include <map>
-
 
 namespace kas::core
 {
@@ -43,11 +41,14 @@ struct core_fragment : kas_object<core_fragment>
     // is also managed.
     //
     core_fragment(core_segment *seg_p = {}, uint8_t align = {});
-    
+
+    // last allocated frag (global)
+    static inline core_fragment const *cur_frag;
+
     //
     // instance getters
     //
-
+    
     auto  next_p()     const { return next_p_;         }
     auto& segment()    const { return *seg_p;          }
     auto& section()    const { return *seg_p->section_p; }
