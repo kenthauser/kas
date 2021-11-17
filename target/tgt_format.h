@@ -186,35 +186,33 @@ struct tgt_fmt_generic : MCODE_T::fmt_t::fmt_impl
     static_assert(mcode_size_bits * insn_per_mcode == insn_size_bits);
    
     // allow values to span max of two `mcode_size_t` code-array values
-    static constexpr auto M_FRAG0  = (SHIFT + 0       ) / mcode_size_bits;
-    static constexpr auto M_FRAG1  = (SHIFT + BITS - 1) / mcode_size_bits;
+    static constexpr auto M_FRAG0  = (SHIFT + 0   ) / mcode_size_bits;
+    static constexpr auto M_FRAG1  = (SHIFT + BITS) / mcode_size_bits;
     static constexpr auto M_WORD0  = insn_per_mcode - M_FRAG0 - 1 + (WORD * insn_per_mcode);
     static constexpr auto M_WORD1  = insn_per_mcode - M_FRAG1 - 1 + (WORD * insn_per_mcode);
-    static constexpr auto M_SHIFT0 = (SHIFT + 0)        % mcode_size_bits;
+    static constexpr auto M_SHIFT0 = (SHIFT + 0       ) % mcode_size_bits;
     static constexpr auto M_SHIFT1 = (SHIFT + BITS - 1) % mcode_size_bits;
-    // XXX not quite right
-    static constexpr auto M_BITS0  = BITS - (SHIFT + BITS - 1) / mcode_size_bits;
+    
+    //static constexpr auto M_BITS0  = BITS - ((SHIFT + BITS) % 16);
+    static constexpr auto M_BITS0 = BITS;
     static constexpr auto M_BITS1  = BITS - M_BITS0;
 
-    static_assert((M_WORD1 - M_WORD0) < 2); // max two writes
+  //  static_assert((M_WORD1 - M_WORD0) < 2); // max two writes
 
+    //static constexpr auto MASK0 = (1 << M_BITS0) - 1;
     static constexpr auto MASK0 = (1 << M_BITS0) - 1;
     static constexpr auto MASK1 = (1 << M_BITS1) - 1;
 
     bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
     {
         auto value = val_p->get_value(arg);
-#if 0
-        auto code  = op[WORD]; 
-             code &= ~(MASK << SHIFT);
-             code |= (value & MASK) << SHIFT;
-        op[WORD]   = code;
-#else
         if constexpr (M_BITS0 != 0)
         {
-//            std::cout << "INSERT: " << +WORD << "/" << +SHIFT << "/" << +BITS << std::endl; 
-//            std::cout << "insert: " << +M_WORD0 << "/" << +M_SHIFT0 << "/" << +M_BITS0;
-//            std::cout << ", value = " << +value << std::endl;
+            std::cout << std::hex;
+            std::cout << "INSERT: " << +WORD << "/" << +SHIFT << "/" << +BITS << std::endl; 
+            std::cout << "insert: " << +M_WORD0 << "/" << +M_SHIFT0 << "/" << +M_BITS0;
+            std::cout << "/" << MASK0; 
+            std::cout << ", value = " << +value << std::endl;
             // lower word
             auto code  = op[M_WORD0]; 
                  code &= ~(MASK0 << M_SHIFT0);
@@ -223,15 +221,15 @@ struct tgt_fmt_generic : MCODE_T::fmt_t::fmt_impl
         }
         if constexpr (M_BITS1 != 0)
         {
-//            std::cout << "insert: " << +M_WORD1 << "/" << +M_SHIFT1 << "/" << +M_BITS1;
-//            std::cout << ", value = " << (value >> M_BITS0) << std::endl;
+            std::cout << "insert: " << +M_WORD1 << "/" << +M_SHIFT1 << "/" << +M_BITS1;
+            std::cout << "/" << MASK1; 
+            std::cout << ", value = " << (value >> M_BITS0) << std::endl;
             // upper word
             auto code  = op[M_WORD1]; 
                  code &= ~MASK1;        // WORD1 always continues from bit0
                  code |= (value >> M_BITS0) & MASK1;
             op[M_WORD1]   = code;
         }
-#endif
         return !val_p->has_data(arg);
     }
 

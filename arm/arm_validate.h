@@ -62,6 +62,33 @@ struct val_regset : arm_mcode_t::val_t
     {
         return arg.mode() == arg_mode_t::MODE_REGSET ? fits.yes : fits.no;
     }
+    
+    unsigned get_value(arg_t& arg) const override
+    {
+        switch (arg.mode())
+        {
+            case arg_mode_t::MODE_IMMEDIATE:
+                arg.set_mode(arg_mode_t::MODE_IMMED_QUICK);
+                // FALLSTHRU
+            case arg_mode_t::MODE_IMMED_QUICK:
+                if (auto p = arg.expr.get_fixed_p())
+                    return *p;
+                return 0;
+            case arg_mode_t::MODE_REGSET:
+                return arg.regset_p->value();
+            default:
+            // calclulate value to insert in machine code
+                return 0;
+        }
+    }
+
+    void set_arg(arg_t& arg, unsigned value) const override
+    {
+        // calculate expression value from machine code
+        arg.expr = value;
+        arg.set_mode(arg_mode_t::MODE_IMMED_QUICK);
+    }
+    
 };
 
 struct val_regset_single : val_regset
@@ -70,7 +97,10 @@ struct val_regset_single : val_regset
 
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
-        return base_t::ok(arg, fits);   // XXX
+        if (base_t::ok(arg, fits) == fits.yes)
+            if (arg.regset_p->is_single())
+                return fits.yes;
+        return fits.no;
     }
 };
 

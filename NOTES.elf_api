@@ -1,0 +1,41 @@
+ELF Interface & Definitions
+
+1.  Need to define "reloc_ops" in way that architectures and add (and drop)
+    ops easily and easily add them to the "kas_reloc_info" relocation definition
+    table in (eg m68k_elf.h)
+
+2. reloc_op_fns should add "name" method for display
+
+3. Need easy way to add architectures. Suggest "elf_defn.h" which includes each
+   "arch_defn.h" file (eg m68k/m68k_defn.h). This file would define method to
+   see all "archs" defines; all "targets" for each arch; and all "machines" supported
+   for each target
+
+4. Currently `kbfd::reloc_op_fns` is defined as instances. Need to convert to 
+   `types`. Obvious way is to "virtualize" *fns.
+
+5. Each ARCH needs to return supported backends via strings. Allow selection of
+   backend via identical string.
+
+6. Each ARCH needs to return supported "machines" via strings. Allow selection of
+   backend via identical strings. (Unaddressed: if all backends support all machines.)
+
+7. current `reloc_op_fns` methods only used in `kas_core/core_reloc_impl.h`
+
+=== STEP 1 ===
+
+8. current `reloc_op_fns` is a simple type. Different varieties are instances
+   stored in `kbfd::reloc_ops` table index by ENUM.
+
+9. To use the `kas::defn_utils.h` methods, need `reloc_op_fns` "instances" to be
+   virtual tyes derived from base type. ENUM will be replaced by 
+   `find_index` metafunction
+
+=== STEP 2 ===
+
+10. create `elf_get_action` to return `enum` (or type) from string. Assembler
+    must use "const char *" (from string) to `get` action handle.
+
+11. Assembler "relocation" type is { string, width, pc-rel } tuple.
+
+

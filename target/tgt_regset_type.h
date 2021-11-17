@@ -77,6 +77,9 @@ public:
     
     bool is_offset() const { return kind() == -RS_OFFSET; }
 
+    // only valid is reg_set is not error
+    bool is_single() const { return ops.size() == 1; }
+
     const char *is_error() const
     {
         if (ops.front().first != 'X') return {};

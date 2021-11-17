@@ -185,6 +185,27 @@ struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
     }
 };
 
+// ARM5: add/sub
+struct fmt_add_sub : arm_mcode_t::fmt_t::fmt_impl
+{
+    using mcode_size_t = arm_mcode_t::mcode_size_t;
+    using val_t        = arm_mcode_t::val_t;
+    using arg_t        = arm_mcode_t::arg_t;
+
+    // branch `machine code` insertions handled by `emit_reloc`
+    void emit_reloc(core::core_emit& base
+                  , mcode_size_t *op
+                  , arg_t& arg
+                  , val_t const *val_p) const override
+    {
+        static const kbfd::kbfd_reloc r { kbfd::ARM_REL_ADDSUB() };
+        
+        // let KBFD deal with argument
+        std::cout << "fmt_add_sub: emit: arg = " << arg << std::endl;
+        base << core::emit_reloc(r) << arg.expr;
+    }
+};
+
 #if 0
 // For `reg_mode` & `fmt_reg`, the validator passes 6-bit mode+reg
 // to be inserted/retrieved. `reg_mode` inserts 6 bits. Both

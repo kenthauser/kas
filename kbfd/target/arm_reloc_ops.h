@@ -12,6 +12,7 @@ using ARM_REL_MOVT   = KAS_STRING("ARM_REL_MOVT");
 using ARM_REL_V4BX   = KAS_STRING("ARM_REL_V4BX");
 using ARM_REL_OFF12  = KAS_STRING("ARM_REL_OFF12");
 using ARM_REL_OFF24  = KAS_STRING("ARM_REL_OFF24");
+using ARM_REL_ADDSUB = KAS_STRING("ARM_REL_ADDSUB");
 
 namespace arm
 {
@@ -26,6 +27,7 @@ namespace arm
     struct arm_rel_movt : k_rel_add_t, reloc_op_subfield<4, 12> {};
     struct arm_rel_off24 : k_rel_add_t, reloc_op_subfield<24, 0> {};
     struct arm_rel_sel12;
+    struct arm_rel_addsub;
 }
 
 // add operations to `kbfd` list of ops
@@ -34,6 +36,7 @@ template <> struct reloc_ops_v<TARGET_ARM> : meta::list<
         , KBFD_ACTION<ARM_REL_MOVT      , arm::arm_rel_movw>
         , KBFD_ACTION<ARM_REL_OFF12     , arm::arm_rel_sel12>
         , KBFD_ACTION<ARM_REL_OFF24     , arm::arm_rel_off24>
+        , KBFD_ACTION<ARM_REL_ADDSUB    , arm::arm_rel_addsub>
         , KBFD_ACTION<ARM_REL_V4BX>
         > {};
 }

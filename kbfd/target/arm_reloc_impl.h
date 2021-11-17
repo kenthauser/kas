@@ -156,6 +156,46 @@ struct arm_rel_sel12 : k_rel_add_t, reloc_op_subfield<12, 0>
     }
 };
 
+struct arm_rel_addsub : kbfd::k_rel_add_t
+{
+    value_t  read  (value_t data)                 const override
+    {
+        unsigned op = (data >> 21) & 0xf;
+        std::cout << "arm_rel_addsub::read: data = " << data << ", op = " << op << std::endl;
+        return data & 0xfff;
+    }
+
+    value_t  write (value_t data, value_t value)  const override
+    {
+        static constexpr auto op_mask = 0xf << 21;
+        static constexpr auto add_op  = 0x4 << 21;
+        static constexpr auto sub_op  = 0x2 << 21;
+
+        unsigned op = (data >> 21) & 0xf;
+
+        std::cout << "arm_rel_addsub::write: op = " << op << std::endl;
+        if (value < 0)
+        {
+            value = -value;     // value < zero: toggle add/sub
+            data ^= add_op | sub_op;
+        }
+        else if (value == 0)
+        {
+            data &= op_mask;    // force `add` for value == 0
+            data |= add_op;
+        }
+        return (data &~ 0xfff) | value;
+    }
+#if 0
+    update_t update(value_t data, value_t addend) const override
+    {
+        std::cout << "arm_rel_addsub: data = " << std::hex << data;
+        std::cout << ", addend = " << addend << std::endl;
+        return { data + addend, false };
+    }
+#endif
+};
+
 }
 
 #endif

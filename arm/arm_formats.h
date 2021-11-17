@@ -107,6 +107,9 @@ struct FMT_16_0   : fmt_gen, arg1_16b4, arg2_00b4  {};
 struct FMT_16_0_S : FMT_16_0, arg3_shifter         {};
 struct FMT_16_F   : fmt_gen, arg1_16b4, arg2_fixed {};
 
+// addressing mode 1: add/sub immediate
+struct FMT_12_16_AS : FMT_12_16, fmt_arg<3, fmt_add_sub> {};
+
 // support ARM5 addressing mode 2 (aka register indirect)
 struct FMT_LD  : fmt_gen, arg1_12b4, arg2_reg_indir {};
 struct FMT_PLD : FMT_X {};
@@ -196,7 +199,6 @@ struct FMT_1W0     : fmt_gen, arg1_1w0b3 {};
 struct FMT_1W3     : fmt_gen, arg1_1w3b3 {};
 struct FMT_X_1W3   : fmt_gen, arg2_1w3b3 {};
 struct FMT_1W3_1W0 : fmt_gen, arg1_1w3b3, arg2_1w0b3 {};
-
 #endif
 }
 #endif

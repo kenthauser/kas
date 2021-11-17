@@ -64,6 +64,18 @@ using data_processing = list<list<>
                 , FMT_12_16_0_S, REG, REG, REG, SHIFT> 
 >;
 
+template <typename SZ, typename NAME, unsigned ARM_OP>
+using dp_add_sub = list<list<>
+// match 3 patterns (IMM8_4, REG, REG+SHIFT)
+// NB: let KBFD handle negative arguments via RELOC
+, defn<SZ, NAME, OP<0x200'0000 | (ARM_OP << 21)>
+                , FMT_12_16_AS, REG, REG, IMM8_4>
+, defn<SZ, NAME, OP<0x000'0000 | (ARM_OP << 21)>
+                , FMT_12_16_0, REG, REG, REG> 
+, defn<SZ, NAME, OP<0x000'0000 | (ARM_OP << 21)>
+                , FMT_12_16_0_S, REG, REG, REG, SHIFT> 
+>;
+
 // `dp_one` is `data_processing` formats with single reg plus shifter_operand
 // NB: mov (et.al) use DST = 12, reg at 16 = SBZ
 // NB: tst (et.al) use DST = 16, reg at 12 = SBZ
@@ -83,14 +95,16 @@ using arm_insn_data_l = list<list<>
 // use `meta-function` to generated related instructions
 , data_processing<a7_cs, STR("and"),  0>
 , data_processing<a7_cs, STR("eor"),  1>
-, data_processing<a7_cs, STR("sub"),  2>
 , data_processing<a7_cs, STR("rsb"),  3>
-, data_processing<a7_cs, STR("add"),  4>
 , data_processing<a7_cs, STR("adc"),  5>
 , data_processing<a7_cs, STR("sbc"),  6>
 , data_processing<a7_cs, STR("rsc"),  7>
 , data_processing<a7_cs, STR("orr"), 12>
 , data_processing<a7_cs, STR("bic"), 14>
+
+// use add/subtract reloc as required
+, dp_add_sub<a7_cs, STR("sub"),  2>
+, dp_add_sub<a7_cs, STR("add"),  4>
 
 // No Rd, S-implied & not allowed
 , dp_one<a7_c , STR("tst"),  8, FMT_16_0, FMT_16_F, FMT_16_0_S>

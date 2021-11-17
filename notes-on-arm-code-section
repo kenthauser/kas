@@ -1,0 +1,40 @@
+ARM Elf Mapping symbols
+
+Symbol type/value: STT_NOTYPE / STB_LOCAL. st_size must be zero.
+
+$a Start of ARM instructions
+$d Start of data (eg a literal pool)
+$t Start of Thumb instructions
+
+Each mapping symbol defines a sequence of half-open address intervals, beginning
+with address defined by the mapping symbol. Ends with next mapping symbol or
+end of section. Each section must contain mapping symbols -- unless only holds
+data.
+
+for all sections: initial state is "data"
+
+.arm/.thumb (or .code 16/.code 32):
+
+    1. if no-change -- absorb.
+    2. if change:
+            1. get_dot.
+            2. insert symbol.
+            3. insert in per-segment list
+
+During relax - emit use table as follows:
+
+get_arm_addr_t(core_symbol const&)
+get_arm_addr_t(core_addr_t const&)
+    --> look up obj. return type
+
+implementation:
+
+for each segment:
+    create a deque holding type & core_addr_t *
+    add new entry at end. 
+    use std::lower_bound to lookup target address
+    current value is deque.last().value
+
+create `deque` holding above `deque` for each segment.
+
+

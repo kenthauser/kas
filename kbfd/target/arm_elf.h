@@ -68,10 +68,10 @@ static constexpr kbfd_target_reloc arm_elf_relocs[] =
   , {  54, "R_ARM_THM_PC12" , K_REL_NONE()      , 32, 1, T_T32 }
   , {  55, "R_ARM_ABS32_NOI", K_REL_NONE()      , 32, 0 }
   , {  56, "R_ARM_REL32_NOI", K_REL_NONE()      , 32, 1 }
-  , {  57, "R_ARM_ALU_PC_G0_NC" , K_REL_NONE()   , 32, 1 }
-  , {  58, "R_ARM_ALU_PC_G0"    , K_REL_NONE()  , 32, 1 }
-  , {  59, "R_ARM_ALU_PC_G1_NC" , K_REL_NONE()  , 32, 1 }
-  , {  60, "R_ARM_ALU_PC_G1"    , K_REL_NONE()  , 32, 1 }
+  , {  57, "R_ARM_ALU_PC_G0_NC" , ARM_REL_ADDSUB()   , 32, 0 }
+  , {  58, "R_ARM_ALU_PC_G0"    , ARM_REL_ADDSUB()  , 32, 1 }
+  , {  59, "R_ARM_ALU_PC_G1_NC" , ARM_REL_ADDSUB()  , 32, 1 }
+  , {  60, "R_ARM_ALU_PC_G1"    , ARM_REL_ADDSUB()  , 32, 1 }
   , {  61, "R_ARM_ALU_PC_G2_NC", K_REL_NONE()  , 32, 1 }
   , {  62, "R_ARM_LDR_PC_G1"    , K_REL_NONE()  , 32, 1 }
   , {  63, "R_ARM_LDR_PC_G2"    , K_REL_NONE()  , 32, 1 }
