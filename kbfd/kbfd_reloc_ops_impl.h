@@ -11,19 +11,17 @@
 namespace kbfd
 {
 
-// XXX use kas namespace (all_defns, init_from_list)
 using all_reloc_ops = kas::all_defns<reloc_ops_v, reloc_ops_defn_tags>;
 using action_names  = meta::transform<all_reloc_ops, meta::quote<meta::front>>;
 using action_ops    = meta::transform<all_reloc_ops, meta::quote<meta::back>>;
 
 // initialize static values from definition lists
-//decltype(reloc_action::MAX_ACTIONS) reloc_action::MAX_ACTIONS 
 decltype(reloc_action::MAX_ACTIONS) reloc_action::MAX_ACTIONS 
-        = all_reloc_ops::size();
-decltype(reloc_action::names) reloc_action::names
-        = kas::init_from_list<const char *, action_names>::value;
-decltype(reloc_action::ops)   reloc_action::ops
-        = kas::init_from_list<const reloc_op_fns *, action_ops, kas::VT_CTOR>::value; 
+    = all_reloc_ops::size();
+decltype(reloc_action::names)       reloc_action::names
+    = kas::init_from_list<const char *, action_names>::value;
+decltype(reloc_action::ops)         reloc_action::ops
+    = kas::init_from_list<const reloc_op_fns *, action_ops, kas::VT_CTOR>::value; 
 
 // lookup action by type (constexpr)
 template <typename T>
@@ -44,8 +42,8 @@ auto reloc_action::lookup(const char *name) -> index_t
                     return std::strcmp(a, b) < 0;
                 }
             };
+            
             std::map<const char *, index_t, cmp_str> action_map;
-           
             auto p = names;
             for (index_t i = 0; i < MAX_ACTIONS; ++i, ++p)
             {

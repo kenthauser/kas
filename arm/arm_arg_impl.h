@@ -78,6 +78,7 @@ void arm_shift::arm7_set(uint16_t value)
 template <typename OS>
 void arm_arg_t::print(OS& os) const
 {
+    std::cout << "(mode = " << std::dec << +mode() << ") ";
     switch (mode())
     {
         case MODE_DIRECT:

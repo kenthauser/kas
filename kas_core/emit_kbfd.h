@@ -26,7 +26,7 @@ struct emit_kbfd : emit_stream
         open();
     }
 
-    // write `kbfd` data before deletion
+    // flush `kbfd` data before deletion
     ~emit_kbfd()
     {
         close();

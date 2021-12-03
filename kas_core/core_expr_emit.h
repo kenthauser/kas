@@ -127,7 +127,7 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
 
                 // here need to emit `minus` relocation
                 // same width & offset
-                RELOC_T m_reloc { {kbfd::K_REL_SUB(), reloc.reloc.bits}, 0, reloc.offset };
+                RELOC_T m_reloc { {kbfd::K_REL_SUB(), reloc.reloc.bits()}, 0, reloc.offset };
                 
                 do_emit(m_reloc, &m);
                 break;
@@ -143,7 +143,7 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
 
     while(pc_rel_cnt--)
     {
-        RELOC_T m_reloc { {kbfd::K_REL_SUB(), reloc.reloc.bits}, 0, reloc.offset };
+        RELOC_T m_reloc { {kbfd::K_REL_SUB(), reloc.reloc.bits()}, 0, reloc.offset };
         do_emit(m_reloc, nullptr, true);
     }
     
@@ -158,7 +158,7 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
 
             // here need to emit `minus` relocation
             // same width & offset
-            RELOC_T m_reloc { {kbfd::K_REL_SUB(), reloc.reloc.bits}, 0, reloc.offset };
+            RELOC_T m_reloc { {kbfd::K_REL_SUB(), reloc.reloc.bits()}, 0, reloc.offset };
             
             do_emit(m_reloc, &m);
         }

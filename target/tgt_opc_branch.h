@@ -63,6 +63,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     {
         arg_t arg;
         arg.expr = dest;
+        arg.set_mode(*code_p & 0xff);
         auto dest_val_p = mcode.vals().last();
 
         // ask displacement validator (always last) to calculate size
@@ -79,6 +80,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         // 1. create an "arg" from dest expression
         arg_t arg;
         arg.expr = dest;
+        arg.set_mode(*code_p & 0xff);
         arg.set_branch_mode(mcode.calc_branch_mode(data.size()));
         
         // 2. insert `dest` into opcode
@@ -151,6 +153,12 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         // calculate initial insn size
         do_initial_size(data, mcode, code_p, dest, stmt_info, expr_fits{});
 
+        // except for 8-bit targets, save `mode` in lower 8-bits 
+        if constexpr (sizeof(mcode_size_t) > 1)
+        {
+            *code_p += args.back().mode();
+        }
+
         inserter(*code_p);                  // insert machine code: one word
         inserter(std::move(dest));          // save destination address
         return this;
@@ -167,7 +175,8 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
         auto  code_p = reader.get_fixed_p(sizeof(mcode_size_t));
         auto& dest   = reader.get_expr();
-        
+        auto  mode   = *code_p & 0xff;
+
         auto  info   = mcode.extract_info(code_p);
         
         // print "name"
@@ -178,6 +187,9 @@ struct tgt_opc_branch : MCODE_T::opcode_t
 
         // ...destination...
         os << " : " << dest;
+
+        // ...dest arg mode...
+        os << ", mode = " << std::dec << mode;
 
         // ...and info
         os << " ; info = " << info;

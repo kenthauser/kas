@@ -53,7 +53,10 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
         // 1. create an "arg" from dest expression
         arg_t arg;
         arg.expr = dest;
-        arg.set_branch_mode(mcode.calc_branch_mode(data.size()));
+        arg.set_mode(*code_p & 0xff);   // retrieve mode
+        *code_p &=~ 0xff;               // clear mode
+
+        //arg.set_branch_mode(mcode.calc_branch_mode(data.size()));
         
         // 2. insert `dest` into opcode
         // get mcode validators: displacement always "last" arg
@@ -101,15 +104,14 @@ struct fmt_bx : virtual arm_mcode_t::fmt_t
                 , core::core_emit& base
                 , core::core_expr_dot const *dot_p) const override
         {
-            // emit V4BX reloc & then regular object data
+            // emit V4BX as `bare reloc` & then regular object data
             static kbfd::kbfd_reloc reloc { kbfd::ARM_REL_V4BX(), 32 };
             base << core::emit_reloc(reloc) << core::emit_reloc::flush();
             base_t::emit(data, base, dot_p);
         }
     };
 
-    using opcode_t = typename arm_mcode_t::opcode_t;
-    opcode_t& get_opc() const override 
+    arm_mcode_t::opcode_t& get_opc() const override 
     {
         static fmt_opc_bx opc; 
         return opc;

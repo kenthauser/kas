@@ -208,11 +208,14 @@ struct tgt_fmt_generic : MCODE_T::fmt_t::fmt_impl
         auto value = val_p->get_value(arg);
         if constexpr (M_BITS0 != 0)
         {
+//#define TRACE_FMT_GENERIC
+#ifdef  TRACE_FMT_GENERIC
             std::cout << std::hex;
             std::cout << "INSERT: " << +WORD << "/" << +SHIFT << "/" << +BITS << std::endl; 
             std::cout << "insert: " << +M_WORD0 << "/" << +M_SHIFT0 << "/" << +M_BITS0;
             std::cout << "/" << MASK0; 
             std::cout << ", value = " << +value << std::endl;
+#endif
             // lower word
             auto code  = op[M_WORD0]; 
                  code &= ~(MASK0 << M_SHIFT0);
@@ -221,9 +224,11 @@ struct tgt_fmt_generic : MCODE_T::fmt_t::fmt_impl
         }
         if constexpr (M_BITS1 != 0)
         {
+#ifdef  TRACE_FMT_GENERIC
             std::cout << "insert: " << +M_WORD1 << "/" << +M_SHIFT1 << "/" << +M_BITS1;
             std::cout << "/" << MASK1; 
             std::cout << ", value = " << (value >> M_BITS0) << std::endl;
+#endif
             // upper word
             auto code  = op[M_WORD1]; 
                  code &= ~MASK1;        // WORD1 always continues from bit0

@@ -87,22 +87,22 @@ struct fmt_reg_indir :  arm_mcode_t::fmt_t::fmt_impl
                   , arg_t& arg
                   , val_t const *val_p) const override
     {
-        using ARM_REL_OFF12 = kbfd::ARM_REL_OFF12;
-        static const kbfd::kbfd_reloc r_ind { ARM_REL_OFF12(), 32, false }; 
-        static const kbfd::kbfd_reloc r_dir { ARM_REL_OFF12(), 32, true  }; 
+        using ARM_REL_SOFF12 = kbfd::ARM_REL_SOFF12;
+        static const kbfd::kbfd_reloc r_abs   { ARM_REL_SOFF12(), 32, false }; 
+        static const kbfd::kbfd_reloc r_pcrel { ARM_REL_SOFF12(), 32, true  }; 
 
-        //std::cout << "\nfmt_reg_indir::emit_reloc: arg = " << arg << std::endl;
         switch (arg.mode())
         {
             // handle DIRECT xlated to PC-REL
-            // NB: offset must match `val_indir::ok` value to ensure no overflow
+            // NB: PC-rel is from addr + 8
             case arg_t::arg_mode_t::MODE_DIRECT:
-                base << core::emit_reloc(r_dir, -8) << arg.expr;
+                op[0] |= 0xf;       // base register is R15
+                base << core::emit_reloc(r_pcrel, -8) << arg.expr;
                 break;
 
             // handle REG_INDIR with unresolved offset
             case arg_t::arg_mode_t::MODE_REG_IEXPR:
-                base << core::emit_reloc(r_ind) << arg.expr;
+                base << core::emit_reloc(r_abs) << arg.expr;
                 break;
             default:
             
@@ -150,6 +150,10 @@ struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
     using val_t        = arm_mcode_t::val_t;
     using arg_t        = arm_mcode_t::arg_t;
 
+    static constexpr auto ARM_G0 = kbfd::kbfd_reloc::RFLAGS_ARM_G0;
+    static constexpr auto ARM_G1 = kbfd::kbfd_reloc::RFLAGS_ARM_G1;
+    static constexpr auto ARM_G2 = kbfd::kbfd_reloc::RFLAGS_ARM_G2;
+
     // branch `machine code` insertions handled by `emit_reloc`
     void emit_reloc(core::core_emit& base
                   , mcode_size_t *op
@@ -169,17 +173,26 @@ struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
         {
             // byte displacement stored in LSBs. Use reloc mechanism
             std::cout << "fmt_displacement: MODE_JUMP" << std::endl;
-#if 1           
-            // reloc is 24-bits & pc-relative
-            static const kbfd::kbfd_reloc r { kbfd::ARM_REL_OFF24(), 24, true }; 
             
-            // reloc is from end of 2-byte machine code, stored with 1 byte offset
-            base << core::emit_reloc(r, -8, 1) << arg.expr;
-#endif
+            // reloc is 24-bits & pc-relative
+            // flag `ARM_G2` maps reloc to "R_ARM_JUMP24"
+            static const kbfd::kbfd_reloc r 
+                    { kbfd::ARM_REL_OFF24(), 32, true, ARM_G1 }; 
+            
+            // displacement is from end of 2-byte machine code
+            base << core::emit_reloc(r, -8, 0) << arg.expr;
             break;
         }
         case arg_t::arg_mode_t::MODE_CALL:
             std::cout << "fmt_displacement: MODE_CALL" << std::endl;
+            
+            // reloc is 24-bits & pc-relative
+            // flag `ARM_G1` maps reloc to "R_ARM_CALL24"
+            static const kbfd::kbfd_reloc r
+                    { kbfd::ARM_REL_OFF24(), 32, true, ARM_G0 }; 
+            
+            // displacement is from end of 2-byte machine code
+            base << core::emit_reloc(r, -8, 0) << arg.expr;
             break;
         }
     }
@@ -198,10 +211,10 @@ struct fmt_add_sub : arm_mcode_t::fmt_t::fmt_impl
                   , arg_t& arg
                   , val_t const *val_p) const override
     {
-        static const kbfd::kbfd_reloc r { kbfd::ARM_REL_ADDSUB() };
+        static const kbfd::kbfd_reloc r { kbfd::ARM_REL_ADDSUB(), 32 };
         
         // let KBFD deal with argument
-        std::cout << "fmt_add_sub: emit: arg = " << arg << std::endl;
+        //std::cout << "fmt_add_sub: emit: arg = " << arg << std::endl;
         base << core::emit_reloc(r) << arg.expr;
     }
 };

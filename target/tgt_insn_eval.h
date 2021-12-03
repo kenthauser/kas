@@ -24,6 +24,19 @@ auto eval_insn_list
     using op_size_t    = typename mcode_t::op_size_t;
     using stmt_info_t  = typename mcode_t::stmt_info_t;
 
+    // "state" is argument modes
+    using state_t = typename mcode_t::arg_t::arg_state;
+    state_t initial_state[mcode_t::MAX_ARGS];
+    
+    auto print_state = [&args](const char *desc)
+        {
+            std::cout << "eval_insn_list: " << desc << ": ";
+            for (auto arg: args)
+                std::cout << +arg.get_state() << ", ";
+            std::cout << std::endl;
+        };
+        
+
     mcode_t const *mcode_p{};
     auto match_result = fits.no;
     auto match_index  = 0;
@@ -41,19 +54,13 @@ auto eval_insn_list
     // loop thru "opcodes" until no more matches
     auto bitmask = ok.to_ulong();
 
-    // don't need to save state if single match. Won't restore
-    using state_t = typename mcode_t::arg_t::arg_state;
-    state_t initial_state[mcode_t::MAX_ARGS];
     if (ok.count() > 1)
     {
         auto p = initial_state;
         for (auto& arg : args)
             *p++ = arg.get_state();
 
-        std::cout << "eval_insn_list: initial state: ";
-        for (auto s : initial_state)
-            std::cout << +s << ", ";
-        std::cout << std::endl;
+        print_state("initial state");
     }
 
     bool state_updated {};      // both start false
@@ -71,7 +78,7 @@ auto eval_insn_list
         // don't restore on first iteration
         if (needs_restore)
         {
-            state_updated = false;
+            //state_updated = false;
             auto p = initial_state;
             for (auto& arg : args)
                 arg.set_state(*p++);
@@ -83,21 +90,12 @@ auto eval_insn_list
             *trace << std::dec << std::setw(2) << index << ": ";
         
         op_size_t size;
-        
-        std::cout << "eval_insn_list: before state: ";
-        for (auto arg: args)
-            std::cout << +arg.get_state() << ", ";
-        std::cout << std::endl;
-
+        print_state("before state");
        
         // NB: size `binds` info & may modify global arg
         auto result = (*op_iter)->size(args, stmt_info, size, fits, trace);
-
-        std::cout << "eval_insn_list: after state: ";
-        for (auto arg: args)
-            std::cout << +arg.get_state() << ", ";
-        std::cout << std::endl;
-
+        print_state("after state");
+        
         if (result == fits.no)
         {
             ok.reset(index);
@@ -173,17 +171,12 @@ auto eval_insn_list
         *trace << " : size = "   << insn_size;
         *trace << '\n' << std::endl;
     }
-    
-    std::cout << "eval_insn_list: final state: ";
-    for (auto arg: args)
-        std::cout << +arg.get_state() << ", ";
-    std::cout << std::endl;
 
     // if found a single match, update args
     if (ok.count() == 1)
     {
         // if state modified, need to rerun size. sigh.
-        if (!state_updated)
+        if (state_updated)
         {
             std::cout << "eval_insn_list: restore initial state: ";
         
@@ -191,16 +184,17 @@ auto eval_insn_list
             auto p = initial_state;
             for (auto& arg: args)
                 arg.set_state(*p++);
-#if 1
+
             // rerun size
             op_size_t size;
             
             // NB: size `binds` info. modifies passed `size` arg.
             mcode_p->size(args, stmt_info, size, fits, nullptr);
-#endif
         }
+    
     }
-
+    
+    print_state("final_state");
     return mcode_p;
 }
 

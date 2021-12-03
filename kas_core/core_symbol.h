@@ -154,7 +154,7 @@ template <typename REF>
 template <typename OS>
 void core_symbol<REF>::print(OS& os) const
 {
-    os << "[" << s_name << " (index: " << this->index() << ")]";
+    os << s_name << " (index: " << this->index() << ")";
 }
 }
 namespace kas::arm

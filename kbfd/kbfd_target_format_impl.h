@@ -91,12 +91,14 @@ auto kbfd_target_format::get_p(target_reloc_index_t index) const
 
 std::ostream& operator<<(std::ostream& os, kbfd_reloc const& reloc)
 {
+    auto flags = os.flags();
     os << "[" << reloc.action.name();
-    os << ", bits = " << +reloc.bits;
-    os << ", flags = "; 
+    os << ", bits = " << std::dec << +reloc.bits();
+    os << ", flags = " << std::hex << (reloc.flags &~ reloc.RFLAGS_SIZE_MASK); 
     if (reloc.flags & reloc.RFLAGS_PC_REL)
-        os << "PC_REL "; 
+        os << " PC_REL"; 
     os << "]";
+    os.flags(flags);
     return os;
 }
 }

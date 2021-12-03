@@ -48,6 +48,7 @@ const char *kbfd_object::sym_name(kbfd_sym_index_t n_sym) const
 
 kbfd_target_reloc const *kbfd_object::get_reloc(kbfd_reloc const& reloc) const
 {
+    //std::cout << "kbfd_object::get_reloc: reloc = " << reloc << std::endl;
     return fmt.lookup(reloc);
 }
 

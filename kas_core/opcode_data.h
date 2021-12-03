@@ -127,6 +127,7 @@ public:
     }
 
     // set insn to `error`
+    void set_error(e_diag_t const&);
     void set_error(const char *msg);
     
     // return object, not reference

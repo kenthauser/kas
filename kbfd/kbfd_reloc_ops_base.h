@@ -20,11 +20,15 @@ struct reloc_op_fns
     // default: read/write return data/value un-modified
     virtual value_t  read  (value_t data)                 const
         { return data;  }
-    virtual value_t  write (value_t data, value_t value)  const
-        { return value; }
+    virtual const char *write (value_t& data, value_t value)  const
+        { data = value; return {}; }
+    
     // `update_t` is std::pair. `bool` attribute true if update defined
     virtual update_t update(value_t data, value_t addend) const
         { return { {}, false }; };
+
+    // assembler should emit reloc without relocation
+    virtual bool emit_bare() const { return false; }
 };
 
 struct k_rel_add_t : virtual reloc_op_fns
@@ -56,10 +60,11 @@ struct reloc_op_subfield : virtual reloc_op_fns
     {
         return (data >> SHIFT) & MASK; 
     }
-    value_t write(value_t data, value_t value) const override
+    const char *write(value_t& data, value_t value) const override
     {
-        data &=~ (MASK << SHIFT);
-        return data | (value & MASK) << SHIFT;
+        auto n = data &~ (MASK << SHIFT);
+        data   = n | (value & MASK) << SHIFT;
+        return {};
     }
 };
 

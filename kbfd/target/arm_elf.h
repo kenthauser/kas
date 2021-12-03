@@ -12,19 +12,24 @@ namespace kbfd::arm
 // Source: Document: ARM IHI 0044F (ELF for the ARM Architecture)
 // Issue : 24 November 2015
 
-static constexpr uint8_t T_DEPR = kbfd::kbfd_reloc::RFLAGS_DEPR;
+static constexpr auto T_DEPR       = kbfd::kbfd_reloc::RFLAGS_DEPR;
+static constexpr auto ARM_G0 = kbfd::kbfd_reloc::RFLAGS_ARM_G0;
+static constexpr auto ARM_G1 = kbfd::kbfd_reloc::RFLAGS_ARM_G1;
+static constexpr auto ARM_G2 = kbfd::kbfd_reloc::RFLAGS_ARM_G2;
+static constexpr auto ARM_G3 = kbfd::kbfd_reloc::RFLAGS_ARM_G3;
+static constexpr auto ARM_EMIT = kbfd::kbfd_reloc::RFLAGS_ARM_EMIT;
 
-// ARM relocations: fields = WKN Name Action width pc-rel type...
+// ARM relocations: fields = WKN Name Action width pc-rel flags...
 static constexpr kbfd_target_reloc arm_elf_relocs[] =
 {
     {   0, "R_ARM_NONE"     , K_REL_NONE() }
-  , {   1, "R_ARM_PC24"     , K_REL_ADD()       , 24, 1, T_ARM, T_DEPR }
+  , {   1, "R_ARM_PC24"     , K_REL_ADD()       , 32, 1, T_ARM, T_DEPR }
   , {   2, "R_ARM_ABS32"    , K_REL_ADD()       , 32, 0 }
   , {   3, "R_ARM_REL32"    , K_REL_ADD()       , 32, 1 }
-  , {   4, "R_ARM_LDR_PC_G0", K_REL_NONE()      ,  0, 1, T_ARM }
+  , {   4, "R_ARM_LDR_PC_G0", ARM_REL_SOFF12()  , 32, 1, T_ARM }
   , {   5, "R_ARM_ABS16"    , K_REL_ADD()       , 16, 0 }
-  , {   6, "R_ARM_ABS12"    , K_REL_ADD()       , 12, 0, T_ARM }
-  , {   7, "R_ARM_THM_ABS5" , K_REL_ADD()       ,  5, 0, T_T16 }
+  , {   6, "R_ARM_ABS12"    , K_REL_ADD()       , 16, 0, T_ARM }
+  , {   7, "R_ARM_THM_ABS5" , K_REL_ADD()       , 16, 0, T_T16 }
   , {   8, "R_ARM_ABS8"     , K_REL_ADD()       ,  8, 0 }
   , {   9, "R_ARM_SBREL32"  , K_REL_NONE()      , 32, 1 }
   , {  10, "R_ARM_THM_CALL" , K_REL_NONE()      , 32, 1, T_T32 }
@@ -42,18 +47,18 @@ static constexpr kbfd_target_reloc arm_elf_relocs[] =
   , {  25, "R_ARM_BASE_PREL", K_REL_NONE() }
   , {  26, "R_ARM_GOT_BREL" , K_REL_NONE() }
   , {  27, "R_ARM_PLT32"    , K_REL_NONE()      , 32, 0, T_ARM, T_DEPR }
-  , {  28, "R_ARM_CALL"     , K_REL_ADD()      , 24, 0, T_ARM }
-  , {  29, "R_ARM_JUMP24"   , K_REL_ADD()      , 24, 1, T_ARM }
-  , {  30, "R_ARM_THM_JUMP24", K_REL_NONE()     , 24, 0, T_T32}
+  , {  28, "R_ARM_CALL"     , ARM_REL_OFF24()   , 32, 1, T_ARM, ARM_G0 }
+  , {  29, "R_ARM_JUMP24"   , ARM_REL_OFF24()   , 32, 1, T_ARM, ARM_G1 }
+  , {  30, "R_ARM_THM_JUMP24", K_REL_NONE()     , 32, 0, T_T32}
   , {  31, "R_ARM_BASE_ABS" , K_REL_NONE() }
   , {  35, "R_ARM_LDR_SBREL_11_0_NC" , K_REL_NONE(), 32, 0, T_ARM, T_DEPR }
   , {  36, "R_ARM_LDR_SBREL_19_12_NC", K_REL_NONE(), 32, 0, T_ARM, T_DEPR }
   , {  37, "R_ARM_LDR_SBREL_27_20_NC", K_REL_NONE(), 32, 0, T_ARM, T_DEPR }
   , {  38, "R_ARM_TARGET1"  , K_REL_NONE() }
   , {  39, "R_ARM_SBREL31"  , K_REL_NONE()          , 32, 0, T_DEPR }
-  , {  40, "R_ARM_V4BX"     , ARM_REL_V4BX()        , 32 }
+  , {  40, "R_ARM_V4BX"     , ARM_REL_V4BX()        , 32, 0, T_ARM }
   , {  41, "R_ARM_TARGET2"  , K_REL_NONE() }
-  , {  42, "R_ARM_PREL31"   , K_REL_NONE()          , 31, 1 }
+  , {  42, "R_ARM_PREL31"   , K_REL_NONE()          , 32, 1 }
   , {  43, "R_ARM_MOVW_ABS_NC", ARM_REL_MOVW()        , 32, 0 }
   , {  44, "R_ARM_MOVT_ABS" , ARM_REL_MOVT()          , 32, 0 }
   , {  45, "R_ARM_MOVW_PREL_NC", ARM_REL_MOVW()       , 32, 1 }

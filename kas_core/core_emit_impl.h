@@ -164,44 +164,26 @@ void core_emit::operator()(T const& e, kas_loc const *loc_p)
 
 void core_emit::put_reloc(core_reloc& r, core_section const& section)
 {
-    auto tgt_reloc_p = get_reloc(r.reloc);
-    if (!tgt_reloc_p)
-    {
-        std::cout << "no target relocation for action = " << r.reloc.action.name();
-        std::cout << " bits = " << +r.reloc.bits << std::endl;
-        // ** put diag **
-        return;
-    }
-
-    stream.put_section_reloc(e_chan, *tgt_reloc_p, r.offset, section, r.addend);
+    if (auto p = get_reloc(r.reloc))
+        stream.put_section_reloc(e_chan, *p, r.offset, section, r.addend);
+    else
+        throw std::logic_error{"no target relocation: section"};
 }
 
 void core_emit::put_reloc (core_reloc& r, core_symbol_t const& symbol)
 {
-    auto tgt_reloc_p = get_reloc(r.reloc);
-    if (!tgt_reloc_p)
-    {
-        std::cout << "no target relocation for action = " << r.reloc.action.name();
-        std::cout << " bits = " << +r.reloc.bits << std::endl;
-        // ** put diag **
-        return;
-    }
-
-    stream.put_symbol_reloc(e_chan, *tgt_reloc_p, r.offset, symbol, r.addend);
+    if (auto p = get_reloc(r.reloc))
+        stream.put_symbol_reloc(e_chan, *p, r.offset, symbol, r.addend);
+    else
+        throw std::logic_error{"no target relocation: symbol"};
 }
 
 void core_emit::put_reloc (core_reloc& r)
 {
-    auto tgt_reloc_p = get_reloc(r.reloc);
-    if (!tgt_reloc_p)
-    {
-        std::cout << "no target relocation for action = " << r.reloc.action.name();
-        std::cout << " bits = " << +r.reloc.bits << std::endl;
-        // ** put diag **
-        return;
-    }
-
-    stream.put_bare_reloc(e_chan, *tgt_reloc_p, r.offset);
+    if (auto p = get_reloc(r.reloc))
+        stream.put_bare_reloc(e_chan, *p, r.offset);
+    else
+        throw std::logic_error{"no target relocation: bare"};
 }
 
 }   // namespace kas_core

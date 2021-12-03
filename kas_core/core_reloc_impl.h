@@ -9,10 +9,12 @@
 namespace kas::core
 {
 // complete construction of `reloc`
-void core_reloc::operator()(expr_t const& e)
+void core_reloc::operator()(expr_t const& e, uint8_t flags)
 {
     if (!loc_p)
         loc_p = e.get_loc_p();      // if `tagged` store location
+
+    r_flags |= flags;               // eg. emit `bare` reloc
 
     // `if tree` used to initialize relocation
     // don't need `apply_visitor` as most types don't relocate
@@ -31,7 +33,7 @@ void core_reloc::operator()(expr_t const& e)
         (*this)(*p, loc_p);
     else
     {
-        std::cout << "core_reloc::operator(): unsupported type" << std::endl;
+        std::cout << "core_reloc::operator(): unsupported expression" << std::endl;
     }
 }
 
@@ -44,20 +46,12 @@ void core_reloc::operator()(core_symbol_t const& value, kas_loc const *loc_p)
     // save location if specified
     if (loc_p)
         this->loc_p = loc_p;
-
-    // see if resolved *LOCAL* symbol
-    if (auto p = value.addr_p())
-    {
-        if (value.binding() != STB_GLOBAL)
-            (*this)(*p);        // relocate based on segment
-        else
-            sym_p = &value;     // global: relocate using symbol
-    }
+    
     // if `EQU`, interpret value
-    else if (auto p = value.value_p())
+    if (auto p = value.value_p())
         (*this)(*p);
 
-    // otherwise, unresolved symbol
+    // otherwise, resolve as symbol
     else
         sym_p = &value;
 }
@@ -74,6 +68,8 @@ void core_reloc::operator()(core_addr_t const& value, kas_loc const *loc_p)
     // save location if specified
     if (loc_p)
         this->loc_p = loc_p;
+
+    // XXX need to use backend to select relocation base...
 
     addend   +=  value.offset()();
     section_p = &value.section();
@@ -101,11 +97,31 @@ void core_reloc::operator()(core_expr_t const& value, kas_loc const *loc_p)
     core_expr_p = &value;
 }
 
+// XXX deal with PC_REL, SB_REL, etc
+kbfd::kbfd_target_reloc const *core_reloc::
+        get_tgt_reloc(core_emit& base)
+{
+    // XXX deal with PC_REL, SB_REL, etc
+
+    auto p = base.get_reloc(reloc);
+
+    if (!p && loc_p)
+    {
+        std::ostringstream msg;
+        msg << "no target relocation for \"" << reloc << "\"";
+        std::cout << "core_reloc::get_tgt_reloc: " << msg.str() << std::endl;
+        auto& diag = e_diag_t::error(msg.str(), *loc_p);
+        base.error_p = &diag;
+    }
+    return p;
+}
+
+
 void core_reloc::emit(core_emit& base, parser::kas_error_t& diag)
 {
 #ifdef TRACE_CORE_RELOC
-    std::cout << "core_reloc::emit: reloc = " << reloc;
-    std::cout << ", addend = " << addend << ", data = " << base.data;
+    std::cout << "core_reloc::emit: reloc = " << reloc << std::dec;
+    std::cout << ", addend = " << addend << std::hex << ", data = " << base.data;
     if (sym_p)
         std::cout << " sym = " << *sym_p;
     else if (core_expr_p)
@@ -119,13 +135,21 @@ void core_reloc::emit(core_emit& base, parser::kas_error_t& diag)
     std::cout << std::endl;
 #endif
 
-    // if symbol, reinterpret before emitting
-    if (sym_p)
+    // need to select proper `non-global` symbol base
+    // consult with backend via `base.reloc_select_base_sym`
+    if (sym_p && sym_p->binding() != STB_GLOBAL)
     {
-        auto& sym = *sym_p;
-        sym_p = {};
-        (*this)(sym);
+        // if `sym_p` holds address, try select symbol
+        if (auto p = sym_p->addr_p())
+        {
+            sym_p = base.reloc_select_base_sym(*sym_p);
+            if (!sym_p)
+                (*this)(*p);
+        }
     }
+    
+    // deal with PC_REL, SB_REL, etc...
+    auto tgt_reloc_p = get_tgt_reloc(base);
 
     // emit relocations to backend
     if (section_p)
@@ -136,8 +160,8 @@ void core_reloc::emit(core_emit& base, parser::kas_error_t& diag)
         core_expr_p->emit(base, *this, diag);
     else if (diag_p)
         diag = *diag_p;
-    else
-        put_reloc(base, diag);
+    else if (r_flags & CR_EMIT_BARE)
+        put_reloc(base, diag);      // bare reloc
 
     // if "addend", apply as relocation to base
     if (addend)
@@ -193,15 +217,22 @@ void core_reloc::apply_reloc(core_emit& base, parser::kas_error_t& diag)
         std::cout << " *diag*";
     std::cout << std::endl;
 #endif
+    // XXX need `emit_stream_base::emit_value_t` to be picked up from `kbfd`
+    static_assert(std::is_same_v<typename core_emit::emit_value_t
+                               , typename kbfd::reloc_op_fns::value_t>
+                , "emit_value_t value is incorrect");
 
     // apply reloc(addend) to data
     auto& ops = reloc.get();
 
     auto value = ops.update(ops.read(base.data), addend).first;
-    base.data  = ops.write(base.data, value);
+    auto err   = ops.write(base.data, value);
 
 #ifdef TRACE_CORE_RELOC
-    std::cout << "put_reloc::apply_reloc: result = " << base.data << std::endl;
+    std::cout << "put_reloc::apply_reloc: result = " << base.data;
+    if (err)
+        std::cout << ", *ERROR* = " << err;
+    std::cout << std::endl;
 #endif
 }
 

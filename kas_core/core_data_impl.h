@@ -51,25 +51,30 @@ auto opcode_data::index() const -> std::size_t
 
 void opcode_data::set_error(const char *msg)
 {
-    std::cout << "opcode_data::set_error: " << msg << std::endl;
+    // generate diagnostic & use general routine
+    auto& diag = e_diag_t::error(msg, loc);
+    set_error(diag);
+}
 
+void opcode_data::set_error(e_diag_t const& diag)
+{
+    // XXX should be able to ostream diag
+    std::cout << "opcode_data::set_error: " << diag.message << std::endl;
+    
+    fixed.diag = diag.ref();    // fixed now correct for error insn
+    
     if (data_p)
     {
         // processing from insn container (during relax)
         data_p->set_error();    // convert to error insn
-
-        // XXX initialize loc 
     }
     else
     {
         // processing before container insertion
         // generate an error insn with zero size
         // `loc` set by ctor
-        size.set_error();   // `core_insn` does rest
+        size.set_error();       // `core_insn` does rest
     }
-
-    // record error message for instruction
-    fixed.diag = e_diag_t::error(msg, loc).ref();
 }
 
 

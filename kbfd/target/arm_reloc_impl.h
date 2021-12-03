@@ -13,7 +13,7 @@ namespace kbfd::arm
 // 8-bits, shifted, preferring lowest shift "value"
 
 // find MSB "bit-pair", ie shift must be even
-uint16_t find_msb_pair(uint32_t v)
+constexpr uint16_t find_msb_pair(uint32_t v)
 {
     uint16_t shift{};
     if (v > 0xffff) { shift += (1 << 4); v >>= (1 << 4); }
@@ -26,8 +26,8 @@ uint16_t find_msb_pair(uint32_t v)
 // return encoded value & residual 
 std::pair<uint16_t, uint32_t> encode_alu_immed(uint32_t v)
 {
-    std::string f {__func__};
-    std::cout << f + ": v = " << std::hex << v << std::endl;
+    //std::string f {__func__};
+    //std::cout << f + ": v = " << std::hex << v << std::endl;
 
     // short circuit for small positive number: no shift, no residual
     if (v <= 0xff) return {v, 0};
@@ -82,15 +82,30 @@ std::pair<uint16_t, uint32_t> encode_alu_immed(uint32_t v)
         v >>= 2;
     }
     
-    std::cout << f + ": shift = " << std::dec << shift;
-    std::cout << ", value = " << std::hex << v;
-    std::cout << ", result = " << std::hex << ((16-shift) << 8 | v);
-    std::cout << ", residual = " << residual << std::endl;
+    //std::cout << f + ": shift = " << std::dec << shift;
+    //std::cout << ", value = " << std::hex << v;
+    //std::cout << ", result = " << std::hex << ((16-shift) << 8 | v);
+    //std::cout << ", residual = " << residual << std::endl;
     return {(16-shift) << 8 | v, residual}; 
 }
 
+// signed 24-bit shifted offset for `B`, `BL` etc
+struct arm_rel_off24 : k_rel_add_t, reloc_op_subfield<24, 0>
+{
+    using base_t = reloc_op_subfield<24, 0>;
+    value_t read(value_t data) const override
+    {
+        return base_t::read(data) << 2;
+    }
+    
+    const char *write(value_t& data, value_t value) const override
+    {
+        return base_t::write(data, value >> 2);
+    }
+};
 
-struct arm_rel_sel12 : k_rel_add_t, reloc_op_subfield<12, 0> 
+
+struct arm_rel_soff12 : k_rel_add_t, reloc_op_subfield<12, 0> 
 {
     using base_t = reloc_op_subfield<12, 0>;
     static constexpr value_t u_bit = 1 << 23;
@@ -142,7 +157,7 @@ struct arm_rel_sel12 : k_rel_add_t, reloc_op_subfield<12, 0>
         return -value;
     }
 
-    value_t write(value_t data, value_t value) const override
+    const char *write(value_t& data, value_t value) const override
     {
         // clear u-bit for negative value, otherwise set it
         if (value < 0)
@@ -161,19 +176,18 @@ struct arm_rel_addsub : kbfd::k_rel_add_t
     value_t  read  (value_t data)                 const override
     {
         unsigned op = (data >> 21) & 0xf;
-        std::cout << "arm_rel_addsub::read: data = " << data << ", op = " << op << std::endl;
+        //std::cout << "arm_rel_addsub::read: data = " << data << ", op = " << op << std::endl;
         return data & 0xfff;
     }
 
-    value_t  write (value_t data, value_t value)  const override
+    const char *write (value_t& data, value_t value)  const override
     {
         static constexpr auto op_mask = 0xf << 21;
         static constexpr auto add_op  = 0x4 << 21;
         static constexpr auto sub_op  = 0x2 << 21;
 
-        unsigned op = (data >> 21) & 0xf;
-
-        std::cout << "arm_rel_addsub::write: op = " << op << std::endl;
+        //unsigned op = (data >> 21) & 0xf;
+        //std::cout << "arm_rel_addsub::write: op = " << op << std::endl;
         if (value < 0)
         {
             value = -value;     // value < zero: toggle add/sub
@@ -183,19 +197,22 @@ struct arm_rel_addsub : kbfd::k_rel_add_t
         {
             data &= op_mask;    // force `add` for value == 0
             data |= add_op;
+            return {};          // short circuit zero
         }
-        return (data &~ 0xfff) | value;
+
+        auto [encoded, residual] = encode_alu_immed(value);
+        //std::cout << "arm_rel_addsub::write: " << encoded << "/" << residual << std::endl;
+        data = (data &~ 0xfff) | encoded;
+        return residual ? "Invalid constant for relocation" : nullptr;
     }
-#if 0
-    update_t update(value_t data, value_t addend) const override
-    {
-        std::cout << "arm_rel_addsub: data = " << std::hex << data;
-        std::cout << ", addend = " << addend << std::endl;
-        return { data + addend, false };
-    }
-#endif
 };
 
+// R_ARM_V4BX is info for linker, not actual relocation
+struct arm_rel_v4bx : kbfd::k_rel_add_t
+{
+    // assembler should emit RELOC
+    bool emit_bare() const override { return true; }
+};
 }
 
 #endif

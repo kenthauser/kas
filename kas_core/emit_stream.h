@@ -24,6 +24,7 @@ enum e_chan_num : uint16_t { EMIT_ADDR, EMIT_DATA, EMIT_EXPR, EMIT_INFO, NUM_EMI
 
 struct emit_stream_base
 {
+    // XXX need to pickup from `kbfd` definition...
     using emit_value_t = int64_t;       // value passed to emit backend
 
     // construct with optional `kbfd_object` ptr.

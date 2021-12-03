@@ -137,12 +137,12 @@ struct val_shift : arm_mcode_t::val_t
 // ARM5 Adddressing mode 2: Load and Store word or unsigned byte
 struct val_indir : arm_mcode_t::val_t
 {
-    // declare 12-bit limits
-    static constexpr auto offset12_min = -(1 << 12);
-    static constexpr auto offset12_max = (1 << 12) - 1;
+    // declare 12-bit limits: stored in opcode as sign + 12-bits offset
+    static constexpr auto offset12_max = +((1 << 12) - 1);
+    static constexpr auto offset12_min = -((1 << 12) - 1);
 
     // require constexpr default ctor
-    constexpr val_indir() {}
+    constexpr val_indir() {} 
 
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
@@ -333,7 +333,7 @@ struct val_imm8: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
     }
 };
 
-struct val_branch24 : arm_mcode_t::val_t
+struct val_arm_branch24 : arm_mcode_t::val_t
 {
     // out-of-range displacement handled by linker
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
@@ -365,12 +365,13 @@ struct val_branch24 : arm_mcode_t::val_t
 };
 
 // special validator to support `bl` ARM_CALL reloc
-struct val_arm_call24 : val_branch24
+struct val_arm_call24 : val_arm_branch24
 {
     // indicate `ARM_CALL`: set `arg_mode` to MODE_CALL
     fits_result size(arg_t& arg, mcode_t const&, stmt_info_t const& info
                    , expr_fits const& fits, op_size_t& op_size) const override
     {
+        std::cout << "val_arm_call24: size()" << std::endl;
         arg.set_mode(arg_t::arg_mode_t::MODE_CALL);
         return fits.yes;
     }
@@ -429,7 +430,7 @@ VAL_GEN(REGSET_USER , val_regset_user);
 
 // validate branch and thumb branch displacements
 // name by reloc generated. linker validates displacements
-VAL_GEN(ARM_JUMP24  , val_branch24);
+VAL_GEN(ARM_JUMP24  , val_arm_branch24);
 VAL_GEN(ARM_CALL24  , val_arm_call24);
 
 // XXX

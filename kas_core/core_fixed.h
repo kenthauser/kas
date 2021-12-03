@@ -162,6 +162,11 @@ namespace detail
 #endif
 #endif
                     config.emit_one(base, value, dot_p);
+
+                    // XXX clear error:  
+                    if (auto err = base.get_error())
+                        std::cout << "opc_fixed_impl: error: "
+                                  << err->message << std::endl;
                 }
             }
         }

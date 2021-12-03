@@ -115,7 +115,10 @@ struct core_insn
         // perform `opcode` method...
         op().emit(data, base, dot_p);
 
-        
+        // test if error during emit
+        if (auto diag_p = base.get_error())
+            data.set_error(*diag_p);
+
 #ifdef  VALIDATE_EMIT
         if (&base.get_section() != section_p)
             return;     // changed section -- can't test
@@ -176,7 +179,6 @@ public:
 
     // for "idx_error" update
     mutable uint16_t  opc_index{};
-    
 };
 }
 

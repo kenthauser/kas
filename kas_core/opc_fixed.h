@@ -167,7 +167,6 @@ struct opc_fixed : opc_data<opc_fixed<T>, T>
         // evaluate expression & emit
         base << set_size(sizeof(value_type));
         base << value;
-    
     }
 };
 #if 1

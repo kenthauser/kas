@@ -156,7 +156,7 @@ struct emit_formatted : emit_stream
         if (addr_bytes > 3)
             addr_bytes = 3;
 
-        auto width = info.reloc.bits/8;
+        auto width = info.reloc.bytes();
 
         std::ostringstream s;
         auto sfx = emit_formatted::section_suffix(*section_p);
