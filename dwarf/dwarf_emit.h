@@ -65,7 +65,7 @@ struct emit_insn
             , typename OP = typename  DEFN::op>
     void operator()(DEFN&& d, Arg&& arg)
     {
-//#define TRACE_DWARF_EMIT
+#define TRACE_DWARF_EMIT
 #ifdef TRACE_DWARF_EMIT
         if constexpr (std::is_integral_v<std::remove_reference_t<Arg>>)
             std::cout << " " << DEFN() << ": arg = " << +arg << std::endl;

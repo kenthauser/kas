@@ -6,6 +6,9 @@
 // Reference:
 // https://github.com/ARM-software/abi-aa/releases/download/2021Q1/addenda32.pdf
 
+// XXX the definition lists in this module should be transferred to `kbfd`
+// XXX as they represent object file descriptions.
+
 
 #include "target/tgt_directives_impl.h"
 #include "kas_core/core_section.h"
@@ -21,14 +24,14 @@ namespace detail
 {
     using namespace meta;
     // use a MACRO to define terms to cut down on clutter
-    enum eabi_type { EABI_INT, EABI_NTSB, EABI_ULEB };
+    enum eabi_type { EABI_BYTE, EABI_NTSB, EABI_ULEB };
 
     #define EABI(N, V, T) list<KAS_STRING(#N), int_<V>, int_<EABI_ ## T>>
 
     using eabi_defns = meta::list<
-        EABI(File               ,  1, INT)
-      , EABI(Section            ,  2, INT)
-      , EABI(Symbol             ,  3, INT)
+        EABI(File               ,  1, BYTE)
+      , EABI(Section            ,  2, BYTE)
+      , EABI(Symbol             ,  3, BYTE)
       , EABI(CPU_raw_name       ,  4, NTSB)
       , EABI(CPU_name           ,  5, NTSB)
       , EABI(CPU_arch           ,  6, ULEB)
@@ -85,6 +88,42 @@ namespace detail
       , EABI(FramePointer_use   , 72, ULEB)
       , EABI(BTI_use            , 74, ULEB)
       , EABI(PACRET_use         , 76, ULEB)
+      >;
+
+    // the `arm` prefix should probably be added by `parser`
+    #define EABI_ARCH(N, V) list<KAS_STRING("arm" #N), int_<V>>
+    
+    using eabi_arch_defns = meta::list<
+        EABI_ARCH(pre-v4    , 0)
+      , EABI_ARCH(v4        , 1)
+      , EABI_ARCH(v4T       , 2)
+      , EABI_ARCH(v5T       , 3)
+      , EABI_ARCH(v5TE      , 4)
+      , EABI_ARCH(v5TEJ     , 5)
+      , EABI_ARCH(v6        , 6)
+      , EABI_ARCH(v6KZ      , 7)
+      , EABI_ARCH(v6T2      , 8)
+      , EABI_ARCH(v6K       , 9)
+      , EABI_ARCH(v7        , 10)
+      , EABI_ARCH(v6-M      , 11)
+      , EABI_ARCH(v6S-M     , 12)
+      , EABI_ARCH(v7E-M     , 13)
+      , EABI_ARCH(v8-A      , 14)
+      , EABI_ARCH(v8-R      , 15)
+      , EABI_ARCH(v8-M.baseline, 16)
+      , EABI_ARCH(v8-M.mainline, 17)
+      , EABI_ARCH(v8.1-A    , 18)
+      , EABI_ARCH(v8.2-A    , 19)
+      , EABI_ARCH(v8.3-A    , 20)
+      , EABI_ARCH(v8.1-M.mainline, 21)
+      >;
+
+    using eabi_arch_profile = meta::list<
+        list<KAS_STRING("")     , int_<0>>      // pre v7
+      , list<KAS_STRING("A")    , int_<'A'>>    // "application"
+      , list<KAS_STRING("R")    , int_<'R'>>    // "real-time"
+      , list<KAS_STRING("M")    , int_<'M'>>    // "microcontroller"
+      , list<KAS_STRING("S")    , int_<'S'>>    // "classic"
       >;
 
     // forward declare adder
@@ -291,10 +330,25 @@ void gen_arm_attributes::gen_data(core::insn_inserter_t&& inserter)
     emit(dwarf::ULEB(), 1);         // file
     emit(dwarf::UWORD(), end - bgn_file);
 
+    // all `kas` attributes are `file` scope
     for (auto& obj : values)
     {
         emit(dwarf::ULEB(), obj.first->value);
-        emit(dwarf::ULEB(), obj.second.number);
+
+        switch (obj.first->coding)
+        {
+            case detail::EABI_BYTE:
+                emit(dwarf::BYTE(), obj.second.number);
+                break;
+            case detail::EABI_ULEB:
+                emit(dwarf::ULEB(), obj.second.number);
+                break;
+            case detail::EABI_NTSB:
+                emit(dwarf::TEXT(), obj.second.name.c_str());
+                break;
+            default:
+                throw std::logic_error{"EABI: invalid coding"};
+        }
     }
     
     emit(end);      // drop the `end` address label

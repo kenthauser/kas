@@ -261,6 +261,8 @@ struct val_indir_offset : val_indir
 };
 
 // ARM5 Adddressing mode 3: subset of ARM5 addressing mode 2
+// addressing mode 3: no shifts, and offset is limited to 8-bits fixed
+// NB: addressing mode 2 allows offsets of 12-bits + relocations
 struct val_ls_misc : val_indir
 {
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
@@ -296,6 +298,54 @@ struct val_ls_misc : val_indir
     {
         // mask out "shifter" values, but allow Rm
         val_indir::set_arg(arg, value & ~0xff0);
+
+        // if r_flag clear, LSBs are offset
+        if (!arg.indir.r_flag)
+            arg.expr = (value & 0xf) | ((value >> 4) & 0xf0);
+        else
+            arg.expr = {};
+    }
+};
+
+// ARM5 Adddressing mode 4: subset of ARM5 addressing mode 3
+// addressing mode 4: offsets are prescaled by *4
+struct val_cp_indir : val_ls_misc
+{
+    using base_t = val_ls_misc;
+
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        // shift arg not allowed for misc loads/stores
+        if (arg.shift.value() != 0)
+            return fits.no;
+        // enforce signed 8-bit values
+        if (auto p = arg.get_fixed_p())
+            if (fits.fits<int8_t>(*p) != fits.yes)
+                return fits.no;
+        // use common routine
+        return base_t::ok(arg, fits);
+    }
+
+    // addressing mode 3 is similar to addressing mode 2 w/o shifts
+    uint32_t get_value(arg_t& arg) const override
+    {
+        // first calculate "base" value
+        uint32_t value  = base_t::get_value(arg);
+
+        // override lower 12-bits (shift values)
+        value &=~ (1<<12) - 1;
+        if (auto p = arg.get_fixed_p())
+        {
+            value |= *p & 0xf;
+            value |= (*p & 0xf0) << 4;
+        }
+        return value;
+    }
+
+    void set_arg(arg_t& arg, uint32_t value) const override
+    {
+        // mask out "shifter" values, but allow Rm
+        base_t::set_arg(arg, value & ~0xff0);
 
         // if r_flag clear, LSBs are offset
         if (!arg.indir.r_flag)
@@ -414,7 +464,7 @@ VAL_GEN(SHIFT       , val_shift);
 VAL_GEN(REG_INDIR   , val_indir);
 VAL_GEN(POST_INDEX  , val_post_index);
 VAL_GEN(INDIR_OFFSET, val_indir_offset);
-VAL_GEN(CP_REG_INDIR, val_indir);           // XXX need x8 validate
+VAL_GEN(CP_REG_INDIR, val_cp_indir);
 
 // ARM V5: addressing mode 3 validators
 VAL_GEN(LS_MISC     , val_ls_misc);
@@ -424,9 +474,6 @@ VAL_GEN(OFFSET8     , val_imm8);
 VAL_GEN(REGSET      , val_regset);
 VAL_GEN(REGSET_SGL  , val_regset_single);
 VAL_GEN(REGSET_USER , val_regset_user);
-
-// XXX DUMMY
-//VAL_REG(OFFSET12    , RC_GEN);
 
 // validate branch and thumb branch displacements
 // name by reloc generated. linker validates displacements

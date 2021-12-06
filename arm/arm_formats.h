@@ -60,8 +60,10 @@ using arg2_shifter = fmt_arg<2, fmt_shifter>;
 using arg3_shifter = fmt_arg<3, fmt_shifter>;
 using arg4_shifter = fmt_arg<4, fmt_shifter>;
 
-// declare reg_indir for arg2
+// declare reg_indir for arg1+
+using arg1_reg_indir = fmt_arg<1, fmt_reg_indir>;
 using arg2_reg_indir = fmt_arg<2, fmt_reg_indir>;
+using arg3_reg_indir = fmt_arg<3, fmt_reg_indir>;
 
 // declare register-set for arg1, arg2
 using arg1_regset  = fmt_arg<1, gen_0b16>;
@@ -77,10 +79,12 @@ struct FMT_LIST : fmt_list, arg1_12b4 {};
 // conventional name for `no-args` formatter
 struct FMT_X     : fmt_gen {};
 
+// conventional name for `not-yet-implemented` formatter
+struct FMT_XXX   : fmt_gen {};
+
 // Branches:
 // insert 24-bit offset. linker handles out-of-range case
 struct FMT_B : fmt_branch, fmt_arg<1, fmt_branch24> {};
-using FMT_BT = FMT_X;
 
 // `bx` instruction needs to drop a ARM_V4BX reloc to help linker
 struct FMT_BX : fmt_bx, arg1_00b4 {};
@@ -112,11 +116,7 @@ struct FMT_12_16_AS : FMT_12_16, fmt_arg<3, fmt_add_sub> {};
 
 // support ARM5 addressing mode 2 (aka register indirect)
 struct FMT_LD  : fmt_gen, arg1_12b4, arg2_reg_indir {};
-struct FMT_PLD : FMT_X {};
-
-// support ARM5 addressing mode 3
-struct FMT_LDH : FMT_X {};
-struct FMT_STH : FMT_X {};
+struct FMT_PLD : fmt_gen, arg1_reg_indir {};
 
 // `srs`: 5 LSBs are immed value
 struct FMT_I00B5 : fmt_gen, fmt_arg<1, fmt32_generic<0, 5>> {};
@@ -124,13 +124,10 @@ struct FMT_I00B5 : fmt_gen, fmt_arg<1, fmt32_generic<0, 5>> {};
 // addressing mode 4
 struct FMT_RS    : fmt_gen, arg1_regset            {};
 struct FMT_16_RS : fmt_gen, arg1_16b4, arg2_regset {};
-using  FMT_LDM = FMT_16_RS;
-using  FMT_STM = FMT_16_RS;
 
-struct FMT_8_12_M4 : FMT_X {};
+struct FMT_8_12_M4 : fmt_gen, arg1_08b4, arg2_12b4, arg3_reg_indir {};
 struct FMT_8_20_12_16_0 : fmt_gen, arg1_08b4, arg2_20b4, arg3_12b4, arg4_16b4, arg5_00b4 {};
 struct FMT_8_20_12_16_0_05B3 : FMT_8_20_12_16_0, fmt_arg<6, fmt32_generic<5, 3>> {};
-
 
 // unconditional instructions
 struct FMT_4_0  : fmt_gen, arg1_04b4, arg2_00b4 {};
@@ -155,51 +152,7 @@ struct FMT_12_0_16 : fmt_gen, arg1_12b4, arg2_00b4, arg3_16b4 {};
 
 // SWI, BKPT
 struct FMT_I24     : fmt_gen, fmt_arg<1, fmt32_generic<0, 24>> {};
-struct FMT_BKPT    : FMT_I24 {};    // XXX
-
-//struct FMT_F       : fmt_gen::fmt_t {};     // empty for now 
-//using arg1_f  = fmt_arg<1, typename fmt_gen::fmt_t>;
-//using arg2_f  = fmt_arg<2, typename fmt_gen::fmt_t>;
-//using arg3_f  = fmt_arg<3, typename fmt_gen::fmt_t>;
-
-#if 0
-// JR uses special OPCODE to generate machine code
-struct FMT_JR      : fmt_jr           {};
-struct FMT_JRCC    : fmt_jr, arg1_3b2 {};
-struct FMT_DJNZ    : fmt_djnz         {};
-
-struct FMT_12_F    : fmt_gen, arg1_12b4, arg2_fixed {};
-struct FMT_12_0    : fmt_gen, arg1_12b4, arg2_00b4 {};
-struct FMT_12_0_F  : fmt_gen, arg1_12b4, arg2_00b4, arg3_fixed {};
-struct FMT_12_MOVW : fmt_gen, arg1_12b4, fmt_arg<2, fmt_movw> {};
-#endif
-#if 0
-// general registers are 3-bits shifted 0 or 3 bits
-struct FMT_0       : fmt_gen, arg1_0b3 {};
-struct FMT_X_0     : fmt_gen, arg2_0b3 {};
-struct FMT_3_0     : fmt_gen, arg1_3b3, arg2_0b3 {};
-struct FMT_3       : fmt_gen, arg1_3b3 {};
-struct FMT_X_3     : fmt_gen, arg2_3b3 {};
-
-// IM: 2 bits modified & shifed 3 bits in second word
-struct FMT_1W3B2   : fmt_gen, arg1_1w3b2 {};
-
-// DBL registers are two bits shifted 4
-struct FMT_4       : fmt_gen, arg1_4b2 {};
-struct FMT_X_4     : fmt_gen, arg2_4b2 {};
-
-// BC/DE instructions: 1 bit shifted 4
-struct FMT_4B1     : fmt_gen, arg1_4b1 {};
-struct FMT_X_4B1   : fmt_gen, arg2_4b1 {};
-
-// CB instructions
-struct FMT_1W4     : fmt_gen, arg1_1w4b2 {};
-struct FMT_X_1W4   : fmt_gen, arg2_1w4b2 {};
-struct FMT_1W0     : fmt_gen, arg1_1w0b3 {};
-struct FMT_1W3     : fmt_gen, arg1_1w3b3 {};
-struct FMT_X_1W3   : fmt_gen, arg2_1w3b3 {};
-struct FMT_1W3_1W0 : fmt_gen, arg1_1w3b3, arg2_1w0b3 {};
-#endif
+struct FMT_BKPT    : FMT_I24 {};
 }
 #endif
 

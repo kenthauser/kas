@@ -160,19 +160,19 @@ struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
                   , arg_t& arg
                   , val_t const *val_p) const override
     {
-        std::cout << "fmt_branch24: emit: arg = " << arg << std::endl;
+        //std::cout << "fmt_branch24: emit: arg = " << arg << std::endl;
         // calculate size here
         switch (arg.mode())
         {
         default:
-            std::cout << "emit_relocation: bad arg: " << arg << ", mode = " << +arg.mode() << std::endl;
+            //std::cout << "emit_relocation: bad arg: " << arg << ", mode = " << +arg.mode() << std::endl;
            break;
            throw std::logic_error{"invalid fmt_displacement mode"};
 
         case arg_t::arg_mode_t::MODE_BRANCH:
         {
             // byte displacement stored in LSBs. Use reloc mechanism
-            std::cout << "fmt_displacement: MODE_JUMP" << std::endl;
+            //std::cout << "fmt_displacement: MODE_JUMP" << std::endl;
             
             // reloc is 24-bits & pc-relative
             // flag `ARM_G2` maps reloc to "R_ARM_JUMP24"
@@ -184,7 +184,7 @@ struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
             break;
         }
         case arg_t::arg_mode_t::MODE_CALL:
-            std::cout << "fmt_displacement: MODE_CALL" << std::endl;
+            //std::cout << "fmt_displacement: MODE_CALL" << std::endl;
             
             // reloc is 24-bits & pc-relative
             // flag `ARM_G1` maps reloc to "R_ARM_CALL24"

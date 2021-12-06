@@ -49,7 +49,7 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
                     , expr_t const&          dest
                     , stmt_info_t const&     info) const override
     {
-        std::cout << "arm_branch: do_emit: dest = " << dest << std::endl;
+        //std::cout << "arm_branch: do_emit: dest = " << dest << std::endl;
         // 1. create an "arg" from dest expression
         arg_t arg;
         arg.expr = dest;

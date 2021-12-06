@@ -129,14 +129,14 @@ using arm_insn_load_store_l = list<list<>
 , defn<a7_cT , STR("str") , OP<0x400'0000>, FMT_LD, REG, POST_INDEX>
 
 // preload data (offset formats only)
-, defn<a7_u  , STR("pld") , OP<0x550'0f00>, FMT_LD, INDIR_OFFSET>
+, defn<a7_u  , STR("pld") , OP<0x550'f000>, FMT_PLD, INDIR_OFFSET>
 >;
 
 // ARM V5: A5.3 addressing mode 3: Miscellaneous loads & stores
 // require suffix from: H, SH, SB, D
 using arm_insn_ls_misc_l = list<list<>
-, defn<a7_cHs, STR("ldr"), OP<0x000'0090>, FMT_LDH, REG, LS_MISC>
-, defn<a7_cHs, STR("str"), OP<0x010'0090>, FMT_LDH, REG, LS_MISC>
+, defn<a7_cHs, STR("ldr"), OP<0x000'0090>, FMT_LD, REG, LS_MISC>
+, defn<a7_cHs, STR("str"), OP<0x010'0090>, FMT_LD, REG, LS_MISC>
 >;
 
 // ARM V5: A5.4 addressing mode 3: load & store multiple
@@ -146,14 +146,14 @@ using arm_insn_ls_multiple_l = list<list<>
 , defn<a7_c , STR("push"), OP<0x92d'0000>, FMT_RS, REGSET>
 , defn<a7_c , STR("pop") , OP<0x49d'0004>, FMT_12, REGSET_SGL>
 , defn<a7_c , STR("pop") , OP<0x8bd'0000>, FMT_RS, REGSET>
-, defn<a7_cM, STR("ldm"), OP<0x810'0000>, FMT_LDM, REG       , REGSET>
-, defn<a7_cM, STR("ldm"), OP<0x850'0000>, FMT_LDM, REG       , REGSET_USER>
-, defn<a7_cM, STR("ldm"), OP<0x830'0000>, FMT_LDM, REG_UPDATE, REGSET>
-, defn<a7_cM, STR("ldm"), OP<0x870'0000>, FMT_LDM, REG_UPDATE, REGSET_USER>
-, defn<a7_cM, STR("stm"), OP<0x800'0000>, FMT_LDM, REG       , REGSET>
-, defn<a7_cM, STR("stm"), OP<0x840'0000>, FMT_LDM, REG       , REGSET_USER>
-, defn<a7_cM, STR("stm"), OP<0x820'0000>, FMT_LDM, REG_UPDATE, REGSET>
-, defn<a7_cM, STR("stm"), OP<0x860'0000>, FMT_LDM, REG_UPDATE, REGSET_USER>
+, defn<a7_cM, STR("ldm"), OP<0x810'0000>, FMT_16_RS, REG       , REGSET>
+, defn<a7_cM, STR("ldm"), OP<0x850'0000>, FMT_16_RS, REG       , REGSET_USER>
+, defn<a7_cM, STR("ldm"), OP<0x830'0000>, FMT_16_RS, REG_UPDATE, REGSET>
+, defn<a7_cM, STR("ldm"), OP<0x870'0000>, FMT_16_RS, REG_UPDATE, REGSET_USER>
+, defn<a7_cM, STR("stm"), OP<0x800'0000>, FMT_16_RS, REG       , REGSET>
+, defn<a7_cM, STR("stm"), OP<0x840'0000>, FMT_16_RS, REG       , REGSET_USER>
+, defn<a7_cM, STR("stm"), OP<0x820'0000>, FMT_16_RS, REG_UPDATE, REGSET>
+, defn<a7_cM, STR("stm"), OP<0x860'0000>, FMT_16_RS, REG_UPDATE, REGSET_USER>
 , defn<a7_uM, STR("srs"), OP<0xf84d'0500, ARMv6>, FMT_I00B5, IMM5>
 , defn<a7_uM, STR("srs"), OP<0xf86d'0500, ARMv6>, FMT_I00B5, IMM5_UPDATE>
 , defn<a7_uM, STR("rfe"), OP<0xf810'0a00, ARMv6>, FMT_16, REG>

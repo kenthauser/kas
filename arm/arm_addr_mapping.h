@@ -19,8 +19,6 @@ using arm_mapping_v = meta::list<
         , ARM_SEG_THUMB
         >;
 
-namespace detail
-{
     struct arm_seg_mapping
     {
         using index_t    = typename core::core_segment::index_t;
@@ -112,9 +110,8 @@ namespace detail
             return ARM_SEG_DATA();
         }
     };
-}
 
-struct arm_data_seg : detail::arm_seg_mapping
+struct arm_data_seg : arm_seg_mapping
 {
     arm_data_seg()
     {
@@ -126,7 +123,7 @@ struct arm_data_seg : detail::arm_seg_mapping
 template <typename REF>
 const char *arm_addr_map_t(core::core_symbol<REF> const& sym)
 {
-    return detail::arm_seg_mapping().get_arm_map_t(sym);
+    return arm_seg_mapping().get_arm_map_t(sym);
 }
 }
 #endif
