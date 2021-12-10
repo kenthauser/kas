@@ -201,5 +201,15 @@ struct tgt_val_range_t : tgt_val_range<MCODE_T>
                                , 0, size) {}
 };
 
+// special for development: placeholder validator that is always false
+template <typename MCODE_T>
+struct tgt_val_false : MCODE_T::val_t
+{
+    using arg_t = typename MCODE_T::arg_t;
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        return fits.no;
+    }
+};
 }
 #endif

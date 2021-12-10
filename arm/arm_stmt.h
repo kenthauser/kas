@@ -60,6 +60,8 @@ struct arm_stmt_info_t : alignas_t<arm_stmt_info_t
 using arm_insn_t = tgt::tgt_insn_t<struct arm_mcode_t
                                   , hw::arm_hw_defs
                                   , KAS_STRING("ARM")
+                                  , 16          // mcodes per insn per arch
+                                  , 4           // insn archs    
                                   >;
 
 // forward declare "instruction suffix code" type (from "arm_stmt_flags.h")

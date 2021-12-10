@@ -95,10 +95,27 @@ struct arm_opc_code: tgt_dir_opcode
         auto p = args.front().get_fixed_p();
         if (p) switch (*p)
         {
-            case 16:    return arm_seg_mapping()(ARM_SEG_THUMB());
-            case 32:    return arm_seg_mapping()(ARM_SEG_ARM());
+            case 16:
+                parser::arm_insn_t::set_arch(SZ_ARCH_THB);
+                return arm_seg_mapping()(ARM_SEG_THUMB());
+            case 32:
+                parser::arm_insn_t::set_arch(SZ_ARCH_ARM);
+                return arm_seg_mapping()(ARM_SEG_ARM());
         }
         return make_error(data, error_msg::ERR_argument, args[0]);
+    } 
+    
+};
+    
+struct arm_opc_t_func : tgt_dir_opcode
+{
+    OPC_INDEX();
+    const char *name() const override { return "T_FUNC"; }
+
+    void tgt_proc_args(data_t& data, parser::tgt_dir_args&& args) const override
+    {
+        if (auto err = validate_min_max(args, 0, 0))
+            return make_error(data, err);
     } 
     
 };

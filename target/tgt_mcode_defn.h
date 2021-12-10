@@ -141,10 +141,11 @@ struct tgt_mcode_defn
     static inline const fmt_t     *const *fmts_base;
     static inline val_c_t          const *val_c_base;
 
-    auto  name() const { return  names_base[name_index - 1];  }
+    auto    name() const { return  names_base[name_index - 1];  }
+
     //auto& info_fn() const { return info_fns_base[info.info_fn_index - 1]; }
-    auto& fmt()  const { return *fmts_base [fmt_index   - 1]; }
-    auto& vals() const { return  val_c_base[val_c_index - 1]; }
+    auto&   fmt()  const { return *fmts_base [fmt_index   - 1]; }
+    auto&   vals() const { return  val_c_base[val_c_index - 1]; }
     //auto  sz()   const { return  info.sz();                   }
 
     // don't inline diag function

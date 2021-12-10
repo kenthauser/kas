@@ -46,7 +46,12 @@ void kbfd_section::put(void const *p, std::size_t n)
     {
         // if pre-allocated, no-room is logic error
         if (data_base)
+        {
+            // XXX
+            std::cout << "kbfd_section::put: buffer overflow" << std::endl;
+            return;
             throw section_error(*this, __FUNCTION__, "buffer overflow");
+        }
 
         // if dynamically allocated, double memory allocated each iteration
         static constexpr auto INITIAL_ALLOCATION = 1024;

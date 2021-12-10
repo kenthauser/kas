@@ -6,9 +6,9 @@
 // see `target/tgt_insn_common.h` for description of
 // insn definition pattern.
 
-#include "arm_formats.h"            // actual format types
+#include "arm7_formats.h"           // actual format types
 #include "arm_validate.h"           // actual validate types
-#include "arm_mcode_sizes.h"        // define ARM insn variants
+#include "arm_mcode.h"              // define ARM insn variants
 
 #include "target/tgt_insn_common.h"
 
@@ -20,7 +20,11 @@ using namespace tgt::opc::traits;
 
 // declare opcode groups (ie: include files)
 using arm_insn_defn_groups = meta::list<
-      struct OP_ARM_GEN
+      struct OP_ARM_ARM5
+    , struct OP_ARM_ARM7
+    , struct OP_ARM_ARM8
+    , struct OP_ARM_THUMB
+    , struct OP_ARM_THUMB_2
     >;
 
 // boilerplate: incorporate opcode groups
@@ -29,6 +33,10 @@ template <typename=void> struct arm_insn_defn_list : meta::list<> {};
 // EXAMPLE: define `sz` types for first arg of `defn<>` template.
 //          `sz_void` defined by base. All others are per-arch
 // Naming scheme: lower case allow flag, upper case require flag
+
+template <int OP_ARCH, int...OP_FLAGS>
+using arm_sz = meta::int_<(OP_ARCH | ... | OP_FLAGS)>;
+
 
 // u: condition field not allowed
 // c: support for `cond` : allow condition field 
@@ -50,6 +58,12 @@ using a7_uM  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_REQ_M>;
 using a7_uI  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_REQ_I>;
 using a7_cl  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_L_FLAG>;
 using a7_ul  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_L_FLAG>;
+
+// base defns for thumb ops
+// suffix naming matches `ARM7` patterns
+using t1_u   = arm_sz<SZ_ARCH_THB>;
+using t1_c   = arm_sz<SZ_ARCH_THB, SZ_DEFN_COND>;
+using t1_cs  = arm_sz<SZ_ARCH_THB, SZ_DEFN_COND>;
 
 // map "suffix" flag `sz` types to `info` manipulation types
 using arm_sz_info_map = meta::list<

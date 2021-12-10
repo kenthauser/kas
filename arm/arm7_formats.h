@@ -1,10 +1,10 @@
-#ifndef KAS_ARM_ARM_FORMATS_H
-#define KAS_ARM_ARM_FORMATS_H
+#ifndef KAS_ARM_ARM7_FORMATS_H
+#define KAS_ARM_ARM7_FORMATS_H
 
 // Declare ARM argument inserters.
 // See `target/tgt_format.h` for naming convention.
 
-#include "arm_formats_impl.h"
+#include "arm7_formats_impl.h"
 #include "arm_formats_opc.h"
 
 namespace kas::arm::opc
@@ -80,7 +80,7 @@ struct FMT_LIST : fmt_list, arg1_12b4 {};
 struct FMT_X     : fmt_gen {};
 
 // conventional name for `not-yet-implemented` formatter
-struct FMT_XXX   : fmt_gen {};
+struct FMT_      : fmt_gen {};
 
 // Branches:
 // insert 24-bit offset. linker handles out-of-range case

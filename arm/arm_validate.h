@@ -34,6 +34,8 @@ struct val_range: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
     using base_t::base_t;
 };
 
+struct val_false : tgt::opc::tgt_val_false<arm_mcode_t> {};
+
 // immediate with "IMMED_UPDATE" mode
 struct val_range_update : val_range
 {
@@ -427,6 +429,17 @@ struct val_arm_call24 : val_arm_branch24
     }
 };
 
+struct val_regl : val_reg
+{
+    using base_t = val_reg;
+    constexpr val_regl () : base_t(RC_GEN) {}
+
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        auto result = base_t::ok(arg, fits);
+        return result;
+    }
+};
 
 
 // use preprocessor to define string names used in definitions & debugging...
@@ -475,10 +488,24 @@ VAL_GEN(REGSET      , val_regset);
 VAL_GEN(REGSET_SGL  , val_regset_single);
 VAL_GEN(REGSET_USER , val_regset_user);
 
+// Thumb register validators
+VAL_GEN(REGL        , val_regl);
+VAL_GEN(REGH        , val_regl);    // XXX
+
+VAL_GEN(REGL_INDIR5 , val_indir);
+VAL_GEN(REGL_INDIRL , val_indir);
+VAL_GEN(PC_INDIR8   , val_indir);
+VAL_GEN(SP_INDIR8   , val_indir);
+VAL_GEN(REGSET_T    , val_regset);
+VAL_GEN(REGSET_TR   , val_regset);
+
 // validate branch and thumb branch displacements
 // name by reloc generated. linker validates displacements
 VAL_GEN(ARM_JUMP24  , val_arm_branch24);
 VAL_GEN(ARM_CALL24  , val_arm_call24);
+
+VAL_GEN(THB_JUMP8   , val_false);
+VAL_GEN(THB_JUMP11  , val_false);
 
 // XXX
 // unsigned validators
@@ -492,10 +519,16 @@ VAL_GEN(IMM16       , val_range, 0, (1<<12) - 1);
 VAL_GEN(IMM5        , val_range, 0, (1<<5 ) - 1);
 VAL_GEN(IMM4        , val_range, 0, (1<<4 ) - 1);
 //VAL_GEN(IMM5_UPDATE , val_imm_update, 5);
-VAL_GEN(IMM5_UPDATE , val_range_update, 0, (1<<5 ) - 1);
+VAL_GEN(IMM5_UPDATE , val_false);
+
+// Thumb immediates
+VAL_GEN(IMMED_3        , val_range, 0, (1 << 3) - 1);
+VAL_GEN(IMMED_5        , val_range, 0, (1 << 5) - 1);
+VAL_GEN(IMMED_7        , val_range, 0, (1 << 7) - 1);
+VAL_GEN(IMMED_8        , val_range, 0, (1 << 8) - 1);
 
 // 8-bit value shifted by multiple of 4. special relocations
-VAL_GEN(IMM8_4      , val_range, 0, (1<<12) - 1);
+VAL_GEN(IMM8_4      , val_false);
 
 VAL_GEN(ZERO        , val_range, 0, 0);
 VAL_GEN(LABEL       , val_range, 0, (1<<12) - 1);

@@ -18,6 +18,8 @@ namespace kas::arm::opc
     struct arm_opc_arm;
     struct arm_opc_syntax;
     struct arm_opc_fpu;
+    struct arm_opc_code;
+    struct arm_opc_t_func;
 }
 
 namespace kas::arm::parser
@@ -43,6 +45,8 @@ using arm_ops = meta::list<
 , meta::list<opc::arm_opc_arm     , STR(arm)>
 , meta::list<opc::arm_opc_syntax  , STR(syntax)>
 , meta::list<opc::arm_opc_fpu     , STR(fpu)>
+, meta::list<opc::arm_opc_code    , STR(code)>
+, meta::list<opc::arm_opc_t_func  , STR(thumb_func)>
 #if 0
 , meta::list<opc::arm_opc_, STR()>
 #endif

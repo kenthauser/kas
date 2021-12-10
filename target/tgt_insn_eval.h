@@ -45,7 +45,7 @@ auto eval_insn_list
     if (trace)
     {
         std::cout << "tgt_insn::eval: " << insn.name;
-        std::cout << std::dec << " [" << insn.mcodes.size() << " mcodes]";
+        std::cout << std::dec << " [" << insn.mcodes().size() << " mcodes]";
         for (auto& arg : args)
             std::cout << ", " << arg;
         std::cout << std::endl;
@@ -68,7 +68,7 @@ auto eval_insn_list
 
     // loop thru candidates & find best match
     auto index = 0;
-    for (auto op_iter = insn.mcodes.begin(); bitmask; ++op_iter, ++index)
+    for (auto op_iter = insn.mcodes().begin(); bitmask; ++op_iter, ++index)
     {
         bool op_is_ok = bitmask & 1;    // test if current was OK
         bitmask >>= 1;                  // set up for next 
@@ -167,7 +167,7 @@ auto eval_insn_list
     if (trace)
     {
         *trace << "candidates: " << ok.count();
-        *trace << " : " << ok.to_string().substr(ok.size()-insn.mcodes.size());
+        *trace << " : " << ok.to_string().substr(ok.size()-insn.mcodes().size());
         *trace << " : size = "   << insn_size;
         *trace << '\n' << std::endl;
     }
@@ -199,9 +199,9 @@ auto eval_insn_list
 }
 
 // templated definition to cut down on noise in `tgt_insn_t` defn
-template <typename O, typename T, typename B, unsigned M, typename I>
+template <typename O, typename T, typename B, unsigned M, unsigned N, typename I>
 template <typename...Ts>
-auto tgt_insn_t<O, T, B, M, I>::
+auto tgt_insn_t<O, T, B, M, N, I>::
         eval(bitset_t& ok, Ts&&...args) const
         -> mcode_t const *
 {

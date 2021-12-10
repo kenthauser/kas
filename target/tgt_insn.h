@@ -38,6 +38,7 @@ template <typename MCODE_T
         , typename HW_DEFS
         , typename BASE_NAME
         , unsigned MAX_MCODES = 16 
+        , unsigned NUM_ARCHS  = 1       // can't retrive from `MCODE_T` ?X?
         , typename INDEX_T    = std::uint16_t
         >
 struct tgt_insn_t
@@ -47,7 +48,10 @@ struct tgt_insn_t
     using hw_tst    = typename hw_defs::hw_tst;
     using index_t   = INDEX_T;
 
-    //using base_name = KAS_STRING("M68K");
+    // XXX can't figure out how to get around `incomplete type` error...
+    // XXX pass as template argument to move forward...
+    //static constexpr auto NUM_ARCHS  = mcode_t::NUM_ARCHS;
+
     using insn_name = string::str_cat<BASE_NAME, KAS_STRING("_INSN")>;
     using token_t   = parser::token_defn_t<insn_name, tgt_insn_t>;
 
@@ -73,7 +77,19 @@ struct tgt_insn_t
     }
 
     // canonical name & insn_list is all stored in instance
-    tgt_insn_t(index_t index, std::string name) : index(index), name(name) {}
+    tgt_insn_t(index_t index, std::string name) : index(index), name(name)
+    {
+        _assert_num_archs();
+        set_arch(0);
+    }
+
+    // put assert in `impl` file to work arount `incomplete type` error...
+    void _assert_num_archs() const;
+
+    static void set_arch(uint8_t arch)
+    {
+        cur_arch = arch;
+    }
 
     // add `mcode` to list of insns
     void add_mcode(mcode_t *);
@@ -81,6 +97,7 @@ struct tgt_insn_t
     // retrieve error message if no mcodes
     auto err() const
     {
+        return "ERR no mcodes";
         return (*hw_cpu_p)[tst];
     }
 
@@ -99,7 +116,21 @@ struct tgt_insn_t
     static auto& get(index_t idx) { return (*index_base)[idx]; }
     
     // pointers to all `mcode_t` instances with same "name"
-    std::vector<mcode_t const *> mcodes;
+    using mcode_vector_t = std::vector<mcode_t const *>;
+
+    // allow for multiple arch's having same name
+    std::array<mcode_vector_t *, NUM_ARCHS> mcodes_p;
+
+    // tgt_insn current architecture
+    static inline uint8_t cur_arch;
+
+    inline auto const& mcodes() const
+    {
+        static mcode_vector_t empty;
+        if (auto p = mcodes_p[cur_arch])
+            return *p;
+        return empty;
+    }
 
     std::string name;           // name may be "calculated" from base/sfx/etc
     index_t     index;          // zero-based index

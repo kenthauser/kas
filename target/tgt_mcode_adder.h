@@ -109,6 +109,9 @@ struct tgt_defn_adder
             if (name[0] == '*')
             {
                 // save list opcode "mcode" as global in `insn_t`
+                if (insn_t::list_mcode_p)
+                    throw std::logic_error{"can't redefine list opcode"};
+
                 insn_t::list_mcode_p = mcode_p;
                 continue;       // get next defn
             }

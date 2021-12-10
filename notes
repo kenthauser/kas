@@ -574,6 +574,10 @@ Notes: Reloc:
 8. ARM: Emit initial $d for `fixed_type` segments with segment flag ALLOC and
    other-than-$a entries
 
+Notes: ARCH:
+
+1. eval_list needs to store insn_index + arch.
+
 
 
 

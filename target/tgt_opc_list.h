@@ -83,7 +83,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
         auto  info =  args.info;        // stmt_info
 
         // print OK bits & name...
-        os << ok.to_string().substr(ok.size() - insn.mcodes.size())
+        os << ok.to_string().substr(ok.size() - insn.mcodes().size())
            << " " << insn.name;
 
         // ...and args
@@ -160,7 +160,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
                 bitmask >>= 1;
 
         // select first `machine code` that matches
-        auto& selected_mc = *insn.mcodes[index];
+        auto& selected_mc = *insn.mcodes()[index];
         selected_mc.emit(base, args, info);
     }
 };

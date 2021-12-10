@@ -16,6 +16,7 @@ static constexpr auto SZ_ARCH_THB     = 0x01;
 static constexpr auto SZ_ARCH_THB_EE  = 0x02;
 static constexpr auto SZ_ARCH_ARM64   = 0x03;
 
+
 static constexpr auto SZ_GEN_MASK     = 0x00f0;
 static constexpr auto SZ_DEFN_COND    = 0x0010;
 static constexpr auto SZ_DEFN_NO_AL   = 0x0020;
@@ -53,12 +54,13 @@ struct arm_defn_info_t
         : flags{flags}, fn_idx{fn_idx} {}
 
     value_t flags    : 16;
-    value_t fn_idx   :  8;
+    value_t fn_idx   : 16;
 };
 
 struct arm_mcode_size_t : tgt::tgt_mcode_size_t
 {
-    static constexpr auto MAX_ARGS = 6;
+    static constexpr auto MAX_ARGS  = 6;
+    static constexpr auto NUM_ARCHS = 4;    // insn archs
     using mcode_size_t  = uint16_t;     // THUMB emits 16-bit insns
     using defn_info_t   = arm_defn_info_t;
     using val_idx_t     = uint16_t;
@@ -91,9 +93,15 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t
     static constexpr const char size_names[][4] =
         { "W", "H", "B", "Q", "SH", "SB" };
 
+    // determine `arch` for `defn_t`
+    uint8_t defn_arch() const
+    {
+        auto& info = defn().info;
+        return info.flags & SZ_ARCH_MASK;
+    }
+
     template <typename ARGS_T>
     void emit(core::core_emit&, ARGS_T&&, stmt_info_t const&) const;
-
 };
 
 }

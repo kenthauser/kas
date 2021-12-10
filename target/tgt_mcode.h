@@ -122,6 +122,7 @@ struct tgt_mcode_t
 
     static constexpr auto MAX_ARGS        = SIZE_T::MAX_ARGS;
     static constexpr auto MAX_MCODE_WORDS = SIZE_T::MAX_MCODE_WORDS;
+    static constexpr auto NUM_ARCHS       = SIZE_T::NUM_ARCHS;
 
     // allocate instances in `std::deque`
     using obstack_t = std::deque<derived_t>;
@@ -160,6 +161,12 @@ struct tgt_mcode_t
     fmt_t      const& fmt()  const;
     val_c_t    const& vals() const;
     std::string       name() const;
+
+    // determine `arch` for `defn_t`
+    constexpr uint8_t defn_arch() const
+    {
+        return 0;       // default: single arch
+    }
 
     // machine code size in bytes (for format & serialize)
     uint8_t code_size() const;

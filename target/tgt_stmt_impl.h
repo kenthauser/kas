@@ -60,7 +60,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     // print name/args
     if (trace)
     {
-        *trace << "tgt_stmt::eval: " << insn.name << " [" << insn.mcodes.size() << " opcodes]";
+        *trace << "tgt_stmt::eval: " << insn.name << " [" << insn.mcodes().size() << " opcodes]";
         for (auto& arg : args)
             *trace << ", " << arg;
         *trace << " ; info: " << info << std::endl;
@@ -90,7 +90,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
 
     // loop thru mcodes, recording first error & recording all matches
     int i = 0; 
-    for (auto mcode_p : insn.mcodes)
+    for (auto mcode_p : insn.mcodes())
     {
         if (trace)
             *trace << "validating: " << +i << ": ";
@@ -246,7 +246,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
                     ) -> kas_error_t
 {
     // if no mcodes, error was saved instead of mcode
-    if (insn.mcodes.empty())
+    if (insn.mcodes().empty())
         return kas_diag_t::error(insn.err(), insn_tok).ref();
     
     // if first is dummy, no args to check

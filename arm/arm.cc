@@ -13,8 +13,8 @@
 #include "arm_reg_defn.h"
 
 // instruction definitions
-#include "insns_arm.h"
-
+#include "insns_arm5.h"
+#include "insns_thumb.h"
 // directives implementation
 #include "arm_opc_directives.h"
 #include "arm_opc_eabi.h"
