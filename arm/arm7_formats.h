@@ -7,7 +7,7 @@
 #include "arm7_formats_impl.h"
 #include "arm_formats_opc.h"
 
-namespace kas::arm::opc
+namespace kas::arm::opc::arm7
 {
 // declare mixin classes to override virtual functions
 // override insert/extract pairs together...

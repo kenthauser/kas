@@ -122,6 +122,28 @@ void arm_mcode_t::emit(core::core_emit& base
         ++n;
     }
 
+#if 1
+    // 2. emit base code
+    auto words = code_size()/sizeof(mcode_size_t);
+    if (defn_arch() != 1)
+    {
+        for (auto end = code_p + words; code_p < end;)
+        {
+            // convert mcode_size_t (16-bits) to 32-bits
+            uint32_t value = *code_p++ << 16;
+            value |= *code_p++;
+            base << value;
+        }
+    }
+    else
+    {
+        for (auto end = code_p + words; code_p < end;)
+        {
+            base << *code_p++;
+        }
+    }
+
+#else
     // 2. emit base code
     auto words = code_size()/sizeof(mcode_size_t);
     for (auto end = code_p + words; code_p < end;)
@@ -131,7 +153,7 @@ void arm_mcode_t::emit(core::core_emit& base
         value |= *code_p++;
         base << value;
     }
-
+#endif
     // 3. emit arg information
     auto sz = info.sz(derived());
     for (auto& arg : args)

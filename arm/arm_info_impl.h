@@ -130,6 +130,7 @@ struct arm_info_a7_cs : arm_info_fn_base
               , stmt_info_t const& stmt_info
               , defn_info_t const& defn_info) const override
     {
+        return; // XXX
         insert_ccode(code, stmt_info);
         insert_sflag(code, stmt_info);
     }

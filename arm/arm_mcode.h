@@ -96,8 +96,7 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t
     // determine `arch` for `defn_t`
     uint8_t defn_arch() const
     {
-        auto& info = defn().info;
-        return info.flags & SZ_ARCH_MASK;
+        return defn().info.flags & SZ_ARCH_MASK;
     }
 
     template <typename ARGS_T>

@@ -8,6 +8,34 @@
 
 namespace kas::arm::opc
 {
+
+// XXX THUMB TEMP
+template <unsigned H, unsigned L>
+struct fmt_regh : arm_mcode_t::fmt_t::fmt_impl
+{
+    using mcode_size_t = arm_mcode_t::mcode_size_t;
+    using val_t        = arm_mcode_t::val_t;
+    using arg_t        = arm_mcode_t::arg_t;
+
+  
+    bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
+    {
+        static constexpr auto mask = (1 << H) | (7 << L);
+        auto value = val_p->get_value(arg);
+        op[0] &=~ mask;     // should already be zero...
+        op[0] |=  ((value & 8) << (H - 3)) | ((value & 7) << L);
+        return true;
+    }
+    
+    void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const override
+    {
+        auto value = op[0];
+        auto regh = (value >> (H - 3)) & 8;
+        auto regl = (value >> L) & 7;
+        val_p->set_arg(arg, regh + regl);
+    }
+};
+
 // tinker-toy functions to put args into various places...
 // always paired: insert & extract
 

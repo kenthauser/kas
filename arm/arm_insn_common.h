@@ -63,7 +63,7 @@ using a7_ul  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_L_FLAG>;
 // suffix naming matches `ARM7` patterns
 using t1_u   = arm_sz<SZ_ARCH_THB>;
 using t1_c   = arm_sz<SZ_ARCH_THB, SZ_DEFN_COND>;
-using t1_cs  = arm_sz<SZ_ARCH_THB, SZ_DEFN_COND>;
+using t1_us  = arm_sz<SZ_ARCH_THB, SZ_DEFN_S_FLAG>;
 
 // map "suffix" flag `sz` types to `info` manipulation types
 using arm_sz_info_map = meta::list<

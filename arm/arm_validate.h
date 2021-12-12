@@ -34,6 +34,13 @@ struct val_range: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
     using base_t::base_t;
 };
 
+template <unsigned SCALE>
+struct val_range_scaled: tgt::opc::tgt_val_range<arm_mcode_t, int32_t, SCALE>
+{
+    using base_t = tgt::opc::tgt_val_range<arm_mcode_t, int32_t, SCALE>;
+    using base_t::base_t;
+};
+
 struct val_false : tgt::opc::tgt_val_false<arm_mcode_t> {};
 
 // immediate with "IMMED_UPDATE" mode
@@ -429,6 +436,10 @@ struct val_arm_call24 : val_arm_branch24
     }
 };
 
+//
+// Thumb validators: base on ARM validators
+//
+
 struct val_regl : val_reg
 {
     using base_t = val_reg;
@@ -436,8 +447,12 @@ struct val_regl : val_reg
 
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
-        auto result = base_t::ok(arg, fits);
-        return result;
+        // check for proper mode & proper reg class using base_t
+        if (base_t::ok(arg, fits) == fits.yes)
+            if (arg.reg_p->value(r_class) < 8)
+                return fits.yes;
+
+        return fits.no;
     }
 };
 
@@ -526,6 +541,9 @@ VAL_GEN(IMMED_3        , val_range, 0, (1 << 3) - 1);
 VAL_GEN(IMMED_5        , val_range, 0, (1 << 5) - 1);
 VAL_GEN(IMMED_7        , val_range, 0, (1 << 7) - 1);
 VAL_GEN(IMMED_8        , val_range, 0, (1 << 8) - 1);
+
+VAL_GEN(IMMED_7_4        , val_range_scaled<2>, 0, (1 << 7) - 1);
+VAL_GEN(IMMED_8_4        , val_range_scaled<2>, 0, (1 << 8) - 1);
 
 // 8-bit value shifted by multiple of 4. special relocations
 VAL_GEN(IMM8_4      , val_false);

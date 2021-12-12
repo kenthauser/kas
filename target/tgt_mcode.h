@@ -150,8 +150,21 @@ struct tgt_mcode_t
     template <typename ARGS_T>
     fits_result size(ARGS_T& args, stmt_info_t const& info, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
 
+    // emit method: allow override of sub-methods
     template <typename ARGS_T>
     void emit(core::core_emit&, ARGS_T&&, stmt_info_t const& info) const;
+   
+    // apply args to initial binary code
+    template <typename ARGS_T>
+    void emit_args(core::core_emit&, ARGS_T&&, stmt_info_t const& info) const;
+    
+    // emit base binary code
+    template <typename ARGS_T>
+    void emit_base(core::core_emit&, ARGS_T&&, stmt_info_t const& info) const;
+    
+    // emit immediate info after base code
+    template <typename ARGS_T>
+    void emit_immed(core::core_emit&, ARGS_T&&, stmt_info_t const& info) const;
     
     // retrieve instance from index
     static auto& get(uint16_t idx) { return (*index_base)[idx]; }

@@ -116,7 +116,7 @@ struct tgt_val_reg : MCODE_T::val_t
 };
     
 // the "range" validators default to zero size
-template <typename MCODE_T, typename RANGE_VALUE_T = int16_t>
+template <typename MCODE_T, typename RANGE_VALUE_T = int16_t, unsigned SCALE = 0>
 struct tgt_val_range : MCODE_T::val_t
 {
     using base_t      = tgt_val_range;
@@ -125,6 +125,10 @@ struct tgt_val_range : MCODE_T::val_t
     using arg_mode_t  = typename MCODE_T::arg_mode_t;
     using stmt_info_t = typename MCODE_T::stmt_info_t;
 
+    // make SCALE == 1 -> SCALE = 0
+    static constexpr auto scale = (SCALE != 1) ? SCALE : 0;
+    static constexpr auto mask  = (1 << scale) - 1;
+
     constexpr tgt_val_range(value_t min
                           , value_t max
                           , int8_t  zero = 0
@@ -132,14 +136,26 @@ struct tgt_val_range : MCODE_T::val_t
                : min(min), max(max), zero(zero), _size(size) {}
 
 protected:
+
     fits_result range_ok(arg_t& arg, expr_fits const& fits) const
     {
         if (auto p = arg.get_fixed_p())
         {
+            auto n = *p;
+            std::cout << "tgt_val_range::range_ok: n = " << +n << ", scale = " << +scale << std::endl;
+
             // if zero is mapped, block it.
-            if (!*p && zero)
+            if (!n && zero)
                 return fits.no;
-            return fits.fits(*p, min, max);
+            
+            // if scaled, be sure LSBs are zero
+            if constexpr (mask != 0)
+                if (mask & n)
+                    return fits.no;
+
+            // scale is no-op if not scaled
+
+            return fits.fits(n >> scale, min, max);
         }
         return fits.fits(arg.expr, min, max);
 
@@ -176,13 +192,14 @@ public:
         // if constant, store in opcode. substitue value for zero as required
         auto p = arg.expr.get_fixed_p();
         auto n = p ? *p : 0;
-        return n == zero ? 0 : n;
+        std::cout << "tgt_val_range: n = " << +n << ", scale = " << +scale << std::endl;
+        return n == zero ? 0 : (n >> scale);
     }
 
     void set_arg(arg_t& arg, unsigned value) const override
     {
         // calculate expression value from machine code
-        arg.expr = value ? value : zero;
+        arg.expr = value ? (value << scale) : zero;
         arg.set_mode(_size ? arg_mode_t::MODE_IMMEDIATE : arg_mode_t::MODE_IMMED_QUICK);
     }
     

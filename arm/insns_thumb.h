@@ -19,7 +19,7 @@
  
  
 #include "arm_insn_common.h"
-
+#include "thumb_formats.h"
 
 namespace kas::arm::opc::thumb
 {
@@ -49,82 +49,91 @@ using thumb_insn_branch_l = list<list<>
 // NB: Formats 1-8 process different subset of insns for each
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_1 = 
-    defn<SZ, NAME, OP<0x1800 + (OPC << 9)>, FMT_, REGL, REGL, REGL>;
+    defn<SZ, NAME, OP<0x1800 + (OPC << 9)>, FMT_0_3_6, REGL, REGL, REGL>;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_2 = 
-    defn<SZ, NAME, OP<0x1c00 + (OPC << 9)>, FMT_, REGL, REGL, IMMED_3>;
+    defn<SZ, NAME, OP<0x1c00 + (OPC << 9)>, FMT_0_3_6, REGL, REGL, IMMED_3>;
+
+// overload "adds RD, RN, #0" as "movs"
+template <typename SZ, typename NAME, unsigned OPC>
+using dp_format_2a = 
+    defn<SZ, NAME, OP<0x1c00 + (OPC << 9)>, FMT_0_3, REGL, REGL>;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_3 = 
-    defn<SZ, NAME, OP<0x2000 + (OPC << 11)>, FMT_, REGL, IMMED_8>;
+    defn<SZ, NAME, OP<0x2000 + (OPC << 11)>, FMT_8_I8, REGL, IMMED_8>;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_4 = 
-    defn<SZ, NAME, OP<0x0000 + (OPC << 11)>, FMT_, REGL, REGL, IMMED_5>;
+    defn<SZ, NAME, OP<0x0000 + (OPC << 11)>, FMT_0_3_6I5, REGL, REGL, IMMED_5>;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_5 = 
-    defn<SZ, NAME, OP<0x4000 + (OPC << 6)>, FMT_, REGL, REGL>;
+    defn<SZ, NAME, OP<0x4000 + (OPC << 6)>, FMT_0_3, REGL, REGL>;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_6 = list<list<>
-, defn<SZ, NAME, OP<0xa000>, FMT_, REGL, SP, IMMED_8>
-, defn<SZ, NAME, OP<0xa800>, FMT_, REGL, PC, IMMED_8>
+, defn<SZ, NAME, OP<0xa000>, FMT_8_X_I8, REGL, PC, IMMED_8_4>
+, defn<SZ, NAME, OP<0xa800>, FMT_8_X_I8, REGL, SP, IMMED_8_4>
 >;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_7 = 
-    defn<SZ, NAME, OP<0xb000 + (OPC << 7)>, FMT_, SP, SP, IMMED_7>;
+    defn<SZ, NAME, OP<0xb000 + (OPC << 7)>, FMT_X_X_I7, SP, SP, IMMED_7_4>;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_8 = 
-    defn<SZ, NAME, OP<0x4400 + (OPC << 8)>, FMT_, REG, REG>;
+    defn<SZ, NAME, OP<0x4400 + (OPC << 8)>, FMT_7H0_6H3, REG, REG>;
 
 // ARM V5: A3.4 Data-processing instructions
 using thumb_insn_data_l = list<list<>
 // use `meta-function` to generated related instructions
-, dp_format_1<t1_u, STR("add"),  0>
-, dp_format_1<t1_u, STR("sub"),  1>
+, dp_format_1<t1_us, STR("add"),  0>
+, dp_format_1<t1_us, STR("sub"),  1>
 
-, dp_format_2<t1_u, STR("add"),  0>
-, dp_format_2<t1_u, STR("sub"),  1>
+// overload of adds RD, RN, #0 -> movs
+// list before `ADDS` so that it disassembles as MOVS
+, dp_format_2a<t1_us, STR("mov"), 0>
 
-, dp_format_3<t1_u, STR("add"),  0>
-, dp_format_3<t1_u, STR("sub"),  1>
-, dp_format_3<t1_u, STR("mov"),  2>
-, dp_format_3<t1_u, STR("cmp"),  3>
+, dp_format_2<t1_us, STR("add"),  0>
+, dp_format_2<t1_us, STR("sub"),  1>
 
-, dp_format_4<t1_u, STR("lsl"),  0>
-, dp_format_4<t1_u, STR("lsr"),  1>
-, dp_format_4<t1_u, STR("asr"),  2>
+, dp_format_3<t1_us, STR("mov"),  0>
+, dp_format_3<t1_u,  STR("cmp"),  1>
+, dp_format_3<t1_us, STR("add"),  2>
+, dp_format_3<t1_us, STR("sub"),  3>
 
-, dp_format_5<t1_u, STR("mvn"),  0>
-, dp_format_5<t1_u, STR("cmp"),  1>
-, dp_format_5<t1_u, STR("cmn"),  2>
-, dp_format_5<t1_u, STR("tst"),  3>
-, dp_format_5<t1_u, STR("adc"),  4>
-, dp_format_5<t1_u, STR("sbc"),  5>
-, dp_format_5<t1_u, STR("neg"),  6>
-, dp_format_5<t1_u, STR("mul"),  7>
-, dp_format_5<t1_u, STR("lsl"),  8>
-, dp_format_5<t1_u, STR("lsr"),  9>
-, dp_format_5<t1_u, STR("asr"), 10>
-, dp_format_5<t1_u, STR("ror"), 11>
-, dp_format_5<t1_u, STR("and"), 12>
-, dp_format_5<t1_u, STR("eor"), 13>
-, dp_format_5<t1_u, STR("orr"), 14>
-, dp_format_5<t1_u, STR("bic"), 15>
+, dp_format_4<t1_us, STR("lsl"),  0>
+, dp_format_4<t1_us, STR("lsr"),  1>
+, dp_format_4<t1_us, STR("asr"),  2>
 
-, dp_format_6<t1_u, STR("add"),  0>
+, dp_format_5<t1_us, STR("and"),  0>
+, dp_format_5<t1_us, STR("eor"),  1>
+, dp_format_5<t1_us, STR("lsl"),  2>
+, dp_format_5<t1_us, STR("lsr"),  3>
+, dp_format_5<t1_us, STR("asr"),  4>
+, dp_format_5<t1_us, STR("adc"),  5>
+, dp_format_5<t1_us, STR("sbc"),  6>
+, dp_format_5<t1_us, STR("ror"),  7>
+, dp_format_5<t1_u,  STR("tst"),  8>
+, dp_format_5<t1_us, STR("neg"),  9>
+, dp_format_5<t1_u,  STR("cmp"), 10>
+, dp_format_5<t1_u,  STR("cmn"), 11>
+, dp_format_5<t1_us, STR("orr"), 12>
+, dp_format_5<t1_us, STR("mul"), 13>
+, dp_format_5<t1_us, STR("bic"), 14>
+, dp_format_5<t1_us, STR("mvn"), 15>
 
-, dp_format_7<t1_u, STR("add"),  0>
-, dp_format_7<t1_u, STR("sub"),  1>
+, dp_format_6<t1_u , STR("add"),  0>
 
-, dp_format_8<t1_u, STR("mov"),  0>
-, dp_format_8<t1_u, STR("add"),  1>
-, dp_format_8<t1_u, STR("cmp"),  2>
-, dp_format_8<t1_u, STR("cpy"),  3>
+, dp_format_7<t1_u , STR("add"),  0>
+, dp_format_7<t1_u , STR("sub"),  1>
+
+, dp_format_8<t1_us, STR("add"),  0>
+, dp_format_8<t1_u , STR("cmp"),  1>
+, dp_format_8<t1_u , STR("cpy"),  2>    // disassemble as CPY
+, dp_format_8<t1_u , STR("mov"),  2>
 >;
 
 // ARM5: A6.5 Load and Store Register Instructions
