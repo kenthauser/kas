@@ -21,10 +21,11 @@ using namespace tgt::opc::traits;
 // declare opcode groups (ie: include files)
 using arm_insn_defn_groups = meta::list<
       struct OP_ARM_ARM5
+    , struct OP_ARM_ARM6
     , struct OP_ARM_ARM7
     , struct OP_ARM_ARM8
     , struct OP_ARM_THUMB
-    , struct OP_ARM_THUMB_2
+    , struct OP_ARM_THUMB_32
     >;
 
 // boilerplate: incorporate opcode groups
@@ -63,7 +64,11 @@ using a7_ul  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_L_FLAG>;
 // suffix naming matches `ARM7` patterns
 using t1_u   = arm_sz<SZ_ARCH_THB>;
 using t1_c   = arm_sz<SZ_ARCH_THB, SZ_DEFN_COND>;
-using t1_us  = arm_sz<SZ_ARCH_THB, SZ_DEFN_S_FLAG>;
+using t1_uS  = arm_sz<SZ_ARCH_THB, SZ_DEFN_REQ_S>;
+using t1_uB  = arm_sz<SZ_ARCH_THB, SZ_DEFN_REQ_B>;
+using t1_uH  = arm_sz<SZ_ARCH_THB, SZ_DEFN_REQ_H>;
+using t1_uSB = arm_sz<SZ_ARCH_THB, SZ_DEFN_REQ_SB>;
+using t1_uSH = arm_sz<SZ_ARCH_THB, SZ_DEFN_REQ_SH>;
 
 // map "suffix" flag `sz` types to `info` manipulation types
 using arm_sz_info_map = meta::list<

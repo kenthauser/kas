@@ -14,7 +14,9 @@
 
 // instruction definitions
 #include "insns_arm5.h"
+#include "insns_arm6.h"
 #include "insns_thumb.h"
+
 // directives implementation
 #include "arm_opc_directives.h"
 #include "arm_opc_eabi.h"

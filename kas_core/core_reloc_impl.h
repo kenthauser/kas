@@ -149,6 +149,7 @@ void core_reloc::emit(core_emit& base, parser::kas_error_t& diag)
     }
     
     // deal with PC_REL, SB_REL, etc...
+    // XXX shouldn't this be in `base`
     auto tgt_reloc_p = get_tgt_reloc(base);
 
     // emit relocations to backend
@@ -184,7 +185,7 @@ void core_reloc::put_reloc(core_emit& base, parser::kas_error_t& diag
         {
             section_p    = {};
             addend      -= base.position();
-            reloc.clear(RFLAGS_PC_REL);
+            //reloc.clear(RFLAGS_PC_REL);
             return;
         }
     base.put_reloc(*this, section);

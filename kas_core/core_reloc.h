@@ -29,7 +29,7 @@ struct core_reloc
 
     core_reloc()
     {
-#if defined(TRACE_CORE_RELOC) && 0
+#if defined(TRACE_CORE_RELOC) && 1
         std::cout << "core_reloc::default ctor" << std::endl;
 #endif
         // only lookup default reloc once
@@ -41,7 +41,7 @@ struct core_reloc
              , uint8_t offset = {}, uint8_t r_flags = {})
         : reloc(std::move(reloc)), addend(addend), offset(offset), r_flags(r_flags)
     {
-#if defined(TRACE_CORE_RELOC) && 0
+#if defined(TRACE_CORE_RELOC) && 1
         std::cout << "core_reloc::ctor: ";
         std::cout << "reloc = "    << reloc;
         if (addend)

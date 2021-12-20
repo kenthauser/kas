@@ -4,8 +4,8 @@
 // Declare ARM argument inserters.
 // See `target/tgt_format.h` for naming convention.
 
-#include "arm7_formats_impl.h"
 #include "arm_formats_opc.h"
+#include "arm7_formats_ops.h"
 
 namespace kas::arm::opc::arm7
 {

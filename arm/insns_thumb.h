@@ -37,12 +37,12 @@ using thumb_insn_common_l = list<list<>
 // NB: out-of-range branches handled by linker, not assembler
 // NB: ARM_CALL24 validator causes `ARM_CALL` reloc to be emitted
 using thumb_insn_branch_l = list<list<>
-, defn<t1_c, STR("b")   , OP<0xd000>, FMT_B , THB_JUMP8>
-, defn<t1_u, STR("b")   , OP<0xe000>, FMT_B , THB_JUMP11>
-, defn<t1_u, STR("bl")  , OP<0xe000>, FMT_B , THB_JUMP11>
-, defn<t1_u, STR("blx") , OP<0xe000>, FMT_B , THB_JUMP11>
-, defn<t1_c, STR("bx")  , OP<0x4700>, FMT_B , REG>
-, defn<t1_c, STR("blx") , OP<0x4780>, FMT_ , REG>
+, defn<t1_u, STR("b")   , OP<0xe000>, FMT_J11 , THB_JUMP11>
+, defn<t1_c, STR("b")   , OP<0xd000>, FMT_J8 , THB_JUMP8>
+, defn<t1_u, STR("bl")  , OP<0xf000'f800>, FMT_CALL22 , THB_JUMP11>
+, defn<t1_u, STR("blx") , OP<0xf000'e800>, FMT_CALL22 , THB_JUMP11>
+, defn<t1_u, STR("bx")  , OP<0x4700>, FMT_3I4 , REG>        //4-bit reg #
+, defn<t1_u, STR("blx") , OP<0x4780>, FMT_3I4 , REG>
 >;
 
 // ARM5: A6.4 Data-processing instructions
@@ -66,7 +66,7 @@ using dp_format_3 =
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_4 = 
-    defn<SZ, NAME, OP<0x0000 + (OPC << 11)>, FMT_0_3_6I5, REGL, REGL, IMMED_5>;
+    defn<SZ, NAME, OP<0x0000 + (OPC << 11)>, FMT_0_3_ABS5, REGL, REGL, IMMED_5>;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_5 = 
@@ -74,6 +74,7 @@ using dp_format_5 =
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_6 = list<list<>
+, defn<SZ, NAME, OP<0xa000>, FMT_8_PC8 , REGL, DIRECT>
 , defn<SZ, NAME, OP<0xa000>, FMT_8_X_I8, REGL, PC, IMMED_8_4>
 , defn<SZ, NAME, OP<0xa800>, FMT_8_X_I8, REGL, SP, IMMED_8_4>
 >;
@@ -89,48 +90,48 @@ using dp_format_8 =
 // ARM V5: A3.4 Data-processing instructions
 using thumb_insn_data_l = list<list<>
 // use `meta-function` to generated related instructions
-, dp_format_1<t1_us, STR("add"),  0>
-, dp_format_1<t1_us, STR("sub"),  1>
+, dp_format_1<t1_uS, STR("add"),  0>
+, dp_format_1<t1_uS, STR("sub"),  1>
 
 // overload of adds RD, RN, #0 -> movs
 // list before `ADDS` so that it disassembles as MOVS
-, dp_format_2a<t1_us, STR("mov"), 0>
+, dp_format_2a<t1_uS, STR("mov"), 0>
 
-, dp_format_2<t1_us, STR("add"),  0>
-, dp_format_2<t1_us, STR("sub"),  1>
+, dp_format_2<t1_uS, STR("add"),  0>
+, dp_format_2<t1_uS, STR("sub"),  1>
 
-, dp_format_3<t1_us, STR("mov"),  0>
+, dp_format_3<t1_uS, STR("mov"),  0>
 , dp_format_3<t1_u,  STR("cmp"),  1>
-, dp_format_3<t1_us, STR("add"),  2>
-, dp_format_3<t1_us, STR("sub"),  3>
+, dp_format_3<t1_uS, STR("add"),  2>
+, dp_format_3<t1_uS, STR("sub"),  3>
 
-, dp_format_4<t1_us, STR("lsl"),  0>
-, dp_format_4<t1_us, STR("lsr"),  1>
-, dp_format_4<t1_us, STR("asr"),  2>
+, dp_format_4<t1_uS, STR("lsl"),  0>
+, dp_format_4<t1_uS, STR("lsr"),  1>
+, dp_format_4<t1_uS, STR("asr"),  2>
 
-, dp_format_5<t1_us, STR("and"),  0>
-, dp_format_5<t1_us, STR("eor"),  1>
-, dp_format_5<t1_us, STR("lsl"),  2>
-, dp_format_5<t1_us, STR("lsr"),  3>
-, dp_format_5<t1_us, STR("asr"),  4>
-, dp_format_5<t1_us, STR("adc"),  5>
-, dp_format_5<t1_us, STR("sbc"),  6>
-, dp_format_5<t1_us, STR("ror"),  7>
+, dp_format_5<t1_uS, STR("and"),  0>
+, dp_format_5<t1_uS, STR("eor"),  1>
+, dp_format_5<t1_uS, STR("lsl"),  2>
+, dp_format_5<t1_uS, STR("lsr"),  3>
+, dp_format_5<t1_uS, STR("asr"),  4>
+, dp_format_5<t1_uS, STR("adc"),  5>
+, dp_format_5<t1_uS, STR("sbc"),  6>
+, dp_format_5<t1_uS, STR("ror"),  7>
 , dp_format_5<t1_u,  STR("tst"),  8>
-, dp_format_5<t1_us, STR("neg"),  9>
+, dp_format_5<t1_uS, STR("neg"),  9>
 , dp_format_5<t1_u,  STR("cmp"), 10>
 , dp_format_5<t1_u,  STR("cmn"), 11>
-, dp_format_5<t1_us, STR("orr"), 12>
-, dp_format_5<t1_us, STR("mul"), 13>
-, dp_format_5<t1_us, STR("bic"), 14>
-, dp_format_5<t1_us, STR("mvn"), 15>
+, dp_format_5<t1_uS, STR("orr"), 12>
+, dp_format_5<t1_uS, STR("mul"), 13>
+, dp_format_5<t1_uS, STR("bic"), 14>
+, dp_format_5<t1_uS, STR("mvn"), 15>
 
 , dp_format_6<t1_u , STR("add"),  0>
 
 , dp_format_7<t1_u , STR("add"),  0>
 , dp_format_7<t1_u , STR("sub"),  1>
 
-, dp_format_8<t1_us, STR("add"),  0>
+, dp_format_8<t1_uS, STR("add"),  0>
 , dp_format_8<t1_u , STR("cmp"),  1>
 , dp_format_8<t1_u , STR("cpy"),  2>    // disassemble as CPY
 , dp_format_8<t1_u , STR("mov"),  2>
@@ -138,54 +139,75 @@ using thumb_insn_data_l = list<list<>
 
 // ARM5: A6.5 Load and Store Register Instructions
 // NB: Formats 1-4 process different subset of insns for each
-template <typename SZ, typename NAME, unsigned OPC>
-using ls_format_1 = 
-    defn<SZ, NAME, OP<0x0000 + (OPC << 11)>, FMT_, REGL, REGL_INDIR5>;
+template <typename SZ, typename NAME, unsigned OPC, typename INDIR_VAL>
+using ls_format_1a = 
+    defn<SZ, NAME, OP<0x0000 + (OPC << 11)>, FMT_0_INDIR5, REGL, INDIR_VAL>;
+
+template <typename SZ, typename NAME, unsigned OPC, typename INDIR_VAL>
+using ls_format_1b = 
+    defn<SZ, NAME, OP<0x0000 + (OPC << 11)>, FMT_0_8X3, REGL, INDIR_VAL>;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using ls_format_2 = 
-    defn<SZ, NAME, OP<0x0000 + (OPC << 9)>, FMT_, REGL, REGL_INDIRL>;
+    defn<SZ, NAME, OP<0x0000 + (OPC << 9)>, FMT_0_6X3, REGL, REGL_INDIRL>;
 
 template <typename SZ, typename NAME, unsigned OPC>
-using ls_format_3 = 
-    defn<SZ, NAME, OP<0x4800>, FMT_, REGL, PC_INDIR8>;
+using ls_format_3 = list<list<>
+  , defn<SZ, NAME, OP<0x4800>, FMT_8_PC8, REGL, DIRECT>
+  , defn<SZ, NAME, OP<0x4800>, FMT_8_I8 , REGL, PC_INDIR8>
+>;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using ls_format_4 = 
-    defn<SZ, NAME, OP<0x9000 + (OPC << 11)>, FMT_, REGL, SP_INDIR8>;
+    defn<SZ, NAME, OP<0x9000 + (OPC << 11)>, FMT_8_I8, REGL, SP_INDIR8>;
 
 
 using thumb_insn_load_store_l = list<list<>
-, ls_format_1<t1_u, STR("ldr"),  0>
-, ls_format_1<t1_u, STR("str"),  1>
+// format 1a (relocatable 5-bit word offset)
+, ls_format_1a<t1_u , STR("ldr"), 0x0d, REGL_INDIR5_W_RELOC>
+, ls_format_1a<t1_u , STR("str"), 0x0c, REGL_INDIR5_W_RELOC>
 
-, ls_format_2<t1_u, STR("ldr"),  0>
-, ls_format_2<t1_u, STR("str"),  1>
+// format 1b (constant 5-bit [byte | halfword] offset)
+, ls_format_1b<t1_uB, STR("ldr"), 0x0f, REGL_INDIR5_B>
+, ls_format_1b<t1_uH, STR("ldr"), 0x11, REGL_INDIR5_H>
+, ls_format_1b<t1_uB, STR("str"), 0x0e, REGL_INDIR5_B>
+, ls_format_1b<t1_uH, STR("str"), 0x10, REGL_INDIR5_H>
 
-, ls_format_3<t1_u, STR("ldr"),  0>
+// format 2
+, ls_format_2<t1_u  , STR("ldr"), 0x2c>
+, ls_format_2<t1_uB , STR("ldr"), 0x2e>
+, ls_format_2<t1_uH , STR("ldr"), 0x2d>
+, ls_format_2<t1_uSB, STR("ldr"), 0x2b>
+, ls_format_2<t1_uSH, STR("ldr"), 0x2f>
 
-, ls_format_4<t1_u, STR("ldr"),  0>
-, ls_format_4<t1_u, STR("str"),  1>
+, ls_format_2<t1_u  , STR("str"), 0x28>
+, ls_format_2<t1_uB , STR("str"), 0x2a>
+, ls_format_2<t1_uH , STR("str"), 0x29>
+
+// format 3/4
+, ls_format_3<t1_u, STR("ldr"),  0x0b>
+, ls_format_4<t1_u, STR("ldr"),  0x13>
+, ls_format_4<t1_u, STR("str"),  0x12>
 >;
 
 // ARM5: A6.6 Load and Store Multiple
 // NB: Formats 1-2 process different subset of insns for each
 template <typename SZ, typename NAME, unsigned OPC>
 using lsm_format_1 = 
-    defn<SZ, NAME, OP<0xc000 + (OPC << 11)>, FMT_, REGL, REGSET_T>;
+    defn<SZ, NAME, OP<0xc000 + (OPC << 11)>, FMT_8_I8, REGL_UPDATE, REGSET_T>;
 
-template <typename SZ, typename NAME, unsigned OPC>
+template <typename SZ, typename NAME, unsigned OPC, typename VAL>
 using lsm_format_2 = 
-    defn<SZ, NAME, OP<0xb000 + (OPC << 11)>, FMT_, REGSET_TR>;
+    defn<SZ, NAME, OP<0xb000 + (OPC << 9)>, FMT_I9, VAL>;
 
 // ARM V5: A5.4 addressing mode 3: load & store multiple
 // require suffix from: IA, IB, DA, DB, { or alises FA, FD, EA, ED }
 using thumb_insn_ls_multiple_l = list<list<>
-, lsm_format_1<t1_u, STR("ldm"),  0>
-, lsm_format_1<t1_u, STR("stm"),  1>
+, lsm_format_1<t1_u, STR("ldm"),  1>
+, lsm_format_1<t1_u, STR("stm"),  0>
 
-, lsm_format_2<t1_u, STR("push"),  0>
-, lsm_format_2<t1_u, STR("pop") ,  1>
+, lsm_format_2<t1_u, STR("push"),  0x2, REGSET_T_LR>
+, lsm_format_2<t1_u, STR("pop") ,  0x6, REGSET_T_PC>
 >;
 
 using thumb_insn_exception_l = list<list<>
@@ -198,13 +220,12 @@ using thumb_insn_exception_l = list<list<>
 
 using thumb_gen_v =
              list<list<>
-//                 , thumb_insn_list_l
-//                 , thumb_insn_common_l
+                 , thumb_insn_common_l          // common aliases
                  , thumb_insn_branch_l          // A6.3: branch & related
                  , thumb_insn_data_l            // A6.4: data insns 
                  , thumb_insn_load_store_l      // A6.5: load/store
                  , thumb_insn_ls_multiple_l     // A6.6: load/store misc
-                 , thumb_insn_exception_l       // A6.7
+                 , thumb_insn_exception_l       // A6.7: exception instructions
                  >;
 }
 

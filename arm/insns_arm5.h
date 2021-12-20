@@ -1,5 +1,5 @@
-#ifndef KAS_ARM_INSNS_ARM_H
-#define KAS_ARM_INSNS_ARM_H
+#ifndef KAS_ARM_INSNS_ARM5_H
+#define KAS_ARM_INSNS_ARM5_H
 //
 // Define the ARM instructions. 
 //

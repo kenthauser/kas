@@ -9,6 +9,11 @@
 namespace kas::arm::opc
 {
 // derive arm version of `tgt` classes
+// NB: use `target` default implementations
+using fmt_gen    = tgt::opc::tgt_fmt_opc_gen   <arm_mcode_t>;
+using fmt_list   = tgt::opc::tgt_fmt_opc_list  <arm_mcode_t>;
+using fmt_branch = tgt::opc::tgt_fmt_opc_branch<arm_mcode_t, struct arm_branch>;
+
 // use generic bit inserter/extractor
 template <unsigned...Ts>
 using fmt32_generic = tgt::opc::tgt_fmt_generic<arm_mcode_t, uint32_t, Ts...>;
@@ -20,16 +25,11 @@ using fmt16_generic = tgt::opc::tgt_fmt_generic<arm_mcode_t, uint16_t, Ts...>;
 template <unsigned N, typename T>
 using fmt_arg = tgt::opc::tgt_fmt_arg<arm_mcode_t, N, T>;
 
-// NB: use `target` default implementations
-using fmt_gen    = tgt::opc::tgt_fmt_opc_gen   <arm_mcode_t>;
-using fmt_list   = tgt::opc::tgt_fmt_opc_list  <arm_mcode_t>;
-using fmt_branch = tgt::opc::tgt_fmt_opc_branch<arm_mcode_t, struct arm_branch>;
-
 //
 // arm specific base opcode formatters
 //
 
-// special for `BL` instruction
+// special for ARM `BL` instruction
 struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
 {
     void do_calc_size(data_t&                data
@@ -39,7 +39,7 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
                     , stmt_info_t const&     info
                     , expression::expr_fits const& fits) const override
     {
-        data.size = 4;
+        data.size = mcode.code_size();
     }
     
     void do_emit     (data_t const&          data
@@ -67,7 +67,7 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
         // insert arg into base insn (via reloc) as required
         if (!fmt.insert(cnt-1, code_p, arg, &*val_it))
             fmt.emit_reloc(cnt-1, base, code_p, arg, &*val_it);
-#if 1
+#if 0
         // 2. emit base code
         auto words = mcode.code_size()/sizeof(mcode_size_t);
         for (auto end = code_p + words; code_p < end;)
@@ -111,10 +111,11 @@ struct fmt_bx : virtual arm_mcode_t::fmt_t
         }
     };
 
+    // boilerplate to xlate `fmt` to `core::opcode_t`
     arm_mcode_t::opcode_t& get_opc() const override 
     {
-        static fmt_opc_bx opc; 
-        return opc;
+        static fmt_opc_bx opc;      // instantiate opcode
+        return opc;                 // return reference
     }
 };
 }

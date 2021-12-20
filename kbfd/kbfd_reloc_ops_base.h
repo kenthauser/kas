@@ -24,10 +24,12 @@ struct reloc_op_fns
         { data = value; return {}; }
     
     // `update_t` is std::pair. `bool` attribute true if update defined
+    // default: return addend unmodified
     virtual update_t update(value_t data, value_t addend) const
-        { return { {}, false }; };
+        { return { addend, false }; };
 
     // assembler should emit reloc without relocation
+    // XXX should be marked for deletion?? Assembler only??
     virtual bool emit_bare() const { return false; }
 };
 

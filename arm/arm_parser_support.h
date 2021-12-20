@@ -23,6 +23,7 @@ enum arm_shift_parsed
     , NUM_ARM_SHIFT
 };
 
+#if 0
 // NB: enumerated values mapped to W_FLAG & P_FLAG by method
 enum arm_indir_op
 {
@@ -32,6 +33,7 @@ enum arm_indir_op
     , ARM_POST_INDEX        //  3: NB: POST_INDEX implies writeback
     , NUM_ARM_INDIRECT 
 };
+#endif
 
 // support types to facilitate parsing
 struct arm_shift_arg

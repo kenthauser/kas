@@ -583,6 +583,13 @@ Notes: ARCH:
 
 3. `mcode.emit` called from tgt_opc_general and tgt_opc_quick
 
+4. ARM_GEN using `arm` validators "value" for insert of arg info into
+    base opcode. `eg` Thumb reg_indir has different validator. Need to 
+    create `THUMB_GEN` to hold thumb arg info.
+
+5. Thumb LDR(3) aligns PC before calculating OFFSET. Analyze.
+
+
 
 
 

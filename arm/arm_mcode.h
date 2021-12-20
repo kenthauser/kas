@@ -21,6 +21,7 @@ static constexpr auto SZ_GEN_MASK     = 0x00f0;
 static constexpr auto SZ_DEFN_COND    = 0x0010;
 static constexpr auto SZ_DEFN_NO_AL   = 0x0020;
 static constexpr auto SZ_DEFN_S_FLAG  = 0x0040;
+static constexpr auto SZ_DEFN_REQ_S   = SZ_DEFN_S_FLAG;
 
 // flags for suffix instructions
 static constexpr auto SZ_DEFN_SFX_SHIFT = 8;
@@ -34,6 +35,9 @@ static constexpr auto SZ_DEFN_REQ_H     = 0x84 << SZ_DEFN_SFX_SHIFT;
 static constexpr auto SZ_DEFN_REQ_M     = 0x85 << SZ_DEFN_SFX_SHIFT;
 static constexpr auto SZ_DEFN_REQ_I     = 0x86 << SZ_DEFN_SFX_SHIFT;
 static constexpr auto SZ_DEFN_L_FLAG    = 0x07 << SZ_DEFN_SFX_SHIFT;
+static constexpr auto SZ_DEFN_REQ_B     = 0x88 << SZ_DEFN_SFX_SHIFT;
+static constexpr auto SZ_DEFN_REQ_SH    = 0x89 << SZ_DEFN_SFX_SHIFT;
+static constexpr auto SZ_DEFN_REQ_SB    = 0x8a << SZ_DEFN_SFX_SHIFT;
 
 // arm insn operand size
 enum arm_op_size_t : uint8_t

@@ -45,6 +45,11 @@ struct tgt_format
     // see example `fmt_generic` which follows method definition.
     struct fmt_impl
     {
+        // expose types (base types aren't exposed automatically)
+        using mcode_size_t = mcode_size_t;
+        using val_t        = val_t;
+        using arg_t        = arg_t; 
+
         virtual bool insert(mcode_size_t* op, arg_t& arg, val_t const * val_p) const
         {
             return false;        // no-validator: use `data` to insert arg
@@ -56,7 +61,6 @@ struct tgt_format
             if (val_p) val_p->set_arg(arg, 0);
         }
 
-        
         virtual void emit_reloc(core_emit& base, mcode_size_t* op, arg_t& arg, val_t const * val_p) const
             {}
     };

@@ -213,6 +213,119 @@ struct arm_rel_v4bx : kbfd::k_rel_add_t
     // assembler should emit RELOC
     bool emit_bare() const override { return true; }
 };
+
+//
+// Thumb-16 static relocations
+//
+
+struct arm_rel_abs5 : k_rel_add_t, reloc_op_subfield<5, 6>
+{
+    using base_t = reloc_op_subfield<5, 6>;
+    value_t read(value_t data) const override
+    {
+        return base_t::read(data) << 2;
+    }
+    
+    const char *write(value_t& data, value_t value) const override
+    {
+        if (value &~ 0x7c)
+            return "B Value out of range";
+        if (value & 3)
+            return "B Value not word aligned";
+        return base_t::write(data, value >> 2);
+    }
+};
+
+struct arm_rel_pc8    : k_rel_add_t, reloc_op_subfield<8, 0> 
+{
+    using base_t = reloc_op_subfield<8, 0>;
+    value_t read(value_t data) const override
+    {
+        return base_t::read(data) << 2;
+    }
+    
+    const char *write(value_t& data, value_t value) const override
+    {
+        if (value &~ 0x3fc)
+            return "B Value out of range";
+        if (value & 3)
+            return "B Value not word aligned";
+        return base_t::write(data, value >> 2);
+    }
+};
+
+struct arm_rel_jump8 : k_rel_add_t, reloc_op_subfield<8, 0> 
+{
+    using base_t = reloc_op_subfield<8, 0>;
+    value_t read(value_t data) const override
+    {
+        return base_t::read(data) << 1;
+    }
+    
+    const char *write(value_t& data, value_t value) const override
+    {
+        if (value &~ 0x1fe)
+            return "B Value out of range";
+        if (value & 1)
+            return "B Value not word aligned";
+        return base_t::write(data, value >> 1);
+    }
+};
+
+struct arm_rel_jump11 : k_rel_add_t, reloc_op_subfield<11, 0> 
+{
+    using base_t = reloc_op_subfield<11, 0>;
+    value_t read(value_t data) const override
+    {
+        return base_t::read(data) << 1;
+    }
+    
+    const char *write(value_t& data, value_t value) const override
+    {
+        if (value &~ 0xffe)
+            return "B Value out of range";
+        if (value & 1)
+            return "B Value not word aligned";
+        return base_t::write(data, value >> 1);
+    }
+};
+
+struct arm_rel_jump6  : kbfd::k_rel_add_t {};   // THUMB 32
+
+struct arm_rel_thb_call : k_rel_add_t
+{
+    // read/write  22-bits spread over two half-words
+    static constexpr auto MASK = (1 << 11) - 1;
+    //using base_t = reloc_op_subfield<11, 0>;
+    value_t read(value_t data) const override
+    {
+        std::cout << "arm_rel_thb_call::read: data = " << std::hex << data;
+        auto n  = data & MASK;
+             n += (data >> (16 - 11)) & (MASK << 11);
+        std::cout << ", result = " << (n << 1) << std::endl;
+        return n << 1;
+    }
+    
+    const char *write(value_t& data, value_t value) const override
+    {
+        std::cout << "arm_rel_thb_call::write: data = " << std::hex << data;
+        std::cout << ", value = " << value;
+
+#if 0
+        // XXX negative value not out-of-range
+        if (value &~ 0x1ffffff)
+            return "B Value out of range";
+        if (value & 1)
+            return "B Value not word aligned";
+#endif
+        value >>= 1;
+        data += value & MASK;                           // get 11 LSBs
+        data += (value << (16 - 11)) & (MASK << 11);    // 11 MSBs
+        std::cout << " -> result = " << data << std::endl;
+        return {};
+    }
+};
+
 }
 
 #endif

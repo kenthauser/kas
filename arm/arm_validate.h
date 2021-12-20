@@ -61,6 +61,29 @@ struct val_range_update : val_range
     }
 };
 
+struct val_direct: arm_mcode_t::val_t
+{
+    constexpr val_direct() {}
+
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        if (arg.mode() == arg_t::arg_mode_t::MODE_DIRECT)
+            return fits.yes;
+        return fits.no;
+    }
+#if 0    
+    uint32_t get_value(arg_t& arg) const override
+    {
+        return {};
+    }
+
+    void set_arg(arg_t& arg, uint32_t value) const override
+    {
+        arg.expr = {};
+    }
+#endif
+};
+
 //
 // ARM Specific Validators
 //
@@ -456,6 +479,384 @@ struct val_regl : val_reg
     }
 };
 
+struct val_regl_update : val_reg
+{
+    using base_t = val_reg;
+    constexpr val_regl_update() : base_t(RC_GEN
+                                       , val_reg::all_regs
+                                       , arg_t::arg_mode_t::MODE_REG_UPDATE
+                                       )
+                                 {}
+
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        // check for proper mode & proper reg class using base_t
+        if (base_t::ok(arg, fits) == fits.yes)
+            if (arg.reg_p->value(RC_GEN) < 8)
+                return fits.yes;
+        return fits.no;
+    }
+};
+
+struct val_regset_l : arm_mcode_t::val_t
+{
+    constexpr val_regset_l (uint8_t reg = {}) : reg_num(reg)
+                                              , reg_bit(1 << reg)
+                                              {}
+
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        if (arg.mode() != arg_mode_t::MODE_REGSET)
+            return fits.no;
+
+        // see if only the LSBs are set
+        auto regset_h = arg.regset_p->value() &~ 0xff;
+
+        if (!regset_h)
+            return fits.yes;
+
+        // a MSB is set, see if it's OK
+        if (regset_h &~ reg_bit)
+            return fits.no;
+
+        return fits.yes;
+    }
+    
+    unsigned get_value(arg_t& arg) const override
+    {
+        auto n = arg.regset_p->value();
+        if (n > 0xff)       // is a high bit set?
+            n = (n & 0xff) | 0x100;     // record additional high register
+        return n ;
+    }
+
+    void set_arg(arg_t& arg, unsigned value) const override
+    {
+        // calculate expression value from machine code
+        if (value & 0x80)
+            value = (value & 0xff) | reg_bit;
+        arg.expr = value;
+        arg.set_mode(arg_mode_t::MODE_IMMED_QUICK);
+    }
+    
+    uint16_t reg_num;
+    uint16_t reg_bit;
+};
+
+struct val_thumb_indir_base : val_indir
+{
+    using base_t = val_indir;
+    
+    // require constexpr default ctor
+    constexpr val_thumb_indir_base () {} 
+
+    // allow pre-index and offset modes (without write-back) only  
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        auto result = base_t::ok(arg, fits);    // see if an ARM indir
+        if (result != fits.yes)
+            return fits.no;
+        if (arg.shift)              // no shift
+            return fits.no;
+        if (!arg.indir.p_flag)      // require offset or pre-index
+            return fits.no;
+        if (!arg.indir.u_flag)      // require plus (up)
+            return fits.no;
+        if (arg.indir.w_flag)       // no write-back
+            return fits.no;
+        return fits.yes;
+    }
+    
+    // standard ARM encoding (32-bit value)
+    // 1. 12 LSBs hold shifter or offset values
+    // 2. 4 bits << 16 hold Rn (ie indirect base register)
+    // 3. next 6 bits (ie shifted 20) hold following:
+    //      R_flag, P_flag, U_flag, B_flag, W_flag, L_flag
+    //
+    // NB: L_flag && B_flag handled via `info` methods
+
+    // addressing modes are interpreted in `arm_parser_support.h`
+    // most `indir` values and modes are validated there
+
+    uint32_t get_value(arg_t& arg) const override
+    {
+        // xlate DIRECT to INDIRECT with: reg = R15, p_flag set
+        if (arg.mode() == arg_mode_t::MODE_DIRECT)
+            return 0x10f0000;
+        
+        // first calculate upper word
+        uint32_t value  = arg.reg_p->value(RC_GEN);
+        if (arg.indir.p_flag)
+            value |= 1 << (24-16);
+        if (arg.indir.w_flag)
+            value |= 1 << (21-16);
+        if (arg.indir.u_flag)
+            value |= 1 << (23-16);
+        if (arg.indir.r_flag)
+            value |= 1 << (25-16);
+        value <<= 16;
+
+        // now lower word
+#if 0
+        // XXX needs work
+        value += arg.shift.arm7_value();
+        if (arg.indir.r_flag)
+            value += arg.indir.reg;
+#else
+        // offset value
+        if (auto p = arg.get_fixed_p())
+            value += *p;
+#endif
+        return value;
+    }
+
+    void set_arg(arg_t& arg, uint32_t value) const override
+    {
+        // analyze upper word values first
+        auto msw = value >> 16;
+        arg.reg_p = &arm_reg_t::find(RC_GEN, msw & 0xf);
+
+        if (msw & (1 << (24-16)))
+        {
+            arg.indir.p_flag = true;
+
+            // NB: only set W-flag if P-flag set
+            if (msw & (1 << (21-16)))
+                arg.indir.w_flag = true;
+        }
+        if (msw & (1 << (23-16)))
+            arg.indir.u_flag = true;
+        if (msw & (1 << (25-16)))
+            arg.indir.r_flag = true;
+
+#if 0
+        // extract lower word values 
+        arg.shift.arm7_set(value);
+        if (arg.indir.r_flag)
+            arg.indir.reg = value & 15;
+#else
+        arg.expr = value & 0xfff;
+#endif
+    }
+};
+
+struct val_indir_5 : val_thumb_indir_base
+{
+    using base_t = val_thumb_indir_base;
+    
+    constexpr val_indir_5(uint8_t shift = {}, uint8_t reloc = false)
+            : shift(shift)
+            , reloc (reloc)
+            , mask((1 << shift) - 1)
+            , max((1 << (5 + shift)) - 1)
+            {};
+
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        if (base_t::ok(arg, fits) != fits.yes)
+            return fits.no;
+        
+        // base register must be low general register
+        if (arg.reg_p->value(RC_GEN) & 8)
+            return fits.no;
+
+        // indirect reg must not be present
+        if (arg.indir.r_flag)
+            return fits.no;
+        
+        // offset must be 5-bit positive value, shifted 
+        if (auto p = arg.get_fixed_p())
+        {
+            auto n = *p;
+            if (n & mask)
+                return fits.no; // must be multiple of obj size 
+            return fits.fits(n, 0, max);
+        }
+
+        // last test: if relocs allowed, permit
+        if (reloc)
+            return fits.yes;    // ok if relocs allowed
+            
+        return fits.no;         // expression must be constant
+    }
+    
+    // return 8-bit value for ARM5 A6.5.1 Format 1 [Rn, 5-bit]
+    uint32_t get_value(arg_t& arg) const override
+    {
+        auto n = arg.reg_p->value(RC_GEN);
+        if (auto p = arg.get_fixed_p())
+            // shifted 6 bits in opcode - 3 bits for register - size
+            n += *p << (6 - 3 - shift);
+        return n;
+    }
+    void set_arg(arg_t& arg, uint32_t value) const override
+    {
+        arg.reg_p = &arm_reg_t::find(RC_GEN, value & 7);
+        arg.expr  = (value &~ 7) >> (3 + shift);
+        arg.indir.p_flag = true;
+        arg.indir.u_flag = true;
+    }
+
+    uint8_t shift;
+    uint8_t mask;
+    uint8_t max;
+    uint8_t reloc;
+};
+
+
+struct val_indir_l : val_thumb_indir_base
+{
+    using base_t = val_thumb_indir_base;
+
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        if (base_t::ok(arg, fits) != fits.yes)
+            return fits.no;
+        
+        // base register must be low general register
+        if (arg.reg_p->value(RC_GEN) & 8)
+            return fits.no;
+
+        // indirect reg must be present, require low register
+        if (!arg.indir.r_flag || (arg.indir.reg & 8))
+            return fits.no;
+
+        // offset must be zero
+        if (auto p = arg.get_fixed_p())
+        {
+            if (*p == 0) return fits.yes;
+        }
+            
+        return fits.no;     // expression must be constant
+    }
+    
+    // return 8-bit value for ARM5 A6.5.1 Format 1 [Rn, 5-bit]
+    uint32_t get_value(arg_t& arg) const override
+    {
+        auto n = *arg.get_fixed_p();
+        return n + n + arg.reg_p->value(RC_GEN);
+    }
+    void set_arg(arg_t& arg, uint32_t value) const override
+    {
+        arg.reg_p = &arm_reg_t::find(RC_GEN, value & 7);
+        arg.expr  = (value >> 1) &~ 3;      // get rid of regbits
+        arg.indir.p_flag = true;
+        arg.indir.u_flag = true;
+    }
+};
+
+struct val_offset_8 : val_thumb_indir_base
+{
+    using base_t = val_thumb_indir_base;
+    
+    // declare 10-bit limits: stored in opcode as signed 8-bits (prescaled)
+    static constexpr auto offset8_w_max = +(1 << 10) - 1;
+    static constexpr auto offset8_w_min = -(1 << 10);
+
+    constexpr val_offset_8(uint8_t reg = -1) : reg(reg) {};
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        // try convert direct to pc-relative indirect
+        // XXX processor "aligns" address to word boundry before calculation
+        // XXX analyze.
+        if (reg == 15 && arg.mode() == arg_mode_t::MODE_DIRECT)
+            return fits.disp(arg.expr, offset8_w_min, offset8_w_min, 0);
+
+        if (base_t::ok(arg, fits) != fits.yes)
+            return fits.no;
+
+        if (arg.indir.r_flag)
+            return fits.no;
+
+        if (arg.reg_p->value(RC_GEN) != reg)
+            return fits.no;
+
+        return fits.fits(arg.expr, offset8_w_min, offset8_w_max); 
+    }
+
+    uint32_t get_value(arg_t& arg) const override
+    {
+        // XXX processor "aligns" address to word boundry before calculation
+        // XXX analyze.
+        if (auto p = arg.get_fixed_p())
+            return *p >> 2;
+
+        return 0;
+    }
+    void set_arg(arg_t& arg, uint32_t value) const override
+    {
+        arg.reg_p = &arm_reg_t::find(RC_GEN, reg);
+        arg.expr  = value * 4;
+        //arg.set_mode(arg_mode_t::MODE_DIRECT);
+    }
+
+    uint8_t reg;
+};
+
+struct val_tmb_jump8 : arm_mcode_t::val_t
+{
+    // out-of-range displacement handled by linker
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        return fits.yes;
+    }
+    
+    // set `arg_mode` to MODE_BRANCH
+    fits_result size(arg_t& arg, mcode_t const&, stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& op_size) const override
+    {
+        arg.set_mode(arg_t::arg_mode_t::MODE_BRANCH);
+        return fits.yes;
+    }
+
+    // XXX these methods need work
+    unsigned get_value(arg_t& arg) const override
+    {
+        auto value = base_t::get_value(arg) - 8;
+        return (value >> 2) & 0x1ff;
+    }
+
+    void set_arg(arg_t& arg, unsigned value) const override
+    {
+        // convert 24-bit signed to 32-bit signed
+        int32_t disp = value << 8;      // move "sign" to MSB.
+        base_t::set_arg(arg, (disp >> 6) - 8);
+    }
+};
+
+struct val_tmb_jump11 : arm_mcode_t::val_t
+{
+    // out-of-range displacement handled by linker
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        return fits.yes;
+    }
+    
+    // set `arg_mode` to MODE_BRANCH
+    fits_result size(arg_t& arg, mcode_t const&, stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& op_size) const override
+    {
+        arg.set_mode(arg_t::arg_mode_t::MODE_BRANCH);
+        return fits.yes;
+    }
+
+    // XXX these methods need work
+    unsigned get_value(arg_t& arg) const override
+    {
+        return -4;
+    }
+
+    void set_arg(arg_t& arg, unsigned value) const override
+    {
+        // convert 24-bit signed to 32-bit signed
+        int32_t disp = value << 8;      // move "sign" to MSB.
+        base_t::set_arg(arg, (disp >> 6) - 8);
+    }
+};
+
+
+using val_indir_pc_8 = val_offset_8;
+using val_indir_sp_8 = val_offset_8;
 
 // use preprocessor to define string names used in definitions & debugging...
 #define VAL_REG(NAME, ...) using NAME = _val_reg<KAS_STRING(#NAME), __VA_ARGS__>
@@ -486,6 +887,7 @@ VAL_REG(SPSR        , RC_CPU, REG_CPU_SPSR);
 
 // ARM5 addressing mode validators
 // ARM V5: addressing mode 1 validators
+VAL_GEN(DIRECT      , val_direct);
 VAL_GEN(SHIFT       , val_shift);
 
 // ARM V5: addressing mode 2 validators
@@ -505,22 +907,25 @@ VAL_GEN(REGSET_USER , val_regset_user);
 
 // Thumb register validators
 VAL_GEN(REGL        , val_regl);
-VAL_GEN(REGH        , val_regl);    // XXX
+VAL_GEN(REGL_UPDATE , val_regl_update);
 
-VAL_GEN(REGL_INDIR5 , val_indir);
-VAL_GEN(REGL_INDIRL , val_indir);
-VAL_GEN(PC_INDIR8   , val_indir);
-VAL_GEN(SP_INDIR8   , val_indir);
-VAL_GEN(REGSET_T    , val_regset);
-VAL_GEN(REGSET_TR   , val_regset);
+VAL_GEN(REGL_INDIR5_W_RELOC , val_indir_5, 2, true);    // relocatable
+VAL_GEN(REGL_INDIR5_H       , val_indir_5, 1);
+VAL_GEN(REGL_INDIR5_B       , val_indir_5, 0);
+VAL_GEN(REGL_INDIRL , val_indir_l);
+VAL_GEN(PC_INDIR8   , val_offset_8, 15);
+VAL_GEN(SP_INDIR8   , val_offset_8, 13);
+VAL_GEN(REGSET_T    , val_regset_l);
+VAL_GEN(REGSET_T_LR , val_regset_l, 14);    // allow link register
+VAL_GEN(REGSET_T_PC , val_regset_l, 15);    // allow pc
 
 // validate branch and thumb branch displacements
 // name by reloc generated. linker validates displacements
 VAL_GEN(ARM_JUMP24  , val_arm_branch24);
 VAL_GEN(ARM_CALL24  , val_arm_call24);
 
-VAL_GEN(THB_JUMP8   , val_false);
-VAL_GEN(THB_JUMP11  , val_false);
+VAL_GEN(THB_JUMP8   , val_tmb_jump8);
+VAL_GEN(THB_JUMP11  , val_tmb_jump11);
 
 // XXX
 // unsigned validators
@@ -542,8 +947,8 @@ VAL_GEN(IMMED_5        , val_range, 0, (1 << 5) - 1);
 VAL_GEN(IMMED_7        , val_range, 0, (1 << 7) - 1);
 VAL_GEN(IMMED_8        , val_range, 0, (1 << 8) - 1);
 
-VAL_GEN(IMMED_7_4        , val_range_scaled<2>, 0, (1 << 7) - 1);
-VAL_GEN(IMMED_8_4        , val_range_scaled<2>, 0, (1 << 8) - 1);
+VAL_GEN(IMMED_7_4      , val_range_scaled<2>, 0, (1 << 7) - 1);
+VAL_GEN(IMMED_8_4      , val_range_scaled<2>, 0, (1 << 8) - 1);
 
 // 8-bit value shifted by multiple of 4. special relocations
 VAL_GEN(IMM8_4      , val_false);

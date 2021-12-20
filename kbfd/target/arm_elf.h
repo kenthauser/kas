@@ -12,12 +12,12 @@ namespace kbfd::arm
 // Source: Document: ARM IHI 0044F (ELF for the ARM Architecture)
 // Issue : 24 November 2015
 
-static constexpr auto T_DEPR       = kbfd::kbfd_reloc::RFLAGS_DEPR;
-static constexpr auto ARM_G0 = kbfd::kbfd_reloc::RFLAGS_ARM_G0;
-static constexpr auto ARM_G1 = kbfd::kbfd_reloc::RFLAGS_ARM_G1;
-static constexpr auto ARM_G2 = kbfd::kbfd_reloc::RFLAGS_ARM_G2;
-static constexpr auto ARM_G3 = kbfd::kbfd_reloc::RFLAGS_ARM_G3;
-static constexpr auto ARM_EMIT = kbfd::kbfd_reloc::RFLAGS_ARM_EMIT;
+static constexpr auto T_DEPR        = kbfd::kbfd_reloc::RFLAGS_DEPR;
+static constexpr auto ARM_G0        = kbfd::kbfd_reloc::RFLAGS_ARM_G0;
+static constexpr auto ARM_G1        = kbfd::kbfd_reloc::RFLAGS_ARM_G1;
+static constexpr auto ARM_G2        = kbfd::kbfd_reloc::RFLAGS_ARM_G2;
+static constexpr auto ARM_G3        = kbfd::kbfd_reloc::RFLAGS_ARM_G3;
+static constexpr auto ARM_EMIT      = kbfd::kbfd_reloc::RFLAGS_ARM_EMIT;
 
 // ARM relocations: fields = WKN Name Action width pc-rel flags...
 static constexpr kbfd_target_reloc arm_elf_relocs[] =
@@ -29,11 +29,11 @@ static constexpr kbfd_target_reloc arm_elf_relocs[] =
   , {   4, "R_ARM_LDR_PC_G0", ARM_REL_SOFF12()  , 32, 1, T_ARM }
   , {   5, "R_ARM_ABS16"    , K_REL_ADD()       , 16, 0 }
   , {   6, "R_ARM_ABS12"    , K_REL_ADD()       , 16, 0, T_ARM }
-  , {   7, "R_ARM_THM_ABS5" , K_REL_ADD()       , 16, 0, T_T16 }
+  , {   7, "R_ARM_THM_ABS5" , ARM_REL_ABS5()    , 16, 0, T_T16 }
   , {   8, "R_ARM_ABS8"     , K_REL_ADD()       ,  8, 0 }
   , {   9, "R_ARM_SBREL32"  , K_REL_NONE()      , 32, 1 }
-  , {  10, "R_ARM_THM_CALL" , K_REL_NONE()      , 32, 1, T_T32 }
-  , {  11, "R_ARM_THM_PC8"  , K_REL_NONE()      , 16, 1, T_T16 }
+  , {  10, "R_ARM_THM_CALL" , ARM_REL_THB_CALL(), 32, 1, T_T16 }
+  , {  11, "R_ARM_THM_PC8"  , ARM_REL_PC8()     , 16, 1, T_T16 }
   , {  12, "R_ARM_BREL_ADJ" , K_REL_NONE()  }
   , {  13, "R_ARM_TLS_DESC" , K_REL_NONE()  }
   , {  17, "R_ARM_TLS_DTPMOD32", K_REL_NONE()   , 32 }
@@ -47,6 +47,7 @@ static constexpr kbfd_target_reloc arm_elf_relocs[] =
   , {  25, "R_ARM_BASE_PREL", K_REL_NONE() }
   , {  26, "R_ARM_GOT_BREL" , K_REL_NONE() }
   , {  27, "R_ARM_PLT32"    , K_REL_NONE()      , 32, 0, T_ARM, T_DEPR }
+  // NB: G0/G1 flags are used to differentiate between _CALL & _JUMP24
   , {  28, "R_ARM_CALL"     , ARM_REL_OFF24()   , 32, 1, T_ARM, ARM_G0 }
   , {  29, "R_ARM_JUMP24"   , ARM_REL_OFF24()   , 32, 1, T_ARM, ARM_G1 }
   , {  30, "R_ARM_THM_JUMP24", K_REL_NONE()     , 32, 0, T_T32}
@@ -118,8 +119,8 @@ static constexpr kbfd_target_reloc arm_elf_relocs[] =
   , {  99, "R_ARM_GOTRELAX"     , K_REL_NONE()  , 32, 0 }
   , { 100, "R_ARM_GNU_VTENTRY"  , K_REL_NONE()  , 32, 0, T_DEPR }
   , { 101, "R_ARM_GNU_VTINHERIT", K_REL_NONE()  , 32, 0, T_DEPR }
-  , { 102, "R_ARM_THM_JUMP11"   , K_REL_NONE()  , 16, 1, T_T16 }
-  , { 103, "R_ARM_THM_JUMP8"    , K_REL_NONE()  , 16, 1, T_T16 }
+  , { 102, "R_ARM_THM_JUMP11"   , ARM_REL_JUMP11(), 16, 1, T_T16 }
+  , { 103, "R_ARM_THM_JUMP8"    , ARM_REL_JUMP8() , 16, 1, T_T16 }
   , { 104, "R_ARM_TLS_GD32"     , K_REL_NONE()  , 32, 1 }
   , { 105, "R_ARM_TLS_LDM32"    , K_REL_NONE()  , 32, 1 }
   , { 106, "R_ARM_TLS_LDO32"    , K_REL_NONE()  , 32, 1 }
