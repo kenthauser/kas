@@ -28,7 +28,7 @@ namespace kas::arm::opc::arm7
 
 #undef STR
 
-using arm_gen6_v =
+using arm6_gen_v =
              list<list<>
 //                 , arm_insn_common_l        // prefered mappings: eg ld <reg>, #0 -> clr <reg>
 //                 , arm_insn_data_l          // A5.1: data insns 
