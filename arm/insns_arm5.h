@@ -146,18 +146,18 @@ using arm_insn_ls_multiple_l = list<list<>
 , defn<a7_c , STR("push"), OP<0x92d'0000>, FMT_RS, REGSET>
 , defn<a7_c , STR("pop") , OP<0x49d'0004>, FMT_12, REGSET_SGL>
 , defn<a7_c , STR("pop") , OP<0x8bd'0000>, FMT_RS, REGSET>
-, defn<a7_cM, STR("ldm"), OP<0x810'0000>, FMT_16_RS, REG       , REGSET>
-, defn<a7_cM, STR("ldm"), OP<0x850'0000>, FMT_16_RS, REG       , REGSET_USER>
-, defn<a7_cM, STR("ldm"), OP<0x830'0000>, FMT_16_RS, REG_UPDATE, REGSET>
-, defn<a7_cM, STR("ldm"), OP<0x870'0000>, FMT_16_RS, REG_UPDATE, REGSET_USER>
-, defn<a7_cM, STR("stm"), OP<0x800'0000>, FMT_16_RS, REG       , REGSET>
-, defn<a7_cM, STR("stm"), OP<0x840'0000>, FMT_16_RS, REG       , REGSET_USER>
-, defn<a7_cM, STR("stm"), OP<0x820'0000>, FMT_16_RS, REG_UPDATE, REGSET>
-, defn<a7_cM, STR("stm"), OP<0x860'0000>, FMT_16_RS, REG_UPDATE, REGSET_USER>
+, defn<a7_cM, STR("ldm"), OP<0x810'0000>, FMT_16_RS, REG   , REGSET>
+, defn<a7_cM, STR("ldm"), OP<0x850'0000>, FMT_16_RS, REG   , REGSET_USER>
+, defn<a7_cM, STR("ldm"), OP<0x830'0000>, FMT_16_RS, REG_WB, REGSET>
+, defn<a7_cM, STR("ldm"), OP<0x870'0000>, FMT_16_RS, REG_WB, REGSET_USER>
+, defn<a7_cM, STR("stm"), OP<0x800'0000>, FMT_16_RS, REG   , REGSET>
+, defn<a7_cM, STR("stm"), OP<0x840'0000>, FMT_16_RS, REG   , REGSET_USER>
+, defn<a7_cM, STR("stm"), OP<0x820'0000>, FMT_16_RS, REG_WB, REGSET>
+, defn<a7_cM, STR("stm"), OP<0x860'0000>, FMT_16_RS, REG_WB, REGSET_USER>
 , defn<a7_uM, STR("srs"), OP<0xf84d'0500, ARMv6>, FMT_I00B5, IMM5>
 , defn<a7_uM, STR("srs"), OP<0xf86d'0500, ARMv6>, FMT_I00B5, IMM5_UPDATE>
-, defn<a7_uM, STR("rfe"), OP<0xf810'0a00, ARMv6>, FMT_16, REG>
-, defn<a7_uM, STR("rfe"), OP<0xf830'0a00, ARMv6>, FMT_16, REG_UPDATE>
+, defn<a7_uM, STR("rfe"), OP<0xf810'0a00, ARMv6>, FMT_16   , REG>
+, defn<a7_uM, STR("rfe"), OP<0xf830'0a00, ARMv6>, FMT_16   , REG_WB>
 >;
 
 // ARM V5: A5.5 addressing mode 4: load & store coprocessor

@@ -1,0 +1,122 @@
+XXX convert to markdown
+
+ARM Instruction Parsing: UAL vs Traditional
+
+1. OVERVIEW
+
+Parsing ARM instructions using the "UNIFIED ARM LANGUAGE" (UAL) syntax consists
+of looking for INSTRUCTION, a CONDITION-CODE suffix, a STATUS-CODE suffix,
+and a WIDTH suffix. All but INSTRUCTION are optional.
+
+Parsing ARM instructions with traditional (eg ARM5) syntax is more compicated:
+the INSTRUCTION consists of BASE instruction, optional CONDITION-CODE, followed
+by SUFFIXES. In the UAL syntax, these SUFFIXES are included as part of the base
+INSTRUCTION. 
+
+While splitting INSNTRUCTION into BASE & SUFFIX is a workable solution, there are
+problems. First, the X3() parser is greedy, which is normally what is wanted.
+A INSTRUCTION parsed as "LDRSB" would mask an instruction LDR + suffix SB.
+Thus care needs to be taken with INSTRUCTIONS which has SUFFIXes.
+
+One implication of this is that the SUFFIX needs to be able to modify base
+opcode according to SUFFIX code. For ARM, this requires a different modification
+depending if the BASE is a LOAD or STORE, possibly modifying BASE values.
+(See LDR/STR and LDM/STM discussions below). Thus the ARM suffix parser holds
+values to be XORd into base code (*not* ORd) depending if BASE is LOAD or STORE.
+
+Instructions unique to ARM6+ don't need to support TRADITIONAL parsing. These
+INSTRUCTIONS (such as LDREX<c>) are not supported in pre-UAL formats.
+
+
+2. pre-UAL syntax for INSNS build instruction names as follows:
+
+pre-UAL:   BASE{<cc>}{<sfx>}{S}       ...
+UAL    :   BASE{<sfx>}{S}{<cc>}{<q>}  ...
+
+BASE  is instruction base name, such as "LDR", "STR", or "MOV".
+<cc>  is condition code; sometimes code "AL" is disallowed
+<sfx> is instruction sfx, such as <addressing_mode> for LDM/SDM
+         or (eg) operand width for LDR/STR
+S     is "set status codes", used in MOV and ALU insns
+<q>   is "specify insn width", used in UAL, to select T16 or T32 encodings
+
+Only a single <sfx> is allowed per insn. Everything but BASE is optional.
+
+2.  Suffixes allowed (by INSN type) are as follows:
+
+2.1 Load/Store
+
+Three groups of suffixes are needed for LDR/STR. 
+
+2.1.1 LDR/STR: Half/Double/Signed Byte/Signed Half
+
+Four suffixes are allowed for these operations.
+
+H   "Half"
+SH  "Signed Half"
+SB  "Signed Byte"
+D   "Double" (ie 64-bit value)
+
+This is the most complicated of the Pre-UAL codings. So a little history:
+
+ARM4 Supports L/S half, signed half, and signed byte with two bits:
+the H (half/^byte) and the S(signed/^unsigned) bits combined with the 
+general L bit (load/^store).
+
+For ARM4, the H/S combo of 0/0 (unsigned byte) was reserved as there was 
+a general L/S byte instruction.
+
+With ARM5, support for "double" was added in the same code space utilizing
+the fact that "store signed" is identical to "store unsigned". Therefore the
+"Store Signed Byte" and "Store Signed Half" were remapped as L/S Double.
+For the assembler, a consequence is that a base LDR instruction must be
+encoded with L-bit toggled to support "LDR double" since the code-space was
+recovered from a STR instruction.
+
+Hence, values store in `arm_suffix_codes` hold two values: one for store & 
+one for load, and these values are XORd into base (to allow toggle of L-bit).
+
+FWIW, the "unsigned byte" code space was allocated to various instructions in
+ARM6. These instructions are not expressable (special) in pre-UAL syntax.
+
+2.2 LDR/STR: Byte
+
+The `B` suffix is allowed for all memory addressing modes that word accesses are.
+
+2.3 LDR/STR: User Mode Privilege
+
+Two suffixes:
+
+T   "User mode word"
+BT  "User mode byte"
+
+Sets A32 Bits 21+22. Otherwise unremarkable.
+
+
+2.2 Load/Store Multiple
+LDM / SDM defines <addressing_mode> as suffix.
+There are 8 allowed <addressing_mode> values:
+
+// Standard Names: ARM5 A5.4
+IA  "Increment After"
+IB  "Increment Before"
+DA  "Decrement After"
+DB  "Decrement Before"
+
+// Alternate Names (Stack operations)
+FD  "Full Descending"
+FA  "Full Ascending"
+ED  "Empty Descending"
+EA  "Empty Ascending"
+
+There is a different encoding for the 
+
+There is a different equivalance for Standard & Stack names, depending if insn
+is a load or a store. These mappings are shown in ARM5 A5.4.6, pg A5-48.
+
+Push INSN is DB (aka EA);  Pop INSN is IA (aka FD)
+
+ARM STM default is IA (aka EA)
+ARM LDM default is IA (aka FD)
+
+

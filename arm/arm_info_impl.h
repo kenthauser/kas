@@ -2,7 +2,7 @@
 #define KAS_ARM_ARM_INFO_IMPL_H
 
 #include "target/tgt_info_fn.h"
-#include "arm_stmt_flags.h"
+#include "arm_stmt_ual.h"
 #include "arm_mcode.h"
 
 namespace kas::arm::opc

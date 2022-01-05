@@ -19,6 +19,7 @@ namespace kas::arm::opc
 using expr_fits   = expression::expr_fits;
 using fits_result = expression::fits_result;
 using op_size_t   = core::opcode::op_size_t;
+using arg_mode_t  = typename arm_mcode_t::arg_mode_t;
 
 //
 // Derive common validators from generic templates
@@ -870,7 +871,7 @@ using _val_reg = _val_gen<NAME, val_reg, Ts...>;
 
 // register-class and reg+mode validations
 VAL_REG(REG         , RC_GEN);
-VAL_REG(REG_UPDATE  , RC_GEN, val_reg::all_regs, parser::MODE_REG_UPDATE);
+VAL_REG(REG_WB      , RC_GEN, val_reg::all_regs, arg_mode_t::MODE_REG_UPDATE);
 VAL_REG(FLT_SGL     , RC_FLT_SGL);
 VAL_REG(FLT_DBL     , RC_FLT_DBL);
 
@@ -879,6 +880,7 @@ VAL_REG(CREG        , RC_C_REG);
 
 // Named Registers
 VAL_REG(SP          , RC_GEN, 13);
+VAL_REG(SP_WB       , RC_GEN, 13, arg_mode_t::MODE_REG_UPDATE);
 VAL_REG(LR          , RC_GEN, 14);
 VAL_REG(PC          , RC_GEN, 15);
 VAL_REG(APSR        , RC_CPU, REG_CPU_APSR);
@@ -907,7 +909,7 @@ VAL_GEN(REGSET_USER , val_regset_user);
 
 // Thumb register validators
 VAL_GEN(REGL        , val_regl);
-VAL_GEN(REGL_UPDATE , val_regl_update);
+VAL_GEN(REGL_WB     , val_regl_update);
 
 VAL_GEN(REGL_INDIR5_W_RELOC , val_indir_5, 2, true);    // relocatable
 VAL_GEN(REGL_INDIR5_H       , val_indir_5, 1);
@@ -934,10 +936,16 @@ VAL_GEN(U12         , val_range, 0, (1<<12) - 1);
 VAL_GEN(U4          , val_range, 0, (1<<4)  - 1);
 
 
-VAL_GEN(IMM24       , val_range, 0, (1<<12) - 1);
-VAL_GEN(IMM16       , val_range, 0, (1<<12) - 1);
-VAL_GEN(IMM5        , val_range, 0, (1<<5 ) - 1);
 VAL_GEN(IMM4        , val_range, 0, (1<<4 ) - 1);
+VAL_GEN(IMM5        , val_range, 0, (1<<5 ) - 1);
+VAL_GEN(IMM12       , val_range, 0, (1<<12) - 1);
+VAL_GEN(IMM16       , val_range, 0, (1<<16) - 1);
+VAL_GEN(IMM24       , val_range, 0, (1<<24) - 1);
+
+// XXX
+using IMM1_16 = IMM4;
+using IMM1_32 = IMM5;
+
 //VAL_GEN(IMM5_UPDATE , val_imm_update, 5);
 VAL_GEN(IMM5_UPDATE , val_false);
 
@@ -973,6 +981,25 @@ VAL_GEN(BIT4        , val_range, 0, 0);
 VAL_GEN(CSPR_FLAGS  , val_range, 0, 0);
 VAL_GEN(SSPR_FLAGS  , val_range, 0, 0);
 VAL_GEN(XTEND_ROR   , val_range, 0, 0);
+
+// THUMB32 Validators
+VAL_GEN(THB_IMM12   , val_range, 0, 0);
+VAL_GEN(NPC         , val_range, 0, 0);
+VAL_GEN(OFFSET_21   , val_range, 0, 0);
+VAL_GEN(OFFSET_25   , val_range, 0, 0);
+VAL_GEN(BANKED_REG  , val_range, 0, 0);
+VAL_GEN(SPEC_REG    , val_range, 0, 0);
+VAL_GEN(IFLAGS      , val_range, 0, 0);
+VAL_GEN(DSB_OPTION  , val_range, 0, 0);
+
+VAL_GEN(INDIR_OFFSET8 , val_range, 0, 0);
+VAL_GEN(REG_TBB     , val_range, 0, 0);
+VAL_GEN(REG_TBH     , val_range, 0, 0);
+VAL_GEN(REG_INDIR_W , val_range, 0, 0);
+VAL_GEN(INDIR_OFFSET12, val_range, 0, 0);
+
+VAL_GEN(IMM5_NZ, val_range, 0, 0);
+VAL_GEN(ROR_B  , val_range, 0, 0);
 }
 
 #undef VAL_REG

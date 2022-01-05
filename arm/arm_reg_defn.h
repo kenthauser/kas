@@ -35,22 +35,24 @@ using cpu_reg_l = list<
      , reg<REG_STR("spsr") , RC_CPU, REG_CPU_SPSR , void>
      >;
  
-// declare aliases and make alias names canonical
+// declare ARM register aliases and make alias names canonical
 using arm_reg_aliases_l = meta::list<
-      list<REG_STR("r11"), REG_STR("fp"), std::true_type>
-    , list<REG_STR("r13"), REG_STR("sp"), std::true_type>
-    , list<REG_STR("r14"), REG_STR("lr"), std::true_type>
-    , list<REG_STR("r15"), REG_STR("pc"), std::true_type>
+      list<REG_STR("r11"), REG_STR("fp"), std::true_type>   // frame pointer
+    , list<REG_STR("r12"), REG_STR("ip"), std::true_type>   // scratch register
+    , list<REG_STR("r13"), REG_STR("sp"), std::true_type>   // stack pointer
+    , list<REG_STR("r14"), REG_STR("lr"), std::true_type>   // link register
+    , list<REG_STR("r15"), REG_STR("pc"), std::true_type>   // program counter
     >;
  
 
 // combine register definitions into single list
+// XXX `list` doesn't work
 using arm_all_reg_l = concat<list<>
-                            , gen_reg_l
-                            , fp_sgl_reg_l
-                            , fp_dbl_reg_l
-                            , cpu_reg_l
-                             >;
+    , gen_reg_l
+    , fp_sgl_reg_l
+    , fp_dbl_reg_l
+    , cpu_reg_l
+    >;
 }
 
 #undef REG_STR

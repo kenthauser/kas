@@ -12,9 +12,10 @@ namespace kas::arm
 // declared as 16-bit field (ie `defn_info_t`)
 static constexpr auto SZ_ARCH_MASK    = 0x0f;
 static constexpr auto SZ_ARCH_ARM     = 0x00;
-static constexpr auto SZ_ARCH_THB     = 0x01;
-static constexpr auto SZ_ARCH_THB_EE  = 0x02;
-static constexpr auto SZ_ARCH_ARM64   = 0x03;
+static constexpr auto SZ_ARCH_THB16   = 0x01;
+static constexpr auto SZ_ARCH_THB32   = 0x02;
+static constexpr auto SZ_ARCH_THBEE   = 0x03;
+static constexpr auto SZ_ARCH_ARM64   = 0x04;
 
 
 static constexpr auto SZ_GEN_MASK     = 0x00f0;
@@ -42,12 +43,13 @@ static constexpr auto SZ_DEFN_REQ_SB    = 0x8a << SZ_DEFN_SFX_SHIFT;
 // arm insn operand size
 enum arm_op_size_t : uint8_t
 {
-      OP_SIZE_WORD  // default: 32-bit value
+      OP_SIZE_WORD      // default: 32-bit value
     , OP_SIZE_HALF
     , OP_SIZE_BYTE
-    , OP_SIZE_QUAD
+    , OP_SIZE_DOUBLE
     , OP_SIZE_SHALF
     , OP_SIZE_SBYTE
+    , OP_SIZE_QUAD      // ARM64 extension
     , NUM_OP_SIZE
 };
 
@@ -95,7 +97,7 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t
 
     // provide translation from enum -> name for operation sizes
     static constexpr const char size_names[][4] =
-        { "W", "H", "B", "Q", "SH", "SB" };
+        { "W", "H", "B", "D", "SH", "SB", "Q"};
 
     // determine `arch` for `defn_t`
     uint8_t defn_arch() const

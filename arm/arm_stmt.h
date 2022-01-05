@@ -1,12 +1,15 @@
 #ifndef KAS_ARM_ARM_STMT_H
 #define KAS_ARM_ARM_STMT_H
 
-// Declare arm parsed instruction
+// Declare ARM parsed statement 
 //
 // format is regular:  opcode + [(comma-separated) args]
 //
-// Opcode `name` can specify condition code and argument width
-// Thus, define an `info` to hold this information
+// Opcode `name` can specify condition code and "suffixes"
+// Define an `info` to hold this information
+
+// "suffixes" are primarily condition-codes and "pre-UAL" codes
+// which must be parsed separate from BASE code. 
 
 #include "arm_arg.h"
 #include "arm_hw_defns.h"
@@ -20,6 +23,7 @@ namespace kas::arm::parser
 {
 
 using namespace tgt::parser;
+
 // info: accumulate info from parsing insn not captured in `args`
 // NB: bitfields don't zero-init. use `aliagn_as` support type to zero-init
 struct arm_stmt_info_t : alignas_t<arm_stmt_info_t
@@ -36,6 +40,7 @@ struct arm_stmt_info_t : alignas_t<arm_stmt_info_t
     arm_stmt_info_t() : ccode{ARM_CC_OMIT}, base_t() {}
 
     // test if mcode supported for `info`
+    // XXX wrong place??
     const char *ok(arm_mcode_t const&) const;
 
     // XXX should not be needed
@@ -49,9 +54,9 @@ struct arm_stmt_info_t : alignas_t<arm_stmt_info_t
         info.print(os); return os;
     }
 
+    value_t sfx_index : 8;      // index of matched suffix from `arm_sfx_t`
     value_t ccode     : 4;      // conditional instruction code
-    value_t sfx_index : 5;      // index of matched suffix from `arm_sfx_t`
-    value_t has_sflag : 1;      // opcode has `S`  suffix (NB: set condition code flags)
+    value_t has_sflag : 1;      // opcode has `S`  suffix (NB: set condition flags)
     value_t has_nflag : 1;      // opcode has `.N` suffix (NB: only narrow)
     value_t has_wflag : 1;      // opcode has `.W` suffix (NB: only wide)
 };
@@ -60,7 +65,7 @@ struct arm_stmt_info_t : alignas_t<arm_stmt_info_t
 using arm_insn_t = tgt::tgt_insn_t<struct arm_mcode_t
                                   , hw::arm_hw_defs
                                   , KAS_STRING("ARM")
-                                  , 16          // mcodes per insn per arch
+                                  , 32          // mcodes per insn per arch
                                   , 4           // insn archs    
                                   >;
 
@@ -75,7 +80,7 @@ struct arm_stmt_t : tgt_stmt<arm_stmt_t
 {
     using base_t::base_t;
     
-    // process info_t from parse
+    // process parse of statement
     template <typename Context>
     void operator()(Context const& ctx);
 

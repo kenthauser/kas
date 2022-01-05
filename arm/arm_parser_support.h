@@ -2,7 +2,7 @@
 #define KAS_ARM_ARM_PARSER_SUPPORT_H
 
 // already included by `arm_parser_def.h`, but utilized in file
-#include "arm_stmt_flags.h"
+#include "arm_stmt_ual.h"
 
 namespace kas::arm::parser::bnf
 {
@@ -453,9 +453,9 @@ auto gen_stmt = [](auto& ctx)
         
         auto& parts    = _attr(ctx);
         auto& insn_tok = boost::fusion::at_c<0>(parts);
-        auto& ccode    = boost::fusion::at_c<1>(parts);
-        auto& sfx      = boost::fusion::at_c<2>(parts);
-        auto& s_flag   = boost::fusion::at_c<3>(parts);
+        auto& sfx      = boost::fusion::at_c<1>(parts);
+        auto& s_flag   = boost::fusion::at_c<2>(parts);
+        auto& ccode    = boost::fusion::at_c<3>(parts);
         auto& nw_flag  = boost::fusion::at_c<4>(parts);
 
         // save parsed condition code
@@ -484,7 +484,33 @@ auto gen_stmt = [](auto& ctx)
         _val(ctx) = {insn_tok, info};
     };
 
-    
+auto gen_stmt_preual = [](auto& ctx)
+    {
+        // result is `stmt_t`
+        arm_stmt_info_t info;
+        
+        auto& parts    = _attr(ctx);
+        auto& insn_tok = boost::fusion::at_c<0>(parts);
+        auto& ccode    = boost::fusion::at_c<1>(parts);
+        auto& sfx      = boost::fusion::at_c<2>(parts);
+        auto& s_flag   = boost::fusion::at_c<3>(parts);
+
+        // save parsed condition code
+        if (ccode)
+            info.ccode = *ccode;
+        else
+            info.ccode = arm_stmt_info_t::ARM_CC_OMIT;
+
+        // save parsed suffix code in info
+        if (sfx)
+            info.sfx_index = (*sfx)->index();
+        
+        // save s-flag
+        if (s_flag)
+            info.has_sflag = true;
+
+        _val(ctx) = {insn_tok, info};
+    };
 }
 
 #endif

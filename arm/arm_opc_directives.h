@@ -96,7 +96,7 @@ struct arm_opc_code: tgt_dir_opcode
         if (p) switch (*p)
         {
             case 16:
-                parser::arm_insn_t::set_arch(SZ_ARCH_THB);
+                parser::arm_insn_t::set_arch(SZ_ARCH_THB16);
                 return arm_seg_mapping()(ARM_SEG_THUMB());
             case 32:
                 parser::arm_insn_t::set_arch(SZ_ARCH_ARM);

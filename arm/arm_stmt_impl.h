@@ -5,7 +5,7 @@
 
 #include "arm_stmt.h"
 #include "arm_mcode.h"
-#include "arm_stmt_flags.h"
+#include "arm_stmt_ual.h"
 
 namespace kas::arm::parser
 {

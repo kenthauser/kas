@@ -7,7 +7,7 @@
 
 #include "arm.h"
 #include "arm_stmt.h"
-#include "arm_stmt_flags.h"
+#include "arm_stmt_ual.h"
 #include "arm_directives.h"
 #include "arm_parser_support.h"
 
@@ -186,12 +186,23 @@ auto const arm_args = x3::rule<class _, std::vector<arm_arg_t>> {"arm_args"}
 auto const parse_insn = rule<class _, std::tuple<kas_token
                                                , arm_stmt_info_t>> {} =
             lexeme[(arm_insn_x3()       // insn_base_name
-                >> -arm_ccode::x3()     // optional condition-code
-                >> -arm_suffix::x3()    // optional suffix (after ccode)
+                >> -arm_suffix::x3()    // optional suffix (pre-UAL codes)
                 >> -char_("sS")         // s-flag (update flags)
+                >> -arm_ccode::x3()     // optional condition-code
                 >> -(lit('.') >> char_("nNwW"))
                 >> !graph               // no trailing characters
                 )[gen_stmt]
+                ];
+
+// Re-order parts according to pre-UAL syntax
+auto const parse_pre_ual = rule<class _, std::tuple<kas_token
+                                               , arm_stmt_info_t>> {} =
+            lexeme[(arm_insn_x3()       // insn_base_name
+                >> -arm_ccode::x3()     // optional condition-code
+                >> -arm_suffix::x3()    // optional suffix (after ccode)
+                >> -char_("sS")         // s-flag (update flags)
+                >> !graph               // no trailing characters
+                )[gen_stmt_preual]
                 ];
 
 // Define statement rule:
