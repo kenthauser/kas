@@ -105,7 +105,7 @@ struct arm_info_list : arm_info_fn_base
     }
 };
 
-struct arm_info_a7_c : arm_info_fn_base
+struct arm_info_a32_c : arm_info_fn_base
 {
     void insert(code_t&     code
               , stmt_info_t const& stmt_info
@@ -124,7 +124,7 @@ struct arm_info_a7_c : arm_info_fn_base
 
 };
 
-struct arm_info_a7_cs : arm_info_fn_base
+struct arm_info_a32_cs : arm_info_fn_base
 {
     void insert(code_t&     code
               , stmt_info_t const& stmt_info
@@ -147,7 +147,7 @@ struct arm_info_a7_cs : arm_info_fn_base
 
 // insert upper word & lower word flags
 // flags are inserted into to opcode via XOR (see toggling of L-Bit in SFX_H)
-struct arm_info_a7_c_sfx : arm_info_fn_base
+struct arm_info_a32_c_sfx : arm_info_fn_base
 {
     bool is_ld(mcode_size_t const *code_p) const
     {

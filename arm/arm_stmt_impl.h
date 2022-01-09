@@ -74,7 +74,7 @@ const char *arm_stmt_info_t::ok(arm_mcode_t const &mcode) const
             // keeping it honest
             // unknown flags -- raise configuration error
             default:
-                return "INTERNAL ERROR: a7_info_flags: unknown value";
+                return "INTERNAL ERROR: a32_info_flags: unknown value";
         }
     }
 

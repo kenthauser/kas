@@ -21,7 +21,7 @@
 #include "arm_insn_common.h"
 
 
-namespace kas::arm::opc::arm7
+namespace kas::arm::opc::a32
 {
 #define STR KAS_STRING
 
@@ -49,7 +49,7 @@ using arm6_gen_v =
 // boilerplate to locate ARM6 insns
 namespace kas::arm::opc
 {
-    template <> struct arm_insn_defn_list<OP_ARM_ARM6> : arm7::arm6_gen_v {};
+    template <> struct arm_insn_defn_list<OP_ARM_ARM6> : a32::arm6_gen_v {};
 }
 
 #endif

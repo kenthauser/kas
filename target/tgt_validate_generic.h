@@ -70,7 +70,8 @@ struct tgt_val_reg : MCODE_T::val_t
     }
 
     // test if reg or reg_class
-    constexpr bool is_single_register() const { return r_num != static_cast<reg_value_t>(all_regs); } 
+    constexpr bool is_single_register() const
+                { return r_num != static_cast<reg_value_t>(all_regs); } 
    
     // test argument against validation
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
@@ -78,8 +79,9 @@ struct tgt_val_reg : MCODE_T::val_t
         if (!derived().is_mode_ok(arg))
             return fits.no;
         
-        // here validating if mode of arg matches. validate if REG class matches desired
-       if (arg.reg_p->kind(r_class) != r_class)
+        // here validating if mode of arg matches.
+        // validate if REG class matches desired
+        if (arg.reg_p->kind(r_class) != r_class)
             return fits.no;
 
         // here reg-class matches. Test reg-num if specified
@@ -88,7 +90,7 @@ struct tgt_val_reg : MCODE_T::val_t
             return fits.yes;
 
         // not default: look up actual rc_value
-        if (arg.reg_p->value(r_class) == r_num)
+        if (get_value(arg) == r_num)
             return fits.yes;
 
         return fits.no;
@@ -208,6 +210,17 @@ public:
 };
 
 
+// validate unsigned range of `N` bits
+template <typename MCODE_T, typename RANGE_VALUE_T = int16_t, unsigned SCALE = 0>
+struct tgt_val_range_u : tgt_val_range<MCODE_T, RANGE_VALUE_T, SCALE>
+{
+    using base_t      = tgt_val_range<MCODE_T, RANGE_VALUE_T, SCALE>;
+
+    constexpr tgt_val_range_u(uint8_t n)
+            : base_t (0, (1 << n) - 1) {}
+};
+
+
 template <typename MCODE_T, typename T, typename base_t = tgt_val_range<MCODE_T>>
 struct tgt_val_range_t : tgt_val_range<MCODE_T>
 {
@@ -217,6 +230,31 @@ struct tgt_val_range_t : tgt_val_range<MCODE_T>
                                , std::numeric_limits<U>::max()
                                , 0, size) {}
 };
+
+// generic to validate only MODE
+// derive from `tgt_val_range` & override `OK`
+template <typename MCODE_T>
+struct tgt_val_arg_mode : tgt_val_range<MCODE_T>
+{
+    using base_t      = tgt_val_arg_mode;
+    using mcode_t     = MCODE_T;
+    using arg_t       = typename mcode_t::arg_t;
+    using arg_mode_t  = typename mcode_t::arg_mode_t;
+
+    constexpr tgt_val_arg_mode(int mode) 
+                : mode{static_cast<arg_mode_t>(mode)}
+                , tgt_val_range<MCODE_T>(0, 0) {}
+
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        if (arg.mode() == mode)
+            return fits.yes;
+        return fits.no;
+    }
+    
+    arg_mode_t mode;
+};
+
 
 // special for development: placeholder validator that is always false
 template <typename MCODE_T>

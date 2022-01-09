@@ -7,7 +7,7 @@
 #include "arm_formats_opc.h"
 #include "arm7_formats_ops.h"
 
-namespace kas::arm::opc::arm7
+namespace kas::arm::opc::a32
 {
 // declare mixin classes to override virtual functions
 // override insert/extract pairs together...
@@ -119,7 +119,7 @@ struct FMT_LD  : fmt_gen, arg1_12b4, arg2_reg_indir {};
 struct FMT_PLD : fmt_gen, arg1_reg_indir {};
 
 // `srs`: 5 LSBs are immed value
-struct FMT_I00B5 : fmt_gen, fmt_arg<1, fmt32_generic<0, 5>> {};
+struct FMT_X_I5: fmt_gen, fmt_arg<2, fmt32_generic<0, 5>> {};
 
 // addressing mode 4
 struct FMT_RS    : fmt_gen, arg1_regset            {};

@@ -53,7 +53,7 @@ using dp_format_1 =
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_2 = 
-    defn<SZ, NAME, OP<0x1c00 + (OPC << 9)>, FMT_0_3_6, REGL, REGL, IMMED_3>;
+    defn<SZ, NAME, OP<0x1c00 + (OPC << 9)>, FMT_0_3_6, REGL, REGL, U3>;
 
 // overload "adds RD, RN, #0" as "movs"
 template <typename SZ, typename NAME, unsigned OPC>
@@ -62,11 +62,11 @@ using dp_format_2a =
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_3 = 
-    defn<SZ, NAME, OP<0x2000 + (OPC << 11)>, FMT_8_I8, REGL, IMMED_8>;
+    defn<SZ, NAME, OP<0x2000 + (OPC << 11)>, FMT_8_I8, REGL, U8>;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_4 = 
-    defn<SZ, NAME, OP<0x0000 + (OPC << 11)>, FMT_0_3_ABS5, REGL, REGL, IMMED_5>;
+    defn<SZ, NAME, OP<0x0000 + (OPC << 11)>, FMT_0_3_ABS5, REGL, REGL, U5>;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_5 = 
@@ -75,13 +75,13 @@ using dp_format_5 =
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_6 = list<list<>
 , defn<SZ, NAME, OP<0xa000>, FMT_8_PC8 , REGL, DIRECT>
-, defn<SZ, NAME, OP<0xa000>, FMT_8_X_I8, REGL, PC, IMMED_8_4>
-, defn<SZ, NAME, OP<0xa800>, FMT_8_X_I8, REGL, SP, IMMED_8_4>
+, defn<SZ, NAME, OP<0xa000>, FMT_8_X_I8, REGL, PC, U8_4>
+, defn<SZ, NAME, OP<0xa800>, FMT_8_X_I8, REGL, SP, U8_4>
 >;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_7 = 
-    defn<SZ, NAME, OP<0xb000 + (OPC << 7)>, FMT_X_X_I7, SP, SP, IMMED_7_4>;
+    defn<SZ, NAME, OP<0xb000 + (OPC << 7)>, FMT_X_X_I7, SP, SP, U7_4>;
 
 template <typename SZ, typename NAME, unsigned OPC>
 using dp_format_8 = 
@@ -211,8 +211,8 @@ using thumb_insn_ls_multiple_l = list<list<>
 >;
 
 using thumb_insn_exception_l = list<list<>
-, defn<t16_u, STR("SWI") , OP<0xdf00>, FMT_, IMMED_8>
-, defn<t16_u, STR("BKPT"), OP<0xbe00>, FMT_, IMMED_8>
+, defn<t16_u, STR("SWI") , OP<0xdf00>, FMT_, U8>
+, defn<t16_u, STR("BKPT"), OP<0xbe00>, FMT_, U8>
 >;
 
 

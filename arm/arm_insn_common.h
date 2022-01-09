@@ -44,22 +44,22 @@ using arm_sz = meta::int_<(OP_ARCH | ... | OP_FLAGS)>;
 // c: support for `cond` : allow condition field 
 // n: support for `no-al`: don't allow `al` case (implies allow condition)
 // s: support for `S`: update flags
-using a7_u   = arm_sz<SZ_ARCH_ARM>;
-using a7_c   = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND>;
-using a7_cs  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND               , SZ_DEFN_S_FLAG>;
-using a7_n   = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_NO_AL>;
-using a7_ns  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_NO_AL, SZ_DEFN_S_FLAG>;
+using a32_u   = arm_sz<SZ_ARCH_ARM>;
+using a32_c   = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND>;
+using a32_cs  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND               , SZ_DEFN_S_FLAG>;
+using a32_n   = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_NO_AL>;
+using a32_ns  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_NO_AL, SZ_DEFN_S_FLAG>;
 
 // declare "suffixes" for A7 instructions
 // lower case implies sfx is optional, upper case requires suffix
-using a7_cb  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_B_FLAG>;
-using a7_cT  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_REQ_T>;
-using a7_cHs = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_REQ_H, SZ_DEFN_S_FLAG>;
-using a7_cM  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_REQ_M>;
-using a7_uM  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_REQ_M>;
-using a7_uI  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_REQ_I>;
-using a7_cl  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_L_FLAG>;
-using a7_ul  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_L_FLAG>;
+using a32_cb  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_B_FLAG>;
+using a32_cT  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_REQ_T>;
+using a32_cHs = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_REQ_H, SZ_DEFN_S_FLAG>;
+using a32_cM  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_REQ_M>;
+using a32_uM  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_REQ_M>;
+using a32_uI  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_REQ_I>;
+using a32_cl  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_L_FLAG>;
+using a32_ul  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_L_FLAG>;
 
 // base defns for thumb ops
 // suffix naming matches `ARM7` patterns
@@ -109,12 +109,12 @@ using t32_cH = t32_c;
 
 // map "suffix" flag `sz` types to `info` manipulation types
 using arm_sz_info_map = meta::list<
-      meta::pair<a7_c       , struct arm_info_a7_c>
-    , meta::pair<a7_n       , struct arm_info_a7_c>
-    , meta::pair<a7_cs      , struct arm_info_a7_cs>
-    , meta::pair<a7_ns      , struct arm_info_a7_cs>
-    , meta::pair<a7_cb      , struct arm_info_a7_c_sfx>
-    , meta::pair<a7_cT      , struct arm_info_a7_c_sfx>
+      meta::pair<a32_c       , struct arm_info_a32_c>
+    , meta::pair<a32_n       , struct arm_info_a32_c>
+    , meta::pair<a32_cs      , struct arm_info_a32_cs>
+    , meta::pair<a32_ns      , struct arm_info_a32_cs>
+    , meta::pair<a32_cb      , struct arm_info_a32_c_sfx>
+    , meta::pair<a32_cT      , struct arm_info_a32_c_sfx>
     >;
 
 // forward declare "list" info_fn
