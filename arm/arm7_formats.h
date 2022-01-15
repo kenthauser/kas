@@ -51,9 +51,11 @@ using arg4_20b4 = fmt_arg<4, gen_20b4>;
 using arg5_00b4 = fmt_arg<5, gen_00b4>;
 
 // declare immed for arg 2+
+// NB: these formatters use `kbfd` to process immediate args
 using arg2_fixed   = fmt_arg<2, fmt_fixed>;
 using arg3_fixed   = fmt_arg<3, fmt_fixed>;
 using arg4_fixed   = fmt_arg<4, fmt_fixed>;
+using arg3_addsub  = fmt_arg<3, fmt_addsub>;
 
 // declare shifter for arg 2+
 using arg2_shifter = fmt_arg<2, fmt_shifter>;
@@ -100,6 +102,7 @@ struct FMT_12_16_F   : FMT_12_16, arg3_fixed         {};
 struct FMT_12_16_S   : FMT_12_16, arg3_shifter       {}; 
 struct FMT_12_16_0   : FMT_12_16, arg3_00b4          {};
 struct FMT_12_16_0_S : FMT_12_16_0, arg4_shifter     {};
+struct FMT_12_16_AS  : FMT_12_16, arg3_addsub       {};
 
 // addressing mode 1: no Rn (eg mov)
 struct FMT_12_0   : fmt_gen, arg1_12b4, arg2_00b4     {};
@@ -110,9 +113,6 @@ struct FMT_12_F   : fmt_gen, arg1_12b4, arg2_fixed    {};
 struct FMT_16_0   : fmt_gen, arg1_16b4, arg2_00b4  {};
 struct FMT_16_0_S : FMT_16_0, arg3_shifter         {};
 struct FMT_16_F   : fmt_gen, arg1_16b4, arg2_fixed {};
-
-// addressing mode 1: add/sub immediate
-struct FMT_12_16_AS : FMT_12_16, fmt_arg<3, fmt_add_sub> {};
 
 // support ARM5 addressing mode 2 (aka register indirect)
 struct FMT_LD  : fmt_gen, arg1_12b4, arg2_reg_indir {};

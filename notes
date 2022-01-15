@@ -590,8 +590,29 @@ Notes: ARCH:
 5. Thumb LDR(3) aligns PC before calculating OFFSET. Analyze.
 
 
+****************
 
+Notes: ARM Relocs
 
+1. Relocs need to error out instructions. Need to have `loc` for all relocs
+   that can cause error. Thus, may need to convert `constant` to `core_expr`
+   when stored in arg stack. 
+
+2. Need to use `arg` loc_p for constant args when storing constnat reloc values.
+
+3. Need to allow "relocs" to be specified for immediate args.
+
+4. REFACTOR relocs: ELF Reloc utilizes: SYMBOL, ADDEND, and PLACE as principles.
+   PLACE is implied. SYMBOL and ADDEND are "arguments"
+   Need to pass all three to KBFD. An Extra implied REL/RELA bit is in KBFD. 
+   This is interface for static relocations: ie assembler generated.
+
+   ELF allows Reloc's to "overflow". Required for *G?* relocs. 
+
+5. Since ARM Immediate args use "relocs" to xlate to shift/value format, should
+   `core_reloc` take a `kas_position_tagged *` arg instead of `kas_loc`
+
+6. 
 
 
 

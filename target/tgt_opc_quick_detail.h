@@ -155,6 +155,7 @@ struct quick_stream : core::emit_stream_base
               e_chan_num num
             , kbfd::kbfd_target_reloc const& info
             , uint8_t offset
+            , int64_t& addend
             ) override
     {
         set_error(__FUNCTION__);

@@ -77,6 +77,7 @@ struct emit_stream_base
               e_chan_num num
             , kbfd::kbfd_target_reloc const& tgt_reloc
             , uint8_t offset
+            , emit_value_t& addend
             ) = 0;              
 
     // access `core_base` (throws if not defined)

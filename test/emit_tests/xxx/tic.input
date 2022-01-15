@@ -377,4 +377,4 @@ ml_funct:
 	.ascii	"ml_funct\000"
 .LASF5:
 	.ascii	"ml_util_func\000"
-	.ident	"GCC: (GNU Arm Embedded Toolchain 10.3-2021.07) 10.3.1 20210621 (release)"
+	#.ident	"GCC: (GNU Arm Embedded Toolchain 10.3-2021.07) 10.3.1 20210621 (release)"

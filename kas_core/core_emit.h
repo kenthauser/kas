@@ -81,14 +81,14 @@ struct core_emit
     
     // driven entry-points from stream operators above 
     void operator()(expr_t const& e);
-    void operator()(core_addr_t const&, kas_loc const * = {});
-    void operator()(core_symbol_t const&, kas_loc const * = {});
-    void operator()(core_expr_t const&, kas_loc const * = {});
-    void operator()(parser::kas_diag_t const&, kas_loc const * = {});
+    void operator()(core_addr_t const&);
+    void operator()(core_symbol_t const&);
+    void operator()(core_expr_t const&);
+    void operator()(parser::kas_diag_t const&);
 
     // emit unsupported value (NB: will result in error)
     template <typename T>
-    void operator()(T const&, kas_loc const * = {});
+    void operator()(T const&);
     
     // retrive & clear error state
     e_diag_t const *get_error()
@@ -213,9 +213,13 @@ struct emit_reloc
     using emit_value_t = typename core_emit::emit_value_t;
     struct flush {};
 
-    emit_reloc(kbfd::kbfd_reloc r, emit_value_t addend = {}
-             , uint8_t offset = {}, uint8_t r_flags = {})
-        : reloc(r), addend(addend), offset(offset), r_flags(r_flags) {}
+    // XXX `loc` should be `kas_position_tag`
+    emit_reloc(kbfd::kbfd_reloc r
+             , kas_loc loc = {}
+             , emit_value_t addend = {}
+             , uint8_t offset = {}
+             , uint8_t r_flags = {})
+        : reloc(r), loc(loc), addend(addend), offset(offset), r_flags(r_flags) {}
     
     // expect relocatable expression.
     auto& operator<<(expr_t const& e)
@@ -234,7 +238,7 @@ private:
     friend auto operator<<(core_emit& base, emit_reloc r)
     {
         r.base_p = &base;
-        r.r_p    = &base.add_reloc(r.reloc, r.addend, r.offset, r.r_flags);
+        r.r_p    = &base.add_reloc(r.reloc, r.loc, r.addend, r.offset, r.r_flags);
         return r;
     }
 
@@ -242,6 +246,7 @@ private:
     core_reloc *r_p {};
 
     // save ctor values
+    kas_loc          loc;
     kbfd::kbfd_reloc reloc;
     emit_value_t     addend;
     uint8_t          offset;
@@ -254,8 +259,11 @@ struct emit_disp
     using emit_value_t = typename core_emit::emit_value_t;
     
     // declare size in bytes, offset from current location
-    emit_disp(uint8_t size, emit_value_t addend = {}, emit_value_t offset = {})
-        : size(size), addend(addend), offset(offset) {}
+    emit_disp(uint8_t      size
+            , kas_loc      loc = {}
+            , emit_value_t addend = {}
+            , emit_value_t offset = {})
+        : size(size), loc(loc), addend(addend), offset(offset) {}
 
     // expect relocatable expression.
     auto& operator<<(expr_t const& e)
@@ -275,12 +283,13 @@ private:
         _proto.default_width(r.size * 8);
         
         r.base_p = &base;
-        r.r_p    = &base.add_reloc(reloc, r.addend, r.offset);
+        r.r_p    = &base.add_reloc(reloc, r.loc, r.addend, r.offset);
         return r;
     }
 
     core_emit *base_p;
     core_reloc *r_p;
+    kas_loc      loc;
     emit_value_t addend, offset;
     uint8_t      size;
 };

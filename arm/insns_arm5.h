@@ -40,7 +40,8 @@ using arm_insn_common_l = list<list<>
 
 // ARM5: A3.3
 // NB: out-of-range branches handled by linker, not assembler
-// NB: ARM_CALL24 validator causes `ARM_CALL` reloc to be emitted
+// NB: ARM_CALL validator causes `ARM_CALL` reloc to be emitted
+// NB: unconditional branches preceed conditional so they are preferred
 using arm_insn_branch_l = list<list<>
 , defn<a32_c, STR("b")   , OP<0x0a00'0000>, FMT_B , ARM_JUMP24>
 , defn<a32_u, STR("bl")  , OP<0xeb00'0000>, FMT_B , ARM_CALL24>
@@ -53,11 +54,12 @@ using arm_insn_branch_l = list<list<>
 
 // ARM V5: A5.1 addressing mode 1 - Data-processing operands
 // `data_processing` is for two registers + shifter_operand
+// NB: invalid immediate values are handled by `kbfd`, not validator
 template <typename SZ, typename NAME, unsigned ARM_OP>
 using data_processing = list<list<>
 // match 3 patterns (IMMED, REG, REG+SHIFT)
 , defn<SZ, NAME, OP<0x200'0000 | (ARM_OP << 21)>
-                , FMT_12_16_F, REG, REG, IMMED>
+                , FMT_12_16_F, REG, REG, U32>
 , defn<SZ, NAME, OP<0x000'0000 | (ARM_OP << 21)>
                 , FMT_12_16_0_S, REG, REG, REG> 
 , defn<SZ, NAME, OP<0x000'0000 | (ARM_OP << 21)>
@@ -83,7 +85,7 @@ template <typename SZ, typename NAME, unsigned ARM_OP, typename FMT, typename FM
 using dp_one = list<list<>
 // match 3 patterns (IMMED, REG, REG+SHIFT)
 , defn<SZ, NAME, OP<0x200'0000 | (ARM_OP << 21)>
-                , FMT_F, REG, IMMED>
+                , FMT_F, REG, U32>
 , defn<SZ, NAME, OP<0x000'0000 | (ARM_OP << 21)>
                 , FMT, REG, REG> 
 , defn<SZ, NAME, OP<0x000'0000 | (ARM_OP << 21)>
@@ -120,7 +122,7 @@ using arm_insn_data_l = list<list<>
 // ARM V5: A5.2 addressing mode 2: Load & Store word or unsigned byte
 // load word & unsigned byte
 // NB: the PARSER accumulates all indirect values into INDIR object
-// NB: which allows all indirect values. Validators limit values
+// NB: which allows all indirect values. Validators limit allowed values.
 using arm_insn_load_store_l = list<list<>
 // load/store: allow `B` suffix for unsigned byte
 , defn<a32_cb , STR("ldr") , OP<0x410'0000>, FMT_LD, REG, A32_INDIR>

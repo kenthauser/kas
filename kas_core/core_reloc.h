@@ -25,7 +25,9 @@ struct core_reloc
     static constexpr auto RFLAGS_PC_REL = kbfd::kbfd_reloc::RFLAGS_PC_REL;
 
     // control `core_reloc` operation
-    static constexpr auto CR_EMIT_BARE = 0x1;
+    static constexpr auto CR_EMIT_BARE   = 0x1; // emit reloc without "value"
+    static constexpr auto CR_EMIT_SYM    = 0x2; // don't convert SYM -> addr
+    static constexpr auto CR_EMIT_BRANCH = 0x4; // resolve as branch
 
     core_reloc()
     {
@@ -37,9 +39,12 @@ struct core_reloc
         reloc = _proto;
     }
 
-    core_reloc(kbfd::kbfd_reloc reloc, int64_t addend = {}
+    core_reloc(kbfd::kbfd_reloc reloc
+             , kas_loc loc    = {}
+             , int64_t addend = {}
              , uint8_t offset = {}, uint8_t r_flags = {})
-        : reloc(std::move(reloc)), addend(addend), offset(offset), r_flags(r_flags)
+        : reloc(std::move(reloc)), loc(loc)
+        , addend(addend), offset(offset), r_flags(r_flags)
     {
 #if defined(TRACE_CORE_RELOC) && 1
         std::cout << "core_reloc::ctor: ";
@@ -48,6 +53,9 @@ struct core_reloc
             std::cout << ", addend = " << addend;
         if (offset)
             std::cout << ", offset = " << +offset;
+
+        if (loc)
+            std::cout << ", loc = " << loc.where();
         std::cout << std::endl;
 #endif
     }
@@ -56,10 +64,10 @@ struct core_reloc
     // NB: operator()(core_addr_t const&) selects appropriate base
     //     symbol for reloc. (based on backend)
     void operator()(expr_t const&, uint8_t flags = {});
-    void operator()(core_addr_t   const&, kas_loc const * = {});
-    void operator()(core_symbol_t const&, kas_loc const * = {});
-    void operator()(core_expr_t   const&, kas_loc const * = {});
-    void operator()(parser::kas_diag_t const&, kas_loc const *);
+    void operator()(core_addr_t   const&);
+    void operator()(core_symbol_t const&);
+    void operator()(core_expr_t   const&);
+    void operator()(parser::kas_diag_t const&);
 
     // cause `*this` to be emitted
     void emit       (core_emit&, parser::kas_error_t&);
@@ -71,7 +79,7 @@ struct core_reloc
     void put_reloc  (core_emit&, parser::kas_error_t&, core_section  const&);
     void put_reloc  (core_emit&, parser::kas_error_t&, core_symbol_t const&);
     void put_reloc  (core_emit&, parser::kas_error_t&);
-    void apply_reloc(core_emit&, parser::kas_error_t&);
+    const char *apply_reloc(core_emit&, parser::kas_error_t&);
 
     // return true iff `relocs` emited OK
     static bool done(core_emit& base);
@@ -80,6 +88,7 @@ struct core_reloc
     kbfd::kbfd_reloc    reloc;
     uint8_t             offset  {};
     uint8_t             r_flags {};
+    kas_loc             loc     {};
     
     // hold info about value (ie the "addend") to be relocated
     int64_t              addend      {};
@@ -89,7 +98,6 @@ struct core_reloc
 
     // support values
     parser::kas_diag_t const *diag_p {};
-    parser::kas_loc    const *loc_p  {};
 };
 
 }

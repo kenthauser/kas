@@ -203,7 +203,8 @@ struct arm_rel_addsub : kbfd::k_rel_add_t
         auto [encoded, residual] = encode_alu_immed(value);
         //std::cout << "arm_rel_addsub::write: " << encoded << "/" << residual << std::endl;
         data = (data &~ 0xfff) | encoded;
-        return residual ? "Invalid constant for relocation" : nullptr;
+        //return residual ? "Invalid constant for relocation" : nullptr;
+        return "K Invalid constant for relocation";
     }
 };
 

@@ -89,6 +89,7 @@ VAL_GEN(U8      , val_range_u,  8);
 VAL_GEN(U12     , val_range_u, 12);
 VAL_GEN(U16     , val_range_u, 16);
 VAL_GEN(U24     , val_range_u, 24);
+VAL_GEN(U32     , val_range_u, 32);
 
 // disallow zero shift count
 //VAL_GEN(U5_NZ   , val_range, 1, 31);

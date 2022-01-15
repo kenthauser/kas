@@ -89,7 +89,7 @@ struct fmt_displacement : m68k_mcode_t::fmt_t::fmt_impl
             static const kbfd::kbfd_reloc r { kbfd::K_REL_ADD(), 8, true }; 
             
             // reloc is from end of 2-byte machine code, stored with 1 byte offset
-            base << core::emit_reloc(r, -2, 1) << arg.expr;
+            base << core::emit_reloc(r, {}, -2, 1) << arg.expr;
             break;
         }
         case MODE_BRANCH_WORD:

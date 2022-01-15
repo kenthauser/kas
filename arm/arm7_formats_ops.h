@@ -31,28 +31,6 @@ struct fmt_shifter: arm_mcode_t::fmt_t::fmt_impl
     }
 };
 
-
-// ARM5: Addressing Mode 1: immediate 12-bit value with 8 significant bits
-// relocations: R_ARM_ALU_SB_Gx{_NC}
-struct fmt_fixed : arm_mcode_t::fmt_t::fmt_impl
-{
-    bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
-    {
-        op[1] |= val_p->get_value(arg);     // 12-bits into LSBs
-        return true;
-    }
-    
-    void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const override
-    {
-        val_p->set_arg(arg, op[1]);
-    }
-#if 0
-    void emit(core::core_emit& base, mcode_size_t *op, arg_t& arg, val_t const *val_p) const override
-    {
-    }
-#endif
-};
-
 // ARM5: Addressing Mode 2: various forms of indirect in bottom 12 bits + flags
 // requires validator `val_indir`
 struct fmt_reg_indir :  arm_mcode_t::fmt_t::fmt_impl
@@ -85,7 +63,7 @@ struct fmt_reg_indir :  arm_mcode_t::fmt_t::fmt_impl
             // NB: PC-rel is from addr + 8
             case arg_t::arg_mode_t::MODE_DIRECT:
                 op[0] |= 0xf;       // base register is R15
-                base << core::emit_reloc(r_pcrel, -8) << arg.expr;
+                base << core::emit_reloc(r_pcrel, {}, -8) << arg.expr;
                 break;
 
             // handle REG_INDIR with unresolved offset
@@ -160,7 +138,7 @@ struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
                     { kbfd::ARM_REL_OFF24(), 32, true, ARM_G1 }; 
             
             // displacement is from end of 2-byte machine code
-            base << core::emit_reloc(r, -8, 0) << arg.expr;
+            base << core::emit_reloc(r, {}, -8, 0) << arg.expr;
             break;
         }
         case arg_t::arg_mode_t::MODE_CALL:
@@ -172,16 +150,36 @@ struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
                     { kbfd::ARM_REL_OFF24(), 32, true, ARM_G0 }; 
             
             // displacement is from end of 2-byte machine code
-            base << core::emit_reloc(r, -8, 0) << arg.expr;
+            base << core::emit_reloc(r, {}, -8, 0) << arg.expr;
             break;
         }
     }
 };
 
-// ARM5: add/sub
-struct fmt_add_sub : arm_mcode_t::fmt_t::fmt_impl
+// ARM5: Addressing Mode 1: immediate 12-bit value with 8 significant bits
+// lookup immediate encode routine from KBFD
+struct fmt_fixed : arm_mcode_t::fmt_t::fmt_impl
 {
-    // branch `machine code` insertions handled by `emit_reloc`
+    bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
+    {
+        static const kbfd::kbfd_reloc r { kbfd::ARM_REL_ADDSUB(), 32 };
+        
+        op[1] |= val_p->get_value(arg);     // 12-bits into LSBs
+        return true;
+    }
+    
+    void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const override
+    {
+        static const kbfd::kbfd_reloc r { kbfd::ARM_REL_ADDSUB(), 32 };
+        
+        val_p->set_arg(arg, op[1]);
+    }
+};
+
+// ARM5: add/sub
+struct fmt_addsub : arm_mcode_t::fmt_t::fmt_impl
+{
+    // use KBFD to handle special format immediate
     void emit_reloc(core::core_emit& base
                   , mcode_size_t *op
                   , arg_t& arg

@@ -91,6 +91,7 @@ public:
                   e_chan_num num
                 , kbfd::kbfd_target_reloc const& info
                 , uint8_t offset
+                , int64_t& addend 
                 ) override
     {
         int64_t dummy;

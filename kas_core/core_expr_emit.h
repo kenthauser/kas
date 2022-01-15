@@ -12,10 +12,9 @@ template <typename REF>
 template <typename BASE_T, typename RELOC_T>
 void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& diag) const
 {
-    auto do_emit = [&base, &diag, loc_p=reloc.loc_p]
+    auto do_emit = [&base, &diag]
                     (auto& reloc, expr_term const *term_p = {}, bool pc_rel = false)
     {
-        reloc.loc_p     = loc_p;
         reloc.sym_p     = {};
         reloc.section_p = {};
         
@@ -37,7 +36,8 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, parser::kas_error_t& dia
                 // if value_p is not error, create one
                 auto p = term_p->value_p->template get_p<parser::kas_diag_t>();
                 if (!p)
-                    p = &parser::kas_diag_t::error("Invalid expression", *loc_p);
+                    p = &parser::kas_diag_t::error("Invalid expression"
+                                                 , reloc.loc);
                 diag = *p;
 
             }

@@ -78,10 +78,21 @@ void core_emit::emit_obj_code()
     parser::kas_error_t diag;
     for (auto p = relocs.begin(); p != reloc_p; ++p)
         p->emit(*this, diag);
+    
+    if (error_p)     
+        std::cout << "core_emit::emit_obj_code: error_p set (1)" << std::endl;
 
     // if relocs completed w/o error, emit base value
+#if 1
+    if (error_p)
+    {
+        std::cout << "core_emit::emit_obj_code: error_p set (2)" << std::endl;
+        (*this)(*error_p);
+    }
+#else
     if (diag)
         (*this)(diag.get());
+#endif
     else
         stream.put_uint(e_chan, width, data);
     set_defaults();
@@ -117,73 +128,84 @@ void core_emit::operator()(expr_t const& e)
         put_fixed(*fixed_p);
     else
     {
-        auto loc_p = e.get_loc_p();   
         e.apply_visitor(
             x3::make_lambda_visitor<void>
-                ([this, &loc_p](auto const& value)
-                    { return (*this)(value, loc_p); }
+                ([this](auto const& value)
+                    { return (*this)(value); }
             ));
     }
 }
 
 // handle `diag`: emit error into error stream
-void core_emit::operator()(parser::kas_diag_t const& diag, kas_loc const *loc_p)
+void core_emit::operator()(parser::kas_diag_t const& diag)
 {
     stream.put_diag(e_chan, width, diag);
     set_defaults();
 }
 
 // handle "internal" methods as adding relocation, then emitting
-void core_emit::operator()(core_addr_t const& addr, kas_loc const *loc_p)
+void core_emit::operator()(core_addr_t const& addr)
 {
     // add relocation & emit
-    add_reloc()(addr, loc_p);
+    add_reloc()(addr);
     emit_obj_code();    
 }
 
 
-void core_emit::operator()(core_symbol_t const& sym, kas_loc const *loc_p)
+void core_emit::operator()(core_symbol_t const& sym)
 {
     // add relocation & emit
-    add_reloc()(sym, loc_p);
+    add_reloc()(sym);
     emit_obj_code();    
 }
 
-void core_emit::operator()(core_expr_t const& expr, kas_loc const *loc_p)
+void core_emit::operator()(core_expr_t const& expr)
 {
     // add relocation & emit
-    add_reloc()(expr, loc_p);
+    add_reloc()(expr);
     emit_obj_code();    
 }
 
 template <typename T>
-void core_emit::operator()(T const& e, kas_loc const *loc_p)
+void core_emit::operator()(T const& e)
 {
     std::cout << "core_emit: unsupported expression: " << expr_t(e) << std::endl;
 }
 
-void core_emit::put_reloc(core_reloc& r, core_section const& section)
-{
-    if (auto p = get_reloc(r.reloc))
-        stream.put_section_reloc(e_chan, *p, r.offset, section, r.addend);
-    else
-        throw std::logic_error{"no target relocation: section"};
-}
-
 void core_emit::put_reloc (core_reloc& r, core_symbol_t const& symbol)
 {
+    // XXX logic is not quite understood
+    // XXX explore reloc_select_base_symbol(&) ???
+    if (!(r.r_flags & core_reloc::CR_EMIT_SYM))
+    {
+    }
     if (auto p = get_reloc(r.reloc))
         stream.put_symbol_reloc(e_chan, *p, r.offset, symbol, r.addend);
     else
         throw std::logic_error{"no target relocation: symbol"};
 }
 
+void core_emit::put_reloc(core_reloc& r, core_section const& section)
+{
+    // XXX if `section` & PC_REL -- adjust reloc & addend.
+    // XXX handle `SB_REL` as well...???
+
+    if (auto p = get_reloc(r.reloc))
+        stream.put_section_reloc(e_chan, *p, r.offset, section, r.addend);
+    else
+        throw std::logic_error{"no target relocation: section"};
+}
+
+// bare reloc: provide KBFD with addend only
 void core_emit::put_reloc (core_reloc& r)
 {
-    if (auto p = get_reloc(r.reloc))
-        stream.put_bare_reloc(e_chan, *p, r.offset);
-    else
-        throw std::logic_error{"no target relocation: bare"};
+    if (r.addend || (r.r_flags & core_reloc::CR_EMIT_BARE))
+    {
+        if (auto p = get_reloc(r.reloc))
+            stream.put_bare_reloc(e_chan, *p, r.offset, r.addend);
+        else
+            throw std::logic_error{"no target relocation: bare"};
+    }
 }
 
 }   // namespace kas_core

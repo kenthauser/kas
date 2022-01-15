@@ -217,6 +217,7 @@ struct emit_formatted : emit_stream
               e_chan_num num
             , kbfd::kbfd_target_reloc const& info
             , uint8_t offset
+            , int64_t& addend 
             ) override
     {
         // use suffix `X` if multiple relocations at same address
