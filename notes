@@ -612,7 +612,11 @@ Notes: ARM Relocs
 5. Since ARM Immediate args use "relocs" to xlate to shift/value format, should
    `core_reloc` take a `kas_position_tagged *` arg instead of `kas_loc`
 
-6. 
+6. RELOC R_ARM_ABS32 & R_ARM_REL32 both encode `thumb func` as LSB.
+    Is this supported by GNU? Should FUNC (or gloabl FUNC) variables always
+    emit value zero with RELOC. How does this impact `core_expr`?
+
+
 
 
 

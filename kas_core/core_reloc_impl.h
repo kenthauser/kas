@@ -13,7 +13,7 @@ void core_reloc::operator()(expr_t const& e, uint8_t flags)
 {
     r_flags |= flags;               // eg. emit `bare` reloc
 
-    // us an `if tree` used to initialize relocation
+    // use an `if tree` used to initialize relocation
     // don't need `apply_visitor` as most types don't relocate
     if (auto p = e.get_fixed_p())
     {
@@ -27,14 +27,18 @@ void core_reloc::operator()(expr_t const& e, uint8_t flags)
     else if (auto p = e.template get_p<core_addr_t>())
         (*this)(*p);
     else if (auto p = e.template get_p<parser::kas_diag_t>())
-        (*this)(*p);
+        diag_p = p;
     else
     {
+        // XXX generate `kas_diag_t`
         std::cout << "core_reloc::operator(): unsupported expression" << std::endl;
     }
+
+    if (diag_p)
+        (*this)(*diag_p);
 }
 
-// symbols can vary. Sort by type of symbol
+// symbols can vary. Filter out `EQU` symbols.
 void core_reloc::operator()(core_symbol_t const& value)
 {
 #ifdef TRACE_CORE_RELOC
@@ -44,7 +48,7 @@ void core_reloc::operator()(core_symbol_t const& value)
     if (auto p = value.value_p())
         (*this)(*p);
 
-    // otherwise, resolve as symbol (for now)
+    // otherwise, resolve as symbol
     else
         sym_p = &value;
 }
@@ -57,16 +61,18 @@ void core_reloc::operator()(core_addr_t const& value)
     std::cout << " offset  = " << value.offset()();
     std::cout << std::endl;
 #endif
-    
-    // XXX need to use backend to select relocation base...
-
     addend   +=  value.offset()();
     section_p = &value.section();
 }
 
 void core_reloc::operator()(parser::kas_diag_t const& value)
 {
-    diag_p      = &value;
+#ifdef TRACE_CORE_RELOC
+    // XXX cast should not be required...
+    std::cout << "core_reloc::()(kas_diag_t&): " << expr_t(value) << std::endl;
+#endif
+
+    diag_p = &value;
 }
 
 void core_reloc::operator()(core_expr_t const& value)
@@ -117,9 +123,9 @@ void core_reloc::emit(core_emit& base, parser::kas_error_t& diag)
     std::cout << std::endl;
 #endif
 
+    // XXX may duplicate logic in: core_emit::put_reloc(..., symbol&)
     // need to select proper `non-global` symbol base
     // consult with backend via `base.reloc_select_base_sym`
-    // XXX may duplicate logic in: core_emit::put_reloc(..., symbol&)
     if (sym_p && sym_p->binding() != STB_GLOBAL)
     {
         // if `sym_p` holds address, try select symbol
@@ -162,7 +168,7 @@ void core_reloc::emit(core_emit& base, parser::kas_error_t& diag)
     }
 #endif
 }
-
+#if 0
 void core_reloc::put_reloc(core_emit& base, parser::kas_error_t& diag 
                                 , core_section const& section)
 {
@@ -232,11 +238,11 @@ const char *core_reloc::apply_reloc(core_emit& base, parser::kas_error_t& diag)
 #endif
     return err;
 }
-
 // static method
 // return true iff `relocs` emited OK
 // XXX how is diag emitted???
 bool core_reloc::done(core_emit& base) { return true; }
+#endif
 
 
 }

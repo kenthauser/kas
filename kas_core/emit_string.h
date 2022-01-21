@@ -180,7 +180,7 @@ struct emit_formatted : emit_stream
             , kbfd::kbfd_target_reloc const& info
             , uint8_t offset
             , core_section const& section
-            , int64_t& addend
+            , int64_t  addend
             ) override
     {
         // offsets are emitted via `put_int`.
@@ -199,7 +199,7 @@ struct emit_formatted : emit_stream
             , kbfd::kbfd_target_reloc const& info
             , uint8_t offset
             , core_symbol_t const& sym
-            , int64_t& addend 
+            , int64_t addend 
             ) override
     {
         // only external symbols resolve here
@@ -217,7 +217,7 @@ struct emit_formatted : emit_stream
               e_chan_num num
             , kbfd::kbfd_target_reloc const& info
             , uint8_t offset
-            , int64_t& addend 
+            , int64_t  addend 
             ) override
     {
         // use suffix `X` if multiple relocations at same address

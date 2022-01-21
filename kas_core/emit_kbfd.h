@@ -70,32 +70,25 @@ public:
                 , kbfd::kbfd_target_reloc const& info
                 , uint8_t offset
                 , core_symbol_t const& sym
-                , int64_t& addend
-                ) override
-    {
-        auto sym_num = sym.sym_num();
-        if (!sym_num)
-            throw std::logic_error("emit_kbfd: no sym_num for symbol: " + sym.name());
-        put_kbfd_reloc(num, info, sym_num, offset, addend);
-    }
-
+                , int64_t  addend
+                ) override;
+    
     void put_section_reloc(
                   e_chan_num num
                 , kbfd::kbfd_target_reloc const& info
                 , uint8_t offset
                 , core_section const& section
-                , int64_t& addend 
+                , int64_t  addend 
                 ) override;
-
+    
     void put_bare_reloc(
                   e_chan_num num
                 , kbfd::kbfd_target_reloc const& info
                 , uint8_t offset
-                , int64_t& addend 
+                , int64_t  addend 
                 ) override
     {
-        int64_t dummy;
-        put_kbfd_reloc(num, info, 0, offset, dummy);
+        put_kbfd_reloc(num, info, 0, offset, addend);
     }
 
     void put_diag(e_chan_num num
@@ -133,7 +126,7 @@ private:
                 , kbfd::kbfd_target_reloc const& info 
                 , uint32_t sym_num
                 , uint8_t  offset
-                , int64_t& data
+                , int64_t  addend = {}
                 ) const;
 
     // NB: first directive in `core_emit` is `set_section`

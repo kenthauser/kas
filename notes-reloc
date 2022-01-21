@@ -1,25 +1,78 @@
-1/21/21
+1/18/21
 
 Relocation notes:
 
-1. Define `actions` in kbfd. 
+1. Define `KBFD_ACTION` in kbfd. 
 
 Action is operation function set (such as ADD, SUB, ARM_REL_MOVW).
 Defined in arch file (eg kbfd/target/arm.h, kbfd/target/i386.h, etc.)
 Defined as KAS_STRING types.
 Added to `all_defns` list specialized with arch name.
 
-
-
-2. Define `kbfd_reloc` as Action + Width + Flags (Relative, Thread-local, etc)
+2. Define `kbfd_reloc` as Action + Width + Flags (PC-Relative, Thread-local, etc)
 
 Action is index in `all_reloc_ops` list: start with 8-bits
 Width is converted to 3-bit field of flags for supported widths
 Or'd with additional flags: 8-bits
 
-3. Need to add `get_reloc_info(kbfd_obj const&, kbfd_reloc const&)` to
+3. `kbfd_reloc::flags expanded to 16-bits to allow target-specific flags
+such as RFLAGS_ARM_G1, et al. Extra 8-bits are redefined per arch.
+
+4. Need to add `get_reloc_info(kbfd_obj const&, kbfd_reloc const&)` to
 return `kbfd_reloc_info`. Must lookup reloc in `kas_core` so that listing
 and object can generate same info. Matches current `kbfd emit` interface.
+
+5. kbfd::ks_data::put_reloc && put_reloca simply create and store a properly
+formatted relocation using `kbfd_target_reloc`, `sym_num`, and `offset`. 
+The relocation is not inspected, nor evaluated.
+
+6. `kbfd` needs to be able to evaluate all `static` relocations to perform
+the link editor function. Thus `kbfd` needs all to have all implementing
+methods for all static relocations internal to library.
+
+7. `kbfd` needs to be able to generate all `dynamic` relocations. These are
+generated as `static` kbfd combines modules. Can likely reuse the `put_reloc{,a}`
+hooks used by assemble to create dynamic relocations.
+
+8. The `assembler` needs to interpret (and implement) relocations generated 
+by assembler. `kbfd_reloc` has methods to read/write assembler values & has
+methods to update binary. In the assembler, all binary data is held in host
+endian, with multiple words stored in `big-endian` format. In `kbfd`, data
+is stored in target-endian format. Need support routines to support xlation.
+
+9. To interpret `relocations` the update methods need access to various system
+values: symbol table, current segment, current offset, GOT, etc.
+Create an ABC to provide access.
+
+10. *CORRECT??* When Global FUNC (and local FUNC?) in reloc, don't resolve to
+    address.
+
+10. *CORRECT??* When non-evaluated symbol emit reloc with symbol as if undef.
+
+11. *CORRECT??* When evaluated symbol present, convert to core_addr.
+    core_addr::base can be absorbed into reloc via PC_REL/SB_REL if appropriate.
+    core_addr::offset used to modify reloc `addend`
+
+12. *CORRECT??* If no symbol nor address, absorb reloc after processing addend.
+    unless `CR_DO_EMIT` set.
+
+13. Revised reloc methods (related ones grouped)
+    A) get ADDEND:  -> result is INT (encoded as value+base+sym# tuple)
+        1) passed in as (value+base+sym#) tuple
+        2) extracted from opcode & xlated
+    B) get VALUE from symbol -> (encoded as (value+base+sym#), all ints)
+        1) lookup value from SYMBOL table (include THUMB-FUNC +1 mod here)
+        2) lookup value from GOT table
+    C) perform operation on pair of (value+base+sym) tuples
+            -> RESULT is value+base+sym tuple (or const char *msg)
+        1) PC REL performed here
+        2) SB REL performed here
+        3) ...arch dependent performed here...
+    D) RESULT: -> result is (value+base+sym) tuple
+        1) write to opcode
+        2) pass tupl to next operation as ADDEND
+
+
 
 
 

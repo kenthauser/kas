@@ -62,14 +62,14 @@ struct emit_stream_base
             , kbfd::kbfd_target_reloc const& tgt_reloc
             , uint8_t offset
             , core_symbol_t const& sym
-            , emit_value_t& addend
+            , emit_value_t  addend
             ) = 0;
     virtual void put_section_reloc(
               e_chan_num num
             , kbfd::kbfd_target_reloc const& tgt_reloc
             , uint8_t offset
             , core_section const& section
-            , emit_value_t& addend
+            , emit_value_t  addend
             ) = 0;
     // NB: some relocs (i'm looking at you `ARM_V4BX`) don't have
     // symbol or section component.
@@ -77,7 +77,7 @@ struct emit_stream_base
               e_chan_num num
             , kbfd::kbfd_target_reloc const& tgt_reloc
             , uint8_t offset
-            , emit_value_t& addend
+            , emit_value_t  addend
             ) = 0;              
 
     // access `core_base` (throws if not defined)

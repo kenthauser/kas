@@ -1,7 +1,8 @@
 #ifndef KBFD_TARGET_ARM_RELOC_IMPL_H
 #define KBFD_TARGET_ARM_RELOC_IMPL_H
 
-#include "arm_reloc_ops.h"
+// access generic KBFD relocations
+#include "kbfd/kbfd_reloc_ops_kbfd.h"
 
 #include <utility>      // std::pair
 #include <iostream>
@@ -214,6 +215,10 @@ struct arm_rel_v4bx : kbfd::k_rel_add_t
     // assembler should emit RELOC
     bool emit_bare() const override { return true; }
 };
+    
+// XXX arm_rel_movw/movt are incorrect: 
+struct arm_rel_movw : k_rel_add_t, reloc_op_subfield<4, 12> {};
+struct arm_rel_movt : k_rel_add_t, reloc_op_subfield<4, 12> {};
 
 //
 // Thumb-16 static relocations

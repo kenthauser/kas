@@ -9,7 +9,8 @@
 
 namespace kas::tgt::opc::detail
 {
-// XXX find place for utility
+
+// declare basic constexpr utility
 constexpr uint8_t log2(std::size_t n)
 {
     return (n < 2) ? 1 : 1 + log2(n/2);
@@ -134,7 +135,7 @@ struct quick_stream : core::emit_stream_base
             , kbfd::kbfd_target_reloc const& info
             , uint8_t offset
             , core::core_symbol_t const& sym
-            , int64_t& addend
+            , int64_t  addend
             ) override
     {
         set_error(__FUNCTION__);
@@ -145,7 +146,7 @@ struct quick_stream : core::emit_stream_base
             , kbfd::kbfd_target_reloc const& info
             , uint8_t offset
             , core::core_section const& section
-            , int64_t& addend
+            , int64_t  addend
             ) override
     {
         set_error(__FUNCTION__);
@@ -155,7 +156,7 @@ struct quick_stream : core::emit_stream_base
               e_chan_num num
             , kbfd::kbfd_target_reloc const& info
             , uint8_t offset
-            , int64_t& addend
+            , int64_t  addend
             ) override
     {
         set_error(__FUNCTION__);
@@ -192,26 +193,6 @@ void quick_stream<mcode_size_t>::set_error(const char *fn) const
     std::string fn_str{fn};
     throw std::logic_error("quick_stream: " + fn_str + " unimplemented");
 }
-
-#if 0
-// basic `core_emit` to forward to quick stream
-template <typename mcode_size_t>
-struct quick_base : core::core_emit
-{
-    template <typename FN>
-    quick_base(FN&& cb_fn, void *cb_handle) 
-        : stream(std::forward<FN>(cb_fn), cb_handle)
-        , core_emit{stream}
-        {}
-    void emit(core::core_insn& insn, core::core_expr_dot const *dot_p) override
-    {
-        // NB: can't delete virtual method
-        throw std::logic_error("quick_base_t::emit: unimplemented");
-    } 
-
-    quick_stream<mcode_size_t> stream;
-};
-#endif
 
 }
 

@@ -31,7 +31,7 @@ void emit_kbfd::open()
     // NB: This is a convention & this step may be safely omitted.
     core::core_section::for_each([&](auto& s)
         { 
-            core2ks_data(s);        // creates kbfd_sections on reference
+            core2ks_data(s);        // creates kbfd_sections upon reference
         });
 
     // 3. Calculate size of symbol table
@@ -112,7 +112,7 @@ auto emit_kbfd::core2ks_data(core::core_section const& s) const
 {
     // retrieve `ks_data *` using callback (if previously created)
     auto p = static_cast<kbfd::ks_data *>(s.kbfd_callback());
- #if 1   
+#if 1   
     if (!p)
     {
         // construct new `ks_data` section in `kbfd_object` from `core_section`
@@ -126,7 +126,7 @@ auto emit_kbfd::core2ks_data(core::core_section const& s) const
         p->set_size(s.size());      // allocate memory to hold section data
         s.set_kbfd_callback(p);      // register callback
     }
-    #endif
+#endif
     return *p;
 }
 
@@ -172,18 +172,6 @@ void emit_kbfd::put_data(e_chan_num num
         }
 }
 
-void emit_kbfd::put_section_reloc(
-              e_chan_num num
-            , kbfd::kbfd_target_reloc const& info
-            , uint8_t offset
-            , core_section const& section
-            , int64_t& addend 
-            ) 
-{
-    auto sym_num = core2ks_data(section).sym_num;
-    put_kbfd_reloc(num, info, sym_num, offset, addend);
-}
-
 void emit_kbfd::put_diag(e_chan_num num, uint8_t width, parser::kas_diag_t const& diag) 
 {
     static constexpr char zero[8] = {};
@@ -205,18 +193,43 @@ void emit_kbfd::put(e_chan_num num, void const *p, uint8_t width)
         ks_data_p->put(p, width);
 }
 
-
-// binutils defn uses `bfd_vma`. override with the ELF standard defn
-#undef  ELF64_R_INFO
-#define ELF64_R_INFO(s,t)   (((s) << 32) + (t))
-
+//
 // actually emit a reloc
-// Generate an ELF64 relocation & then later to target format
+//
+
+void emit_kbfd::put_symbol_reloc(
+              e_chan_num num
+            , kbfd::kbfd_target_reloc const& info
+            , uint8_t offset
+            , core_symbol_t const& sym
+            , int64_t  addend
+            ) 
+{
+    auto sym_num = sym.sym_num();
+    if (!sym_num)
+        throw std::logic_error("emit_kbfd: no sym_num for symbol: " + sym.name());
+    put_kbfd_reloc(num, info, sym_num, offset, addend);
+}
+
+// section reloc: lookup section as symbol #, then trampoline...
+void emit_kbfd::put_section_reloc(
+              e_chan_num num
+            , kbfd::kbfd_target_reloc const& info
+            , uint8_t offset
+            , core_section const& section
+            , int64_t addend 
+            ) 
+{
+    auto sym_num = core2ks_data(section).sym_num;
+    put_kbfd_reloc(num, info, sym_num, offset, addend);
+}
+
+// symbol reloc: use rel/rela as appropriate
 void emit_kbfd::put_kbfd_reloc(core::e_chan_num num
                 , kbfd::kbfd_target_reloc const& info 
                 , uint32_t sym_num
                 , uint8_t  offset
-                , int64_t& data
+                , int64_t  addend 
                 ) const
 {
     static constexpr auto use_rel_a = false;
@@ -224,21 +237,10 @@ void emit_kbfd::put_kbfd_reloc(core::e_chan_num num
     if (num != core::EMIT_DATA)
         return;
 
-#if 0
-    if (!use_rel_a && !format.ok_for_relocation(data))
-        generate error
-    // should probably be done by `core_emit`...
-#endif
-    
-    if (!use_rel_a)
-    {
-        ks_data_p->put_reloc(info, sym_num, offset);
-    }
+    if (addend || use_rel_a)
+        ks_data_p->put_reloc_a(info, sym_num, offset, addend);
     else
-    {
-        ks_data_p->put_reloc_a(info, sym_num, offset, data);
-        data = 0;
-    }
+        ks_data_p->put_reloc  (info, sym_num, offset);
 }
 
 }
