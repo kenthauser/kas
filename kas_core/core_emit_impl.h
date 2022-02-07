@@ -36,13 +36,6 @@ void core_emit::set_chan(e_chan_num chan)
     width  = sizeof(expression::e_addr_t);  // default size for non-data channels
 }
 
-kbfd::kbfd_target_reloc const* core_emit::get_reloc(kbfd::kbfd_reloc& reloc) const
-{
-    // if no width specified by reloc, use current width
-    reloc.default_width(width);
-    return obj_p->get_reloc(reloc);
-}
-
 core_reloc& core_emit::add_reloc(core_reloc&& r)
 {
     if (reloc_p == std::end(relocs))
@@ -75,9 +68,9 @@ void core_emit::emit_obj_code()
     assert_width();
 
     // emit pending RELOCs.
-    parser::kas_error_t diag;
-    for (auto p = relocs.begin(); p != reloc_p; ++p)
-        p->emit(*this, diag);
+    // XXX short circuit on `reloc_p`
+    if (reloc_p)
+        emit_relocs();
     
     if (error_p)     
         std::cout << "core_emit::emit_obj_code: error_p set (1)" << std::endl;
@@ -170,42 +163,6 @@ template <typename T>
 void core_emit::operator()(T const& e)
 {
     std::cout << "core_emit: unsupported expression: " << expr_t(e) << std::endl;
-}
-
-void core_emit::put_reloc (core_reloc& r, core_symbol_t const& symbol)
-{
-    // XXX logic is not quite understood
-    // XXX explore reloc_select_base_symbol(&) ???
-    if (!(r.r_flags & core_reloc::CR_EMIT_SYM))
-    {
-    }
-    if (auto p = get_reloc(r.reloc))
-        stream.put_symbol_reloc(e_chan, *p, r.offset, symbol, r.addend);
-    else
-        throw std::logic_error{"no target relocation: symbol"};
-}
-
-void core_emit::put_reloc(core_reloc& r, core_section const& section)
-{
-    // XXX if `section` & PC_REL -- adjust reloc & addend.
-    // XXX handle `SB_REL` as well...???
-
-    if (auto p = get_reloc(r.reloc))
-        stream.put_section_reloc(e_chan, *p, r.offset, section, r.addend);
-    else
-        throw std::logic_error{"no target relocation: section"};
-}
-
-// bare reloc: provide KBFD with addend only
-void core_emit::put_reloc (core_reloc& r)
-{
-    if (r.addend || (r.r_flags & core_reloc::CR_EMIT_BARE))
-    {
-        if (auto p = get_reloc(r.reloc))
-            stream.put_bare_reloc(e_chan, *p, r.offset, r.addend);
-        else
-            throw std::logic_error{"no target relocation: bare"};
-    }
 }
 
 }   // namespace kas_core

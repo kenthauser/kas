@@ -133,9 +133,9 @@ struct quick_stream : core::emit_stream_base
     void put_symbol_reloc(
               e_chan_num num
             , kbfd::kbfd_target_reloc const& info
-            , uint8_t offset
             , core::core_symbol_t const& sym
             , int64_t  addend
+            , bool use_rela
             ) override
     {
         set_error(__FUNCTION__);
@@ -144,19 +144,9 @@ struct quick_stream : core::emit_stream_base
     void put_section_reloc(
               e_chan_num num
             , kbfd::kbfd_target_reloc const& info
-            , uint8_t offset
-            , core::core_section const& section
+            , core::core_section const *section_p
             , int64_t  addend
-            ) override
-    {
-        set_error(__FUNCTION__);
-    }
-
-    void put_bare_reloc(
-              e_chan_num num
-            , kbfd::kbfd_target_reloc const& info
-            , uint8_t offset
-            , int64_t  addend
+            , bool use_rela
             ) override
     {
         set_error(__FUNCTION__);

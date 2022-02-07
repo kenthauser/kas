@@ -119,56 +119,63 @@ private:
     
     // apply relocs, push fixed data to stream (advancing position), reset defaults
     void emit_obj_code();
+    void emit_relocs();
 
     // emit relocations (used by `core_reloc`)
     friend core_reloc;
 
-    void put_reloc(core_reloc&, core_section  const& section);
+    // pass reference to symbol. pass pointer to section (or nullptr for bare)
     void put_reloc(core_reloc&, core_symbol_t const& symbol);
-    void put_reloc(core_reloc&);
+    void put_reloc(core_reloc&, core_section  const *section);
     
     // utility methods
     void set_width(std::size_t w);
     void assert_width() const;      
     void set_defaults();
 
+    // support routines to select proper target relocation
+    core_symbol_t const* reloc_select_base_sym(core_symbol_t const&) const;
+    
+    //kbfd::kbfd_target_reloc const *get_tgt_reloc(core_reloc&) const;
+    
+
     // record relocation for emit
     core_reloc& add_reloc(core_reloc&&);
 
-    // support routines to select proper target relocation
-    // XXX need to tune...
-    core_symbol_t const* reloc_select_base_sym(core_symbol_t const&) const
-    {
-        return {};      // use segment
-    }
-    
-    kbfd::kbfd_target_reloc const *get_tgt_reloc(core_reloc&) const;
-    
-
     template <typename...Ts>
-    core_reloc& add_reloc(Ts&&...args)
+    decltype(auto) add_reloc(Ts&&...args)
     {
         return add_reloc(core_reloc(std::forward<Ts>(args)...));
     }
 
-    // utility to translate `reloc` to appropriate target format
-    kbfd::kbfd_target_reloc const *get_reloc(kbfd::kbfd_reloc&) const;
+    const char *reloc_eval(core_reloc& r) const;
+    void reloc_update_data(core_reloc& r, bool force = false);
 
+
+    // Access `kbfd` relocation methods
+    // utility to translate `reloc` to appropriate target format
+    kbfd::kbfd_target_reloc const *get_target_reloc(core_reloc&);
+    bool should_resolve(core_reloc const&, core_symbol_t const&) const;
+    
     // save pending relocs in array
     static constexpr auto MAX_RELOCS_PER_LOCATION = 4;
     std::array<core_reloc, MAX_RELOCS_PER_LOCATION> relocs{};
 
     // instance data
     emit_stream_base&   stream;
-    kbfd::kbfd_object  *obj_p {};
+    kbfd::kbfd_object  *obj_p     {};
     core_section const *section_p {};
     e_diag_t const     *error_p   {};   // current `emit` error state
+
     
     // info about current data being emitted. initialized by `set_defaults()`
     core_reloc         *reloc_p;    // pointer to "next" reloc for insn
+    core_reloc        **write_cb;   // reloc to update `data`
     emit_value_t        data;       // base value being emitted
+    emit_value_t        accum;      // accumulate relocs here, pending write
     e_chan_num          e_chan;     // output channel
     uint8_t             width;      // width of `data` in bytes
+    bool                use_rela;   // type of reloc generated
 };
 
 //
@@ -189,6 +196,7 @@ private:
     uint8_t w;
 };
     
+// XXX should be byte/HALF/WORD/quad
 static constexpr auto byte  = set_size(1);
 static constexpr auto word  = set_size(2);
 static constexpr auto _long = set_size(4);
@@ -214,12 +222,13 @@ struct emit_reloc
     struct flush {};
 
     // XXX `loc` should be `kas_position_tag`
+    // XXX can we rely on implicitly-defined default ctor?
     emit_reloc(kbfd::kbfd_reloc r
-             , kas_loc loc = {}
+             , kas_position_tagged const *loc_p = {}
              , emit_value_t addend = {}
              , uint8_t offset = {}
              , uint8_t r_flags = {})
-        : reloc(r), loc(loc), addend(addend), offset(offset), r_flags(r_flags) {}
+        : reloc(r), loc_p(loc_p), addend(addend), offset(offset), r_flags(r_flags) {}
     
     // expect relocatable expression.
     auto& operator<<(expr_t const& e)
@@ -228,6 +237,7 @@ struct emit_reloc
         return *base_p;
     }
 
+    // pass `flush` object to emit bare RELOC
     auto& operator<<(flush const&)
     {
         (*r_p)(0, core_reloc::CR_EMIT_BARE);
@@ -238,7 +248,7 @@ private:
     friend auto operator<<(core_emit& base, emit_reloc r)
     {
         r.base_p = &base;
-        r.r_p    = &base.add_reloc(r.reloc, r.loc, r.addend, r.offset, r.r_flags);
+        r.r_p    = &base.add_reloc(r.reloc, r.loc_p, r.addend, r.offset, r.r_flags);
         return r;
     }
 
@@ -246,11 +256,11 @@ private:
     core_reloc *r_p {};
 
     // save ctor values
-    kas_loc          loc;
-    kbfd::kbfd_reloc reloc;
-    emit_value_t     addend;
-    uint8_t          offset;
-    uint8_t          r_flags;
+    kas_position_tagged const *loc_p;
+    kbfd::kbfd_reloc           reloc;
+    emit_value_t               addend;
+    uint8_t                    offset;
+    uint8_t                    r_flags;
 };
 
 // emit relocation for displacement from current location (with size & offset)
@@ -260,10 +270,10 @@ struct emit_disp
     
     // declare size in bytes, offset from current location
     emit_disp(uint8_t      size
-            , kas_loc      loc = {}
+            , kas_position_tagged const *loc_p = {}
             , emit_value_t addend = {}
             , emit_value_t offset = {})
-        : size(size), loc(loc), addend(addend), offset(offset) {}
+        : size(size), loc_p(loc_p), addend(addend), offset(offset) {}
 
     // expect relocatable expression.
     auto& operator<<(expr_t const& e)
@@ -283,13 +293,13 @@ private:
         _proto.default_width(r.size * 8);
         
         r.base_p = &base;
-        r.r_p    = &base.add_reloc(reloc, r.loc, r.addend, r.offset);
+        r.r_p    = &base.add_reloc(reloc, r.loc_p, r.addend, r.offset);
         return r;
     }
 
     core_emit *base_p;
+    kas_position_tagged const *loc_p {};
     core_reloc *r_p;
-    kas_loc      loc;
     emit_value_t addend, offset;
     uint8_t      size;
 };

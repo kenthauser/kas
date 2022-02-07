@@ -3,6 +3,7 @@
 
 
 #include "kbfd_reloc_ops.h"
+#include <iostream>
 
 namespace kbfd
 {
@@ -10,38 +11,79 @@ namespace kbfd
 
 struct k_rel_add_t : virtual reloc_op_fns
 {
-    update_t update(value_t data, value_t addend) const override 
+    const char *update(flags_t flags
+                     , value_t& accum 
+                     , value_t const& addend) const override
     { 
-        return data + addend;
+        // don't test for overflow
+        accum += addend;
+        return {};
     }  
 };
 
 struct k_rel_sub_t : virtual reloc_op_fns
 {
-    update_t update(value_t data, value_t addend) const override
+    const char *update(flags_t flags
+                     , value_t& accum
+                     , value_t const& addend) const override 
     { 
-        return data - addend;
-    } 
+        // don't test for overflow
+        accum -= addend;
+        return {};
+    }  
 };
 
-
-template <int BITS, int SHIFT>
-struct reloc_op_subfield : virtual reloc_op_fns
+// operate on UNSIGNED subfield of data
+template <int BITS, int SHIFT = 0>
+struct reloc_op_u_subfield : virtual reloc_op_fns
 {
-    using bits   = meta::int_<BITS>;
-    using shift  = meta::int_<SHIFT>;
+    using bits    = meta::int_<BITS>;
+    using shift   = meta::int_<SHIFT>;
 
     static constexpr auto MASK = (1 << BITS) - 1;
     
-    value_t read(value_t data) const override
+    value_t extract(value_t data) const override
     {
         return (data >> SHIFT) & MASK; 
     }
-    const char *write(value_t& data, value_t value) const override
+    const char *insert(value_t& data, value_t value) const override
     {
+        if (value &~ MASK)
+            return "K subfield value out-of-range";
+
         auto n = data &~ (MASK << SHIFT);
         data   = n | (value & MASK) << SHIFT;
         return {};
+    }
+};
+
+// operate on SIGNED subfield of data
+// XXX temp
+template <int BITS, int SHIFT = 0>
+struct reloc_op_s_subfield : reloc_op_u_subfield<BITS, SHIFT>
+{
+    using base_t  = reloc_op_u_subfield<BITS, SHIFT>;
+    using value_t = typename reloc_op_fns::value_t;
+    
+    static constexpr auto MS_BIT  = 1 << (BITS - 1);
+    static constexpr auto LS_BITS = MS_BIT - 1;
+
+    value_t extract(value_t data) const override
+    {
+        // sign-extend N-bit value
+        auto value = base_t::extract(data);
+        if (value & MS_BIT)
+            value |= ~base_t::MASK;
+        return value;
+    }
+
+    const char *insert(value_t& data, value_t value) const override
+    {
+        // validate value limited to signed N-bits
+        auto v = value | LS_BITS;
+        if ((v + 1) == 0)       // if negative, clear excess bits
+            value &= base_t::MASK;
+        return base_t::insert(data, value);
     }
 };
 

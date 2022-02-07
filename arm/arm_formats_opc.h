@@ -67,7 +67,7 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
         // insert arg into base insn (via reloc) as required
         if (!fmt.insert(cnt-1, code_p, arg, &*val_it))
             fmt.emit_reloc(cnt-1, base, code_p, arg, &*val_it);
-#if 0
+#if 1
         // 2. emit base code
         auto words = mcode.code_size()/sizeof(mcode_size_t);
         for (auto end = code_p + words; code_p < end;)

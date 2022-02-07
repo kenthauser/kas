@@ -105,8 +105,7 @@ struct ks_data : kbfd_section
     // put reloc using reloc (two flavors)
     template <typename Rel = Elf64_Rel>
     void put_reloc(kbfd_target_reloc const& info
-                 , uint32_t sym_num
-                 , uint8_t  offset)
+                 , uint32_t sym_num)
     {
         // ignore if SHT_NOBITS
         if (s_header.sh_type == SHT_NOBITS)
@@ -119,13 +118,12 @@ struct ks_data : kbfd_section
                                               );
 
         // emit reloc (generate in host format)
-        reloc_p->add(object.cvt.create_reloc<Rel>(info, sym_num, position(), offset));
+        reloc_p->add(object.cvt.create_reloc<Rel>(info, sym_num, position()));
     }
 
     template <typename Rel = Elf64_Rela>
     void put_reloc_a(kbfd_target_reloc const& info
                  , uint32_t sym_num
-                 , uint8_t  offset
                  , int64_t  data)
     {
         // ignore if SHT_NOBITS
@@ -140,7 +138,7 @@ struct ks_data : kbfd_section
 
         // emit reloc (generate in host format)
         reloc_a_p->add(object.cvt.create_reloc<Rel>(info, sym_num
-                                                  , position(), offset, data));
+                                                  , position(), data));
     }
 
     Elf64_Word   sym_num   {};          // STT_SECTION entry for this section

@@ -146,7 +146,6 @@ struct emit_formatted : emit_stream
     }
 
     auto reloc_msg(kbfd::kbfd_target_reloc const& info
-                 , uint8_t offset
                  , std::string const& base_name
                  , int64_t addend
                  ) const
@@ -160,7 +159,7 @@ struct emit_formatted : emit_stream
 
         std::ostringstream s;
         auto sfx = emit_formatted::section_suffix(*section_p);
-        s << fmt_hex(addr_bytes, position() + offset, sfx);
+        s << fmt_hex(addr_bytes, position(), sfx);
         s << " " << info.name << " ";
         s << base_name;
 
@@ -178,28 +177,32 @@ struct emit_formatted : emit_stream
     void put_section_reloc(
               e_chan_num num
             , kbfd::kbfd_target_reloc const& info
-            , uint8_t offset
-            , core_section const& section
+            , core_section const *section_p
             , int64_t  addend
+            , bool use_rela
             ) override
     {
+        const char *name = "";
+        if (section_p)
+            name = section_p->name().c_str();
+
         // offsets are emitted via `put_int`.
         // use suffix `?` if multiple relocations at same address
-        if (!suffix_p)
-            suffix_p = emit_formatted::section_suffix(section);
+        if (section_p && !suffix_p)
+            suffix_p = emit_formatted::section_suffix(*section_p);
         else
             suffix_p = "?";
 
-        auto s = reloc_msg(info, offset, section.name(), addend);
-        do_put_reloc(num, 0, s);  // just use zero for width
+        auto s = reloc_msg(info, name, addend);
+        do_put_reloc(num, 0, name);  // just use zero for width
     }
 
     void put_symbol_reloc(
               e_chan_num num
             , kbfd::kbfd_target_reloc const& info
-            , uint8_t offset
             , core_symbol_t const& sym
             , int64_t addend 
+            , bool use_rela
             ) override
     {
         // only external symbols resolve here
@@ -209,26 +212,10 @@ struct emit_formatted : emit_stream
         else
             suffix_p = "X";
 
-        auto s = reloc_msg(info, offset, sym.name(), addend);
+        auto s = reloc_msg(info, sym.name(), addend);
         do_put_reloc(num, 0, s);  // just use zero for width
     }
 
-    void put_bare_reloc(
-              e_chan_num num
-            , kbfd::kbfd_target_reloc const& info
-            , uint8_t offset
-            , int64_t  addend 
-            ) override
-    {
-        // use suffix `X` if multiple relocations at same address
-        if (!suffix_p)
-            suffix_p = "*";
-        else
-            suffix_p = "X";
-
-        auto s = reloc_msg(info, offset, "", 0);
-        do_put_reloc(num, 0, s);  // just use zero for width
-    }
 
     void put_diag(e_chan_num num, uint8_t width, parser::kas_diag_t const& diag) override
     {

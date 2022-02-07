@@ -56,6 +56,7 @@ Create an ABC to provide access.
 12. *CORRECT??* If no symbol nor address, absorb reloc after processing addend.
     unless `CR_DO_EMIT` set.
 
+// XXX should `base` be defined as void *. would allow !=/== compares
 13. Revised reloc methods (related ones grouped)
     A) get ADDEND:  -> result is INT (encoded as value+base+sym# tuple)
         1) passed in as (value+base+sym#) tuple
@@ -70,7 +71,39 @@ Create an ABC to provide access.
         3) ...arch dependent performed here...
     D) RESULT: -> result is (value+base+sym) tuple
         1) write to opcode
-        2) pass tupl to next operation as ADDEND
+        2) pass to pair to next operation as ADDEND
+
+14. Revised host methods:
+    A) should_resolve(): should static linker resolve or generate reloc?
+        args   : binding, type, visibility
+        return : bool
+
+    B) read host binary data (implied mask)
+        args   : bits, offset(bytes)
+        return : uint64_t
+        
+    C) write host binary data (implied mask)
+        args   : bits, offset(bytes), data
+        return : const char *err
+
+    D) get "PC" (ie relocation address)
+        args   : none
+        return : KBFD section symbol #, offset
+
+    E) GOT/etc/ table access: no-oped in assembler
+
+    // KAS method, not KBFD
+    F) symbol -> value: get KBFD value for a symbol
+        NB: ARM thumb FUNCTIONS have a +1 for value
+
+    // KAS method, not KBFD
+    G) symbol -> sym_num(): should be emitted as KBFD symbol
+
+    //
+    H) 
+
+
+
 
 
 

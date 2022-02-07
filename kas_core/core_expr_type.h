@@ -142,7 +142,7 @@ public:
 
     // backend interface: expr can have multiple relocs
     template <typename BASE_T, typename RELOC_T>
-    void emit(BASE_T&, RELOC_T&, parser::kas_error_t&) const;
+    void emit(BASE_T&, RELOC_T&) const;
 
     // interface for `core_fits`: implemented in `core_expr_fits.h`
     short num_relocs() const { return reloc_cnt; }

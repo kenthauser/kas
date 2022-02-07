@@ -37,7 +37,6 @@ auto kbfd_convert::create_reloc<Elf64_Rel>(
                                kbfd_target_reloc const& info
                              , uint32_t sym_num
                              , uint64_t position
-                             , uint8_t  offset
                              , int64_t  data
                              ) const -> Elf64_Rel
 {
@@ -46,10 +45,9 @@ auto kbfd_convert::create_reloc<Elf64_Rel>(
     kbfd_xword r_info = ELF64_R_INFO(r_sym, info.num);
 
     // XXX offset can use some analysis for `endian` issues...
-    Elf64_Rel reloc = { position + offset, r_info };
+    Elf64_Rel reloc = { position, r_info };
     std::cout << "create_reloc: r_info = " << std::hex << r_info;
     std::cout << ", sym = " << sym_num;
-    std::cout << ", offset = " << std::hex << reloc.r_offset;
     std::cout << ", info = " << reloc.r_info << std::endl;
     return reloc;
 }
@@ -59,7 +57,6 @@ auto kbfd_convert::create_reloc<Elf64_Rela>(
                                kbfd_target_reloc const& info
                              , uint32_t sym_num
                              , uint64_t position
-                             , uint8_t  offset
                              , int64_t  data
                              ) const -> Elf64_Rela
 {
@@ -68,10 +65,9 @@ auto kbfd_convert::create_reloc<Elf64_Rela>(
     kbfd_xword r_info = ELF64_R_INFO(r_sym, info.num);
 
     // XXX offset can use some analysis for `endian` issues...
-    Elf64_Rela reloc = { position + offset, r_info, data };
+    Elf64_Rela reloc = { position, r_info, data };
     std::cout << "create_reloc: r_info = " << std::hex << r_info;
     std::cout << ", sym = " << sym_num;
-    std::cout << ", offset = " << std::hex << reloc.r_offset;
     std::cout << ", info = " << reloc.r_info << std::endl;
     return reloc;
 }

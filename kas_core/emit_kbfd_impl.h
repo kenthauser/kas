@@ -200,49 +200,46 @@ void emit_kbfd::put(e_chan_num num, void const *p, uint8_t width)
 void emit_kbfd::put_symbol_reloc(
               e_chan_num num
             , kbfd::kbfd_target_reloc const& info
-            , uint8_t offset
             , core_symbol_t const& sym
             , int64_t  addend
+            , bool use_rela
             ) 
 {
     auto sym_num = sym.sym_num();
     if (!sym_num)
         throw std::logic_error("emit_kbfd: no sym_num for symbol: " + sym.name());
-    put_kbfd_reloc(num, info, sym_num, offset, addend);
+    put_kbfd_reloc(num, info, sym_num, addend);
 }
 
 // section reloc: lookup section as symbol #, then trampoline...
 void emit_kbfd::put_section_reloc(
               e_chan_num num
             , kbfd::kbfd_target_reloc const& info
-            , uint8_t offset
-            , core_section const& section
+            , core_section const *section_p
             , int64_t addend 
+            , bool use_rela
             ) 
 {
-    auto sym_num = core2ks_data(section).sym_num;
-    put_kbfd_reloc(num, info, sym_num, offset, addend);
+    // assume `symbol_t` has correct type for `sym_num`
+    decltype(std::declval<core_symbol_t>().sym_num()) sym_num{};
+    if (section_p)
+        sym_num = core2ks_data(*section_p).sym_num;
+    put_kbfd_reloc(num, info, sym_num, addend);
 }
-
-// symbol reloc: use rel/rela as appropriate
-void emit_kbfd::put_kbfd_reloc(core::e_chan_num num
+    
+void emit_kbfd::put_kbfd_reloc(
+                  e_chan_num num
                 , kbfd::kbfd_target_reloc const& info 
                 , uint32_t sym_num
-                , uint8_t  offset
-                , int64_t  addend 
+                , int64_t  addend
+                , bool     use_rela
                 ) const
 {
-    static constexpr auto use_rel_a = false;
-    
-    if (num != core::EMIT_DATA)
-        return;
-
-    if (addend || use_rel_a)
-        ks_data_p->put_reloc_a(info, sym_num, offset, addend);
+    if (use_rela)
+        ks_data_p->put_reloc_a(info, sym_num, addend);
     else
-        ks_data_p->put_reloc  (info, sym_num, offset);
+        ks_data_p->put_reloc(info, sym_num);
 }
-
 }
 
 #endif

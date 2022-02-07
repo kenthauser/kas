@@ -2,6 +2,7 @@
 #define KBFD_KBFD_RELOC_OPS_IMPL_H
 
 #include "kbfd_reloc_ops.h"
+#include "kbfd_reloc.h"
 #include "kas/defn_utils.h"
 #include "kas/init_from_list.h"
 
@@ -10,6 +11,61 @@
 
 namespace kbfd
 {
+
+// 
+// `reloc_op_fns` default implementations
+//
+
+auto reloc_op_fns::extract(value_t data) const -> value_t
+{
+    return data;
+}
+
+const char *reloc_op_fns::insert(
+          value_t& data
+        , value_t  value) const
+{
+    data = value;
+    return {};
+}
+
+auto reloc_op_fns::decode(value_t data) const -> value_t
+{
+    return data;
+}
+
+const char *reloc_op_fns::encode(value_t& data) const
+{
+    return {};
+}
+
+
+const char *reloc_op_fns::eval(
+          flags_t flags
+        , value_t& value) const
+{
+    static_assert(std::is_same_v<flags_t, typename kbfd_reloc::flags_t>,
+        "adjust reloc_op_fns::flags_t to match kbfd_reloc::flags_t");
+    return {};
+}
+
+const char *reloc_op_fns::update(
+          flags_t flags
+        , value_t& accum
+        , value_t const& addend) const
+{
+    return {};
+}
+
+//
+// `reloc host_fns` default implementations
+//
+
+
+
+//
+// `reloc_action` implementation
+//
 
 using all_reloc_ops = kas::all_defns<reloc_ops_v, reloc_ops_defn_tags>;
 using action_names  = meta::transform<all_reloc_ops, meta::quote<meta::front>>;

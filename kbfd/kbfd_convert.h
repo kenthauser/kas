@@ -155,7 +155,6 @@ struct kbfd_convert
     HOST_REL create_reloc(kbfd_target_reloc const& info
                         , uint32_t sym_num
                         , uint64_t position
-                        , uint8_t  offset
                         , int64_t  data = 0
                         ) const;
 

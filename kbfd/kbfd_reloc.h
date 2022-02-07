@@ -5,7 +5,6 @@
 
 namespace kbfd
 {
-
 // Describe generic KBFD relocation operation
 // NB: `action` can identify both generic and target specific operations
 struct kbfd_reloc

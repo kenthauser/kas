@@ -24,34 +24,81 @@ using K_REL_COPY     = KAS_STRING("K_REL_COPY");
 using K_REL_GLOB_DAT = KAS_STRING("K_REL_GLOB_DAT");
 using K_REL_JMP_SLOT = KAS_STRING("K_REL_JMP_SLOT");
 
+// forward declare types
+struct reloc_host_fns;
+
 struct reloc_op_fns
 {
-    using value_t  = int64_t;
-    
-    struct update_t : std::pair<value_t, bool>
+    using value_t  = int64_t;       // integral value
+  
+    // include loop: `kfbd_reloc` & `reloc_op_fns` both define `flags_t`
+    // NB: this definition should match `kbfd_reloc` defn
+    using flags_t  = uint16_t;      // NB: static assert in `eval` impl
+
+    // for passing arguments to/from reloc ops
+    // NB: void * args are interpreted locally (by `kbfd` or by `client`) 
+    struct arg_t
     {
-        constexpr update_t(value_t data = {}, bool is_updated = true)
-                    : std::pair<value_t, bool>(data, is_updated) {}
+        arg_t(value_t v = {}, void *seg_p = {}, void *sym_p = {})
+            : value(v), seg_p(seg_p), sym_p(sym_p) {}
+
+        value_t value;
+        void   *seg_p;
+        void   *sym_p;
+
+        // return true if `arg_t` is zero
+        bool empty() const
+            { return !(value || seg_p || sym_p); }
+
+        // return true if `arg_t` is non-zero
+        operator bool() const
+            { return !empty(); }
     };
 
+    // need constexpr ctor for `init_from_list` metafunction
+    // NB: no virtual dtor because not allowed for constexpr objects
     constexpr reloc_op_fns() {}
 
-    // default: read/write return data/value un-modified
-    virtual value_t  read  (value_t data)                 const
-        { return data;  }
-    virtual const char *write (value_t& data, value_t value)  const
-        { data = value; return {}; }
+    // read from target as integral value (used as ACCUM)
+    virtual value_t extract (value_t data) const;
     
-    // `update_t` is std::pair. `bool` attribute true if update defined
-    // default: return addend unmodified
-    virtual update_t update(value_t data, value_t addend) const
-        { return { addend, false }; };
+    // insert `value` into `data`
+    virtual const char *insert(value_t& data, value_t value) const;
+    
+    // decode value read from target
+    virtual value_t decode (value_t data) const;
 
-    // assembler should emit reloc without relocation
-    // XXX should be marked for deletion?? Assembler only??
+    // encode value to write to target
+    // XXX using `value_t` for assembler development; should be `arg_t`
+    virtual const char *encode (value_t& data) const;
+
+    // evaluate relocation. ie get value to pass to `update`
+    // eg: consume PC_REL or SB_REL if appropriate
+    // XXX 
+    virtual const char *eval (flags_t flags
+                            , value_t&  value) const;
+
+    // perform reloc operation: update `accum` with `value` per `op`
+    // XXX using `value_t` for assembler development; should be `arg_t`
+    virtual const char *update(flags_t      flags
+                             , value_t      & accum
+                             , value_t const& value) const;
+
+    // should emit reloc without relocation symbol
+    // example: arm32: R_ARM_V4BX
     virtual bool emit_bare() const { return false; }
 };
 
+struct reloc_host_fns
+{
+    using value_t = reloc_op_fns::value_t;
+
+    // not used by `init_from_list`, so don't need constexpr ctor
+    reloc_host_fns() = default;
+
+};
+
+// map reloc NAME to ACTION (for `init_from_list`, assembler, et al)
 struct reloc_action
 {
     using index_t = uint8_t;

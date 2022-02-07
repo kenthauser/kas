@@ -3,7 +3,7 @@
 
 // `core_reloc` holds pending relocations
 // 
-// `core_emit` issues "relocations" before it emits the base value
+// `core_emit` accepts "relocations" before it emits the base value
 // to be "relocated". `kbfd` need the value to be relocated before
 // it applies relocations.
 //
@@ -11,18 +11,27 @@
 // the location offset (a small positive offset, normally zero), 
 // and the relocation addend to be relocated (an `expr_t` + constant)
 
+// Relocation objects are generally created holding type and location
+// of relocation, and then modified (via `call` operator) to hold
+// value being relocated.
+
+// All relocations also need to provide a `kas_position_tagged` object
+// for any resulting error message
+
+
 #include "expr/expr.h"
 #include "kbfd/kbfd_reloc.h"
 
 namespace kas::core
 {
 
-struct core_emit;       // forward declaration of calling type
+struct core_emit;       // forward declaration
 
 struct core_reloc
 {
     // locally expose constants from `kbfd`
     static constexpr auto RFLAGS_PC_REL = kbfd::kbfd_reloc::RFLAGS_PC_REL;
+    static constexpr auto RFLAGS_SB_REL = kbfd::kbfd_reloc::RFLAGS_SB_REL;
 
     // control `core_reloc` operation
     static constexpr auto CR_EMIT_BARE   = 0x1; // emit reloc without "value"
@@ -40,22 +49,21 @@ struct core_reloc
     }
 
     core_reloc(kbfd::kbfd_reloc reloc
-             , kas_loc loc    = {}
+             , kas_position_tagged const *loc_p = {}
              , int64_t addend = {}
              , uint8_t offset = {}, uint8_t r_flags = {})
-        : reloc(std::move(reloc)), loc(loc)
+        : reloc(std::move(reloc)), loc_p(loc_p)
         , addend(addend), offset(offset), r_flags(r_flags)
     {
 #if defined(TRACE_CORE_RELOC) && 1
         std::cout << "core_reloc::ctor: ";
         std::cout << "reloc = "    << reloc;
         if (addend)
-            std::cout << ", addend = " << addend;
+            std::cout << ", addend = " << std::dec << addend;
         if (offset)
             std::cout << ", offset = " << +offset;
-
-        if (loc)
-            std::cout << ", loc = " << loc.where();
+        if (loc_p)
+            std::cout << ", loc = " << loc_p->src();
         std::cout << std::endl;
 #endif
     }
@@ -63,35 +71,33 @@ struct core_reloc
     // methods to complete construction of object
     // NB: operator()(core_addr_t const&) selects appropriate base
     //     symbol for reloc. (based on backend)
-    void operator()(expr_t const&, uint8_t flags = {});
-    void operator()(core_addr_t   const&);
-    void operator()(core_symbol_t const&);
-    void operator()(core_expr_t   const&);
-    void operator()(parser::kas_diag_t const&);
+    core_reloc& operator()(expr_t const&, uint8_t flags = {});
+    core_reloc& operator()(core_addr_t   const&);
+    core_reloc& operator()(core_symbol_t const&);
+    core_reloc& operator()(core_expr_t   const&);
+    core_reloc& operator()(parser::kas_diag_t const&);
 
     // cause `*this` to be emitted
-    void emit       (core_emit&, parser::kas_error_t&);
+    void emit       (core_emit&, int64_t& accum);
 
     // utilities for `reloc`
     kbfd::kbfd_target_reloc const *get_tgt_reloc(core_emit&);
+    bool gen_reloc() const  { return section_p || sym_p; }
+    void gen_diag(core_emit&, const char *msg, const char *desc = {}) const;
     
-    // utilities for `emit`
-    void put_reloc  (core_emit&, parser::kas_error_t&, core_section  const&);
-    void put_reloc  (core_emit&, parser::kas_error_t&, core_symbol_t const&);
-    void put_reloc  (core_emit&, parser::kas_error_t&);
-    const char *apply_reloc(core_emit&, parser::kas_error_t&);
-
     // return true iff `relocs` emited OK
     static bool done(core_emit& base);
 
+
     // hold info about relocation
+    kas_position_tagged const *loc_p {};
     kbfd::kbfd_reloc    reloc;
     uint8_t             offset  {};
     uint8_t             r_flags {};
-    kas_loc             loc     {};
     
     // hold info about value (ie the "addend") to be relocated
     int64_t              addend      {};
+    int64_t              value       {};    // constant or section offset
     core_section  const *section_p   {};
     core_symbol_t const *sym_p       {};
     core_expr_t   const *core_expr_p {};

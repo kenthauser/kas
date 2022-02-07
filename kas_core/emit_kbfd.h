@@ -68,29 +68,19 @@ public:
     void put_symbol_reloc(
                   e_chan_num num
                 , kbfd::kbfd_target_reloc const& info
-                , uint8_t offset
                 , core_symbol_t const& sym
                 , int64_t  addend
+                , bool use_rela
                 ) override;
     
     void put_section_reloc(
                   e_chan_num num
                 , kbfd::kbfd_target_reloc const& info
-                , uint8_t offset
-                , core_section const& section
+                , core_section const *section_p
                 , int64_t  addend 
+                , bool use_rela
                 ) override;
     
-    void put_bare_reloc(
-                  e_chan_num num
-                , kbfd::kbfd_target_reloc const& info
-                , uint8_t offset
-                , int64_t  addend 
-                ) override
-    {
-        put_kbfd_reloc(num, info, 0, offset, addend);
-    }
-
     void put_diag(e_chan_num num
                 , uint8_t width
                 , parser::kas_diag_t const& diag) override;
@@ -125,8 +115,8 @@ private:
                   e_chan_num num
                 , kbfd::kbfd_target_reloc const& info 
                 , uint32_t sym_num
-                , uint8_t  offset
                 , int64_t  addend = {}
+                , bool     use_rela = {}
                 ) const;
 
     // NB: first directive in `core_emit` is `set_section`
