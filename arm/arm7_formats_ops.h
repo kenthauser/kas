@@ -6,6 +6,7 @@
 #include "arm_formats_opc.h"
 #include "target/tgt_format.h"
 
+
 namespace kas::arm::opc
 {
 // tinker-toy functions to put args into various places...
@@ -32,8 +33,10 @@ struct fmt_shifter: arm_mcode_t::fmt_t::fmt_impl
 };
 
 // ARM5: Addressing Mode 2: various forms of indirect in bottom 12 bits + flags
-// requires validator `val_indir`
-struct fmt_reg_indir :  arm_mcode_t::fmt_t::fmt_impl
+// This formatter requires validator `val_indir`
+// NB: `val_indir` converts DIRECT to [A15 *] w/o modifying offset
+template <typename RELOC_OP>
+struct fmt_reg_indir_t :  arm_mcode_t::fmt_t::fmt_impl
 {
     bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
     {
@@ -41,9 +44,9 @@ struct fmt_reg_indir :  arm_mcode_t::fmt_t::fmt_impl
         //std::cout << "\nfmt_reg_indir::insert: arg = " << arg << ", value = " << std::hex << value << std::endl;
         op[1] |= value;
         op[0] |= value >> 16;
-
-        // if non-constant expression, need reloc
-        return arg.expr.get_fixed_p();
+        
+        // if non-zero expression, emit reloc
+        return arg.expr.empty();
     }
    
     // associated reloc: R_ARM_ABS12
@@ -53,22 +56,26 @@ struct fmt_reg_indir :  arm_mcode_t::fmt_t::fmt_impl
                   , arg_t& arg
                   , val_t const *val_p) const override
     {
-        using ARM_REL_SOFF12 = kbfd::ARM_REL_SOFF12;
-        static const kbfd::kbfd_reloc r_abs   { ARM_REL_SOFF12(), 32, false }; 
-        static const kbfd::kbfd_reloc r_pcrel { ARM_REL_SOFF12(), 32, true  }; 
+        std::cout << "fmt_reg_indir::emit_reloc" << std::endl;
+        static const kbfd::kbfd_reloc reloc { RELOC_OP(), 32 };
+
+        auto r = reloc;     // copy base reloc
+
 
         switch (arg.mode())
         {
-            // handle DIRECT xlated to PC-REL
-            // NB: PC-rel is from addr + 8
             case arg_t::arg_mode_t::MODE_DIRECT:
-                op[0] |= 0xf;       // base register is R15
-                base << core::emit_reloc(r_pcrel, {}, -8) << arg.expr;
+                // handle DIRECT xlated to PC-REL
+                // NB: PC-rel is from addr + 8
+                r.set(r.RFLAGS_PC_REL);
+                base << core::emit_reloc(r, {}, -8) << arg.expr;
                 break;
 
             // handle REG_INDIR with unresolved offset
-            case arg_t::arg_mode_t::MODE_REG_IEXPR:
-                base << core::emit_reloc(r_abs) << arg.expr;
+            case arg_t::arg_mode_t::MODE_REG_INDIR:
+                std::cout << "fmt_reg_indir::emit_reloc: arg = " << arg << std::endl; 
+                std::cout << "fmt_reg_indir::emit_reloc: expr = " << arg.expr << std::endl;
+                base << core::emit_reloc(r) << arg.expr;
                 break;
             default:
             
@@ -138,7 +145,7 @@ struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
                     { kbfd::ARM_REL_OFF24(), 32, true, ARM_G1 }; 
             
             // displacement is from end of 2-byte machine code
-            base << core::emit_reloc(r, {}, -8, 0) << arg.expr;
+            base << core::emit_reloc(r, {}, -8) << arg.expr;
             break;
         }
         case arg_t::arg_mode_t::MODE_CALL:
@@ -150,34 +157,16 @@ struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
                     { kbfd::ARM_REL_OFF24(), 32, true, ARM_G0 }; 
             
             // displacement is from end of 2-byte machine code
-            base << core::emit_reloc(r, {}, -8, 0) << arg.expr;
+            base << core::emit_reloc(r, {}, -8) << arg.expr;
             break;
         }
     }
 };
 
 // ARM5: Addressing Mode 1: immediate 12-bit value with 8 significant bits
-// lookup immediate encode routine from KBFD
+//       and an `even` shift encoded in 4 bits.
+// use KBFD to encode
 struct fmt_fixed : arm_mcode_t::fmt_t::fmt_impl
-{
-    bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
-    {
-        static const kbfd::kbfd_reloc r { kbfd::ARM_REL_ADDSUB(), 32 };
-        
-        op[1] |= val_p->get_value(arg);     // 12-bits into LSBs
-        return true;
-    }
-    
-    void extract(mcode_size_t const* op, arg_t& arg, val_t const *val_p) const override
-    {
-        static const kbfd::kbfd_reloc r { kbfd::ARM_REL_ADDSUB(), 32 };
-        
-        val_p->set_arg(arg, op[1]);
-    }
-};
-
-// ARM5: add/sub
-struct fmt_addsub : arm_mcode_t::fmt_t::fmt_impl
 {
     // use KBFD to handle special format immediate
     void emit_reloc(core::core_emit& base
@@ -185,10 +174,27 @@ struct fmt_addsub : arm_mcode_t::fmt_t::fmt_impl
                   , arg_t& arg
                   , val_t const *val_p) const override
     {
-        static const kbfd::kbfd_reloc r { kbfd::ARM_REL_ADDSUB(), 32 };
+        static const kbfd::kbfd_reloc r { kbfd::ARM_REL_IMMED12() };
         
         // let KBFD deal with argument
-        //std::cout << "fmt_add_sub: emit: arg = " << arg << std::endl;
+        base << core::emit_reloc(r) << arg.expr;
+    }
+};
+
+// ARM5: add/sub: use KBFD to encode argument
+// NB: KBFD routine may convert between "add"/"sub" based on args
+// derive from `fmt_fixed` to pick up MASKing etc
+struct fmt_addsub : fmt_fixed
+{
+    // use KBFD to handle special format immediate
+    void emit_reloc(core::core_emit& base
+                  , mcode_size_t *op
+                  , arg_t& arg
+                  , val_t const *val_p) const override
+    {
+        static const kbfd::kbfd_reloc r { kbfd::ARM_REL_ADDSUB() };
+        
+        // let KBFD deal with argument
         base << core::emit_reloc(r) << arg.expr;
     }
 };

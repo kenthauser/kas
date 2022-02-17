@@ -27,7 +27,7 @@ using namespace tgt::parser;
 // info: accumulate info from parsing insn not captured in `args`
 // NB: bitfields don't zero-init. use `aliagn_as` support type to zero-init
 struct arm_stmt_info_t : alignas_t<arm_stmt_info_t
-                                , uint16_t
+                                , uint16_t          // exposed as `value_t`
                                 , tgt_stmt_info_t>
 {
     using base_t::base_t;

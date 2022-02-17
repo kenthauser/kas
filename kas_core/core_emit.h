@@ -221,15 +221,11 @@ struct emit_reloc
     using emit_value_t = typename core_emit::emit_value_t;
     struct flush {};
 
-    // XXX `loc` should be `kas_position_tag`
-    // XXX can we rely on implicitly-defined default ctor?
     emit_reloc(kbfd::kbfd_reloc r
              , kas_position_tagged const *loc_p = {}
-             , emit_value_t addend = {}
-             , uint8_t offset = {}
-             , uint8_t r_flags = {})
-        : reloc(r), loc_p(loc_p), addend(addend), offset(offset), r_flags(r_flags) {}
-    
+             , emit_value_t addend = {})
+        : reloc(r), loc_p(loc_p), addend(addend) {}
+
     // expect relocatable expression.
     auto& operator<<(expr_t const& e)
     {
@@ -240,7 +236,7 @@ struct emit_reloc
     // pass `flush` object to emit bare RELOC
     auto& operator<<(flush const&)
     {
-        (*r_p)(0, core_reloc::CR_EMIT_BARE);
+        (*r_p)(0);
         return *base_p;
     }
     
@@ -248,22 +244,21 @@ private:
     friend auto operator<<(core_emit& base, emit_reloc r)
     {
         r.base_p = &base;
-        r.r_p    = &base.add_reloc(r.reloc, r.loc_p, r.addend, r.offset, r.r_flags);
+        r.r_p    = &base.add_reloc(r.reloc, r.loc_p, r.addend);
         return r;
     }
 
-    core_emit    *base_p;
-    core_reloc *r_p {};
-
-    // save ctor values
-    kas_position_tagged const *loc_p;
+    // ctor values
     kbfd::kbfd_reloc           reloc;
+    kas_position_tagged const *loc_p;
     emit_value_t               addend;
-    uint8_t                    offset;
-    uint8_t                    r_flags;
+    
+    // call back values 
+    core_emit  *base_p;
+    core_reloc *r_p;
 };
 
-// emit relocation for displacement from current location (with size & offset)
+// emit relocation for displacement from current location (with size)
 struct emit_disp
 {
     using emit_value_t = typename core_emit::emit_value_t;
@@ -271,9 +266,8 @@ struct emit_disp
     // declare size in bytes, offset from current location
     emit_disp(uint8_t      size
             , kas_position_tagged const *loc_p = {}
-            , emit_value_t addend = {}
-            , emit_value_t offset = {})
-        : size(size), loc_p(loc_p), addend(addend), offset(offset) {}
+            , emit_value_t addend = {})
+        : size(size), loc_p(loc_p), addend(addend) {}
 
     // expect relocatable expression.
     auto& operator<<(expr_t const& e)
@@ -285,22 +279,18 @@ struct emit_disp
 private:
     friend auto operator<<(core_emit& base, emit_disp r)
     {
-        // only lookup `K_REL_ADD` once (mark as PC_relative)
-        static kbfd::kbfd_reloc _proto { kbfd::K_REL_ADD(), 0, true };
+        // only lookup `K_REL_ADD` (init with zero bits + PC_RELATIVE)
+        static kbfd::kbfd_reloc reloc { kbfd::K_REL_ADD(), 0, true };
 
-        // copy prototype & set width
-        auto reloc = _proto;
-        _proto.default_width(r.size * 8);
-        
         r.base_p = &base;
-        r.r_p    = &base.add_reloc(reloc, r.loc_p, r.addend, r.offset);
+        r.r_p    = &base.add_reloc(reloc, r.loc_p, r.addend);
         return r;
     }
 
     core_emit *base_p;
     kas_position_tagged const *loc_p {};
     core_reloc *r_p;
-    emit_value_t addend, offset;
+    emit_value_t addend;
     uint8_t      size;
 };
 

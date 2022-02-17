@@ -63,9 +63,13 @@ using arg3_shifter = fmt_arg<3, fmt_shifter>;
 using arg4_shifter = fmt_arg<4, fmt_shifter>;
 
 // declare reg_indir for arg1+
-using arg1_reg_indir = fmt_arg<1, fmt_reg_indir>;
-using arg2_reg_indir = fmt_arg<2, fmt_reg_indir>;
-using arg3_reg_indir = fmt_arg<3, fmt_reg_indir>;
+// NB: formats differ in relocation operations
+using fmt_ldr_indir  = fmt_reg_indir_t<kbfd::ARM_REL_SOFF12>;
+using fmt_ldrs_indir = fmt_reg_indir_t<kbfd::K_REL_NONE>;
+using fmt_ldrc_indir = fmt_reg_indir_t<kbfd::K_REL_NONE>;
+using arg1_reg_indir = fmt_arg<1, fmt_ldr_indir>;
+using arg2_reg_indir = fmt_arg<2, fmt_ldr_indir>;
+using arg3_reg_indir = fmt_arg<3, fmt_ldr_indir>;
 
 // declare register-set for arg1, arg2
 using arg1_regset  = fmt_arg<1, gen_0b16>;
@@ -99,20 +103,19 @@ struct FMT_16    : fmt_gen, arg1_16b4 {};
 // support ARM5 addressing mode 1
 struct FMT_12_16     : fmt_gen, arg1_12b4, arg2_16b4 {};
 struct FMT_12_16_F   : FMT_12_16, arg3_fixed         {};
-struct FMT_12_16_S   : FMT_12_16, arg3_shifter       {}; 
-struct FMT_12_16_0   : FMT_12_16, arg3_00b4          {};
+struct FMT_12_16_AS  : FMT_12_16, arg3_addsub        {};
+struct FMT_12_16_0   : FMT_12_16, arg3_00b4          {};    // common base
 struct FMT_12_16_0_S : FMT_12_16_0, arg4_shifter     {};
-struct FMT_12_16_AS  : FMT_12_16, arg3_addsub       {};
 
 // addressing mode 1: no Rn (eg mov)
-struct FMT_12_0   : fmt_gen, arg1_12b4, arg2_00b4     {};
-struct FMT_12_0_S : FMT_12_0, arg3_shifter            {};
-struct FMT_12_F   : fmt_gen, arg1_12b4, arg2_fixed    {};
+struct FMT_12_0   : fmt_gen, arg1_12b4, arg2_00b4    {};    // common base
+struct FMT_12_0_S : FMT_12_0, arg3_shifter           {};
+struct FMT_12_F   : fmt_gen, arg1_12b4, arg2_fixed   {};
 
-// addressing mode 1: no Rd (eg cmp)`
-struct FMT_16_0   : fmt_gen, arg1_16b4, arg2_00b4  {};
-struct FMT_16_0_S : FMT_16_0, arg3_shifter         {};
-struct FMT_16_F   : fmt_gen, arg1_16b4, arg2_fixed {};
+// addressing mode 1: no Rd (eg cmp)
+struct FMT_16_0   : fmt_gen, arg1_16b4, arg2_00b4    {};    // common base
+struct FMT_16_0_S : FMT_16_0, arg3_shifter           {};
+struct FMT_16_F   : fmt_gen, arg1_16b4, arg2_fixed   {};
 
 // support ARM5 addressing mode 2 (aka register indirect)
 struct FMT_LD  : fmt_gen, arg1_12b4, arg2_reg_indir {};
@@ -137,7 +140,7 @@ struct FMT_I09B1 : fmt_gen, fmt_arg<1, fmt32_generic<9, 1>> {};
 struct FMT_16_0_8 : fmt_gen, arg1_16b4, arg2_00b4, arg3_08b4 {};
 struct FMT_16_0_8_12 : FMT_16_0_8, arg4_12b4 {};
 
-struct FMT_12_16_0_8 : FMT_12_16_0, arg4_08b4 {};
+struct FMT_12_16_0_8 : FMT_12_16, arg3_00b4, arg4_08b4 {};
 
 // ssat, et al (5-bit shift count at bit 16)
 struct FMT_12_B_0_S : fmt_gen, arg1_12b4, fmt_arg<2, fmt32_generic<16, 5>>

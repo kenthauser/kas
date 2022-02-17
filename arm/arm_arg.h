@@ -26,7 +26,7 @@ enum arm_arg_mode : uint8_t
     , MODE_IMMEDIATE        // 3 immediate arg (expression)
     , MODE_IMMED_QUICK      // 4 immediate arg (constant stored in opcode)
     , MODE_REG              // 5 register
-    , MODE_REG_INDIR        // 6 register indirect (NB: offset is constant)
+    , MODE_REG_INDIR        // 6 register indirect
     , MODE_REGSET           // 7 register set 
     , MODE_BRANCH           // 8 branch instruction
 
@@ -46,7 +46,6 @@ enum arm_arg_mode : uint8_t
     , MODE_IMMED_BYTE_3     // :upper8_15:#
 
 // Special modes to support particular RELOCs
-    , MODE_REG_IEXPR        // register indirect, but `core_expr` for offset
     , MODE_CALL             // emit `R_ARM_CALL` reloc
 
 // Required enumerations
@@ -97,6 +96,9 @@ struct arm_indirect: detail::alignas_t<arm_indirect, uint8_t>
     value_t w_flag  : 1;    // write-back for pre-index
     value_t u_flag  : 1;    // UP-flag: (offset or reg is added)
     value_t r_flag  : 1;    // has register
+
+    // true if the "offset" format of indirect addressing
+    bool is_offset() const { return p_flag && !w_flag; }
 
     // shift & immed stored in `arg_t`
     template <typename OS>

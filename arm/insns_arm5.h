@@ -55,23 +55,13 @@ using arm_insn_branch_l = list<list<>
 // ARM V5: A5.1 addressing mode 1 - Data-processing operands
 // `data_processing` is for two registers + shifter_operand
 // NB: invalid immediate values are handled by `kbfd`, not validator
-template <typename SZ, typename NAME, unsigned ARM_OP>
+// NB: add-sub validator allows all immediate values
+template <typename SZ, typename NAME, unsigned ARM_OP
+        , typename FMT_F, typename IMMED = U32>
 using data_processing = list<list<>
 // match 3 patterns (IMMED, REG, REG+SHIFT)
 , defn<SZ, NAME, OP<0x200'0000 | (ARM_OP << 21)>
-                , FMT_12_16_F, REG, REG, U32>
-, defn<SZ, NAME, OP<0x000'0000 | (ARM_OP << 21)>
-                , FMT_12_16_0_S, REG, REG, REG> 
-, defn<SZ, NAME, OP<0x000'0000 | (ARM_OP << 21)>
-                , FMT_12_16_0_S, REG, REG, REG, SHIFT> 
->;
-
-template <typename SZ, typename NAME, unsigned ARM_OP>
-using dp_add_sub = list<list<>
-// match 3 patterns (IMMED, REG, REG+SHIFT)
-// NB: let KBFD handle negative arguments via RELOC
-, defn<SZ, NAME, OP<0x200'0000 | (ARM_OP << 21)>
-                , FMT_12_16_AS, REG, REG, IMMED>
+                , FMT_F, REG, REG, IMMED>
 , defn<SZ, NAME, OP<0x000'0000 | (ARM_OP << 21)>
                 , FMT_12_16_0_S, REG, REG, REG> 
 , defn<SZ, NAME, OP<0x000'0000 | (ARM_OP << 21)>
@@ -79,9 +69,9 @@ using dp_add_sub = list<list<>
 >;
 
 // `dp_one` is `data_processing` formats with single reg plus shifter_operand
-// NB: mov (et.al) use DST = 12, reg at 16 = SBZ
-// NB: tst (et.al) use DST = 16, reg at 12 = SBZ
-template <typename SZ, typename NAME, unsigned ARM_OP, typename FMT, typename FMT_F, typename FMT_S>
+// example: mov (et.al) use DST = 12, reg at 16 = SBZ
+// example: tst (et.al) use DST = 16, reg at 12 = SBZ
+template <typename SZ, typename NAME, unsigned ARM_OP, typename FMT, typename FMT_F>
 using dp_one = list<list<>
 // match 3 patterns (IMMED, REG, REG+SHIFT)
 , defn<SZ, NAME, OP<0x200'0000 | (ARM_OP << 21)>
@@ -89,34 +79,32 @@ using dp_one = list<list<>
 , defn<SZ, NAME, OP<0x000'0000 | (ARM_OP << 21)>
                 , FMT, REG, REG> 
 , defn<SZ, NAME, OP<0x000'0000 | (ARM_OP << 21)>
-                , FMT_S, REG, SHIFT> 
+                , FMT, REG, REG, SHIFT> 
 >;
 
 // ARM V5: A3.4 Data-processing instructions
 using arm_insn_data_l = list<list<>
 // use `meta-function` to generated related instructions
-, data_processing<a32_cs, STR("and"),  0>
-, data_processing<a32_cs, STR("eor"),  1>
-, data_processing<a32_cs, STR("rsb"),  3>
-, data_processing<a32_cs, STR("adc"),  5>
-, data_processing<a32_cs, STR("sbc"),  6>
-, data_processing<a32_cs, STR("rsc"),  7>
-, data_processing<a32_cs, STR("orr"), 12>
-, data_processing<a32_cs, STR("bic"), 14>
+, data_processing<a32_cs, STR("and"),  0, FMT_12_16_F>
+, data_processing<a32_cs, STR("eor"),  1, FMT_12_16_F>
+, data_processing<a32_cs, STR("sub"),  2, FMT_12_16_AS, IMMED> // use ADDSUB reloc
+, data_processing<a32_cs, STR("rsb"),  3, FMT_12_16_F>
+, data_processing<a32_cs, STR("add"),  4, FMT_12_16_AS, IMMED> // use ADDSUB reloc
+, data_processing<a32_cs, STR("adc"),  5, FMT_12_16_F>
+, data_processing<a32_cs, STR("sbc"),  6, FMT_12_16_F>
+, data_processing<a32_cs, STR("rsc"),  7, FMT_12_16_F>
+, data_processing<a32_cs, STR("orr"), 12, FMT_12_16_F>
+, data_processing<a32_cs, STR("bic"), 14, FMT_12_16_F>
 
-// use add/subtract reloc as required
-, dp_add_sub<a32_cs, STR("sub"),  2>
-, dp_add_sub<a32_cs, STR("add"),  4>
+// Omit Rd: S-implied & not allowed
+, dp_one<a32_c , STR("tst"),  8, FMT_16_0_S, FMT_16_F>
+, dp_one<a32_c , STR("teq"),  9, FMT_16_0_S, FMT_16_F>
+, dp_one<a32_c , STR("cmp"), 10, FMT_16_0_S, FMT_16_F>
+, dp_one<a32_c , STR("cmn"), 11, FMT_16_0_S, FMT_16_F>
 
-// No Rd, S-implied & not allowed
-, dp_one<a32_c , STR("tst"),  8, FMT_16_0, FMT_16_F, FMT_16_0_S>
-, dp_one<a32_c , STR("teq"),  9, FMT_16_0, FMT_16_F, FMT_16_0_S>
-, dp_one<a32_c , STR("cmp"), 10, FMT_16_0, FMT_16_F, FMT_16_0_S>
-, dp_one<a32_c , STR("cmn"), 11, FMT_16_0, FMT_16_F, FMT_16_0_S>
-
-// No Rn, S allowed
-, dp_one<a32_cs, STR("mov"), 13, FMT_12_0, FMT_12_F, FMT_12_0_S>
-, dp_one<a32_cs, STR("mvn"), 15, FMT_12_0, FMT_12_F, FMT_12_0_S>
+// Omit Rn: S allowed
+, dp_one<a32_cs, STR("mov"), 13, FMT_12_0_S, FMT_12_F>
+, dp_one<a32_cs, STR("mvn"), 15, FMT_12_0_S, FMT_12_F>
 >;
 
 // ARM V5: A5.2 addressing mode 2: Load & Store word or unsigned byte

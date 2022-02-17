@@ -16,7 +16,7 @@ core_reloc& core_reloc::operator()(expr_t const& e, uint8_t flags)
     // use an `if tree` used to initialize relocation
     // don't need `apply_visitor` as most types don't relocate
     if (auto p = e.get_fixed_p())
-        value = *p;
+        addend = *p;
     else if (auto p = e.template get_p<core_symbol_t>())
         (*this)(*p);
     else if (auto p = e.template get_p<core_expr_t>())
@@ -65,7 +65,7 @@ core_reloc& core_reloc::operator()(core_addr_t const& value)
     std::cout << " offset  = " << value.offset()();
     std::cout << std::endl;
 #endif
-    this->value =  value.offset()();
+    addend     +=  value.offset()();
     section_p   = &value.section();
     sym_p       = {};
     return *this;
@@ -122,7 +122,7 @@ void core_reloc::emit(core_emit& base, int64_t& accum)
 {
 #ifdef TRACE_CORE_RELOC
     std::cout << "core_reloc::emit: reloc = " << reloc << std::dec;
-    std::cout << ", addend = " << addend << ", value = " << value;
+    std::cout << ", addend = " << addend;
     std::cout << std::hex << ", accum = " << accum;
     if (sym_p)
         std::cout << " sym = " << *sym_p;
@@ -136,11 +136,10 @@ void core_reloc::emit(core_emit& base, int64_t& accum)
         std::cout << " *bare reloc*";
     std::cout << std::endl;
 #endif
-#if 0
+
     // 0. `core_expr` has own `emit` method 
     if (core_expr_p)
         return core_expr_p->emit(base, *this, accum);
-#endif
 
     // 1. resolve symbol to address if appropriate
     if (sym_p)
@@ -155,7 +154,7 @@ void core_reloc::emit(core_emit& base, int64_t& accum)
         {
             reloc.clear(RFLAGS_PC_REL);
             section_p = {};
-            value    -= base.position();
+            addend   -= base.position();
         }
 #if 0
     // XXX may not be resolved by assembler???
@@ -171,7 +170,7 @@ void core_reloc::emit(core_emit& base, int64_t& accum)
     // 3. update according to reloc. `accum` passed by reference
     //    NB: can add as N-bit, can extract subfield, etc.
     auto& ops = reloc.get();
-    auto  msg = ops.update(reloc.flags, accum, value);
+    auto  msg = ops.update(reloc.flags, accum, addend);
 
 #if 0
     if (msg)

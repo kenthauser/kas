@@ -9,10 +9,10 @@
 namespace kas::core
 {
 template <typename REF>
-template <typename BASE_T, typename RELOC_T>
-void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc) const
+template <typename BASE_T, typename RELOC_T, typename ACCUM_T>
+void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, ACCUM_T& accum) const
 {
-    auto do_emit = [&base]
+    auto do_emit = [&base, &accum]
                     (auto& reloc, expr_term const *term_p = {}, bool pc_rel = false)
     {
         reloc.sym_p     = {};
@@ -49,7 +49,7 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc) const
         else
             reloc.reloc.clear(kbfd::kbfd_reloc::RFLAGS_PC_REL);
     
-        reloc.emit(base);
+        reloc.emit(base, accum);
     };
 
     calc_num_relocs();      // pair terms, look for error

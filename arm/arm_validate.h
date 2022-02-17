@@ -124,13 +124,13 @@ VAL_GEN(IMMED       , val_arg_mode, arg_mode_t::MODE_IMMEDIATE);
 VAL_GEN(DIRECT      , val_direct);      // convert to PC-offset (via RELOC)
 VAL_GEN(SHIFT       , val_shift);       // convert to/from 8-bit shift code
 
-// ARM V5: addressing mode 2 validators
+// ARM V5: A5.2: addressing mode 2 validators
 // NB: parser accepts general format of indirect.
 // NB: validators convert to/from 16-LSBs for A32 insertion
 VAL_GEN(A32_INDIR           , val_indir);
 VAL_GEN(A32_POST_INDEX      , val_post_index);
 VAL_GEN(A32_OFFSET12        , val_indir_offset);
-VAL_GEN(A32_INDIR8_NOSHIFT  , val_ls_misc);
+VAL_GEN(A32_INDIR8_NOSHIFT  , val_ls_misc);     // XXX state addr mode
 
 // special shifts for MISC insns. Return as standard shift 8-bit values.
 VAL_GEN(ROR_B       , val_false);   // allow ROR of multiple of 8 bits

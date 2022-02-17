@@ -31,17 +31,17 @@ bool arm_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p, boo
             return !inserter(std::move(expr), bytes);
         };
    
-    // if no validator, store values normally in `opcode` via inserter
+    // if no validator, serialize values normally in `opcode` via inserter
     if (!has_val)
     {
         info_p->has_reg = bool(reg_p);
         if (info_p->has_reg)
             inserter(reg_p->index());
 
+        // serialize information not stored in opcodes
         switch (mode())
         {
             case MODE_REG_INDIR:
-            case MODE_REG_IEXPR:
             case MODE_SHIFT:
             {
                 auto value = (indir.value() << 8) | shift.value();
@@ -56,16 +56,16 @@ bool arm_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p, boo
     // regset values are never stored in opcode
     if (mode() == MODE_REGSET)
     {
-        std::cout << "inserter: REGSET index = " << +regset_p->index() << std::endl;
-        inserter(regset_p->index(), 2);
+                std::cout << "inserter: REGSET index = " << +regset_p->index() << std::endl;
+                inserter(regset_p->index(), 2);
     }
-
+    
     // if `expression` save it
     return save_expr(expr, 2);
 }
 
 
-// deserialize arm_ments: for format, see above
+// deserialize arguments: for format, see above
 template <typename Reader, typename ARG_INFO>
 void arm_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p, bool has_val)
 {
@@ -82,7 +82,6 @@ void arm_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p, bool
         switch (mode())
         {
             case MODE_REG_INDIR:
-            case MODE_REG_IEXPR:
             case MODE_SHIFT:
             {
                 auto value = reader.get_fixed(2);

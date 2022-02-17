@@ -108,13 +108,24 @@ struct val_shift : arm_mcode_t::val_t
     }
 };
 
+//
 // ARM5 Adddressing mode 2: Load and Store word or unsigned byte
+//
+// Also validates addressing mode 3: LDR/STR suffixes H, SH, SB, D
+// Also validates addressing mode 4: LDC/STC/LDC2/STC2
+
+// Indirect arguments come in three varieties (and the ARM names):
+//  1) offset    : REG + reg, shifted, or const offset
+//  2) pre-index : REG + reg, shifted, const offset with write back
+//  3) post-index: "REG INDIRECT" + reg, shifted or const offset
+//
+//  Constant offset formats are supported by ELF relocations. Others must resolve
+//  with constants. Offset format identified via `arg.indir.is_offset()` true
+//
+// NB: out-of-range values are checked during KBFD reloc generation
+
 struct val_indir : arm_mcode_t::val_t
 {
-    // declare 12-bit limits: stored in opcode as sign + 12-bits offset
-    static constexpr auto offset12_max = +((1 << 12) - 1);
-    static constexpr auto offset12_min = -((1 << 12) - 1);
-
     // require constexpr default ctor
     constexpr val_indir() {} 
 
@@ -124,11 +135,11 @@ struct val_indir : arm_mcode_t::val_t
         {
             // allow indirect addressing modes
             case arg_mode_t::MODE_REG_INDIR:
-            case arg_mode_t::MODE_REG_IEXPR:
                 return fits.yes;
+            
             // try convert direct arg to pc-relative indirect
             case arg_mode_t::MODE_DIRECT:
-                return fits.disp(arg.expr, offset12_min, offset12_max, 8);
+                return fits.yes;
             default:
                 break;
         }
@@ -148,11 +159,12 @@ struct val_indir : arm_mcode_t::val_t
 
     uint32_t get_value(arg_t& arg) const override
     {
-        // xlate DIRECT to INDIRECT with: reg = R15, p_flag set
+        // xlate DIRECT to INDIRECT with: reg = R15, p_flag set, offset -8
         if (arg.mode() == arg_mode_t::MODE_DIRECT)
-            return 0x10f0000;
+            return 0x10f0000;       // offset (with -8 base) passed via reloc
         
         // first calculate upper word
+        // base 4-bits are "indirect base register" (ie Rn)
         uint32_t value  = arg.reg_p->value(RC_GEN);
         if (arg.indir.p_flag)
             value |= 1 << (24-16);
@@ -162,19 +174,19 @@ struct val_indir : arm_mcode_t::val_t
             value |= 1 << (23-16);
         if (arg.indir.r_flag)
             value |= 1 << (25-16);
+        
         value <<= 16;
 
         // now lower word
-#if 0
+
         // XXX needs work
+        // set shifter value if set
+        // NB: `arm7_value()` is zero if shift not set
         value += arg.shift.arm7_value();
         if (arg.indir.r_flag)
-            value += arg.indir.reg;
-#else
-        // offset value
-        if (auto p = arg.get_fixed_p())
-            value += *p;
-#endif
+            value += arg.indir.reg;         // LSBs
+        
+        // NB: offset is handled by `reloc`
         return value;
     }
 
@@ -209,34 +221,46 @@ struct val_indir : arm_mcode_t::val_t
 };
 
 // allow subset of address-mode-2 addressing modes
+// These addressing modes are used by {LDR,STR}{,B}T
 struct val_post_index : val_indir
 {
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
+        // XXX should do base first to allow direct???
         // p-flag indicates offset or pre-indexed addressing
         if (arg.indir.p_flag)
             return fits.no;
 
-        return val_indir::ok(arg, fits);
+        return val_indir::ok(arg, fits);    // apply base limits
     }
 };
 
 // allow subset of address-mode-2 addressing modes
+// These addressing modes are used by PLD
 struct val_indir_offset : val_indir
 {
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
-        // p_flag == 1 && w_flag == 0 indicates offset addressing
-        if (!(arg.indir.p_flag && !arg.indir.w_flag))
-            return fits.no;
-
-        return val_indir::ok(arg, fits);
+        switch (arg.mode())
+        {
+            // allow offset addressing modes
+            case arg_mode_t::MODE_REG_INDIR:
+                if (!arg.indir.is_offset())
+                    break;
+                return fits.yes;
+            
+            // try convert direct arg to pc-relative indirect
+            case arg_mode_t::MODE_DIRECT:
+                return fits.yes;
+            default:
+                break;
+        }
+        return fits.no;
     }
 };
 
 // ARM5 Adddressing mode 3: subset of ARM5 addressing mode 2
 // addressing mode 3: no shifts, and offset is limited to 8-bits fixed
-// NB: addressing mode 2 allows offsets of 12-bits + relocations
 struct val_ls_misc : val_indir
 {
     fits_result ok(arg_t& arg, expr_fits const& fits) const override

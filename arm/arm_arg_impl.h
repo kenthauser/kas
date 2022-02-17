@@ -114,7 +114,6 @@ void arm_arg_t::print(OS& os) const
             break;
 
         case MODE_REG_INDIR:
-        case MODE_REG_IEXPR:
             os << "[" << *reg_p;
             indir.print(os, *this);
             break;

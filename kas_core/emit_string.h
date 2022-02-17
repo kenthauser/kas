@@ -148,7 +148,7 @@ struct emit_formatted : emit_stream
     auto reloc_msg(kbfd::kbfd_target_reloc const& info
                  , std::string const& base_name
                  , int64_t addend
-                 ) const
+                 ) const -> std::string
     {
         // limit to 6 digits
         auto addr_bytes = 6;    // XXX
@@ -160,8 +160,9 @@ struct emit_formatted : emit_stream
         std::ostringstream s;
         auto sfx = emit_formatted::section_suffix(*section_p);
         s << fmt_hex(addr_bytes, position(), sfx);
-        s << " " << info.name << " ";
-        s << base_name;
+        s << " " << info.name;
+        if (!base_name.empty())
+            s << " " << base_name;
 
         // if addend fits in `width` bytes, show in value, not as rela
         using expression::expr_fits;
@@ -182,19 +183,11 @@ struct emit_formatted : emit_stream
             , bool use_rela
             ) override
     {
-        const char *name = "";
-        if (section_p)
-            name = section_p->name().c_str();
+        // mark relocated data with `*` suffix
+        suffix_p = "*";
 
-        // offsets are emitted via `put_int`.
-        // use suffix `?` if multiple relocations at same address
-        if (section_p && !suffix_p)
-            suffix_p = emit_formatted::section_suffix(*section_p);
-        else
-            suffix_p = "?";
-
-        auto s = reloc_msg(info, name, addend);
-        do_put_reloc(num, 0, name);  // just use zero for width
+        auto msg = reloc_msg(info, section_p ? section_p->name() : "", addend);
+        do_put_reloc(num, 0, msg);  // just use zero for width
     }
 
     void put_symbol_reloc(
@@ -205,15 +198,11 @@ struct emit_formatted : emit_stream
             , bool use_rela
             ) override
     {
-        // only external symbols resolve here
-        // use suffix `X` if multiple relocations at same address
-        if (!suffix_p)
-            suffix_p = "*";
-        else
-            suffix_p = "X";
+        // mark relocated data with `*` suffix
+        suffix_p = "*";
 
-        auto s = reloc_msg(info, sym.name(), addend);
-        do_put_reloc(num, 0, s);  // just use zero for width
+        auto msg = reloc_msg(info, sym.name(), addend);
+        do_put_reloc(num, 0, msg);  // just use zero for width
     }
 
 

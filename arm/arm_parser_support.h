@@ -23,18 +23,6 @@ enum arm_shift_parsed
     , NUM_ARM_SHIFT
 };
 
-#if 0
-// NB: enumerated values mapped to W_FLAG & P_FLAG by method
-enum arm_indir_op
-{
-      ARM_INDIR_REG         //  0
-    , ARM_INDIR_REG_WB      //  1
-    , ARM_PRE_INDEX         //  2
-    , ARM_POST_INDEX        //  3: NB: POST_INDEX implies writeback
-    , NUM_ARM_INDIRECT 
-};
-#endif
-
 // support types to facilitate parsing
 struct arm_shift_arg
 {
@@ -56,6 +44,7 @@ struct arm_shift_arg
 
     void gen_shift_arg(kas_loc const&, int, arm_reg_t const * = {});
 
+    // XXX error should use `kas_position_tagged const *`
     void make_error(const char *msg, kas::parser::kas_loc loc)
     {
         mode = MODE_ERROR;
@@ -64,18 +53,21 @@ struct arm_shift_arg
 
     uint8_t      shift_op;
     arm_arg_mode mode{MODE_SHIFT};
-    kas_token    tok;      // for error
-    arm_shift    shift;
+    kas_token    tok;           // for error
+    arm_shift    shift;         // value stored in `arm_arg`
 };
 
+// derive special for RRX (which is parsed w/o expression)
 struct arm_shift_arg_rrx : arm_shift_arg
 {
+    using base_t = arm_shift_arg;
+
     arm_shift_arg_rrx() {}
 
     template <typename Context>
     void operator()(Context const& ctx)
     {
-        shift.type = 3;  // RRX encoded like ROR #0
+        shift_op      = ARM_SHIFT_RRX;
         x3::_val(ctx) = *this;
     }
 };
@@ -126,11 +118,11 @@ void arm_shift_arg::gen_shift_arg(kas_loc const& loc
     //    std::cout << reg_p->name();
     //std::cout << std::endl;
 
-    // RRX is special
+    // RRX is special: map as ROR with count of zero
     if (shift_op == ARM_SHIFT_RRX)
     {
         // type == 3, shift == 0 
-        shift.type = 3;
+        shift.type = ARM_SHIFT_ROR;
     }
     
     else if (reg_p) 
@@ -145,9 +137,9 @@ void arm_shift_arg::gen_shift_arg(kas_loc const& loc
         else
             make_error("general register required", loc);
     }
-
     else
     {
+        // XXX logic is AFU: LSR/ASR zeros are invalid, ROR zero is RRX
         // here for "constant" shift
         shift.type   = shift_op;
         
@@ -160,7 +152,9 @@ void arm_shift_arg::gen_shift_arg(kas_loc const& loc
             if (count == 32)
                 count = 0;
 
-        if (count < 32)
+        if (count < 0)
+            make_error("positive shift count required", loc);
+        else if (count < 32)
             shift.ext = count;
         else
             make_error("shift out of range", loc);
@@ -185,6 +179,7 @@ struct arm_indirect_arg
     // convert parsed data to `arm_arg` format
     operator arm_arg_t();
 
+    // XXX error should use `kas_position_tagged const *`
     void make_error(const char *msg, kas::parser::kas_loc loc)
     {
         mode = MODE_ERROR;
@@ -195,8 +190,7 @@ struct arm_indirect_arg
     kas_token        offset;
     arm_shift        shift;
     arm_indirect     indir;
-    //arm_arg_mode     mode {MODE_REG_INDIR};
-    arm_arg_mode     mode {MODE_REG_IEXPR};
+    arm_arg_mode     mode {MODE_REG_INDIR};
 };
 
 template <typename Context>

@@ -57,6 +57,22 @@ struct arm_rel_soff12 : k_rel_add_t, reloc_op_s_subfield<12>
     }
 };
 
+struct arm_rel_immed12 : kbfd::k_rel_add_t
+{
+    static constexpr arm_immed_constant e;
+
+    const char *insert (value_t& data, value_t value)  const override
+    {
+        auto [encoded, residual] = e.encode_alu_immed(value);
+        //std::cout << "arm_rel_addsub::insert: " << encoded << "/" << residual << std::endl;
+        data = (data &~ 0xfff) | encoded;
+        // TEST
+        return "K Invalid constant";
+        return residual ? "K Invalid constant" : nullptr;
+    }
+};
+
+
 struct arm_rel_addsub : kbfd::k_rel_add_t
 {
     static constexpr arm_immed_constant e;

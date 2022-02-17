@@ -41,16 +41,16 @@ auto const parse_shift = rule<class _, arm_shift_arg> {"parse_shift"}
 //
 
 // helpers for `parse_indir_terms`
-// get_sign: -{+/-} -> '+' or (omitted) => 0, '-' => 1
+// is_minus: '-' => 1, '+' or (omitted) => 0
 auto is_minus = rule<class _, int> {}
-                = lit('-') > attr(1)
-                | lit('+') > attr(0)
-                | attr(0)
+                = lit('-') > attr(1)    // consume `-`, return 1
+                | lit('+') > attr(0)    // consume `+`, return 0
+                | attr(0)               // don't consume character, return 0
                 ;
 // get_write_back: {!} -> (omitted) => 0, '!' => 1
 auto get_wb = rule<class _, int> {}
-                = lit('!') > attr(1)
-                | attr(0)
+                = lit('!') > attr(1)    // consume `!`, return 1
+                | attr(0)               // don't consume character, return 0
                 ;
 auto const parse_indir_terms = rule<class _, arm_indirect_arg> {"indir_terms"}
         // offset or pre-indexed: immed, register, or register shift
@@ -78,6 +78,8 @@ auto add_base_reg = [](auto& ctx)
         indir.set_base(base);       // validates base register
         x3::_val(ctx)  = indir;     // return validated `indir` type
     };
+
+// NB: leading '[' previously parsed. Must parse trailing ']'
 auto const parse_indir = rule<class _, arm_arg_t> {"parse_indirect"}
         = (expr() > parse_indir_terms)[add_base_reg];
         

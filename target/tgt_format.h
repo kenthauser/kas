@@ -98,6 +98,7 @@ private:
     
 public:
     // access inserters/extractors via public interface
+    // returns true if need to emit reloc
     auto insert(unsigned n, mcode_size_t* op, arg_t& arg, val_t const *val_p) const 
     {
         if (val_p)

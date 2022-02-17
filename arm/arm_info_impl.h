@@ -8,6 +8,7 @@
 namespace kas::arm::opc
 {
 
+// `arm_info_fn_base` class holds utilities used by derived classes
 struct arm_info_fn_base : arm_mcode_t::info_fn_t
 {
     using base_t = typename arm_mcode_t::info_fn_t;
@@ -130,7 +131,6 @@ struct arm_info_a32_cs : arm_info_fn_base
               , stmt_info_t const& stmt_info
               , defn_info_t const& defn_info) const override
     {
-        return; // XXX
         insert_ccode(code, stmt_info);
         insert_sflag(code, stmt_info);
     }

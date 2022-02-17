@@ -89,21 +89,25 @@ struct arm_sfx_t
         static constexpr arm_sfx_t data[] = 
         {
         // NB: `symbols<>` requires lower case data for `no_case`
+        // NB: value of zero indicates invalid instruction
+        // XXX would it be better if `arch` was validator?
+        // XXX consider how to code LDRSHT
+
+        // ldr/str unsigned byte (set B-FLAG: bit 22)
+            {STR("b")    , SZ_ARCH_ARM, SFX_B, 4, 4, OP_SIZE_BYTE }
+
+        // ldr/str unprivileged (set W-FLAG: bit 21) + B_FLAG 
+         , {STR("t")     , SZ_ARCH_ARM, SFX_T, 2, 2, OP_SIZE_WORD }
+         , {STR("bt")    , SZ_ARCH_ARM, SFX_T, 6, 6, OP_SIZE_BYTE }
+
         // addressing Mode 3: miscellaneous loads and stores
         // ldr/str signed/unsigned byte/halfword/doubleword
-        // NB: value of zero indicates invalid instruction
         // NB: LDRSHT is a ARMV6 insn, not supported by pre-UAL
-           {STR("h")     , SZ_ARCH_ARM, SFX_H, 0xb0, 0xb0, OP_SIZE_HALF   }
+        // NB: SFX_H values are bits 7-4 + "bit 20 xor" encoded as LSB.
+         , {STR("h")     , SZ_ARCH_ARM, SFX_H, 0xb0, 0xb0, OP_SIZE_HALF   }
          , {STR("sh")    , SZ_ARCH_ARM, SFX_H, 0xf0, 0x00, OP_SIZE_SHALF  }
          , {STR("sb")    , SZ_ARCH_ARM, SFX_H, 0xd0, 0x00, OP_SIZE_SBYTE  }
          , {STR("d")     , SZ_ARCH_ARM, SFX_H, 0xd1, 0xf0, OP_SIZE_DOUBLE }
-
-        // ldr/str unsigned byte (set B-FLAG: bit 22)
-          , {STR("b")    , SZ_ARCH_ARM, SFX_B, 4, 4, OP_SIZE_BYTE }
-
-        // ldr/str unprivileged (set W-FLAG: bit 21) + B_FLAG 
-         , {STR("t")     , SZ_ARCH_ARM, SFX_T, 2, 2 }
-         , {STR("bt")    , SZ_ARCH_ARM, SFX_T, 6, 6, OP_SIZE_BYTE }
 
         // load/store multiple (set L-bit(20) / P-bit(24) / U-bit(23) )
         // store values shifted 20 bits
@@ -121,7 +125,7 @@ struct arm_sfx_t
          , {STR("ea")    , SZ_ARCH_ARM, SFX_M, 0x11, 0x08 }    // 1/1/0    0/0/1
 
         // coprocessor suffix L
-         , {STR("l")    , SZ_ARCH_ARM, SFX_L, 0x0, 0x0 }
+         , {STR("l")     , SZ_ARCH_ARM, SFX_L, 0x0, 0x0 }
         };
         return data;
 #undef STR

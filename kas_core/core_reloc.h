@@ -97,7 +97,7 @@ struct core_reloc
     
     // hold info about value (ie the "addend") to be relocated
     int64_t              addend      {};
-    int64_t              value       {};    // constant or section offset
+    // XXX int64_t              value       {};    // constant or section offset
     core_section  const *section_p   {};
     core_symbol_t const *sym_p       {};
     core_expr_t   const *core_expr_p {};

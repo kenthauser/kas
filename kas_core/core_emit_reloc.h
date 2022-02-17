@@ -60,9 +60,14 @@ void core_emit::put_reloc(core_reloc& r, core_section const *section_p)
 // if `force` is set, failure to encode generates diagnostic
 void core_emit::reloc_update_data(core_reloc& r, bool force)
 {
-    std::cout << "core_emit::reloc_update_data" << std::endl;
+    std::cout << "core_emit::reloc_update_data" << std::hex;
+    std::cout << ": data = " << data << ", accum = " << accum;
     auto& ops = r.reloc.get();
     auto msg = ops.encode(accum);   // test for error
+
+    std::cout << " -> result = " << accum << std::endl;
+    if (msg)
+        std::cout << "ERROR = " << msg << std::endl;
 
     if (msg)
     {

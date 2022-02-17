@@ -25,13 +25,11 @@ void emit_kbfd::open()
 
     kbfd.reserve_sections(SECTION_RESERVE_CNT);
 
-    // 2. create a ELF_SECTION for each core_section
-    // NB: This causes data sections of object to be first
-    // NB: sections in ELF object in same order as assembler.
-    // NB: This is a convention & this step may be safely omitted.
+    // 2. create a ELF_SECTION for each core_section which is not empty
     core::core_section::for_each([&](auto& s)
         { 
-            core2ks_data(s);        // creates kbfd_sections upon reference
+            if (s.size())
+                core2ks_data(s);   // creates associated kbfd_section
         });
 
     // 3. Calculate size of symbol table
@@ -75,7 +73,8 @@ void emit_kbfd::open()
     // 6. Add symbols: continue with STT_SECTION proxies
     core::core_section::for_each([&](auto& s)
         {
-            add_sym(s);     // `emit_kbfd` local method
+            if (s.size())       // if section is not empty
+                add_sym(s);     // `emit_kbfd` local method
         });
 
     // 7. Add symbols: continue with STB_LOCAL symbols from `core_symbol`
@@ -112,7 +111,8 @@ auto emit_kbfd::core2ks_data(core::core_section const& s) const
 {
     // retrieve `ks_data *` using callback (if previously created)
     auto p = static_cast<kbfd::ks_data *>(s.kbfd_callback());
-#if 1   
+
+    // allocate new `callback` if required
     if (!p)
     {
         // construct new `ks_data` section in `kbfd_object` from `core_section`
@@ -124,9 +124,8 @@ auto emit_kbfd::core2ks_data(core::core_section const& s) const
         // XXX st_link, st_info
 
         p->set_size(s.size());      // allocate memory to hold section data
-        s.set_kbfd_callback(p);      // register callback
+        s.set_kbfd_callback(p);     // register callback
     }
-#endif
     return *p;
 }
 
