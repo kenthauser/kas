@@ -13,25 +13,27 @@ namespace kbfd::arm
 // Issue : 24 November 2015
 
 static constexpr auto T_DEPR        = kbfd::kbfd_reloc::RFLAGS_DEPR;
+static constexpr auto SB_REL        = kbfd::kbfd_reloc::RFLAGS_SB_REL;
+static constexpr auto TLS           = kbfd::kbfd_reloc::RFLAGS_TLS;
 static constexpr auto ARM_G0        = kbfd::kbfd_reloc::RFLAGS_ARM_G0;
 static constexpr auto ARM_G1        = kbfd::kbfd_reloc::RFLAGS_ARM_G1;
 static constexpr auto ARM_G2        = kbfd::kbfd_reloc::RFLAGS_ARM_G2;
 static constexpr auto ARM_G3        = kbfd::kbfd_reloc::RFLAGS_ARM_G3;
-static constexpr auto ARM_EMIT      = kbfd::kbfd_reloc::RFLAGS_ARM_EMIT;
+static constexpr auto ARM_NC        = kbfd::kbfd_reloc::RFLAGS_ARM_NC;
 
 // ARM relocations: fields = WKN Name Action width pc-rel flags...
 static constexpr kbfd_target_reloc arm_elf_relocs[] =
 {
     {   0, "R_ARM_NONE"     , K_REL_NONE() }
-  , {   1, "R_ARM_PC24"     , K_REL_ADD()       , 32, 1, T_ARM, T_DEPR }
+  , {   1, "R_ARM_PC24"     , K_REL_NONE()      , 32, 1, T_ARM, T_DEPR }
   , {   2, "R_ARM_ABS32"    , K_REL_ADD()       , 32, 0 }
   , {   3, "R_ARM_REL32"    , K_REL_ADD()       , 32, 1 }
-  , {   4, "R_ARM_LDR_PC_G0", ARM_REL_SOFF12()  , 32, 1, T_ARM }
+  , {   4, "R_ARM_LDR_PC_G0", ARM_REL_A32LDR()  , 32, 1, T_ARM, ARM_G0 }
   , {   5, "R_ARM_ABS16"    , K_REL_ADD()       , 16, 0 }
-  , {   6, "R_ARM_ABS12"    , K_REL_ADD()       , 16, 0, T_ARM }
+  , {   6, "R_ARM_ABS12"    , ARM_REL_A32LDR()  , 32, 0, T_ARM }    // XXX off12
   , {   7, "R_ARM_THM_ABS5" , ARM_REL_ABS5()    , 16, 0, T_T16 }
   , {   8, "R_ARM_ABS8"     , K_REL_ADD()       ,  8, 0 }
-  , {   9, "R_ARM_SBREL32"  , K_REL_NONE()      , 32, 1 }
+  , {   9, "R_ARM_SBREL32"  , K_REL_ADD()       , 32, 0, SB_REL }
   , {  10, "R_ARM_THM_CALL" , ARM_REL_THB_CALL(), 32, 1, T_T16 }
   , {  11, "R_ARM_THM_PC8"  , ARM_REL_PC8()     , 16, 1, T_T16 }
   , {  12, "R_ARM_BREL_ADJ" , K_REL_NONE()  }
@@ -46,25 +48,25 @@ static constexpr kbfd_target_reloc arm_elf_relocs[] =
   , {  24, "R_ARM_GOTOFF32" , K_REL_GOT() }
   , {  25, "R_ARM_BASE_PREL", K_REL_NONE() }
   , {  26, "R_ARM_GOT_BREL" , K_REL_NONE() }
-  , {  27, "R_ARM_PLT32"    , K_REL_NONE()      , 32, 0, T_ARM, T_DEPR }
-  // NB: G0/G1 flags are used to differentiate between _CALL & _JUMP24
-  , {  28, "R_ARM_CALL"     , ARM_REL_OFF24()   , 32, 1, T_ARM, ARM_G0 }
-  , {  29, "R_ARM_JUMP24"   , ARM_REL_OFF24()   , 32, 1, T_ARM, ARM_G1 }
-  , {  30, "R_ARM_THM_JUMP24", K_REL_NONE()     , 32, 0, T_T32}
-  , {  31, "R_ARM_BASE_ABS" , K_REL_NONE() }
+  , {  27, "R_ARM_PLT32"    , K_REL_ADD()      , 32, 1, T_ARM, T_DEPR }
+  // NB: G1/G2 flags are used to differentiate between _CALL & _JUMP24
+  , {  28, "R_ARM_CALL"     , ARM_REL_A32JUMP(), 32, 1, T_ARM, ARM_G1 }
+  , {  29, "R_ARM_JUMP24"   , ARM_REL_A32JUMP(), 32, 1, T_ARM, ARM_G2 }
+  , {  30, "R_ARM_THM_JUMP24", K_REL_NONE()    , 32, 0, T_T32}
+  , {  31, "R_ARM_BASE_ABS" , K_REL_ADD()      , 32, 0, SB_REL }
   , {  35, "R_ARM_LDR_SBREL_11_0_NC" , K_REL_NONE(), 32, 0, T_ARM, T_DEPR }
   , {  36, "R_ARM_LDR_SBREL_19_12_NC", K_REL_NONE(), 32, 0, T_ARM, T_DEPR }
   , {  37, "R_ARM_LDR_SBREL_27_20_NC", K_REL_NONE(), 32, 0, T_ARM, T_DEPR }
+  // XXX target1 *could* be PCREL ??
   , {  38, "R_ARM_TARGET1"  , K_REL_NONE() }
-  , {  39, "R_ARM_SBREL31"  , K_REL_NONE()          , 32, 0, T_DEPR }
-    // XXX need INFO-ONLY (not match) MASK
-  , {  40, "R_ARM_V4BX"     , ARM_REL_V4BX()        , 32, 0, T_ARM }//, ARM_EMIT }
+  , {  39, "R_ARM_SBREL31"  , K_REL_SADD()          , 32, 0, SB_REL, T_DEPR }
+  , {  40, "R_ARM_V4BX"     , ARM_REL_V4BX()        , 32, 0, T_ARM }
   , {  41, "R_ARM_TARGET2"  , K_REL_NONE() }
-  , {  42, "R_ARM_PREL31"   , K_REL_NONE()          , 32, 1 }
-  , {  43, "R_ARM_MOVW_ABS_NC", ARM_REL_MOVW()        , 32, 0 }
-  , {  44, "R_ARM_MOVT_ABS" , ARM_REL_MOVT()          , 32, 0 }
-  , {  45, "R_ARM_MOVW_PREL_NC", ARM_REL_MOVW()       , 32, 1 }
-  , {  46, "R_ARM_MOVT_PREL"   , ARM_REL_MOVT()       , 32, 1 }
+  , {  42, "R_ARM_PREL31"   , K_REL_SADD()          , 32, 1 }
+  , {  43, "R_ARM_MOVW_ABS_NC", ARM_REL_MOVW()        , 32, 0, T_ARM, ARM_NC }
+  , {  44, "R_ARM_MOVT_ABS" , ARM_REL_MOVT()          , 32, 0, T_ARM }
+  , {  45, "R_ARM_MOVW_PREL_NC", ARM_REL_MOVW()       , 32, 1, T_ARM, ARM_NC }
+  , {  46, "R_ARM_MOVT_PREL"   , ARM_REL_MOVT()       , 32, 1, T_ARM }
   , {  47, "R_ARM_THM_MOVW_ABS_NC", K_REL_NONE()    , 32, 0, T_T32 }
   , {  48, "R_ARM_THM_MOVT_ABS" , K_REL_NONE()      , 32, 0, T_T32 }
   , {  49, "R_ARM_THM_MOVW_ABS_NC", K_REL_NONE()    , 32, 1, T_T32 }
@@ -73,38 +75,39 @@ static constexpr kbfd_target_reloc arm_elf_relocs[] =
   , {  52, "R_ARM_THM_JUMP6"    , K_REL_NONE()      , 16, 1, T_T16 }
   , {  53, "R_ARM_THM_ALU_PREL_11_0", K_REL_NONE()  , 32, 1, T_T32 }
   , {  54, "R_ARM_THM_PC12" , K_REL_NONE()      , 32, 1, T_T32 }
-  , {  55, "R_ARM_ABS32_NOI", K_REL_NONE()      , 32, 0 }
-  , {  56, "R_ARM_REL32_NOI", K_REL_NONE()      , 32, 1 }
-  , {  57, "R_ARM_ALU_PC_G0_NC" , ARM_REL_ADDSUB()   , 32, 0 }
-  , {  58, "R_ARM_ALU_PC_G0"    , ARM_REL_ADDSUB()  , 32, 1 }
-  , {  59, "R_ARM_ALU_PC_G1_NC" , ARM_REL_ADDSUB()  , 32, 1 }
-  , {  60, "R_ARM_ALU_PC_G1"    , ARM_REL_ADDSUB()  , 32, 1 }
-  , {  61, "R_ARM_ALU_PC_G2_NC", K_REL_NONE()  , 32, 1 }
-  , {  62, "R_ARM_LDR_PC_G1"    , K_REL_NONE()  , 32, 1 }
-  , {  63, "R_ARM_LDR_PC_G2"    , K_REL_NONE()  , 32, 1 }
-  , {  64, "R_ARM_LDRS_PC_G0"   , K_REL_NONE()  , 32, 1 }
-  , {  65, "R_ARM_LDRS_PC_G1"   , K_REL_NONE()  , 32, 1 }
-  , {  66, "R_ARM_LDRS_PC_G2"   , K_REL_NONE()  , 32, 1 }
-  , {  67, "R_ARM_LDC_PC_G0"    , K_REL_NONE()  , 32, 1 }
-  , {  68, "R_ARM_LDC_PC_G1"    , K_REL_NONE()  , 32, 1 }
-  , {  69, "R_ARM_LDC_PC_G2"    , K_REL_NONE()  , 32, 1 }
-  , {  70, "R_ARM_ALU_SB_G0_NC" , K_REL_NONE()  , 32, 1 }
-  , {  71, "R_ARM_ALU_SB_G0"    , K_REL_NONE()  , 32, 1 }
-  , {  72, "R_ARM_ALU_SB_G1_NC" , K_REL_NONE()  , 32, 1 }
-  , {  73, "R_ARM_ALU_SB_G1"    , K_REL_NONE()  , 32, 1 }
-  , {  74, "R_ARM_ALU_SB_G2"    , K_REL_NONE()  , 32, 1 }
-  , {  75, "R_ARM_LDR_SB_G0"    , K_REL_NONE()  , 32, 1 }
-  , {  76, "R_ARM_LDR_SB_G1"    , K_REL_NONE()  , 32, 1 }
-  , {  77, "R_ARM_LDR_SB_G2"    , K_REL_NONE()  , 32, 1 }
-  , {  78, "R_ARM_LDRS_SB_G0"    , K_REL_NONE()  , 32, 1 }
-  , {  79, "R_ARM_LDRS_SB_G1"    , K_REL_NONE()  , 32, 1 }
-  , {  80, "R_ARM_LDRS_SB_G2"    , K_REL_NONE()  , 32, 1 }
-  , {  81, "R_ARM_LDC_SB_G0"    , K_REL_NONE()  , 32, 1 }
-  , {  82, "R_ARM_LDC_SB_G1"    , K_REL_NONE()  , 32, 1 }
-  , {  83, "R_ARM_LDC_SB_G2"    , K_REL_NONE()  , 32, 1 }
-  , {  84, "R_ARM_MOVW_BREL_NC" , K_REL_NONE()  , 32, 1  }
-  , {  85, "R_ARM_MOVT_BREL"    , K_REL_NONE()  , 32, 1 }
-  , {  86, "R_ARM_MOVW_BREL" , K_REL_NONE()  , 32, 1  }
+  // XXX _NOI clears THUMB bit on FUNCT symbol value
+  , {  55, "R_ARM_ABS32_NOI"    , ARM_REL_NO_TFUNC(), 32, 0 }
+  , {  56, "R_ARM_REL32_NOI"    , ARM_REL_NO_TFUNC(), 32, 1 }
+  , {  57, "R_ARM_ALU_PC_G0_NC" , ARM_REL_A32ALU()  , 32, 1, T_ARM, ARM_G0, ARM_NC }
+  , {  58, "R_ARM_ALU_PC_G0"    , ARM_REL_A32ALU()  , 32, 1, T_ARM, ARM_G0 }
+  , {  59, "R_ARM_ALU_PC_G1_NC" , ARM_REL_A32ALU()  , 32, 1, T_ARM, ARM_G1, ARM_NC }
+  , {  60, "R_ARM_ALU_PC_G1"    , ARM_REL_A32ALU()  , 32, 1, T_ARM, ARM_G1 }
+  , {  61, "R_ARM_ALU_PC_G2_NC" , ARM_REL_A32ALU()  , 32, 1, T_ARM, ARM_G2, ARM_NC }
+  , {  62, "R_ARM_LDR_PC_G1"    , ARM_REL_A32LDR()  , 32, 1, T_ARM, ARM_G1 }
+  , {  63, "R_ARM_LDR_PC_G2"    , ARM_REL_A32LDR()  , 32, 1, T_ARM, ARM_G2 }
+  , {  64, "R_ARM_LDRS_PC_G0"   , ARM_REL_A32LDRS() , 32, 1, T_ARM, ARM_G0 }
+  , {  65, "R_ARM_LDRS_PC_G1"   , ARM_REL_A32LDRS() , 32, 1, T_ARM, ARM_G1 }
+  , {  66, "R_ARM_LDRS_PC_G2"   , ARM_REL_A32LDRS() , 32, 1, T_ARM, ARM_G2 }
+  , {  67, "R_ARM_LDC_PC_G0"    , ARM_REL_A32LDC()  , 32, 1, T_ARM, ARM_G0 }
+  , {  68, "R_ARM_LDC_PC_G1"    , ARM_REL_A32LDC()  , 32, 1, T_ARM, ARM_G1 }
+  , {  69, "R_ARM_LDC_PC_G2"    , ARM_REL_A32LDC()  , 32, 1, T_ARM, ARM_G2 }
+  , {  70, "R_ARM_ALU_SB_G0_NC" , ARM_REL_A32ALU()  , 32, 0, T_ARM, SB_REL, ARM_G0, ARM_NC }
+  , {  71, "R_ARM_ALU_SB_G0"    , ARM_REL_A32ALU()  , 32, 0, T_ARM, SB_REL, ARM_G0 }
+  , {  72, "R_ARM_ALU_SB_G1_NC" , ARM_REL_A32ALU()  , 32, 0, T_ARM, SB_REL, ARM_G1, ARM_NC }
+  , {  73, "R_ARM_ALU_SB_G1"    , ARM_REL_A32ALU()  , 32, 0, T_ARM, SB_REL, ARM_G1 }
+  , {  74, "R_ARM_ALU_SB_G2"    , ARM_REL_A32ALU()  , 32, 0, T_ARM, SB_REL, ARM_G2 }
+  , {  75, "R_ARM_LDR_SB_G0"    , ARM_REL_A32LDR()  , 32, 0, T_ARM, SB_REL, ARM_G0 }
+  , {  76, "R_ARM_LDR_SB_G1"    , ARM_REL_A32LDR()  , 32, 0, T_ARM, SB_REL, ARM_G1 }
+  , {  77, "R_ARM_LDR_SB_G2"    , ARM_REL_A32LDR()  , 32, 0, T_ARM, SB_REL, ARM_G2 }
+  , {  78, "R_ARM_LDRS_SB_G0"   , ARM_REL_A32LDRS() , 32, 0, T_ARM, SB_REL, ARM_G0 }
+  , {  79, "R_ARM_LDRS_SB_G1"   , ARM_REL_A32LDRS() , 32, 0, T_ARM, SB_REL, ARM_G1 }
+  , {  80, "R_ARM_LDRS_SB_G2"   , ARM_REL_A32LDRS() , 32, 0, T_ARM, SB_REL, ARM_G2 }
+  , {  81, "R_ARM_LDC_SB_G0"    , ARM_REL_A32LDC()  , 32, 0, T_ARM, SB_REL, ARM_G0 }
+  , {  82, "R_ARM_LDC_SB_G1"    , ARM_REL_A32LDC()  , 32, 0, T_ARM, SB_REL, ARM_G1 }
+  , {  83, "R_ARM_LDC_SB_G2"    , ARM_REL_A32LDC()  , 32, 0, T_ARM, SB_REL, ARM_G2 }
+  , {  84, "R_ARM_MOVW_BREL_NC" , ARM_REL_MOVW()  , 32, 1, T_ARM, SB_REL, ARM_NC  }
+  , {  85, "R_ARM_MOVT_BREL"    , ARM_REL_MOVT()  , 32, 1, T_ARM, SB_REL }
+  , {  86, "R_ARM_MOVW_BREL"    , ARM_REL_MOVW()  , 32, 1, T_ARM, SB_REL }
   , {  87, "R_ARM_THM_MOVW_BREL_NC" , K_REL_NONE()  , 32, 1, T_T32 }
   , {  88, "R_ARM_THM_MOVT_BREL"    , K_REL_NONE()  , 32, 1, T_T32 }
   , {  89, "R_ARM_THM_MOVW_BREL" , K_REL_NONE()  , 32, 1, T_T32  }

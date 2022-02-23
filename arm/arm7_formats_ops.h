@@ -112,13 +112,10 @@ struct fmt_movw : arm_mcode_t::fmt_t::fmt_impl
 #endif
 };
 
-// ARM5: 24-bit branch
+// ARM5: 24-bit branch:  emit reloc and let KBFD sort out overflow
+template <unsigned RELOC_FLAG>
 struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
 {
-    static constexpr auto ARM_G0 = kbfd::kbfd_reloc::RFLAGS_ARM_G0;
-    static constexpr auto ARM_G1 = kbfd::kbfd_reloc::RFLAGS_ARM_G1;
-    static constexpr auto ARM_G2 = kbfd::kbfd_reloc::RFLAGS_ARM_G2;
-
     // branch `machine code` insertions handled by `emit_reloc`
     void emit_reloc(core::core_emit& base
                   , mcode_size_t *op
@@ -131,38 +128,42 @@ struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
         {
         default:
             //std::cout << "emit_relocation: bad arg: " << arg << ", mode = " << +arg.mode() << std::endl;
-           break;
            throw std::logic_error{"invalid fmt_displacement mode"};
 
+        case arg_t::arg_mode_t::MODE_DIRECT:
+        {
+            //std::cout << "fmt_displacement: MODE_CALL" << std::endl;
+            
+            // reloc is 24-bits & pc-relative
+            // flag `ARM_G1` maps reloc to "R_ARM_CALL24"
+            // flag `ARM_G2` maps reloc to "R_ARM_JUMP24"
+            static const kbfd::kbfd_reloc r
+                    { kbfd::ARM_REL_A32JUMP(), 32, true, RELOC_FLAG }; 
+            
+            // displacement is from end of insn after insn...
+            base << core::emit_reloc(r, {}, -8) << arg.expr;
+            break;
+        }
+#if 0        
         case arg_t::arg_mode_t::MODE_BRANCH:
         {
             // byte displacement stored in LSBs. Use reloc mechanism
+            // NB: all arm branches are DIRECT. included for required MODE
             //std::cout << "fmt_displacement: MODE_JUMP" << std::endl;
             
             // reloc is 24-bits & pc-relative
             // flag `ARM_G2` maps reloc to "R_ARM_JUMP24"
             static const kbfd::kbfd_reloc r 
-                    { kbfd::ARM_REL_OFF24(), 32, true, ARM_G1 }; 
+                    { kbfd::ARM_REL_A32JUMP(), 32, true, ARM_G2 }; 
             
-            // displacement is from end of 2-byte machine code
+            // displacement is from end of insn after insn...
             base << core::emit_reloc(r, {}, -8) << arg.expr;
             break;
         }
-        case arg_t::arg_mode_t::MODE_CALL:
-            //std::cout << "fmt_displacement: MODE_CALL" << std::endl;
-            
-            // reloc is 24-bits & pc-relative
-            // flag `ARM_G1` maps reloc to "R_ARM_CALL24"
-            static const kbfd::kbfd_reloc r
-                    { kbfd::ARM_REL_OFF24(), 32, true, ARM_G0 }; 
-            
-            // displacement is from end of 2-byte machine code
-            base << core::emit_reloc(r, {}, -8) << arg.expr;
-            break;
+#endif
         }
     }
 };
-
 // ARM5: Addressing Mode 1: immediate 12-bit value with 8 significant bits
 //       and an `even` shift encoded in 4 bits.
 // use KBFD to encode
@@ -184,7 +185,7 @@ struct fmt_fixed : arm_mcode_t::fmt_t::fmt_impl
 // ARM5: add/sub: use KBFD to encode argument
 // NB: KBFD routine may convert between "add"/"sub" based on args
 // derive from `fmt_fixed` to pick up MASKing etc
-struct fmt_addsub : fmt_fixed
+struct fmt_a32alu : fmt_fixed
 {
     // use KBFD to handle special format immediate
     void emit_reloc(core::core_emit& base
@@ -192,7 +193,7 @@ struct fmt_addsub : fmt_fixed
                   , arg_t& arg
                   , val_t const *val_p) const override
     {
-        static const kbfd::kbfd_reloc r { kbfd::ARM_REL_ADDSUB() };
+        static const kbfd::kbfd_reloc r { kbfd::ARM_REL_A32ALU() };
         
         // let KBFD deal with argument
         base << core::emit_reloc(r) << arg.expr;

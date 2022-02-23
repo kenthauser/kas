@@ -8,10 +8,8 @@ namespace kas::arm::parser
 
 // define ARM condition codes
 struct arm_ccode_t
-
 {
-    arm_ccode_t();       // default ctor required for X3
-
+    // allow two-character condition codes  
     constexpr arm_ccode_t(const char *ccode, uint8_t value)
             : ccode{ccode[0], ccode[1]}, value(value) {}
 
@@ -52,7 +50,7 @@ struct arm_ccode_t
 
     // make each ccode a 32-bit value...
     char    ccode[3];
-    uint8_t value;
+    uint8_t value {};
 };
 
 // parse arm opcode suffix (after ccode)
@@ -83,9 +81,7 @@ struct arm_sfx_t
     {
         static_assert(sizeof(arm_sfx_t) == 8
                     , "sizeof(arm_sfx_t) != single word");
-    // Need const char arrays -- use KAS_STRING        
-//#define STR(x) KAS_STRING(x)::value
-#define STR(x) x
+
         static constexpr arm_sfx_t data[] = 
         {
         // NB: `symbols<>` requires lower case data for `no_case`
@@ -94,38 +90,38 @@ struct arm_sfx_t
         // XXX consider how to code LDRSHT
 
         // ldr/str unsigned byte (set B-FLAG: bit 22)
-            {STR("b")    , SZ_ARCH_ARM, SFX_B, 4, 4, OP_SIZE_BYTE }
+            {"b"    , SZ_ARCH_ARM, SFX_B, 4, 4, OP_SIZE_BYTE }
 
         // ldr/str unprivileged (set W-FLAG: bit 21) + B_FLAG 
-         , {STR("t")     , SZ_ARCH_ARM, SFX_T, 2, 2, OP_SIZE_WORD }
-         , {STR("bt")    , SZ_ARCH_ARM, SFX_T, 6, 6, OP_SIZE_BYTE }
+         , {"t"     , SZ_ARCH_ARM, SFX_T, 2, 2, OP_SIZE_WORD }
+         , {"bt"    , SZ_ARCH_ARM, SFX_T, 6, 6, OP_SIZE_BYTE }
 
         // addressing Mode 3: miscellaneous loads and stores
         // ldr/str signed/unsigned byte/halfword/doubleword
         // NB: LDRSHT is a ARMV6 insn, not supported by pre-UAL
         // NB: SFX_H values are bits 7-4 + "bit 20 xor" encoded as LSB.
-         , {STR("h")     , SZ_ARCH_ARM, SFX_H, 0xb0, 0xb0, OP_SIZE_HALF   }
-         , {STR("sh")    , SZ_ARCH_ARM, SFX_H, 0xf0, 0x00, OP_SIZE_SHALF  }
-         , {STR("sb")    , SZ_ARCH_ARM, SFX_H, 0xd0, 0x00, OP_SIZE_SBYTE  }
-         , {STR("d")     , SZ_ARCH_ARM, SFX_H, 0xd1, 0xf0, OP_SIZE_DOUBLE }
+         , {"h"     , SZ_ARCH_ARM, SFX_H, 0xb0, 0xb0, OP_SIZE_HALF   }
+         , {"sh"    , SZ_ARCH_ARM, SFX_H, 0xf0, 0x00, OP_SIZE_SHALF  }
+         , {"sb"    , SZ_ARCH_ARM, SFX_H, 0xd0, 0x00, OP_SIZE_SBYTE  }
+         , {"d"     , SZ_ARCH_ARM, SFX_H, 0xd1, 0xf0, OP_SIZE_DOUBLE }
 
         // load/store multiple (set L-bit(20) / P-bit(24) / U-bit(23) )
         // store values shifted 20 bits
         // NB: i/d indicates increment/decrement, a/b indicates after/before
-         , {STR("ia")    , SZ_ARCH_ARM, SFX_M, 0x01, 0x08 }    // 1/0/1    0/0/1
-         , {STR("ib")    , SZ_ARCH_ARM, SFX_M, 0x19, 0x18 }    // 1/1/1    0/1/1
-         , {STR("da")    , SZ_ARCH_ARM, SFX_M, 0x01, 0x00 }    // 1/0/0    0/0/0
-         , {STR("db")    , SZ_ARCH_ARM, SFX_M, 0x11, 0x10 }    // 1/1/0    0/1/0
+         , {"ia"    , SZ_ARCH_ARM, SFX_M, 0x01, 0x08 }    // 1/0/1    0/0/1
+         , {"ib"    , SZ_ARCH_ARM, SFX_M, 0x19, 0x18 }    // 1/1/1    0/1/1
+         , {"da"    , SZ_ARCH_ARM, SFX_M, 0x01, 0x00 }    // 1/0/0    0/0/0
+         , {"db"    , SZ_ARCH_ARM, SFX_M, 0x11, 0x10 }    // 1/1/0    0/1/0
 
         // stack ops alternate name
         // NB: f/e indicates full/empty, d/a incicates descending/ascending
-         , {STR("fd")    , SZ_ARCH_ARM, SFX_M, 0x01, 0x10 }    // 1/0/1    0/1/0
-         , {STR("ed")    , SZ_ARCH_ARM, SFX_M, 0x19, 0x00 }    // 1/1/1    0/0/0
-         , {STR("fa")    , SZ_ARCH_ARM, SFX_M, 0x01, 0x18 }    // 1/0/0    0/1/1
-         , {STR("ea")    , SZ_ARCH_ARM, SFX_M, 0x11, 0x08 }    // 1/1/0    0/0/1
+         , {"fd"    , SZ_ARCH_ARM, SFX_M, 0x01, 0x10 }    // 1/0/1    0/1/0
+         , {"ed"    , SZ_ARCH_ARM, SFX_M, 0x19, 0x00 }    // 1/1/1    0/0/0
+         , {"fa"    , SZ_ARCH_ARM, SFX_M, 0x01, 0x18 }    // 1/0/0    0/1/1
+         , {"ea"    , SZ_ARCH_ARM, SFX_M, 0x11, 0x08 }    // 1/1/0    0/0/1
 
         // coprocessor suffix L
-         , {STR("l")     , SZ_ARCH_ARM, SFX_L, 0x0, 0x0 }
+         , {"l"     , SZ_ARCH_ARM, SFX_L, 0x0, 0x0 }
         };
         return data;
 #undef STR
@@ -145,6 +141,7 @@ struct arm_sfx_t
         return {};
     }
 
+    // NB: currently 8 8-bit bytes
     const char      name[3] {};     // two character suffix, pls null
     uint8_t         arch {};        // defn for arch
     arm_sfx_enum    type {};        // defn requirement

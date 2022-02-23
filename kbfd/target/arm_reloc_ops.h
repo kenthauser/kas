@@ -8,13 +8,16 @@ namespace kbfd
 {
 
 // static relocation operations used by A32 architecture
+using ARM_REL_NO_TFUNC = KAS_STRING("ARM_REL_NO_TFUNC");
 using ARM_REL_MOVW     = KAS_STRING("ARM_REL_MOVW");
 using ARM_REL_MOVT     = KAS_STRING("ARM_REL_MOVT");
 using ARM_REL_V4BX     = KAS_STRING("ARM_REL_V4BX");
-using ARM_REL_SOFF12   = KAS_STRING("ARM_REL_SOFF12");
-using ARM_REL_OFF24    = KAS_STRING("ARM_REL_OFF24");
+using ARM_REL_A32ALU   = KAS_STRING("ARM_REL_A32ALU");  // calculate immediate value
+using ARM_REL_A32LDR   = KAS_STRING("ARM_REL_A32LDR");  // ldr/str
+using ARM_REL_A32LDRS  = KAS_STRING("ARM_REL_A32LDRS"); // ldr/str H/SH/SB/D
+using ARM_REL_A32LDC   = KAS_STRING("ARM_REL_A32LDC");  // co-prossessor
+using ARM_REL_A32JUMP  = KAS_STRING("ARM_REL_A32JUMP");
 using ARM_REL_IMMED12  = KAS_STRING("ARM_REL_IMMED12");
-using ARM_REL_ADDSUB   = KAS_STRING("ARM_REL_ADDSUB");
 
 // static relocation operations used by THUMB_16 architecture
 using ARM_REL_ABS5     = KAS_STRING("ARM_REL_ABS5");
@@ -28,12 +31,15 @@ namespace arm
 {
 // declare ARM relocations
     using arm_reloc_ops = meta::list<
-          KBFD_ACTION<ARM_REL_MOVW      , struct arm_rel_movw>
+          KBFD_ACTION<ARM_REL_NO_TFUNC  , struct arm_rel_no_tfunc>
+        , KBFD_ACTION<ARM_REL_MOVW      , struct arm_rel_movw>
         , KBFD_ACTION<ARM_REL_MOVT      , struct arm_rel_movw>
-        , KBFD_ACTION<ARM_REL_SOFF12    , struct arm_rel_soff12>
-        , KBFD_ACTION<ARM_REL_OFF24     , struct arm_rel_off24>
+        , KBFD_ACTION<ARM_REL_A32LDR    , struct arm_rel_a32ldr>
+        , KBFD_ACTION<ARM_REL_A32LDRS   , struct arm_rel_a32ldrs>
+        , KBFD_ACTION<ARM_REL_A32LDC    , struct arm_rel_a32ldc>
+        , KBFD_ACTION<ARM_REL_A32JUMP   , struct arm_rel_a32jump>
         , KBFD_ACTION<ARM_REL_IMMED12   , struct arm_rel_immed12>
-        , KBFD_ACTION<ARM_REL_ADDSUB    , struct arm_rel_addsub>
+        , KBFD_ACTION<ARM_REL_A32ALU    , struct arm_rel_a32alu>
         , KBFD_ACTION<ARM_REL_V4BX      , struct arm_rel_v4bx>
         , KBFD_ACTION<ARM_REL_ABS5      , struct arm_rel_abs5>
         , KBFD_ACTION<ARM_REL_PC8       , struct arm_rel_pc8>

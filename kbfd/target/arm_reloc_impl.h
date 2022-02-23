@@ -9,10 +9,12 @@
 
 namespace kbfd::arm
 {
-
+struct arm_rel_no_tfunc : k_rel_add_t
+{
+};
 
 // signed 24-bit shifted offset for `B`, `BL` etc
-struct arm_rel_off24 : k_rel_add_t, reloc_op_s_subfield<24>
+struct arm_rel_a32jump : k_rel_add_t, reloc_op_s_subfield<24>
 {
     using base_t = reloc_op_s_subfield<24>;
 
@@ -29,11 +31,16 @@ struct arm_rel_off24 : k_rel_add_t, reloc_op_s_subfield<24>
     }
 };
 
-// for LDR_PC_G0
-struct arm_rel_soff12 : k_rel_add_t, reloc_op_s_subfield<12> 
+// for LDR_PC_G0, et seq
+// NB: clear THUMB FUNC bit
+// XXX should be `reloc_op_u_subfield`
+struct arm_rel_a32ldr : reloc_op_s_subfield<12> 
 {
-    using base_t = reloc_op_s_subfield<12, 0>;
+    using base_t = reloc_op_s_subfield<12>;
     static constexpr value_t u_bit = 1 << 23;
+    
+    // support methods for finding MSBs
+    static constexpr arm_immed_constant e;
 
     value_t extract(value_t data) const override
     {
@@ -55,6 +62,92 @@ struct arm_rel_soff12 : k_rel_add_t, reloc_op_s_subfield<12>
             data |= u_bit;
         return base_t::insert(data, value);
     }
+    
+    const char *update(flags_t flags
+                     , value_t& accum 
+                     , value_t const& addend) const override
+    { 
+        // don't test for overflow
+        accum += addend;
+        return {};
+    }  
+};
+
+// LDR/STR H/SH/SB/D
+// Immediate value split into two 4-bits chunks
+struct arm_rel_a32ldrs : reloc_op_s_subfield<12>
+{
+    using base_t = reloc_op_s_subfield<12>;
+    static constexpr value_t u_bit = 1 << 23;
+
+    value_t extract(value_t data) const override
+    {
+        auto value = base_t::extract(data);
+        auto msbs  = (value >> 4) & 0xf0;
+        value = msbs | (value & 0xf);
+        if (data & u_bit)
+            return value;
+        return -value;
+    }
+
+    const char *insert(value_t& data, value_t value) const override
+    {
+        // clear u-bit for negative value, otherwise set it
+        if (value < 0)
+        {
+            data &=~ u_bit;
+            value = -value;
+        }
+        else
+            data |= u_bit;
+
+        if (value &~ 0xff)      // test if out-of-range
+            return "E Value out of range: rel_a32ldh";
+        value |= value << 4;    // copy MSBs to bits 11-8
+        return base_t::insert(data, value & 0xf0f);     // don't modify bits 7-4
+    }
+
+};
+
+// LDR/STR coprocessor
+// Immediate value is value ASR 2 bits, stored in 8 LSBs
+struct arm_rel_a32ldc : reloc_op_s_subfield<8>
+{
+    using base_t = reloc_op_s_subfield<8>;
+    static constexpr value_t u_bit = 1 << 23;
+
+    value_t decode(value_t data) const override
+    {
+        return data << 2;
+    }
+    
+    const char *encode(value_t& data) const override
+    {
+        data >>= 2;
+        return {};      // XXX wrong error processing
+    }
+    
+    value_t extract(value_t data) const override
+    {
+        auto value = base_t::extract(data);
+        if (data & u_bit)
+            return value;
+        return -value;
+    }
+
+    const char *insert(value_t& data, value_t value) const override
+    {
+        // clear u-bit for negative value, otherwise set it
+        if (value < 0)
+        {
+            data &=~ u_bit;
+            value = -value;
+        }
+        else
+            data |= u_bit;
+        return base_t::insert(data, value);
+    }
+
 };
 
 struct arm_rel_immed12 : kbfd::k_rel_add_t
@@ -64,7 +157,7 @@ struct arm_rel_immed12 : kbfd::k_rel_add_t
     const char *insert (value_t& data, value_t value)  const override
     {
         auto [encoded, residual] = e.encode_alu_immed(value);
-        //std::cout << "arm_rel_addsub::insert: " << encoded << "/" << residual << std::endl;
+        //std::cout << "arm_rel_a32alu::insert: " << encoded << "/" << residual << std::endl;
         data = (data &~ 0xfff) | encoded;
         // TEST
         return "K Invalid constant";
@@ -73,7 +166,7 @@ struct arm_rel_immed12 : kbfd::k_rel_add_t
 };
 
 
-struct arm_rel_addsub : kbfd::k_rel_add_t
+struct arm_rel_a32alu : kbfd::k_rel_add_t
 {
     static constexpr arm_immed_constant e;
 
@@ -84,7 +177,7 @@ struct arm_rel_addsub : kbfd::k_rel_add_t
         static constexpr auto sub_op  = 0x2 << 21;
 
         //unsigned op = (data >> 21) & 0xf;
-        //std::cout << "arm_rel_addsub::insert: op = " << op << std::endl;
+        //std::cout << "arm_rel_a32alu::insert: op = " << op << std::endl;
         if (value < 0)
         {
             value = -value;     // value < zero: toggle add/sub
@@ -98,7 +191,7 @@ struct arm_rel_addsub : kbfd::k_rel_add_t
         }
 
         auto [encoded, residual] = e.encode_alu_immed(value);
-        //std::cout << "arm_rel_addsub::insert: " << encoded << "/" << residual << std::endl;
+        //std::cout << "arm_rel_a32alu::insert: " << encoded << "/" << residual << std::endl;
         data = (data &~ 0xfff) | encoded;
         // TEST
         return "K Invalid constant";

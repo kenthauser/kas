@@ -16,8 +16,10 @@ using KBFD_ACTION = meta::list<NAME, OP>;//, NAME, meta::int_<Ts>...>;
 
 // define standard relocation ops as `types`
 using K_REL_NONE     = KAS_STRING("K_REL_NONE");
-using K_REL_ADD      = KAS_STRING("K_REL_ADD");
+using K_REL_ADD      = KAS_STRING("K_REL_ADD");     // ignore overflow
 using K_REL_SUB      = KAS_STRING("K_REL_SUB");
+using K_REL_SADD     = KAS_STRING("K_REL_SADD");    // error on overflow
+using K_REL_SSUB     = KAS_STRING("K_REL_SSUB");
 using K_REL_GOT      = KAS_STRING("K_REL_GOT");
 using K_REL_PLT      = KAS_STRING("K_REL_PLT");
 using K_REL_COPY     = KAS_STRING("K_REL_COPY");
@@ -65,12 +67,11 @@ struct reloc_op_fns
     // insert `value` into `data`
     virtual const char *insert(value_t& data, value_t value) const;
     
-    // decode value read from target
-    virtual value_t decode (value_t data) const;
+    // decode value read from target: default is pass-thru
+    virtual value_t decode (value_t data) const      { return data; }
 
-    // encode value to write to target
-    // XXX using `value_t` for assembler development; should be `arg_t`
-    virtual const char *encode (value_t& data) const;
+    // encode value to write to target: default is pass-thru
+    virtual const char *encode (value_t& data) const { return {}; }
 
     // evaluate relocation. ie get value to pass to `update`
     // eg: consume PC_REL or SB_REL if appropriate
@@ -79,9 +80,9 @@ struct reloc_op_fns
                             , value_t&  value) const;
 
     // perform reloc operation: update `accum` with `value` per `op`
-    // XXX using `value_t` for assembler development; should be `arg_t`
-    virtual const char *update(flags_t      flags
-                             , value_t      & accum
+    // NB: passed `kbfd_reloc::flags` to inform conversion
+    virtual const char *update(flags_t        flags
+                             , value_t&       accum
                              , value_t const& value) const;
 
     // should emit reloc without relocation symbol

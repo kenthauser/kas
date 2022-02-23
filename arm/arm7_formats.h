@@ -55,21 +55,17 @@ using arg5_00b4 = fmt_arg<5, gen_00b4>;
 using arg2_fixed   = fmt_arg<2, fmt_fixed>;
 using arg3_fixed   = fmt_arg<3, fmt_fixed>;
 using arg4_fixed   = fmt_arg<4, fmt_fixed>;
-using arg3_addsub  = fmt_arg<3, fmt_addsub>;
+using arg3_a32alu  = fmt_arg<3, fmt_a32alu>;
 
 // declare shifter for arg 2+
 using arg2_shifter = fmt_arg<2, fmt_shifter>;
 using arg3_shifter = fmt_arg<3, fmt_shifter>;
 using arg4_shifter = fmt_arg<4, fmt_shifter>;
 
-// declare reg_indir for arg1+
-// NB: formats differ in relocation operations
-using fmt_ldr_indir  = fmt_reg_indir_t<kbfd::ARM_REL_SOFF12>;
-using fmt_ldrs_indir = fmt_reg_indir_t<kbfd::K_REL_NONE>;
-using fmt_ldrc_indir = fmt_reg_indir_t<kbfd::K_REL_NONE>;
-using arg1_reg_indir = fmt_arg<1, fmt_ldr_indir>;
-using arg2_reg_indir = fmt_arg<2, fmt_ldr_indir>;
-using arg3_reg_indir = fmt_arg<3, fmt_ldr_indir>;
+// declare reg_indir formats which use KBFD relocs
+using fmt_ldr  = fmt_reg_indir_t<kbfd::ARM_REL_A32LDR>;
+using fmt_ldrs = fmt_reg_indir_t<kbfd::ARM_REL_A32LDRS>;
+using fmt_ldc  = fmt_reg_indir_t<kbfd::ARM_REL_A32LDC>;
 
 // declare register-set for arg1, arg2
 using arg1_regset  = fmt_arg<1, gen_0b16>;
@@ -90,7 +86,8 @@ struct FMT_      : fmt_gen {};
 
 // Branches:
 // insert 24-bit offset. linker handles out-of-range case
-struct FMT_B : fmt_branch, fmt_arg<1, fmt_branch24> {};
+struct FMT_J : fmt_branch, fmt_arg<1, fmt_branch24<ARM_G2>> {};
+struct FMT_C : fmt_branch, fmt_arg<1, fmt_branch24<ARM_G1>> {};
 
 // `bx` instruction needs to drop a ARM_V4BX reloc to help linker
 struct FMT_BX : fmt_bx, arg1_00b4 {};
@@ -103,7 +100,7 @@ struct FMT_16    : fmt_gen, arg1_16b4 {};
 // support ARM5 addressing mode 1
 struct FMT_12_16     : fmt_gen, arg1_12b4, arg2_16b4 {};
 struct FMT_12_16_F   : FMT_12_16, arg3_fixed         {};
-struct FMT_12_16_AS  : FMT_12_16, arg3_addsub        {};
+struct FMT_12_16_AS  : FMT_12_16, arg3_a32alu        {};
 struct FMT_12_16_0   : FMT_12_16, arg3_00b4          {};    // common base
 struct FMT_12_16_0_S : FMT_12_16_0, arg4_shifter     {};
 
@@ -118,8 +115,11 @@ struct FMT_16_0_S : FMT_16_0, arg3_shifter           {};
 struct FMT_16_F   : fmt_gen, arg1_16b4, arg2_fixed   {};
 
 // support ARM5 addressing mode 2 (aka register indirect)
-struct FMT_LD  : fmt_gen, arg1_12b4, arg2_reg_indir {};
-struct FMT_PLD : fmt_gen, arg1_reg_indir {};
+struct FMT_12_LDR  : fmt_gen, arg1_12b4, fmt_arg<2, fmt_ldr> {};
+struct FMT_LDR     : fmt_gen,            fmt_arg<1, fmt_ldr> {};
+
+// support ARM5 addressing mode 3 (aka miscellaneous loads & stores)
+struct FMT_12_LDRS : fmt_gen, arg1_12b4, fmt_arg<2, fmt_ldrs> {};
 
 // `srs`: 5 LSBs are immed value
 struct FMT_X_I5: fmt_gen, fmt_arg<2, fmt32_generic<0, 5>> {};
@@ -128,7 +128,7 @@ struct FMT_X_I5: fmt_gen, fmt_arg<2, fmt32_generic<0, 5>> {};
 struct FMT_RS    : fmt_gen, arg1_regset            {};
 struct FMT_16_RS : fmt_gen, arg1_16b4, arg2_regset {};
 
-struct FMT_8_12_M4 : fmt_gen, arg1_08b4, arg2_12b4, arg3_reg_indir {};
+struct FMT_8_12_LDC : fmt_gen, arg1_08b4, arg2_12b4, fmt_arg<3, fmt_ldc> {};
 struct FMT_8_20_12_16_0 : fmt_gen, arg1_08b4, arg2_20b4, arg3_12b4, arg4_16b4, arg5_00b4 {};
 struct FMT_8_20_12_16_0_05B3 : FMT_8_20_12_16_0, fmt_arg<6, fmt32_generic<5, 3>> {};
 

@@ -95,6 +95,10 @@ template <> struct reloc_ops_v<K_REL_NONE> : meta::list<
       , KBFD_ACTION<K_REL_ADD   , k_rel_add_t>
       , KBFD_ACTION<K_REL_SUB   , k_rel_sub_t>
 
+      // XXX to be defined...
+      , KBFD_ACTION<K_REL_SADD  , k_rel_add_t>
+      , KBFD_ACTION<K_REL_SSUB  , k_rel_sub_t>
+
       // XXX to be defined
       , KBFD_ACTION<K_REL_GOT   , reloc_op_fns>
       , KBFD_ACTION<K_REL_PLT   , reloc_op_fns>

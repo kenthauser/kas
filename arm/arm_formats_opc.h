@@ -28,6 +28,11 @@ using fmt_arg = tgt::opc::tgt_fmt_arg<arm_mcode_t, N, T>;
 //
 // arm specific base opcode formatters
 //
+static constexpr auto ARM_G0 = kbfd::kbfd_reloc::RFLAGS_ARM_G0;
+static constexpr auto ARM_G1 = kbfd::kbfd_reloc::RFLAGS_ARM_G1;
+static constexpr auto ARM_G2 = kbfd::kbfd_reloc::RFLAGS_ARM_G2;
+static constexpr auto ARM_G3 = kbfd::kbfd_reloc::RFLAGS_ARM_G3;
+
 
 // special for ARM `BL` instruction
 struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
@@ -39,6 +44,7 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
                     , stmt_info_t const&     info
                     , expression::expr_fits const& fits) const override
     {
+        // ARM insns are always one word
         data.size = mcode.code_size();
     }
     
@@ -53,7 +59,7 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
         // 1. create an "arg" from dest expression
         arg_t arg;
         arg.expr = dest;
-        arg.set_mode(*code_p & 0xff);   // retrieve mode
+        arg.set_mode(*code_p & 0xff);   // retrieve mode (for ARM always DIRECT)
         *code_p &=~ 0xff;               // clear mode
 
         //arg.set_branch_mode(mcode.calc_branch_mode(data.size()));
@@ -67,8 +73,8 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
         // insert arg into base insn (via reloc) as required
         if (!fmt.insert(cnt-1, code_p, arg, &*val_it))
             fmt.emit_reloc(cnt-1, base, code_p, arg, &*val_it);
-#if 1
-        // 2. emit base code
+        
+        // 3. emit base code
         auto words = mcode.code_size()/sizeof(mcode_size_t);
         for (auto end = code_p + words; code_p < end;)
         {
@@ -77,15 +83,6 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
             value |= *code_p++;
             base << value;
         }
-#else
-        // 3. emit base code
-        auto words = mcode.code_size()/sizeof(mcode_size_t);
-        while (words--)
-            base << *code_p++;
-#endif
-        // 4. emit `dest`
-        auto sz = info.sz(mcode);
-        arg.emit(base, sz);
     }
 };
 

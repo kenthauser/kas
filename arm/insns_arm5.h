@@ -40,16 +40,15 @@ using arm_insn_common_l = list<list<>
 
 // ARM5: A3.3
 // NB: out-of-range branches handled by linker, not assembler
-// NB: ARM_CALL validator causes `ARM_CALL` reloc to be emitted
 // NB: unconditional branches preceed conditional so they are preferred
 using arm_insn_branch_l = list<list<>
-, defn<a32_c, STR("b")   , OP<0x0a00'0000>, FMT_B , ARM_JUMP24>
-, defn<a32_u, STR("bl")  , OP<0xeb00'0000>, FMT_B , ARM_CALL24>
-, defn<a32_c, STR("bl")  , OP<0x0b00'0000>, FMT_B , ARM_JUMP24>
-, defn<a32_u, STR("blx") , OP<0xfa00'0000>, FMT_B , ARM_CALL24>
+, defn<a32_c, STR("b")   , OP<0x0a00'0000>, FMT_J , DIRECT>  // emit JUMP24 reloc
+, defn<a32_u, STR("bl")  , OP<0xeb00'0000>, FMT_C , DIRECT>  // emit CALL24 reloc
+, defn<a32_c, STR("bl")  , OP<0x0b00'0000>, FMT_J , DIRECT>
+, defn<a32_u, STR("blx") , OP<0xfa00'0000>, FMT_C , DIRECT>
 , defn<a32_c, STR("blx") , OP<0x012f'ff30>, FMT_0 , REG>
-, defn<a32_c, STR("bx")  , OP<0x012f'ff10>, FMT_BX, REG>     // emit ARM_V4BX reloc
-, defn<a32_c, STR("bxj") , OP<0x012f'ff20>, FMT_0,  REG>
+, defn<a32_c, STR("bx")  , OP<0x012f'ff10>, FMT_BX, REG>     // emit V4BX reloc
+, defn<a32_c, STR("bxj") , OP<0x012f'ff20>, FMT_0 , REG>
 >;
 
 // ARM V5: A5.1 addressing mode 1 - Data-processing operands
@@ -113,22 +112,22 @@ using arm_insn_data_l = list<list<>
 // NB: which allows all indirect values. Validators limit allowed values.
 using arm_insn_load_store_l = list<list<>
 // load/store: allow `B` suffix for unsigned byte
-, defn<a32_cb , STR("ldr") , OP<0x410'0000>, FMT_LD, REG, A32_INDIR>
-, defn<a32_cb , STR("str") , OP<0x400'0000>, FMT_LD, REG, A32_INDIR>
+, defn<a32_cb , STR("ldr") , OP<0x410'0000>, FMT_12_LDR, REG, A32_INDIR>
+, defn<a32_cb , STR("str") , OP<0x400'0000>, FMT_12_LDR, REG, A32_INDIR>
 
 // load user: require suffix T or BT (post-index formats only)
-, defn<a32_cT , STR("ldr") , OP<0x410'0000>, FMT_LD, REG, A32_POST_INDEX>
-, defn<a32_cT , STR("str") , OP<0x400'0000>, FMT_LD, REG, A32_POST_INDEX>
+, defn<a32_cT , STR("ldr") , OP<0x410'0000>, FMT_12_LDR, REG, A32_POST_INDEX>
+, defn<a32_cT , STR("str") , OP<0x400'0000>, FMT_12_LDR, REG, A32_POST_INDEX>
 
 // preload data (offset formats only)
-, defn<a32_u  , STR("pld") , OP<0x550'f000>, FMT_PLD, A32_OFFSET12>
+, defn<a32_u  , STR("pld") , OP<0x550'f000>, FMT_LDR, A32_OFFSET12>
 >;
 
 // ARM V5: A5.3 addressing mode 3: Miscellaneous loads & stores
 // require suffix from: H, SH, SB, D
 using arm_insn_ls_misc_l = list<list<>
-, defn<a32_cHs, STR("ldr"), OP<0x000'0090>, FMT_LD, REG, A32_INDIR8_NOSHIFT>
-, defn<a32_cHs, STR("str"), OP<0x010'0090>, FMT_LD, REG, A32_INDIR8_NOSHIFT>
+, defn<a32_cHs, STR("ldr"), OP<0x000'0090>, FMT_12_LDRS, REG, A32_INDIR8_NOSHIFT>
+, defn<a32_cHs, STR("str"), OP<0x010'0090>, FMT_12_LDRS, REG, A32_INDIR8_NOSHIFT>
 >;
 
 // ARM V5: A5.4 addressing mode 3: load & store multiple
@@ -154,40 +153,42 @@ using arm_insn_ls_multiple_l = list<list<>
 
 // ARM V5: A5.5 addressing mode 4: load & store coprocessor
 using arm_insn_ls_coprocessor = list<list<>
-, defn<a32_cl, STR("ldc")  , OP<0x0c10'0000>, FMT_8_12_M4, COPROC, CREG, CP_REG_INDIR>
-, defn<a32_ul, STR("ldc2") , OP<0xfc10'0000>, FMT_8_12_M4, COPROC, CREG, CP_REG_INDIR>
-
-, defn<a32_cl, STR("stc")  , OP<0x0c00'0000>, FMT_8_12_M4, COPROC, CREG, CP_REG_INDIR>
-, defn<a32_ul, STR("stc2") , OP<0xfc00'0000>, FMT_8_12_M4, COPROC, CREG, CP_REG_INDIR>
-
-, defn<a32_c , STR("cdp")  , OP<0x0e00'0000>, FMT_8_20_12_16_0_05B3
-                                , COPROC, U4, CREG, CREG, CREG, U4>
-, defn<a32_u , STR("cdp2") , OP<0xfe00'0000>, FMT_8_20_12_16_0_05B3
-                                , COPROC, U4, CREG, CREG, CREG, U4>
-, defn<a32_c , STR("mcr")  , OP<0x0e00'0010>, FMT_8_20_12_16_0
-                                , COPROC, U4, REG, CREG, CREG>
-, defn<a32_c , STR("mcr")  , OP<0x0e00'0010>, FMT_8_20_12_16_0_05B3
-                                , COPROC, U4, REG, CREG, CREG, U4>
-, defn<a32_u , STR("mcr2") , OP<0xfe00'0010>, FMT_8_20_12_16_0
-                                , COPROC, U4, REG, CREG, CREG>
-, defn<a32_u , STR("mcr2") , OP<0xfe00'0010>, FMT_8_20_12_16_0_05B3
-                                , COPROC, U4, REG, CREG, CREG, U4>
-, defn<a32_c , STR("mcrr") , OP<0x0c40'0000>, FMT_8_20_12_16_0
-                                , COPROC, U4, REG, REG, CREG>
-, defn<a32_u , STR("mcrr2"), OP<0xfc40'0000>, FMT_8_20_12_16_0
-                                , COPROC, U4, REG, REG, CREG>
-, defn<a32_c , STR("mrc")  , OP<0x0e10'0010>, FMT_8_20_12_16_0
-                                , COPROC, U4, REG, CREG, CREG>
-, defn<a32_c , STR("mrc")  , OP<0x0e10'0010>, FMT_8_20_12_16_0_05B3
-                                , COPROC, U4, REG, CREG, CREG, U4>
-, defn<a32_u , STR("mrc2") , OP<0xfe10'0010>, FMT_8_20_12_16_0
-                                , COPROC, U4, REG, CREG, CREG>
-, defn<a32_u , STR("mrc2") , OP<0xfe10'0010>, FMT_8_20_12_16_0_05B3
-                                , COPROC, U4, REG, CREG, CREG, U4>
-, defn<a32_c , STR("mrrc") , OP<0x0c50'0000>, FMT_8_20_12_16_0
-                                , COPROC, U4, REG, REG, CREG>
-, defn<a32_u , STR("mrrc2"), OP<0xfc50'0000>, FMT_8_20_12_16_0
-                                , COPROC, U4, REG, REG, CREG>
+, defn<a32_cl, STR("ldc")  , OP<0x0c10'0000>
+                , FMT_8_12_LDC, COPROC, CREG, CP_REG_INDIR>
+, defn<a32_ul, STR("ldc2") , OP<0xfc10'0000>
+                , FMT_8_12_LDC, COPROC, CREG, CP_REG_INDIR>
+, defn<a32_cl, STR("stc")  , OP<0x0c00'0000>
+                , FMT_8_12_LDC, COPROC, CREG, CP_REG_INDIR>
+, defn<a32_u, STR("stc2") , OP<0xfc00'0000>
+                , FMT_8_12_LDC, COPROC, CREG, CP_REG_INDIR>
+, defn<a32_c , STR("cdp")  , OP<0x0e00'0000>
+                , FMT_8_20_12_16_0_05B3, COPROC, U4, CREG, CREG, CREG, U4>
+, defn<a32_u , STR("cdp2") , OP<0xfe00'0000>
+                , FMT_8_20_12_16_0_05B3, COPROC, U4, CREG, CREG, CREG, U4>
+, defn<a32_c , STR("mcr")  , OP<0x0e00'0010>
+                , FMT_8_20_12_16_0, COPROC, U4, REG, CREG, CREG>
+, defn<a32_c , STR("mcr")  , OP<0x0e00'0010>
+                , FMT_8_20_12_16_0_05B3, COPROC, U4, REG, CREG, CREG, U4>
+, defn<a32_u , STR("mcr2") , OP<0xfe00'0010>
+                , FMT_8_20_12_16_0, COPROC, U4, REG, CREG, CREG>
+, defn<a32_u , STR("mcr2") , OP<0xfe00'0010>
+                , FMT_8_20_12_16_0_05B3, COPROC, U4, REG, CREG, CREG, U4>
+, defn<a32_c , STR("mcrr") , OP<0x0c40'0000>
+                , FMT_8_20_12_16_0, COPROC, U4, REG, REG, CREG>
+, defn<a32_u , STR("mcrr2"), OP<0xfc40'0000>
+                , FMT_8_20_12_16_0, COPROC, U4, REG, REG, CREG>
+, defn<a32_c , STR("mrc")  , OP<0x0e10'0010>
+                , FMT_8_20_12_16_0, COPROC, U4, REG, CREG, CREG>
+, defn<a32_c , STR("mrc")  , OP<0x0e10'0010>
+                , FMT_8_20_12_16_0_05B3, COPROC, U4, REG, CREG, CREG, U4>
+, defn<a32_u , STR("mrc2") , OP<0xfe10'0010>
+                , FMT_8_20_12_16_0, COPROC, U4, REG, CREG, CREG>
+, defn<a32_u , STR("mrc2") , OP<0xfe10'0010>
+                , FMT_8_20_12_16_0_05B3, COPROC, U4, REG, CREG, CREG, U4>
+, defn<a32_c , STR("mrrc") , OP<0x0c50'0000>
+                , FMT_8_20_12_16_0, COPROC, U4, REG, REG, CREG>
+, defn<a32_u , STR("mrrc2"), OP<0xfc50'0000>
+                , FMT_8_20_12_16_0 , COPROC, U4, REG, REG, CREG>
 >;
 
 // ARM V5: A3.16.7 Unconditional instructions
@@ -329,42 +330,71 @@ using xtend_defn = defn_add_pfx<XTND_PFXS, 22, Ts...>;
 // A3.7 Extend instructions
 using arm_insn_extend_l = list<list<>
 // prefixes: S, U
-, xtend_defn<a32_c, STR("xtab16"), OP<0x680'0070, ARMv6>, FMT_12_16_0_8B2, REG, REG, REG> 
-, xtend_defn<a32_c, STR("xtab16"), OP<0x680'0070, ARMv6>, FMT_12_16_0_8B2, REG, REG, REG, ROR_B> 
-, xtend_defn<a32_c, STR("xtab"), OP<0x6a0'0070, ARMv6>, FMT_12_16_0_8B2, REG, REG, REG> 
-, xtend_defn<a32_c, STR("xtab"), OP<0x6a0'0070, ARMv6>, FMT_12_16_0_8B2, REG, REG, REG, ROR_B> 
-, xtend_defn<a32_c, STR("xtah"), OP<0x6b0'0070, ARMv6>, FMT_12_16_0_8B2, REG, REG, REG> 
-, xtend_defn<a32_c, STR("xtah"), OP<0x6b0'0070, ARMv6>, FMT_12_16_0_8B2, REG, REG, REG, ROR_B> 
-, xtend_defn<a32_c, STR("xtb"), OP<0x6af'0070, ARMv6>, FMT_12_0_8B2, REG, REG> 
-, xtend_defn<a32_c, STR("xtb"), OP<0x6af'0070, ARMv6>, FMT_12_0_8B2, REG, REG, ROR_B> 
-, xtend_defn<a32_c, STR("xth"), OP<0x6bf'0070, ARMv6>, FMT_12_0_8B2, REG, REG> 
-, xtend_defn<a32_c, STR("xth"), OP<0x6bf'0070, ARMv6>, FMT_12_0_8B2, REG, REG, ROR_B> 
+, xtend_defn<a32_c, STR("xtab16"), OP<0x680'0070, ARMv6>
+                    , FMT_12_16_0_8B2, REG, REG, REG> 
+, xtend_defn<a32_c, STR("xtab16"), OP<0x680'0070, ARMv6>
+                    , FMT_12_16_0_8B2, REG, REG, REG, ROR_B> 
+, xtend_defn<a32_c, STR("xtab"), OP<0x6a0'0070, ARMv6>
+                    , FMT_12_16_0_8B2, REG, REG, REG> 
+, xtend_defn<a32_c, STR("xtab"), OP<0x6a0'0070, ARMv6>
+                    , FMT_12_16_0_8B2, REG, REG, REG, ROR_B> 
+, xtend_defn<a32_c, STR("xtah"), OP<0x6b0'0070, ARMv6>
+                    , FMT_12_16_0_8B2, REG, REG, REG> 
+, xtend_defn<a32_c, STR("xtah"), OP<0x6b0'0070, ARMv6>
+                    , FMT_12_16_0_8B2, REG, REG, REG, ROR_B> 
+, xtend_defn<a32_c, STR("xtb"), OP<0x6af'0070, ARMv6>
+                    , FMT_12_0_8B2, REG, REG> 
+, xtend_defn<a32_c, STR("xtb"), OP<0x6af'0070, ARMv6>
+                    , FMT_12_0_8B2, REG, REG, ROR_B> 
+, xtend_defn<a32_c, STR("xth"), OP<0x6bf'0070, ARMv6>
+                    , FMT_12_0_8B2, REG, REG> 
+, xtend_defn<a32_c, STR("xth"), OP<0x6bf'0070, ARMv6>
+                    , FMT_12_0_8B2, REG, REG, ROR_B> 
 >;
 
 // A3.8 Miscellaneous arithmetic
 // A3.9 Other miscellaneous instructions
 using arm_insn_misc_l = list<list<>
-, defn<a32_cs, STR("clz")   , OP<0x16f'0f10, void >, FMT_12_0, REG, REG>
-, defn<a32_cs, STR("usad8") , OP<0x780'f010, ARMv6>, FMT_16_0_8, REG, REG, REG>
-, defn<a32_cs, STR("usada8"), OP<0x780'0010, ARMv6>, FMT_16_0_8_12, REG, REG, REG, REG>
-, defn<a32_cs, STR("pkhbt") , OP<0x680'0010, ARMv6>, FMT_12_16_0_S, REG, REG, REG>
-, defn<a32_cs, STR("pkhbt") , OP<0x680'0010, ARMv6>, FMT_12_16_0_S, REG, REG, REG, LSL>
-, defn<a32_cs, STR("pkhtb") , OP<0x680'0050, ARMv6>, FMT_12_16_0_S, REG, REG, REG>
-, defn<a32_cs, STR("pkhtb") , OP<0x680'0050, ARMv6>, FMT_12_16_0_S, REG, REG, REG, ASR>
-, defn<a32_cs, STR("rev")   , OP<0x6bf'0f30, ARMv6>, FMT_12_0, REG, REG>
-, defn<a32_cs, STR("rev16") , OP<0x6bf'0fb0, ARMv6>, FMT_12_0, REG, REG>
-, defn<a32_cs, STR("revsh") , OP<0x6ff'0fb0, ARMv6>, FMT_12_0, REG, REG>
-, defn<a32_cs, STR("sel")   , OP<0x680'0fb0, ARMv6>, FMT_12_16_0_S, REG, REG, REG>
+, defn<a32_cs, STR("clz")   , OP<0x16f'0f10, void >
+                    , FMT_12_0, REG, REG>
+, defn<a32_cs, STR("usad8") , OP<0x780'f010, ARMv6>
+                    , FMT_16_0_8, REG, REG, REG>
+, defn<a32_cs, STR("usada8"), OP<0x780'0010, ARMv6>
+                    , FMT_16_0_8_12, REG, REG, REG, REG>
+, defn<a32_cs, STR("pkhbt") , OP<0x680'0010, ARMv6>
+                    , FMT_12_16_0_S, REG, REG, REG>
+, defn<a32_cs, STR("pkhbt") , OP<0x680'0010, ARMv6>
+                    , FMT_12_16_0_S, REG, REG, REG, LSL>
+, defn<a32_cs, STR("pkhtb") , OP<0x680'0050, ARMv6>
+                    , FMT_12_16_0_S, REG, REG, REG>
+, defn<a32_cs, STR("pkhtb") , OP<0x680'0050, ARMv6>
+                    , FMT_12_16_0_S, REG, REG, REG, ASR>
+, defn<a32_cs, STR("rev")   , OP<0x6bf'0f30, ARMv6>
+                    , FMT_12_0, REG, REG>
+, defn<a32_cs, STR("rev16") , OP<0x6bf'0fb0, ARMv6>
+                    , FMT_12_0, REG, REG>
+, defn<a32_cs, STR("revsh") , OP<0x6ff'0fb0, ARMv6>
+                    , FMT_12_0, REG, REG>
+, defn<a32_cs, STR("sel")   , OP<0x680'0fb0, ARMv6>
+                    , FMT_12_16_0_S, REG, REG, REG>
 
-, defn<a32_cs, STR("ssat")  , OP<0x6a0'0010, ARMv6>, FMT_12_B_0_S, REG, SAT5, REG>
-, defn<a32_cs, STR("ssat")  , OP<0x6a0'0010, ARMv6>, FMT_12_B_0_S, REG, SAT5, LSL>
-, defn<a32_cs, STR("ssat")  , OP<0x6a0'0050, ARMv6>, FMT_12_B_0_S, REG, SAT5, ASR>
-, defn<a32_cs, STR("usat")  , OP<0x6e0'0010, ARMv6>, FMT_12_B_0_S, REG, SAT5, REG>
-, defn<a32_cs, STR("usat")  , OP<0x6e0'0010, ARMv6>, FMT_12_B_0_S, REG, SAT5, LSL>
-, defn<a32_cs, STR("usat")  , OP<0x6e0'0050, ARMv6>, FMT_12_B_0_S, REG, SAT5, ASR>
+, defn<a32_cs, STR("ssat")  , OP<0x6a0'0010, ARMv6>
+                    , FMT_12_B_0_S, REG, SAT5, REG>
+, defn<a32_cs, STR("ssat")  , OP<0x6a0'0010, ARMv6>
+                    , FMT_12_B_0_S, REG, SAT5, LSL>
+, defn<a32_cs, STR("ssat")  , OP<0x6a0'0050, ARMv6>
+                    , FMT_12_B_0_S, REG, SAT5, ASR>
+, defn<a32_cs, STR("usat")  , OP<0x6e0'0010, ARMv6>
+                    , FMT_12_B_0_S, REG, SAT5, REG>
+, defn<a32_cs, STR("usat")  , OP<0x6e0'0010, ARMv6>
+                    , FMT_12_B_0_S, REG, SAT5, LSL>
+, defn<a32_cs, STR("usat")  , OP<0x6e0'0050, ARMv6>
+                    , FMT_12_B_0_S, REG, SAT5, ASR>
 
-, defn<a32_cs, STR("ssat16"), OP<0x6a0'0f30, ARMv6>, FMT_12_16_0, REG, SAT4, REG>
-, defn<a32_cs, STR("usat16"), OP<0x6e0'0f30, ARMv6>, FMT_12_16_0, REG, SAT4, REG>
+, defn<a32_cs, STR("ssat16"), OP<0x6a0'0f30, ARMv6>
+                    , FMT_12_16_0, REG, SAT4, REG>
+, defn<a32_cs, STR("usat16"), OP<0x6e0'0f30, ARMv6>
+                    , FMT_12_16_0, REG, SAT4, REG>
 >;
 
 // A3.10 Status register access instructions
@@ -396,22 +426,23 @@ using arm_insn_semaphore_l = list<list<>
 #undef STR
 
 using arm_gen_v =
-             list<list<>
-                 , arm_insn_list_l
-//                 , arm_insn_common_l        // prefered mappings: eg ld <reg>, #0 -> clr <reg>
-                 , arm_insn_data_l          // A5.1: data insns 
-                 , arm_insn_load_store_l    // A5.2: load/store
-                 , arm_insn_ls_misc_l       // A5.3: load/store misc
-                 , arm_insn_ls_multiple_l   // A5.4: load/store misc
-                 
-                 , arm_insn_branch_l        // A3.3: branch & related
-                 , arm_insn_multiply_l      // A3.5 Multiply & Multiply Accumulate
+         list<list<>
+             , arm_insn_list_l          // declare "*LIST*" insn
+             , arm_insn_common_l        // prefered mappings
+             , arm_insn_data_l          // A5.1: data insns 
+             , arm_insn_load_store_l    // A5.2: load/store
+             , arm_insn_ls_misc_l       // A5.3: load/store misc
+             , arm_insn_ls_multiple_l   // A5.4: load/store misc
+             , arm_insn_ls_coprocessor  // A5.5: load/store co-processor
+
+             , arm_insn_branch_l        // A3.3: branch & related
+             , arm_insn_multiply_l      // A3.5 Multiply & Multiply Accumulate
 #if 0
-                 , arm_insn_media_l         // A5.4: media insns
-                 , arm_insn_cp_supv_l       // A5.6: co-processor and supervisor
-                 , arm_insn_uncond_l        // A5.7: unconditional insns
+             , arm_insn_media_l         // A5.4: media insns
+             , arm_insn_cp_supv_l       // A5.6: co-processor and supervisor
+             , arm_insn_uncond_l        // A5.7: unconditional insns
 #endif
-                 >;
+             >;
 }
 
 // boilerplate to locate ARM5 insns

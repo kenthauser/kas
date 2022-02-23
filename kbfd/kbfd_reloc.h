@@ -24,6 +24,7 @@ struct kbfd_reloc
     static constexpr auto RFLAGS_DEPR       = 0x80;
     static constexpr auto RFLAGS_PC_REL     = 0x40;
     static constexpr auto RFLAGS_SB_REL     = 0x20;
+    static constexpr auto RFLAGS_TLS        = 0x10;
 
     // target flags (upper 8 bits)
     // XXX need to figure way to generalize
@@ -32,9 +33,8 @@ struct kbfd_reloc
     static constexpr auto RFLAGS_ARM_G1     = 0x0100;
     static constexpr auto RFLAGS_ARM_G2     = 0x0200;
     static constexpr auto RFLAGS_ARM_G3     = 0x0300;
+    static constexpr auto RFLAGS_ARM_NC     = 0x0400;
 
-    static constexpr auto RFLAGS_ARM_EMIT   = 0x8000; // don't suppress bare
-    
     kbfd_reloc() = default;      // NB: not constexpr
 
     // actual constructor

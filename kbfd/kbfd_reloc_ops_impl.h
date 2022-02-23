@@ -29,17 +29,8 @@ const char *reloc_op_fns::insert(
     return {};
 }
 
-auto reloc_op_fns::decode(value_t data) const -> value_t
-{
-    return data;
-}
-
-const char *reloc_op_fns::encode(value_t& data) const
-{
-    return {};
-}
-
-
+// get relocation "value" given extracted data
+// not used by assembler
 const char *reloc_op_fns::eval(
           flags_t flags
         , value_t& value) const
@@ -49,10 +40,11 @@ const char *reloc_op_fns::eval(
     return {};
 }
 
+// update `accum` according to `value` and `flags`
 const char *reloc_op_fns::update(
           flags_t flags
         , value_t& accum
-        , value_t const& addend) const
+        , value_t const& value) const
 {
     return {};
 }
