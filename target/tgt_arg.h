@@ -83,6 +83,13 @@ struct tgt_arg_t : parser::kas_position_tagged
     // declare primary constructor
     tgt_arg_t(arg_mode_t mode, kas_token const& tok, kas_position_tagged_t const& pos = {});
 
+    // Access other instances. Used for `PREV` validator et.al.
+    // NB: Define configuration hook if other than `array` used for instances
+    static derived_t& prev(derived_t& obj, unsigned n)
+    {
+        return (&obj)[-n];
+    }
+
 protected:
     // CRTP casts
     auto constexpr& derived() const
@@ -94,7 +101,6 @@ public:
     // arg mode: default getter/setter
     auto        mode() const { return _mode; }
     const char *set_mode(unsigned mode);
-    void        set_branch_mode(unsigned offset_type);  // MODE_BRANCH + n
 
     // save & restore arg "state" when evaluating mcodes. Default to just "mode".
     using arg_state = arg_mode_t;

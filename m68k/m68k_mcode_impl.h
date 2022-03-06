@@ -129,6 +129,33 @@ auto m68k_mcode_t::extract_info(mcode_size_t const *code_p) const -> stmt_info_t
     return info;
 }
 
+auto m68k_mcode_t::calc_branch_mode(uint8_t size) const
+    -> uint8_t
+{
+    // calculation is arch dependent
+    return arg_mode_t::MODE_BRANCH;
+#if 0
+    // deduce branch type from `size` & mcode
+    // calculate size of displacment words 
+    auto disp_size = size - base_size();
+
+    // Assume 1 byte opcode + 1 byte displacement in single word insn
+    switch (disp_size)
+    {
+        default:    // probably should throw...
+        case 0:     // embedded in first word -> byte displacement
+        case 1:     // 8-bit machine with 1 byte (8-bit) displacement
+            return 0;
+        case 2:     // 2 bytes => word (16-bit) displacment
+            return 1;
+        case 4:     // 4 bytes => long (32-bit) displacment
+            return 2;
+        case 8:     // 8 bytes => long long (64-bit) displacment
+            return 3;
+    }
+#endif
+}
+
 // coldfile limit_3w is in `opc` namespace
 namespace opc
 {

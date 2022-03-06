@@ -34,7 +34,7 @@ static constexpr kbfd_target_reloc arm_elf_relocs[] =
   , {   7, "R_ARM_THM_ABS5" , ARM_REL_ABS5()    , 16, 0, T_T16 }
   , {   8, "R_ARM_ABS8"     , K_REL_ADD()       ,  8, 0 }
   , {   9, "R_ARM_SBREL32"  , K_REL_ADD()       , 32, 0, SB_REL }
-  , {  10, "R_ARM_THM_CALL" , ARM_REL_THB_CALL(), 32, 1, T_T16 }
+  , {  10, "R_ARM_THM_CALL" , ARM_REL_T32JUMP24()  , 32, 1, T_T16, ARM_G1 }
   , {  11, "R_ARM_THM_PC8"  , ARM_REL_PC8()     , 16, 1, T_T16 }
   , {  12, "R_ARM_BREL_ADJ" , K_REL_NONE()  }
   , {  13, "R_ARM_TLS_DESC" , K_REL_NONE()  }
@@ -52,7 +52,7 @@ static constexpr kbfd_target_reloc arm_elf_relocs[] =
   // NB: G1/G2 flags are used to differentiate between _CALL & _JUMP24
   , {  28, "R_ARM_CALL"     , ARM_REL_A32JUMP(), 32, 1, T_ARM, ARM_G1 }
   , {  29, "R_ARM_JUMP24"   , ARM_REL_A32JUMP(), 32, 1, T_ARM, ARM_G2 }
-  , {  30, "R_ARM_THM_JUMP24", K_REL_NONE()    , 32, 0, T_T32}
+  , {  30, "R_ARM_THM_JUMP24", ARM_REL_T32JUMP24()    , 32, 0, T_T32}
   , {  31, "R_ARM_BASE_ABS" , K_REL_ADD()      , 32, 0, SB_REL }
   , {  35, "R_ARM_LDR_SBREL_11_0_NC" , K_REL_NONE(), 32, 0, T_ARM, T_DEPR }
   , {  36, "R_ARM_LDR_SBREL_19_12_NC", K_REL_NONE(), 32, 0, T_ARM, T_DEPR }

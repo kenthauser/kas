@@ -25,7 +25,7 @@ using ARM_REL_PC8      = KAS_STRING("ARM_REL_PC8");
 using ARM_REL_JUMP6    = KAS_STRING("ARM_REL_JUMP6");
 using ARM_REL_JUMP8    = KAS_STRING("ARM_REL_JUMP8");
 using ARM_REL_JUMP11   = KAS_STRING("ARM_REL_JUMP11");
-using ARM_REL_THB_CALL = KAS_STRING("ARM_REL_THB_CALL");
+using ARM_REL_T32JUMP24 = KAS_STRING("ARM_REL_T32JUMP24");  // also ARM_THM_CALL
 
 namespace arm
 {
@@ -46,7 +46,7 @@ namespace arm
         , KBFD_ACTION<ARM_REL_JUMP6     , struct arm_rel_jump6>
         , KBFD_ACTION<ARM_REL_JUMP8     , struct arm_rel_jump8>
         , KBFD_ACTION<ARM_REL_JUMP11    , struct arm_rel_jump11>
-        , KBFD_ACTION<ARM_REL_THB_CALL  , struct arm_rel_thb_call>
+        , KBFD_ACTION<ARM_REL_T32JUMP24 , struct arm_rel_t32jump24>
         >;
 }
 

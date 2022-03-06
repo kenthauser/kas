@@ -37,6 +37,7 @@ static constexpr auto ARM_G3 = kbfd::kbfd_reloc::RFLAGS_ARM_G3;
 // special for ARM `BL` instruction
 struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
 {
+#if 0
     void do_calc_size(data_t&                data
                     , mcode_t const&         mcode
                     , mcode_size_t          *code_p
@@ -45,9 +46,10 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
                     , expression::expr_fits const& fits) const override
     {
         // ARM insns are always one word
+        // Thumb insns can be one or two.
         data.size = mcode.code_size();
     }
-    
+#endif
     void do_emit     (data_t const&          data
                     , core::core_emit&       base
                     , mcode_t const&         mcode
@@ -59,10 +61,7 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
         // 1. create an "arg" from dest expression
         arg_t arg;
         arg.expr = dest;
-        arg.set_mode(*code_p & 0xff);   // retrieve mode (for ARM always DIRECT)
-        *code_p &=~ 0xff;               // clear mode
-
-        //arg.set_branch_mode(mcode.calc_branch_mode(data.size()));
+        arg.set_mode(mcode.calc_branch_mode(data.size()));
         
         // 2. insert `dest` into opcode
         // get mcode validators: displacement always "last" arg
@@ -73,7 +72,12 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
         // insert arg into base insn (via reloc) as required
         if (!fmt.insert(cnt-1, code_p, arg, &*val_it))
             fmt.emit_reloc(cnt-1, base, code_p, arg, &*val_it);
-        
+
+        // XXX
+        // XXX This code is required for all ARM emitters
+        // XXX Needs to find a common home
+        // XXX
+
         // 3. emit base code
         auto words = mcode.code_size()/sizeof(mcode_size_t);
         for (auto end = code_p + words; code_p < end;)

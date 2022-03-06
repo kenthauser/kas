@@ -79,7 +79,7 @@ struct fmt_jump8 : fmt16_generic<0, 8>
 #endif
     void emit_reloc(core::core_emit& base, mcode_size_t* op, arg_t& arg, val_t const * val_p) const override
     {
-        static kbfd::kbfd_reloc reloc { kbfd::ARM_REL_JUMP8(), 16, true };
+        static kbfd::kbfd_reloc reloc { kbfd::ARM_REL_PC8(), 16, true };
         base << core::emit_reloc(reloc) << arg.expr;
     }
 };
@@ -103,37 +103,18 @@ struct fmt_jump11 : fmt16_generic<0, 8>
     }
 };
 
-struct fmt_call22 : arm_mcode_t::fmt_t::fmt_impl
+template <unsigned RELOC_FLAG>
+struct fmt_thb_branch24 : arm_mcode_t::fmt_t::fmt_impl
 {
     using base_t = fmt_impl;
     using emit_value_t = typename core::emit_reloc::emit_value_t;
-    using THB_CALL = kbfd::ARM_REL_THB_CALL;
-
-    bool insert(mcode_size_t* op, arg_t& arg, val_t const *val_p) const override
-    {
-        std::cout << "fmt_call22::insert: arg = " << arg << std::endl;
-
-        // use kbfd routine to insert offset value
-        static auto& ops = kbfd::kbfd_reloc{THB_CALL()}.get();
-        static constexpr auto MASK = (1 << 11) - 1;
+    using THB_JUMP24 = kbfd::ARM_REL_T32JUMP24;
     
-        // split offset between 11 bit values
-        emit_value_t data{};       // get zeros      // XXX need typedef
-        auto err = ops.write(data, val_p->get_value(arg));
-        
-        // XXX throw on error
-
-        // merge reloc result with opcode data 
-        op[0] |= (data >> 16) & MASK;
-        op[1] |=  data        & MASK;
-        return arg.get_fixed_p();       // need reloc if not fixed
-    }
-
     void emit_reloc(core::core_emit& base, mcode_size_t* op, arg_t& arg, val_t const * val_p) const override
     {
-        std::cout << "fmt_call22::emit_reloc: arg = " << arg << std::endl;
-        static kbfd::kbfd_reloc reloc {THB_CALL(), 32, true};
-        base << core::emit_reloc(reloc) << arg.expr;
+        std::cout << "fmt_call24::emit_reloc: arg = " << arg << std::endl;
+        static kbfd::kbfd_reloc reloc {THB_JUMP24(), 32, true, RELOC_FLAG};
+        base << core::emit_reloc(reloc, {}, -4) << arg.expr;
     }
 };
 

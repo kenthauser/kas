@@ -226,6 +226,11 @@ struct val_post_index : val_indir
 {
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
+#if 0
+        // XXX is test complete??
+        if (arg.mode() != arg_mode_t::MODE_REG_INDIR)
+            return fits.no;
+#endif
         // XXX should do base first to allow direct???
         // p-flag indicates offset or pre-indexed addressing
         if (arg.indir.p_flag)
@@ -378,50 +383,6 @@ struct val_imm8: tgt::opc::tgt_val_range<arm_mcode_t, int32_t>
         base_t::set_arg(arg, value);
         auto n = ((value & 0xf00) >> 4) + (value & 0x0f);
         arg.expr = n;       // XXX U flag?
-    }
-};
-
-struct val_arm_branch24 : arm_mcode_t::val_t
-{
-    // out-of-range displacement handled by linker
-    fits_result ok(arg_t& arg, expr_fits const& fits) const override
-    {
-        return fits.yes;
-    }
-    
-    // set `arg_mode` to MODE_BRANCH
-    fits_result size(arg_t& arg, mcode_t const&, stmt_info_t const& info
-                   , expr_fits const& fits, op_size_t& op_size) const override
-    {
-        arg.set_mode(arg_t::arg_mode_t::MODE_BRANCH);
-        return fits.yes;
-    }
-
-    // XXX these methods need work
-    unsigned get_value(arg_t& arg) const override
-    {
-        auto value = base_t::get_value(arg) - 8;
-        return (value >> 2) & 0xfff;
-    }
-
-    void set_arg(arg_t& arg, unsigned value) const override
-    {
-        // convert 24-bit signed to 32-bit signed
-        int32_t disp = value << 8;      // move "sign" to MSB.
-        base_t::set_arg(arg, (disp >> 6) - 8);
-    }
-};
-
-// special validator to support `bl` ARM_CALL reloc
-struct val_arm_call24 : val_arm_branch24
-{
-    // indicate `ARM_CALL`: set `arg_mode` to MODE_CALL
-    fits_result size(arg_t& arg, mcode_t const&, stmt_info_t const& info
-                   , expr_fits const& fits, op_size_t& op_size) const override
-    {
-        std::cout << "val_arm_call24: size()" << std::endl;
-        arg.set_mode(arg_t::arg_mode_t::MODE_CALL);
-        return fits.yes;
     }
 };
 
@@ -658,7 +619,7 @@ struct val_indir_5 : val_thumb_indir_base
     void set_arg(arg_t& arg, uint32_t value) const override
     {
         arg.reg_p = &arm_reg_t::find(RC_GEN, value & 7);
-        arg.expr  = (value &~ 7) >> (3 + shift);
+        arg.expr  = (value &~ 7) >>  (3 - shift);
         arg.indir.p_flag = true;
         arg.indir.u_flag = true;
     }
@@ -695,17 +656,23 @@ struct val_indir_l : val_thumb_indir_base
             
         return fits.no;     // expression must be constant
     }
-    
-    // return 8-bit value for ARM5 A6.5.1 Format 1 [Rn, 5-bit]
+
+    // return 8-bit value for ARM5 A6.5.1 Format 2 [Rn, Rm]
     uint32_t get_value(arg_t& arg) const override
     {
-        auto n = *arg.get_fixed_p();
-        return n + n + arg.reg_p->value(RC_GEN);
+        auto n  = arg.reg_p->value(RC_GEN);
+             n += arg.indir.reg << 3;
+        return n << 3;
     }
+
     void set_arg(arg_t& arg, uint32_t value) const override
     {
+        arg.set_mode(arg_t::arg_mode_t::MODE_REG_INDIR);
+        // set base register
         arg.reg_p = &arm_reg_t::find(RC_GEN, value & 7);
-        arg.expr  = (value >> 1) &~ 3;      // get rid of regbits
+        // set indirect register, mode = reg_offset (plus)
+        arg.indir.reg    = (value >> 6) & 7;
+        arg.indir.r_flag = true;
         arg.indir.p_flag = true;
         arg.indir.u_flag = true;
     }
@@ -717,17 +684,12 @@ struct val_offset_8 : val_thumb_indir_base
     
     // declare 10-bit limits: stored in opcode as signed 8-bits (prescaled)
     static constexpr auto offset8_w_max = +(1 << 10) - 1;
-    static constexpr auto offset8_w_min = -(1 << 10);
+    static constexpr auto offset8_w_min = 0;
 
     constexpr val_offset_8(uint8_t reg = -1) : reg(reg) {};
+
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
-        // try convert direct to pc-relative indirect
-        // XXX processor "aligns" address to word boundry before calculation
-        // XXX analyze.
-        if (reg == 15 && arg.mode() == arg_mode_t::MODE_DIRECT)
-            return fits.disp(arg.expr, offset8_w_min, offset8_w_min, 0);
-
         if (base_t::ok(arg, fits) != fits.yes)
             return fits.no;
 
@@ -736,6 +698,9 @@ struct val_offset_8 : val_thumb_indir_base
 
         if (arg.reg_p->value(RC_GEN) != reg)
             return fits.no;
+
+        // XXX PC fiddling to get word aligned...
+        // XXX may need to use reloc to emit...
 
         return fits.fits(arg.expr, offset8_w_min, offset8_w_max); 
     }
@@ -759,68 +724,35 @@ struct val_offset_8 : val_thumb_indir_base
     uint8_t reg;
 };
 
-struct val_tmb_jump8 : arm_mcode_t::val_t
+// The `thb_branch*` validators work with the `arm_opc_branch` opcode
+template <unsigned BITS>
+struct val_tmb_branch : arm_mcode_t::val_t
 {
     // out-of-range displacement handled by linker
     fits_result ok(arg_t& arg, expr_fits const& fits) const override
     {
-        return fits.yes;
+        // NB: there is `reloc` available for unresolved branches
+        // NB: `ok` only driven before addresses resolved -- just say YES
+        switch (arg.mode())
+        {
+            case arg_mode_t::MODE_DIRECT:
+                return fits.yes;
+
+            default:
+                break;
+        };
+        return fits.no;
     }
     
-    // set `arg_mode` to MODE_BRANCH
     fits_result size(arg_t& arg, mcode_t const&, stmt_info_t const& info
                    , expr_fits const& fits, op_size_t& op_size) const override
     {
-        arg.set_mode(arg_t::arg_mode_t::MODE_BRANCH);
         return fits.yes;
     }
 
-    // XXX these methods need work
-    unsigned get_value(arg_t& arg) const override
-    {
-        auto value = base_t::get_value(arg) - 8;
-        return (value >> 2) & 0x1ff;
-    }
-
-    void set_arg(arg_t& arg, unsigned value) const override
-    {
-        // convert 24-bit signed to 32-bit signed
-        int32_t disp = value << 8;      // move "sign" to MSB.
-        base_t::set_arg(arg, (disp >> 6) - 8);
-    }
 };
 
-struct val_tmb_jump11 : arm_mcode_t::val_t
-{
-    // out-of-range displacement handled by linker
-    fits_result ok(arg_t& arg, expr_fits const& fits) const override
-    {
-        return fits.yes;
-    }
-    
-    // set `arg_mode` to MODE_BRANCH
-    fits_result size(arg_t& arg, mcode_t const&, stmt_info_t const& info
-                   , expr_fits const& fits, op_size_t& op_size) const override
-    {
-        arg.set_mode(arg_t::arg_mode_t::MODE_BRANCH);
-        return fits.yes;
-    }
-
-    // XXX these methods need work
-    unsigned get_value(arg_t& arg) const override
-    {
-        return -4;
-    }
-
-    void set_arg(arg_t& arg, unsigned value) const override
-    {
-        // convert 24-bit signed to 32-bit signed
-        int32_t disp = value << 8;      // move "sign" to MSB.
-        base_t::set_arg(arg, (disp >> 6) - 8);
-    }
-};
-
-using val_indir_pc_8 = val_offset_8;
-using val_indir_sp_8 = val_offset_8;
+//using val_indir_pc_8 = val_offset_8;
+//using val_indir_sp_8 = val_offset_8;
 }
 #endif

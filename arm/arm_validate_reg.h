@@ -52,6 +52,11 @@ struct val_arg_mode : tgt::opc::tgt_val_arg_mode<arm_mcode_t>
     using base_t::base_t;
 };
 
+
+struct val_prev  : tgt::opc::tgt_val_prev <arm_mcode_t>
+{
+    using base_t::base_t;
+};
 struct val_false : tgt::opc::tgt_val_false<arm_mcode_t> {};
 
 // immediate with "IMMED_UPDATE" mode

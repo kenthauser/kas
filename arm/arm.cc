@@ -15,7 +15,7 @@
 // instruction definitions
 #include "insns_arm5.h"
 //#include "insns_arm6.h"
-//#include "insns_thumb.h"
+#include "insns_thumb.h"
 //#include "insns_thumb32.h"
 
 // directives implementation

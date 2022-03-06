@@ -61,7 +61,8 @@ struct arm_opc_arm: tgt_dir_opcode
     {
         if (auto err = validate_min_max(args, 0, 0))
             return make_error(data, err);
-       
+      
+        // record `mapping symbol` for new segment
         arm_seg_mapping()(ARM_SEG_ARM());
     } 
     
@@ -76,6 +77,7 @@ struct arm_opc_thumb: tgt_dir_opcode
         if (auto err = validate_min_max(args, 0, 0))
             return make_error(data, err);
        
+        // record `mapping symbol` for new segment
         arm_seg_mapping()(ARM_SEG_THUMB());
     } 
     
@@ -97,9 +99,11 @@ struct arm_opc_code: tgt_dir_opcode
         {
             case 16:
                 parser::arm_insn_t::set_arch(SZ_ARCH_THB16);
+                // record `mapping symbol` for new segment
                 return arm_seg_mapping()(ARM_SEG_THUMB());
             case 32:
                 parser::arm_insn_t::set_arch(SZ_ARCH_ARM);
+                // record `mapping symbol` for new segment
                 return arm_seg_mapping()(ARM_SEG_ARM());
         }
         return make_error(data, error_msg::ERR_argument, args[0]);

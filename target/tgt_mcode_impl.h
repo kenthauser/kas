@@ -79,13 +79,13 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
            , std::ostream *trace) const
     -> fits_result
 {
-    std::cout << "tgt_mcode_t::size" << std::endl;
     // hook into validators
     auto& val_c = vals();
     auto  val_p = val_c.begin();
 
     // size of base opcode
     size = derived().base_size();
+    std::cout << "tgt_mcode_t::size: base = " << size << std::endl;
 
     // here know val cnt matches
     auto result = fits.yes;
@@ -216,31 +216,6 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     }
     
     return code_data;
-}
-
-template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
-auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-    calc_branch_mode(uint8_t size) const
-    -> uint8_t
-{
-    // deduce branch type from `size` & mcode
-    // calculate size of displacment words 
-    auto disp_size = size - base_size();
-
-    // Assume 1 byte opcode + 1 byte displacement in single word insn
-    switch (disp_size)
-    {
-        default:    // probably should throw...
-        case 0:     // embedded in first word -> byte displacement
-        case 1:     // 8-bit machine with 1 byte (8-bit) displacement
-            return 0;
-        case 2:     // 2 bytes => word (16-bit) displacment
-            return 1;
-        case 4:     // 4 bytes => long (32-bit) displacment
-            return 2;
-        case 8:     // 8 bytes => long long (64-bit) displacment
-            return 3;
-    }
 }
 
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>

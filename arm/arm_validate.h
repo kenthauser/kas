@@ -32,6 +32,8 @@ using _val_gen = meta::list<NAME, T, meta::int_<Ts>...>;
 template <typename NAME, int...Ts>
 using _val_reg = _val_gen<NAME, val_reg, Ts...>;
 
+VAL_GEN(PREV1       , val_prev, 1);
+
 //
 // Single register validators
 //
@@ -95,8 +97,8 @@ VAL_GEN(U32     , val_range_u, 32);
 //VAL_GEN(U5_NZ   , val_range, 1, 31);
 
 // thumb immediates: fits in N bits after shift
-//VAL_GEN(U7_4    , val_range_scaled<2>, 0, (1 << 7) - 1);
-//VAL_GEN(U8_4    , val_range_scaled<2>, 0, (1 << 8) - 1);
+VAL_GEN(U7_4    , val_range_scaled<2>, 0, (1 << 7) - 1);
+VAL_GEN(U8_4    , val_range_scaled<2>, 0, (1 << 8) - 1);
 
 // thumb saturating math: bit number: range 1 -> (1<<n), value -> (bit-1)
 // XXX update FMT to not decrement value...
@@ -109,10 +111,9 @@ VAL_GEN(SAT5, val_range, 1, 32);
 // name by reloc generated. linker validates displacements
 //
 
-VAL_GEN(ARM_JUMP24  , val_arm_branch24);
-VAL_GEN(ARM_CALL24  , val_arm_call24);
-VAL_GEN(THB_JUMP8   , val_tmb_jump8);
-VAL_GEN(THB_JUMP11  , val_tmb_jump11);
+// These validators work with `opc_branch` opcode
+VAL_GEN(BRANCH8   , val_tmb_branch<8>);
+VAL_GEN(BRANCH11  , val_tmb_branch<11>);
 
 //
 // ARM5 addressing mode validators
@@ -152,15 +153,15 @@ VAL_GEN(FLAGS_ENDIAN    , val_false);  // allow BE (= 1), or LE (= 0)
 
 // ARM V5: addressing mode 3 validators
 //VAL_GEN(OFFSET8     , val_imm8);
-#if 0
+#if 1
 
-VAL_GEN(REGL_INDIR5_W_RELOC , val_indir_5, 2, true);    // relocatable
-VAL_GEN(REGL_INDIR5_H       , val_indir_5, 1);
-VAL_GEN(REGL_INDIR5_B       , val_indir_5, 0);
+VAL_GEN(REGL_INDIR5_W, val_indir_5, 2, true);   // reloc OK
+VAL_GEN(REGL_INDIR5_H, val_indir_5, 1);
+VAL_GEN(REGL_INDIR5_B, val_indir_5, 0);
 VAL_GEN(REGL_INDIRL , val_indir_l);
 VAL_GEN(PC_INDIR8   , val_offset_8, 15);
 VAL_GEN(SP_INDIR8   , val_offset_8, 13);
-//
+
 //
 // 
 

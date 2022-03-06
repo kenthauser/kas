@@ -127,7 +127,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
     kas::core::core_fragment::dump(out);
     kas::dwarf::dl_data::dump(out);
 #endif
-#if 1
+#if 0
     {
         parse_out << "RAW:" << std::endl;
         kas::core::emit_raw raw(kbfd_obj, parse_out);
@@ -142,16 +142,6 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
         std::ofstream o_file(kbfd_path
                            , std::ios_base::binary | std::ios_base::trunc);
         kas::core::emit_kbfd binary(kbfd_obj, o_file);
-        obj.emit(binary);
-    }
-#else
-    // create object output (binary data)
-    // get dest for object output
-    {
-        auto kbfd_path = sub_path_ext(input_path.c_str(), "kbfd");
-        std::ofstream o_file(kbfd_path
-                           , std::ios_base::binary | std::ios_base::trunc);
-        kas::core::emit_binary binary(o_file);
         obj.emit(binary);
     }
 #endif

@@ -52,7 +52,7 @@ struct tgt_format
 
         virtual bool insert(mcode_size_t* op, arg_t& arg, val_t const * val_p) const
         {
-            return false;        // no-validator: use `data` to insert arg
+            return false;        // no validator: not completely saved
         }
 
         virtual void extract(mcode_size_t const* op, arg_t& arg, val_t const * val_p) const 

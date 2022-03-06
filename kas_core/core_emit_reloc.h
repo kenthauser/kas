@@ -37,7 +37,7 @@ void core_emit::put_reloc (core_reloc& r, core_symbol_t const& symbol)
 {
     // if not `rela`, insert `accum` into `data` before emitting reloc
     // NB: if error in consuming `accum`, can fallback to `rela`
-    if (accum && !use_rela)
+    if (!use_rela)
         reloc_update_data(r);
 
     if (auto p = get_target_reloc(r))
@@ -48,7 +48,7 @@ void core_emit::put_reloc(core_reloc& r, core_section const *section_p)
 {
     // if not `rela`, insert `accum` into `data` before emitting reloc
     // NB: if error in consuming `accum`, can fallback to `rela`
-    if (accum && !use_rela)
+    if (!use_rela)
         reloc_update_data(r, !section_p);
 
     // emit `reloc` if required
@@ -110,6 +110,7 @@ kbfd::kbfd_target_reloc const *
     r.reloc.default_width(width);
     if (auto p = obj_p->get_reloc(r.reloc))
         return p;
+    std::cout << "core_emit::get_target_relocation: Invalid Reloc" << std::endl;
     r.gen_diag(*this, "E invalid relocation");
     return {};
 }

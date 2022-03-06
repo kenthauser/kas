@@ -87,6 +87,22 @@ struct reloc_op_s_subfield : reloc_op_u_subfield<BITS, SHIFT>
     }
 };
 
+// shift extracted value N bits
+template <unsigned BITS>
+struct reloc_op_shift : virtual reloc_op_fns
+{
+    value_t decode (value_t value) const override 
+    {
+        return value << BITS;
+    }
+
+    const char *encode (value_t& value) const override
+    {
+        value >>= BITS;
+        return {};      // could check for LSB non-zero
+    }
+};
+
 // need `type` for generic relocation ops. Pick `K_REL_NONE`
 using reloc_ops_defn_tags = meta::push_front<target_tags, K_REL_NONE>;
 

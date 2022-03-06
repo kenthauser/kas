@@ -1,16 +1,33 @@
 #ifndef KAS_TARGET_TGT_OPC_BRANCH_H
 #define KAS_TARGET_TGT_OPC_BRANCH_H
 
-// Select format for a "branch"
+// Format for a "branch"
 //
 // Many processors have different formats for "branch" instructions,
-// depending on the branch distance. The machine-code and branch
-// offset formats are determined by examining the offset during relax
-// in the `size` method. The `size` of the resulting machine code is
-// stored in `size`, which is the "state" of the opcode.
+// depending on the branch distance.
 //
-// ** OVERRIDE METHODS **
+// The `tgt_opc_branch` opcode supports these methods using the following
+// `mcode` attributes
 //
+// 0. The first word of the opcode is calculated from supplied arguments,
+//    save for the destination. This includes CCODE and DJcc registers.
+//
+// 1. The `destination` argument must be the last argument.
+//
+// 2. The `validator` for the destination argument must provide the 
+//    size for the "min/max" of the argument 
+// 
+// 3. The `mcode::calc_branch_mode(uint8_t)` method must convert the
+//    object size to branch MODE. This is because `arg.emit()` doesn't
+//    have access to object size. This method passes that value via `MODE`
+//
+// 4. The `formatter` for the `destination` object must understand the
+//    `MODE` and how the other values were encoded via the "first word"
+//    saved by `tgt_opc_branch`. This information is available via *code_p
+//
+// Thus, the `opc_branch` opcodes are configured via the DESTINTATION
+// validators and formatters.
+
 
 #include "target/tgt_opc_base.h"
 
@@ -61,12 +78,14 @@ struct tgt_opc_branch : MCODE_T::opcode_t
                             , stmt_info_t const&     info
                             , expr_fits const& fits) const 
     {
+        // NB: arg ctors require `kas_token` to set `kas_position_t`
+        // for this eval, just set `mode` and `expr`
         arg_t arg;
         arg.expr = dest;
-        arg.set_mode(*code_p & 0xff);
-        auto dest_val_p = mcode.vals().last();
+        arg.set_mode(arg_mode_t::MODE_BRANCH);
 
         // ask displacement validator (always last) to calculate size
+        auto dest_val_p = mcode.vals().last();
         dest_val_p->size(arg, mcode, info, fits, data.size);
     }
 
@@ -80,8 +99,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         // 1. create an "arg" from dest expression
         arg_t arg;
         arg.expr = dest;
-        arg.set_mode(*code_p & 0xff);
-        arg.set_branch_mode(mcode.calc_branch_mode(data.size()));
+        arg.set_mode(mcode.calc_branch_mode(data.size()));
         
         // 2. insert `dest` into opcode
         // get mcode validators: displacement always "last" arg
@@ -90,6 +108,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto& fmt    = mcode.fmt();
        
         // insert arg into base insn (via reloc) as required
+        // NB: can completely override `*code_p` if required
         if (!fmt.insert(cnt-1, code_p, arg, &*val_it))
             fmt.emit_reloc(cnt-1, base, code_p, arg, &*val_it);
 
@@ -153,12 +172,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         // calculate initial insn size
         do_initial_size(data, mcode, code_p, dest, stmt_info, expr_fits{});
 
-        // except for 8-bit targets, save `mode` in lower 8-bits 
-        if constexpr (sizeof(mcode_size_t) > 1)
-        {
-            *code_p += args.back().mode();
-        }
-
+        // all jump instructions have condition-code/size/etc in first word 
         inserter(*code_p);                  // insert machine code: one word
         inserter(std::move(dest));          // save destination address
         return this;
@@ -175,7 +189,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
         auto  code_p = reader.get_fixed_p(sizeof(mcode_size_t));
         auto& dest   = reader.get_expr();
-        auto  mode   = *code_p & 0xff;
+        auto  mode   = mcode.calc_branch_mode(data.size());
 
         auto  info   = mcode.extract_info(code_p);
         
@@ -189,7 +203,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         os << " : " << dest;
 
         // ...dest arg mode...
-        os << ", mode = " << std::dec << mode;
+        os << ", mode = " << std::dec << +mode;
 
         // ...and info
         os << " ; info = " << info;
@@ -216,18 +230,22 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     void emit(data_t const& data, core::core_emit& base, core::core_expr_dot const *dot_p) const override
     {
         auto  reader = base_t::tgt_data_reader(data);
-        auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto& m_code = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
         auto  code_p = reader.get_fixed_p(sizeof(mcode_size_t));
         auto& dest   = reader.get_expr();
         
-        auto  info   = mcode.extract_info(code_p);
+        auto  info   = m_code.extract_info(code_p);
 
-        // expand `code` from one word to max words -- zero-initing 
-        mcode_size_t code[mcode_t::MAX_MCODE_WORDS] { *code_p };
+        // expand `code` buffer from one word to max words -- zero-initing 
+        // XXX need to allocate buffer to hold `data.size.max` words
+        //mcode_size_t code[mcode_t::MAX_MCODE_WORDS] { *code_p };
+        //mcode_size_t code[data.size.max] { *code_p };
+        auto code_buf = m_code.code(info);  // extract full opcode
+        code_buf[0] = *code_p;              // overwrite first word
        
         // check for deleted instruction
         if (data.size())
-            do_emit(data, base, mcode, code, dest, info);
+            do_emit(data, base, m_code, code_buf.data(), dest, info);
     }
 };
 }

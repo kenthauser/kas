@@ -14,22 +14,10 @@ struct arm_rel_no_tfunc : k_rel_add_t
 };
 
 // signed 24-bit shifted offset for `B`, `BL` etc
-struct arm_rel_a32jump : k_rel_add_t, reloc_op_s_subfield<24>
-{
-    using base_t = reloc_op_s_subfield<24>;
-
-    value_t extract(value_t data) const override
-    {
-        return base_t::extract(data) << 2;
-    }
-        
-    // insert to target. return msg if value out-of-range
-    const char *insert(value_t& data
-                     , value_t  value) const override
-    {
-        return base_t::insert(data, value >> 2);
-    }
-};
+struct arm_rel_a32jump : k_rel_add_t
+                       , reloc_op_shift<2>
+                       , reloc_op_s_subfield<24>
+                       {};
 
 // for LDR_PC_G0, et seq
 // NB: clear THUMB FUNC bit
@@ -214,121 +202,112 @@ struct arm_rel_movt : k_rel_add_t, reloc_op_u_subfield<4, 12> {};
 // Thumb-16 static relocations
 //
 
-struct arm_rel_abs5 : k_rel_add_t, reloc_op_u_subfield<5, 6>
-{
-    using base_t = reloc_op_u_subfield<5, 6>;
+struct arm_rel_abs5 : k_rel_add_t
+                    , reloc_op_shift<2>
+                    , reloc_op_u_subfield<5, 6>
+                    {};
 
-    value_t extract(value_t data) const override
-    {
-        return base_t::extract(data) << 2;
-    }
-    
+struct arm_rel_pc8 : k_rel_add_t
+                   , reloc_op_shift<2>
+                   , reloc_op_u_subfield<8> 
+                   {};
+
+// jump6: 5 LSBs inserted via subfield. 6th bit via method
+struct arm_rel_jump6 : k_rel_add_t
+                     , reloc_op_shift<1>
+                     , reloc_op_u_subfield<5, 3> 
+{
+    using base_t = reloc_op_u_subfield<5,3>;
+   
+    // insert encoded `value` into `data`
     const char *insert(value_t& data, value_t value) const override
     {
-        if (value &~ 0x7c)
-            return "B Value out of range";
-        if (value & 3)
-            return "B Value not word aligned";
-        return base_t::insert(data, value >> 2);
+        // map bit6 to bit9. allow `base_t` to resolve rest
+        if (value & (1 << 6))
+        {
+            value &=~ (1 << 6);
+            data  |=  1 << 9;
+        }
+        return base_t::insert(data, value);
+    }
+
+    // extract encoded `value` from `data`
+    value_t extract(value_t  data) const override
+    {
+        value_t bit6 = data & (1 << 9) ? (1 << 6) : 0;
+        return bit6 | base_t::extract(data);
     }
 };
 
-struct arm_rel_pc8    : k_rel_add_t, reloc_op_s_subfield<8> 
-{
-    using base_t = reloc_op_s_subfield<8, 0>;
-#if 0
-    value_t insert(value_t data) const override
-    {
-        return base_t::insert(data) << 2;
-    }
-    
-    const char *insert(value_t& data, value_t value) const override
-    {
-        if (value &~ 0x3fc)
-            return "B Value out of range";
-        if (value & 3)
-            return "B Value not word aligned";
-        return base_t::insert(data, value >> 2);
-    }
-#endif
-};
 
-struct arm_rel_jump8 : k_rel_add_t, reloc_op_s_subfield<8> 
+struct arm_rel_jump8 : k_rel_add_t
+                     , reloc_op_shift<1>
+                     , reloc_op_s_subfield<8> 
+                     {};
+
+struct arm_rel_jump11 : k_rel_add_t
+                      , reloc_op_s_subfield<11> 
+                      {};
+
+// insert/insert  24-bits spread over two half-words
+// NB: if < ARM6t2, limit is 22 bits
+struct arm_rel_t32jump24 : k_rel_add_t, reloc_op_shift<1>
 {
-    using base_t = reloc_op_s_subfield<8, 0>;
-#if 0
-    value_t insert(value_t data) const override
-    {
-        return base_t::insert(data) << 1;
-    }
-    
+    // insert encoded `value` into `data`
     const char *insert(value_t& data, value_t value) const override
     {
-        if (value &~ 0x1fe)
-            return "B Value out of range";
+        // insert bottom 21 bits
+        auto second_word = value & ((1 << 11) - 1);
+        value >>= 11;
+        auto first_word = value & ((1 << 10) - 1);
+        value >>= 10;
+
+        if (false)  // testing for ARM6t2 reloc
+        {
+            if (value & 1)
+                second_word |= 1 << 13;    // J1 bit
+            if (value & 2)
+                second_word |= 1 << 11;    // J2 bit
+            value >>= 2;
+        }
+        else
+        {
+            second_word |= 5 << 11;       // set J1/J2 for not ARM6
+        }
+
         if (value & 1)
-            return "B Value not word aligned";
-        return base_t::insert(data, value >> 1);
-    }
-#endif
-};
+            first_word |= 1 << 10;        // S bit
 
-struct arm_rel_jump11 : k_rel_add_t, reloc_op_s_subfield<11> 
-{
-    using base_t = reloc_op_s_subfield<11, 0>;
-#if 0
-    value_t insert(value_t data) const override
-    {
-        return base_t::insert(data) << 1;
-    }
-    
-    const char *insert(value_t& data, value_t value) const override
-    {
-        if (value &~ 0xffe)
-            return "B Value out of range";
-        if (value & 1)
-            return "B Value not word aligned";
-        return base_t::insert(data, value >> 1);
-    }
-#endif
-};
-
-struct arm_rel_jump6  : kbfd::k_rel_add_t {};   // THUMB 32
-
-struct arm_rel_thb_call : k_rel_add_t
-{
-    // insert/insert  22-bits sprea/ over two half-words
-    static constexpr auto MASK = (1 << 11) - 1;
-    //using base_t = reloc_op_subfield<11, 0>;
-#if 0
-    value_t insert(value_t data) const override
-    {
-        std::cout << "arm_rel_thb_call::insert: data = " << std::hex << data;
-        auto n  = data & MASK;
-             n += (data >> (16 - 11)) & (MASK << 11);
-        std::cout << ", result = " << (n << 1) << std::endl;
-        return n << 1;
-    }
-    
-    const char *insert(value_t& data, value_t value) const override
-    {
-        std::cout << "arm_rel_thb_call::insert: data = " << std::hex << data;
-        std::cout << ", value = " << value;
-
-#if 0
-        // XXX negative value not out-of-range
-        if (value &~ 0x1ffffff)
-            return "B Value out of range";
-        if (value & 1)
-            return "B Value not word aligned";
-#endif
-        value >>= 1;
-        data += value & MASK;                           // get 11 LSBs
-        data += (value << (16 - 11)) & (MASK << 11);    // 11 MSBs
-        std::cout << " -> result = " << data << std::endl;
+        data |= first_word << 16;
+        data |= second_word;
         return {};
     }
-#endif
+    
+    // extract encoded `value` from `data`
+    value_t extract(value_t  data) const override
+    {
+        // test S-Bit for sign
+        value_t value = data & (1 << 26) ? ~0 : 0;
+
+        if (false)  // testing for ARM6t2
+        {
+            value <<= 2;
+            if (data & (1 << 13))
+                value |= 1;
+            if (data & (1 << 11))
+                value |= 2;
+        }
+        
+        // leave room for 21-lsbs to be inserted
+        value <<= 21;
+
+        // get 11 LSBs from second word
+        value |= data & ((1 << 11) - 1);
+
+        // get 10 MSBs shifted 11: skip over 6 bits of opcode 
+        value |= (data >> 6) & (((1 << 10) - 1) << 11);
+        return value;
+    }
 };
 
 }

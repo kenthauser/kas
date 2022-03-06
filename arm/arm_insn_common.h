@@ -70,6 +70,7 @@ using t16_uB  = arm_sz<SZ_ARCH_THB16, SZ_DEFN_REQ_B>;
 using t16_uH  = arm_sz<SZ_ARCH_THB16, SZ_DEFN_REQ_H>;
 using t16_uSB = arm_sz<SZ_ARCH_THB16, SZ_DEFN_REQ_SB>;
 using t16_uSH = arm_sz<SZ_ARCH_THB16, SZ_DEFN_REQ_SH>;
+using t16_uI  = arm_sz<SZ_ARCH_THB16, SZ_DEFN_REQ_I>;
 
 // base defns for thumb ops
 // suffix naming matches `ARM7` patterns
@@ -101,7 +102,6 @@ using t32_cT  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_REQ_T>;
 using t32_cHs = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_REQ_H, SZ_DEFN_S_FLAG>;
 using t32_cM  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_REQ_M>;
 using t32_uM  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_REQ_M>;
-using t32_uI  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_REQ_I>;
 using t32_cl  = arm_sz<SZ_ARCH_ARM, SZ_DEFN_COND, SZ_DEFN_L_FLAG>;
 using t32_ul  = arm_sz<SZ_ARCH_ARM,               SZ_DEFN_L_FLAG>;
 

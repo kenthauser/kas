@@ -192,8 +192,11 @@ struct tgt_mcode_t
     }
 
     // calculate branch_mode (eg: branch BYTE, WORD, LONG, etc) from insn size
-    // return value of zero matches "arg_t::MODE_BRANCH". others et seq.
-    uint8_t calc_branch_mode(uint8_t size) const;
+    // return appropriate `MODE` for branch argument
+    uint8_t calc_branch_mode(uint8_t size) const
+    {
+        return arg_mode_t::MODE_BRANCH;
+    }
     
     // machine code arranged as words: big-endian array (ie highest order words first)
     auto code(stmt_info_t const& stmt_info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;

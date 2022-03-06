@@ -116,6 +116,49 @@ struct tgt_val_reg : MCODE_T::val_t
     reg_class_t r_class;
     mode_int_t  r_mode;
 };
+
+// validate current is *same* as previous `REG` argument
+template <typename MCODE_T>
+struct tgt_val_prev : MCODE_T::val_t
+{
+    using base_t      = tgt_val_prev;
+    using arg_t       = typename MCODE_T::arg_t;
+    using arg_mode_t  = typename MCODE_T::arg_mode_t;
+    using stmt_info_t = typename MCODE_T::stmt_info_t;
+    using reg_t       = typename MCODE_T::reg_t;
+    using reg_class_t = typename reg_t  ::reg_class_t;
+    using reg_value_t = typename reg_t  ::reg_value_t;
+
+    using mode_int_t  = std::underlying_type_t<arg_mode_t>;
+
+    constexpr tgt_val_prev(uint8_t n) : prev(n) {}
+    
+    fits_result ok(arg_t& arg, expr_fits const& fits) const override
+    {
+        if (arg.mode() != arg_mode_t::MODE_REG)
+            return fits.no;
+
+        // NB: need to generalize if other than array is used for args
+        auto& p = (&arg)[-prev];
+        
+        if (p.reg_p == arg.reg_p)
+            return fits.yes;
+        return fits.no;
+    }
+    
+    fits_result size(arg_t& arg, MCODE_T const& mc, stmt_info_t const& info
+                   , expr_fits const& fits, op_size_t& op_size) const override
+    {
+        return fits.yes;
+    }
+
+    void set_arg(arg_t& arg, unsigned value) const override
+    {
+        arg = (&arg)[-prev];
+    }
+    
+    uint8_t prev;
+};
     
 // the "range" validators default to zero size
 template <typename MCODE_T, typename RANGE_VALUE_T = int16_t, unsigned SCALE = 0>

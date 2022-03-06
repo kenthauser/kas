@@ -58,7 +58,7 @@ struct arm_ccode_t
 
 // define "type" to match against types in `arm_insn_common`
 // XXX should pick up from `arm_mcode.h`. 
-enum arm_sfx_enum : uint8_t { SFX_NONE, SFX_B, SFX_T, SFX_H, SFX_M, SFX_L };
+enum arm_sfx_enum : uint8_t { SFX_NONE, SFX_B, SFX_T, SFX_H, SFX_M, SFX_I, SFX_L };
 
 
 // defin ARM instruction suffixes
@@ -108,7 +108,8 @@ struct arm_sfx_t
         // load/store multiple (set L-bit(20) / P-bit(24) / U-bit(23) )
         // store values shifted 20 bits
         // NB: i/d indicates increment/decrement, a/b indicates after/before
-         , {"ia"    , SZ_ARCH_ARM, SFX_M, 0x01, 0x08 }    // 1/0/1    0/0/1
+        // NB: THUMB only allows IA, so use SFX_I to identify special SFX_M
+         , {"ia"    , SZ_ARCH_ARM, SFX_I, 0x01, 0x08 }    // 1/0/1    0/0/1
          , {"ib"    , SZ_ARCH_ARM, SFX_M, 0x19, 0x18 }    // 1/1/1    0/1/1
          , {"da"    , SZ_ARCH_ARM, SFX_M, 0x01, 0x00 }    // 1/0/0    0/0/0
          , {"db"    , SZ_ARCH_ARM, SFX_M, 0x11, 0x10 }    // 1/1/0    0/1/0

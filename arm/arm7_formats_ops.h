@@ -123,47 +123,27 @@ struct fmt_branch24 : arm_mcode_t::fmt_t::fmt_impl
                   , val_t const *val_p) const override
     {
         //std::cout << "fmt_branch24: emit: arg = " << arg << std::endl;
-        // calculate size here
+        static const kbfd::kbfd_reloc r
+                { kbfd::ARM_REL_A32JUMP(), 32, true, RELOC_FLAG }; 
+        
         switch (arg.mode())
         {
         default:
-            //std::cout << "emit_relocation: bad arg: " << arg << ", mode = " << +arg.mode() << std::endl;
            throw std::logic_error{"invalid fmt_displacement mode"};
 
+        // NB: opc_branch xlates DIRECT to BRANCH
         case arg_t::arg_mode_t::MODE_DIRECT:
-        {
-            //std::cout << "fmt_displacement: MODE_CALL" << std::endl;
-            
+        case arg_t::arg_mode_t::MODE_BRANCH:
             // reloc is 24-bits & pc-relative
             // flag `ARM_G1` maps reloc to "R_ARM_CALL24"
             // flag `ARM_G2` maps reloc to "R_ARM_JUMP24"
-            static const kbfd::kbfd_reloc r
-                    { kbfd::ARM_REL_A32JUMP(), 32, true, RELOC_FLAG }; 
-            
             // displacement is from end of insn after insn...
             base << core::emit_reloc(r, {}, -8) << arg.expr;
             break;
-        }
-#if 0        
-        case arg_t::arg_mode_t::MODE_BRANCH:
-        {
-            // byte displacement stored in LSBs. Use reloc mechanism
-            // NB: all arm branches are DIRECT. included for required MODE
-            //std::cout << "fmt_displacement: MODE_JUMP" << std::endl;
-            
-            // reloc is 24-bits & pc-relative
-            // flag `ARM_G2` maps reloc to "R_ARM_JUMP24"
-            static const kbfd::kbfd_reloc r 
-                    { kbfd::ARM_REL_A32JUMP(), 32, true, ARM_G2 }; 
-            
-            // displacement is from end of insn after insn...
-            base << core::emit_reloc(r, {}, -8) << arg.expr;
-            break;
-        }
-#endif
         }
     }
 };
+
 // ARM5: Addressing Mode 1: immediate 12-bit value with 8 significant bits
 //       and an `even` shift encoded in 4 bits.
 // use KBFD to encode
