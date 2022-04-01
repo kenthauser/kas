@@ -105,6 +105,19 @@ struct kbfd_reloc
         return bytes() * 8;
     }
 
+    constexpr int64_t value_mask() const
+    {
+        switch (flags & RFLAGS_SIZE_MASK)
+        {
+            case RFLAGS_SIZE_64: return int64_t(~0);
+            case RFLAGS_SIZE_32: return (int64_t(1) << 32) - 1;
+            case RFLAGS_SIZE_16: return (int64_t(1) << 16) - 1;
+            case RFLAGS_SIZE_8 : return (int64_t(1) <<  8) - 1;
+
+            default: return -1;
+        }
+    }
+
     // retrieve action operations
     auto& get() const
     {

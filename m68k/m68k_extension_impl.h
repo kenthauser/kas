@@ -116,14 +116,24 @@ void m68k_extension_t::emit(core::core_emit& base, m68k_arg_t const& arg, uint8_
             }
         };
 
+    std::cout << "m68k_extention::emit: arg = " << arg;
+    std::cout << ", sz = " << +sz;
+    std::cout << ", is_brief = " << std::boolalpha << is_brief << std::endl;
+
     if (is_brief)
     {
         // lower byte is 8-bit signed expression, not pc-relative
         // use reloc because "expression" is only part of extension word.
         static const kbfd::kbfd_reloc reloc { kbfd::K_REL_ADD(), 8, false };
+
+        std::cout << "is_brief_emit:expr = " << arg.expr;
+        std::cout << ", base_value = " << std::hex << base_value() << std::endl;
         
         // `kas_reloc` has addend of zero and offset of one
-        base << core::emit_reloc(reloc, {}, 0, 1) << arg.expr << base_value();
+        // suppress reloc for zero expression
+        if (!arg.expr.empty())
+            base << core::emit_reloc(reloc, {}, 0, 1) << arg.expr;
+        base << base_value();
     }
 
     else

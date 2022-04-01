@@ -56,17 +56,12 @@ enum m68k_arg_mode : uint8_t
     , MODE_IMMED_QUICK      // 22: immed arg stored in opcode
     , MODE_REG_QUICK        // 23: movec: mode_reg stored in opcode
     , MODE_MOVEP            // 24: special for MOVEP insn
-// Branch displacement sizes
-    , MODE_BRANCH_BYTE      // 25: store displacment in insn
-    , MODE_BRANCH_WORD      // 26: single displacment word
-    , MODE_BRANCH_LONG      // 27: two displacement words
-
 // Coldfire sub-word support
-    , MODE_SUBWORD_LOWER    // 28: general register, lower
-    , MODE_SUBWORD_UPPER    // 29: general register, upper
+    , MODE_SUBWORD_LOWER    // 25: general register, lower
+    , MODE_SUBWORD_UPPER    // 26: general register, upper
 
 // Support "modes"
-    , MODE_NONE             // 30: when parsed: indicates end-of-args
+    , MODE_NONE             // 27: when parsed: indicates end-of-args
     , NUM_ARG_MODES
 
 // MODES which must be defined for compatibilty with `tgt_arg` ctor.
@@ -75,8 +70,15 @@ enum m68k_arg_mode : uint8_t
     , MODE_INDIRECT
     , MODE_REG_INDIR 
     , MODE_REG_OFFSET 
-    , MODE_BRANCH = MODE_BRANCH_BYTE
+// Branch base mode & displacement sizes
+    , MODE_BRANCH           // required: used by `tgt_opc_branch`
+    , MODE_BRANCH_BYTE      // store byte displacment in insn
+    , MODE_BRANCH_WORD      // emit single displacment word
+    , MODE_BRANCH_LONG      // emit two displacement words
+    , MODE_BRANCH_LAST = MODE_BRANCH_LONG
  };
+// XXX should be in target, not in multiple defn files
+static constexpr auto NUM_BRANCH_MODES = MODE_BRANCH_LAST + 1 - MODE_BRANCH;
 
 // support for coldfire MAC. 
 enum m68k_arg_subword : uint8_t
@@ -111,9 +113,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     // ctor to handle: direct, immediate, register pair, or bitfield
     m68k_arg_t(m68k_arg_mode mode, kas_token tok = {}, kas_token outer = {})
             :  outer(outer.expr()), base_t(mode, tok)
-            {
-                std::cout << "m68k_arg_t::ctor: outer = " << this->outer << std::endl;
-            }
+            {}
  
     // indirect & index values are constructed in `m68k_parser_support.h`
     // and inited via copy elision
@@ -130,6 +130,13 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     // support for `access-mode` validation
     uint16_t am_bitset() const;
 
+#if 1
+    template <typename Inserter, typename ARG_INFO>
+    bool serialize(Inserter& inserter, uint8_t sz, ARG_INFO *, bool has_val);
+    
+    template <typename Reader, typename ARG_INFO>
+    void extract(Reader& reader, uint8_t sz, ARG_INFO const*, bool has_val);
+#else
     // serialize arg into `insn data` area
     template <typename Inserter, typename WB_INFO>
     bool serialize(Inserter& inserter, uint8_t sz, WB_INFO *);
@@ -137,7 +144,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     // extract serialized arg from `insn data` area
     template <typename Reader>
     void extract(Reader& reader, uint8_t sz, arg_serial_t *);
-
+#endif
     // number of additional bytes to serialize arg
     // negative value indicates value is "signed"
     int8_t serial_data_size(uint8_t sz) const;
@@ -164,9 +171,12 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     bool             has_subword_mask{};    // coldfire arg parsed with mask.
 
     // hardware formatted variables
+    // XXX this whole set of variables should be retired in favor of `reg_p`q 
     uint8_t cpu_mode() const;           // machine code words
     uint8_t cpu_reg()  const;
     uint8_t reg_num  {};
+
+
     m68k_ext_size_t cpu_ext;
 
     m68k_arg_mode mode_normalize() const;

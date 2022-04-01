@@ -115,7 +115,7 @@ struct bsd_fixed : bsd_opcode
         // XXX need better method...
         using hook_t = std::true_type;
         if constexpr (!std::is_void_v<meta::_t<hook_t>>)
-#if 0
+#if 1
             //hook_t()(*this);
             print_type_name{"bsd_fixed::hook"}.name<hook_t>();
 #else

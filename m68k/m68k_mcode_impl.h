@@ -7,6 +7,7 @@
 
 namespace kas::m68k
 {
+#if 1
 // determine size of immediate arg
 uint8_t m68k_mcode_t::sz(stmt_info_t info) const
 {
@@ -14,7 +15,7 @@ uint8_t m68k_mcode_t::sz(stmt_info_t info) const
         return info.arg_size;
 
     // if void, check if single size specified
-    auto defn_sz = defn().info & 0x7f;
+    auto defn_sz = defn().info() & 0x7f;
 
     // don't bother with switch
     if (defn_sz == (1 << OP_SIZE_LONG))
@@ -27,108 +28,8 @@ uint8_t m68k_mcode_t::sz(stmt_info_t info) const
     return info.arg_size;
 }
 
-using LWB_SIZES = init_from_list<opc::m68k_insn_lwb, opc::LWB_SIZE_LIST>;
-
-auto m68k_mcode_t::code(stmt_info_t info) const
-    -> std::array<mcode_size_t, MAX_MCODE_WORDS>
-{
-    // put code into array
-    auto code = base_t::code(info);
-   
-    // possibly map `sz` to integral size
-    auto arg_sz = sz(info);
-
-    // if size "supported", insert bits into code word
-    // also don't insert `void` if only `void supported
-    auto defn_info = defn().info;
-    if ((defn_info & 0xff) != 0x80)
-        if (defn_info & (1 << arg_sz))
-        {
-            auto& sz_fn = LWB_SIZES::value[defn_info >> 12];
-            code[sz_fn.word()] |= sz_fn(arg_sz);
-        }
-    
-    //std::cout << "m68k_mcode_t::code: cc = " << info.has_ccode << " ccode = " << info.ccode;
-    //std::cout << " defn = " << std::hex << defn_info << std::endl;
-
-    // insert codition code if required
-    // NB: values from `m68k_insn_common.h`
-    switch (defn_info & opc::SFX_IS_CC)
-    {
-        default:
-        case 0:
-            break;
-        // Integral M68K condition code
-        case opc::SFX_CCODE_BIT::value:
-            // M68K ccode is shifted 8 for all insns
-            code[0] |= info.ccode << 8;
-            break;
-        // Floating M68K condition code
-        case opc::SFX_CCODE_FP::value:
-            // Floating point ccode: 5 LSBs
-            code[0] |= info.ccode;
-            break;
-        // LIST Format: save raw ccode values shifted 6
-        case opc::SFX_CCODE_LIST::value:
-         {
-            if (!info.has_ccode)
-                break;
-            auto ccode = info.ccode;
-            if (info.fp_ccode)
-                ccode |= 0x20;
-            else
-                ccode |= 0x10;
-            code[0] |= ccode << 6;
-            break;
-         }
-    }
-
-    return code;
-}
-
-auto m68k_mcode_t::extract_info(mcode_size_t const *code_p) const -> stmt_info_t
-{
-    stmt_info_t info;       // build return value
-   
-    // calculate SZ
-    auto defn_info = defn().info;
-    auto& sz_fn = LWB_SIZES::value[defn_info >> 12];     // 4 MSBs
-    info.arg_size = sz_fn.extract(code_p);
-
-    // calculate Condition Codes
-    switch (defn_info & opc::SFX_IS_CC)
-    {
-        default:
-        case 0:
-            break;
-        case opc::SFX_CCODE_BIT::value:
-            info.has_ccode = true;
-            info.ccode = (code_p[0] >> 8) & 0xf;
-            break;
-        case opc::SFX_CCODE_FP::value:
-            info.has_ccode = true;
-            info.fp_ccode  = true;
-            info.ccode     = code_p[0] & 0x1f;
-            break;
-        case opc::SFX_CCODE_LIST::value:
-        {
-            // raw format for LIST
-            auto ccode = code_p[0] >> 6;
-            if (ccode & 0x20)
-                info.fp_ccode = true;
-            else if (ccode & 0x10)
-                ccode &= 0xf;
-            else
-                break;
-
-            info.has_ccode = true;
-            info.ccode = ccode & 0x1f;      // NB: mask not needed. Dest is 5 bits
-            break;
-        }
-    }
-    return info;
-}
-
+#endif
+#if 1
 auto m68k_mcode_t::calc_branch_mode(uint8_t size) const
     -> uint8_t
 {
@@ -155,6 +56,7 @@ auto m68k_mcode_t::calc_branch_mode(uint8_t size) const
     }
 #endif
 }
+#endif
 
 // coldfile limit_3w is in `opc` namespace
 namespace opc

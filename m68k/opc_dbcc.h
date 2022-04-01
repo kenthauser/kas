@@ -56,13 +56,13 @@ struct m68k_opc_dbcc : tgt::opc::tgt_opc_branch<m68k_mcode_t>
                     , mcode_t const&         mcode
                     , mcode_size_t          *code_p
                     , expr_t const&          dest
-                    , stmt_info_t const&     info) const override
+                    , arg_mode_t             arg_mode) const override
     {
         // if "short" version, use base_t emitter
         auto base_size = mcode.base_size() + 2; // base plus word offset
         
         if (data.size() == base_size)
-            return base_t::do_emit(data, base, mcode, code_p, dest, info);
+            return base_t::do_emit(data, base, mcode, code_p, dest, arg_mode);
 
         if (data.size() != base_size + 8)
             throw std::runtime_error{std::string(NAME()) + "invalid size: "

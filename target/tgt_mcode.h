@@ -34,28 +34,58 @@ using namespace meta;
 using expression::expr_fits;
 using expression::fits_result;
 
+// default defn_info: just hold size (or nothing)
+template <typename MCODE_T
+        , typename VALUE_T = uint8_t, unsigned FN_BITS = 4>
+struct tgt_defn_info_t
+{
+    static constexpr auto INFO_T_BITS = std::numeric_limits<VALUE_T>::digits;
+    static constexpr auto VALUE_BITS  = INFO_T_BITS - FN_BITS;
+    
+    using defn_t       = typename MCODE_T::defn_t;
+    using stmt_info_t  = typename MCODE_T::stmt_info_t;
+    using mcode_size_t = typename MCODE_T::mcode_size_t;
+    using code_t       = typename MCODE_T::code_t;
+
+    constexpr tgt_defn_info_t(VALUE_T v, VALUE_T fn_idx = 0)
+        : value(v), fn_idx(fn_idx) {}
+
+    // insert/extract stmt_info values from `code`
+    void        insert (code_t&, stmt_info_t const&) const;
+    stmt_info_t extract(mcode_size_t const *code_p)  const;
+    int         sz     (stmt_info_t const&)          const;
+    code_t      mask   (MCODE_T const&)              const;
+
+    VALUE_T operator()() const { return value; }
+    
+//private:
+    VALUE_T value  : INFO_T_BITS;
+    VALUE_T fn_idx : FN_BITS;
+};
+
 // declare base size types
 struct tgt_mcode_size_t
 {
     static constexpr auto MAX_ARGS        = 2;
     static constexpr auto MAX_MCODE_WORDS = 2;
-
-    // default defn_info: just hold size (or nothing)
-    struct defn_info_t
-    {
-        uint8_t sz() const { return value; }
-        uint8_t value;
-    };
+    static constexpr auto NUM_ARCHS       = 1;
 
     // set default code size to `e_data_t`
     using mcode_size_t  = expression::e_data_t;
     using code_defn_t   = uint32_t;
+
+    // index types reflect number of mcodes, fmts, etc...
+    // commonly overridden as result of compile error..
     using mcode_idx_t   = uint8_t;
     using defn_idx_t    = uint8_t;
     using name_idx_t    = uint8_t;
     using fmt_idx_t     = uint8_t;
     using val_idx_t     = uint8_t;
     using val_c_idx_t   = uint8_t;
+   
+    // defaults for `tgt_defn_info`
+    using defn_info_value_t = uint8_t;
+    static constexpr auto defn_info_fn_bits = 4;
 };
 
 template <typename MCODE_T> struct tgt_size { };
@@ -118,11 +148,20 @@ struct tgt_mcode_t
     using fmt_idx_t    = typename SIZE_T::fmt_idx_t;
     using val_idx_t    = typename SIZE_T::val_idx_t;
     using val_c_idx_t  = typename SIZE_T::val_c_idx_t;
-    using defn_info_t  = typename SIZE_T::defn_info_t;
 
+    // get `defn_info` template definitions
+    static constexpr auto defn_info_fn_bits = SIZE_T::defn_info_fn_bits;
+    using defn_info_value_t  = typename SIZE_T::defn_info_value_t;
+    using defn_info_t   = tgt_defn_info_t<MCODE_T
+                                        , defn_info_value_t
+                                        , defn_info_fn_bits>;
+    
     static constexpr auto MAX_ARGS        = SIZE_T::MAX_ARGS;
     static constexpr auto MAX_MCODE_WORDS = SIZE_T::MAX_MCODE_WORDS;
     static constexpr auto NUM_ARCHS       = SIZE_T::NUM_ARCHS;
+
+    // declare "code" object type
+    using code_t = std::array<mcode_size_t, MAX_MCODE_WORDS>;
 
     // allocate instances in `std::deque`
     using obstack_t = std::deque<derived_t>;
@@ -199,7 +238,7 @@ struct tgt_mcode_t
     }
     
     // machine code arranged as words: big-endian array (ie highest order words first)
-    auto code(stmt_info_t const& stmt_info) const -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
+    code_t code(stmt_info_t const& stmt_info) const;
     stmt_info_t extract_info(mcode_size_t const *) const;
 
     void print(std::ostream&) const;

@@ -21,7 +21,7 @@ struct tgt_immed_info
 {
     uint8_t sz_bytes{};
     uint8_t flt_fmt {};
-    uint8_t mask    {};
+    uint8_t mask    {};     // XXX not useful??. relocs used for sub-bytes
 };
 
 // NB: the `REG_T` & `REGSET_T` also to allow lookup of type names

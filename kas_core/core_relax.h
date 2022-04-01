@@ -48,8 +48,11 @@ struct core_relax
                 if (!insn.is_relaxed())
                 {
                     if (trace)
+                    {
+                        *trace << "relax: " << insn.raw() << std::endl;
                         *trace << "relax: " << insn.fmt()
                                << " from "  << insn.size();
+                    }
 
                     insn.calc_size(fits);
 

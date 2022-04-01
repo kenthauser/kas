@@ -16,7 +16,10 @@ namespace kas::arm::parser
 {
 
 template <typename Inserter, typename ARG_INFO>
-bool arm_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p, bool has_val)
+bool arm_arg_t::serialize (Inserter& inserter
+                         , uint8_t sz
+                         , ARG_INFO *info_p
+                         , bool has_val)
 {
     auto save_expr = [&](expr_t expr, uint8_t bytes) -> bool
         {
@@ -67,7 +70,10 @@ bool arm_arg_t::serialize (Inserter& inserter, uint8_t sz, ARG_INFO *info_p, boo
 
 // deserialize arguments: for format, see above
 template <typename Reader, typename ARG_INFO>
-void arm_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p, bool has_val)
+void arm_arg_t::extract(Reader& reader
+                      , uint8_t sz
+                      , ARG_INFO const *info_p
+                      , bool has_val)
 {
     // if no validator, restore values normally in `opcode` from `store`
     if (!has_val)
@@ -120,6 +126,7 @@ void arm_arg_t::extract(Reader& reader, uint8_t sz, ARG_INFO const *info_p, bool
     // here has data, but not expression
     else if (info_p->has_data)
     {
+        // XXX i don't understand this. KBH 2022/03/14
         bool is_signed {false};
         int  bytes = this->size(sz, {}, &is_signed);
         bytes = 2;

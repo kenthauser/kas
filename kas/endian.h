@@ -2,7 +2,9 @@
 #define KAS_ENDIAN_H
 
 // from cppreference.com : proposed for c++20
-
+#ifdef __cpp_lib_endian
+#include <bit>
+#else
 namespace std 
 {
 enum class endian
@@ -18,4 +20,5 @@ enum class endian
 #endif
 };
 }
+#endif
 #endif

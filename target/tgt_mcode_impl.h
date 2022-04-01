@@ -85,7 +85,7 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
 
     // size of base opcode
     size = derived().base_size();
-    std::cout << "tgt_mcode_t::size: base = " << size << std::endl;
+    //std::cout << "tgt_mcode_t::size: base = " << size << std::endl;
 
     // here know val cnt matches
     auto result = fits.yes;
@@ -187,25 +187,27 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-    extract_info(mcode_size_t const *) const -> stmt_info_t
+    extract_info(mcode_size_t const *code_p) const -> stmt_info_t
 {
-    return {};       // default: no `stmt_info_t` parsed
+    // extract stmt_info from code using `info_fn_t`
+    return defn().info.extract(code_p);
 }
 
     
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
     code(stmt_info_t const &stmt_info) const
-    -> std::array<mcode_size_t, MAX_MCODE_WORDS>
+    -> code_t
 {
     // split `code` into array of words
-    std::array<mcode_size_t, derived_t::MAX_MCODE_WORDS> code_data {};
+    code_t code_data {};
     auto& d = defn();
 
     auto value = d.code;
     auto n     = d.code_words;
     auto p     = &code_data[n];
 
+    // fill array with trailing zeros
     while(n--)
     {
         *--p = value;
@@ -214,9 +216,45 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
         else
             value = 0;
     }
-    
+   
+    // insert "stmt_info" into `code`
+    d.info.insert(code_data, stmt_info);
     return code_data;
 }
+
+// trampoline functions for `defn_info` -> `tgt_info_fn` methods
+template <typename MCODE_T, typename VALUE_T, unsigned FN_BITS>
+auto tgt_defn_info_t<MCODE_T, VALUE_T, FN_BITS>::
+    insert(code_t& code, stmt_info_t const& stmt_info) const
+    -> void
+{
+    return defn_t::info_fns_base[fn_idx]->insert(code, stmt_info, value);
+}
+
+template <typename MCODE_T, typename VALUE_T, unsigned FN_BITS>
+auto tgt_defn_info_t<MCODE_T, VALUE_T, FN_BITS>::
+    extract(mcode_size_t const *code_p) const
+    -> stmt_info_t
+{
+    return defn_t::info_fns_base[fn_idx]->extract(code_p, value);
+}
+
+template <typename MCODE_T, typename VALUE_T, unsigned FN_BITS>
+auto tgt_defn_info_t<MCODE_T, VALUE_T, FN_BITS>::
+    sz(stmt_info_t const& stmt_info) const
+    -> int
+{
+    return defn_t::info_fns_base[fn_idx]->sz(stmt_info, value);
+}
+
+template <typename MCODE_T, typename VALUE_T, unsigned FN_BITS>
+auto tgt_defn_info_t<MCODE_T, VALUE_T, FN_BITS>::
+    mask(MCODE_T const& mcode) const
+    -> code_t
+{
+    return defn_t::info_fns_base[fn_idx]->mask(mcode, value);
+}
+
 
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
 void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::

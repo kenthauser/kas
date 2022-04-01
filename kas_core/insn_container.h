@@ -240,7 +240,7 @@ namespace kas::core
     {
         static const auto idx_label = opc::opc_label().index();
 #define TRACE_DO_FRAG   3       // 1 = FRAG, 2 = INSN, 3 = RAW
-#undef  TRACE_DO_FRAG
+//#undef  TRACE_DO_FRAG
 
 #ifdef  TRACE_DO_FRAG
         std::cout << "do_frag::begin: " << frag;

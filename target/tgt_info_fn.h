@@ -11,11 +11,7 @@ struct tgt_info_fn_t
     using mcode_size_t = typename MCODE_T::mcode_size_t;
     using stmt_info_t  = typename MCODE_T::stmt_info_t;
     using defn_info_t  = typename MCODE_T::defn_info_t;
-
-    static constexpr auto MAX_MCODE_WORDS = MCODE_T::MAX_MCODE_WORDS;
-
-    // declare object-code format
-    using code_t = std::array<mcode_size_t, MAX_MCODE_WORDS>;
+    using code_t       = typename MCODE_T::code_t;
 
     constexpr tgt_info_fn_t() {}
 
@@ -27,7 +23,17 @@ struct tgt_info_fn_t
                       , defn_info_t const& defn_info) const { return {}; }
 
     virtual code_t mask(stmt_info_t const& stmt_info
-                      , defn_info_t const& defn_info) const { return {}; }
+                      , defn_info_t const& defn_info
+                      , MCODE_T const&)               const { return {}; }
+
+protected:
+    // default method used by `info_fn_t`
+    // also used by `stmt_info_t` to resolve size
+    friend stmt_info_t;
+
+    // allow sz < 0 to indicate error
+    virtual int8_t defn_sz(defn_info_t const& defn_info) const { return {}; }
+    
 };          
 
 }

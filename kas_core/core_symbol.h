@@ -196,7 +196,7 @@ void core_symbol<REF>::dump(OS& os)
         if (s.s_symnum)
             os << " kbfd_num = " <<  s.s_symnum;
 
-        os << " arm_mapped_t: = " << arm::arm_addr_map_t(s);
+        //os << " arm_mapped_t: = " << arm::arm_addr_map_t(s);
         os << std::endl;
     };
 

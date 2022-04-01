@@ -2,7 +2,8 @@
 #define KAS_M68K_M68K_FORMATS_OPC_H
 
 #include "m68k_mcode.h"
-#include "m68k_size_lwb.h"      // defines `m68k_opc_base`
+// XXX find better place...
+#include "m68k_info_impl.h"      // defines `m68k_opc_base`
 
 #include "opc_dbcc.h"
 
@@ -14,7 +15,7 @@ namespace kas::m68k::opc
 // derive m68k version of `tgt` classes
 // use generic bit inserter/extractor
 template <unsigned...Ts>
-using fmt_generic = tgt::opc::tgt_fmt_generic<m68k_mcode_t, Ts...>;
+using fmt_generic = tgt::opc::tgt_fmt_generic<m68k_mcode_t, uint16_t, Ts...>;
 
 // use generic template to generate argument `mix-in` type
 template <unsigned N, typename T>

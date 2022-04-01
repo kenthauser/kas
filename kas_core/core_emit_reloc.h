@@ -60,18 +60,27 @@ void core_emit::put_reloc(core_reloc& r, core_section const *section_p)
 // if `force` is set, failure to encode generates diagnostic
 void core_emit::reloc_update_data(core_reloc& r, bool force)
 {
+#ifdef TRACE_CORE_RELOC
     std::cout << "core_emit::reloc_update_data" << std::hex;
     std::cout << ": data = " << data << ", accum = " << accum;
-    auto& ops = r.reloc.get();
-    auto msg = ops.encode(accum);   // test for error
+    std::cout << ", offset = " << +r.offset;
+#endif
+    // default reloc to `width
+    r.reloc.default_width(width);
 
+    // retrive references to: kbfd::kbfd_reloc && kbfd::reloc_action
+    auto& k   = r.reloc;
+    auto& ops = k.get();
+
+    auto msg = ops.encode(accum);   // test for error
+#ifdef TRACE_CORE_RELOC
     std::cout << " -> result = " << accum << std::endl;
     if (msg)
         std::cout << "ERROR = " << msg << std::endl;
-
+#endif
     if (msg)
     {
-        // can't encode value in data.
+        // msg: can't encode value in data.
         // if `relocation write pending, use rela.
         // else, raise error
         if (!force)
@@ -79,9 +88,34 @@ void core_emit::reloc_update_data(core_reloc& r, bool force)
         else
             r.gen_diag(*this, msg);
     }
+    else if (r.reloc.bytes() != width)
+    {
+        std::cout << "core_emit::reloc_update_data: width = " << +width;
+        std::cout << ", reloc_width = " << +r.reloc.bytes();
+        std::cout << ", value_mask = " << std::hex << r.reloc.value_mask();
+        std::cout << std::endl;
+        
+        // remember that "offset" is calculated according to "big-endian"
+        // rules regardless of actual endian. 
+        // MS word is offset zero
+        // LS word is `width - 1`
+        auto shift = (width - r.reloc.bytes() - 1) * 8; 
+        
+        // insert encoded "accum" into empty data
+        int64_t byte_data{};
+        ops.insert(byte_data, accum);
+
+        std::cout << ", shift = " << +shift;
+        std::cout << ", byte_data = " << std::hex << byte_data;
+        std::cout << ", data before = " << (data & r.reloc.value_mask());
+
+        // insert "byte" data info data
+        data |= (accum & r.reloc.value_mask()) << shift;
+        std::cout << ", data after = " << data << std::endl;
+    }
     else
     {
-        ops.insert(data, accum);    // all is good...
+        ops.insert(data, accum);
     }
 }
 

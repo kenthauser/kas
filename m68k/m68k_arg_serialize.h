@@ -15,8 +15,11 @@
 namespace kas::m68k
 {
 
-template <typename Inserter, typename WB_INFO>
-bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
+template <typename Inserter, typename ARG_INFO>
+bool m68k_arg_t::serialize (Inserter& inserter
+                          , uint8_t sz
+                          , ARG_INFO *info_p
+                          , bool has_val)
 {
     auto save_expr = [&](auto expr, uint8_t bytes, uint8_t flt_fmt = {}) -> bool
         {
@@ -46,8 +49,16 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
             return !inserter(std::move(expr), bytes);
         };
     
-    // here the `has_reg` bit may be set spuriously
-    // (happens when no appropriate validator present)
+    // if no validator, serialize values normally in `opcode` via inserter
+    if (!has_val)
+    {
+        info_p->has_reg = bool(reg_p);
+        if (info_p->has_reg)
+            inserter(reg_p->index());
+
+        // pick up MODE_IMMED_QUICK in general switch
+    }
+#if 0
     // don't save if no register present
     if (info_p->has_reg || mode() != MODE_IMMED_QUICK)
         info_p->has_data = true;
@@ -56,9 +67,7 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
         info_p->has_reg = false;
     if (info_p->has_reg)
         inserter(reg_p->index());
-    if (mode() == MODE_REGSET)
-        inserter(*regset_p);
-    
+#endif
     // need to special case modes with data
     switch (mode())
     {
@@ -124,14 +133,19 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
         case MODE_MOVEP:
             return save_expr(expr, 2);
 
+        case MODE_REGSET:
+            // XXX why does ARM not flag this as "data"
+            inserter(regset_p->index(), 2);
+            break;
+    
         case MODE_IMMED_QUICK:
-            return false;
+            if (!has_val)
+                return save_expr(expr, 2);      // save as 16-bit immed
+            break;
 
         case MODE_BITFIELD:
             // XXX don't know
         default:
-
-            if (info_p->has_data)
             {
                 auto& arg_info = m68k_arg_t::sz_info[sz];
                 auto  bytes    = arg_info.sz_bytes;
@@ -147,16 +161,26 @@ bool m68k_arg_t::serialize (Inserter& inserter, uint8_t sz, WB_INFO *info_p)
 
 // deserialize m68k arguments: for format, see above
 // save pointer `extension_t` word if present
-template <typename Reader>
-void m68k_arg_t::extract(Reader& reader, uint8_t sz, arg_serial_t *serial_p)
+template <typename Reader, typename ARG_INFO>
+void m68k_arg_t::extract(Reader& reader
+                      , uint8_t sz
+                      , ARG_INFO const *info_p
+                      , bool has_val)
 {
     using reg_tok = meta::_t<expression::token_t<reg_t>>;
-    
-    if (serial_p->has_reg)
+
+#ifdef TRACE_ARG_SERIALIZE
+    std::cout << "m68k_arg_t::extract: sz = " << +sz;
+    std::cout << ", has_val = " << std::boolalpha << has_val;
+    std::cout << std::endl;
+#endif
+
+    if (info_p->has_reg)
     {
         // register stored as index
         auto reg_idx = reader.get_fixed(sizeof(typename reg_t::reg_name_idx_t));
         reg_p = &reg_t::get(reg_idx);
+        std::cout << "extracted register: " << *reg_p << std::endl;
     } 
     
     // need to special case INDEX to match code above
@@ -169,7 +193,7 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, arg_serial_t *serial_p)
         ext = *wb_ext_p;              // init extension with saved value
 
         // get inner expression if stored
-        if (serial_p->has_expr)       // `has_expr` mapped to `inner_has_expr`
+        if (info_p->has_expr)       // `has_expr` mapped to `inner_has_expr`
             expr = reader.get_expr();
         else
         {
@@ -194,7 +218,7 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, arg_serial_t *serial_p)
         }
 
         // get outer expression if stored
-        if (serial_p->has_data)       // `has_data` mapped to `outer_has_expr`
+        if (info_p->has_data)       // `has_data` mapped to `outer_has_expr`
             outer = reader.get_expr();
         else if (ext.has_outer)
         {
@@ -221,18 +245,26 @@ void m68k_arg_t::extract(Reader& reader, uint8_t sz, arg_serial_t *serial_p)
 
     else if (mode() == MODE_REGSET)
     {
-        regset_p = reader.get_expr().template get_p<regset_t>();
+        auto rs_idx = reader.get_fixed(2);
+        std::cout << "extract: REGSET index = " << +rs_idx << std::endl;
+        regset_p = &regset_t::get(rs_idx);
     }
 
-    else if (serial_p->has_expr)
+    else if (info_p->has_expr)
     {
         expr = reader.get_expr();
     }
-    else if (serial_p->has_data)
-        expr = reader.get_fixed(serial_data_size(sz));
-
-    // save write-back pointer to serialized data
-    wb_serial_p = serial_p;
+    else if (info_p->has_data)
+    {
+        // XXX copied w/o understanding from `arm`
+        bool is_signed {false};
+        //int  bytes = this->size(sz, {}, &is_signed);
+        int bytes = 2;
+        bytes = 2;
+        if (is_signed)
+            bytes = -bytes;
+        expr = reader.get_fixed(bytes);
+    }
 }
 
 }

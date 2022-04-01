@@ -30,6 +30,7 @@
 
 
 #include "target/tgt_opc_base.h"
+#include "target/tgt_validate_branch.h"
 
 namespace kas::tgt::opc
 {
@@ -61,13 +62,15 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     static constexpr auto max_insn = sizeof(expression::e_data_t);
     static constexpr auto max_addr = sizeof(expression::e_addr_t);
 
-    virtual void do_initial_size(data_t&                data
+    virtual void do_initial_size(data_t&             data
                             , mcode_t const&         mcode
                             , mcode_size_t          *code_p
                             , expr_t const&          dest
                             , stmt_info_t const&     info
                             , expr_fits const& fits) const 
     {
+        // set arg::mode() to `MODE_BRANCH`, and then evaluate
+        insert_branch_mode(code_p, arg_mode_t::MODE_BRANCH);
         return do_calc_size(data, mcode, code_p, dest, info, fits);
     }
 
@@ -82,11 +85,16 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         // for this eval, just set `mode` and `expr`
         arg_t arg;
         arg.expr = dest;
-        arg.set_mode(arg_mode_t::MODE_BRANCH);
+        arg.set_mode(extract_branch_mode(code_p));
+        //std::cout << "do_calc_size: mode = " << +arg.mode() << ", arg = " << arg << std::endl;
 
         // ask displacement validator (always last) to calculate size
         auto dest_val_p = mcode.vals().last();
         dest_val_p->size(arg, mcode, info, fits, data.size);
+        //std::cout << "do_calc_size: result mode = " << +arg.mode() << std::endl;
+
+        // save resulting BRANCH_MODE for next iteration (or emit)
+        insert_branch_mode(code_p, arg.mode());
     }
 
     virtual void do_emit     (data_t const&          data
@@ -94,12 +102,12 @@ struct tgt_opc_branch : MCODE_T::opcode_t
                             , mcode_t const&         mcode
                             , mcode_size_t          *code_p
                             , expr_t const&          dest
-                            , stmt_info_t const&     info) const
+                            , arg_mode_t             arg_mode) const
     {
         // 1. create an "arg" from dest expression
         arg_t arg;
         arg.expr = dest;
-        arg.set_mode(mcode.calc_branch_mode(data.size()));
+        arg.set_mode(arg_mode);
         
         // 2. insert `dest` into opcode
         // get mcode validators: displacement always "last" arg
@@ -118,10 +126,30 @@ struct tgt_opc_branch : MCODE_T::opcode_t
             base << *code_p++;
 
         // 4. emit `dest`
-        auto sz = info.sz(mcode);
-        arg.emit(base, sz);
+        arg.emit(base, {});     // sz derived from `MODE`
     }
 
+    static constexpr auto BRANCH_MODE_MASK = 0xf;   // allow 4 bits
+    virtual arg_mode_t extract_branch_mode(mcode_size_t *code_p) const
+    {
+        auto mode  = code_p[0] & BRANCH_MODE_MASK;
+        code_p[0] -= mode;
+        return static_cast<arg_mode_t>(mode + arg_mode_t::MODE_BRANCH);
+    }
+
+    virtual void insert_branch_mode(mcode_size_t *code_p, uint8_t mode) const
+    {
+        // XXX bits should be clear -- test for now
+        if (code_p[0] & BRANCH_MODE_MASK)
+        {
+            //std::cout << "insert_branch_mode: bits non-zero: " << std::hex
+            //          << code_p[0] << std::endl;
+            code_p[0] &=~ BRANCH_MODE_MASK;
+        }
+
+        // LSBs should already be zero
+        code_p[0] += mode - arg_mode_t::MODE_BRANCH;
+    }
 
     // generic methods
     core::opcode *gen_insn(
@@ -161,10 +189,13 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto code_p       = machine_code.data();
 
         // Insert args into machine code "base" value
+        // NB: don't bother with last
         auto val_iter = mcode.vals().begin();
+        auto last_p = &args.back();
         unsigned n = 0;
         for (auto& arg : args)
-            mcode.fmt().insert(n++, code_p, arg, &*val_iter++);
+            if (&arg != last_p)
+                mcode.fmt().insert(n++, code_p, arg, &*val_iter++);
 
         // retrieve destination address (always last)
         auto& dest = args.back().expr;
@@ -173,8 +204,13 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         do_initial_size(data, mcode, code_p, dest, stmt_info, expr_fits{});
 
         // all jump instructions have condition-code/size/etc in first word 
-        inserter(*code_p);                  // insert machine code: one word
-        inserter(std::move(dest));          // save destination address
+        inserter(*code_p);          // insert machine code: one word
+
+        // if `sizeof(*code_p)` is byte, add second byte 
+        if constexpr (sizeof(*code_p) == 1)
+            inserter(0, 1);         // second byte
+        
+        inserter(std::move(dest)); // save destination address
         return this;
     }
     
@@ -229,23 +265,22 @@ struct tgt_opc_branch : MCODE_T::opcode_t
 
     void emit(data_t const& data, core::core_emit& base, core::core_expr_dot const *dot_p) const override
     {
-        auto  reader = base_t::tgt_data_reader(data);
-        auto& m_code = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
-        auto  code_p = reader.get_fixed_p(sizeof(mcode_size_t));
-        auto& dest   = reader.get_expr();
+        auto  reader  = base_t::tgt_data_reader(data);
+        auto& m_code  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto  code_p  = reader.get_fixed_p(sizeof(mcode_size_t));
+        auto& dest    = reader.get_expr();
         
-        auto  info   = m_code.extract_info(code_p);
+        // extract encoded info from machine code
+        auto info     = m_code.extract_info(code_p);
+        auto arg_mode = extract_branch_mode(code_p);
 
-        // expand `code` buffer from one word to max words -- zero-initing 
-        // XXX need to allocate buffer to hold `data.size.max` words
-        //mcode_size_t code[mcode_t::MAX_MCODE_WORDS] { *code_p };
-        //mcode_size_t code[data.size.max] { *code_p };
-        auto code_buf = m_code.code(info);  // extract full opcode
+        // expand `code` buffer from one word to full value
+        auto code_buf = m_code.code(info);  // generate full opcode
         code_buf[0] = *code_p;              // overwrite first word
        
         // check for deleted instruction
         if (data.size())
-            do_emit(data, base, m_code, code_buf.data(), dest, info);
+            do_emit(data, base, m_code, code_buf.data(), dest, arg_mode);
     }
 };
 }

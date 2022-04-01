@@ -39,7 +39,7 @@ namespace kas::m68k::opc::gen
 
 using m68k_move_v = list<list<>
 // Define mcode used to process list insns
-, defn<sz_list, STR("*LIST*"), OP<0, void, INFO_SIZE_LIST>, FMT_LIST, GEN, GEN>
+, defn<sz_all, STR("*LIST*"), OP<0, void, INFO_SIZE_LIST>, FMT_LIST> //, GEN, GEN>
 
 
 // general moves
@@ -60,6 +60,7 @@ using m68k_move_v = list<list<>
 , defn<sz_l , STR("move"),  OP<0x7000>, FMT_8I_9, Q_IMMED, DATA_REG>
 
 // move immediate zero: map to clear
+// NB: moveq.l selected for `movel`. Rearrange insns to select `moveq`
 , defn<sz_lwb, STR("move"), OP<0x4200>, FMT_Z_0RM, Z_IMMED, DATA_ALTER>
 
 // map movea 16-bit to LEA
@@ -276,7 +277,7 @@ using m68k_math_v = list<list<>
 // Support for instructions which use condition codes
 //
 // NB: metafunctions also used by CPU_020
-
+#if 0
 template <int value, typename NAME>
 struct m68k_cc_trait
 {
@@ -327,39 +328,48 @@ using cc_sz = transform<CC_LIST, apply_cc_trait<OpCode, SZ, INFO_SZ, Args...>>;
 // for single size CC insns (ie `v`) simplified alias
 template <uint32_t OpCode, typename CC_LIST, typename...Args>
 using cc = cc_sz<OpCode, sz_void, INFO_SIZE_VOID, CC_LIST, Args...>;
-
+#endif
 ///////////////////////////////////////////////////////////////////////////////
 
 using m68k_branch_cc_v = list<list<>
 
+#if 0
 // DBcc -- `dbra` is alternate spelling of `dbf`
 , cc<0x50c8, all_cc_names, STR("db"), m68k, FMT_DBCC, DATA_REG, BRANCH>
 , defn<sz_v, STR("dbra"), OP<0x51c8, m68k>, FMT_DBCC, DATA_REG, BRANCH>
-
+#else
+// DBcc -- `dbra` is preferred spelling of `dbf`
+, defn<sz_v, STR("dbra"), OP<0x51c8, m68k>, FMT_DBCC, DATA_REG, BRANCH>
+, defn<sz_v, STR("db")  , OP<0x50c8, m68k, INFO_CCODE_NORM>
+                                          , FMT_DBCC, DATA_REG, BRANCH>
+#endif
 // jmps & branches
 // the 68k user manual defines JMP, JSR, Bcc, BRA, and BSR
 // the disassembler picks first match. The assembler picks first shortest
-// (ie it will prefer JMP PC@(word) to BRA.w since they're the same size)
-, defn<sz_v, STR("jmp"), OP<0x4ec0>, FMT_0RM, CONTROL>
-, defn<sz_v, STR("jsr"), OP<0x4e80>, FMT_0RM, CONTROL>
-
+// (ie it will prefer BRA.w over JMP PC@(word) since they're the same size)
 // branch & branch subroutine
-, defn<sz_cc, STR("b") ,  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
+, defn<cx_v, STR("b") ,  OP<0x6000, void, INFO_CCODE_NORM>, FMT_BRANCH, BRANCH_DEL>
 , defn<sz_v, STR("bra"),  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
 , defn<sz_v, STR("bsr"),  OP<0x6100>, FMT_BRANCH, BRANCH>
 
+// jump & jump subroutine
+, defn<sz_v, STR("jmp"), OP<0x4ec0>, FMT_0RM, CONTROL>
+, defn<sz_v, STR("jsr"), OP<0x4e80>, FMT_0RM, CONTROL>
+
 // declare alternate spellings of branch instructions
-, defn<sz_cc, STR("j") ,  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
+, defn<cx_v, STR("j") ,  OP<0x6000, void, INFO_CCODE_NORM>, FMT_BRANCH, BRANCH_DEL>
 , defn<sz_v, STR("jra"),  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
 , defn<sz_v, STR("jmp"),  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
 
 , defn<sz_v, STR("jsr"),  OP<0x6100>, FMT_BRANCH, BRANCH>
 , defn<sz_v, STR("jbsr"), OP<0x6100>, FMT_BRANCH, BRANCH>
-
+#if 0
 // Scc (coldfire: data register only)
 , cc<0x50c0, all_cc_names, STR("s"), m68k    , FMT_0RM, DATA_ALTER>
 , cc<0x50c0, all_cc_names, STR("s"), coldfire, FMT_0RM, DATA_REG>
-
+#else
+, defn<cc_vb, STR("s"), OP<0x50c0, m68k, INFO_CCODE_NORM>, FMT_0RM, DATA_ALTER>
+#endif
 // trapcc
 , defn<sz_v, STR("trap"), OP<0x4e40>, FMT_4I, Q_4BITS>
 , defn<sz_v, STR("trapv"), OP<0x4e76, m68k>>

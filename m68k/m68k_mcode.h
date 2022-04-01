@@ -47,14 +47,16 @@ namespace opc
     struct m68k_opc_base;       // includes `cf_limit_3w` method
 }
 
-// override default types for `mcode_defn` types
+// override base definition sizes for `m68k`
 struct m68k_mcode_size_t : tgt::tgt_mcode_size_t
  {
-     static constexpr auto MAX_ARGS = 6;
-     using mcode_idx_t  = uint16_t;
-     using defn_idx_t   = uint16_t;
-     using defn_info_t  = uint16_t;
-     using name_idx_t   = uint16_t;
+    static constexpr auto MAX_ARGS = 6;
+    using mcode_idx_t  = uint16_t;
+    using defn_idx_t   = uint16_t;
+    using name_idx_t   = uint16_t;
+
+    // insn defn flags
+    using defn_info_value_t = uint16_t;
  };
 
 struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t
@@ -70,20 +72,15 @@ struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t
 
     // override default types
     using fmt_default = opc::FMT_X;
-    using code_size_t = opc::m68k_insn_lwb;
     using opcode_t    = opc::m68k_opc_base;
 
     // XXX define in `tgt_mcode_t` ?
-    using op_size_t   = core::opcode::op_size_t;
+    //using op_size_t   = core::opcode::op_size_t;
  
     uint8_t     sz(stmt_info_t info) const;
-    auto        code(stmt_info_t info) const -> decltype(base_t::code(info));
-    stmt_info_t extract_info(mcode_size_t const *) const;
     
     // support different branch sizes
     uint8_t calc_branch_mode(uint8_t size) const;
-    
- 
 };
 
 }

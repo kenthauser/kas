@@ -190,6 +190,8 @@ private:
     sym_list_t  minus;
     e_fixed_t   fixed {};
 
+    mutable e_fixed_t get_fixed_tmp;      // need `lvalue` for `get_fixed_p()`
+
     // side effect of `num_relocs`
     mutable short reloc_cnt{-1};
     static inline core::kas_clear _c{base_t::obj_clear};

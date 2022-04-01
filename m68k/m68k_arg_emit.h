@@ -38,7 +38,18 @@ void m68k_arg_t::emit(core::core_emit& base, uint8_t sz)
         
         // immediate: emit fixed & float formats
         case MODE_IMMEDIATE:
-            return emit_immed(base, sz);
+            if (sz == OP_SIZE_BYTE)
+            {
+                std::cout << "m68k_arg_emit::immed_byte" << std::endl;
+                // emit 16-bit value with 8 LSBs holding value
+                static kbfd::kbfd_reloc reloc { kbfd::K_REL_ADD(), 8 };
+                base << core::set_size(2);        // m68k size is 16-bit
+                if (!expr.empty())
+                    base << core::emit_reloc(reloc, {}, 0, 1) << expr;
+                base << 0;
+            }
+            else
+                return emit_immed(base, sz);
 
         // byte branch emitted as part of base word
         case MODE_BRANCH_BYTE:

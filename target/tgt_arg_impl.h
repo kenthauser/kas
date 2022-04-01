@@ -424,11 +424,11 @@ void tgt_arg_t<Derived, M, I, R, RS>
     auto& info = immed_info(sz);
 
     // test if floating point format used
+    // first test if floating point support is included
     if constexpr (!std::is_void_v<e_float_t>)
         if (info.flt_fmt)
             return derived().emit_float(base, info);
     
-    // XXX need to add support for `info.mask`
     base << core::set_size(info.sz_bytes) << expr;
 }
 

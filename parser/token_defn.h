@@ -27,8 +27,8 @@ struct token_defn_base
     // initialize `kas_token` instance for `token_defn` object
     virtual void const *init(std::type_info const&, void const *obj) const
     {
-        std::cout << "token_defn_base::init: default" << std::endl;
-        print_type_name{"token_defn"}(*this);
+        //std::cout << "token_defn_base::init: default" << std::endl;
+        //print_type_name{"token_defn"}(*this);
         return obj;
     }
 

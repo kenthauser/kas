@@ -106,9 +106,9 @@ void const *token_defn_t<NAME, VALUE_T, PARSER>::
     // if parser specified as part of type, retrieve parsed value
     using PARSED_VALUE_T = typename detail::get_parser_value<PARSER>::type; 
 
-    std::cout << "token_defn_t::gen_data_p()" << std::endl;
-    print_type_name{"token_defn_t::gen_data_p()::VALUE_T"}.name<value_t>();
-    print_type_name{"token_defn_t::gen_data_p()::PARSED_VALUE"}.name<PARSED_VALUE_T>();
+    //std::cout << "token_defn_t::gen_data_p()" << std::endl;
+    //print_type_name{"token_defn_t::gen_data_p()::VALUE_T"}.name<value_t>();
+    //print_type_name{"token_defn_t::gen_data_p()::PARSED_VALUE"}.name<PARSED_VALUE_T>();
     if constexpr (std::is_integral_v<value_t> && sizeof(value_t) <= sizeof(e_fixed_t))
         return &tok._fixed;
 
@@ -128,9 +128,9 @@ void const *token_defn_t<NAME, VALUE_T, PARSER>::
 
         else
         {
-            std::cout << "token_defn_t: info mismatch: info = " << info.name();
-            std::cout << ", PARSED_VALUE = " << typeid(PARSED_VALUE_T).name();
-            std::cout << std::endl;
+            //std::cout << "token_defn_t: info mismatch: info = " << info.name();
+            //std::cout << ", PARSED_VALUE = " << typeid(PARSED_VALUE_T).name();
+            //std::cout << std::endl;
         }
     }
 

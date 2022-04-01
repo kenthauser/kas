@@ -16,9 +16,13 @@
 
 namespace kas::m68k
 {
+using namespace tgt::parser;
+
 // info: accumulate info from parsing insn not captured in `args`
 // NB: bitfields don't zero-init. use `aliagn_as` support type to zero-init
-struct m68k_stmt_info_t : detail::alignas_t<m68k_stmt_info_t, uint16_t>
+struct m68k_stmt_info_t : alignas_t<m68k_stmt_info_t
+                                  , uint16_t
+                                  , tgt_stmt_info_t>
 {
     using base_t::base_t;
 
@@ -50,28 +54,28 @@ using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t
                                   , KAS_STRING("M68K")
                                   >;
 
-struct m68k_stmt_t : tgt::tgt_stmt<m68k_stmt_t
-                                 , m68k_insn_t
-                                 , m68k_arg_t
-                                 , m68k_stmt_info_t
-                                 >
+struct m68k_stmt_t : tgt_stmt<m68k_stmt_t
+                            , m68k_insn_t
+                            , m68k_arg_t
+                            , m68k_stmt_info_t
+                            >
 {
     using base_t::base_t;
 
 
     // method to validate mcode. Use for `m68k_stmt_info_t` validation
-    tagged_msg validate_stmt(m68k_mcode_t const *mcode_p) const;
+    const char *validate_stmt(m68k_mcode_t const *mcode_p) const;
 
     // parser returns "width" as token
     template <typename Context>
     void operator()(Context const& ctx);
 
-    // override method to test if floating-point insn
+    // all and only m68k floating point insns start with `f`
     bool is_fp() const
     {
-        return info.is_fp;
+        return name()[0] == 'f';
     }
-
+    
     // save "width" suffix (eg ".w") as token (for diagnostics)
     kas::parser::kas_position_tagged width_tok;
 };

@@ -50,14 +50,13 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, ACCUM_T& accum) const
             reloc.reloc.clear(kbfd::kbfd_reloc::RFLAGS_PC_REL);
     
         reloc.emit(base, accum);
+        reloc.addend = {};          // use addend only once
     };
 
+    std::cout << "core_expr::emit: " << expr_t(*this) << std::endl;
     calc_num_relocs();      // pair terms, look for error
     
-
-    //std::cout << "core_expr<REF>::emit: " << expr_t(*this) << " fixed = " << fixed << std::endl;
     // build "new" reloc for expression
-    reloc.addend      += fixed;     // acumulate `fixed`
     reloc.core_expr_p  = {};        // processing now
 
     // examine `minus` list to find `pc_rel` & subs
@@ -139,15 +138,21 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, ACCUM_T& accum) const
         do_emit(reloc, &p);
     }
 
-    // edge cases: some object formats support subtracting symbols.
-    // test if there are any.
+    // if no relocs emit a bare reloc
+    if (!reloc_cnt)
+    {
+        return reloc.emit(base, accum);
+    }
 
+    // XXX logic not correct
     while(pc_rel_cnt--)
     {
         RELOC_T m_reloc { {kbfd::K_REL_SUB(), reloc.reloc.bits()}, 0, reloc.offset };
         do_emit(m_reloc, nullptr, true);
     }
     
+    // edge cases: some object formats support subtracting symbols.
+    // test if there are any.
     if (minus_cnt)
     {
         for (auto& m : minus)

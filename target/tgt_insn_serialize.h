@@ -210,6 +210,10 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
     auto stmt_info  = m_code.extract_info(code_p);
     auto sz         = stmt_info.sz(m_code);
 
+#ifdef TRACE_ARG_SERIALIZE
+    std::cout << "tgt_read_args: info = " << stmt_info << std::endl;
+#endif
+
     // read & decode arguments until empty
     auto& fmt         = m_code.fmt();
     auto& vals        = m_code.vals();

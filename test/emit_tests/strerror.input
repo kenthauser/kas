@@ -55,4 +55,4 @@ strerror2:
 	.comm	ebuf.1452,20,1
 	.local	ebuf.1461
 	.comm	ebuf.1461,20,1
-	.ident	"GCC: (GNU) 5.4.0"
+;	.ident	"GCC: (GNU) 5.4.0"

@@ -72,11 +72,12 @@ namespace kas::core
 
         virtual result_t disp(expr_t const& e, fits_min_t min, fits_max_t max, int delta) const override
         {
+#if 1
             std::cout << "core_fits (disp): " << e;
             std::cout << " min/max = " << min << "/" << max;
             std::cout << ", delta: " << delta;
             std::cout << ", fuzz: "  << fuzz  << std::endl;
-
+#endif
             if (auto p = e.get_fixed_p())
                 return no;      // constants are not displacements
 
@@ -160,10 +161,11 @@ namespace kas::core
 
         result_t operator()(core_symbol_t const& sym, fits_min_t min, fits_max_t max, int delta) const
         {
-            //std::cout << "core_fits: (disp) core_symbol: " << expr_t(sym);
-            //std::cout << " max = " << std::hex << max;
-            //std::cout << " delta = " << delta << std::endl;
-
+#if 1
+            std::cout << "core_fits: (disp) core_symbol: " << expr_t(sym);
+            std::cout << " max = " << std::hex << max;
+            std::cout << " delta = " << delta << std::endl;
+#endif
             if (auto p = sym.addr_p())
                 return (*this)(*p, min, max, delta);
             if (auto e = sym.value_p())
@@ -192,7 +194,7 @@ namespace kas::core
         template <typename T>
         result_t operator()(offset_t<T> const& offset, fits_min_t min, fits_max_t max, int disp) const
         {
-            std::cout << "core_fits (offset) (" << offset << ", " << min << ", " << max << ", " << disp << ")" << std::endl;
+            //std::cout << "core_fits (offset) (" << offset << ", " << min << ", " << max << ", " << disp << ")" << std::endl;
 
             // Special test for instruction deletion
             if (max == 0)

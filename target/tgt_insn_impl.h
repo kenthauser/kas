@@ -12,8 +12,8 @@ template <typename O, typename T, typename B, unsigned M, unsigned N, typename I
 void tgt_insn_t<O, T, B, M, N, I>::
         add_mcode(mcode_t *mcode_p)
 {
-    std::cout << "tgt_insn::add_mcode: adding " << mcode_p->name();
-    std::cout << ", arch = " << std::dec << +mcode_p->defn_arch() << std::endl;
+    //std::cout << "tgt_insn::add_mcode: adding " << mcode_p->name();
+    //std::cout << ", arch = " << std::dec << +mcode_p->defn_arch() << std::endl;
     // map mcode -> name (NB: mcodes can have several names)
     if (!mcode_p->insn_index)
         mcode_p->insn_index = index + 1;

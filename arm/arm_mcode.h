@@ -29,6 +29,7 @@ static constexpr auto SZ_DEFN_SFX_SHIFT = 8;
 static constexpr auto SZ_DEFN_SFX_MASK  = 0xff << SZ_DEFN_SFX_SHIFT;
 static constexpr auto SZ_DEFN_SFX_REQ   = 0x80 << SZ_DEFN_SFX_SHIFT;
 
+// REQ is `0x80` bit (shifted)
 static constexpr auto SZ_DEFN_B_FLAG    = 0x01 << SZ_DEFN_SFX_SHIFT;
 static constexpr auto SZ_DEFN_T_FLAG    = 0x02 << SZ_DEFN_SFX_SHIFT;
 static constexpr auto SZ_DEFN_REQ_T     = 0x83 << SZ_DEFN_SFX_SHIFT;
@@ -39,6 +40,19 @@ static constexpr auto SZ_DEFN_L_FLAG    = 0x07 << SZ_DEFN_SFX_SHIFT;
 static constexpr auto SZ_DEFN_REQ_B     = 0x88 << SZ_DEFN_SFX_SHIFT;
 static constexpr auto SZ_DEFN_REQ_SH    = 0x89 << SZ_DEFN_SFX_SHIFT;
 static constexpr auto SZ_DEFN_REQ_SB    = 0x8a << SZ_DEFN_SFX_SHIFT;
+
+struct arm_mcode_size_t : tgt::tgt_mcode_size_t
+{
+    static constexpr auto MAX_ARGS  = 6;
+    static constexpr auto NUM_ARCHS = 4;    // insn archs
+    using mcode_size_t  = uint16_t;     // THUMB emits 16-bit insns
+    using val_idx_t     = uint16_t;
+    using val_c_idx_t   = uint16_t;
+
+    // lots of parsed data: 32-bits & 16-bits of fns
+    using defn_info_value_t = uint32_t;
+    static constexpr auto defn_info_fn_bits = 16;
+};
 
 // arm insn operand size
 enum arm_op_size_t : uint8_t
@@ -53,28 +67,6 @@ enum arm_op_size_t : uint8_t
     , NUM_OP_SIZE
 };
 
-struct arm_defn_info_t
-{
-    using value_t = uint32_t;
-    constexpr arm_defn_info_t(value_t flags, value_t fn_idx)
-        : flags{flags}, fn_idx{fn_idx} {}
-
-    value_t flags    : 16;
-    value_t fn_idx   : 16;
-};
-
-struct arm_mcode_size_t : tgt::tgt_mcode_size_t
-{
-    static constexpr auto MAX_ARGS  = 6;
-    static constexpr auto NUM_ARCHS = 4;    // insn archs
-    using mcode_size_t  = uint16_t;     // THUMB emits 16-bit insns
-    using defn_info_t   = arm_defn_info_t;
-    using val_idx_t     = uint16_t;
-    using val_c_idx_t   = uint16_t;
-};
-
-
-
 struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t
                                     , parser::arm_stmt_t
                                     , error_msg
@@ -86,19 +78,14 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t
     // use default ctors
     using base_t::base_t;
 
-    //
-    // override default methods
-    //
-    
-    // Methods to insert & extract `stmt_info`
-    auto code(stmt_info_t stmt_info) const
-                -> std::array<mcode_size_t, MAX_MCODE_WORDS>;
-    stmt_info_t extract_info(mcode_size_t const *) const;
-
     // provide translation from enum -> name for operation sizes
     static constexpr const char size_names[][4] =
         { "W", "H", "B", "D", "SH", "SB", "Q"};
 
+    //
+    // override default methods
+    //
+    
     // determine `arch` for `defn_t`
     uint8_t defn_arch() const
     {
@@ -107,7 +94,8 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t
 
     // support different branch sizes
     uint8_t calc_branch_mode(uint8_t size) const;
-    
+   
+    // emit depends on ARCH
     template <typename ARGS_T>
     void emit(core::core_emit&, ARGS_T&&, stmt_info_t const&) const;
 };

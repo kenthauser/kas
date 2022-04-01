@@ -172,7 +172,7 @@ private:
     core_reloc         *reloc_p;    // pointer to "next" reloc for insn
     core_reloc        **write_cb;   // reloc to update `data`
     emit_value_t        data;       // base value being emitted
-    emit_value_t        accum;      // accumulate relocs here, pending write
+    emit_value_t        accum;      // accumulate reloc value, pending write
     e_chan_num          e_chan;     // output channel
     uint8_t             width;      // width of `data` in bytes
     bool                use_rela;   // type of reloc generated
@@ -223,8 +223,9 @@ struct emit_reloc
 
     emit_reloc(kbfd::kbfd_reloc r
              , kas_position_tagged const *loc_p = {}
-             , emit_value_t addend = {})
-        : reloc(r), loc_p(loc_p), addend(addend) {}
+             , emit_value_t addend = {}
+             , uint8_t      offset = {})
+        : reloc(r), loc_p(loc_p), addend(addend), offset(offset) {}
 
     // expect relocatable expression.
     auto& operator<<(expr_t const& e)
@@ -244,7 +245,7 @@ private:
     friend auto operator<<(core_emit& base, emit_reloc r)
     {
         r.base_p = &base;
-        r.r_p    = &base.add_reloc(r.reloc, r.loc_p, r.addend);
+        r.r_p    = &base.add_reloc(r.reloc, r.loc_p, r.addend, r.offset);
         return r;
     }
 
@@ -252,6 +253,7 @@ private:
     kbfd::kbfd_reloc           reloc;
     kas_position_tagged const *loc_p;
     emit_value_t               addend;
+    uint8_t                    offset;  // NB: must be less than `width`
     
     // call back values 
     core_emit  *base_p;

@@ -38,6 +38,30 @@ struct kas_assemble
         assemble_src(obj.inserter(), src, out);
 
         std::cout << "parse complete" << std::endl;
+
+#define DUMP_AFTER_PARSE
+#ifdef DUMP_AFTER_PARSE
+        INSNS::for_each([&](auto& container)
+            {
+                auto& parse_out = std::cout;
+
+                container.proc_all_frags(
+                    [&parse_out](auto& insn, auto& dot)
+                    {
+                        auto& loc = insn.loc();
+                        parse_out << "loc : " << loc.get() << std::endl;
+                        if (loc)
+                        {
+                            auto where = loc.where();
+                            parse_out << "in  : " << where << std::endl;
+                        }
+                        parse_out << "raw : " << insn.raw() << std::endl;
+                        parse_out << "fmt : " << insn.fmt() << '\n' << std::endl;
+                    });
+            });
+
+        std::cout << "insn dump complete" << std::endl;
+#endif
         
         // 2. combine sections according to run-time flags
         // XXX here combine sections (ie .text + .text1, .data + .bss, etc

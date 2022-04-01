@@ -17,9 +17,10 @@ namespace kbfd
 struct swap_endian
 {
     const bool passthru;
+    const std::endian target;
 
     constexpr swap_endian(std::endian TARGET, std::endian HOST = std::endian::native)
-        : passthru (TARGET == HOST) {}
+        : target(TARGET), passthru (TARGET == HOST) {}
     
     constexpr auto operator()(uint64_t value) const
     {

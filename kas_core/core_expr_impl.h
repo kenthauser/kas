@@ -71,12 +71,24 @@ namespace kas::core
 template <>
 auto core_expr_t::get_p(e_fixed_t const&) const -> e_fixed_t const *
 {
+#if 1
+    if (reloc_cnt != 0)
+        return nullptr;
+
+    get_fixed_tmp = get_offset()();
+    std::cout << "core_expr::get_fixed: " << *this << " -> " << get_fixed_tmp << std::endl;
+    return &get_fixed_tmp;
+#else
     flatten();          // know what we know
 
     if (plus.empty() && minus.empty())
         return &fixed;
 
     return nullptr;
+#endif
+#if 0
+    os << "+p" << (elem.offset() - elem.p->offset());
+#endif
 }
 
 #if 0
@@ -141,6 +153,7 @@ auto core_expr<REF>::operator+(core_addr_t const& addr) -> core_expr&
 template <typename REF>
 auto core_expr<REF>::operator+(core_expr const& other) -> core_expr&
 {
+    // NB: insert copies by value. `expr_term` copy ctor clears mutables.
     plus.insert(plus.end(),   other.plus.begin(), other.plus.end());
     minus.insert(minus.end(), other.minus.begin(), other.minus.end());
     fixed  += other.fixed;
@@ -279,7 +292,7 @@ expr_offset_t core_expr<REF>::get_offset(core_expr_dot const* dot_ptr)
 template <typename REF>
 void core_expr<REF>::flatten()
 {
-    //std::cout << "core_expr<REF>::flatten: " << expr_t(*this) << std::endl;
+    std::cout << "core_expr<REF>::flatten: " << expr_t(*this) << std::endl;
     int n = 100;    // max loops: big number before `throw`
     for (bool done = false; !done && n; --n) {
         done = true;
@@ -294,7 +307,7 @@ void core_expr<REF>::flatten()
     if (!n)
         throw std::runtime_error("core_expr<REF>::flatten: infinite loop");
 
-    //std::cout << "core_expr<REF>::flatten: reduce: " << expr_t(*this) << std::endl;
+    std::cout << "core_expr<REF>::flatten: reduce: " << expr_t(*this) << std::endl;
     // Reduce trees. Look for same plus/minus symbols/addresses
     for (auto& p : plus)
     {
@@ -303,6 +316,7 @@ void core_expr<REF>::flatten()
             for (auto& m : minus)
                 if (m.addr_p == p.addr_p)
                 {
+                    fixed += p.offset()() - m.offset()();
                     m.erase();
                     p.erase();
                     break;
@@ -312,6 +326,7 @@ void core_expr<REF>::flatten()
             for (auto& m : minus)
                 if (m.symbol_p == p.symbol_p)
                 {
+                    fixed += p.offset()() - m.offset()();
                     m.erase();
                     p.erase();
                     break;
@@ -319,7 +334,7 @@ void core_expr<REF>::flatten()
     }
 
     prune();
-    //std::cout << "core_expr<REF>::flatten: done: " << expr_t(*this) << std::endl;
+    std::cout << "core_expr<REF>::flatten: done: " << expr_t(*this) << std::endl;
 }
 
 template <typename REF>
@@ -341,10 +356,13 @@ void core_expr<REF>::prune()
 template <typename REF>
 core_expr<REF>::expr_term::expr_term(core_symbol_t const& sym)
         : symbol_p(&sym) //, loc(sym.get_loc())
-{
+{ 
+#if 0
+    // XXX resolved in `flatten`
     // resolve symbol & copy symbol by "value"
     value_p  = symbol_p->value_p();
     addr_p   = symbol_p->addr_p();
+#endif
 }
 
 template <typename REF>
@@ -464,27 +482,29 @@ void core_expr<REF>::print(OS& os) const
             os << " (deleted)";
     };
     
-    if (reloc_cnt < 0) {
+    if (reloc_cnt < 0)
+    {
         os << "cx[" << index() << "](" << fixed;
         for (auto const& elem : plus)
             print_elem("+", elem);
         for (auto const& elem : minus)
             print_elem("-", elem);
         os << ")";
-    } else {
+    } 
+    else
+    {
         os << "CX[" << index() << "](" << fixed;
-        for (auto const& elem : plus) {
+        for (auto const& elem : plus)
             // if paired, print delta
             if (elem.p)
                 os << "+" << (elem.offset() - elem.p->offset());
             else
                 print_elem("+", elem);
-        }
+        
         for (auto const& elem : minus)
             if (!elem.p)
                 print_elem("-", elem);
         os << ")";
-
     }
 }
 

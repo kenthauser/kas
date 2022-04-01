@@ -264,12 +264,13 @@ auto core_fits::operator()
     std::cout << " cur delta = "  << dot_p->cur_delta;
     std::cout << std::endl;
 #endif
+    // different sections never match
+    if (&addr.section() != &dot_p->segment().section())
+        return no;
+
     // initial `fuzz`: just check sections if not seen
     if (fuzz < 0)
     {
-        if (&addr.section() != &dot_p->segment().section())
-            return no;
-
         // can't test offset if haven't ever seen symbol
         if (!dot_p->seen_this_pass(addr))
             return maybe;

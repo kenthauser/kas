@@ -155,7 +155,7 @@ void extract_one(Reader& reader
     // NB: extract may look at arg mode. Set to mode value when serialized
     arg.set_mode(p->init_mode);
     
-    arg.extract(reader, sz, p, bool(val_p));
+    arg.extract(reader, sz, p, static_cast<bool>(val_p));
     
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "\nextract one 2: mode = " << +arg.mode();

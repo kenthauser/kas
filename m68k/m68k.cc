@@ -13,10 +13,8 @@
 #include "m68k_reg_defn.h"
 
 // instruction definitions
-#if 0
-#include "insns_m68k.h"
-#else
 #include "insns_m68000.h"
+#if 0
 #include "insns_m68020.h"
 #include "insns_m68040.h"
 #include "insns_cpu32.h"

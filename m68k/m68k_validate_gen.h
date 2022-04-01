@@ -91,6 +91,7 @@ struct val_branch : tgt::opc::tgt_val_branch<val_branch, m68k_mcode_t>
 {
     using base_t::base_t; 
     
+    // override `tgt_val_branch` methods
     fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
     {
         // allow direct mode 
@@ -101,7 +102,6 @@ struct val_branch : tgt::opc::tgt_val_branch<val_branch, m68k_mcode_t>
         return fits.no;
     }
 
-    // override `tgt_val_branch` methods
     constexpr uint8_t max(m68k_mcode_t const& mc) const
     {
         if (hw::cpu_defs[hw::branch_long{}])
@@ -666,9 +666,9 @@ VAL_GEN (Z_IMMED,    val_range, 0,   0);
 VAL_GEN (Q_MOV3Q,    val_range, -1,  7, -1);    // map -1 to value zero
 
 // immediate QUICK validators using T
-VAL_GEN (Q_IMMED,    val_range_t<int8_t >, 0);  // 8 bits signed (moveq)
-VAL_GEN (Q_IMMED16,  val_range_t<int16_t>, 0);  // 16 bits signed
-VAL_GEN (BIT_IMMED,  val_range_t<int32_t>, 0);  // 32 bits signed
+VAL_GEN (Q_IMMED,    val_range_t<int8_t > , 0); // 8 bits signed (moveq)
+VAL_GEN (Q_IMMED16,  val_range_t<int16_t> , 0); // 16 bits signed
+VAL_GEN (BIT_IMMED,  val_range_t<uint16_t>, 0); // 16 bits unsigned
 
 VAL_GEN (ADDR_INDIR, val_indirect); 
 VAL_GEN (ADDR_DISP,  val_indirect, 1); 
@@ -684,11 +684,11 @@ VAL_GEN (BRANCH    ,  val_branch, 2);       // branch byte/word/long
 VAL_GEN (BRANCH_DEL,  val_branch, 0);       // branch byte/word/long DELETE-ABLE
 VAL_GEN (BRANCH_W  ,  val_branch, 4, 4);    // branch word only 
 
-VAL_GEN (MOVEP,      val_movep);         // indir or disp.
+VAL_GEN (MOVEP     ,  val_movep);           // indir or disp.
 
-VAL_GEN (DIR_LONG   , val_dir_long);    // special for move16
+VAL_GEN (DIR_LONG  , val_dir_long);         // special for move16
 
-VAL_GEN (BITFIELD,   val_bitfield);      // BITFIELD test
+VAL_GEN (BITFIELD,   val_bitfield);         // BITFIELD test
 
 VAL_GEN (REGSET,     val_regset, RC_DATA);      // REGSET test: D0 is LSB
 VAL_GEN (REGSET_REV, val_regset, RC_DATA, 16);  // REGSET test: A7 is LSB

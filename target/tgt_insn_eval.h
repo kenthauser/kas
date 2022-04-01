@@ -2,6 +2,7 @@
 #define KAS_TARGET_TGT_INSN_EVAL_H
 
 #include "tgt_insn.h"
+#include <memory>
 
 namespace kas::tgt
 {
@@ -24,10 +25,6 @@ auto eval_insn_list
     using op_size_t    = typename mcode_t::op_size_t;
     using stmt_info_t  = typename mcode_t::stmt_info_t;
 
-    // "state" is argument modes
-    using state_t = typename mcode_t::arg_t::arg_state;
-    state_t initial_state[mcode_t::MAX_ARGS];
-    
     auto print_state = [&args](const char *desc)
         {
             std::cout << "eval_insn_list: " << desc << ": ";
@@ -36,7 +33,6 @@ auto eval_insn_list
             std::cout << std::endl;
         };
         
-
     mcode_t const *mcode_p{};
     auto match_result = fits.no;
     auto match_index  = 0;
@@ -51,6 +47,22 @@ auto eval_insn_list
         std::cout << std::endl;
     }
         
+    // "state" is argument modes
+    using state_t = typename mcode_t::arg_t::arg_state;
+    state_t initial_state[mcode_t::MAX_ARGS];
+#if 0
+    struct state_array : std::array<state_t, mcode_t::MAX_ARGS>
+    {
+        
+        state_array() { } //this->fill(state_t::MODE_NONE); }
+    };
+#else
+    using state_array = std::array<state_t, mcode_t::MAX_ARGS>;
+#endif
+    // XXX hold array of `states` (+1 to hold initial state at index zero)
+    auto states = std::make_unique<state_array[]>(insn.mcodes().size() + 1);
+
+    
     // loop thru "opcodes" until no more matches
     auto bitmask = ok.to_ulong();
 

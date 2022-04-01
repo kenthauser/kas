@@ -44,12 +44,11 @@ core_reloc& core_reloc::operator()(core_symbol_t const& value)
 #endif
     // if `EQU`, interpret value
     if (auto p = value.value_p())
-        (*this)(*p);
-    
-    // if KBFD doesn't know symbol, it must be local address
-    // NB: generally, only GLOBAL symbols have `KBFD` symbol number
-    else if (!value.sym_num())
-        (*this)(*value.addr_p());
+        return (*this)(*p);
+
+    // if defined symbol, use address
+    else if (auto p = value.addr_p())
+        return (*this)(*p);
 
     // otherwise, resolve as symbol
     else
@@ -65,7 +64,7 @@ core_reloc& core_reloc::operator()(core_addr_t const& value)
     std::cout << " offset  = " << value.offset()();
     std::cout << std::endl;
 #endif
-    addend     +=  value.offset()();
+    addend     +=  value.offset()();  
     section_p   = &value.section();
     sym_p       = {};
     return *this;
@@ -138,6 +137,7 @@ void core_reloc::emit(core_emit& base, int64_t& accum)
 #endif
 
     // 0. `core_expr` has own `emit` method 
+    // NB: recurses here for `core_expr` reloc
     if (core_expr_p)
         return core_expr_p->emit(base, *this, accum);
 

@@ -74,7 +74,7 @@ m_second:
     move.w  #.-m_second, d4
     move.b  #.-m_second, d4
     .skip   8
-    move.l  #m_last-m_third, d3
+    move.l  #m_external-m_third, d3
 m_third:
     divs.l  a2@(d0),d1
     divs.l  a2@(d0),d1:d1

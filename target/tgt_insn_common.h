@@ -64,13 +64,19 @@ struct OP
     // expose template args as member types
     using type    = OP;
     using info_fn = INFO_FN;
-    using tst     = TST;
 
+    // map `void` test to `int_<0>` (ie tst always matches)
+    using tst = meta::if_<std::is_void<TST>
+                        , meta::int_<0>
+                        , TST
+                        >;
+    
     // wrap integral vaues in `size_t` types
     using code    = std::integral_constant<std::size_t, OPCODE>;
     using mask    = std::integral_constant<std::size_t, MASK>;
 };
 
+#if 0
 // add value to OP
 template <typename OP, unsigned N, unsigned SHIFT>
 struct OP_ADD : OP
@@ -78,7 +84,7 @@ struct OP_ADD : OP
     static constexpr auto value = OP::code + (N << SHIFT);
     using code = std::integral_constant<std::size_t, value>;
 };
-
+#endif
 
 // NAME the INDEXES into the `meta::list` where types are located
 // NB: this is only for reference. The list
@@ -99,11 +105,11 @@ struct tgt_insn_defn
 {
     // provide default for INFO_MAP (if defined as void)
     using X_INFO_MAP = meta::if_<std::is_void<INFO_MAP>
-                               , meta::pair<void, void>
+                               , meta::list<meta::pair<void, void>>
                                , INFO_MAP>;
 
     // prep the info-fn map values
-    using ZIPPED    = meta::zip<INFO_MAP>;
+    using ZIPPED    = meta::zip<X_INFO_MAP>;
     
     // see if INFO_FLAGS is in the info-fn map
     using FLAGS_IDX = meta::find_index<meta::front<ZIPPED>, INFO_FLAGS>;
@@ -134,18 +140,12 @@ struct tgt_insn_defn
                                     , INFO_FLAGS
                                     >;
 
-    // map `void` test to `int_<0>` (always matches)
-    using DEFN_TST        = meta::if_<std::is_void<typename OP::tst>
-                                    , meta::int_<0>
-                                    , typename OP::tst
-                                    >;
-   
     // six fixed types, plus additional `VALIDATORs`
     using type = meta::list<DEFN_INFO_FLAGS     // rationalized FLAGS
                           , meta::_t<INFO_FN>   // evaluate deferred calculation
                           , NAME                // opcode base NAME
                           , typename OP::code   // retrieve base binary code
-                          , DEFN_TST            // rationalized TST
+                          , typename OP::tst    // rationalized TST
                           , FMT                 // formatter
                           , VALs...             // validators
                           >;
