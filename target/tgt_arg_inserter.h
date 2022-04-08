@@ -37,23 +37,37 @@ namespace kas::tgt::opc::detail
 //              
 
 // declare meta-data value stored when serialized
-// XXX struct arg_serial_t : alignas_t<arg_serial_t, uint16_t>
-struct arg_serial_t : alignas_t<arg_serial_t, uint8_t>
+// NB: should be defined inside `tgt_arg_serial_data_t`, but leads to
+// forward declaration errors because CRTP class inside CRTP class
+struct arg_serial_t : alignas_t<arg_serial_t, uint16_t>
 {
-    static constexpr std::size_t MODE_FIELD_SIZE = 5;
+    // use `initas_t` to init "bits" structure
+    // use half of the bits to store current mode
+    // use other have of bits to hold "initial" mode & flags
+    static constexpr auto VALUE_BITS = std::numeric_limits<value_t>::digits;
+    static constexpr auto MODE_BITS  = VALUE_BITS / 2;
+    static constexpr auto INIT_BITS  = MODE_BITS - 3;   // three bools
 
-    // XXX arg_serial_t(value_t mode = {}) : init_mode(mode), cur_mode(mode) {}
-    arg_serial_t(value_t mode = {}) : init_mode{mode} {}
+    // NB: default mode should be `MODE_NODE`
+    // NB: correct in `tgt_insert_args` at end of `for()` loop
+    arg_serial_t(value_t mode = {}) : init_mode{mode}, cur_mode{mode} {}
 
-    value_t init_mode : MODE_FIELD_SIZE;    // mode when serialized
-    value_t has_reg   : 1;                  // register stored
-    value_t has_data  : 1;                  // additional data stored
-    value_t has_expr  : 1;                  // data stored as expression
-// XXX    value_t cur_mode  : MODE_FIELD_SIZE;    // current mode
-// XXX    value_t xtra_info : 3;                  // undefined arg data: must be const
+    value_t init_mode : INIT_BITS;      // mode when serialized
+    value_t has_reg   : 1;              // register stored
+    value_t has_data  : 1;              // additional data stored
+    value_t has_expr  : 1;              // data stored as expression
+    value_t cur_mode  : MODE_BITS;      // full `value_t` size
 
-    // XXX // update saved mode
-    // XXX void operator()(unsigned n) { cur_mode = n; }
+    // getter & setter
+    value_t get()             const { return cur_mode; }
+    void    set(value_t mode)       { cur_mode = mode; }
+    
+    // convenience methods
+    value_t operator()()             const { return get(); }
+    void    operator()(value_t mode)       {
+            std::cout << "arg_serial_t: set: " << +cur_mode << " -> " << +mode << std::endl;
+            set(mode);  
+            }
 };
 
 // store as many infos as will fit in `mcode` word
@@ -62,8 +76,8 @@ template <typename MCODE_T>
 struct tgt_arg_serial_data_t
 {
     // make sure `arg_mode_t` can fit in subfield
-    static_assert(MCODE_T::arg_t::arg_mode_t::NUM_ARG_MODES
-                    <= (1<< arg_serial_t::MODE_FIELD_SIZE)
+    using arg_mode_t = typename MCODE_T::arg_t::arg_mode_t;
+    static_assert(arg_mode_t::NUM_ARG_MODES <= (1<< arg_serial_t::INIT_BITS)
                         , "too many `arg_mode` enums");
 
     
@@ -114,7 +128,7 @@ void insert_one (Inserter& inserter
     
 #ifdef TRACE_ARG_SERIALIZE
     std::cout << "insert_one: " << arg;
-    std::cout << ": mode = "   << std::dec << std::setw(2) << +p->init_mode;
+    std::cout << ": mode = "   << std::dec << std::setw(2) << +p->get();
     std::cout << " reg/data/expr = ";
     std::cout << +p->has_reg << "/" << +p->has_data << "/" << +p->has_expr;
     std::cout << std::endl;
@@ -135,7 +149,7 @@ void extract_one(Reader& reader
                     )
 {
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << "\n[extract_one:  mode = " << std::dec << std::setw(2) << +p->init_mode;
+    std::cout << "\n[extract_one:  init = " << std::dec << std::setw(2) << +p->init_mode;
     std::cout << " reg/data/expr = ";
     std::cout << +p->has_reg  << "/" << +p->has_data << "/" << +p->has_expr;
 #endif
@@ -152,8 +166,8 @@ void extract_one(Reader& reader
 #endif
 
     // extract additional info as required
-    // NB: extract may look at arg mode. Set to mode value when serialized
-    arg.set_mode(p->init_mode);
+    // NB: extract may look at arg mode. 
+    arg.set_mode(p->get());
     
     arg.extract(reader, sz, p, static_cast<bool>(val_p));
     

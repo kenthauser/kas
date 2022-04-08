@@ -67,7 +67,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t
    
    template <typename OS> void print(OS&) const;
    
-   // manage the "prefix"
+   // clear "per-insn" arg (ie static) data: manage the "prefix"
    static void reset()
    { 
        prefix     = {};

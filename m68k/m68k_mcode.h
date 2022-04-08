@@ -78,9 +78,6 @@ struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t
     //using op_size_t   = core::opcode::op_size_t;
  
     uint8_t     sz(stmt_info_t info) const;
-    
-    // support different branch sizes
-    uint8_t calc_branch_mode(uint8_t size) const;
 };
 
 }

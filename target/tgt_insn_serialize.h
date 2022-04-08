@@ -197,7 +197,8 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
     using  stmt_info_t           = typename MCODE_T::stmt_info_t;
     
     constexpr auto ARGS_PER_CHUNK = tgt_arg_serial_data_t::ARGS_PER_CHUNK;
-    static arg_t   static_args[MCODE_T::MAX_ARGS+1];
+    static arg_t                 static_args[MCODE_T::MAX_ARGS+1];
+    static detail::arg_serial_t *static_serial_t[MCODE_T::MAX_ARGS];
 
     // reset per-insn arg state
     arg_t::reset();
@@ -222,6 +223,7 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
 
     // read until end flag: eg: MODE_NONE or reader.empty()
     detail::arg_serial_t *p;
+    auto serial_t_inserter = std::begin(static_serial_t);
     for (unsigned n = 0; true ;++n, ++arg_p)
     {
         typename MCODE_T::val_t const *val_p {};
@@ -242,11 +244,13 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
             
             // retrieve array `arg_info_t` & get pointer to first element
             auto arg_info_p = reader.read(tgt_arg_serial_data_t{});
-            p = arg_info_p->begin();
+            
+            // retrieve & record serial data address
+            *serial_t_inserter++ = p = arg_info_p->begin();
         } 
         else
         {
-            ++p;
+            *serial_t_inserter++ = ++p;
             if (p->init_mode == arg_t::MODE_NONE)
                 break;
         }
@@ -271,7 +275,7 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
 
         detail::extract_one<MCODE_T>(reader, n, *arg_p, p, sz, fmt, val_p, code_p);
     }
-    return std::make_tuple(code_p, static_args);
+    return std::make_tuple(code_p, static_args, static_serial_t);
 }
 
 }

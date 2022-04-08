@@ -123,6 +123,14 @@ struct tgt_opc_list : MCODE_T::opcode_t
         // evaluate with new `fits`
         insn.eval(ok, args, info, data.size, fits, this->trace);
 
+        // if single result, update modes in `serialized` data
+        if (ok.count() == 1)
+        {
+            auto p = args.serial_pp;
+            for (auto& arg : args)
+                (**p++)(arg.mode());
+        }
+
         // save new "OK"
         data.fixed.fixed = ok.to_ulong();
         return data.size;
@@ -149,7 +157,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
         auto& insn =  insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         auto& mc   = *insn.list_mcode_p;
         auto  args =  base_t::serial_args(reader, mc);
-        auto& info =  args.info;        // stmt_info
+        auto& info =  args.info;        // stmt_info extracted by `serial_args`
 
         // "find first set" in bitset
         auto index = 0;
@@ -161,6 +169,13 @@ struct tgt_opc_list : MCODE_T::opcode_t
 
         // select first `machine code` that matches
         auto& selected_mc = *insn.mcodes()[index];
+        
+        // if not resolved(!?!), need to resolve modes for `mcode`
+        if (ok.count() > 1)
+        {
+            auto size = data.size;      // `size` method requires mutable arg
+            selected_mc.size(args, info, size, core::core_fits(dot_p)); 
+        }
         selected_mc.emit(base, args, info);
     }
 };

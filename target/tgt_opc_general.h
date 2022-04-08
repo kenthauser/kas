@@ -109,9 +109,14 @@ struct tgt_opc_general : MCODE_T::opcode_t
         auto  args   = base_t::serial_args(reader, mcode);
         auto& info   = args.info;
 
-        // calulate instruction size
+        // calulate instruction size (ie resolve `arg` modes)
         mcode.size(args, info, data.size, fits, this->trace);
       
+        // save resolved `arg` modes as size is resolved
+        auto p = args.serial_pp;
+        for (auto& arg : args)
+            (**p++)(arg.mode());
+        
         return data.size;
     }
 
@@ -127,10 +132,10 @@ struct tgt_opc_general : MCODE_T::opcode_t
         auto  args   = base_t::serial_args(reader, mcode);
         auto& info   = args.info;
 
-        // recalulate instruction size: (ie recalculate arg modes)
+        // XXX recalulate instruction size: (ie recalculate arg modes)
         auto fits = core::core_fits(dot_p);
         auto size = data.size;
-        mcode.size(args, info, size, fits, this->trace);
+        //mcode.size(args, info, size, fits, this->trace);
       
         if (data.size())
             mcode.emit(base, args, info);

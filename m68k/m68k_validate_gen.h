@@ -111,6 +111,21 @@ struct val_branch : tgt::opc::tgt_val_branch<val_branch, m68k_mcode_t>
     
 };
 
+// NO_PC disallows "pc indirect". Designed for `branch` instructions
+// where there is always a better `branch` insn
+struct val_control_nodir : val_am
+{
+    // initialize as "CONTROL"
+    constexpr val_control_nodir() : val_am(AM_CTRL) {}
+
+    fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
+    {
+        if (arg.mode() == MODE_DIRECT)
+            return fits.no;
+        return val_am::ok(arg, fits);
+    }
+};
+
 struct val_movep : m68k_mcode_t::val_t
 {
     fits_result ok(m68k_arg_t& arg, expr_fits const& fits) const override
@@ -683,6 +698,8 @@ VAL_GEN (GEN_PAIR,   val_pair, 1);      // gen-reg pair
 VAL_GEN (BRANCH    ,  val_branch, 2);       // branch byte/word/long
 VAL_GEN (BRANCH_DEL,  val_branch, 0);       // branch byte/word/long DELETE-ABLE
 VAL_GEN (BRANCH_W  ,  val_branch, 4, 4);    // branch word only 
+
+VAL_GEN (CONTROL_NODIR, val_control_nodir); // allow control. disallow direct
 
 VAL_GEN (MOVEP     ,  val_movep);           // indir or disp.
 

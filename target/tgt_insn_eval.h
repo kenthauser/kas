@@ -32,7 +32,7 @@ auto eval_insn_list
                 std::cout << +arg.get_state() << ", ";
             std::cout << std::endl;
         };
-        
+
     mcode_t const *mcode_p{};
     auto match_result = fits.no;
     auto match_index  = 0;
@@ -50,33 +50,42 @@ auto eval_insn_list
     // "state" is argument modes
     using state_t = typename mcode_t::arg_t::arg_state;
     state_t initial_state[mcode_t::MAX_ARGS];
-#if 0
-    struct state_array : std::array<state_t, mcode_t::MAX_ARGS>
-    {
-        
-        state_array() { } //this->fill(state_t::MODE_NONE); }
-    };
-#else
     using state_array = std::array<state_t, mcode_t::MAX_ARGS>;
-#endif
-    // XXX hold array of `states` (+1 to hold initial state at index zero)
-    auto states = std::make_unique<state_array[]>(insn.mcodes().size() + 1);
-
     
+    // create array of `states` & sizes (+1 to hold initial state)
+    auto states = std::make_unique<state_array[]>(insn.mcodes().size() + 1);
+    auto sizes  = std::make_unique<op_size_t  []>(insn.mcodes().size() + 1);
+
+    // NB: index zero is initial values. others are `ok` index + 1
+    auto save_results = [&args, &states, &sizes](unsigned index, op_size_t& size)
+        {
+            std::cout << "eval_insn_list::save_results: index = " << +index << std::endl;
+            sizes[index] = size;
+            
+            auto p = states[index].begin();
+            for (auto& arg : args)
+                *p++ = arg.get_state();
+        };
+        
+    auto update_modes = [&args, &states, &sizes](unsigned index)
+        {
+            std::cout << "eval_insn_list::update_results: index = " << +index << std::endl;
+            // XXX restore size?
+            //size = sizes[index];
+            
+            auto p = states[index].begin();
+            for (auto& arg : args)
+                arg.set_state(*p++);
+        };
+        
     // loop thru "opcodes" until no more matches
     auto bitmask = ok.to_ulong();
 
     if (ok.count() > 1)
-    {
-        auto p = initial_state;
-        for (auto& arg : args)
-            *p++ = arg.get_state();
+        save_results(0, insn_size);
 
-        print_state("initial state");
-    }
-
-    bool state_updated {};      // both start false
-    bool needs_restore {};
+    bool state_updated = false;      // both start false
+    bool needs_restore = false;
 
     // loop thru candidates & find best match
     auto index = 0;
@@ -89,13 +98,9 @@ auto eval_insn_list
 
         // don't restore on first iteration
         if (needs_restore)
-        {
-            //state_updated = false;
-            auto p = initial_state;
-            for (auto& arg : args)
-                arg.set_state(*p++);
-        }
-        needs_restore = true;
+            update_modes(0);
+
+        needs_restore = true;           // XXX could also be called "first iter?"
         
         // size for this opcode
         if (trace)
@@ -114,6 +119,9 @@ auto eval_insn_list
             continue;
         }
         
+        // save results: modes & size (args is globl)
+        save_results(index + 1, size);
+
         // Better match if new max better than current min
         if (result == fits.yes && insn_size.min > size.max)
         {
@@ -192,10 +200,8 @@ auto eval_insn_list
         {
             std::cout << "eval_insn_list: restore initial state: ";
         
-            // restore state
-            auto p = initial_state;
-            for (auto& arg: args)
-                arg.set_state(*p++);
+            update_modes(0);
+            
 
             // rerun size
             op_size_t size;

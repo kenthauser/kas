@@ -92,9 +92,6 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t
         return defn().info.flags & SZ_ARCH_MASK;
     }
 
-    // support different branch sizes
-    uint8_t calc_branch_mode(uint8_t size) const;
-   
     // emit depends on ARCH
     template <typename ARGS_T>
     void emit(core::core_emit&, ARGS_T&&, stmt_info_t const&) const;

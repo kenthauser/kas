@@ -333,16 +333,11 @@ using cc = cc_sz<OpCode, sz_void, INFO_SIZE_VOID, CC_LIST, Args...>;
 
 using m68k_branch_cc_v = list<list<>
 
-#if 0
-// DBcc -- `dbra` is alternate spelling of `dbf`
-, cc<0x50c8, all_cc_names, STR("db"), m68k, FMT_DBCC, DATA_REG, BRANCH>
-, defn<sz_v, STR("dbra"), OP<0x51c8, m68k>, FMT_DBCC, DATA_REG, BRANCH>
-#else
 // DBcc -- `dbra` is preferred spelling of `dbf`
 , defn<sz_v, STR("dbra"), OP<0x51c8, m68k>, FMT_DBCC, DATA_REG, BRANCH>
 , defn<sz_v, STR("db")  , OP<0x50c8, m68k, INFO_CCODE_NORM>
                                           , FMT_DBCC, DATA_REG, BRANCH>
-#endif
+
 // jmps & branches
 // the 68k user manual defines JMP, JSR, Bcc, BRA, and BSR
 // the disassembler picks first match. The assembler picks first shortest
@@ -353,8 +348,8 @@ using m68k_branch_cc_v = list<list<>
 , defn<sz_v, STR("bsr"),  OP<0x6100>, FMT_BRANCH, BRANCH>
 
 // jump & jump subroutine
-, defn<sz_v, STR("jmp"), OP<0x4ec0>, FMT_0RM, CONTROL>
-, defn<sz_v, STR("jsr"), OP<0x4e80>, FMT_0RM, CONTROL>
+, defn<sz_v, STR("jmp"), OP<0x4ec0>, FMT_0RM, CONTROL_NODIR>
+, defn<sz_v, STR("jsr"), OP<0x4e80>, FMT_0RM, CONTROL_NODIR>
 
 // declare alternate spellings of branch instructions
 , defn<cx_v, STR("j") ,  OP<0x6000, void, INFO_CCODE_NORM>, FMT_BRANCH, BRANCH_DEL>
@@ -363,13 +358,8 @@ using m68k_branch_cc_v = list<list<>
 
 , defn<sz_v, STR("jsr"),  OP<0x6100>, FMT_BRANCH, BRANCH>
 , defn<sz_v, STR("jbsr"), OP<0x6100>, FMT_BRANCH, BRANCH>
-#if 0
-// Scc (coldfire: data register only)
-, cc<0x50c0, all_cc_names, STR("s"), m68k    , FMT_0RM, DATA_ALTER>
-, cc<0x50c0, all_cc_names, STR("s"), coldfire, FMT_0RM, DATA_REG>
-#else
 , defn<cc_vb, STR("s"), OP<0x50c0, m68k, INFO_CCODE_NORM>, FMT_0RM, DATA_ALTER>
-#endif
+
 // trapcc
 , defn<sz_v, STR("trap"), OP<0x4e40>, FMT_4I, Q_4BITS>
 , defn<sz_v, STR("trapv"), OP<0x4e76, m68k>>

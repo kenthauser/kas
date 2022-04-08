@@ -86,12 +86,12 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         arg_t arg;
         arg.expr = dest;
         arg.set_mode(extract_branch_mode(code_p));
-        //std::cout << "do_calc_size: mode = " << +arg.mode() << ", arg = " << arg << std::endl;
+        std::cout << "do_calc_size: mode = " << +arg.mode() << ", arg = " << arg << std::endl;
 
         // ask displacement validator (always last) to calculate size
         auto dest_val_p = mcode.vals().last();
         dest_val_p->size(arg, mcode, info, fits, data.size);
-        //std::cout << "do_calc_size: result mode = " << +arg.mode() << std::endl;
+        std::cout << "do_calc_size: result mode = " << +arg.mode() << std::endl;
 
         // save resulting BRANCH_MODE for next iteration (or emit)
         insert_branch_mode(code_p, arg.mode());
@@ -104,11 +104,16 @@ struct tgt_opc_branch : MCODE_T::opcode_t
                             , expr_t const&          dest
                             , arg_mode_t             arg_mode) const
     {
+
+
         // 1. create an "arg" from dest expression
         arg_t arg;
         arg.expr = dest;
         arg.set_mode(arg_mode);
         
+        std::cout << "do_emit: mode = " << std::dec << +arg_mode;
+        std::cout << ", arg = " << arg << std::endl;
+
         // 2. insert `dest` into opcode
         // get mcode validators: displacement always "last" arg
         auto  val_it = mcode.vals().last();
@@ -133,22 +138,15 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     virtual arg_mode_t extract_branch_mode(mcode_size_t *code_p) const
     {
         auto mode  = code_p[0] & BRANCH_MODE_MASK;
-        code_p[0] -= mode;
         return static_cast<arg_mode_t>(mode + arg_mode_t::MODE_BRANCH);
     }
 
     virtual void insert_branch_mode(mcode_size_t *code_p, uint8_t mode) const
     {
-        // XXX bits should be clear -- test for now
-        if (code_p[0] & BRANCH_MODE_MASK)
-        {
-            //std::cout << "insert_branch_mode: bits non-zero: " << std::hex
-            //          << code_p[0] << std::endl;
-            code_p[0] &=~ BRANCH_MODE_MASK;
-        }
-
-        // LSBs should already be zero
-        code_p[0] += mode - arg_mode_t::MODE_BRANCH;
+        // clear previous mode
+        code_p[0] &=~ BRANCH_MODE_MASK;
+        // insert new mask
+        code_p[0] +=  mode - arg_mode_t::MODE_BRANCH;
     }
 
     // generic methods
@@ -225,7 +223,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
         auto  code_p = reader.get_fixed_p(sizeof(mcode_size_t));
         auto& dest   = reader.get_expr();
-        auto  mode   = mcode.calc_branch_mode(data.size());
+        auto  mode   = extract_branch_mode(code_p);
 
         auto  info   = mcode.extract_info(code_p);
         
@@ -274,9 +272,8 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto info     = m_code.extract_info(code_p);
         auto arg_mode = extract_branch_mode(code_p);
 
-        // expand `code` buffer from one word to full value
+        // generate code using extracted `info`
         auto code_buf = m_code.code(info);  // generate full opcode
-        code_buf[0] = *code_p;              // overwrite first word
        
         // check for deleted instruction
         if (data.size())

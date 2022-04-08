@@ -47,7 +47,7 @@ struct tgt_val_branch : tgt_val_branch_t<MCODE_T>
     using mode_type   = std::underlying_type_t<arg_mode_t>;
 
     static constexpr auto word_size = sizeof(typename mcode_t::mcode_size_t);
-    static constexpr auto is_8bit   = word_size == 1;
+    static constexpr auto is_8bit_v = word_size == 1;
 
     // default min: no-delete (non-zero), max: zero = code_size() + sizeof(addr)
     // NB: config sizes are not used directly, but thru CRTP functions
@@ -115,19 +115,19 @@ struct tgt_val_branch : tgt_val_branch_t<MCODE_T>
     using next_table = std::tuple<uint8_t, uint8_t, int8_t, uint8_t>;
 
     // values are: min, max, offset, arg_size
-    using next_test  = std::tuple<fits_min_t, fits_max_t
+    using next_test  = std::tuple<fits_min_t    // `fits` args
+                                , fits_max_t
                                 , int8_t        // offset
-                                , uint8_t       // size of arg
+                                , uint8_t       // size of arg if OK
                                 >;
 
 
     // set default: 1byte, 2byte, 4byte, 8byte
     // entries limited by "MODE_LAST"
-    // NB: zero bits always matches...
     // XXX should probably be `meta::list<>`
     static constexpr next_table branch_info[] =
     {
-        { arg_mode_t::MODE_BRANCH + 1,  8, word_size + is_8bit, is_8bit }
+        { arg_mode_t::MODE_BRANCH + 1,  8, word_size, is_8bit_v }
     ,   { arg_mode_t::MODE_BRANCH + 2, 16, word_size, 2 }
     ,   { arg_mode_t::MODE_BRANCH + 3, 32, word_size, 4 }
     ,   { arg_mode_t::MODE_BRANCH + 4, 64, word_size, 8 }
@@ -135,11 +135,12 @@ struct tgt_val_branch : tgt_val_branch_t<MCODE_T>
    
     constexpr next_test get_test(mode_type& mode, unsigned max) const
     {
-        for (auto* p = branch_info; mode < arg_mode_t::MODE_BRANCH_LAST; ++mode)
+        std::cout << "get_test: mode = " << std::dec << +mode << std::endl;
+        for (auto* p = branch_info; mode < arg_mode_t::MODE_BRANCH_LAST; ++p)
         {
-            std::cout << "get_test: mode = " << +mode << std::endl;
+            std::cout << "get_test: pend_mode = " << +std::get<0>(*p) << std::endl;
             // find entry first not previously tried
-            if (mode < std::get<0>(*p))
+            if (std::get<0>(*p) < mode)
                 continue;
             if (max < std::get<3>(*p))
                 break;      // branch exceeds size allows
@@ -179,24 +180,28 @@ struct tgt_val_branch : tgt_val_branch_t<MCODE_T>
     {
         std::cout << "tgt_val_branch::size: op_size = " << op_size << std::endl;
 
-        // initialize size of insn without evaluating branch target
-        // NB: size reflects `mcode` base size w/o args
-        // NB: actual relaxed instruction never asked to calculate size
-        // XXX need to teset if `expr_fits` is `core_fits`
-        if (op_size.is_relaxed() && arg.mode() <= arg_mode_t::MODE_BRANCH)
+        // `core_fits` requires "dot". `expr_fits` does not.
+        // require "dot" before evaluating branch displacments
+        // NB: not completely object-oriented, but it's assembly after all
+        if (dynamic_cast<core::core_fits const*>(&fits) == nullptr)
         {
+            std::cout << "tgt_val_branch: expr_fits ignored" << std::endl;
             op_size = derived().initial(mc);
             return expr_fits::maybe;
         }
+        
+        std::cout << "tgt_val_branch: core_fits: try resolve" << std::endl;
 
         // Branch MODE is managed by `tgt_opc_branch`
         // get underlying type so math on enum works
         auto  mode = static_cast<mode_type>(arg.mode());
         
         // if not managed by `tgt_opc_branch`, mode will be "DIRECT"
-        if (mode < arg_mode_t::MODE_DIRECT)
+        if (mode < arg_mode_t::MODE_BRANCH)
             mode = arg_mode_t::MODE_BRANCH;
 
+        // get "base code" size (before displacement arg)
+        auto base_code_size = mc.code_size();
         auto& dest = arg.expr;
 
         // test for insn deletion if appropriate
@@ -207,7 +212,7 @@ struct tgt_val_branch : tgt_val_branch_t<MCODE_T>
             switch (fits.disp(dest, 0, 0, op_size.max))
             {
             case expression::NO_FIT:
-                op_size.min = word_size;
+                op_size.min = base_code_size;
                 break;
             case expression::DOES_FIT:
                 op_size.max = 0;
@@ -216,38 +221,14 @@ struct tgt_val_branch : tgt_val_branch_t<MCODE_T>
                 return fits.maybe;
             }
         }
+        std::cout << "tgt_val_branch::size: op_size = " << op_size << std::endl;
 
-        // while min size is in range
-        while(op_size.min <= derived().max(mc))
+        // loop thru table to find first match
+        // NB: "last" always matches...
+        while(mode < arg_mode_t::MODE_BRANCH_LAST)
         {
-#if 0
-            // increase minimum size by insn-word size
-            uint8_t pending_min_size = op_size.min + word_size;
-           
-            auto [min, max, offset, pending_size] = get_test(mode, op_size.max);
-           
-            // first word is INSN, rest is offset
-            // offset from end of INSN
-            // disp_sz calculated to allow 1 word opcode, rest disp
-            auto r = fits.disp(dest, min, max, offset);
-
-            // process result of test
-            std::cout << " result = " << +r << std::endl;
-            switch (r)
-            {
-                case expression::NO_FIT:
-                    op_size.min = pending_min_size;
-                    ++mode;                     // try next mode
-                    continue;
-                case expression::DOES_FIT:
-                    op_size.max = op_size.min;
-                    arg.set_mode(mode);         // feedback to `tgt_opc_branch`
-                    return expr_fits::yes;      // done
-                default:
-                    return expr_fits::maybe;    // might-fit: don't further change min/max
-            }
-#else
-            auto [min, max, offset, pending_size] = get_test(mode, op_size.max);
+            // NB: "mode" is set by reference
+            auto [min, max, offset, arg_size] = get_test(mode, op_size.max);
 
             // if error -- done
             if (mode == arg_mode_t::MODE_NONE)
@@ -256,10 +237,12 @@ struct tgt_val_branch : tgt_val_branch_t<MCODE_T>
             auto r = fits.disp(dest, min, max, offset);
             // process result of test
             std::cout << " result = " << +r << std::endl;
+            
+            // nothing smaller fit -- current test is minimum size
+            op_size.min = base_code_size + arg_size;
             switch (r)
             {
                 case expression::NO_FIT:
-                    op_size.min = pending_size;
                     ++mode;                     // try next mode
                     continue;
                 case expression::DOES_FIT:
@@ -269,10 +252,9 @@ struct tgt_val_branch : tgt_val_branch_t<MCODE_T>
                     return expr_fits::maybe;    // might-fit: don't further change min/max
             }
             break;
-
-#endif
         }
-        
+
+        std::cout << "tgt_val_branch::size: mode = " << std::dec << +mode << std::endl;
         // nothing fits -- raise min to max
         op_size.min = op_size.max;
 

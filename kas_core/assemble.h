@@ -39,7 +39,7 @@ struct kas_assemble
 
         std::cout << "parse complete" << std::endl;
 
-#define DUMP_AFTER_PARSE
+//#define DUMP_AFTER_PARSE
 #ifdef DUMP_AFTER_PARSE
         INSNS::for_each([&](auto& container)
             {

@@ -65,7 +65,8 @@ protected:
         serial_args_t(READER_T& reader, MCODE_T const& mcode)
             : mcode(mcode)
         {
-            std::tie(code_p, args) = tgt::opc::tgt_read_args(reader, mcode);
+            std::tie(code_p, args, serial_pp) 
+                    = tgt::opc::tgt_read_args(reader, mcode);
             info = mcode.extract_info(code_p);
         }
         
@@ -105,6 +106,7 @@ protected:
         MCODE_T const& mcode;
         mcode_size_t  *code_p;
         arg_t         *args;
+        detail::arg_serial_t **serial_pp;
         stmt_info_t    info;
         void          *wb_handle;       // opaque writeback handle
     };
