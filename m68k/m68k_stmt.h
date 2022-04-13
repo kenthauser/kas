@@ -73,7 +73,15 @@ struct m68k_stmt_t : tgt_stmt<m68k_stmt_t
     // all and only m68k floating point insns start with `f`
     bool is_fp() const
     {
-        return name()[0] == 'f';
+        return info.is_fp;
+
+        // alternate implementation:
+        // switch (parsed_name()[0])
+        // {
+        //    case 'f': case 'F': return true;
+        //    default:
+        //        return false;
+        // }
     }
     
     // save "width" suffix (eg ".w") as token (for diagnostics)

@@ -42,19 +42,16 @@ using m68k_math_v = list<list<>
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// pull in condition-code support from `gen` (aka 68000) namespace
-using gen::cc;
-using gen::cc_sz;
-using gen::all_cc_names;
-
 using m68k_branch_cc_v = list<list<>
-// trapcc
-, cc<0x50fc, all_cc_names, STR("trap"), m68020>
-, cc_sz<0x50fa, sz_lw, INFO_SIZE_WL0, all_cc_names, STR("trap"), m68020, void, IMMED>
 
-// other branch/returns
+// trap
+, defn<cc_v , STR("trap"), OP<0x50fc, m68020>>
+, defn<cc_wv, STR("trap"), OP<0x50fa, m68020>, FMT_X, Q_IMMED16>    // allow signed
+, defn<cc_l , STR("trap"), OP<0x50fb, m68020>, FMT_X, IMMED>
+
+// other '020 branch/returns
 , defn<sz_v, STR("callm"), OP<0x06c0'0000, callm>, FMT_I8_0RM, Q_8BITS, CONTROL>
-, defn<sz_v, STR("rtm"), OP<0x06c0, callm>, FMT_0RM, GEN_REG>
+, defn<sz_v, STR("rtm")  , OP<0x06c0     , callm>, FMT_0RM   , GEN_REG>
 >;
 
 // bitfields are very regular

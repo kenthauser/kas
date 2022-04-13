@@ -65,15 +65,19 @@ struct float_host_t<REF, VALUE, FMT, void>
         uint8_t is_nan  : 1;
         uint8_t subnorm : 1;
     };
-#if 1   
+#if 0   
     float_host_t(value_type value = {}, parser::kas_loc loc = {})
             : value_(value), base_t(loc)
         {
             std::cout << "float_host_t::ctor: " << value << std::endl;
+            print_type_name{"float_host_t::value_type"}.name<value_type>();
+            std::cout << "float_host_t::digits = " << std::dec << HOST_MANT_BITS << std::endl;
+            std::cout << "float_host_t::max_exp = ";
+            std::cout << std::numeric_limits<value_type>::max_exponent << std::endl;
         }
 #else
     constexpr float_host_t(value_type value = {}, parser::kas_loc loc = {})
-            : value(value), base_t(loc) {}
+            : value_(value), base_t(loc) {}
 #endif
     // operator() extracts value
     value_type const& operator()() const

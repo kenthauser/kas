@@ -272,78 +272,18 @@ using m68k_math_v = list<list<>
 , defn<sz_w,   STR("eori"), OP<0x0a00, void>, FMT_0RM, IMMED, SR>
 >;
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Support for instructions which use condition codes
-//
-// NB: metafunctions also used by CPU_020
-#if 0
-template <int value, typename NAME>
-struct m68k_cc_trait
-{
-    using name = NAME;
-    using code = std::integral_constant<int, value>;
-};
-
-using all_cc_names = list<
-          m68k_cc_trait< 0, STR("t")>
-        , m68k_cc_trait< 1, STR("f")>
-        , m68k_cc_trait< 2, STR("hi")>
-        , m68k_cc_trait< 3, STR("ls")>
-        , m68k_cc_trait< 4, STR("cc")>        // mit name
-        , m68k_cc_trait< 4, STR("hs")>        // motorola name
-        , m68k_cc_trait< 5, STR("cs")>        // mit name
-        , m68k_cc_trait< 5, STR("lo")>        // motorola name
-        , m68k_cc_trait< 6, STR("ne")>
-        , m68k_cc_trait< 7, STR("eq")>
-        , m68k_cc_trait< 8, STR("vc")>
-        , m68k_cc_trait< 9, STR("vs")>
-        , m68k_cc_trait<10, STR("pl")>
-        , m68k_cc_trait<11, STR("mi")>
-        , m68k_cc_trait<12, STR("ge")>
-        , m68k_cc_trait<13, STR("lt")>
-        , m68k_cc_trait<14, STR("gt")>
-        , m68k_cc_trait<15, STR("le")>
-        >;
-
-// drop true/false for general cc names
-using cc_names = drop_c<all_cc_names, 2>;
-
-// a `callable` to create `insn` for each condition code
-template <uint32_t OpCode, typename SZ, typename INFO_SZ, typename NAME, typename TST, typename...Args>
-struct apply_cc_trait
-{
-    template <typename CC>
-    using invoke = defn<SZ
-                      , string::str_cat<NAME, typename CC::name>
-                      , OP<OpCode + (CC::code::value << 8), TST, INFO_SZ>
-                      , Args...
-                      >;
-};
-
-// for CC insns with multiple sizes (ie: trap.[wl]), create list of instructions
-template <uint32_t OpCode, typename SZ, typename INFO_SZ, typename CC_LIST, typename...Args>
-using cc_sz = transform<CC_LIST, apply_cc_trait<OpCode, SZ, INFO_SZ, Args...>>;
-
-// for single size CC insns (ie `v`) simplified alias
-template <uint32_t OpCode, typename CC_LIST, typename...Args>
-using cc = cc_sz<OpCode, sz_void, INFO_SIZE_VOID, CC_LIST, Args...>;
-#endif
-///////////////////////////////////////////////////////////////////////////////
-
 using m68k_branch_cc_v = list<list<>
 
 // DBcc -- `dbra` is preferred spelling of `dbf`
 , defn<sz_v, STR("dbra"), OP<0x51c8, m68k>, FMT_DBCC, DATA_REG, BRANCH>
-, defn<sz_v, STR("db")  , OP<0x50c8, m68k, INFO_CCODE_NORM>
-                                          , FMT_DBCC, DATA_REG, BRANCH>
+, defn<cc_v, STR("db")  , OP<0x50c8, m68k>, FMT_DBCC, DATA_REG, BRANCH>
 
 // jmps & branches
 // the 68k user manual defines JMP, JSR, Bcc, BRA, and BSR
 // the disassembler picks first match. The assembler picks first shortest
 // (ie it will prefer BRA.w over JMP PC@(word) since they're the same size)
 // branch & branch subroutine
-, defn<cx_v, STR("b") ,  OP<0x6000, void, INFO_CCODE_NORM>, FMT_BRANCH, BRANCH_DEL>
+, defn<cx_v, STR("b")  ,  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
 , defn<sz_v, STR("bra"),  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
 , defn<sz_v, STR("bsr"),  OP<0x6100>, FMT_BRANCH, BRANCH>
 
@@ -352,17 +292,17 @@ using m68k_branch_cc_v = list<list<>
 , defn<sz_v, STR("jsr"), OP<0x4e80>, FMT_0RM, CONTROL_NODIR>
 
 // declare alternate spellings of branch instructions
-, defn<cx_v, STR("j") ,  OP<0x6000, void, INFO_CCODE_NORM>, FMT_BRANCH, BRANCH_DEL>
+, defn<cx_v, STR("j")  ,  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
 , defn<sz_v, STR("jra"),  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
 , defn<sz_v, STR("jmp"),  OP<0x6000>, FMT_BRANCH, BRANCH_DEL>
 
-, defn<sz_v, STR("jsr"),  OP<0x6100>, FMT_BRANCH, BRANCH>
+, defn<sz_v, STR("jsr") , OP<0x6100>, FMT_BRANCH, BRANCH>
 , defn<sz_v, STR("jbsr"), OP<0x6100>, FMT_BRANCH, BRANCH>
-, defn<cc_vb, STR("s"), OP<0x50c0, m68k, INFO_CCODE_NORM>, FMT_0RM, DATA_ALTER>
+, defn<cc_vb, STR("s")  , OP<0x50c0, m68k>, FMT_0RM, DATA_ALTER>
 
-// trapcc
-, defn<sz_v, STR("trap"), OP<0x4e40>, FMT_4I, Q_4BITS>
-, defn<sz_v, STR("trapv"), OP<0x4e76, m68k>>
+// trap: m68k versions are unconditional
+, defn<sz_v , STR("trap") , OP<0x4e40, m68k >, FMT_4I, Q_4BITS>
+, defn<sz_v , STR("trapv"), OP<0x4e76, m68k>>
 
 // other branch/returns
 , defn<sz_v, STR("rts")    , OP<0x4e75>>

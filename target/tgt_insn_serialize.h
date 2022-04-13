@@ -119,14 +119,16 @@ void tgt_insert_args(Inserter& inserter
     auto  val_iter     = vals.begin();
     auto  val_iter_end = vals.end();
 
+    auto immed_size = arg_t::immed_info(sz).sz_bytes;
+
     unsigned n = 0;                             // arg index
     detail::arg_serial_t *p;                    // current arg info data chunk
 
     // save arg_mode & info about extensions (constants or expressions)
     for (auto& arg : args)
     {
-        typename MCODE_T::val_t const *val_p;
-        const char *val_name;
+        typename MCODE_T::val_t const *val_p {};
+        const char *val_name;       // NB: names availble via iter, not ptr
 
         // need `arg_info` scrach area. create one for modulo numbered args
         // (creates one for first argument)
@@ -151,21 +153,18 @@ void tgt_insert_args(Inserter& inserter
 #endif
             val_p = &*val_iter++;
         }
-        else
-            val_p = {};
 
-        // if validator present, be sure it can hold type
-        // NB: only required for "LIST" format.
+        // NB: for LIST format, validator may be present (to store
+        //     value in LIST base code), but arg may not pass.
+        //     Run `fast` OK method to see if can store
         if (val_p)
-        {
-            expr_fits fits{};
-            if (val_p->ok(arg, fits) != fits.yes)
+            if (val_p->ok(arg, expr_fits{}) != expr_fits::yes)
                 val_p = nullptr;
-        }
 
 #ifdef TRACE_ARG_SERIALIZE
         if (!val_p)
             val_name = "*NONE*";
+        
         std::cout << "tgt_insert_args: " << +n 
                   << " mode = " << +arg.mode() 
                   << " arg = " << arg 
@@ -189,30 +188,26 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
 {
     // deserialize into static array.
     // add extra `static_arg` as an end-of-list flag.
-    // NB: make c[], not std::array to prevent re-instatantion
+    // NB: use `c-lang`[], not std::array to prevent re-instatantion
     // of common read/write routines (eg: `eval_list`)
-    //using  mcode_size_t          = typename MCODE_T::mcode_size_t;
-    using  arg_t                 = typename MCODE_T::arg_t;
-    using  tgt_arg_serial_data_t = detail::tgt_arg_serial_data_t<MCODE_T>;
-    using  stmt_info_t           = typename MCODE_T::stmt_info_t;
-    
+    using  arg_t                  = typename MCODE_T::arg_t;
+    using  tgt_arg_serial_data_t  = detail::tgt_arg_serial_data_t<MCODE_T>;
+    using  stmt_info_t            = typename MCODE_T::stmt_info_t;
     constexpr auto ARGS_PER_CHUNK = tgt_arg_serial_data_t::ARGS_PER_CHUNK;
+
+    // local statics to hold info on single insn
     static arg_t                 static_args[MCODE_T::MAX_ARGS+1];
     static detail::arg_serial_t *static_serial_t[MCODE_T::MAX_ARGS];
-
-    // reset per-insn arg state
-    arg_t::reset();
-
-    // get working pointer into static array
-    auto arg_p  = std::begin(static_args);
 
     // get "opcode" info
     auto code_p     = reader.get_fixed_p(m_code.code_size());
     auto stmt_info  = m_code.extract_info(code_p);
     auto sz         = stmt_info.sz(m_code);
+    auto immed_size = arg_t::immed_info(sz).sz_bytes;
 
 #ifdef TRACE_ARG_SERIALIZE
-    std::cout << "tgt_read_args: info = " << stmt_info << std::endl;
+    std::cout << "tgt_read_args: info = " << stmt_info;
+    std::cout << ", immed_size = " << +immed_size << std::endl;
 #endif
 
     // read & decode arguments until empty
@@ -221,13 +216,20 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
     auto val_iter     = vals.begin();
     auto val_iter_end = vals.end();
 
+    // reset per-insn arg state (required by Z80, normally optimized away)
+    arg_t::reset();
+
     // read until end flag: eg: MODE_NONE or reader.empty()
-    detail::arg_serial_t *p;
+    // get working pointer into static array
+    auto arg_p             = std::begin(static_args);
     auto serial_t_inserter = std::begin(static_serial_t);
+    detail::arg_serial_t *p;
+   
+    // begin by finding next `arg_serial_t *` instance and assigning to `p`
     for (unsigned n = 0; true ;++n, ++arg_p)
     {
         typename MCODE_T::val_t const *val_p {};
-        const char *val_name {};
+        const char *val_name;       // NB: names availble via iter, not ptr
         
         // last static_arg is end-of-list flag, should never reach it.
         if (arg_p == std::end(static_args))
@@ -255,14 +257,15 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
                 break;
         }
 
-        // do work: pass validator if present
-        // NB: may be more args than validators. LIST format only saves a few args in `code`
+        // found `arg_serial_t` instance. now do extraction work.
+        // NB: may be more args than validators.
+        // NB: LIST format only saves a few args in `code`
         if (val_iter != val_iter_end)
         {
 #ifdef TRACE_ARG_SERIALIZE
             val_name = val_iter.name();
 #endif
-            val_p = &*val_iter++;
+            val_p = &*val_iter++;       // NB: val_p zero inited
         }
 
 #ifdef TRACE_ARG_SERIALIZE
@@ -275,7 +278,7 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
 
         detail::extract_one<MCODE_T>(reader, n, *arg_p, p, sz, fmt, val_p, code_p);
     }
-    return std::make_tuple(code_p, static_args, static_serial_t);
+    return std::make_tuple(code_p, static_args, static_serial_t, stmt_info);
 }
 
 }

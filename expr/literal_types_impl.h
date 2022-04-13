@@ -67,9 +67,14 @@ auto float_host_t<REF, VALUE, FMT>::
         get_bin_parts(T *mantissa_p, int mant_bits, bool truncate) const
             -> std::tuple<flag_t, int>
 {
+#if 0
+    std::cout << "get_bin_parts: mant_bits = " << std::dec << mant_bits << std::endl;
+    std::cout << "get_bin_parts: HOST_MANT_BITS = " << HOST_MANT_BITS << std::endl;
+#endif
+    #if 0
     if ((unsigned)mant_bits > HOST_MANT_BITS)
         throw std::logic_error{"float_host_ieee::get_parts: bits out of range"};
-
+#endif
     // normalized number must be positive
     auto flags    = get_flags();
     auto fraction = flags.is_neg ? -value_ : value_;
@@ -78,8 +83,8 @@ auto float_host_t<REF, VALUE, FMT>::
     int exponent;
     fraction = std::frexp(fraction, &exponent);
 
-    // need to round if less than full precision requested
-    if (mant_bits != HOST_MANT_BITS)
+    // need to round if less than host precision requested
+    if (mant_bits <  HOST_MANT_BITS)
     {
         // round (or truncate) at N bits, then shift for export
         if (!truncate)
@@ -106,6 +111,8 @@ auto float_host_t<REF, VALUE, FMT>::
     static constexpr auto MANT_WORD_BITS = std::numeric_limits<T>::digits;
     static constexpr auto MANT_WORDS     = (HOST_MANT_BITS-1)/MANT_WORD_BITS + 1;
 
+    // XXX might leave non-zero bits as LSBs when more than HOST_BITS requested
+    // XXX need to zero-fill rest of buffer
     if (mantissa_p)
     {
         auto p = mantissa_p;

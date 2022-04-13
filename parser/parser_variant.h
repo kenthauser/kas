@@ -52,7 +52,7 @@ struct stmt_t: kas_position_tagged
     {
         // init `core_insn` with parsed location
         core::core_insn insn{*this};
-        //std::cout << "stmt_t::operator(): where = " << src() << std::endl;
+        std::cout << "stmt_t::operator(): where = " << src() << std::endl;
 
         // examine parsed insn for proper semantics
         // `gen_insn` returns pointer to `core::opcode`
@@ -60,6 +60,8 @@ struct stmt_t: kas_position_tagged
         if (auto op_p = stmt->gen_insn(insn.data))
             insn.opc_index = op_p->index();
 
+        std::cout << "stmt_t::operator(): opc_index = " << insn.opc_index << std::endl;
+        
         // if size flags error, clear idx
         if (insn.data.size.is_error())
             insn.opc_index = {};

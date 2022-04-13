@@ -70,11 +70,11 @@ static constexpr uint32_t fp_defn_rounding  = 1 << 30;
 static constexpr uint32_t fp_defn_mask      = ((1<<7)-1) << (9 + 16);
 
 // create a cousin of `M68K_OPCODE` to handle opcode value manipulation
-template <uint32_t OPCODE, typename TST = hw::fpu_base>
+template <uint32_t OPCODE, typename TST = hw::fpu_base, typename INFO = INFO_SIZE_FLT>
 using FOP = OP<!(OPCODE & fp_defn_use_short) ?  (fp_defn_l | (OPCODE &~ fp_defn_mask))
                                              :  (fp_defn_w | (OPCODE &  0xffff))
                , TST
-               , INFO_SIZE_FLT
+               , INFO
                >;
 
 // create a cousin if `insn` to prepend `f` & simplify creation

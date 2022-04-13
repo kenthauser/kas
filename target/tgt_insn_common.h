@@ -76,16 +76,6 @@ struct OP
     using mask    = std::integral_constant<std::size_t, MASK>;
 };
 
-#if 0
-// add value to OP
-template <typename OP, unsigned N, unsigned SHIFT>
-struct OP_ADD : OP
-{
-    static constexpr auto value = OP::code + (N << SHIFT);
-    using code = std::integral_constant<std::size_t, value>;
-};
-#endif
-
 // NAME the INDEXES into the `meta::list` where types are located
 // NB: this is only for reference. The list
 // is passed as a whole to the ctor, so any changes

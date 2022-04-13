@@ -407,8 +407,8 @@ auto tgt_arg_t<Derived, M, I, R, RS>
                 using mcode_sz = typename expression::e_data_t;
                 auto words = (m - arg_mode_t::MODE_BRANCH) << sizeof(mcode_sz);
                 auto bytes = std::max<unsigned>(1, words);
-                std::cout << "tgt_arg_t::emit: branch: expr = " << expr;
-                std::cout << ", words = "  << words << std::endl;
+                //std::cout << "tgt_arg_t::emit: branch: expr = " << expr;
+                //std::cout << ", words = "  << words << std::endl;
                 if (bytes)
                     base << core::emit_disp(bytes, -bytes) << expr;
             }
@@ -438,6 +438,7 @@ std::enable_if_t<!std::is_void_v<expression::e_float_t>>
 tgt_arg_t<Derived, M, I, R, RS>
             ::emit_float(core::core_emit& base, tgt_immed_info const& info) const
 {
+    //std::cout << "emit_float: arg = " << *this << " fmt = " << +info.flt_fmt << std::endl;
     // common routine to format and emit
     auto do_emit = [&](e_float_t const& flt)
         {
@@ -450,11 +451,15 @@ tgt_arg_t<Derived, M, I, R, RS>
     if (auto p = expr.template get_p<e_float_t>())
         do_emit(*p);
     else if (auto p = expr.get_fixed_p())
-        do_emit(*p);
+    {
+        e_float_t int_as_fp(*p);
+        //std::cout << "emit_float: int " << *p << " -> " << int_as_fp << std::endl;
+        do_emit(int_as_fp);
+    }
     else
     {
         // XXX should emit diagnostic
-        std::cout << "tgt_arg_t::emit_float: " << expr << " is not rational value" << std::endl;
+        //std::cout << "tgt_arg_t::emit_float: " << expr << " is not rational value" << std::endl;
     }
 }
 

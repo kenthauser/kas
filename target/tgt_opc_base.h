@@ -65,9 +65,9 @@ protected:
         serial_args_t(READER_T& reader, MCODE_T const& mcode)
             : mcode(mcode)
         {
-            std::tie(code_p, args, serial_pp) 
+            // deserialize serialized data into components
+            std::tie(code_p, args, serial_pp, info) 
                     = tgt::opc::tgt_read_args(reader, mcode);
-            info = mcode.extract_info(code_p);
         }
         
         // create an `iterator` to allow range-for to process sizes

@@ -95,9 +95,17 @@ auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
 
     // 3. require floating point format for floating point immediates
     if constexpr (!std::is_void_v<e_float_t>)
+    {
+        std::cout << "m68k_t::ok_for_target:";
         if (auto p = expr.template get_p<expression::e_float_t>())
+        {
+            std::cout << " e_float_t -> " << *p << std::endl;
             if (!immed_info(sz).flt_fmt)
                 return set_error(error_msg::ERR_float);
+        }
+        else
+            std::cout << " no conversion" << std::endl;
+    }
 
     // 4. disable several addressing modes on coldfire FPUs
     if (sz == OP_SIZE_XTND)

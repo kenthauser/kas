@@ -11,17 +11,17 @@ using parser::token_defn_t;
 using parser::kas_token;
 
 // forward declare writeback pointer
-namespace opc { namespace detail
+namespace opc::detail
 {
     struct arg_serial_t;
-}}
+}
 
 // declare immediate information type
 struct tgt_immed_info
 {
-    uint8_t sz_bytes{};
-    uint8_t flt_fmt {};
-    uint8_t mask    {};     // XXX not useful??. relocs used for sub-bytes
+    uint8_t sz_bytes;
+    uint8_t flt_fmt;
+    uint8_t mask;       // XXX not useful??. relocs used for sub-bytes
 };
 
 // NB: the `REG_T` & `REGSET_T` also to allow lookup of type names
@@ -144,7 +144,7 @@ public:
     // default:: single size immed arg, size = data_size, no float
     static constexpr tgt_immed_info sz_info[] = { sizeof(expression::detail::e_data<>) };
 
-    auto& immed_info(uint8_t sz) const
+    static auto& immed_info(uint8_t sz)
     {
         static constexpr auto sz_max = std::extent<decltype(derived_t::sz_info)>::value;
 

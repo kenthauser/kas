@@ -228,7 +228,7 @@ auto tgt_defn_info_t<MCODE_T, VALUE_T, FN_BITS>::
     insert(code_t& code, stmt_info_t const& stmt_info) const
     -> void
 {
-    return defn_t::info_fns_base[fn_idx]->insert(code, stmt_info, value);
+    return defn_t::info_fns_base[fn_idx]->insert(code, stmt_info, *this);
 }
 
 template <typename MCODE_T, typename VALUE_T, unsigned FN_BITS>
@@ -236,7 +236,7 @@ auto tgt_defn_info_t<MCODE_T, VALUE_T, FN_BITS>::
     extract(mcode_size_t const *code_p) const
     -> stmt_info_t
 {
-    return defn_t::info_fns_base[fn_idx]->extract(code_p, value);
+    return defn_t::info_fns_base[fn_idx]->extract(code_p, *this);
 }
 
 template <typename MCODE_T, typename VALUE_T, unsigned FN_BITS>

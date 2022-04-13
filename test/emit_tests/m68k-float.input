@@ -1,8 +1,10 @@
 ;
 ; test move instructions
+    fabs.l   #1, fp6     ; 0 = long
+    fabs.s   #1, fp6     ; 1 = single (32-bit float)
+    fabs.x   #1, fp6     ; 2 = extended (80-bit float)
 
 ; 0. constants used
-
 fp_short:
     fabs.d   #7.5, fp6      ; float arg
     fabs.d   #15./2, fp6    ; float/fixed
@@ -31,6 +33,7 @@ fp_short:
     fabs.w   #135.0, fp6   ; 4 = word
     fabs.w   #135/2.0, fp6   ; 4 = word
     fabs.d   #135.0, fp6   ; 5 = double (64-bit float)
+    fabs.d   #135/2.0, fp6   ; 5 = double (64-bit float)
     fabs.b   #1.0, fp6   ; 6 = byte
 ;
     fabs.l   #-2.0, fp6  ; 0 = long
@@ -45,6 +48,7 @@ fp_short:
     fabs.x   fp1, fp2
     fabs.x   fp3
 
+    fabs.s   d2, fp4
     fabs.d   d2, fp4
 
     fsabs.l  d1, fp2

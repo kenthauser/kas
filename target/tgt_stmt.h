@@ -77,6 +77,9 @@ struct tgt_stmt : kas::parser::parser_stmt
     // Principally for `hw_tst` validation
     const char *validate_stmt(mcode_t const *mcode_p) const { return {}; }
   
+    // raw name parsed w/o case translation or normalization, etc
+    std::string parsed_name() const;
+    
     // methods used by test fixtures
     std::string name() const override;
 
@@ -91,8 +94,8 @@ struct tgt_stmt : kas::parser::parser_stmt
         p_obj(info);
     }
     
-    // allow floating point constants
-    bool is_fp() const      { return false; }
+    // allow floating point constants if floating point insn
+    bool is_fp() const { return false; }
 
     // generate `tgt_stmt` from args (used by parser)
     template <typename Context>

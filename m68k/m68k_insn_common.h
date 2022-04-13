@@ -155,38 +155,46 @@ using sz_L    = m68k_sizes<SFX_NONE        , OP_SIZE_LONG>;
 // condition code instructions
 using cc_v    = meta::int_<SFX_CCODE_ALL::value | sz_v ::value>;
 using cc_vb   = meta::int_<SFX_CCODE_ALL::value | sz_vb::value>;
+using cc_wv   = meta::int_<SFX_CCODE_ALL::value | sz_vw::value>;
+using cc_l    = meta::int_<SFX_CCODE_ALL::value | sz_l ::value>;
 using cx_v    = meta::int_<SFX_CCODE    ::value | sz_v ::value>;
-//using sz_cc_all = m68k_sizes<SFX_CCODE_ALL>;
-//using sz_cc_fp  = meta::int_<SFX_CCODE_FP::value | 0x7f>;
 
-
-// general definition: SZ list, NAME type, OP type, optional FMT & VALIDATORS
-template <typename SZS, typename NAME, typename OP, typename FMT = void, typename...Ts>
+// definition macro: INFO, NAME, OP, plus optional FMT & VALIDATORS
+template <typename INFO, typename NAME, typename OP
+        , typename FMT = void, typename...Ts>
 struct defn
 {
-    // default "size" is `int_<0>`
-    using DEFN_INFO = meta::if_<std::is_same<void, SZS>, meta::int_<0>, SZS>;
+    // look at `INFO` to pick appropriate `INFO_FN`
+    static constexpr bool is_default   = std::is_void_v<typename OP::info_fn>;
+    static constexpr bool is_single_sz = SINGLE_SZ<INFO>;
+    static constexpr bool is_cond      = INFO::value & SFX_CCODE_ALL::value;
+    static constexpr auto fp_types     = ((1 << OP_SIZE_SINGLE)
+                                         |(1 << OP_SIZE_XTND  )
+                                         |(1 << OP_SIZE_PACKED)
+                                         |(1 << OP_SIZE_DOUBLE)
+                                         );
+    static constexpr bool is_fp        = INFO::value & fp_types;
 
-    // default `INFO_FN` to `INFO_SIZE_NORM`
-    using OP_INFO_FN = std::conditional_t<
-                                std::is_void_v<typename OP::info_fn>
-                              , INFO_SIZE_NORM
-                              , typename OP::info_fn
-                              >; 
-
-    // if `size_fn` specified for opcode, but only one `size` allowed,
-    // force `INFO_SIZE_VOID` as `info_fn` and use encoded "size" in code
-    using INFO_FN  = std::conditional_t
-                       <SINGLE_SZ<SZS> &&
-                        std::is_base_of_v<info_add_size_t
-                                        , OP_INFO_FN
-                                        >
-                      , INFO_SIZE_VOID      // get size from `defn`
-                      , OP_INFO_FN
-                      >;
-
-    // six fixed types, plus additional `VALIDATORs`
-    using type = meta::list<DEFN_INFO
+    // select INFO_FN from `INFO`. respect defined method
+    using INFO_FN = std::conditional_t<
+                          // if specified, use named `info_fn`
+                          !is_default, typename OP::info_fn
+                       , std::conditional_t<
+                          // if conditional insn, use CCODE_NORM
+                          is_cond, INFO_CCODE_NORM
+                       , std::conditional_t<
+                          // if floating point, use INFO_SIZE_FLT
+                          is_fp, INFO_SIZE_FLT
+                       , std::conditional_t<
+                          // if single width, use SIZE_VOID
+                          is_single_sz, INFO_SIZE_VOID
+                       ,
+                          // default: INFO_SIZE_NORM
+                          INFO_SIZE_NORM
+                       >>>>;
+   
+    // forward to `tg_mcode_adder`
+    using type = meta::list<INFO
                           , INFO_FN
                           , NAME
                           , typename OP::code

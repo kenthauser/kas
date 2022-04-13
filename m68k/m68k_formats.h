@@ -188,6 +188,8 @@ struct FMT_I16_9    : fmt_gen, arg1_i<16, 1>, arg2_9 {};
 
 // special for STOP
 struct FMT_I16      : fmt_gen, arg1_i<16, 1> {};
+// XXX 32-bit fails compile
+struct FMT_I32      : fmt_gen, arg1_i<16, 1> {};
 
 // multiply/divide data-reg pair
 struct FMT_0RM_PAIR : fmt_gen, arg1_0rm, fmt_arg<2, fmt_reg_pair<0, 12, 3>> {};

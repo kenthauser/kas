@@ -135,7 +135,7 @@ struct info_add_size_t : m68k_info_fn_base
 
         //std::cout << "info_add_size_t: extract" << std::endl;
         auto raw_code = code_p[word] >> bit;
-        auto sz = get_sz(seq, raw_code & 3);
+        auto sz = get_sz(seq, raw_code & 7);
 
         // if sz undetermined from `code_p`, extract from `defn_info`
         if (sz < 0)

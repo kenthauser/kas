@@ -256,14 +256,8 @@ void m68k_arg_t::extract(Reader& reader
     }
     else if (info_p->has_data)
     {
-        // XXX copied w/o understanding from `arm`
-        bool is_signed {false};
-        //int  bytes = this->size(sz, {}, &is_signed);
-        int bytes = 2;
-        bytes = 2;
-        if (is_signed)
-            bytes = -bytes;
-        expr = reader.get_fixed(bytes);
+        auto immed_size = m68k_arg_t::immed_info(sz).sz_bytes;
+        expr = reader.get_fixed(immed_size);
     }
 }
 

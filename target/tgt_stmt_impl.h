@@ -73,7 +73,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     bool ok_for_quick = true;
     if (auto diag = derived().validate_args(insn, args, ok_for_quick, trace))
     {
-        //std::cout << "tgt_stmt::gen_insn: err = " << diag << std::endl;
+        std::cout << "tgt_stmt::gen_insn: err = " << diag << std::endl;
         data.fixed.diag = diag;
         return {};              // nullptr xlated into opc_diag{}
     }
@@ -224,6 +224,15 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
                 );
 }
 
+// retrieve raw parsed name w/o case translation, normalization, etc
+template <typename DERIVED_T, typename INSN_T, typename ARG_T, typename INFO_T>
+auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
+        parsed_name() const -> std::string
+{
+    auto& insn  = *insn_tok_t(insn_tok)();
+    return insn.name;
+}
+
 // test fixure routine to display statement name
 template <typename DERIVED_T, typename INSN_T, typename ARG_T, typename INFO_T>
 auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
@@ -232,8 +241,8 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     using BASE_NAME = typename INSN_T::mcode_t::BASE_NAME;
     
     static constexpr auto name_prefix = string::str_cat<BASE_NAME, KAS_STRING(":")>::value;
-    auto& insn  = *insn_tok_t(insn_tok)();
-    return name_prefix + insn.name;
+    
+    return name_prefix + parsed_name();
 }
 
 template <typename DERIVED_T, typename INSN_T, typename ARG_T, typename INFO_T>

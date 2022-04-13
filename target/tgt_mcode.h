@@ -34,7 +34,7 @@ using namespace meta;
 using expression::expr_fits;
 using expression::fits_result;
 
-// default defn_info: just hold size (or nothing)
+// default defn_info: just hold arg size & info_fn (or nothing)
 template <typename MCODE_T
         , typename VALUE_T = uint8_t, unsigned FN_BITS = 4>
 struct tgt_defn_info_t
@@ -47,7 +47,7 @@ struct tgt_defn_info_t
     using mcode_size_t = typename MCODE_T::mcode_size_t;
     using code_t       = typename MCODE_T::code_t;
 
-    constexpr tgt_defn_info_t(VALUE_T v, VALUE_T fn_idx = 0)
+    constexpr tgt_defn_info_t(VALUE_T v = 0, VALUE_T fn_idx = 0)
         : value(v), fn_idx(fn_idx) {}
 
     // insert/extract stmt_info values from `code`

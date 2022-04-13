@@ -14,7 +14,6 @@
 
 // instruction definitions
 #include "insns_m68000.h"
-#if 0
 #include "insns_m68020.h"
 #include "insns_m68040.h"
 #include "insns_cpu32.h"
@@ -23,7 +22,6 @@
 #include "insns_m68851.h"
 
 #include "insns_coldfire.h"
-#endif
 
 // parse instruction + args
 #include "m68k_parser_def.h"
