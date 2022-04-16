@@ -33,6 +33,9 @@ namespace kas::parser::detail
         meta::list<
               z80::parser::z80_stmt_x3
             > {};
+    
+    template <> struct parser_comment  <void> : meta::list<KAS_STRING(";")> {};
+    template <> struct parser_separator<void> : meta::list<KAS_STRING("!")> {};
 }
 
 #endif

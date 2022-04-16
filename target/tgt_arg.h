@@ -155,10 +155,10 @@ public:
 
     // serialize methods (use templated args instead of including all required headers)
     template <typename Inserter, typename WB_INFO>
-    bool serialize(Inserter& inserter, uint8_t sz, WB_INFO *wb_p);
+    bool serialize(Inserter& inserter, uint8_t sz, WB_INFO *wb_p, bool has_val);
     
     template <typename Reader>
-    void extract(Reader& reader, uint8_t sz, arg_serial_t *);
+    void extract(Reader& reader, uint8_t sz, arg_serial_t *, bool has_val);
    
     // number of additional bytes to serialize arg
     int8_t serial_data_size(uint8_t sz) const;

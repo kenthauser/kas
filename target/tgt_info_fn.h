@@ -15,12 +15,16 @@ struct tgt_info_fn_t
 
     constexpr tgt_info_fn_t() {}
 
+    // insert `sz` into machine code
     virtual void insert(code_t&     code
                       , stmt_info_t const& stmt_info
                       , defn_info_t const& defn_info) const {}
     
+    // extract `sz` from machine code
     virtual stmt_info_t extract(mcode_size_t const *code_p
                       , defn_info_t const& defn_info) const { return {}; }
+
+    virtual uint8_t sz(stmt_info_t const& stmt_info)   const { return {}; }
 
     virtual code_t mask(stmt_info_t const& stmt_info
                       , defn_info_t const& defn_info

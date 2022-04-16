@@ -112,6 +112,12 @@ struct tgt_mcode_defn
                           , list<void               , VAL_LIST, void, list<>, quote<list>>
                           >;
 
+    // index base values initialized by `adder`
+    static inline const char      *const *names_base;
+    static inline const info_fn_t *const *info_fns_base;
+    static inline const fmt_t     *const *fmts_base;
+    static inline val_c_t          const *val_c_base;
+
     // declare indexes into XLATE list (used by `adder`)
     static constexpr auto XLT_IDX_NAME    = 0;
     static constexpr auto XLT_IDX_INFO_FN = 1;
@@ -135,18 +141,9 @@ struct tgt_mcode_defn
             , tst         { TST()              }
             {}
     
-    // index base values initialized by `adder`
-    static inline const char      *const *names_base;
-    static inline const info_fn_t *const *info_fns_base;
-    static inline const fmt_t     *const *fmts_base;
-    static inline val_c_t          const *val_c_base;
-
     auto    name() const { return  names_base[name_index - 1];  }
-
-    //auto& info_fn() const { return info_fns_base[info.info_fn_index - 1]; }
     auto&   fmt()  const { return *fmts_base [fmt_index   - 1]; }
     auto&   vals() const { return  val_c_base[val_c_index - 1]; }
-    //auto  sz()   const { return  info.sz();                   }
 
     // don't inline diag function
     void print(std::ostream& os) const;

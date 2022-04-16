@@ -13,7 +13,7 @@ struct z80_opc_branch : tgt::opc::tgt_opc_branch<z80_mcode_t>
                     , mcode_t const&         mcode
                     , mcode_size_t          *code_p
                     , expr_t const&          dest
-                    , stmt_info_t const&     info) const override
+                    , arg_mode_t             arg_mode) const override
     {
         if (data.size() == 0)
             return;         // deleted
@@ -42,7 +42,8 @@ struct z80_opc_branch : tgt::opc::tgt_opc_branch<z80_mcode_t>
         {
             // emit a branch
             // single word opcode, single word displacement from end of insn
-            base << *code_p << core::emit_disp(1, -1) << dest;
+            // XXX second arg should be `kas_position_tagged const *` from dest
+            base << *code_p << core::emit_disp(1, {}, -1) << dest;
         }
     }
 };

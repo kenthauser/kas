@@ -134,7 +134,7 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
         obj.emit(raw);
     }
 #endif
-#if 1
+#if 0
     // create object output (binary data)
     // get dest for object output
     {

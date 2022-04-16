@@ -22,14 +22,14 @@ struct tgt_stmt_info_t
 
     // calculate size for insn
     template <typename MCODE_T>
-    static constexpr uint8_t sz(MCODE_T const& mc) 
+    constexpr uint8_t sz(MCODE_T const& mc) const
     {
         // default: retrieve size from definition
-        return mc.defn().sz();
+        return mc.defn().info.sz(*this);
     }
 
     template <typename MCODE_T>
-    static constexpr const char *ok(MCODE_T const& mc)
+    constexpr const char *ok(MCODE_T const& mc) const
     {   
         return {};          // all mcodes match info
     }

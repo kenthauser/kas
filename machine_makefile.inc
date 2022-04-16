@@ -1,1 +1,1 @@
-m68k/m68k_machine_makefile.inc
+z80/z80_machine_makefile.inc

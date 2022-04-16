@@ -278,7 +278,7 @@ auto tgt_arg_t<Derived, M, I, R, RS>
 template <typename Derived, typename M, typename I, typename R, typename RS>
 template <typename Inserter, typename WB>
 bool tgt_arg_t<Derived, M, I, R, RS>
-            ::serialize(Inserter& inserter, uint8_t sz, WB *wb_p)
+            ::serialize(Inserter& inserter, uint8_t sz, WB *wb_p, bool has_val)
 {
     auto save_expr = [&](auto bytes) -> bool
         {
@@ -331,7 +331,10 @@ bool tgt_arg_t<Derived, M, I, R, RS>
 template <typename Derived, typename M, typename I, typename R, typename RS>
 template <typename Reader>
 void tgt_arg_t<Derived, M, I, R, RS>
-            ::extract(Reader& reader, uint8_t sz, arg_serial_t *serial_p)
+            ::extract(Reader& reader
+                    , uint8_t sz
+                    , arg_serial_t *serial_p
+                    , bool has_val)
 {
     using reg_tok = meta::_t<expression::token_t<reg_t>>;
     
@@ -399,7 +402,7 @@ auto tgt_arg_t<Derived, M, I, R, RS>
             break;
         default:
             if (m >= arg_mode_t::MODE_BRANCH &&
-                m <  arg_mode_t::MODE_BRANCH + arg_mode_t::NUM_BRANCH)
+                m <  arg_mode_t::MODE_BRANCH_LAST)
             {
                 // branch: number of "words" is based on delta from MODE_BRANCH
                 // default implemetation: just guess & allow override
@@ -410,7 +413,7 @@ auto tgt_arg_t<Derived, M, I, R, RS>
                 //std::cout << "tgt_arg_t::emit: branch: expr = " << expr;
                 //std::cout << ", words = "  << words << std::endl;
                 if (bytes)
-                    base << core::emit_disp(bytes, -bytes) << expr;
+                    base << core::emit_disp(bytes, {}, -bytes) << expr;
             }
             break;
     }

@@ -7,7 +7,6 @@
 
 #include "kas_core/core_emit.h"
 #include "kas_core/core_fits.h"
-//#include "tgt_mcode_defn.h"
 
 namespace kas::tgt::opc
 {
@@ -53,7 +52,7 @@ struct tgt_defn_info_t
     // insert/extract stmt_info values from `code`
     void        insert (code_t&, stmt_info_t const&) const;
     stmt_info_t extract(mcode_size_t const *code_p)  const;
-    int         sz     (stmt_info_t const&)          const;
+    uint8_t     sz     (stmt_info_t const&)          const;
     code_t      mask   (MCODE_T const&)              const;
 
     VALUE_T operator()() const { return value; }

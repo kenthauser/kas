@@ -18,7 +18,7 @@ namespace kas::m68k
 template <typename Inserter, typename ARG_INFO>
 bool m68k_arg_t::serialize (Inserter& inserter
                           , uint8_t sz
-                          , ARG_INFO *info_p
+                          , ARG_INFO *serial_p
                           , bool has_val)
 {
     auto save_expr = [&](auto expr, uint8_t bytes, uint8_t flt_fmt = {}) -> bool
@@ -27,12 +27,12 @@ bool m68k_arg_t::serialize (Inserter& inserter
             auto p = expr.get_fixed_p();
             if (p && !*p)
             {
-                info_p->has_data = false;    
+                serial_p->has_data = false;    
                 return false;               // and no expression.
             }
             
             // non-zero expression. must save.
-            info_p->has_data = true;    
+            serial_p->has_data = true;    
            #if 0 
             auto& arg_info = m68k_arg_t::sz_info[sz];
             auto  bytes    = arg_info.sz_bytes;
@@ -52,20 +52,20 @@ bool m68k_arg_t::serialize (Inserter& inserter
     // if no validator, serialize values normally in `opcode` via inserter
     if (!has_val)
     {
-        info_p->has_reg = bool(reg_p);
-        if (info_p->has_reg)
+        serial_p->has_reg = bool(reg_p);
+        if (serial_p->has_reg)
             inserter(reg_p->index());
 
         // pick up MODE_IMMED_QUICK in general switch
     }
 #if 0
     // don't save if no register present
-    if (info_p->has_reg || mode() != MODE_IMMED_QUICK)
-        info_p->has_data = true;
+    if (serial_p->has_reg || mode() != MODE_IMMED_QUICK)
+        serial_p->has_data = true;
     
     if (!reg_p)
-        info_p->has_reg = false;
-    if (info_p->has_reg)
+        serial_p->has_reg = false;
+    if (serial_p->has_reg)
         inserter(reg_p->index());
 #endif
     // need to special case modes with data
@@ -98,10 +98,10 @@ bool m68k_arg_t::serialize (Inserter& inserter
            
             // handle "ZERO"
             if (size != 1)
-                info_p->has_expr = save_expr(expr, size);
+                serial_p->has_expr = save_expr(expr, size);
             
             // 3) use "has_data" bit as outer_has_expression
-            info_p->has_data = false;   // could have been set by `save_expr`
+            serial_p->has_data = false;   // could have been set by `save_expr`
             if (ext.has_outer)
             {
                 switch (ext.mem_size)
@@ -121,11 +121,11 @@ bool m68k_arg_t::serialize (Inserter& inserter
                         break;
                 }
                 if (size != 1)
-                    info_p->has_data = save_expr(outer, size);
+                    serial_p->has_data = save_expr(outer, size);
             }
             
             // serialize expressions if inner or outer unresolved
-            return info_p->has_expr || info_p->has_data;
+            return serial_p->has_expr || serial_p->has_data;
         }
 
         case MODE_ADDR_DISP:
@@ -164,7 +164,7 @@ bool m68k_arg_t::serialize (Inserter& inserter
 template <typename Reader, typename ARG_INFO>
 void m68k_arg_t::extract(Reader& reader
                       , uint8_t sz
-                      , ARG_INFO const *info_p
+                      , ARG_INFO const *serial_p
                       , bool has_val)
 {
     using reg_tok = meta::_t<expression::token_t<reg_t>>;
@@ -175,7 +175,7 @@ void m68k_arg_t::extract(Reader& reader
     std::cout << std::endl;
 #endif
 
-    if (info_p->has_reg)
+    if (serial_p->has_reg)
     {
         // register stored as index
         auto reg_idx = reader.get_fixed(sizeof(typename reg_t::reg_name_idx_t));
@@ -193,7 +193,7 @@ void m68k_arg_t::extract(Reader& reader
         ext = *wb_ext_p;              // init extension with saved value
 
         // get inner expression if stored
-        if (info_p->has_expr)       // `has_expr` mapped to `inner_has_expr`
+        if (serial_p->has_expr)       // `has_expr` mapped to `inner_has_expr`
             expr = reader.get_expr();
         else
         {
@@ -218,7 +218,7 @@ void m68k_arg_t::extract(Reader& reader
         }
 
         // get outer expression if stored
-        if (info_p->has_data)       // `has_data` mapped to `outer_has_expr`
+        if (serial_p->has_data)       // `has_data` mapped to `outer_has_expr`
             outer = reader.get_expr();
         else if (ext.has_outer)
         {
@@ -250,11 +250,11 @@ void m68k_arg_t::extract(Reader& reader
         regset_p = &regset_t::get(rs_idx);
     }
 
-    else if (info_p->has_expr)
+    else if (serial_p->has_expr)
     {
         expr = reader.get_expr();
     }
-    else if (info_p->has_data)
+    else if (serial_p->has_data)
     {
         auto immed_size = m68k_arg_t::immed_info(sz).sz_bytes;
         expr = reader.get_fixed(immed_size);

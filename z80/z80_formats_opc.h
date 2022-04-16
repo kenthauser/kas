@@ -12,7 +12,7 @@ namespace kas::z80::opc
 // derive z80 version of `tgt` classes
 // use generic bit inserter/extractor
 template <unsigned...Ts>
-using fmt_generic = tgt::opc::tgt_fmt_generic<z80_mcode_t, Ts...>;
+using fmt_generic = tgt::opc::tgt_fmt_generic<z80_mcode_t, uint8_t, Ts...>;
 
 // use generic template to generate argument `mix-in` type
 template <unsigned N, typename T>

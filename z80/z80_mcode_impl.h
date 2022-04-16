@@ -109,8 +109,13 @@ void z80_mcode_t::emit(
     for (auto& arg : args)
         arg.emit(base, sz);
 }
+
+#if 0 
+int z80_defn_info::sz(z80_stmt_info const&) const 
+{
+    return value;
 }
- 
+#endif
 
 }
 

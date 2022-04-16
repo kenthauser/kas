@@ -2,6 +2,7 @@
 #define KAS_TARGET_TGT_MCODE_IMPL_H
 
 #include "tgt_mcode.h"
+#include "tgt_info_fn.h"
 
 namespace kas::tgt
 {
@@ -242,9 +243,9 @@ auto tgt_defn_info_t<MCODE_T, VALUE_T, FN_BITS>::
 template <typename MCODE_T, typename VALUE_T, unsigned FN_BITS>
 auto tgt_defn_info_t<MCODE_T, VALUE_T, FN_BITS>::
     sz(stmt_info_t const& stmt_info) const
-    -> int
+    -> uint8_t 
 {
-    return defn_t::info_fns_base[fn_idx]->sz(stmt_info, value);
+    return defn_t::info_fns_base[fn_idx]->sz(stmt_info);
 }
 
 template <typename MCODE_T, typename VALUE_T, unsigned FN_BITS>
