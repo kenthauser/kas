@@ -5,6 +5,7 @@
 
 #include "z80_mcode.h"
 
+#include "target/tgt_info_fn.h"
 #include "kas_core/core_emit.h"
 #include "expr/expr_fits.h"
 
@@ -73,6 +74,8 @@ void z80_mcode_t::emit(
         // look for IX/IY arg
         for (auto const& arg : args)
         {
+            //std::cout << "z80_emit::arg = " << arg << std::endl;
+            //std::cout << "z80_emit::mode = " << +arg.mode() << std::endl;
             switch (arg.mode())
             {
                 // not index reg: continue looking
@@ -93,6 +96,7 @@ void z80_mcode_t::emit(
                 // IX/IY indirect with offset
                 case MODE_REG_OFFSET_IX:
                 case MODE_REG_OFFSET_IY:
+                    //std::cout << "IX/IY OFFSET: " << arg.expr << std::endl;
                     base << core::set_size(1) << arg.expr;
                     break;
             }
@@ -109,14 +113,19 @@ void z80_mcode_t::emit(
     for (auto& arg : args)
         arg.emit(base, sz);
 }
-
-#if 0 
-int z80_defn_info::sz(z80_stmt_info const&) const 
+#if 0
+namespace opc
 {
-    return value;
+struct z80_info_fn_default : z80_mcode_t::info_fn_t
+{
+    uint8_t sz(stmt_info_t const& stmt_info
+             , defn_info_t const& defn_info) const
+    {
+        return defn_info.value;     // size is only thing stored
+    }
+};
 }
 #endif
-
 }
 
 #endif

@@ -54,8 +54,8 @@ OBJS += bsd.o
 
 LIBS = -lboost_regex -lboost_filesystem -lboost_system
 
-TEST_EXPR_ARGS  = test/expr_tests
-TEST_PARSE_ARGS = test/parse_tests
+#TEST_EXPR_ARGS  = test/expr_tests
+#TEST_PARSE_ARGS = test/parse_tests
 TEST_EMIT_ARGS  = test/emit_tests
 
 #CXXFLAGS += -DTRACE_DO_FRAG=3
@@ -63,7 +63,7 @@ TEST_EMIT_ARGS  = test/emit_tests
 #expr.o : CXXFLAGS += -DEXPR_TRACE_EVAL
 #CXXFLAGS += -DTOKEN_TRACE
 #CXXFLAGS += -DTRACE_ARG_SERIALIZE
-##CXXFLAGS += -DTRACE_CORE_RELOC
+#CXXFLAGS += -DTRACE_CORE_RELOC
 #m68k.o : CXXFLAGS += -DTRACE_M68K_PARSE
 #CXXFLAGS += -DTRACE_ERROR_HANDLER
 

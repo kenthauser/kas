@@ -187,7 +187,7 @@ protected:
         if (auto p = arg.get_fixed_p())
         {
             auto n = *p;
-            std::cout << "tgt_val_range::range_ok: n = " << +n << ", scale = " << +scale << std::endl;
+            //std::cout << "tgt_val_range::range_ok: n = " << +n << ", scale = " << +scale << std::endl;
 
             // if zero is mapped, block it.
             if (!n && zero)
@@ -237,7 +237,7 @@ public:
         // if constant, store in opcode. substitue value for zero as required
         auto p = arg.expr.get_fixed_p();
         auto n = p ? *p : 0;
-        std::cout << "tgt_val_range: n = " << +n << ", scale = " << +scale << std::endl;
+        //std::cout << "tgt_val_range: n = " << +n << ", scale = " << +scale << std::endl;
         return n == zero ? 0 : (n >> scale);
     }
 

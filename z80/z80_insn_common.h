@@ -6,10 +6,11 @@
 // see `target/tgt_insn_common.h` for description of
 // insn definition pattern.
 
-#include "z80_formats.h"            // actual format types
-#include "z80_validate.h"           // actual validate types
+#include "z80_formats.h"            // mcode format types
+#include "z80_validate.h"           // arg validate types
 
-#include "target/tgt_insn_common.h"  // declare "trait" for definition
+#include "target/tgt_insn_common.h" // inherit base definitions
+#include "target/tgt_info_fn.h"
 
 namespace kas::z80::opc
 {
@@ -32,6 +33,15 @@ using sz_w      = meta::int_<OP_SIZE_WORD>;
 
 // XXX no "sz" fn, so no mapping
 using z80_sz_info_map = meta::list<>;
+
+struct z80_info_fn_default : z80_mcode_t::info_fn_t
+{
+    uint8_t sz(stmt_info_t const& stmt_info
+             , defn_info_t const& defn_info) const
+    {
+        return defn_info.value;     // size is only thing stored
+    }
+};
 
 #if 0
 template <typename...Ts>
@@ -76,7 +86,8 @@ struct defn
 #else
     using INFO_FN = std::conditional_t<
                         std::is_void_v<typename OP::info_fn>
-                      , typename z80_mcode_t::info_fn_t
+                      //, typename z80_mcode_t::info_fn_t
+                      , z80_info_fn_default
                       , typename OP::info_fn
                       >;
                     

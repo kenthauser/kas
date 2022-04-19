@@ -93,13 +93,13 @@ void tgt_insert_args(Inserter& inserter
         auto p = c.begin();                 // walk thru values
         auto n = m_code.code_size();
 
-        std::cout << "tgt_insert_args: info.value() = " << std::hex << stmt_info.value() << std::endl;
+        std::cout << "tgt_insert_args: info.value() = " << std::hex << +stmt_info.value() << std::endl;
         std::cout << "tgt_insert_args: base_size = " << +n;
         std::cout << ", base_code = " << std::hex;
         std::cout << std::setfill('0');
         while (n > 0)
         {
-            std::cout << std::setw(sizeof(*p) * 2) << *p++;
+            std::cout << std::setw(sizeof(*p) * 2) << +*p++;
             n -= sizeof(*p);
             if (n > 0) std::cout << "'";
         }

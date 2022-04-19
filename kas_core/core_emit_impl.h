@@ -71,15 +71,15 @@ void core_emit::emit_obj_code()
     // XXX short circuit on `reloc_p`
     if (reloc_p)
         emit_relocs();
-    
+#if 0 
     if (error_p)     
         std::cout << "core_emit::emit_obj_code: error_p set (1)" << std::endl;
-
+#endif
     // if relocs completed w/o error, emit base value
 #if 1
     if (error_p)
     {
-        std::cout << "core_emit::emit_obj_code: error_p set (2)" << std::endl;
+        //std::cout << "core_emit::emit_obj_code: error_p set (2)" << std::endl;
         (*this)(*error_p);
     }
 #else
@@ -154,9 +154,19 @@ void core_emit::operator()(core_symbol_t const& sym)
 
 void core_emit::operator()(core_expr_t const& expr)
 {
-    // add relocation & emit
-    add_reloc()(expr);
-    emit_obj_code();    
+    // if `fixed` emit as fixed
+    //std::cout << "core_emit::operator(core_expr_t const&)";
+    if (auto p = expr.get_fixed_p())
+    {  std::cout << std::endl;
+        (*this)(*p);
+    }
+    else
+    {
+        //std::cout << ": requires reloc" << std::endl;
+        // add relocation & emit
+        add_reloc()(expr);
+        emit_obj_code();    
+    }
 }
 
 template <typename T>

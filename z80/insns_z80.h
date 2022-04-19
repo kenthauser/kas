@@ -36,8 +36,6 @@
 // for shift if `X`, arg is either determined by "validator" (eg REG_A) or immediate
 // immediate arg validators can determine emit size
 
-
-
 #include "z80_insn_common.h"
 
 namespace kas::z80::opc::gen
@@ -51,8 +49,7 @@ using z80_insn_ld_l = list<list<>
 //
 // Dummy machine-code for "list" opcode
 //
-
-, defn<sz_w, STR("*LIST*"), OP<0>, FMT_LIST, REG_GEN, REG_GEN>
+, defn<sz_v, STR("*LIST*"), OP<0>, FMT_LIST, REG_GEN, REG_GEN>
 
 //
 // 8-bit load group
@@ -64,8 +61,9 @@ using z80_insn_ld_l = list<list<>
 , defn<sz_b, STR("ld"), OP<0x0a>, FMT_X_4B1, REG_A, INDIR_BC_DE>
 , defn<sz_b, STR("ld"), OP<0x02>, FMT_4B1  , INDIR_BC_DE, REG_A>
 
-, defn<sz_b, STR("ld"), OP<0x3a>, FMT_X  , REG_A, INDIR>
-, defn<sz_b, STR("ld"), OP<0x32>, FMT_X  , INDIR, REG_A>
+// load from 16-bit address. use sz_w
+, defn<sz_w, STR("ld"), OP<0x3a>, FMT_X  , REG_A, INDIR>
+, defn<sz_w, STR("ld"), OP<0x32>, FMT_X  , INDIR, REG_A>
 
 , defn<sz_b, STR("ld"), OP<0xed'57>, FMT_X, REG_A, REG_I>
 , defn<sz_b, STR("ld"), OP<0xed'5f>, FMT_X, REG_A, REG_R>
@@ -115,8 +113,8 @@ using z80_insn_ld_l = list<list<>
 // math metafunction: generate accumulator formats
 // 1) add a,b   ( (hl), (idx+n) allowed )
 // 2) add b     (a implied)
-// 5) add a,#4
-// 6) add #4    (a implied)
+// 3) add a,#4
+// 4) add #4    (a implied)
 
 template <typename NAME, uint32_t OPC, uint32_t OPC_IMMED>
 using math = list<list<>

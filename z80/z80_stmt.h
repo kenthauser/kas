@@ -5,8 +5,11 @@
 //
 // format is regular:  opcode + [(comma-separated) args]
 //
-// Opcode `name` can specify condition code and argument width
-// Thus, define an `info` to hold this information
+// For INTEL syntax:
+//      Opcode `name` can specify condition code
+// For ZILOG syntax:
+//      no `info` passed in opcde. All via args
+// Define an `info` to hold this information
 
 #include "z80_arg.h"
 #include "z80_hw_defns.h"
@@ -17,9 +20,9 @@
 namespace kas::z80
 {
 using namespace tgt::parser;
+#if 0
 // info: accumulate info from parsing insn not captured in `args`
 // NB: bitfields don't zero-init. use `aliagn_as` support type to zero-init
-#if 0
 struct z80_stmt_info_t : alignas_t<z80_stmt_info_t
                                   , uint8_t
                                   , tgt_stmt_info_t>
@@ -27,7 +30,7 @@ struct z80_stmt_info_t : alignas_t<z80_stmt_info_t
     using base_t::base_t;
 
     // no flags needed for Z80 syntax
-
+#if 0
     // get sz() (byte/word/long/etc) for a `mcode`
     uint8_t sz(z80_mcode_t const&) const;
 
@@ -41,10 +44,9 @@ struct z80_stmt_info_t : alignas_t<z80_stmt_info_t
     {
         info.print(os); return os;
     }
+#endif
 };
 #endif
-
-
 // declare result of parsing
 // NB: there are (at least) 17 variants of `ld`
 using z80_insn_t = tgt::tgt_insn_t<struct z80_mcode_t

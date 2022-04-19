@@ -301,6 +301,7 @@ bool tgt_arg_t<Derived, M, I, R, RS>
     else if (wb_p->has_reg)
         inserter(reg_p->index());
 
+    wb_p->has_data = !expr.empty();
 
     // test for floating point immediate
     if (mode() == arg_mode_t::MODE_IMMEDIATE)
@@ -316,7 +317,7 @@ bool tgt_arg_t<Derived, M, I, R, RS>
         // FALLSTHRU if not floating point, use integral processing
     }
 
-    // get size of expression
+    // save expression as required
     if (wb_p->has_data)
         return save_expr(derived().size(sz));   // calculate size in bytes
 
@@ -425,7 +426,13 @@ void tgt_arg_t<Derived, M, I, R, RS>
             ::emit_immed(core::core_emit& base, uint8_t sz) const
 {
     auto& info = immed_info(sz);
-
+#if 0
+    std::cout << "tgt_arg::emit_immed: arg = " << expr;
+    std::cout << ", sz = " << +sz;
+    std::cout << ", info.sz_bytes = " << +info.sz_bytes;
+    std::cout << ", info.flt_fmt = " << +info.flt_fmt;
+    std::cout << std::endl;
+#endif
     // test if floating point format used
     // first test if floating point support is included
     if constexpr (!std::is_void_v<e_float_t>)

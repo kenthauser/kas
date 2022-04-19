@@ -12,8 +12,8 @@ enum z80_op_size_t
 {
       OP_SIZE_WORD      // 0
     , OP_SIZE_BYTE      // 1
+    , OP_SIZE_VOID      // -- no size, maps to word
     , NUM_OP_SIZE
-    , OP_SIZE_VOID      // no size -- and not counted
 };
 
 struct z80_mcode_t : tgt::tgt_mcode_t<z80_mcode_t, z80_stmt_t, error_msg>

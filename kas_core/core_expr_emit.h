@@ -53,11 +53,12 @@ void core_expr<REF>::emit(BASE_T& base, RELOC_T& reloc, ACCUM_T& accum) const
         reloc.addend = {};          // use addend only once
     };
 
-    std::cout << "core_expr::emit: " << expr_t(*this) << std::endl;
+    //std::cout << "core_expr::emit: " << expr_t(*this) << std::endl;
     calc_num_relocs();      // pair terms, look for error
     
     // build "new" reloc for expression
     reloc.core_expr_p  = {};        // processing now
+    reloc.addend += fixed;          // add in fixed, then process terms
 
     // examine `minus` list to find `pc_rel` & subs
     auto section_p = &base.get_section();

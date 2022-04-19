@@ -175,8 +175,8 @@ public:
     void print(OS&) const;
    
     // reset static variables for each insn.
-    // sometimes ARGs depend on other ARGs. `static`s can be used to communicate
-    static void reset()  {}
+    // sometimes ARGs depend on other ARGs. statics can be used to communicate
+    static constexpr void reset()  {}
     
     // common member variables
     expr_t          expr     {}; 

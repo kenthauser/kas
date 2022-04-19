@@ -57,6 +57,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t
         {
               {  2 }        // 0: OP_SIZE_WORD
             , {  1 }        // 1: OP_SIZE_BYTE
+            , {  2 }        // 2: OP_SIZE_VOID  (eg call branch)
         };
 
    // special processing for `IX`, `IY`

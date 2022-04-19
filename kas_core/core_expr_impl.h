@@ -292,7 +292,7 @@ expr_offset_t core_expr<REF>::get_offset(core_expr_dot const* dot_ptr)
 template <typename REF>
 void core_expr<REF>::flatten()
 {
-    std::cout << "core_expr<REF>::flatten: " << expr_t(*this) << std::endl;
+    //std::cout << "core_expr<REF>::flatten: " << expr_t(*this) << std::endl;
     int n = 100;    // max loops: big number before `throw`
     for (bool done = false; !done && n; --n) {
         done = true;
@@ -307,7 +307,7 @@ void core_expr<REF>::flatten()
     if (!n)
         throw std::runtime_error("core_expr<REF>::flatten: infinite loop");
 
-    std::cout << "core_expr<REF>::flatten: reduce: " << expr_t(*this) << std::endl;
+    //std::cout << "core_expr<REF>::flatten: reduce: " << expr_t(*this) << std::endl;
     // Reduce trees. Look for same plus/minus symbols/addresses
     for (auto& p : plus)
     {
@@ -334,7 +334,7 @@ void core_expr<REF>::flatten()
     }
 
     prune();
-    std::cout << "core_expr<REF>::flatten: done: " << expr_t(*this) << std::endl;
+    //std::cout << "core_expr<REF>::flatten: done: " << expr_t(*this) << std::endl;
 }
 
 template <typename REF>
