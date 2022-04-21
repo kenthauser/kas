@@ -23,8 +23,10 @@ const char *z80_arg_t::set_mode(unsigned mode)
                 return MODE_REG_IX + is_iy;
             if (mode == MODE_REG_INDIR)
                 return MODE_REG_INDIR_IX + is_iy;
-            if (mode == MODE_REG_OFFSET)
-                return MODE_REG_OFFSET_IX + is_iy;
+            if (mode == MODE_REG_P_OFFSET)
+                return MODE_REG_P_OFFSET_IX + is_iy;
+            if (mode == MODE_REG_M_OFFSET)
+                return MODE_REG_M_OFFSET_IX + is_iy;
             return mode;
         };
 
@@ -64,12 +66,14 @@ const char *z80_arg_t::set_mode(unsigned mode)
     {
         case MODE_REG_IX:
         case MODE_REG_INDIR_IX:
-        case MODE_REG_OFFSET_IX:
+        case MODE_REG_P_OFFSET_IX:
+        case MODE_REG_M_OFFSET_IX:
             set_prefix(0xdd);
             break;
         case MODE_REG_IY:
         case MODE_REG_INDIR_IY:
-        case MODE_REG_OFFSET_IY:
+        case MODE_REG_P_OFFSET_IY:
+        case MODE_REG_M_OFFSET_IY:
             set_prefix(0xfd);
             break;
         default:
@@ -91,17 +95,28 @@ int z80_arg_t::size(uint8_t sz, expression::expr_fits const *fits_p, bool *is_si
         case MODE_REG_INDIR_IX:
         case MODE_REG_INDIR_IY:
             return 0;
-        case MODE_REG_OFFSET_IX:
-        case MODE_REG_OFFSET_IY:
+        case MODE_REG_P_OFFSET_IX:
+        case MODE_REG_M_OFFSET_IX:
+        case MODE_REG_P_OFFSET_IY:
+        case MODE_REG_M_OFFSET_IY:
             return 1;
         default:
             return base_t::size(sz, fits_p, is_signed);
     }
 }
 
+void z80_arg_t::emit(core::core_emit& base, uint8_t sz) const
+{
+    if (mode() < MODE_REG_IX)   // use generic for non-z80 specific modes
+        base_t::emit(base, sz);
+    // NB: Z80 specific modes handled by `z80_mcode_t::emit`
+}
+
+
 template <typename OS>
 void z80_arg_t::print(OS& os) const
 {
+    char offset_pfx = '+';
     switch (mode())
     {
         case MODE_DIRECT:
@@ -124,15 +139,19 @@ void z80_arg_t::print(OS& os) const
         case MODE_REG_INDIR_IY:
             os << "(" << *reg_p << ")";
             break;
-        case MODE_REG_OFFSET_IX:
-        case MODE_REG_OFFSET_IY:
+        case MODE_REG_M_OFFSET_IX:
+        case MODE_REG_M_OFFSET_IY:
+            offset_pfx = '-';
+            // FALLSTHRU
+        case MODE_REG_P_OFFSET_IX:
+        case MODE_REG_P_OFFSET_IY:
             if (auto p = get_fixed_p())
                 if (*p < 0)
                 {
-                    os << "(" << *reg_p << std::dec << *p << ")";
+                    os << "(" << *reg_p << std::dec << offset_pfx << *p << ")";
                     break;
                 }
-            os << "(" << *reg_p << "+" << std::dec << expr << ")";
+            os << "(" << *reg_p << offset_pfx << std::dec << expr << ")";
             break;
         case MODE_ERROR:
             if (err)

@@ -29,10 +29,12 @@ int16_t tgt_reg_set<Derived, Reg_t, Ref>::kind() const
 
     auto& front = ops.front();
     if (front.first == '+')
-        return -RS_OFFSET;
+        return -RS_OFFSET_PLUS;
+    if (front.first == '-')
+        return -RS_OFFSET_MINUS;
    
-    //std::cout << "tgt_regset::kind: " << front.second;
-    //std::cout << " = " << +derived().reg_kind(front.second) << std::endl;
+    std::cout << "tgt_regset::kind: " << front.second;
+    std::cout << " = " << +derived().reg_kind(front.second) << std::endl;
     return derived().reg_kind(front.second);
 }
 
@@ -41,6 +43,7 @@ template <typename Derived, typename Reg_t, typename Ref>
 auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, derived_t const& r)
     -> derived_t&
 {
+    std::cout << "tgt_regset::binop 1: op = " << op << std::endl;
     // NB: two cases mimic each other: "expr - regset" & "regset-regset"
     // NB: first case xlated to "regset + -expr"
 
@@ -53,6 +56,10 @@ auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, derived_t const& r)
     ops.insert(ops.end(), ++iter, r.ops.end());
     if (_error)
         ops.front().first = 'X';
+    
+    std::cout << "binop: result = ";
+    derived().print(std::cout);
+    std::cout << std::endl;
         
     return derived();
 }
@@ -62,7 +69,8 @@ template <typename Derived, typename Reg_t, typename Ref>
 auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, core_expr_t const& r)
     -> derived_t&
 {
-    if (kind() != -RS_OFFSET)
+    std::cout << "tgt_regset::binop 2: op = " << op << std::endl;
+    if (!is_offset())
         _error = RS_ERROR_INVALID_CLASS;
 
     // if expression is fixed, treat as an int arg.
@@ -83,6 +91,9 @@ auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, core_expr_t const& r
     if (_error)
         ops.front().first = 'X';
     
+    std::cout << "binop: result = ";
+    derived().print(std::cout);
+    std::cout << std::endl;
     return derived();
 }
 
@@ -90,7 +101,8 @@ template <typename Derived, typename Reg_t, typename Ref>
 auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, int value)
     -> derived_t&
 {
-    if (kind() != -RS_OFFSET)
+    std::cout << "tgt_regset::binop 3: op = " << op << ", r = " << value << std::endl;
+    if (!is_offset())
         _error = RS_ERROR_INVALID_CLASS;
 
     if (op == '-')
@@ -103,7 +115,10 @@ auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, int value)
     
     if (_error)
         ops.front().first = 'X';
-    
+   
+    std::cout << "binop: result = ";
+    derived().print(std::cout);
+    std::cout << std::endl;
     return derived();
 }
 
@@ -111,7 +126,7 @@ auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, int value)
 // ...unless reverse specifies new bit-position for LSB
 // example: use reverse = 16 if reg-0 is 1<<15 & reg-15 == 1<<0
 template <typename Derived, typename Reg_t, typename Ref>
-auto tgt_reg_set<Derived, Reg_t, Ref>::value(uint8_t reverse) const -> rs_value_t
+auto tgt_reg_set<Derived, Reg_t, Ref>::value(bool reverse) const -> rs_value_t
 {
     // short circuit if previously calculated
     // NB: mask can't be zero: we don't create empty regsets
@@ -193,7 +208,8 @@ void tgt_reg_set<Derived, Reg_t, Ref>::print(std::ostream& os) const
     // print register-set
     auto print_rs = [&]
         {
-            for (auto const& op : ops) {
+            for (auto const& op : ops)
+            {
                 if (op.first == '=')
                     os << "rs[";
                 else if (op.first == 'X')
@@ -208,21 +224,32 @@ void tgt_reg_set<Derived, Reg_t, Ref>::print(std::ostream& os) const
     // print offset
     auto print_offset = [&]
         {
+            auto& op = ops.front();
             // print register
-            ops.front().second.print(os);
+            op.second.print(os);
             os << "@(";
             if (_expr)
-                os << expr_t(*_expr);   // XXX _expr->print() gives link error
+            {
+                if (op.first == '-')
+                    os << '-';
+                os << expr_t(*_expr);
+            }
             else
-                os << _value;
+                os << _value;   // XXX ???
             os << ")";
         };
 
     // select register-set or offset
-    if (ops.front().first == '+')
-        print_offset();
-    else
-        print_rs();
+    switch(ops.front().first)
+    {
+        case '+':
+        case '-':
+            print_offset();
+            break;
+        default:
+            print_rs();
+            break;
+    }
 }
 
 }

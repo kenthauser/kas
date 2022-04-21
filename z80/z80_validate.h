@@ -65,8 +65,10 @@ struct val_reg_gen: z80_mcode_t::val_t
 
         case MODE_REG_INDIR_IX:
         case MODE_REG_INDIR_IY:
-        case MODE_REG_OFFSET_IX:
-        case MODE_REG_OFFSET_IY:
+        case MODE_REG_P_OFFSET_IX:
+        case MODE_REG_M_OFFSET_IX:
+        case MODE_REG_P_OFFSET_IY:
+        case MODE_REG_M_OFFSET_IY:
             return fits.yes;
         }
         return fits.no;
@@ -81,8 +83,10 @@ struct val_reg_gen: z80_mcode_t::val_t
                 break;
             case MODE_REG_INDIR_IX:
             case MODE_REG_INDIR_IY:
-            case MODE_REG_OFFSET_IX:
-            case MODE_REG_OFFSET_IY:
+            case MODE_REG_P_OFFSET_IX:
+            case MODE_REG_M_OFFSET_IX:
+            case MODE_REG_P_OFFSET_IY:
+            case MODE_REG_M_OFFSET_IY:
                 insn_size += 1;         // single byte offset
                 break;
         }
@@ -96,8 +100,10 @@ struct val_reg_gen: z80_mcode_t::val_t
             case MODE_REG_INDIR:
             case MODE_REG_INDIR_IX:
             case MODE_REG_INDIR_IY:
-            case MODE_REG_OFFSET_IX:
-            case MODE_REG_OFFSET_IY:
+            case MODE_REG_P_OFFSET_IX:
+            case MODE_REG_M_OFFSET_IX:
+            case MODE_REG_P_OFFSET_IY:
+            case MODE_REG_M_OFFSET_IY:
                 return 6;                   // register code for (HL)
             default:
                 return arg.reg_p->value(RC_GEN);
@@ -110,8 +116,10 @@ struct val_reg_gen: z80_mcode_t::val_t
         {
             case MODE_REG_INDIR_IX:
             case MODE_REG_INDIR_IY:
-            case MODE_REG_OFFSET_IX:
-            case MODE_REG_OFFSET_IY:
+            case MODE_REG_P_OFFSET_IX:
+            case MODE_REG_M_OFFSET_IX:
+            case MODE_REG_P_OFFSET_IY:
+            case MODE_REG_M_OFFSET_IY:
                 return true;
             default:
                 return false;

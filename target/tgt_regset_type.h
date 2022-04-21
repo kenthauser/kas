@@ -25,7 +25,11 @@ struct tgt_reg_set : core::kas_object<Derived, Ref>
     using token_t     = parser::token_defn_t<regset_name, Derived>;
     
     // declare errors
-    enum  { RS_ERROR_INVALID_CLASS = 1, RS_ERROR_INVALID_RANGE, RS_OFFSET };
+    // NB: register + offset indicated by "error" RS_OFFSET
+    enum  { RS_ERROR_INVALID_CLASS = 1
+          , RS_ERROR_INVALID_RANGE
+          , RS_OFFSET_PLUS
+          , RS_OFFSET_MINUS};
 
 protected:
     // Default Register-Set implementations. Override if `Derived`
@@ -57,11 +61,11 @@ public:
     tgt_reg_set(reg_t const& r, char op = '=');
 
     // need mutable operators only
-    // range ops
+    // combine range ops
     auto& operator- (derived_t const& r)     { return binop('-', r); }
     auto& operator/ (derived_t const& r)     { return binop('/', r); }
 
-    // offset ops
+    // extend regset by expression (normally a register) or integer
     auto& operator+ (core_expr_t const& r)   { return binop('+', r); }
     auto& operator- (core_expr_t const& r)   { return binop('-', r); }
     auto& operator+ (int r)                  { return binop('+', r); }
@@ -69,16 +73,17 @@ public:
 
     // calculate register-set value 
     // Reg-0 is LSB, unless reversed by `reverse` bits
-    rs_value_t value(uint8_t reverse = {}) const;
+    rs_value_t value(bool reverse = {}) const;
 
     // return RC_* for regset class.
     // NB: negative value indicates error index
     int16_t kind() const;
-    
-    bool is_offset() const { return kind() == -RS_OFFSET; }
+   
+    // true iff reg_set is valid & single register
+    bool is_single() const { return !is_error() && ops.size() == 1; }
 
-    // only valid is reg_set is not error
-    bool is_single() const { return ops.size() == 1; }
+    // true iff register + offset
+    bool is_offset() const { return kind() <= RS_OFFSET_PLUS; }
 
     const char *is_error() const
     {
@@ -111,13 +116,13 @@ public:
 private:
     // state is list of reg-set ops
     using reg_set_op = std::pair<char, reg_t>;
-    std::vector<reg_set_op> ops;
+    std::list<reg_set_op> ops;
 
     // cache expensive to calculate values
     mutable rs_value_t _value     {};
     mutable rs_value_t _value_rev {};
     mutable int16_t    _error  {};
-    core_expr_t       *_expr   {};
+    core_expr_t       *_expr   {};      // used for "offset" formats
 
     static inline core::kas_clear _c{base_t::obj_clear};
 };
@@ -134,7 +139,7 @@ auto operator- (L const& l, R const& r)
     using reg_t = typename RS::reg_t;
     static constexpr bool is_reg_t = std::is_same_v<R, reg_t> ||
                                      std::is_same_v<R, RS>;
-    return RS::add(l, (is_reg_t ? '=' : '+')).operator-(r);
+    return RS::add(l, (is_reg_t ? '=' : '-')).operator-(r);
 }
 template <typename L, typename R, typename RS = typename L::regset_t>
 auto operator/ (L const& l, R const& r)

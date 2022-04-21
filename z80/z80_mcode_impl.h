@@ -94,11 +94,20 @@ void z80_mcode_t::emit(
                     break;
                 
                 // IX/IY indirect with offset
-                case MODE_REG_OFFSET_IX:
-                case MODE_REG_OFFSET_IY:
-                    //std::cout << "IX/IY OFFSET: " << arg.expr << std::endl;
+                case MODE_REG_P_OFFSET_IX:
+                case MODE_REG_P_OFFSET_IY:
                     base << core::set_size(1) << arg.expr;
                     break;
+                case MODE_REG_M_OFFSET_IX:
+                case MODE_REG_M_OFFSET_IY:
+                {
+                    // use KBFD to negate offset expression
+                    // subtract `arg.expr` from base value of zero
+                    static kbfd::kbfd_reloc neg_offset { kbfd::K_REL_SUB() };
+                    base << core::set_size(1);
+                    base << core::emit_reloc(neg_offset) << arg.expr << 0;
+                    break;
+                }
             }
             break;  // found IX/IY -> exit `for` loop
         }
@@ -123,7 +132,7 @@ struct z80_info_fn_default : z80_mcode_t::info_fn_t
     {
         return defn_info.value;     // size is only thing stored
     }
-};
+()};
 }
 #endif
 }

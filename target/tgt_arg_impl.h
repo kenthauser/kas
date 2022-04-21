@@ -78,16 +78,16 @@ tgt_arg_t<Derived, M, I, R, RS>
 
     case arg_mode_t::MODE_REGSET:
         if constexpr (!std::is_void<regset_t>::value)
-            if (regset_p && regset_p->kind() != -regset_t::RS_OFFSET)
+            if (regset_p && regset_p->is_offset())
                 break;
         
         msg = err_msg_t::ERR_argument;
         break;
 
-    case arg_mode_t::MODE_REG_OFFSET:
+    case arg_mode_t::MODE_REG_P_OFFSET:
         if constexpr (!std::is_void<regset_t>::value)
         {
-            if (regset_p && regset_p->kind() == -regset_t::RS_OFFSET)
+            if (regset_p && regset_p->is_offset())
             {
                 reg_p = regset_p->reg_p();
                 expr = regset_p->offset();
@@ -112,14 +112,18 @@ tgt_arg_t<Derived, M, I, R, RS>
             expr = tok.expr();
             break;
         }
-        // indirect regset. must be `MODE_REG_OFFSET`
+
+        // NB: Used to support Z80. constexpr'd out for others
+        // indirect regset. must be `MODE_REG_[PM]_OFFSET`
         // Errors out if `regset_p` not RS_OFFSET
         if constexpr (!std::is_void_v<regset_t>)
         {
             // need better interface to `RS_OFFSET`
             if (regset_p && regset_p->is_offset())
             {
-                mode     = arg_mode_t::MODE_REG_OFFSET;
+                mode     = (regset_p->kind() == -regset_t::RS_OFFSET_PLUS)
+                           ? arg_mode_t::MODE_REG_P_OFFSET
+                           : arg_mode_t::MODE_REG_M_OFFSET;
                 reg_p    = regset_p->reg_p();
                 expr     = regset_p->offset();
                 regset_p = {};
@@ -234,7 +238,7 @@ int tgt_arg_t<Derived, M, I, R, RS>
             return sizeof(expression::e_data_t);
 
         // assume non-standard modes are a single signed word
-        case arg_mode_t::MODE_REG_OFFSET:
+        case arg_mode_t::MODE_REG_P_OFFSET:
         default:
             if (is_signed_p) *is_signed_p = true;
             return sizeof(expression::e_data_t);
@@ -394,7 +398,6 @@ auto tgt_arg_t<Derived, M, I, R, RS>
             base << expr;
             break;
         case arg_mode_t::MODE_REGSET:
-        case arg_mode_t::MODE_REG_OFFSET:
             base << core::set_size(sizeof(expression::e_data_t));
             base << expr;
             break;
@@ -415,6 +418,10 @@ auto tgt_arg_t<Derived, M, I, R, RS>
                 //std::cout << ", words = "  << words << std::endl;
                 if (bytes)
                     base << core::emit_disp(bytes, {}, -bytes) << expr;
+            }
+            else
+            {
+                std::cout << "tgt_arg_t::emit: no method: arg = " << *this << std::endl;
             }
             break;
     }
@@ -497,11 +504,11 @@ void tgt_arg_t<Derived, M, I, R, RS>
         case arg_mode_t::MODE_REG_INDIR:
             os << *reg_p << "@";
             break;
-        case arg_mode_t::MODE_REG_OFFSET:
+        case arg_mode_t::MODE_REG_P_OFFSET:
             if constexpr (!std::is_void_v<rs_tok>)
                 os << *reg_p << "@(" << expr << ")";
             else
-                os << "Internal: tgt_arg_t::print:: Invalid MODE_REG_OFFSET";
+                os << "Internal: tgt_arg_t::print:: Invalid MODE_REG_P_OFFSET";
             break;
         case arg_mode_t::MODE_ERROR:
             if (err)
