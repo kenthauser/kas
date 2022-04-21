@@ -1,5 +1,5 @@
-#ifndef KAS_Z80_Z80_ARG_DEFN_H
-#define KAS_Z80_Z80_ARG_DEFN_H
+#ifndef KAS_Z80_Z80_ARG_H
+#define KAS_Z80_Z80_ARG_H
 
 // Declare z80 argument & arg MODES
 
@@ -62,7 +62,7 @@ struct z80_arg_t : tgt::tgt_arg_t<z80_arg_t
         {
               {  2 }        // 0: OP_SIZE_WORD
             , {  1 }        // 1: OP_SIZE_BYTE
-            , {  2 }        // 2: OP_SIZE_VOID  (eg call branch)
+            , {  2 }        // 2: OP_SIZE_VOID  (eg call, branch)
         };
 
    // special processing for `IX`, `IY`
