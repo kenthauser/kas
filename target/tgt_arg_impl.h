@@ -25,8 +25,8 @@ template <typename Derived, typename M, typename I, typename R, typename RS>
 tgt_arg_t<Derived, M, I, R, RS>
         ::tgt_arg_t(arg_mode_t mode, kas_token const& tok, kas_position_tagged_t const& pos) : kas_position_tagged_t(pos) 
 {
-    //std::cout << "arg_t::ctor mode = " << +mode << " expr = " << expr;
-    //std::cout << " *this::loc = " << static_cast<parser::kas_loc>(*this) << std::endl;
+    std::cout << "arg_t::ctor mode = " << std::dec << +mode << " expr = " << expr;
+    std::cout << " *this::loc = " << static_cast<parser::kas_loc>(*this) << std::endl;
    
     if (!static_cast<parser::kas_loc>(*this))
         static_cast<kas_position_tagged_t>(*this) = tok;
@@ -40,7 +40,7 @@ tgt_arg_t<Derived, M, I, R, RS>
     if constexpr (!std::is_void_v<rs_tok>)
         regset_p = rs_tok(tok)();
 
-#if 0
+#if 1
     if (reg_p)
         std::cout << "tgt_arg_t::ctor: reg = " << *reg_p << std::endl;
     if (regset_p)
@@ -78,7 +78,7 @@ tgt_arg_t<Derived, M, I, R, RS>
 
     case arg_mode_t::MODE_REGSET:
         if constexpr (!std::is_void<regset_t>::value)
-            if (regset_p && regset_p->is_offset())
+            if (regset_p && !regset_p->is_offset())
                 break;
         
         msg = err_msg_t::ERR_argument;

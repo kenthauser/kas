@@ -180,7 +180,6 @@ void m68k_arg_t::extract(Reader& reader
         // register stored as index
         auto reg_idx = reader.get_fixed(sizeof(typename reg_t::reg_name_idx_t));
         reg_p = &reg_t::get(reg_idx);
-        std::cout << "extracted register: " << *reg_p << std::endl;
     } 
     
     // need to special case INDEX to match code above
@@ -246,7 +245,6 @@ void m68k_arg_t::extract(Reader& reader
     else if (mode() == MODE_REGSET)
     {
         auto rs_idx = reader.get_fixed(2);
-        std::cout << "extract: REGSET index = " << +rs_idx << std::endl;
         regset_p = &regset_t::get(rs_idx);
     }
 

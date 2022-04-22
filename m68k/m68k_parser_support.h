@@ -331,6 +331,7 @@ m68k_parsed_arg_t::operator m68k_arg_t ()
                     // is register set well formed? (ie: kind() >= 0)
                     std::cout << "m68k_parsed_arg: REGSET = " << base_value << std::endl;
                     m68k_arg_t r{ MODE_REGSET, base.token };
+                    std::cout << "m68k_parsed_arg: arg = " << r << std::endl;
 #if 0
                     // XXX not sure what this test is about.
                     std::cout << "m68k_parsed_arg: REGSET: kind = " << +rp->kind() << std::endl;

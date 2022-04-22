@@ -69,7 +69,8 @@ enum m68k_arg_mode : uint8_t
     , MODE_ERROR            // set error message (never serialized)
     , MODE_INDIRECT
     , MODE_REG_INDIR 
-    , MODE_REG_OFFSET 
+    , MODE_REG_P_OFFSET 
+    , MODE_REG_M_OFFSET 
 // Branch base mode & displacement sizes
     , MODE_BRANCH           // required: used by `tgt_opc_branch`
     , MODE_BRANCH_BYTE      // store byte displacment in insn
@@ -111,7 +112,7 @@ struct m68k_arg_t : tgt::tgt_arg_t<m68k_arg_t
     using base_t::base_t;
 
     // ctor to handle: direct, immediate, register pair, or bitfield
-    m68k_arg_t(m68k_arg_mode mode, kas_token tok = {}, kas_token outer = {})
+    m68k_arg_t(m68k_arg_mode mode, kas_token const& tok = {}, kas_token outer = {})
             :  outer(outer.expr()), base_t(mode, tok)
             {}
  
