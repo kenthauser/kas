@@ -182,7 +182,7 @@ void m68k_arg_t::extract(Reader& reader
         reg_p = &reg_t::get(reg_idx);
     } 
     
-    // need to special case INDEX to match code above
+    // need match `switch` in serialize above
     if (mode() == MODE_INDEX || mode() == MODE_PC_INDEX)
     {
         auto size = 0;
@@ -255,6 +255,18 @@ void m68k_arg_t::extract(Reader& reader
     else if (serial_p->has_data)
     {
         auto immed_size = m68k_arg_t::immed_info(sz).sz_bytes;
+
+        // NB: some formats only save 16-bits regardless of `sz`
+        switch (mode())
+        {
+            case MODE_ADDR_DISP:
+            case MODE_PC_DISP:
+            case MODE_MOVEP:
+            case MODE_IMMED_QUICK:
+                immed_size = 2;     // 16-bits only
+            default:
+                break;      // read immed value
+        }
         expr = reader.get_fixed(immed_size);
     }
 }

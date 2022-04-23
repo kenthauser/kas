@@ -267,6 +267,7 @@ namespace kas::core
             std::cout << "processing: ";
 #if    TRACE_DO_FRAG >= 3
             std::cout << std::endl;
+            std::cout << "src : " << insn.loc().where() << std::endl;
             std::cout << "raw : ";
             insn.raw(std::cout);
             std::cout << std::endl;

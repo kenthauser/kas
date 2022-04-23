@@ -9,6 +9,7 @@ short:
 
 zero	= . - short
 fixed	= 100
+    move.l  long, a2@(2)        ; coldfire: fails
 
 
 ; 1. test each addression mode for each general move

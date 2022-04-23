@@ -83,7 +83,7 @@ public:
     bool is_single() const { return !is_error() && ops.size() == 1; }
 
     // true iff register + offset
-    bool is_offset() const { return kind() <= RS_OFFSET_PLUS; }
+    bool is_offset() const { return kind() <= -RS_OFFSET_PLUS; }
 
     const char *is_error() const
     {
