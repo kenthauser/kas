@@ -697,6 +697,7 @@ VAL_GEN (GEN_PAIR,   val_pair, 1);      // gen-reg pair
 // For branches only: sizes args are size of insn, not arg
 VAL_GEN (BRANCH    ,  val_branch, 2);       // branch byte/word/long
 VAL_GEN (BRANCH_DEL,  val_branch, 0);       // branch byte/word/long DELETE-ABLE
+VAL_GEN (BRANCH_WL_DEL,  val_branch, 4, 6);    // branch      word/long DELETE-ABLE
 VAL_GEN (BRANCH_W  ,  val_branch, 4, 4);    // branch word only 
 
 VAL_GEN (CONTROL_NODIR, val_control_nodir); // allow control. disallow direct

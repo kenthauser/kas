@@ -30,39 +30,26 @@ struct m68k_sfx
 };
 
 // allow three characters to define condition code
+// actually FPU uses four -- extend `name` field
 struct ccode_defn
 {   
-#if 0
     template <unsigned N>
-    constexpr ccode_defn(const char (&name_)[N] const, uint8_t value_)
-        : ccode_defn(name_, value_, std::make_index_sequence<N-1>() {}
+    constexpr ccode_defn(const char (&name_)[N], uint8_t value_)
+        : ccode_defn(name_, value_, std::make_index_sequence<N>()) {}
 
     template <unsigned N, std::size_t...Is>
-    constexpr ccode_defn(const char (&name_)[N] const, uint8_t value_
+    constexpr ccode_defn(const char (&name_)[N], uint8_t value_
                        , std::index_sequence<Is...>)
         : name { name_[Is]... }, value(value_) {}
-#else
-        constexpr ccode_defn(const char (&name)[2], uint8_t value)
-        : name { name[0], name[1] }, value(value) {}
-        
-        constexpr ccode_defn(const char (&name)[3], uint8_t value)
-        : name { name[0], name[1], name[2] }, value(value) {}
-        
-        constexpr ccode_defn(const char (&name)[4], uint8_t value)
-        : name { name[0], name[1], name[2] }, value(value) {}
-        
-        constexpr ccode_defn(const char (&name)[5], uint8_t value)
-        : name { name[0], name[1], name[2], name[3] }, value(value) {}
-#endif
-    const char name[4];     // name of condition code (1-3 chars)
+    
+    const char name[5];     // name of condition code (1-4 chars)
     uint8_t    value;       // value of condition code for name
 };
 
 // general processor condtion codes
-// XXX fix ctor/TMP to allow single character strings
 static constexpr ccode_defn m68000_codes [] =
     { { "t"   ,  0 }
-    , { "f\0"   ,  1 }
+    , { "f"   ,  1 }
     , { "hi"  ,  2 }
     , { "ls"  ,  3 }
     , { "cc"  ,  4 }       // mit name
@@ -83,7 +70,7 @@ static constexpr ccode_defn m68000_codes [] =
 
 // floating point ccodes 
 static constexpr ccode_defn m68881_codes [] =
-    { { "f\0"   ,  0 }
+    { { "f"   ,  0 }
     , { "eq"  ,  1 }
     , { "ogt" ,  2 }
     , { "oge" ,  3 }
@@ -98,7 +85,7 @@ static constexpr ccode_defn m68881_codes [] =
     , { "ult" , 12 }
     , { "ule" , 13 }
     , { "ne"  , 14 }
-    , { "t\0"   , 15 }
+    , { "t"   , 15 }
     , { "sf"  , 16 }
     , { "seq" , 17 }
     , { "gt"  , 18 }
@@ -142,17 +129,17 @@ static constexpr ccode_defn m68851_codes [] =
 // m68k_CPID_MMU_040 = 2
 struct m68k_ccode
 {
-    enum { M68K_CC_GEN, M68K_CC_FPU, M68K_CC_MPU, NUM_CC };
+    // NB: These values *must* match CPID values in `m68k_insn_common.h`
+    enum { M68K_CC_GEN, M68K_CC_FPU, M68K_CC_MMU, NUM_CC };
     
     // DEFNS: first for `floating point`, second for `general`
     // NB: not in `enum` order
     struct ccode
     {
         const char *name;
-        int8_t fp_code  {-1};
-        int8_t gen_code {-1};
+        int8_t value[NUM_CC];
     };
-
+#if 0
     static constexpr ccode ccodes[] =
     {
       // floating point ccodes first
@@ -201,13 +188,21 @@ struct m68k_ccode
       , { "pl"  , -1    , 10 }
       , { "mi"  , -1    , 11 }
     };
-
+#endif
     // assemble via lookup
     using ccode_value_t = std::array<int8_t, NUM_CC>;
-    static auto x3() 
+#if 1
+    static auto& parser()
     {
-        x3::symbols<ccode_value_t> parser;
-
+        static auto parser_p = new x3::symbols<ccode_value_t>;
+        return *parser_p;
+    }
+#endif
+    static x3::symbols<ccode_value_t> s_parser;
+    static auto& x3() 
+    {
+        //x3::symbols<ccode_value_t> parser;
+#if 0
         auto p = m68851_codes;
         std::cout << "m68851_codes[0] = " << p->name << ", value = " << +p->value << std::endl;
 
@@ -219,18 +214,37 @@ struct m68k_ccode
             ccodes[0] = c.gen_code + 1;
             ccodes[1] = c.fp_code  + 1;
         }
-
-        return parser;
+#else
+        auto& symbol_parser = parser();
+        auto add_table = [&](ccode_defn const *p, ccode_defn const *end, unsigned cpid)
+        {
+            for (; p != end; p++)
+            {
+                auto& ccodes = symbol_parser.at(p->name);
+                ccodes[cpid] = p->value + 1;
+            }
+        };
+        
+#endif
+        add_table(m68000_codes, std::end(m68000_codes), M68K_CC_GEN);
+        add_table(m68881_codes, std::end(m68881_codes), M68K_CC_FPU);
+        add_table(m68851_codes, std::end(m68851_codes), M68K_CC_MMU);
+        return symbol_parser;
     }
 
     static int8_t code(ccode_value_t const& ccode, uint8_t cc_type)
     {
+#if 0
         return ccode.at(cc_type) - 1;     // throws if out-of-range
+#else
+        return ccode[cc_type] - 1;
+#endif
     }
 
     // disassemble via search
-    static const char *name(uint8_t code, uint8_t cc_type = M68K_CC_GEN)
+    static std::string name(uint8_t code, uint8_t cc_type)
     {
+#if 0
         int8_t ccode::*member;
 
         switch (cc_type)
@@ -250,6 +264,22 @@ struct m68k_ccode
                 return c.name;
                 
         return {};
+#else
+        ++code;     // value stored is +1
+#if 0
+        for (auto& c : ccodes)
+            if (c.value[cc_type] == code)
+                return c.name
+#endif
+        auto& sym = parser();
+        std::string result;
+        sym.for_each([&](auto name, auto d)
+            {
+                if (d[cc_type] == code)
+                    result = name;
+            });
+        return result;
+#endif
     }
 
 };

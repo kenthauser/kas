@@ -173,13 +173,39 @@ struct tgt_val_branch : tgt_val_branch_t<MCODE_T>
         return fits.no;
     }
 
+    mode_type get_mode(arg_t& arg, mcode_t const& mc, stmt_info_t const& info
+                    , expr_fits const& fits, op_size_t& op_size) const 
+    {
+        std::cout << "tgt_val_branch::get_mode: op_size = " << op_size << std::endl;
+
+        // `core_fits` requires "dot". `expr_fits` does not.
+        // require "dot" before evaluating branch displacments
+        // NB: not completely object-oriented, but it's assembly after all
+        if (dynamic_cast<core::core_fits const*>(&fits) == nullptr)
+        {
+            std::cout << "tgt_val_branch: expr_fits ignored" << std::endl;
+            op_size = derived().initial(mc);
+            return arg_mode_t::MODE_DIRECT;
+        }
+        
+        // Branch MODE is managed by `tgt_opc_branch`
+        // get underlying type so math on enum works
+        auto  mode = static_cast<mode_type>(arg.mode());
+        
+        // if not managed by `tgt_opc_branch`, mode will be "DIRECT"
+        if (mode < arg_mode_t::MODE_BRANCH)
+            mode = arg_mode_t::MODE_BRANCH;
+
+        return mode;
+    }
+
     // calculate size of branch. Use support routine common with `tgt_opc_branch`
     // `do_size` returns insn size. Convert to arg size
     fits_result size(arg_t& arg, mcode_t const&  mc, stmt_info_t const& info
                    , expr_fits const& fits, op_size_t& op_size) const override
     {
         std::cout << "tgt_val_branch::size: op_size = " << op_size << std::endl;
-
+#if 0
         // `core_fits` requires "dot". `expr_fits` does not.
         // require "dot" before evaluating branch displacments
         // NB: not completely object-oriented, but it's assembly after all
@@ -199,6 +225,11 @@ struct tgt_val_branch : tgt_val_branch_t<MCODE_T>
         // if not managed by `tgt_opc_branch`, mode will be "DIRECT"
         if (mode < arg_mode_t::MODE_BRANCH)
             mode = arg_mode_t::MODE_BRANCH;
+#else
+        auto mode = get_mode(arg, mc, info, fits, op_size);
+        if (mode < arg_mode_t::MODE_BRANCH)
+            return expr_fits::maybe;
+#endif
 
         // get "base code" size (before displacement arg)
         auto base_code_size = mc.code_size();
@@ -266,5 +297,28 @@ struct tgt_val_branch : tgt_val_branch_t<MCODE_T>
     uint8_t cfg_min, cfg_max, shift;
 };
 
+template <typename Derived, typename MCODE_T>
+struct tgt_val_branch_del : tgt_val_branch<Derived, MCODE_T>
+{
+#if 0
+        // test for insn deletion if appropriate
+        if (op_size.min == 0)
+        {
+            // test for deletion
+            // see if `offset` is just this insn
+            switch (fits.disp(dest, 0, 0, op_size.max))
+            {
+            case expression::NO_FIT:
+                op_size.min = base_code_size;
+                break;
+            case expression::DOES_FIT:
+                op_size.max = 0;
+                return fits.yes;
+            default:
+                return fits.maybe;
+            }
+        }
+#endif
+};
 }
 #endif

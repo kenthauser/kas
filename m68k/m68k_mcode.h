@@ -76,6 +76,14 @@ struct m68k_mcode_t : tgt::tgt_mcode_t<m68k_mcode_t
 
     // XXX define in `tgt_mcode_t` ?
     //using op_size_t   = core::opcode::op_size_t;
+
+    // values are defined in `m68k_insn_common`
+    unsigned get_cpid() const;
+
+    
+    // examine `defn()` to resolve tests
+    bool is_fp() const;
+    bool is_mmu() const;
  
     uint8_t     sz(stmt_info_t info) const;
 };

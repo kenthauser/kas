@@ -54,7 +54,8 @@ const char *m68k_stmt_t::validate_stmt(mcode_t const *mcode_p) const
         if (sfx_size == opc::SFX_NORMAL::value)
             return error_msg::ERR_sfx_reqd;
     }
-
+#if 0
+    XXX
     // validate "conditional" instructions
     auto sfx_ccode = defn_info & opc::SFX_CC_MASK;
     switch (sfx_ccode)
@@ -76,7 +77,7 @@ const char *m68k_stmt_t::validate_stmt(mcode_t const *mcode_p) const
             if (info.has_ccode)
                 return error_msg::ERR_no_ccode;
     }
-
+#endif
     return {};
 }
 
@@ -119,10 +120,9 @@ void m68k_stmt_info_t::print(std::ostream& os) const
     if (!sz)
         sz = 'v';
     os << "sz=" << sz;
-    
+   
     if (has_ccode)
-        if (auto p = m68k_ccode::name(ccode))
-            os << SEP_STR << "cc=" << p;
+        os << SEP_STR << "cc=" << m68k_ccode::name(ccode, cpid);
         
     os << "]";
 }

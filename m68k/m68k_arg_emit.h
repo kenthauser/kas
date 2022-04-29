@@ -66,7 +66,7 @@ void m68k_arg_t::emit(core::core_emit& base, uint8_t sz)
                 size = 4;
             else
                 size = 2;
-            
+
             // width of zero implies width is picked up from `set_size()`
             static kbfd::kbfd_reloc reloc { kbfd::K_REL_ADD(), 0, true };
             base << core::set_size(size) << core::emit_reloc(reloc) << expr << 0;

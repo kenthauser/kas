@@ -71,3 +71,16 @@ fp_short:
     fmovem.x a2@+,fp1-fp3
     fmovem.x fp1-fp3/fp5/fp7, a2@-
     fmovem.x a2@,fp1-fp3/fp5/fp7
+
+1:  ftrapeq 
+    ftrapogt.w    #1
+    ftrapoge.l    #20
+    fsolt         d3
+    fssne         d5
+    fsngle.b        d5
+    fsngle.w       d6
+    fdbor         d4, 1b
+    fbun          1b        ;  un  = 8
+    fjueq         1b        ;  ueq = 9
+    fjugt           external ; ugt = 10
+    nop

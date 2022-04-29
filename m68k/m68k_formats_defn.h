@@ -102,6 +102,23 @@ struct fmt_displacement : m68k_mcode_t::fmt_t::fmt_impl
         }
     }
 };
+struct fmt_cp_displacement : m68k_mcode_t::fmt_t::fmt_impl
+{
+    using val_t = m68k_mcode_t::val_t;
+   
+    // branch `machine code` insertions handled by `emit_reloc`
+    void emit_reloc(core::core_emit& base, uint16_t *op, m68k_arg_t& arg, val_t const *val_p) const override
+    {
+        std::cout << "fmt_cp_displacement: is_byte = " << std::boolalpha;
+        std::cout << (arg.mode() == MODE_BRANCH_BYTE) << std::endl;
+        std::cout << "fmt_cp_displacement: is_long = " << std::boolalpha;
+        std::cout << (arg.mode() == MODE_BRANCH_LONG) << std::endl;
+        std::cout << (arg.mode() == MODE_BRANCH_LONG) << std::endl;
+        // calculate size here
+        if (arg.mode() == MODE_BRANCH_LONG)
+            op[0] |= 1 << 6;        // flag long displacement
+    }
+};
 
 
 // Format PAIRs: Must specify offsets. Default is 3-bits in WORD1

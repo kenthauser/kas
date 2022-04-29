@@ -45,9 +45,11 @@ using m68k_math_v = list<list<>
 using m68k_branch_cc_v = list<list<>
 
 // trap
-, defn<cc_v , STR("trap"), OP<0x50fc, m68020>>
-, defn<cc_wv, STR("trap"), OP<0x50fa, m68020>, FMT_X, Q_IMMED16>    // allow signed
-, defn<cc_l , STR("trap"), OP<0x50fb, m68020>, FMT_X, IMMED>
+, defn<sz_v , STR("trap"), OP<0x50fc, m68020, INFO_CCODE_NORM>>
+, defn<sz_wv, STR("trap"), OP<0x50fa, m68020, INFO_CCODE_NORM>
+                                , FMT_X, Q_IMMED16>    // allow signed
+, defn<sz_l , STR("trap"), OP<0x50fb, m68020, INFO_CCODE_NORM>
+                                , FMT_X, IMMED>
 
 // other '020 branch/returns
 , defn<sz_v, STR("callm"), OP<0x06c0'0000, callm>, FMT_I8_0RM, Q_8BITS, CONTROL>

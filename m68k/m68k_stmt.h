@@ -25,12 +25,22 @@ struct m68k_stmt_info_t : alignas_t<m68k_stmt_info_t
                                   , tgt_stmt_info_t>
 {
     using base_t::base_t;
+    static constexpr auto CC_RAW_BITS = 6;
+
+    m68k_stmt_info_t(value_t cc_raw, struct m68k_mcode_t& mc);
 
     // get sz() (byte/word/long/etc) for a `mcode`
     uint8_t sz(m68k_mcode_t const&) const;
 
     // test if mcode supported for `info`
     const char *ok(m68k_mcode_t const&) const;
+
+    value_t get_cc_raw() const
+    {
+        return has_ccode ? ((1 << 5) | ccode) : 0;
+    }
+
+    void set_cc_raw(value_t cc_raw, struct m68k_mcode_t& mc);
 
     // format `info`
     void print(std::ostream&) const;
@@ -45,14 +55,30 @@ struct m68k_stmt_info_t : alignas_t<m68k_stmt_info_t
     value_t has_ccode : 1;      // is conditional
     value_t fp_ccode  : 1;      // is floating point conditional
     value_t is_fp     : 1;      // is floating point insn
+    value_t cpid      : 2;      // cpid (for ccode, etc)
 };
 
 // declare result of parsing
 // NB: there are (at least) 17 variants of `XXX.l`
+#if 0
+struct m68k_insn_t : tgt::tgt_insn_t<struct m68k_mcode_t
+                                  , hw::m68k_hw_defs
+                                  , KAS_STRING("M68K")
+                                  >
+{
+    using base_t = tgt_insn_t;
+    using base_t::base_t;
+//    using base = tgt::tgt_insn_t;
+//    using base_t::base_t;
+    
+    unsigned get_arch() const;
+};
+#else
 using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t
                                   , hw::m68k_hw_defs
                                   , KAS_STRING("M68K")
                                   >;
+#endif
 
 struct m68k_stmt_t : tgt_stmt<m68k_stmt_t
                             , m68k_insn_t
@@ -83,7 +109,10 @@ struct m68k_stmt_t : tgt_stmt<m68k_stmt_t
         //        return false;
         // }
     }
-    
+   
+    // return if `stmt` is CPID insn
+    uint8_t get_cpid_arch() const;
+
     // save "width" suffix (eg ".w") as token (for diagnostics)
     kas::parser::kas_position_tagged width_tok;
 };

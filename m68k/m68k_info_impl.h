@@ -268,8 +268,8 @@ struct info_add_ccode_t: m68k_info_fn_base
 {
     using value_t = uint8_t;
 
-    constexpr info_add_ccode_t(value_t WORD, value_t BIT, value_t IS_FP)
-                : word {WORD}, bit {BIT}, is_fp(IS_FP)  {}
+    constexpr info_add_ccode_t(value_t WORD, value_t BIT, value_t BITS)
+                : word {WORD}, bit {BIT}, is_fp(BITS > 4)  {}
     
     
     void insert(code_t& code
@@ -277,16 +277,17 @@ struct info_add_ccode_t: m68k_info_fn_base
               , defn_info_t const& defn_info) const override
     {
         //std::cout << "info_add_ccode_t: insert";
-        code[word] |= (stmt_info.ccode & 0xf) << bit;
+        auto mask = is_fp ? 0x1f : 0xf;
+        code[word] |= (stmt_info.ccode & mask) << bit;
     }
     
     stmt_info_t extract(mcode_size_t const *code_p
                       , defn_info_t const& defn_info) const override
     {
         //std::cout << "info_add_ccode_t: extract" << std::endl;
+        auto mask = is_fp ? 0x1f : 0xf;
         auto ccode = code_p[word] >> bit;
-             ccode &= (is_fp ? 0x1f : 0xf);
-
+             ccode &= mask;
         stmt_info_t info{};
         
         // create `info` from `defn` & cc bits 
@@ -302,22 +303,22 @@ struct info_add_ccode_t: m68k_info_fn_base
 private:
     value_t word  : 1;
     value_t bit   : 4;
-    value_t is_fp : 1;   // is FP
+    value_t is_fp : 1;      // fp is 5 bits. gen is 4 bits
 };
 
 // extra indirection to reduce template code bloat
-template <int WORD, int BIT, int IS_FP>
+template <int WORD, int BIT, int BITS>
 struct info_add_ccode : info_add_ccode_t
 {
     using base_t = info_add_ccode_t;
 
-    constexpr info_add_ccode() : base_t(WORD, BIT, IS_FP) {}
+    constexpr info_add_ccode() : base_t(WORD, BIT, BITS) {}
 };
 
-// declare types used in INSN definitions
-using INFO_CCODE_NORM  = info_add_ccode<0,  8, 0>;
-using INFO_CCODE_FP    = info_add_ccode<0,  0, 1>;
-using INFO_CCODE_FP1   = info_add_ccode<1,  0, 1>;
+// declare condition-code types used in INSN definitions
+using INFO_CCODE_NORM  = info_add_ccode<0,  8, 4>;  // GENERAL
+using INFO_CCODE_FP0   = info_add_ccode<0,  0, 5>;  // FLT word zero
+using INFO_CCODE_FP1   = info_add_ccode<1,  0, 5>;  // FLT word one
 
 }
 #endif

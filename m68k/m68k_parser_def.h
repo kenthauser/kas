@@ -352,17 +352,28 @@ auto gen_stmt = [](auto& ctx)
         auto& insn_tok = boost::fusion::at_c<0>(parts);
         auto& ccode    = boost::fusion::at_c<1>(parts);
         auto& width    = boost::fusion::at_c<2>(parts);
-     
+
         // all (and only) floating point insns begin with `f`
         // NB: less obvious than `std::tolower()`, but faster for specific case
         info.is_fp = (insn_tok.begin()[0] | ('f' - 'F')) == 'f';
 
         if (ccode)
         {
+            // need to determine which `ccode` to extract
+            auto& insn     = *m68k_stmt_t::insn_tok_t(insn_tok)();
+            auto  mcode_p  = insn.get_first_mcode_p();
+            if (mcode_p)
+            {
+                info.cpid     = mcode_p->get_cpid();
+                std::cout << "parser::gen_stmt: cpid = " << std::hex << info.cpid << std::endl;
+            }
+     
             // different condition code maps for general & fp insns
             info.has_ccode = true;
             info.fp_ccode  = info.is_fp;
-            auto code = m68k_ccode::code(*ccode, info.fp_ccode);
+            auto code = m68k_ccode::code(*ccode, info.cpid);
+
+            std::cout << "parser:get_ccode = " << +code << std::endl;
 
             if (code < 0)
             {

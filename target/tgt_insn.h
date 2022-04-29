@@ -43,6 +43,7 @@ template <typename MCODE_T
         >
 struct tgt_insn_t
 {
+    using base_t    = tgt_insn_t;
     using mcode_t   = MCODE_T;
     using hw_defs   = HW_DEFS;
     using hw_tst    = typename hw_defs::hw_tst;
@@ -130,6 +131,15 @@ struct tgt_insn_t
         if (auto p = mcodes_p[cur_arch])
             return *p;
         return empty;
+    }
+
+    // used when parsing `stmt` to find proper ccode, etc
+    mcode_t const *get_first_mcode_p() const
+    {
+        auto& v = mcodes();
+        if (!v.empty())
+            return v.front();
+        return {};
     }
 
     std::string name;           // name may be "calculated" from base/sfx/etc

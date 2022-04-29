@@ -145,7 +145,8 @@ struct FMT_LIST     : fmt_list, arg1_0, arg2_3 {};
 
 
 // branch formats have implied argument format
-struct FMT_BRANCH   : fmt_branch, fmt_arg<1, fmt_displacement> {};
+struct FMT_BRANCH    : fmt_branch, fmt_arg<1, fmt_displacement   > {};
+struct FMT_CP_BRANCH : fmt_branch, fmt_arg<1, fmt_cp_displacement> {};
 
 // {cp}dbcc have single argument
 struct FMT_DBCC     : fmt_dbcc,    arg1_0 {};

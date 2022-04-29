@@ -109,18 +109,27 @@ constexpr bool SINGLE_SZ = !(SZs & (SZs - 1));
 
 // Generate value stored in `m68k_defn_info`
 // NB: 4 MSBs of 16-bit `SZ` used to hold `INFO_SIZE` fn index
-using SFX_NORMAL        = meta::int_<0x0000>;    // sfx required
-using SFX_OPTIONAL      = meta::int_<0x0100>;    // sfx optional
-using SFX_CANON_NONE    = meta::int_<0x0200>;    // no sfx is canonical
-using SFX_NONE          = meta::int_<0x0300>;    // sfx prohibited
+using SFX_NORMAL        = meta::int_<0x0000>;   // sfx required
+using SFX_OPTIONAL      = meta::int_<0x0100>;   // sfx optional
+using SFX_CANON_NONE    = meta::int_<0x0200>;   // no sfx is canonical
+using SFX_NONE          = meta::int_<0x0300>;   // sfx prohibited
 // ccode allowed uses two bits. only 2-of-3 values assigned
-using SFX_CCODE         = meta::int_<0x0400>;    // CCODE req'd  NO T/F
-using SFX_CCODE_ALL     = meta::int_<0x0c00>;    // CCODE req'd: all codes
-using SFX_unassigned    = meta::int_<0x0800>;    // available code
+using SFX_CCODE         = meta::int_<0x0400>;   // CCODE req'd  NO T/F
+using SFX_CCODE_ALL     = meta::int_<0x0c00>;   // CCODE req'd: all codes
+using SFX_unassigned    = meta::int_<0x0800>;   // available code
 
-static constexpr auto SFX_SZ_MASK = 0x300; // flag mask to test SFX codes
-static constexpr auto SFX_CC_MASK = 0xc00; // flag mask to test CC codes
+// `arch` values are not in TMP metafunctions. just declare values
+// NB: values much match those in `m6k_stmt_flags` ccode defns
+static constexpr auto SFX_CPID_FPU  = 0x0400;   // FPU instruction
+static constexpr auto SFX_CPID_MMU  = 0x0800;   // MMU instruction
+static constexpr auto SFX_CPID_unassigned = 0xc00;
 
+
+static constexpr auto SFX_SZ_MASK    = 0x00ff;  // mask to test SFX codes
+static constexpr auto SFX_CANON_MASK = 0x0300;  // mask for canonical display
+static constexpr auto SFX_CPID_MASK  = 0x0c00;  // mask for coprocessor insns
+static constexpr auto SFX_CPID_SHIFT = 10;      // bits
+ 
 using sz_void   = m68k_sizes<SFX_NONE>;
 
 using sz_lwb = m68k_sizes<SFX_NORMAL, OP_SIZE_LONG, OP_SIZE_WORD, OP_SIZE_BYTE>;
@@ -151,13 +160,16 @@ using sz_vb   = m68k_sizes<SFX_CANON_NONE  , OP_SIZE_BYTE>;
 // set size field, but no suffix (capital W/L). not common.
 using sz_W    = m68k_sizes<SFX_NONE        , OP_SIZE_WORD>;
 using sz_L    = m68k_sizes<SFX_NONE        , OP_SIZE_LONG>;
-
+#if 0
 // condition code instructions
 using cc_v    = meta::int_<SFX_CCODE_ALL::value | sz_v ::value>;
 using cc_vb   = meta::int_<SFX_CCODE_ALL::value | sz_vb::value>;
 using cc_wv   = meta::int_<SFX_CCODE_ALL::value | sz_vw::value>;
 using cc_l    = meta::int_<SFX_CCODE_ALL::value | sz_l ::value>;
 using cx_v    = meta::int_<SFX_CCODE    ::value | sz_v ::value>;
+#endif
+
+using INFO_CCODE_NOTF = INFO_CCODE_NORM;
 
 // definition macro: INFO, NAME, OP, plus optional FMT & VALIDATORS
 template <typename INFO, typename NAME, typename OP
@@ -167,7 +179,7 @@ struct defn
     // look at `INFO` to pick appropriate `INFO_FN`
     static constexpr bool is_default   = std::is_void_v<typename OP::info_fn>;
     static constexpr bool is_single_sz = SINGLE_SZ<INFO>;
-    static constexpr bool is_cond      = INFO::value & SFX_CCODE_ALL::value;
+//    static constexpr bool is_cond      = INFO::value & SFX_CCODE_ALL::value;
     static constexpr auto fp_types     = ((1 << OP_SIZE_SINGLE)
                                          |(1 << OP_SIZE_XTND  )
                                          |(1 << OP_SIZE_PACKED)
@@ -179,19 +191,21 @@ struct defn
     using INFO_FN = std::conditional_t<
                           // if specified, use named `info_fn`
                           !is_default, typename OP::info_fn
+    #if 0
                        , std::conditional_t<
                           // if conditional insn, use CCODE_NORM
                           is_cond, INFO_CCODE_NORM
                        , std::conditional_t<
                           // if floating point, use INFO_SIZE_FLT
                           is_fp, INFO_SIZE_FLT
+    #endif
                        , std::conditional_t<
                           // if single width, use SIZE_VOID
                           is_single_sz, INFO_SIZE_VOID
                        ,
                           // default: INFO_SIZE_NORM
                           INFO_SIZE_NORM
-                       >>>>;
+                       >>;
    
     // forward to `tg_mcode_adder`
     using type = meta::list<INFO

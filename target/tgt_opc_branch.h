@@ -134,7 +134,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         arg.emit(base, {});     // sz derived from `MODE`
     }
 
-    static constexpr auto BRANCH_MODE_MASK = 0xf;   // allow 4 bits
+    static constexpr auto BRANCH_MODE_MASK = 0x7;   // allow 3 bits
     virtual arg_mode_t extract_branch_mode(mcode_size_t *code_p) const
     {
         auto mode  = code_p[0] & BRANCH_MODE_MASK;
@@ -178,11 +178,12 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         
         // serialize format (for branch instructions)
         // 1) mcode index
-        // 2) mcode binary data
+        // 2) (stmt_info.ccode << 3) | (branch_mode offset)
         // 3) destination 
         
         auto inserter = base_t::tgt_data_inserter(data);
         inserter(mcode.index);
+#if 0
         auto machine_code = mcode.code(stmt_info);
         auto code_p       = machine_code.data();
 
@@ -194,20 +195,23 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         for (auto& arg : args)
             if (&arg != last_p)
                 mcode.fmt().insert(n++, code_p, arg, &*val_iter++);
-
+#endif
+        // create "code" buffer: 8-bits, containing condition code & br mode
+        mcode_size_t code[1]  = { uint8_t(stmt_info.ccode << 3) };
+        
         // retrieve destination address (always last)
         auto& dest = args.back().expr;
         
         // calculate initial insn size
-        do_initial_size(data, mcode, code_p, dest, stmt_info, expr_fits{});
-
+        do_initial_size(data, mcode, code, dest, stmt_info, expr_fits{});
         // all jump instructions have condition-code/size/etc in first word 
-        inserter(*code_p);          // insert machine code: one word
-
+        inserter(code[0]);          // insert machine code: one word
+#if 0
         // if `sizeof(*code_p)` is byte, add second byte 
         if constexpr (sizeof(*code_p) == 1)
             inserter(0, 1);         // second byte
-        
+#endif
+
         inserter(std::move(dest)); // save destination address
         return this;
     }

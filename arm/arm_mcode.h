@@ -49,7 +49,7 @@ struct arm_mcode_size_t : tgt::tgt_mcode_size_t
     using val_idx_t     = uint16_t;
     using val_c_idx_t   = uint16_t;
 
-    // lots of parsed data: 32-bits & 16-bits of fns
+    // lots of parsed data: use 32-bit `defn` with 16-bits of fns
     using defn_info_value_t = uint32_t;
     static constexpr auto defn_info_fn_bits = 16;
 };

@@ -7,6 +7,23 @@
 
 namespace kas::m68k
 {
+
+// test for CPID instruction
+bool m68k_mcode_t::is_fp() const
+{   
+    return (defn().info.value & opc::SFX_CPID_MASK) == opc::SFX_CPID_FPU;
+}
+bool m68k_mcode_t::is_mmu() const
+{   
+    return (defn().info.value & opc::SFX_CPID_MASK) == opc::SFX_CPID_MMU;
+}
+
+unsigned m68k_mcode_t::get_cpid() const
+{
+    std::cout << "mcode_defn::value = " << std::hex << defn().info.value << std::endl;
+    return (defn().info.value & opc::SFX_CPID_MASK) >> opc::SFX_CPID_SHIFT;
+}
+
 // determine size of immediate arg
 uint8_t m68k_mcode_t::sz(stmt_info_t info) const
 {
