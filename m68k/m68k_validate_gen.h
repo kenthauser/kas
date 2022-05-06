@@ -79,7 +79,7 @@ struct val_dir_long : m68k_mcode_t::val_t
         return fits.no;
     }
 
-    fits_result size(m68k_arg_t& arg, m68k_mcode_t const& mc, m68k_stmt_info_t const& info
+    fits_result size(m68k_arg_t& arg, uint8_t sz
                    , expr_fits const& fits, op_size_t& op_size) const override
     {
         op_size += 4;
@@ -87,7 +87,7 @@ struct val_dir_long : m68k_mcode_t::val_t
     }
 };
 
-struct val_branch : tgt::opc::tgt_val_branch<val_branch, m68k_mcode_t>
+struct val_branch : tgt::opc::tgt_val_branch<m68k_mcode_t>
 {
     using base_t::base_t; 
     
@@ -102,14 +102,17 @@ struct val_branch : tgt::opc::tgt_val_branch<val_branch, m68k_mcode_t>
         return fits.no;
     }
 
+    // override `tgt_val_branch` method
     constexpr uint8_t max(m68k_mcode_t const& mc) const
     {
-        if (hw::cpu_defs[hw::branch_long{}])
-            return mc.code_size() + 2;
-        return base_t::max(mc);
+        if (!hw::cpu_defs[hw::branch_long{}])
+            return 2;       // allow branch_word
+        // XXX return base_t::max(mc);
+        return 4;
     }
-    
 };
+
+using val_branch_del = tgt::opc::tgt_val_branch_del<m68k_mcode_t>;
 
 // NO_PC disallows "pc indirect". Designed for `branch` instructions
 // where there is always a better `branch` insn
@@ -140,7 +143,7 @@ struct val_movep : m68k_mcode_t::val_t
                 return fits.no;
         }
     }
-    fits_result size(m68k_arg_t& arg, m68k_mcode_t const& mc, m68k_stmt_info_t const& info
+    fits_result size(m68k_arg_t& arg, uint8_t sz
                    , expr_fits const& fits, op_size_t& op_size) const override
     {
         arg.set_mode(MODE_MOVEP);
@@ -495,7 +498,7 @@ struct val_mmu_reg : m68k_mcode_t::val_t
     
     // MMU registers require various size args. number is encoded in reg_value
     // Test for size mismatch
-    fits_result size(m68k_arg_t& arg, m68k_mcode_t const& mc, m68k_stmt_info_t const& info
+    fits_result size(m68k_arg_t& arg, uint8_t sz
                    , expr_fits const& fits, op_size_t& op_size) const override
     {
         // info about arg encoded in value
@@ -503,7 +506,7 @@ struct val_mmu_reg : m68k_mcode_t::val_t
         auto reg_bytes = value >> 8;
 
         // check for match
-        switch (info.sz(mc))
+        switch (sz)
         {
             case OP_SIZE_BYTE: if (reg_bytes == 1) return fits.yes; break;
             case OP_SIZE_WORD: if (reg_bytes == 2) return fits.yes; break;
@@ -697,8 +700,8 @@ VAL_GEN (GEN_PAIR,   val_pair, 1);      // gen-reg pair
 // For branches only: sizes args are size of insn, not arg
 VAL_GEN (BRANCH    ,  val_branch, 2);       // branch byte/word/long
 VAL_GEN (BRANCH_DEL,  val_branch, 0);       // branch byte/word/long DELETE-ABLE
-VAL_GEN (BRANCH_WL_DEL,  val_branch, 4, 6);    // branch      word/long DELETE-ABLE
-VAL_GEN (BRANCH_W  ,  val_branch, 4, 4);    // branch word only 
+VAL_GEN (BRANCH_WL_DEL,  val_branch_del, 2, 4);    // branch      word/long DELETE-ABLE
+VAL_GEN (BRANCH_W  ,  val_branch, 2, 4);    // branch word only 
 
 VAL_GEN (CONTROL_NODIR, val_control_nodir); // allow control. disallow direct
 

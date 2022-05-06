@@ -64,37 +64,41 @@ struct tgt_opc_branch : MCODE_T::opcode_t
 
     virtual void do_initial_size(data_t&             data
                             , mcode_t const&         mcode
-                            , mcode_size_t          *code_p
                             , expr_t const&          dest
-                            , stmt_info_t const&     info
+                            , stmt_info_t&           info
                             , expr_fits const& fits) const 
     {
+        // calulate base instruction size
+        data.size = mcode.code_size();
+      
         // set arg::mode() to `MODE_BRANCH`, and then evaluate
-        insert_branch_mode(code_p, arg_mode_t::MODE_BRANCH);
-        return do_calc_size(data, mcode, code_p, dest, info, fits);
+        return do_calc_size(data, mcode, dest, info, arg_mode_t::MODE_DIRECT, fits);
     }
 
     virtual void do_calc_size(data_t&                data
                             , mcode_t const&         mcode
-                            , mcode_size_t          *code_p
                             , expr_t const&          dest
-                            , stmt_info_t const&     info
+                            , stmt_info_t&           info
+                            , unsigned               arg_mode
                             , expr_fits const& fits) const 
     {
         // NB: arg ctors require `kas_token` to set `kas_position_t`
         // for this eval, just set `mode` and `expr`
         arg_t arg;
         arg.expr = dest;
-        arg.set_mode(extract_branch_mode(code_p));
+        arg.set_mode(arg_mode);
         std::cout << "do_calc_size: mode = " << +arg.mode() << ", arg = " << arg << std::endl;
+
+        // initialize base-code size
+        data.size = mcode.base_size();
 
         // ask displacement validator (always last) to calculate size
         auto dest_val_p = mcode.vals().last();
-        dest_val_p->size(arg, mcode, info, fits, data.size);
+        dest_val_p->size(arg, info.sz(mcode), fits, data.size);
         std::cout << "do_calc_size: result mode = " << +arg.mode() << std::endl;
 
         // save resulting BRANCH_MODE for next iteration (or emit)
-        insert_branch_mode(code_p, arg.mode());
+        save_branch(info, arg.mode());
     }
 
     virtual void do_emit     (data_t const&          data
@@ -102,7 +106,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
                             , mcode_t const&         mcode
                             , mcode_size_t          *code_p
                             , expr_t const&          dest
-                            , arg_mode_t             arg_mode) const
+                            , unsigned               arg_mode) const
     {
 
 
@@ -134,20 +138,37 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         arg.emit(base, {});     // sz derived from `MODE`
     }
 
-    static constexpr auto BRANCH_MODE_MASK = 0x7;   // allow 3 bits
-    virtual arg_mode_t extract_branch_mode(mcode_size_t *code_p) const
+    // XXX can turn into virtual fn if can get types for reader/writer
+    template <typename INSERTER>
+    void save_info_mode(INSERTER& inserter, stmt_info_t& info
+                      , unsigned mode = {}) const
     {
-        auto mode  = code_p[0] & BRANCH_MODE_MASK;
-        return static_cast<arg_mode_t>(mode + arg_mode_t::MODE_BRANCH);
+        // mode saved in `stmt_info` & inits to zero
+        // get raw memory buffer to store data
+        // NB: memory buffer guaranteed to have proper size and alignment
+        inserter.reserve(sizeof(stmt_info_t), alignof(stmt_info_t));
+        inserter(info.value());
     }
 
-    virtual void insert_branch_mode(mcode_size_t *code_p, uint8_t mode) const
+    template <typename READER>
+    std::pair<stmt_info_t *, unsigned> get_info_mode(READER& reader) const
     {
-        // clear previous mode
-        code_p[0] &=~ BRANCH_MODE_MASK;
-        // insert new mask
-        code_p[0] +=  mode - arg_mode_t::MODE_BRANCH;
+        // get pointer to raw buffer holding `stmt_info`
+        // NB: memory buffer guaranteed to have proper size and alignment
+        reader.reserve(sizeof(stmt_info_t), alignof(stmt_info_t));
+        void *p = reader.get_fixed_p(sizeof(stmt_info_t));
+        auto stmt_info_p = static_cast<stmt_info_t *>(p);
+        unsigned mode = stmt_info_p->get_raw_branch() + arg_mode_t::MODE_BRANCH;
+        return { stmt_info_p, mode };
     }
+    
+    void save_branch(stmt_info_t& info, unsigned data) const
+    {
+        // save MODE_BRANCH *offset*, not actual mode
+        if (data >= arg_mode_t::MODE_BRANCH)
+            info.set_raw_branch(data - arg_mode_t::MODE_BRANCH);
+    }
+
 
     // generic methods
     core::opcode *gen_insn(
@@ -183,35 +204,13 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         
         auto inserter = base_t::tgt_data_inserter(data);
         inserter(mcode.index);
-#if 0
-        auto machine_code = mcode.code(stmt_info);
-        auto code_p       = machine_code.data();
-
-        // Insert args into machine code "base" value
-        // NB: don't bother with last
-        auto val_iter = mcode.vals().begin();
-        auto last_p = &args.back();
-        unsigned n = 0;
-        for (auto& arg : args)
-            if (&arg != last_p)
-                mcode.fmt().insert(n++, code_p, arg, &*val_iter++);
-#endif
-        // create "code" buffer: 8-bits, containing condition code & br mode
-        mcode_size_t code[1]  = { uint8_t(stmt_info.ccode << 3) };
         
         // retrieve destination address (always last)
         auto& dest = args.back().expr;
         
         // calculate initial insn size
-        do_initial_size(data, mcode, code, dest, stmt_info, expr_fits{});
-        // all jump instructions have condition-code/size/etc in first word 
-        inserter(code[0]);          // insert machine code: one word
-#if 0
-        // if `sizeof(*code_p)` is byte, add second byte 
-        if constexpr (sizeof(*code_p) == 1)
-            inserter(0, 1);         // second byte
-#endif
-
+        do_initial_size(data, mcode, dest, stmt_info, expr_fits{});
+        save_info_mode(inserter, stmt_info);
         inserter(std::move(dest)); // save destination address
         return this;
     }
@@ -225,17 +224,14 @@ struct tgt_opc_branch : MCODE_T::opcode_t
 
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
-        auto  code_p = reader.get_fixed_p(sizeof(mcode_size_t));
+        auto [info_p, mode] = get_info_mode(reader);
         auto& dest   = reader.get_expr();
-        auto  mode   = extract_branch_mode(code_p);
-
-        auto  info   = mcode.extract_info(code_p);
         
         // print "name"
         os << mcode.defn().name();
         
         // ...print opcode...
-        os << std::hex << " " << std::setw(mcode.code_size()) << +*code_p;
+        //os << std::hex << " " << std::setw(mcode.code_size()) << +*code_p;
 
         // ...destination...
         os << " : " << dest;
@@ -244,7 +240,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         os << ", mode = " << std::dec << +mode;
 
         // ...and info
-        os << " ; info = " << info;
+        os << " ; info = " << *info_p;
     }
 
     op_size_t calc_size(data_t& data, core::core_fits const& fits) const override
@@ -252,36 +248,31 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         // deserialize insn data
         // format:
         //  1) opcode index
-        //  2) destination as expression
-
+        //  2) data word (default: `stmt_info`)
+        //  3) destination as expression
+        
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
-        auto  code_p = reader.get_fixed_p(sizeof(mcode_size_t));
+        auto [info_p, mode] = get_info_mode(reader);
         auto& dest   = reader.get_expr();
         
-        auto  info   = mcode.extract_info(code_p);
-
-        do_calc_size(data, mcode, code_p, dest, info, fits);
+        do_calc_size(data, mcode, dest, *info_p, mode, fits);
         return data.size; 
     }
 
     void emit(data_t const& data, core::core_emit& base, core::core_expr_dot const *dot_p) const override
     {
-        auto  reader  = base_t::tgt_data_reader(data);
-        auto& m_code  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
-        auto  code_p  = reader.get_fixed_p(sizeof(mcode_size_t));
-        auto& dest    = reader.get_expr();
+        auto  reader = base_t::tgt_data_reader(data);
+        auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(MCODE_T::index)));
+        auto [info_p, mode] = get_info_mode(reader);
+        auto& dest   = reader.get_expr();
         
-        // extract encoded info from machine code
-        auto info     = m_code.extract_info(code_p);
-        auto arg_mode = extract_branch_mode(code_p);
-
-        // generate code using extracted `info`
-        auto code_buf = m_code.code(info);  // generate full opcode
+        // generate code using recovered `info`
+        auto code_buf = mcode.code(*info_p);  // generate full opcode
        
         // check for deleted instruction
         if (data.size())
-            do_emit(data, base, m_code, code_buf.data(), dest, arg_mode);
+            do_emit(data, base, mcode, code_buf.data(), dest, mode);
     }
 };
 }

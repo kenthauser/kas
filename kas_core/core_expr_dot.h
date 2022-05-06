@@ -157,6 +157,7 @@ struct core_expr_dot
 
     bool seen_this_pass(core_fragment const *expr_frag_p, addr_offset_t const *p) const
     {
+        std::cout << "core_expr_dot::seen_this_pass()" << std::endl; 
         // since can't org backwards, frags are allocated in order.
         // ...older frag means has seen
         if (*expr_frag_p < *frag_p)
@@ -166,14 +167,17 @@ struct core_expr_dot
         if (expr_frag_p != frag_p)
             return false;
         
+        std::cout << "core_expr_dot::seen_this_pass: max = " << std::dec << +p->max
+                  << ", dot_offset.max = " << +dot_offset.max
+                  << ", cur_delta.max = " << +cur_delta.max << std::endl; 
+        
         // ...in same frag, there are two invariants:
         // 1. first invariant: max is always increasing. Thus if `dot`.max has
         //      exceeded corrected `addr` max, we've seen it.
         // 2. second invariant: `min` <= `max`. Thus `min` can't increase w/o
         //      an increase in `max`. 
         // since an emitted insn has non-zero size, only need to test max
-        
-        return p->max <= (dot_offset.max + cur_delta.max);
+        return p->max <= (dot_offset.max - cur_delta.max);
     }
 
     bool seen_this_pass(core_addr_t const& addr) const
@@ -233,13 +237,20 @@ public:
     {
         return const_cast<core_expr_dot *>(this)->set_org(org);
     }
-    
-    core_fragment const *frag_p {};
+   
+    void print(std::ostream& os) const
+    {
+        os << *frag_p << std::hex << ", dot_offset = " << dot_offset << ", base_delta = " << base_delta;
+    }
+    friend std::ostream& operator<<(std::ostream& os, core_expr_dot const& i)
+    { i.print(os); return os; }
 
 //private:
 
     // XXX should probably use public interface
     friend core_expr_t;
+
+    core_fragment const *frag_p {};
 
     // initialized by `set_frag`
     addr_offset_t dot_offset;       // dot's offset in current frag

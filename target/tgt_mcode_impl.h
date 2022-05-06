@@ -90,14 +90,13 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
 
     // here know val cnt matches
     auto result = fits.yes;
+    auto sz     = info.sz(derived());
     for (auto& arg : args)
     {
-        if (result == expression::NO_FIT)
-            break;
         if (trace)
             *trace << " " << val_p.name() << " ";
 
-        auto r = val_p->size(arg, derived(), info, fits, size);
+        auto r = val_p->size(arg, sz, fits, size);
         
         if (trace)
             *trace << +r << " ";
@@ -114,6 +113,11 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
                 result = fits.no;
                 break;
         }
+        
+        // exit loop if switch() result is NO_FIT
+        if (result == expression::NO_FIT)
+            break;
+        
         ++val_p;
     }
 

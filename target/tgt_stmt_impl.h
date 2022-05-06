@@ -264,12 +264,13 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
 
     for (auto& arg : args)
     {
+#if 0
         // if floating point constant, require `floating point` insn
         if constexpr (!std::is_void_v<e_float_t>)
             if (auto p = arg.expr.template get_p<expression::e_float_t>())
                 if (!derived().is_fp())
                     return arg.set_error(error_msg::ERR_float);
-
+#endif
         // if not supported, return error
         if (auto diag = arg.ok_for_target(this))
             return diag;

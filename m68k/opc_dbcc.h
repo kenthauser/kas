@@ -33,13 +33,13 @@ struct m68k_opc_dbcc : tgt::opc::tgt_opc_branch<m68k_mcode_t>
     
     void do_calc_size(data_t&                data
                     , mcode_t const&         mcode
-                    , mcode_size_t          *code_p
                     , expr_t const&          dest
-                    , stmt_info_t const&     info
+                    , stmt_info_t&           info
+                    , unsigned               mode
                     , expr_fits const& fits) const override
     {
         // calculate displacement as if branch
-        base_t::do_calc_size(data, mcode, code_p, dest, info, fits);
+        base_t::do_calc_size(data, mcode, dest, info, mode, fits);
 
         // disallow deletion.
         auto dbcc_size = mcode.base_size() + 2; // base plus word offset
@@ -56,7 +56,7 @@ struct m68k_opc_dbcc : tgt::opc::tgt_opc_branch<m68k_mcode_t>
                     , mcode_t const&         mcode
                     , mcode_size_t          *code_p
                     , expr_t const&          dest
-                    , arg_mode_t             arg_mode) const override
+                    , unsigned               arg_mode) const override
     {
         // if "short" version, use base_t emitter
         auto base_size = mcode.base_size() + 2; // base plus word offset

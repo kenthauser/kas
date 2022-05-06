@@ -85,7 +85,7 @@ struct tgt_validate
 
     // if arg invalid for particular "size", error it out in `size` method
     virtual fits_result ok  (arg_t& arg, expr_fits const& fits) const = 0;
-    virtual fits_result size(arg_t& arg, mcode_t const& mc, stmt_info_t const& info
+    virtual fits_result size(arg_t& arg, uint8_t sz
                            , expr_fits const& fits, op_size_t&) const
     { 
         // default: return "fits", don't update size

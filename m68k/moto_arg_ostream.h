@@ -101,6 +101,8 @@ namespace kas::m68k
         case MODE_IMMEDIATE:
         case MODE_IMMED_QUICK:
             return os << "#" << base;
+        case MODE_BRANCH:
+            return os << base;
         case MODE_BRANCH_BYTE:
             return os << base << ":b";
         case MODE_BRANCH_WORD:

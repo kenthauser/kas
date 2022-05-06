@@ -73,8 +73,9 @@ namespace kas::core
         virtual result_t disp(expr_t const& e, fits_min_t min, fits_max_t max, int delta) const override
         {
 #if 1
-            std::cout << "core_fits (disp): " << e;
-            std::cout << " min/max = " << min << "/" << max;
+            std::cout << "core_fits (disp): dot = " << *dot_p << std::endl;
+            std::cout << "core_fits (disp): arg = " << e;
+            std::cout << " min/max = " << std::dec << min << "/" << max;
             std::cout << ", delta: " << delta;
             std::cout << ", fuzz: "  << fuzz  << std::endl;
 #endif

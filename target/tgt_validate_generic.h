@@ -146,7 +146,7 @@ struct tgt_val_prev : MCODE_T::val_t
         return fits.no;
     }
     
-    fits_result size(arg_t& arg, MCODE_T const& mc, stmt_info_t const& info
+    fits_result size(arg_t& arg, uint8_t sz
                    , expr_fits const& fits, op_size_t& op_size) const override
     {
         return fits.yes;
@@ -220,7 +220,7 @@ public:
         }
     }
 
-    fits_result size(arg_t& arg, MCODE_T const& mc, stmt_info_t const& info
+    fits_result size(arg_t& arg, uint8_t sz
                    , expr_fits const& fits, op_size_t& op_size) const override
     {
         if (_size) op_size += _size;

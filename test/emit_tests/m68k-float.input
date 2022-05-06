@@ -79,8 +79,10 @@ fp_short:
     fssne         d5
     fsngle.b        d5
     fsngle.w       d6
-    fdbor         d4, 1b
-    fbun          1b        ;  un  = 8
-    fjueq         1b        ;  ueq = 9
+;    fdbor         d4, 1b
+    fbun          2f        ;  un  = 8
+2:
+    fjugt         2b        ;  ugt = 10
+    fjoge         1b        ;  oge = 
     fjugt           external ; ugt = 10
     nop

@@ -27,20 +27,21 @@ struct m68k_stmt_info_t : alignas_t<m68k_stmt_info_t
     using base_t::base_t;
     static constexpr auto CC_RAW_BITS = 6;
 
-    m68k_stmt_info_t(value_t cc_raw, struct m68k_mcode_t& mc);
-
     // get sz() (byte/word/long/etc) for a `mcode`
     uint8_t sz(m68k_mcode_t const&) const;
 
-    // test if mcode supported for `info`
-    const char *ok(m68k_mcode_t const&) const;
-
-    value_t get_cc_raw() const
+    unsigned get_raw_branch ()
     {
-        return has_ccode ? ((1 << 5) | ccode) : 0;
+        return raw_branch;
     }
 
-    void set_cc_raw(value_t cc_raw, struct m68k_mcode_t& mc);
+    void set_raw_branch(unsigned data)
+    {
+        raw_branch = data;
+    }
+
+    // test if mcode supported for `info`
+    const char *ok(m68k_mcode_t const&) const;
 
     // format `info`
     void print(std::ostream&) const;
@@ -50,12 +51,11 @@ struct m68k_stmt_info_t : alignas_t<m68k_stmt_info_t
         info.print(os); return os;
     }
 
-    value_t arg_size  : 3;      // argument size: 7 == void (not specified)
-    value_t ccode     : 5;      // conditional instruction code
-    value_t has_ccode : 1;      // is conditional
-    value_t fp_ccode  : 1;      // is floating point conditional
-    value_t is_fp     : 1;      // is floating point insn
-    value_t cpid      : 2;      // cpid (for ccode, etc)
+    value_t arg_size   : 3;     // argument size: 7 == void (not specified)
+    value_t ccode      : 5;     // conditional instruction code
+    value_t has_ccode  : 1;     // is conditional
+    value_t cpid       : 2;     // cpid (for ccode, etc)
+    value_t raw_branch : 3;     // for branch, etc (not actually parsed `info`)
 };
 
 // declare result of parsing
@@ -95,7 +95,7 @@ struct m68k_stmt_t : tgt_stmt<m68k_stmt_t
     // parser returns "width" as token
     template <typename Context>
     void operator()(Context const& ctx);
-
+#if 0
     // all and only m68k floating point insns start with `f`
     bool is_fp() const
     {
@@ -109,7 +109,7 @@ struct m68k_stmt_t : tgt_stmt<m68k_stmt_t
         //        return false;
         // }
     }
-   
+#endif 
     // return if `stmt` is CPID insn
     uint8_t get_cpid_arch() const;
 

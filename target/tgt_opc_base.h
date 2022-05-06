@@ -27,13 +27,12 @@ struct tgt_opc_base : core::opc::opcode
     using op_size_t    = typename core::opcode::op_size_t;
     using emit_value_t = typename core::core_emit::emit_value_t;
    
-    //
     // gen_insn:
     //
-    // A "kitchen sink" method which takes all args
+    // A "kitchen sink" interface for `core_insn` which takes all args
     //
-    // Generate header & save args as is appropriate for derived opcode
-    //
+    // Generate header & save args as is appropriate for derived opcode.
+    // Implemented for all `tgt_opc*` objects to support it's specific prefix.
 
     virtual core::opcode *gen_insn(
                  // results of "validate" 
@@ -73,7 +72,7 @@ protected:
         // create an `iterator` to allow range-for to process sizes
         struct iter : std::iterator<std::forward_iterator_tag, arg_t>
         {
-            iter(serial_args_t const& obj, bool make_begin = {}) 
+            iter(serial_args_t const& obj, bool make_begin = false) 
                     : obj(obj)
                     , index(make_begin ? 0 : -1)
                     {}
@@ -108,7 +107,6 @@ protected:
         arg_t         *args;
         detail::arg_serial_t **serial_pp;
         stmt_info_t    info;
-        void          *wb_handle;       // opaque writeback handle
     };
     
     template <typename READER_T>

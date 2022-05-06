@@ -18,6 +18,9 @@ using namespace kas::parser;
 // from parsed stmt except for `name` and `args`
 struct tgt_stmt_info_t
 {
+    static constexpr auto CC_RAW_BITS  = 4;     // small number: overridden
+    static constexpr auto BR_MODE_BITS = 3;     // small number: overridden
+
     static constexpr uint8_t value() { return 0; }  // no value to store
 
     // calculate size for insn
@@ -26,6 +29,18 @@ struct tgt_stmt_info_t
     {
         // default: retrieve size from definition
         return mc.defn().info.sz(*this);
+    }
+
+    // convenience methods for `tgt_opc_branch` insn
+    unsigned get_branch() const
+    {
+        return {};      // no storage. must be defined.
+    }
+
+    template <typename MCODE_T>
+    void set_branch(unsigned data)
+    {
+        throw std::logic_error{"stmt_info_t::set_raw_branch method not defined"};
     }
 
     template <typename MCODE_T>
@@ -93,10 +108,10 @@ struct tgt_stmt : kas::parser::parser_stmt
         p_obj(" info = ");
         p_obj(info);
     }
-    
+#if 0  
     // allow floating point constants if floating point insn
     bool is_fp() const { return false; }
-
+#endif
     // generate `tgt_stmt` from args (used by parser)
     template <typename Context>
     void operator()(Context const& ctx);

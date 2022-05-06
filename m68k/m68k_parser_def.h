@@ -355,7 +355,7 @@ auto gen_stmt = [](auto& ctx)
 
         // all (and only) floating point insns begin with `f`
         // NB: less obvious than `std::tolower()`, but faster for specific case
-        info.is_fp = (insn_tok.begin()[0] | ('f' - 'F')) == 'f';
+        //info.is_fp = (insn_tok.begin()[0] | ('f' - 'F')) == 'f';
 
         if (ccode)
         {
@@ -370,7 +370,7 @@ auto gen_stmt = [](auto& ctx)
      
             // different condition code maps for general & fp insns
             info.has_ccode = true;
-            info.fp_ccode  = info.is_fp;
+            //info.fp_ccode  = info.is_fp;
             auto code = m68k_ccode::code(*ccode, info.cpid);
 
             std::cout << "parser:get_ccode = " << +code << std::endl;

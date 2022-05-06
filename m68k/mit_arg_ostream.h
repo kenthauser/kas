@@ -87,7 +87,7 @@ namespace kas::m68k
         
         bool pc_reg = false;
 
-        switch (arg.mode()) {
+        switch (auto mode = arg.mode()) {
         case MODE_ERROR:
             return os << "Err: " << base;
         case MODE_NONE:
@@ -121,6 +121,8 @@ namespace kas::m68k
         case MODE_IMMEDIATE:
         case MODE_IMMED_QUICK:
             return os << "#" << base;
+        case MODE_BRANCH:
+            return os << base;
         case MODE_BRANCH_BYTE:
             return os << base << ":b";
         case MODE_BRANCH_WORD:
@@ -145,7 +147,10 @@ namespace kas::m68k
         case MODE_SUBWORD_UPPER:
             return os << *arg.reg_p << ".u";
         default:
-            return os << "XXX MODE: " + std::to_string(arg.mode());
+            std::cout << "MODE_BRANCH/LAST = " << std::dec << +MODE_BRANCH << "/" << +MODE_BRANCH_LAST << std::endl;
+            if (mode >= MODE_BRANCH && mode <= MODE_BRANCH_LAST)
+                return os << "BRANCH+" << (mode - MODE_BRANCH) << ": " << base;
+            return os << "XXX MODE: " + std::to_string(mode);
             throw std::runtime_error("print_arg: unknown mode: " + std::to_string(arg.mode()));
         }
 

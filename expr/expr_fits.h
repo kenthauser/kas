@@ -75,11 +75,13 @@ namespace kas::expression
         }
 
         // displacement trampoline overridden where displacements are understood...
-        virtual result_t disp(expr_t const& e, fits_min_t min, fits_max_t max, int delta) const
+        // call disp() to see if displacement evaluated: maybe means not
+        virtual result_t disp(expr_t const& e = {}
+                            , fits_min_t min  = {}
+                            , fits_max_t max  = {}
+                            , int delta       = {}) const
         {
-            if (auto p = e.get_fixed_p())
-                return (*this)(*p + delta, min, max);   // just signed constant
-            return maybe;       // constants know nothing else of offsets...
+            return maybe;       // constants know nothing of offsets...
         }
 
         virtual bool seen_this_pass(expr_t const& e) const

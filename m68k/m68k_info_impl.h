@@ -294,8 +294,8 @@ struct info_add_ccode_t: m68k_info_fn_base
         info.arg_size  = defn_sz(defn_info);
         info.ccode     = ccode;
         info.has_ccode = true;
-        info.fp_ccode  = is_fp;
-        info.is_fp     = is_fp;
+//        info.fp_ccode  = is_fp;
+//        info.is_fp     = is_fp;
         
         return info;
     }

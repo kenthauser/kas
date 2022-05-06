@@ -75,11 +75,11 @@ static constexpr uint32_t mmu_defn_mask      = ((1<<7)-1) << (9 + 16);
 
 // create a cousin of `M68K_OPCODE` to handle opcode value manipulation
 // NB: default TST to `hw::mmu`
-template <uint32_t OPCODE, typename TST = void>
+template <uint32_t OPCODE, typename TST = void, typename INFO_FN = void>
 using MOP = OP<!(OPCODE & mmu_defn_use_short) ?  (mmu_insn_l | (OPCODE &~ mmu_defn_mask))
                                               :  (mmu_insn_w | (OPCODE &  0xffff))
-               , std::conditional_t<std::is_void_v<TST>, hw::mmu, TST> 
-               , INFO_SIZE_VOID     // opcode-sz doesn't change machine code
+               , meta::if_<std::is_void<TST>, hw::mmu, TST>
+               , INFO_FN
                >;
 
 // alias for "mmu short format"
@@ -250,12 +250,24 @@ using mmu_cc = transform<mmu_cc_all, detail::apply_mmu_cc<OpCode, Args...>>;
 using BRANCH_DEL_W = BRANCH_DEL;
 
 using mmu_cc_ops = list<list<>
+#if 0
 , mmu_cc<MSH+0x80   , sz_v , STR("pb"), m68851, void, BRANCH_DEL_W>
 , mmu_cc<0x48'0000  , sz_vw, STR("pdb"), m68851, void, DATA_REG, BRANCH>
 , mmu_cc<0x40'0000  , sz_b , STR("ps"), void, void, DATA_ALTER>
 , mmu_cc<0x7c'0000  , sz_v , STR("ptrap")>
 , mmu_cc<0x7a'0000  , sz_w , STR("ptrap"), void, void, IMMED>
 , mmu_cc<0x7b'0000  , sz_l , STR("ptrap"), void, void, IMMED>
+#else
+, defn <sz_v , STR("pb") , MOP<MSH+0x80 , m68851,  INFO_CCODE_FP1>
+                                , FMT_CP_BRANCH, BRANCH_DEL_W>
+, defn <sz_vw, STR("pdb"), MOP<0x48'0000, m68851,  INFO_CCODE_FP1>
+                                , FMT_CP_BRANCH, DATA_REG, BRANCH>
+, defn <sz_b , STR("ps") , MOP<0x40'0000, void, INFO_CCODE_FP1>
+                                , FMT_0RM, DATA_ALTER>
+, defn <sz_v , STR("ptrap"), MOP<0x7c'0000, void, INFO_CCODE_FP1> >
+, defn <sz_w , STR("ptrap"), MOP<0x7a'0000, void, INFO_CCODE_FP1>, FMT_X, IMMED>
+, defn <sz_l , STR("ptrap"), MOP<0x7b'0000, void, INFO_CCODE_FP1>, FMT_X, IMMED>
+#endif
 >;
 
 using mmu_ops_v = list<mmu_gen_ops, mmu_cc_ops>;
