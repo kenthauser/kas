@@ -5,7 +5,7 @@
 // XXX find better place...
 #include "m68k_info_impl.h"      // defines `m68k_opc_base`
 
-#include "opc_dbcc.h"
+//#include "opc_dbcc.h"
 
 #include "target/tgt_format.h"
 

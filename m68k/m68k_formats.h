@@ -23,6 +23,7 @@
 
 
 #include "m68k_formats_opc.h"       // generic target definitions
+#include "opc_dbcc.h"               // special for DBcc instructions
 #include "m68k_formats_defn.h"      // target specific methods
 
 namespace kas::m68k::opc

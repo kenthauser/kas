@@ -25,9 +25,6 @@ struct tgt_opc_list : MCODE_T::opcode_t
 
     using op_size_t    = typename core::opcode::op_size_t;
 
-    // expose internal type in base class (without "this->" prefix)
-    using base_t::serial_args;
-    
     OPC_INDEX();
     
     using NAME = string::str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_LIST")>;
@@ -69,7 +66,6 @@ struct tgt_opc_list : MCODE_T::opcode_t
         //  0) fixed area: OK bitset in host order
         //  1) insn index
         //  2) dummy base opcode (store stmt_info & some arg_info)
-        //  2) dummy word to hold args
         //  3) serialized args
 
         bitset_t ok(data.fixed.fixed);
@@ -80,7 +76,6 @@ struct tgt_opc_list : MCODE_T::opcode_t
         auto& insn =  insn_t::get(reader.get_fixed(sizeof(insn_t::index)));
         auto& mc   = *insn.list_mcode_p;
         auto  args =  base_t::serial_args(reader, mc);
-        auto  info =  args.info;        // stmt_info
 
         // print OK bits & name...
         os << ok.to_string().substr(ok.size() - insn.mcodes().size())
@@ -95,7 +90,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
         }
         
         // ...finish with `info`
-        std::cout << " ; info: " << info;
+        std::cout << " ; info: " << args.info;
     }
 
     op_size_t calc_size(data_t& data, core::core_fits const& fits) const override
@@ -107,7 +102,6 @@ struct tgt_opc_list : MCODE_T::opcode_t
         //  0) fixed area: OK bitset in host order
         //  1) insn index
         //  2) dummy base opcode (store stmt_info & some arg_info)
-        //  2) dummy word to hold args
         //  3) serialized args
 
         bitset_t ok(data.fixed.fixed);
@@ -138,6 +132,10 @@ struct tgt_opc_list : MCODE_T::opcode_t
 
     void emit(data_t const& data, core::core_emit& base, core::core_expr_dot const *dot_p) const override
     {
+        // test for deleted instruction
+        if (!data.size())
+            return;
+        
         // deserialize insn data
         // format:
         //  0) fixed area: OK bitset in host order
@@ -145,10 +143,6 @@ struct tgt_opc_list : MCODE_T::opcode_t
         //  2) dummy base opcode (store stmt_info & some arg_info)
         //  3) serialized args
 
-        // test for deleted instruction
-        if (!data.size())
-            return;
-        
         bitset_t ok(data.fixed.fixed);
 
         auto  reader = base_t::tgt_data_reader(data);
@@ -168,15 +162,15 @@ struct tgt_opc_list : MCODE_T::opcode_t
                 bitmask >>= 1;
 
         // select first `machine code` that matches
-        auto& selected_mc = *insn.mcodes()[index];
+        auto& selected_mcode = *insn.mcodes()[index];
         
         // if not resolved(!?!), need to resolve modes for `mcode`
         if (ok.count() > 1)
         {
             auto size = data.size;      // `size` method requires mutable arg
-            selected_mc.size(args, info, size, core::core_fits(dot_p)); 
+            selected_mcode.size(args, info, size, core::core_fits(dot_p)); 
         }
-        selected_mc.emit(base, args, info);
+        selected_mcode.emit(base, args, info);
     }
 };
 }

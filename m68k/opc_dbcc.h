@@ -1,56 +1,82 @@
 #ifndef KAS_M68K_OPC_DBCC_H
 #define KAS_M68K_OPC_DBCC_H
 
-
+// Support loop instructions: allow out-of-range branches
 //
 // DBcc Dn, <label>
 //
 // <label> displacement limited to 16-bit displacemnt. If out of range,
 // emit as if the following was coded:
 //
-//      DBcc dn, 1f     | base_size = 4 (or 6+ for cpDBcc)
+//      DBcc dn, 1f     | size = 4 (or 6+ for cpDBcc)
 //      bra  2f         | size = 2
-// 1:   bra  <label>    | size = 6
+// 1:   bra.l <label>   | size = 6
 // 2:                   | total = 12 (or 14+ for cpDBcc)
 //
-// NB: if `bra.l` not supported, a "jmp.l" insn is used
+// NB: if `bra.l` not supported, "jmp.l" is used
 
-#include "m68k_mcode.h"
-#include "expr/expr_fits.h"
-#include "target/tgt_format.h"
+// get derived `tgt_opc*` definitions
+#include "m68k_formats_opc.h"
 
 namespace kas::m68k::opc
 {
 
-// define `opc_dbcc` "opcode" as variant of branch.
-struct m68k_opc_dbcc : tgt::opc::tgt_opc_branch<m68k_mcode_t>
+// define `opc_dbcc` "opcode" as variant of general (ie: multiple args)
+struct m68k_opc_dbcc : m68k_opc_general
 {
-    using base_t = tgt::opc::tgt_opc_branch<m68k_mcode_t>;
+    using base_t = m68k_opc_general;
 
     OPC_INDEX();
     using NAME = KAS_STRING("M68K_DBCC");
-    using expr_fits = typename expression::expr_fits;
+    const char *name() const override { return NAME::value; }
+
+    static constexpr auto DBCC_SHIM_LENGTH  = 8;    // `bra 3f!bra.l <xxx>`
     
-    void do_calc_size(data_t&                data
-                    , mcode_t const&         mcode
-                    , expr_t const&          dest
-                    , stmt_info_t&           info
-                    , unsigned               mode
-                    , expr_fits const& fits) const override
+    // default: use `mcode` method
+    fits_result do_size(mcode_t const& mcode
+               , typename base_t::serial_args_t& args
+               , decltype(data_t::size)& size
+               , core::core_fits const& fits) const override
     {
-        // calculate displacement as if branch
-        base_t::do_calc_size(data, mcode, dest, info, mode, fits);
+        // start with DBcc instruction size
+        size = mcode.base_size();
 
-        // disallow deletion.
-        auto dbcc_size = mcode.base_size() + 2; // base plus word offset
+        // just consult "destination" validator -- always last
+        auto& vals = mcode.vals();
+        auto dest_val_p = vals.last();
+        auto result = dest_val_p->size(args[vals.size() - 1]    // last arg 
+                                     , 0                        // info.sz
+                                     , fits
+                                     , size);
 
-        if (data.size.min < dbcc_size)
-            data.size.min = dbcc_size;      
-        // "long" branch is very long
-        if (data.size.max > dbcc_size)
-            data.size.max = dbcc_size + 8;
+        switch (result)
+        {
+            case expression::DOES_FIT:
+                // branch in range -- just return
+                break;
+            case expression::MIGHT_FIT:
+                // branch might not be in range -- update `size.max` to
+                // indicate SHIM could be required
+                size.max += DBCC_SHIM_LENGTH;
+                break;
+            case expression::NO_FIT:
+            default:
+                // SHIM required. update `size` and result
+                size = mcode.base_size() + DBCC_SHIM_LENGTH;
+                result = expression::DOES_FIT;
+                break;
+        }
+        return result;
     }
-
+    
+    // default: use `mcode` method
+    void do_emit(core::core_emit& base
+               , mcode_t const& mcode
+               , typename base_t::serial_args_t& args) const override
+    {
+        mcode.emit(base, args, args.info);
+    }
+#if 0
     void do_emit     (data_t const&          data
                     , core::core_emit&       base
                     , mcode_t const&         mcode
@@ -68,18 +94,38 @@ struct m68k_opc_dbcc : tgt::opc::tgt_opc_branch<m68k_mcode_t>
             throw std::runtime_error{std::string(NAME()) + "invalid size: "
                                      + std::to_string(data.size())};
 
-        // emit cpDBcc opcode + boilerplate
+        // 0. generate base machine code data
+        auto machine_code = mcode.code(info);
+        auto code_p       = machine_code.data();
+
+        // 1. apply args & emit relocs as required
+        // Insert args into machine code "base" value
+        // NB: *DO NOT* emit relocations, or data associated with displacement
+        // NB: matching mcodes have a validator for each arg
+        auto val_iter = vals().begin();
+        unsigned n = 0;
+        for (auto& arg : args)
+        {
+            auto val_p = &*val_iter++;
+            fmt().insert(n, code_p, arg, val_p))
+            ++n;
+        }
+
+        // 2. emit cpDBcc opcode
         auto words = mcode.code_size()/sizeof(mcode_size_t);
         while (words--)
             base << *code_p++;
 
+        // 3. emit boilerplate to convert to long cpDBcc
         base << (uint16_t) 2;       // branch offset
         base << (uint16_t) 0x6006;  // bra 2f
         base << (uint16_t) 0x4ef9;  // jmp (xxx).L opcode
         base << core::set_size(4) << dest; // address
     }
+#endif
 };
 
+// trampoline for `m68k_format` code
 struct fmt_dbcc : virtual m68k_mcode_t::fmt_t
 {
     opcode_t& get_opc() const override

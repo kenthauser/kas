@@ -3,6 +3,7 @@
 
 
 #include "tgt_insn_serialize.h"
+#include "tgt_data_inserter.h"
 
 #include "kas_core/opcode.h"
 #include "kas_core/core_print.h"
@@ -27,6 +28,8 @@ struct tgt_opc_base : core::opc::opcode
     using op_size_t    = typename core::opcode::op_size_t;
     using emit_value_t = typename core::core_emit::emit_value_t;
    
+    using reader_t     = tgt_data_reader_t<mcode_size_t, emit_value_t>;
+    
     // gen_insn:
     //
     // A "kitchen sink" interface for `core_insn` which takes all args
@@ -57,12 +60,15 @@ protected:
         return tgt_data_reader_t<mcode_size_t, emit_value_t>(data);
     }
 
+    static auto serial_args(reader_t& reader, MCODE_T const& mcode)
+    {
+        return serial_args_t(reader, mcode);
+    }
+
     // create a "container" for deserialized args
-    template <typename READER_T>
     struct serial_args_t
     {
-        serial_args_t(READER_T& reader, MCODE_T const& mcode)
-            : mcode(mcode)
+        serial_args_t(reader_t& reader, MCODE_T const& mcode)
         {
             // deserialize serialized data into components
             std::tie(code_p, args, serial_pp, info) 
@@ -98,22 +104,18 @@ protected:
             int                index;
         };
 
+        auto& operator[](unsigned n) const { return args[n]; }
+        auto& operator[](unsigned n)       { return args[n]; }
+
         auto begin() const { return iter(*this, true); }
         auto end()   const { return iter(*this);       }
        
         // instance variables
-        MCODE_T const& mcode;
         mcode_size_t  *code_p;
         arg_t         *args;
         detail::arg_serial_t **serial_pp;
         stmt_info_t    info;
     };
-    
-    template <typename READER_T>
-    static auto serial_args(READER_T& reader, MCODE_T const& mcode)
-    {
-        return serial_args_t<READER_T>(reader, mcode); 
-    }
 };
 }
 #endif

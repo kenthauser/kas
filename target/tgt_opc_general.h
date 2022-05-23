@@ -27,6 +27,9 @@ struct tgt_opc_general : MCODE_T::opcode_t
     using data_t       = typename base_t::data_t;
     using Iter         = typename base_t::Iter;
 
+    // expose expression type
+    using fits_result  = typename expression::fits_result;
+
     OPC_INDEX();
 
     using NAME = string::str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_GEN")>;
@@ -46,21 +49,43 @@ struct tgt_opc_general : MCODE_T::opcode_t
     {
         // serialize format (for resolved instructions)
         // 1) mcode index
-        // 2) serialized args
+        // 2) opcode binary code (word or long)
+        // 3) serialized args
         
         auto inserter = base_t::tgt_data_inserter(data);
         inserter(mcode.index);
+
+        // NB: insert "initial" version of args.
+        // NB: as arg "mode" changes, inserted code not updated
         tgt_insert_args(inserter, mcode, args, stmt_info);
         return this;
     }
-    
+   
+    // default: use `mcode` method
+    virtual fits_result do_size(mcode_t const& mcode
+                       , typename base_t::serial_args_t& args
+                       , decltype(data_t::size)& size
+                       , core::core_fits const& fits) const
+    {
+        return mcode.size(args, args.info, size, fits, this->trace);
+    }
+
+    // default: use `mcode` method
+    virtual void do_emit(core::core_emit& base
+                       , mcode_t const& mcode
+                       , typename base_t::serial_args_t& args) const
+    {
+        mcode.emit(base, args, args.info);
+    }
+
     void fmt(data_t const& data, std::ostream& os) const override
     {
         // deserialize insn data
         // format:
-        //  1) mcode index
-        //  2) serialized args
-        
+        //  1) opcode index
+        //  2) opcode binary code (word or long)
+        //  3) serialized args
+
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(mcode_t::index)));
         
@@ -95,7 +120,8 @@ struct tgt_opc_general : MCODE_T::opcode_t
         os << " ; info: " << args.info;
     }
 
-    op_size_t calc_size(data_t& data, core::core_fits const& fits) const override
+    op_size_t calc_size(data_t& data
+                      , core::core_fits const& fits) const override
     {
         // deserialize insn data
         // format:
@@ -105,12 +131,10 @@ struct tgt_opc_general : MCODE_T::opcode_t
 
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(mcode_t::index)));
-        
         auto  args   = base_t::serial_args(reader, mcode);
-        auto& info   = args.info;
 
         // calulate instruction size (ie resolve `arg` modes)
-        mcode.size(args, info, data.size, fits, this->trace);
+        do_size(mcode, args, data.size, fits);
       
         // save resolved `arg` modes as size is resolved
         auto p = args.serial_pp;
@@ -120,25 +144,25 @@ struct tgt_opc_general : MCODE_T::opcode_t
         return data.size;
     }
 
-    void emit(data_t const& data, core::core_emit& base, core::core_expr_dot const *dot_p) const override
+    void emit(data_t const& data
+            , core::core_emit& base
+            , core::core_expr_dot const *dot_p) const override
     {
+        // test for deleted instruction
+        if (!data.size())
+            return;
+        
         // deserialze insn data
         // format:
         //  1) opcode index
         //  2) opcode binary code (word or long)
         //  3) serialized args
+
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(mcode_t::index)));
         auto  args   = base_t::serial_args(reader, mcode);
-        auto& info   = args.info;
 
-        // XXX recalulate instruction size: (ie recalculate arg modes)
-        auto fits = core::core_fits(dot_p);
-        auto size = data.size;
-        //mcode.size(args, info, size, fits, this->trace);
-      
-        if (data.size())
-            mcode.emit(base, args, info);
+        do_emit(base, mcode, args);
     }
 };
 }
