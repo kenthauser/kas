@@ -80,7 +80,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
 
     // select mcode(s) matching args (normally only a single mcode))
     bitset_t ok;
-    mcode_t const* matching_mcode_p {};
+    mcode_t const *matching_mcode_p {};
     bool multiple_matches = false;
 
     // flag MCODE in error: fails `TST` or `ARCH`
@@ -157,8 +157,10 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
         kas_position_tagged const *loc_p = &insn_tok;
 
         // if `arg` errored, pick up location from arg
+#ifdef XXX
         if (err_index > args.size())
             err_index = args.size();
+#endif
         if (err_index > 0)
             loc_p = &args[err_index-1];
 

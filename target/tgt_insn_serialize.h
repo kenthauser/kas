@@ -278,7 +278,7 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
 
         detail::extract_one<MCODE_T>(reader, n, *arg_p, p, sz, fmt, val_p, code_p);
     }
-    return std::make_tuple(code_p, static_args, static_serial_t, stmt_info);
+    return std::forward_as_tuple(code_p, static_args, static_serial_t, stmt_info);
 }
 
 }

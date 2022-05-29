@@ -75,6 +75,7 @@ protected:
                     = tgt::opc::tgt_read_args(reader, mcode);
         }
         
+
         // create an `iterator` to allow range-for to process sizes
         struct iter : std::iterator<std::forward_iterator_tag, arg_t>
         {
@@ -113,6 +114,7 @@ protected:
         // instance variables
         mcode_size_t  *code_p;
         arg_t         *args;
+        //argv_t          args;
         detail::arg_serial_t **serial_pp;
         stmt_info_t    info;
     };

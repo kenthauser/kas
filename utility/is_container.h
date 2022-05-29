@@ -3,11 +3,6 @@
 
 #include <type_traits>
 
-namespace detail {
-	template<typename... Ts>
-	struct sfinae {};
-}
-
 template<typename T, typename = void>
 struct is_container : std::false_type {};
 
@@ -16,13 +11,15 @@ struct is_container<
         T,
         std::conditional_t<
             false,
-            detail::sfinae
+            std::void_t
             	< typename T::value_type
+                , typename T::iterator
+            /*
                 , typename T::size_type
                 , typename T::allocator_type
-                , typename T::iterator
                 , typename T::const_iterator
                 , decltype(std::declval<T>().size())
+            */
                 , decltype(std::declval<T>().begin())
                 , decltype(std::declval<T>().end())
                 >,

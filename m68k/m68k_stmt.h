@@ -59,26 +59,18 @@ struct m68k_stmt_info_t : alignas_t<m68k_stmt_info_t
 };
 
 // declare result of parsing
+// NB: forward declare `m68k_mcode_t`
 // NB: there are (at least) 17 variants of `XXX.l`
-#if 0
-struct m68k_insn_t : tgt::tgt_insn_t<struct m68k_mcode_t
-                                  , hw::m68k_hw_defs
-                                  , KAS_STRING("M68K")
-                                  >
-{
-    using base_t = tgt_insn_t;
-    using base_t::base_t;
-//    using base = tgt::tgt_insn_t;
-//    using base_t::base_t;
-    
-    unsigned get_arch() const;
-};
-#else
 using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t
                                   , hw::m68k_hw_defs
                                   , KAS_STRING("M68K")
+                                  ,  6      // MAX count of ARGS per STMT
+                                  , 17      // MAX count of MCODEs per INSN
                                   >;
-#endif
+
+// allow maximum of 6 args
+//using m68k_argv_t = tgt::tgt_argv_t<m68k_arg_t, 6>;
+
 
 struct m68k_stmt_t : tgt_stmt<m68k_stmt_t
                             , m68k_insn_t
@@ -95,21 +87,7 @@ struct m68k_stmt_t : tgt_stmt<m68k_stmt_t
     // parser returns "width" as token
     template <typename Context>
     void operator()(Context const& ctx);
-#if 0
-    // all and only m68k floating point insns start with `f`
-    bool is_fp() const
-    {
-        return info.is_fp;
-
-        // alternate implementation:
-        // switch (parsed_name()[0])
-        // {
-        //    case 'f': case 'F': return true;
-        //    default:
-        //        return false;
-        // }
-    }
-#endif 
+    
     // return if `stmt` is CPID insn
     uint8_t get_cpid_arch() const;
 

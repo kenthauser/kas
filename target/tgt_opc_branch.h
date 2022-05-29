@@ -206,7 +206,9 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         inserter(mcode.index);
         
         // retrieve destination address (always last)
-        auto& dest = args.back().expr;
+        //auto& dest = args.back().expr;
+        // XXX only arg
+        auto& dest = args[0].expr;
         
         // calculate initial insn size
         do_initial_size(data, mcode, dest, stmt_info, expr_fits{});

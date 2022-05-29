@@ -49,6 +49,8 @@ struct m68k_opc_dbcc : m68k_opc_general
                                      , fits
                                      , size);
 
+        std::cout << "dbcc::do_size: size = " << size << ", result = " << +result << std::endl;
+
         switch (result)
         {
             case expression::DOES_FIT:

@@ -37,6 +37,7 @@ namespace kas::tgt
 template <typename MCODE_T
         , typename HW_DEFS
         , typename BASE_NAME
+        , unsigned MAX_ARGS   = 4
         , unsigned MAX_MCODES = 16 
         , unsigned NUM_ARCHS  = 1       // can't retrive from `MCODE_T` ?X?
         , typename INDEX_T    = std::uint16_t
@@ -59,7 +60,9 @@ struct tgt_insn_t
     using opcode    = core::opcode;
     using kas_error_t = parser::kas_error_t;
 
+    static constexpr auto max_args   = MAX_ARGS;
     static constexpr auto max_mcodes = MAX_MCODES;
+    static constexpr auto num_archs  = NUM_ARCHS;
    
 // used by "adder"
     using obstack_t = std::deque<tgt_insn_t>;

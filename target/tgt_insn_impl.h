@@ -8,8 +8,9 @@ namespace kas::tgt
 {
 
 // add mcode to insn list
-template <typename O, typename T, typename B, unsigned M, unsigned N, typename I>
-void tgt_insn_t<O, T, B, M, N, I>::
+template <typename O, typename T, typename B
+        , unsigned A, unsigned M, unsigned N, typename I>
+void tgt_insn_t<O, T, B, A, M, N, I>::
         add_mcode(mcode_t *mcode_p)
 {
     //std::cout << "tgt_insn::add_mcode: adding " << mcode_p->name();
@@ -39,17 +40,19 @@ void tgt_insn_t<O, T, B, M, N, I>::
     p->push_back(mcode_p);
 }
 
-template <typename O, typename T, typename B, unsigned M, unsigned N, typename I>
+template <typename O, typename T, typename B
+        , unsigned A, unsigned M, unsigned N, typename I>
 template <typename OS>
-void tgt_insn_t<O, T, B, M, N, I>::
+void tgt_insn_t<O, T, B, A, M, N, I>::
         print(OS& os) const
 {
     os << "[" << name << "]";
 }
 
 // XXX workaround `NUM_ARCHS` not retrieved from MCODE_T
-template <typename O, typename T, typename B, unsigned M, unsigned N, typename I>
-void tgt_insn_t<O, T, B, M, N, I>::
+template <typename O, typename T, typename B
+        , unsigned A, unsigned M, unsigned N, typename I>
+void tgt_insn_t<O, T, B, A, M, N, I>::
         _assert_num_archs() const
 {
     static_assert(N == O::NUM_ARCHS

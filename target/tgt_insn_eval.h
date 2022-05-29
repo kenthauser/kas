@@ -217,9 +217,10 @@ auto eval_insn_list
 }
 
 // templated definition to cut down on noise in `tgt_insn_t` defn
-template <typename O, typename T, typename B, unsigned M, unsigned N, typename I>
+template <typename O, typename T, typename B
+        , unsigned A, unsigned M, unsigned N, typename I>
 template <typename...Ts>
-auto tgt_insn_t<O, T, B, M, N, I>::
+auto tgt_insn_t<O, T, B, A, M, N, I>::
         eval(bitset_t& ok, Ts&&...args) const
         -> mcode_t const *
 {

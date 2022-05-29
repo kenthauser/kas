@@ -66,14 +66,26 @@ struct tgt_stmt : kas::parser::parser_stmt
     using derived_t = DERIVED_T;
     using base_t    = tgt_stmt;
     using insn_t    = INSN_T;
-    using mcode_t   = typename INSN_T::mcode_t;
     using arg_t     = ARG_T;
     using info_t    = INFO_T;
+    
+    // extract types from INSN
+    using mcode_t   = typename INSN_T::mcode_t;
+    using hw_defs   = typename INSN_T::hw_defs;
+
+    static constexpr auto max_args = INSN_T::max_args;
+    static constexpr auto num_args = INSN_T::num_archs;
+
+    // declare `argv_t`
+    using argv_t = tgt_argv_t<arg_t, max_args>;
 
     using insn_tok_t  = typename insn_t::token_t;
-
     using kas_error_t = parser::kas_error_t;
     using tagged_msg  = parser::tagged_msg;
+
+    // expose maximum number of args
+    //static constexpr auto NUM_ARGS = ARGV_T::NUM_ARGS;
+
 
     // CRTP casts
     auto& derived() const
@@ -108,17 +120,14 @@ struct tgt_stmt : kas::parser::parser_stmt
         p_obj(" info = ");
         p_obj(info);
     }
-#if 0  
-    // allow floating point constants if floating point insn
-    bool is_fp() const { return false; }
-#endif
+    
     // generate `tgt_stmt` from args (used by parser)
     template <typename Context>
     void operator()(Context const& ctx);
     
     kas::parser::kas_token  insn_tok;
     info_t                  info;
-    std::vector<arg_t>      args;
+    argv_t                  args;
 };
 
 //

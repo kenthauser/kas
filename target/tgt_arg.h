@@ -198,6 +198,91 @@ protected:
     arg_mode_t    _mode       { MODE_NONE };
 };
 
+// wrapper around std::vector (or array) of `args` to facitate looping.
+// loop `ends` when encounters arg with `MODE_NONE` 
+
+template <typename ARG_T, unsigned MAX_ARGS = 4>
+struct tgt_argv_t
+{
+    using arg_t = ARG_T;
+    static constexpr auto NUM_ARGS = MAX_ARGS;
+    
+    // use case: args extracted from insn_container
+    tgt_argv_t() = default;
+    
+    // use case: args passed from parser
+    tgt_argv_t& operator=(const std::vector<arg_t>& other)
+    {
+        // XXX deal with overflow. fix in general
+        auto p = args.data();
+        for (auto& arg : other)
+            *p++ = arg;
+        return *this;
+    }
+        
+    // XXX use case: args passed from c-style array (eg: tgt_insn_serialize)
+    // XXX ???
+    template <unsigned N>
+    tgt_argv_t& operator=(arg_t other[N])
+    {
+        // XXX deal with overflow. fix in general
+        auto p = args.data();
+        for (auto& arg : other)
+            *p++ = arg;
+        return *this;
+    }
+        
+    // create an `iterator` to allow range-for to process sizes
+    struct iter : std::iterator<std::forward_iterator_tag, arg_t>
+    {
+        iter(tgt_argv_t const& obj, bool make_begin = false) 
+                : obj(obj)
+                , index(make_begin ? 0 : -1)
+                {}
+
+        // range operations
+        auto& operator++() 
+        {
+            ++index;
+            return *this;
+        }
+        auto& operator*() const
+        { 
+            return obj[index];
+        }
+        auto operator!=(iter const& other) const
+        {
+            auto tst = obj[index].mode() == arg_t::MODE_NONE ? -1 : 0;
+            return tst != other.index;
+        }
+    
+    private:
+        tgt_argv_t const& obj;
+        int               index;
+    };
+
+    auto& operator[](unsigned n) const { return (argv)[n]; }
+    auto& operator[](unsigned n)       { return (argv)[n]; }
+
+    // methods to make `tgt_argv_t` act like standard container
+    auto begin() const { return iter(*this, true); }
+    auto end()   const { return iter(*this);       }
+    
+    auto& front()                const { return (*this)[0]; }
+    auto& front()                      { return (*this)[0]; }
+
+    void  clear()                      { front().set_mode(arg_t::MODE_NONE); }
+
+    // types to make `tgt_argv_t` resolve as standard container
+    using value_type = arg_t;
+    using iterator   = iter;
+
+private:
+    // hold data for args
+    std::array<arg_t, MAX_ARGS + 2> args;
+    arg_t *argv {args.data()};
+};
+
 }
 
 #endif
