@@ -126,7 +126,7 @@ struct tgt_opc_quick : tgt_opc_quick_base<typename MCODE_T::mcode_size_t>
         // NB: data.size already set
         auto writer = typename base_t::write_quick_data(data);
         auto stream = detail::quick_stream<mcode_size_t>(writer.cb_fn, &writer);
-        mcode.emit(stream.base(), std::move(args), info);
+        mcode.emit(stream.base(), args, info);
     }
 #else
     template <typename ARGS>

@@ -165,7 +165,7 @@ void tgt_insert_args(Inserter& inserter
         if (!val_p)
             val_name = "*NONE*";
         
-        std::cout << "tgt_insert_args: " << +n 
+       std::cout << "tgt_insert_args: " << +n 
                   << " mode = " << +arg.mode() 
                   << " arg = " << arg 
                   << " val = " << val_name
@@ -184,7 +184,9 @@ void tgt_insert_args(Inserter& inserter
 
 // deserialize arguments: for format, see above
 template <typename READER_T, typename MCODE_T>
-auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
+auto tgt_read_args(READER_T& reader
+                 , MCODE_T const& m_code
+                 , typename MCODE_T::argv_t& argv)
 {
     // deserialize into static array.
     // add extra `static_arg` as an end-of-list flag.
@@ -196,8 +198,9 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
     constexpr auto ARGS_PER_CHUNK = tgt_arg_serial_data_t::ARGS_PER_CHUNK;
 
     // local statics to hold info on single insn
-    static arg_t                 static_args[MCODE_T::MAX_ARGS+1];
-    static detail::arg_serial_t *static_serial_t[MCODE_T::MAX_ARGS];
+    //static arg_t                 static_args[MCODE_T::MAX_ARGS+1];
+    //static detail::arg_serial_t *serial_pp[MCODE_T::MAX_ARGS];
+    std::array<detail::arg_serial_t *, MCODE_T::MAX_ARGS> serial_pp;
 
     // get "opcode" info
     auto code_p     = reader.get_fixed_p(m_code.code_size());
@@ -221,8 +224,10 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
 
     // read until end flag: eg: MODE_NONE or reader.empty()
     // get working pointer into static array
-    auto arg_p             = std::begin(static_args);
-    auto serial_t_inserter = std::begin(static_serial_t);
+    //auto arg_p             = std::begin(static_args);
+    auto arg_p             = std::begin(argv);
+    auto serial_t_inserter = std::begin(serial_pp);
+    auto serial_t_end      = std::end(serial_pp);
     detail::arg_serial_t *p;
    
     // begin by finding next `arg_serial_t *` instance and assigning to `p`
@@ -230,13 +235,13 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
     {
         typename MCODE_T::val_t const *val_p {};
         const char *val_name;       // NB: names availble via iter, not ptr
-        
-        // last static_arg is end-of-list flag, should never reach it.
-        if (arg_p == std::end(static_args))
-            throw std::runtime_error {"tgt_read_args: MAX_ARGS exceeded"};
 
+        // serial write_back array only holds MAX_ARGS values
+        if (serial_t_inserter == serial_t_end)
+            throw std::runtime_error {"tgt_read_args: MAX_ARGS exceeded"};
+        
         // init arg (to MODE_NONE)
-        *arg_p = {};
+//        *arg_p = {};
 
         // deserialize `arg_info` if needed (get `ARGS_PER_CHUNK` at a time...)
         if ((n % ARGS_PER_CHUNK) == 0)
@@ -278,7 +283,7 @@ auto tgt_read_args(READER_T& reader, MCODE_T const& m_code)
 
         detail::extract_one<MCODE_T>(reader, n, *arg_p, p, sz, fmt, val_p, code_p);
     }
-    return std::forward_as_tuple(code_p, static_args, static_serial_t, stmt_info);
+    return std::tuple(code_p, serial_pp, stmt_info);
 }
 
 }

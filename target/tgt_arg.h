@@ -213,13 +213,23 @@ struct tgt_argv_t
     // use case: args passed from parser
     tgt_argv_t& operator=(const std::vector<arg_t>& other)
     {
-        // XXX deal with overflow. fix in general
+        // overflow processing:
+        // if more than MAX_ARGS passed, copy MAX_ARGS+1 at most.
+        // this allows assembler to detect too many args.
+        // always add MODE_NONE arg sentinal to flag end
+
+        unsigned index{};
         auto p = args.data();
         for (auto& arg : other)
+        {
             *p++ = arg;
+            if (index++ > MAX_ARGS)
+                break;
+        }
+        *p++ = {};      // clear end
         return *this;
     }
-        
+#if 0
     // XXX use case: args passed from c-style array (eg: tgt_insn_serialize)
     // XXX ???
     template <unsigned N>
@@ -231,7 +241,17 @@ struct tgt_argv_t
             *p++ = arg;
         return *this;
     }
-        
+#endif
+    // method to update the `arg.mode()` for all args
+    // method is virtual to allow single interface for `parsed` argv
+    // (via `arg.set_mode()`) and `extracted` argv (via writeback)
+    // default: use `arg.mode()`
+    virtual void update_modes(typename arg_t::arg_mode_t *modes) const
+    {
+        for (auto& arg : *this)
+            arg.set_mode(*modes++);
+    }
+    
     // create an `iterator` to allow range-for to process sizes
     struct iter : std::iterator<std::forward_iterator_tag, arg_t>
     {
@@ -255,11 +275,12 @@ struct tgt_argv_t
             auto tst = obj[index].mode() == arg_t::MODE_NONE ? -1 : 0;
             return tst != other.index;
         }
-    
+   
     private:
         tgt_argv_t const& obj;
         int               index;
     };
+
 
     auto& operator[](unsigned n) const { return (argv)[n]; }
     auto& operator[](unsigned n)       { return (argv)[n]; }

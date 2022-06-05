@@ -61,13 +61,6 @@ struct arg_serial_t : alignas_t<arg_serial_t, uint16_t>
     // getter & setter
     value_t get()             const { return cur_mode; }
     void    set(value_t mode)       { cur_mode = mode; }
-    
-    // convenience methods
-    value_t operator()()             const { return get(); }
-    void    operator()(value_t mode)       {
-            std::cout << "arg_serial_t: set: " << +cur_mode << " -> " << +mode << std::endl;
-            set(mode);  
-            }
 };
 
 // store as many infos as will fit in `mcode` word

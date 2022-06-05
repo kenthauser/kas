@@ -45,6 +45,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
     using insn_t       = typename base_t::insn_t;
     using bitset_t     = typename base_t::bitset_t;
     using arg_t        = typename base_t::arg_t;
+    using argv_t       = typename base_t::argv_t;
     using arg_mode_t   = typename base_t::arg_mode_t;
     using stmt_info_t  = typename base_t::stmt_info_t;
     using stmt_args_t  = typename base_t::stmt_args_t;
@@ -72,10 +73,10 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         data.size = mcode.code_size();
       
         // set arg::mode() to `MODE_BRANCH`, and then evaluate
-        return do_calc_size(data, mcode, dest, info, arg_mode_t::MODE_DIRECT, fits);
+        return do_branch_size(data, mcode, dest, info, arg_mode_t::MODE_DIRECT, fits);
     }
 
-    virtual void do_calc_size(data_t&                data
+    void do_branch_size(data_t&                data
                             , mcode_t const&         mcode
                             , expr_t const&          dest
                             , stmt_info_t&           info
@@ -87,7 +88,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         arg_t arg;
         arg.expr = dest;
         arg.set_mode(arg_mode);
-        std::cout << "do_calc_size: mode = " << +arg.mode() << ", arg = " << arg << std::endl;
+        std::cout << "do_branch_size: mode = " << +arg.mode() << ", arg = " << arg << std::endl;
 
         // initialize base-code size
         data.size = mcode.base_size();
@@ -95,27 +96,25 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         // ask displacement validator (always last) to calculate size
         auto dest_val_p = mcode.vals().last();
         dest_val_p->size(arg, info.sz(mcode), fits, data.size);
-        std::cout << "do_calc_size: result mode = " << +arg.mode() << std::endl;
+        std::cout << "do_branch_size: result mode = " << +arg.mode() << std::endl;
 
         // save resulting BRANCH_MODE for next iteration (or emit)
         save_branch(info, arg.mode());
     }
 
-    virtual void do_emit     (data_t const&          data
+    void do_branch_emit     (data_t const&          data
                             , core::core_emit&       base
                             , mcode_t const&         mcode
                             , mcode_size_t          *code_p
                             , expr_t const&          dest
                             , unsigned               arg_mode) const
     {
-
-
         // 1. create an "arg" from dest expression
         arg_t arg;
         arg.expr = dest;
         arg.set_mode(arg_mode);
         
-        std::cout << "do_emit: mode = " << std::dec << +arg_mode;
+        std::cout << "do_branch_emit: mode = " << std::dec << +arg_mode;
         std::cout << ", arg = " << arg << std::endl;
 
         // 2. insert `dest` into opcode
@@ -205,9 +204,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto inserter = base_t::tgt_data_inserter(data);
         inserter(mcode.index);
         
-        // retrieve destination address (always last)
-        //auto& dest = args.back().expr;
-        // XXX only arg
+        // single arg is expression
         auto& dest = args[0].expr;
         
         // calculate initial insn size
@@ -216,6 +213,27 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         inserter(std::move(dest)); // save destination address
         return this;
     }
+    
+
+    // entrypoint from `mcode` method. Trampoline to `do_branch_size`
+    fits_result do_size(mcode_t const& mcode
+                      , argv_t& args
+                      , decltype(data_t::size)& size
+                      , expr_fits const& fits
+                      , stmt_info_t info) const override
+    {
+        return mcode.size(args, info, size, fits, this->trace);
+    }
+
+    // entrypoint from `mcode` method. Trampoline to `do_branch_emit`
+    void do_emit(core::core_emit& base
+                       , mcode_t const& mcode
+                       , argv_t& args
+                       , stmt_info_t info) const override
+    {
+        base_t::do_emit(base, mcode, args, info);
+    }
+
     
     void fmt(data_t const& data, std::ostream& os) const override
     {
@@ -258,7 +276,10 @@ struct tgt_opc_branch : MCODE_T::opcode_t
         auto [info_p, mode] = get_info_mode(reader);
         auto& dest   = reader.get_expr();
         
-        do_calc_size(data, mcode, dest, *info_p, mode, fits);
+        argv_t args;
+        args[0] = {arg_mode_t::MODE_DIRECT, dest};
+
+        do_branch_size(data, mcode, dest, *info_p, mode, fits);
         return data.size; 
     }
 
@@ -274,7 +295,7 @@ struct tgt_opc_branch : MCODE_T::opcode_t
        
         // check for deleted instruction
         if (data.size())
-            do_emit(data, base, mcode, code_buf.data(), dest, mode);
+            do_branch_emit(data, base, mcode, code_buf.data(), dest, mode);
     }
 };
 }

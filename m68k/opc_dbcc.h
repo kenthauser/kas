@@ -34,9 +34,10 @@ struct m68k_opc_dbcc : m68k_opc_general
     
     // default: use `mcode` method
     fits_result do_size(mcode_t const& mcode
-               , typename base_t::serial_args_t& args
+               , argv_t& args
                , decltype(data_t::size)& size
-               , core::core_fits const& fits) const override
+               , expression::expr_fits const& fits
+              , stmt_info_t info) const override
     {
         // start with DBcc instruction size
         size = mcode.base_size();
@@ -70,7 +71,7 @@ struct m68k_opc_dbcc : m68k_opc_general
         }
         return result;
     }
-    
+   #if 0 
     // default: use `mcode` method
     void do_emit(core::core_emit& base
                , mcode_t const& mcode
@@ -78,6 +79,7 @@ struct m68k_opc_dbcc : m68k_opc_general
     {
         mcode.emit(base, args, args.info);
     }
+#endif
 #if 0
     void do_emit     (data_t const&          data
                     , core::core_emit&       base

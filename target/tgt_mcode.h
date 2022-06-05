@@ -107,6 +107,7 @@ struct tgt_mcode_t
     // extract types from STMT
     using insn_t       = typename stmt_t::insn_t;
     using arg_t        = typename stmt_t::arg_t;
+    using argv_t       = typename stmt_t::argv_t;
     using stmt_info_t  = typename stmt_t::info_t;
     using stmt_args_t  = decltype(stmt_t::args);
 
@@ -185,12 +186,15 @@ struct tgt_mcode_t
 
     // calculate total size of opcode + args
     // return `fits_result` based if immed size, branch displacement, goes out of range
-    template <typename ARGS_T>
-    fits_result size(ARGS_T& args, stmt_info_t const& info, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
+    fits_result size(argv_t& args, stmt_info_t const& info, op_size_t& size, expr_fits const&, std::ostream *trace = {}) const;
 
     // emit method: allow override of sub-methods
+#if 1
+    void emit(core::core_emit&, argv_t&, stmt_info_t const& info) const;
+#else  
     template <typename ARGS_T>
     void emit(core::core_emit&, ARGS_T&&, stmt_info_t const& info) const;
+#endif
    
     // apply args to initial binary code
     template <typename ARGS_T>

@@ -71,95 +71,22 @@ auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
 
 // calculate size of `opcode` given a set of args        
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
-template <typename ARGS_T>
 auto tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-        size(ARGS_T& args
+        size(argv_t& args
            , stmt_info_t const& info
            , opc::op_size_t& size
            , expr_fits const& fits
            , std::ostream *trace) const
     -> fits_result
 {
-    // hook into validators
-    auto& val_c = vals();
-    auto  val_p = val_c.begin();
-
-    // size of base opcode
-    size = derived().base_size();
-    //std::cout << "tgt_mcode_t::size: base = " << size << std::endl;
-
-    // here know val cnt matches
-    auto result = fits.yes;
-    auto sz     = info.sz(derived());
-    for (auto& arg : args)
-    {
-        if (trace)
-            *trace << " " << val_p.name() << " ";
-
-        auto r = val_p->size(arg, sz, fits, size);
-        
-        if (trace)
-            *trace << +r << " ";
-            
-        switch (r)
-        {
-            case expr_fits::maybe:
-                result = fits.maybe;
-                break;
-            case expr_fits::yes:
-                break;
-            case expr_fits::no:
-                size = -1;
-                result = fits.no;
-                break;
-        }
-        
-        // exit loop if switch() result is NO_FIT
-        if (result == expression::NO_FIT)
-            break;
-        
-        ++val_p;
-    }
-
-    if (trace)
-        *trace << " -> " << size << " result: " << result << std::endl;
-    
-    return result;
+    return fmt().get_opc().do_size(derived(), args, size, fits, info);
 }
 
 template <typename MCODE_T, typename STMT_T, typename ERR_T, typename SIZE_T>
-template <typename ARGS_T>
 void tgt_mcode_t<MCODE_T, STMT_T, ERR_T, SIZE_T>::
-        emit(core::core_emit& base, ARGS_T&& args, stmt_info_t const& info) const
+        emit(core::core_emit& base, argv_t& args, stmt_info_t const& info) const
 {
-    // 0. generate base machine code data
-    auto machine_code = derived().code(info);
-    auto code_p       = machine_code.data();
-
-    // 1. apply args & emit relocs as required
-    // NB: matching mcodes have a validator for each arg
-    
-    // Insert args into machine code "base" value
-    // if base code has "relocation", emit it
-    auto val_iter = vals().begin();
-    unsigned n = 0;
-    for (auto& arg : args)
-    {
-        auto val_p = &*val_iter++;
-        if (!fmt().insert(n, code_p, arg, val_p))
-            fmt().emit_reloc(n, base, code_p, arg, val_p);
-        ++n;
-    }
-
-    // 2. emit base code
-    auto words = code_size()/sizeof(mcode_size_t);
-    while (words--)
-        base << *code_p++;
-
-    // 3. emit arg information
-    auto sz = info.sz(derived());
-    for (auto& arg : args)
-        arg.emit(base, sz);
+    fmt().get_opc().do_emit(base, derived(), args, info);
 }
 
 

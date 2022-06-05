@@ -66,18 +66,20 @@ auto eval_insn_list
             for (auto& arg : args)
                 *p++ = arg.get_state();
         };
-        
+    
     auto update_modes = [&args, &states, &sizes](unsigned index)
         {
             std::cout << "eval_insn_list::update_results: index = " << +index << std::endl;
             // XXX restore size?
             //size = sizes[index];
-            
+#if 0            
             auto p = states[index].begin();
             for (auto& arg : args)
                 arg.set_state(*p++);
+#else
+            args.update_modes(states[index].begin());
+#endif
         };
-        
     // loop thru "opcodes" until no more matches
     auto bitmask = ok.to_ulong();
 

@@ -18,6 +18,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
     using insn_t       = typename base_t::insn_t;
     using bitset_t     = typename base_t::bitset_t;
     using arg_t        = typename base_t::arg_t;
+    using argv_t       = typename base_t::argv_t;
     using arg_mode_t   = typename base_t::arg_mode_t;
     using stmt_info_t  = typename base_t::stmt_info_t;
     using stmt_args_t  = typename base_t::stmt_args_t;
@@ -57,25 +58,8 @@ struct tgt_opc_general : MCODE_T::opcode_t
 
         // NB: insert "initial" version of args.
         // NB: as arg "mode" changes, inserted code not updated
-        tgt_insert_args(inserter, mcode, args, stmt_info);
+        tgt_insert_args(inserter, mcode, std::move(args), stmt_info);
         return this;
-    }
-   
-    // default: use `mcode` method
-    virtual fits_result do_size(mcode_t const& mcode
-                       , typename base_t::serial_args_t& args
-                       , decltype(data_t::size)& size
-                       , core::core_fits const& fits) const
-    {
-        return mcode.size(args, args.info, size, fits, this->trace);
-    }
-
-    // default: use `mcode` method
-    virtual void do_emit(core::core_emit& base
-                       , mcode_t const& mcode
-                       , typename base_t::serial_args_t& args) const
-    {
-        mcode.emit(base, args, args.info);
     }
 
     void fmt(data_t const& data, std::ostream& os) const override
@@ -88,9 +72,8 @@ struct tgt_opc_general : MCODE_T::opcode_t
 
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(mcode_t::index)));
-        
-        auto args    = base_t::serial_args(reader, mcode);
-        auto code_p  = args.code_p;
+        auto  args   = base_t::serial_args(reader, mcode);
+        auto  code_p = args.code_p;
 
         // print "mcode name"
         os << mcode.name();
@@ -134,12 +117,12 @@ struct tgt_opc_general : MCODE_T::opcode_t
         auto  args   = base_t::serial_args(reader, mcode);
 
         // calulate instruction size (ie resolve `arg` modes)
-        do_size(mcode, args, data.size, fits);
+        this->do_size(mcode, args, data.size, fits, args.info);
       
         // save resolved `arg` modes as size is resolved
-        auto p = args.serial_pp;
+        auto p = std::begin(args.serial_pp);
         for (auto& arg : args)
-            (**p++)(arg.mode());
+            (*p++)->set(arg.mode());
         
         return data.size;
     }
@@ -157,12 +140,14 @@ struct tgt_opc_general : MCODE_T::opcode_t
         //  1) opcode index
         //  2) opcode binary code (word or long)
         //  3) serialized args
+        //
+        // NB: regenerate `code_p` because it reflects "initial" modes
 
         auto  reader = base_t::tgt_data_reader(data);
         auto& mcode  = mcode_t::get(reader.get_fixed(sizeof(mcode_t::index)));
         auto  args   = base_t::serial_args(reader, mcode);
 
-        do_emit(base, mcode, args);
+        this->do_emit(base, mcode, args, args.info);
     }
 };
 }
