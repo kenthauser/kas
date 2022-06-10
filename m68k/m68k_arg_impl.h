@@ -80,7 +80,10 @@ auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
     auto  sz   = stmt.info.arg_size;
     auto _mode = mode();
 
-    // 0. perform generic checks
+    // 0. perform generic checks and allow DATA_REG always
+    // NB: DATA_REG used for fmovem.x, etc
+    if (_mode == MODE_DATA_REG)
+        return {};
     if (auto result = base_t::ok_for_target(stmt_p))
         return result;
 
@@ -115,27 +118,7 @@ auto m68k_arg_t::ok_for_target(void const *stmt_p) -> kas::parser::kas_error_t
     if (sz == OP_SIZE_PACKED)
         if (auto msg = hw::cpu_defs[hw::fpu_p_addr()])
             return set_error(msg);
-#if 0
-    // XXX are these already precluded by 3-word rule?
-    // 5. floating point: iff coldfire, restrict modes
-    if (info.is_cp(hw::fpu{}) && !(*reg_t::hw_cpu_p)[hw::coldfire{}])
-    {
-        // several addressing modes not supported by CF FPU
-        // ie. immediate, index, abs_short, abs_long
-        // NB: cpu_mode only set non-zero when matches addressing.
-        switch (_mode) {
-            default:
-                break;
-            case MODE_INDEX:
-            case MODE_PC_INDEX:
-            case MODE_IMMEDIATE:
-            case MODE_DIRECT_SHORT:
-            case MODE_DIRECT_LONG:
-                return set_error(hw::coldfire::name{});
-        }
-    }
-#endif
-
+    
     // 6. disallow "SUBWORD" (coldfire MAC) except on coldfire with `word` format
     if (has_subword_mask
         || _mode == MODE_SUBWORD_LOWER

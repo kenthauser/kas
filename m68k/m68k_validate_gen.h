@@ -711,10 +711,10 @@ VAL_GEN (DIR_LONG  , val_dir_long);         // special for move16
 
 VAL_GEN (BITFIELD,   val_bitfield);         // BITFIELD test
 
-VAL_GEN (REGSET,     val_regset, RC_DATA);      // REGSET test: D0 is LSB
-VAL_GEN (REGSET_REV, val_regset, RC_DATA, 16);  // REGSET test: A7 is LSB
-VAL_GEN (FP_REGSET,  val_regset, RC_FLOAT, 8);  // REGSET test: FP7 is LSB    
-VAL_GEN (FP_REGSET_REV, val_regset, RC_FLOAT);  // REGSET test: FP0 is LSB
+VAL_GEN (REGSET       , val_regset, RC_DATA);      // REGSET test: D0 is LSB
+VAL_GEN (REGSET_REV   , val_regset, RC_DATA, 16);  // REGSET test: A7 is LSB
+VAL_GEN (FP_REGSET    , val_regset, RC_FLOAT);     // REGSET test: FP0 is LSB
+VAL_GEN (FP_REGSET_REV, val_regset, RC_FLOAT, 8);  // REGSET test: FP7 is LSB    
 VAL_GEN (FC_REGSET,  val_regset, RC_FCTRL);
 
 // MMU validators

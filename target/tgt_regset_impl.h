@@ -126,7 +126,8 @@ auto tgt_reg_set<Derived, Reg_t, Ref>::binop(const char op, int value)
 // ...unless reverse specifies new bit-position for LSB
 // example: use reverse = 16 if reg-0 is 1<<15 & reg-15 == 1<<0
 template <typename Derived, typename Reg_t, typename Ref>
-auto tgt_reg_set<Derived, Reg_t, Ref>::value(bool reverse) const -> rs_value_t
+auto tgt_reg_set<Derived, Reg_t, Ref>::value(uint8_t reverse) const
+    -> rs_value_t
 {
     // short circuit if previously calculated
     // NB: mask can't be zero: we don't create empty regsets

@@ -71,6 +71,9 @@ fp_short:
     fmovem.x a2@+,fp1-fp3
     fmovem.x fp1-fp3/fp5/fp7, a2@-
     fmovem.x a2@,fp1-fp3/fp5/fp7
+;
+    fmovem.x d1,a2@
+    fmovem.x a2@+,d3
 
 1:  ftrapeq 
     ftrapogt.w    #1
@@ -80,9 +83,9 @@ fp_short:
     fsngle.b        d5
     fsngle.w       d6
     fdbor         d4, 1b
-;    fbun          2f        ;  un  = 8
+    fbun          2f        ;  un  = 8
 2:
-;    fjugt         2b        ;  ugt = 10
-;    fjoge         1b        ;  oge = 
-;    fjugt           external ; ugt = 10
+    fjugt         2b        ;  ugt = 10
+    fjoge         1b        ;  oge = 
+    fjugt           external ; ugt = 10
     nop

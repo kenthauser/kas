@@ -25,6 +25,7 @@ struct tgt_opc_base : core::opc::opcode
     using stmt_info_t  = typename mcode_t::stmt_info_t;
     using stmt_args_t  = typename mcode_t::stmt_args_t;
     using mcode_size_t = typename mcode_t::mcode_size_t;
+    using val_t        = typename mcode_t::val_t;
 
     using op_size_t    = typename core::opcode::op_size_t;
     using emit_value_t = typename core::core_emit::emit_value_t;

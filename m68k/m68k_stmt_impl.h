@@ -54,30 +54,6 @@ const char *m68k_stmt_t::validate_stmt(mcode_t const *mcode_p) const
         if (sfx_size == opc::SFX_NORMAL::value)
             return error_msg::ERR_sfx_reqd;
     }
-#if 0
-    XXX
-    // validate "conditional" instructions
-    auto sfx_ccode = defn_info & opc::SFX_CC_MASK;
-    switch (sfx_ccode)
-    {
-        case opc::SFX_CCODE::value:
-        case opc::SFX_CCODE_ALL::value:
-            // validate supplied codes
-            if (!info.has_ccode)
-                return error_msg::ERR_ccode_reqd;
-
-            // disallow T/F ccode if mcode disallows it 
-            if (sfx_ccode != opc::SFX_CCODE_ALL::value)
-                if (info.ccode < 2)
-                    return error_msg::ERR_no_cc_tf;
-            break;
-        
-        default:
-            // don't allow condition codes on non-ccode insns
-            if (info.has_ccode)
-                return error_msg::ERR_no_ccode;
-    }
-#endif
     return {};
 }
 

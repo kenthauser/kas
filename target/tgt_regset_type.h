@@ -73,7 +73,7 @@ public:
 
     // calculate register-set value 
     // Reg-0 is LSB, unless reversed by `reverse` bits
-    rs_value_t value(bool reverse = {}) const;
+    rs_value_t value(uint8_t reverse = {}) const;
 
     // return RC_* for regset class.
     // NB: negative value indicates error index

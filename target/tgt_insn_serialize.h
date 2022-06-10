@@ -110,7 +110,9 @@ void tgt_insert_args(Inserter& inserter
     // insert "code" array
     // NB: `inserter` value_t is `mcode_size_t`, thus code_array is directly inserted
     auto code   = m_code.code(stmt_info);       // `code` is std::array<>
-    auto code_p = inserter(code.data(), m_code.code_size());
+    auto code_size = m_code.code_size();
+    inserter.reserve(code_size);
+    auto code_p = inserter(code.data(), code_size);
 
     // retrieve formatters and validators to write args into code (as appropriate)
     auto& fmt          = m_code.fmt();          // arg formatting instructions
@@ -203,7 +205,9 @@ auto tgt_read_args(READER_T& reader
     std::array<detail::arg_serial_t *, MCODE_T::MAX_ARGS> serial_pp;
 
     // get "opcode" info
-    auto code_p     = reader.get_fixed_p(m_code.code_size());
+    auto code_size  = m_code.code_size();
+                      reader.reserve(code_size);
+    auto code_p     = reader.get_fixed_p(code_size);
     auto stmt_info  = m_code.extract_info(code_p);
     auto sz         = stmt_info.sz(m_code);
     auto immed_size = arg_t::immed_info(sz).sz_bytes;

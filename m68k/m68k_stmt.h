@@ -60,7 +60,7 @@ struct m68k_stmt_info_t : alignas_t<m68k_stmt_info_t
 
 // declare result of parsing
 // NB: forward declare `m68k_mcode_t`
-// NB: there are (at least) 17 variants of `XXX.l`
+// NB: there are (at least) 17 variants of `move.l`
 using m68k_insn_t = tgt::tgt_insn_t<struct m68k_mcode_t
                                   , hw::m68k_hw_defs
                                   , KAS_STRING("M68K")
