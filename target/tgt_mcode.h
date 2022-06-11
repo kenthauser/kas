@@ -115,7 +115,7 @@ struct tgt_mcode_t
     using reg_t        = typename arg_t::reg_t;
     using regset_t     = typename arg_t::regset_t;
     
-    using bitset_t     = typename insn_t::bitset_t;
+    using ok_bitset_t  = typename insn_t::ok_bitset_t;
     static_assert(std::is_same_v<derived_t, typename insn_t::mcode_t>);
 
     using hw_tst       = typename insn_t::hw_tst;

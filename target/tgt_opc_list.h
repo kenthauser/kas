@@ -14,7 +14,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
 
     // expose types from `base_t`
     using insn_t       = typename base_t::insn_t;
-    using bitset_t     = typename base_t::bitset_t;
+    using ok_bitset_t  = typename base_t::ok_bitset_t;
     using arg_t        = typename base_t::arg_t;
     using argv_t       = typename base_t::argv_t;
     using arg_mode_t   = typename base_t::arg_mode_t;
@@ -34,7 +34,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
     core::opcode *gen_insn(
                  // results of "validate" 
                    insn_t const&  insn
-                 , bitset_t&      ok
+                 , ok_bitset_t&   ok
                  , mcode_t const& mcode
                  , stmt_args_t&&  args
                  , stmt_info_t    stmt_info
@@ -96,7 +96,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
         args.insn_p = &insn;
 
         // print OK bits & name...
-        bitset_t ok(data.fixed.fixed);
+        ok_bitset_t ok(data.fixed.fixed);
         os << ok.to_string().substr(ok.size() - insn.mcodes().size())
            << " " << insn.name;
 
@@ -123,7 +123,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
         //  2) dummy base opcode (store stmt_info & some arg_info)
         //  3) serialized args
 
-        bitset_t ok(data.fixed.fixed);
+        ok_bitset_t ok(data.fixed.fixed);
         
         auto  reader = base_t::tgt_data_reader(data);
         reader.reserve(0);      // skip fixed area (OK bits)
@@ -153,7 +153,7 @@ struct tgt_opc_list : MCODE_T::opcode_t
         //  2) dummy base opcode (store stmt_info & some arg_info)
         //  3) serialized args
 
-        bitset_t ok(data.fixed.fixed);
+        ok_bitset_t ok(data.fixed.fixed);
         
         auto  reader = base_t::tgt_data_reader(data);
         reader.reserve(0);      // skip fixed area (OK bits)

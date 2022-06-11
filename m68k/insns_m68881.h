@@ -273,70 +273,7 @@ using fp_gen_ops = list<list<>
                         , FMT_0RM_26, ADDR_REG, FPIAR>
 >;
 
-// store floating point condition code names & values in a type
-template <int N, typename NAME>
-struct fp_cc_trait
-{
-    using type = fp_cc_trait;
-    using code = int_<N>;
-    using name = NAME;
-};
-
-// enumerate the floating point condition codes
-using fp_cc_all = list<
-      fp_cc_trait< 0, STR("f")>
-    , fp_cc_trait< 1, STR("eq")>
-    , fp_cc_trait< 2, STR("ogt")>
-    , fp_cc_trait< 3, STR("oge")>
-    , fp_cc_trait< 4, STR("olt")>
-    , fp_cc_trait< 5, STR("ole")>
-    , fp_cc_trait< 6, STR("ogl")>
-    , fp_cc_trait< 7, STR("or")>
-    , fp_cc_trait< 8, STR("un")>
-    , fp_cc_trait< 9, STR("ueq")>
-    , fp_cc_trait<10, STR("ugt")>
-    , fp_cc_trait<11, STR("uge")>
-    , fp_cc_trait<12, STR("ult")>
-    , fp_cc_trait<13, STR("ule")>
-    , fp_cc_trait<14, STR("ne")>
-    , fp_cc_trait<15, STR("t")>
-    , fp_cc_trait<16, STR("sf")>
-    , fp_cc_trait<17, STR("seq")>
-    , fp_cc_trait<18, STR("gt")>
-    , fp_cc_trait<19, STR("ge")>
-    , fp_cc_trait<20, STR("lt")>
-    , fp_cc_trait<21, STR("le")>
-    , fp_cc_trait<22, STR("gl")>
-    , fp_cc_trait<23, STR("gle")>
-    , fp_cc_trait<24, STR("ngle")>
-    , fp_cc_trait<25, STR("ngl")>
-    , fp_cc_trait<26, STR("nle")>
-    , fp_cc_trait<27, STR("nlt")>
-    , fp_cc_trait<28, STR("nge")>
-    , fp_cc_trait<29, STR("ngt")>
-    , fp_cc_trait<30, STR("sne")>
-    , fp_cc_trait<31, STR("st")>
-    >;
-
-namespace detail {
-    template <uint32_t OpCode, typename NAME, typename SZ_LIST, typename...Args>
-    struct apply_fpcc
-    {
-        template <typename CC>
-        using invoke = fp_defn<
-                          SZ_LIST
-                        , string::str_cat<NAME, typename CC::name>
-                        , FOP<OpCode + CC::code::value, fpu_m68k>
-                        , Args...
-                        >;
-    };
-}
-
-template <uint32_t OpCode, typename...Args>
-using fpcc = transform<fp_cc_all, detail::apply_fpcc<OpCode, Args...>>;
-
 using fp_cc_ops = list<list<>
-#if 1
 , fp_defn <sz_v , STR("trap"), FOP<0x7c'0000, fpu_basic, INFO_CCODE_FP1>>
 , fp_defn <sz_w , STR("trap"), FOP<0x7a'0000, fpu_basic, INFO_CCODE_FP1>
                                     , FMT_X, IMMED>
@@ -352,16 +289,6 @@ using fp_cc_ops = list<list<>
 , fp_defn <sz_v , STR("j"), FOP<0x80 | fp_defn_use_short, fpu_basic, INFO_CCODE_FP0>
                                     , FMT_CP_BRANCH, BRANCH_WL_DEL>
 
-#else
-
-            , fpcc<0x7c << 16, STR("trap"), sz_void>
-            , fpcc<0x7a << 16, STR("trap"), sz_w, void, IMMED>
-            , fpcc<0x7b << 16, STR("trap"), sz_l, void, IMMED>
-            , fpcc<0x40 << 16, STR("s"),    sz_bv, FMT_0RM, DATA_ALTER>
-            , fpcc<0x48 << 16, STR("db"),   sz_void, FMT_DBCC, DATA_REG, DIRECT>
-            , fpcc<0x80 | fp_defn_w, STR("b"), sz_void, FMT_BRANCH, DIRECT>
-            , fpcc<0x80 | fp_defn_w, STR("j"), sz_void, FMT_BRANCH, DIRECT>
-#endif
       >;
 #undef STR
 

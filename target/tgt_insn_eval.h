@@ -2,23 +2,24 @@
 #define KAS_TARGET_TGT_INSN_EVAL_H
 
 #include "tgt_insn.h"
+#include "tgt_mcode.h"
 #include <memory>
 
 namespace kas::tgt
 {
 
-template <typename INSN_T, typename OK_T, typename ARGS_T, typename STMT_INFO_T>
-auto eval_insn_list
-        ( INSN_T const& insn
-        , OK_T& ok
-        , ARGS_T& args
-        , STMT_INFO_T& stmt_info
-        , core::opc::opcode::op_size_t& insn_size
-        , expression::expr_fits const& fits
-        , std::ostream* trace
+template <typename INSN_T>
+auto tgt_insn_eval
+        ( INSN_T const                         & insn
+        , typename INSN_T::ok_bitset_t         & ok
+        , typename INSN_T::mcode_t::argv_t     & args
+        , typename INSN_T::mcode_t::stmt_info_t  stmt_info
+        , core::opc::opcode::op_size_t         & insn_size
+        , expression::expr_fits const          & fits
+        , std::ostream                         * trace = {}
         ) -> typename INSN_T::mcode_t const *
 {
-    using namespace expression;     // get fits_result
+    using namespace expression;     // import fits_result
 
     // save current "match"
     using mcode_t      = typename INSN_T::mcode_t;
@@ -27,7 +28,7 @@ auto eval_insn_list
 
     auto print_state = [&args](const char *desc)
         {
-            std::cout << "eval_insn_list: " << desc << ": ";
+            std::cout << "tgt_insn_eval: " << desc << ": ";
             for (auto arg: args)
                 std::cout << +arg.get_state() << ", ";
             std::cout << std::endl;
@@ -40,7 +41,7 @@ auto eval_insn_list
     trace = &std::cout;
     if (trace)
     {
-        std::cout << "tgt_insn::eval: " << insn.name;
+        std::cout << "tgt_insn_eval: " << insn.name;
         std::cout << std::dec << " [" << insn.mcodes().size() << " mcodes]";
         for (auto& arg : args)
             std::cout << ", " << arg;
@@ -59,7 +60,7 @@ auto eval_insn_list
     // NB: index zero is initial values. others are `ok` index + 1
     auto save_results = [&args, &states, &sizes](unsigned index, op_size_t& size)
         {
-            std::cout << "eval_insn_list::save_results: index = " << +index << std::endl;
+            std::cout << "tgt_insn_eval::save_results: index = " << +index << std::endl;
             sizes[index] = size;
             
             auto p = states[index].begin();
@@ -69,7 +70,7 @@ auto eval_insn_list
     
     auto update_modes = [&args, &states, &sizes](unsigned index)
         {
-            std::cout << "eval_insn_list::update_results: index = " << +index << std::endl;
+            std::cout << "tgt_insn_eval::update_results: index = " << +index << std::endl;
             // XXX restore size?
             //size = sizes[index];
 #if 0            
@@ -200,7 +201,7 @@ auto eval_insn_list
         // if state modified, need to rerun size. sigh.
         if (state_updated)
         {
-            std::cout << "eval_insn_list: restore initial state: ";
+            std::cout << "tgt_insn_eval: restore initial state: ";
         
             update_modes(0);
             
@@ -218,15 +219,19 @@ auto eval_insn_list
     return mcode_p;
 }
 
-// templated definition to cut down on noise in `tgt_insn_t` defn
+// definition of `insn::eval` with almost all args templated.
+// NB because of "order of declaration", `tgt_insn_t` don't know 
+// defns of `arg_t`, argv_t`, and `stmt_t`. 
+// NB: the `tgt_insn_eval` function (above) resolves these & errors 
+// out this method on mismatch
 template <typename O, typename T, typename B
         , unsigned A, unsigned M, unsigned N, typename I>
 template <typename...Ts>
 auto tgt_insn_t<O, T, B, A, M, N, I>::
-        eval(bitset_t& ok, Ts&&...args) const
+        eval(ok_bitset_t& ok, Ts&&...args) const
         -> mcode_t const *
 {
-    return eval_insn_list(*this, ok, std::forward<Ts>(args)...);
+    return tgt_insn_eval(*this, ok, std::forward<Ts>(args)...);
 }
 
 }

@@ -4,6 +4,7 @@
 #include "m68k_mcode.h"             // need op-size defns
 #include "target/tgt_opc_base.h"    // extending `tgt_opc_base`
 #include "target/tgt_info_fn.h"
+#include "m68k_stmt_flags.h"
 
 namespace kas::m68k::opc
 {
@@ -268,8 +269,8 @@ struct info_add_ccode_t: m68k_info_fn_base
 {
     using value_t = uint8_t;
 
-    constexpr info_add_ccode_t(value_t WORD, value_t BIT, value_t BITS)
-                : word {WORD}, bit {BIT}, is_fp(BITS > 4)  {}
+    constexpr info_add_ccode_t(value_t WORD, value_t BIT, value_t CPID)
+                : word {WORD}, bit {BIT}, cpid {CPID}  {}
     
     
     void insert(code_t& code
@@ -277,7 +278,7 @@ struct info_add_ccode_t: m68k_info_fn_base
               , defn_info_t const& defn_info) const override
     {
         //std::cout << "info_add_ccode_t: insert";
-        auto mask = is_fp ? 0x1f : 0xf;
+        auto mask = cpid ? 0x1f : 0xf;
         code[word] |= (stmt_info.ccode & mask) << bit;
     }
     
@@ -285,7 +286,7 @@ struct info_add_ccode_t: m68k_info_fn_base
                       , defn_info_t const& defn_info) const override
     {
         //std::cout << "info_add_ccode_t: extract" << std::endl;
-        auto mask = is_fp ? 0x1f : 0xf;
+        auto mask = cpid ? 0x1f : 0xf;
         auto ccode = code_p[word] >> bit;
              ccode &= mask;
         stmt_info_t info{};
@@ -294,8 +295,7 @@ struct info_add_ccode_t: m68k_info_fn_base
         info.arg_size  = defn_sz(defn_info);
         info.ccode     = ccode;
         info.has_ccode = true;
-//        info.fp_ccode  = is_fp;
-//        info.is_fp     = is_fp;
+        info.cpid      = cpid;
         
         return info;
     }
@@ -303,22 +303,24 @@ struct info_add_ccode_t: m68k_info_fn_base
 private:
     value_t word  : 1;
     value_t bit   : 4;
-    value_t is_fp : 1;      // fp is 5 bits. gen is 4 bits
+    value_t cpid  : 2;
 };
 
 // extra indirection to reduce template code bloat
-template <int WORD, int BIT, int BITS>
+template <int WORD, int BIT, int CPID>
 struct info_add_ccode : info_add_ccode_t
 {
     using base_t = info_add_ccode_t;
 
-    constexpr info_add_ccode() : base_t(WORD, BIT, BITS) {}
+    constexpr info_add_ccode() : base_t(WORD, BIT, CPID) {}
 };
 
 // declare condition-code types used in INSN definitions
-using INFO_CCODE_NORM  = info_add_ccode<0,  8, 4>;  // GENERAL
-using INFO_CCODE_FP0   = info_add_ccode<0,  0, 5>;  // FLT word zero
-using INFO_CCODE_FP1   = info_add_ccode<1,  0, 5>;  // FLT word one
+using INFO_CCODE_NORM  = info_add_ccode<0,  8, m68k_ccode::M68K_CC_GEN>;
+using INFO_CCODE_FP0   = info_add_ccode<0,  0, m68k_ccode::M68K_CC_FPU>;
+using INFO_CCODE_FP1   = info_add_ccode<1,  0, m68k_ccode::M68K_CC_FPU>;
+using INFO_CCODE_MMU0  = info_add_ccode<0,  0, m68k_ccode::M68K_CC_MMU>;
+using INFO_CCODE_MMU1  = info_add_ccode<1,  0, m68k_ccode::M68K_CC_MMU>;
 
 }
 #endif

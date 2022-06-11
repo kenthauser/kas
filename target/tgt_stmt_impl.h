@@ -43,7 +43,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     using mcode_t   = typename insn_t::mcode_t;
 
     using err_msg_t    = typename mcode_t::err_msg_t;
-    using bitset_t     = typename mcode_t::bitset_t;
+    using ok_bitset_t  = typename mcode_t::ok_bitset_t;
     using op_size_t    = typename mcode_t::op_size_t;
     using mcode_size_t = typename mcode_t::mcode_size_t;
 
@@ -79,7 +79,7 @@ auto tgt_stmt<DERIVED_T, INSN_T, ARG_T, INFO_T>::
     }
 
     // select mcode(s) matching args (normally only a single mcode))
-    bitset_t ok;
+    ok_bitset_t ok;
     mcode_t const *matching_mcode_p {};
     bool multiple_matches = false;
 

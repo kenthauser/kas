@@ -49,11 +49,7 @@ struct tgt_insn_t
     using hw_defs   = HW_DEFS;
     using hw_tst    = typename hw_defs::hw_tst;
     using index_t   = INDEX_T;
-
-    // XXX can't figure out how to get around `incomplete type` error...
-    // XXX pass as template argument to move forward...
-    //static constexpr auto NUM_ARCHS  = mcode_t::NUM_ARCHS;
-
+    
     using insn_name = string::str_cat<BASE_NAME, KAS_STRING("_INSN")>;
     using token_t   = parser::token_defn_t<insn_name, tgt_insn_t>;
 
@@ -72,7 +68,7 @@ struct tgt_insn_t
     
     // limit of number of MACHINE CODES per instruction
     // ie variants with same "name"
-    using bitset_t = std::bitset<max_mcodes>;
+    using ok_bitset_t = std::bitset<max_mcodes>;
 
     // PSEUDO CTOR: init static global as side effect
     explicit tgt_insn_t(hw_defs const& defs)
@@ -112,7 +108,7 @@ struct tgt_insn_t
 
     // methods are variadic templated to eliminate need for args to be forward declared
     template <typename...Ts>
-    mcode_t const *eval(bitset_t&, Ts&&...) const;
+    mcode_t const *eval(ok_bitset_t&, Ts&&...) const;
 
     template <typename OS> void print(OS& os) const;
     

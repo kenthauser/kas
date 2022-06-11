@@ -43,7 +43,7 @@ struct tgt_opc_branch : tgt_opc_general<MCODE_T>
    
     // expose base_types from templated ARG type
     using insn_t       = typename base_t::insn_t;
-    using bitset_t     = typename base_t::bitset_t;
+    using ok_bitset_t  = typename base_t::ok_bitset_t;
     using arg_t        = typename base_t::arg_t;
     using argv_t       = typename base_t::argv_t;
     using arg_mode_t   = typename base_t::arg_mode_t;

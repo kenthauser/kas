@@ -16,7 +16,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
    
     // expose types from `base_t`
     using insn_t       = typename base_t::insn_t;
-    using bitset_t     = typename base_t::bitset_t;
+    using ok_bitset_t  = typename base_t::ok_bitset_t;
     using arg_t        = typename base_t::arg_t;
     using argv_t       = typename base_t::argv_t;
     using arg_mode_t   = typename base_t::arg_mode_t;
@@ -39,7 +39,7 @@ struct tgt_opc_general : MCODE_T::opcode_t
     core::opcode *gen_insn(
                  // results of "validate" 
                    insn_t const&  insn
-                 , bitset_t&      ok
+                 , ok_bitset_t&   ok
                  , mcode_t const& mcode
                  , stmt_args_t&&  args
                  , stmt_info_t    stmt_info

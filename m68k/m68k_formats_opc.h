@@ -38,7 +38,7 @@ struct opc_limit3w : BASE_T
     core::opcode *gen_insn(
                  // results of "validate" 
                    typename base_t::insn_t const&  insn
-                 , typename base_t::bitset_t&      ok
+                 , typename base_t::ok_bitset_t&   ok
                  , typename base_t::mcode_t const& mcode
                  , typename base_t::stmt_args_t&&  args
                  , typename base_t::stmt_info_t    stmt_info

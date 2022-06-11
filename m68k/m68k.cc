@@ -35,7 +35,7 @@
 #include "m68k_arg_serialize.h"
 #include "m68k_extension_impl.h"
 
-// emit args: Intel or Zilog (MIT)
+// emit args: Intel or MIT
 #include "mit_arg_ostream.h"
 #include "moto_arg_ostream.h"
 
