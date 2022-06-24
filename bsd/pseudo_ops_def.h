@@ -164,12 +164,16 @@ using bsd_fixed_cmds = list<
 , list<STR("4byte"),        opc_fixed<std::int32_t>>
 , list<STR("8byte"),        opc_fixed<std::int64_t>>
 
-// XXX, list<STR("word"),         opc_fixed<std::int16_t>>
-// XXX, list<STR("long"),         opc_fixed<std::int32_t>>
-, list<STR("hword"),        opc_fixed<std::int16_t>>
-, list<STR("short"),        opc_fixed<std::int16_t>>
+#define PSEUDO_WORD_16BITS
+#ifdef  PSEUDO_WORD_16BITS
+, list<STR("word"),         opc_fixed<std::int16_t>>
+, list<STR("long"),         opc_fixed<std::int32_t>>
+#else
 , list<STR("word"),         opc_fixed<std::int32_t>>
 , list<STR("long"),         opc_fixed<std::int64_t>>
+#endif
+, list<STR("hword"),        opc_fixed<std::int16_t>>
+, list<STR("short"),        opc_fixed<std::int16_t>>
 
 , list<STR("quad"),         opc_fixed<std::int64_t>>
 , list<STR("sleb128"),      opc_sleb128>

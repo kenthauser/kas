@@ -134,15 +134,17 @@ auto parse = [](std::string const& source, fs::path input_path) -> std::string
         obj.emit(raw);
     }
 #endif
-#if 0
+#if 1
     // create object output (binary data)
     // get dest for object output
     {
+        parse_out << "OBJECT:" << std::endl;
         auto kbfd_path = sub_path_ext(input_path.c_str(), "kbfd");
         std::ofstream o_file(kbfd_path
                            , std::ios_base::binary | std::ios_base::trunc);
         kas::core::emit_kbfd binary(kbfd_obj, o_file);
         obj.emit(binary);
+        parse_out << "OBJECT: DONE" << std::endl;
     }
 #endif
 #if 1

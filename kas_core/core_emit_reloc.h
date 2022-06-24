@@ -144,7 +144,8 @@ kbfd::kbfd_target_reloc const *
     r.reloc.default_width(width);
     if (auto p = obj_p->get_reloc(r.reloc))
         return p;
-    std::cout << "core_emit::get_target_relocation: Invalid Reloc" << std::endl;
+    std::cout << "core_emit::get_target_relocation: Invalid Reloc: ";
+    std::cout << r.reloc << std::endl;
     r.gen_diag(*this, "E invalid relocation");
     return {};
 }

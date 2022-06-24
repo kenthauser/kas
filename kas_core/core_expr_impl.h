@@ -71,7 +71,8 @@ namespace kas::core
 template <>
 auto core_expr_t::get_p(e_fixed_t const&) const -> e_fixed_t const *
 {
-#if 1
+#if 0
+    // XXX doesn't work: 2022/06/21 KBH
     if (reloc_cnt != 0)
         return nullptr;
 

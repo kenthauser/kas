@@ -7,7 +7,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////
 //
-// The `core_insn` class holds the result of evaluation of a `parser::parser_stmt`.
+// The `core_insn` class holds the result of evaluation of a
+// `parser::parser_stmt`.
 //
 // The resulting pair {opcode, insn_data} is used to contruct `core_insn`.
 // This `core_insn`is then written to the `insn_container`.
@@ -17,11 +18,8 @@
 // emit, and print associated `insn_container_data`, updating stored values as
 // appropriate.
 //
-// Generally there is only a single `core_insn` instance active at any one time
+// There is only a single `core_insn` instance active at any one time
 // as it is totally transient.
-//
-///////////////////////////////////////////////////////////////////////////
-//
 //
 ///////////////////////////////////////////////////////////////////////////
 
@@ -125,8 +123,12 @@ struct core_insn
 
         if (auto delta = expect - base.position())
         {
-            std::cout << "core_insn::emit: expected = 0x" << std::hex << wr_size;
-            std::cout << " actual = 0x" << std::hex << (wr_size - delta) << std::endl;
+            auto& section = base.get_section();
+            std::cout << "core_insn::emit:" << std::hex;
+            std::cout << " section = " << *section_p;
+            std::cout << ", position = 0x" << base.position();
+            std::cout << ", expected = 0x" << std::hex << wr_size;
+            std::cout << ", actual = 0x" << std::hex << (wr_size - delta) << std::endl;
         }
 #endif
 #undef VALIDATE_EMIT
@@ -152,9 +154,9 @@ private:
     };
     
     // ostream formatted core_insn
-    friend std::ostream& operator<<(std::ostream& os, print_t const& arg)
+    friend std::ostream& operator<<(std::ostream& os, print_t const& pobj)
     {
-        (arg.obj.*arg.fn)(os);
+        (pobj.obj.*pobj.fn)(os);
         return os;
     }
 
@@ -177,7 +179,7 @@ public:
 
     opcode_data       data {};
 
-    // for "idx_error" update
+    // mutable for "idx_error" update
     mutable uint16_t  opc_index{};
 };
 }

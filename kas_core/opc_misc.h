@@ -39,6 +39,12 @@ namespace kas::core::opc
         {
             os << data.fixed.fixed;
         }
+       
+        // XXX just a copy of `opcode::calc_size` method
+        op_size_t calc_size(opcode_data& data, core_fits const& fits) const override
+        {
+            return data.size;
+        }
         
         void emit(data_t const& data, core_emit& base, core_expr_dot const *dot_p) const override
         {

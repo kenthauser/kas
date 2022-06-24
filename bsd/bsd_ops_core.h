@@ -23,17 +23,15 @@ struct bsd_align :  bsd_opcode
                      , short const *num_v
                      ) const override
     {
-        proc_args(data, std::move(args), num_v[0]);
-    }
-
-    void proc_args(data_t& data, bsd_args&& args, short n = 0) const
-    {
         // copy location_tagged value
         parser::kas_position_tagged loc = args.front();
-        if (auto result = validate_min_max(args, !n, !n))
+        bool needs_arg = !arg_c;
+
+        if (auto result = validate_min_max(args, needs_arg, needs_arg))
             return make_error(data, result);
 
         // if not implied size (eg: .even), arg must be fixed
+        short n;
         if (args.size())
         {
             if (auto p = args.front().get_fixed_p())
@@ -41,6 +39,10 @@ struct bsd_align :  bsd_opcode
             else
                 return make_error(data, "fixed alignment required", loc);
         }
+        else
+            n = num_v[0];
+
+
         base_op.proc_args(data, loc, n);
     }
 

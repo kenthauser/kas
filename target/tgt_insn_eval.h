@@ -54,6 +54,7 @@ auto tgt_insn_eval
     using state_array = std::array<state_t, mcode_t::MAX_ARGS>;
     
     // create array of `states` & sizes (+1 to hold initial state)
+    // NB: elements don't require init -- not referenced if not first written
     auto states = std::make_unique<state_array[]>(insn.mcodes().size() + 1);
     auto sizes  = std::make_unique<op_size_t  []>(insn.mcodes().size() + 1);
 
@@ -66,31 +67,24 @@ auto tgt_insn_eval
             auto p = states[index].begin();
             for (auto& arg : args)
                 *p++ = arg.get_state();
-        };
+         };
     
     auto update_modes = [&args, &states, &sizes](unsigned index)
         {
             std::cout << "tgt_insn_eval::update_results: index = " << +index << std::endl;
-            // XXX restore size?
-            //size = sizes[index];
-#if 0            
-            auto p = states[index].begin();
-            for (auto& arg : args)
-                arg.set_state(*p++);
-#else
+            // NB: argv_t has virtual method which takes array pointer
             args.update_modes(states[index].begin());
-#endif
         };
+    
     // loop thru "opcodes" until no more matches
     auto bitmask = ok.to_ulong();
 
+    // if only 1 matching mcode, will not need to restore args
     if (ok.count() > 1)
         save_results(0, insn_size);
 
-    bool state_updated = false;      // both start false
-    bool needs_restore = false;
-
     // loop thru candidates & find best match
+    bool first_iteration = true;        // if first time thru eval
     auto index = 0;
     for (auto op_iter = insn.mcodes().begin(); bitmask; ++op_iter, ++index)
     {
@@ -100,11 +94,11 @@ auto tgt_insn_eval
             continue;
 
         // don't restore on first iteration
-        if (needs_restore)
+        if (!first_iteration)
             update_modes(0);
+        else
+            first_iteration = false;    // no longer first interation
 
-        needs_restore = true;           // XXX could also be called "first iter?"
-        
         // size for this opcode
         if (trace)
             *trace << std::dec << std::setw(2) << index << ": ";
@@ -112,7 +106,7 @@ auto tgt_insn_eval
         op_size_t size;
         print_state("before state");
        
-        // NB: size `binds` info & may modify global arg
+        // NB: size method may modify global `args` & local `size`
         auto result = (*op_iter)->size(args, stmt_info, size, fits, trace);
         print_state("after state");
         
@@ -141,7 +135,6 @@ auto tgt_insn_eval
             match_index  = index;
             match_result = result;
             insn_size    = size;
-            state_updated = true;       // use state from this iteration
             continue;
         } 
 
@@ -195,24 +188,12 @@ auto tgt_insn_eval
         *trace << '\n' << std::endl;
     }
 
-    // if found a single match, update args
+    // if found a single match, update global args
     if (ok.count() == 1)
     {
-        // if state modified, need to rerun size. sigh.
-        if (state_updated)
-        {
-            std::cout << "tgt_insn_eval: restore initial state: ";
-        
-            update_modes(0);
-            
-
-            // rerun size
-            op_size_t size;
-            
-            // NB: size `binds` info. modifies passed `size` arg.
-            mcode_p->size(args, stmt_info, size, fits, nullptr);
-        }
-    
+        // update state & retrieve saved size
+        update_modes(match_index+1);
+        insn_size = sizes[match_index+1];
     }
     
     print_state("final_state");
@@ -222,8 +203,9 @@ auto tgt_insn_eval
 // definition of `insn::eval` with almost all args templated.
 // NB because of "order of declaration", `tgt_insn_t` don't know 
 // defns of `arg_t`, argv_t`, and `stmt_t`. 
-// NB: the `tgt_insn_eval` function (above) resolves these & errors 
-// out this method on mismatch
+
+// NB: the `tgt_insn_eval` function (above) resolves templated args &
+// errors out on mismatch
 template <typename O, typename T, typename B
         , unsigned A, unsigned M, unsigned N, typename I>
 template <typename...Ts>

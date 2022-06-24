@@ -60,12 +60,17 @@ void emit_stream_base::put_data(e_chan_num num
     }
 }
 
-// trampoline function
+// trampoline functions
 void emit_stream_base::set_segment(core_segment const& segment)
 {
     base().set_segment(segment);
 }
-
+#if 0
+auto emit_stream_base::get_segment() -> core_section const&
+{
+    base().get_segment();
+}
+#endif
 //
 // Methods for stream version
 //
