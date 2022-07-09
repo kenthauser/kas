@@ -27,7 +27,7 @@ using namespace meta::placeholders;
 inline decltype(auto) gen_addr_ref(unsigned segment_idx, std::size_t offset
                                   , core::core_fragment const *frag_p = nullptr)
 {
-    static std::deque<core::addr_offset_t> offsets;
+    static std::deque<core::frag_offset_t> offsets;
 
     if (!frag_p)
     {
@@ -39,7 +39,8 @@ inline decltype(auto) gen_addr_ref(unsigned segment_idx, std::size_t offset
         throw std::runtime_error("gen_addr_ref: empty segment");
 
     // now find fragment for "offset"
-    while (frag_p) {
+    while (frag_p)
+    {
         // is address in this frag?
         // NB: allow at end for zero size or no following frag
         // NB: address is relaxed -- don't let `best` beat `good`

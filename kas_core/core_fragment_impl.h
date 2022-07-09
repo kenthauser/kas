@@ -209,7 +209,7 @@ void core_fragment::set_size()
 
 // update base address from previous frag
 // apply appropriate delta to provide requested alignment
-void core_fragment::set_base(addr_offset_t const& base)
+void core_fragment::set_base(size_offset_t const& base)
 {
     std::cout << "set_base: " << *this << " base = " << base;
     std::cout << " align = " << +frag_alignment;

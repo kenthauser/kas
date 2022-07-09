@@ -21,9 +21,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////
 
-#include "core_size.h"
-#include "core_emit.h"
 #include "opcode_data.h"
+#include "core_emit.h"
 #include "core_fits.h"
 
 #include "kas_object.h"

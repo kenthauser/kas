@@ -62,6 +62,7 @@ struct core_relax
             };
     }
 
+    // execute "relax"    
     void operator()()
     {
         if (trace)

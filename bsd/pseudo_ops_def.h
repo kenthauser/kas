@@ -33,7 +33,7 @@ using namespace kas::core::opc;
 // Some BSD pseudo-op names are really special cases
 // of generic operations. Examples are
 //      `.even` is exactly `.align 1`
-// and  `.text` is exactly `.segment ".text"`
+// and  `.text` is exactly `.section ".text"`
 //
 // To efficiently handle these "BSD aliases", fixed arguments
 // may also be passed to the BSD directive "op-codes" in addition

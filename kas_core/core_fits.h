@@ -5,7 +5,7 @@
 //
 // `core_fits` extends `expr_fits` to support the `core_addr`, `core_expr`,
 // and `core_symbol` types. In addition to testing for fixed-size fields,
-// the `fits.disp()` [testing for offset from current `dot`] can also be
+// the `fits.disp()` [testing for offset from current `dot`] is also 
 // implemented.
 //
 // The `core_fits` object is designed to be used in `relax`, so the constructor
@@ -17,6 +17,8 @@
 //
 // This allows `core_fits` & `relax` fully resolve expressions
 // as `fuzz` is decreased.
+//
+// NB: access to current `dot` during relax is provided via `get_dot()` method
 
 #if 0
 

@@ -154,8 +154,16 @@ struct core_expr_dot
         base_delta -= (prev_end - frag_p->size());
 #endif
     }
+   
+    // true iff base of current fragment and offset into frag are both relaxed
+    bool is_relaxed() const
+    {
+        return dot_offset.is_relaxed()
+            && frag_p->base_addr().is_relaxed();
+    }
 
-    bool seen_this_pass(core_fragment const *expr_frag_p, addr_offset_t const *p) const
+
+    bool seen_this_pass(core_fragment const *expr_frag_p, frag_offset_t const *p) const
     {
         std::cout << "core_expr_dot::seen_this_pass()" << std::endl; 
         // since can't org backwards, frags are allocated in order.
@@ -187,7 +195,7 @@ struct core_expr_dot
 
     // calculate offset to apply to raw address to allow
     // comparision of current pass & previous pass addresses
-    expr_offset_t rebase(core_fragment const *expr_frag_p, addr_offset_t const *p) const
+    expr_offset_t rebase(core_fragment const *expr_frag_p, frag_offset_t const *p) const
     {
         auto offset = expr_frag_p->base_addr() + *p;
 
@@ -253,7 +261,7 @@ public:
     core_fragment const *frag_p {};
 
     // initialized by `set_frag`
-    addr_offset_t dot_offset;       // dot's offset in current frag
+    frag_offset_t dot_offset;       // dot's offset in current frag
     expr_offset_t base_delta;       // delta applied to the frag base_addr (to be propogated)
 //private:
     expr_offset_t cur_delta;

@@ -4,18 +4,39 @@
 /*
  * core_fragment
  *
- * `core_fragment` holds a consecutive sequence of object
- * values. A linked-list of core-fragment objects holds the
- * object code values for a `core_section` and is managed by
- * `core_object`
+ * `core_fragment` manages a consecutive sequence of object code
+ * values. The `core_fragment` object manages "attributes" of the
+ * fragment, and does not hold the actual object code.
  *
- * Refer to "core_segment.h" for more detailed explaination.
+ * The actual object code data is generated from objects
+ * stored in a `insn_container`. The `insn_container` allocates
+ * `core_fragment` instances. A new "fragment" is allocated to support
+ * opcodes such as `align` or `org`. A new "fragment" can also be allocated
+ * to keep individual fragments from becoming too large or inefficient for
+ * relax operations.
+ *
+ * `core_segment` is used to manage a linked list of `core_fragment` instances.
+ * A new "segment" is allocated when an opcode such as ".text" causes the
+ * assembler to generate "non-consective" object code. 
+ *
+ * Attributes stored in `core_fragment` consist of links to the next 
+ * (linked list) fragment, the containing segment, and the starting address.
+ * Additional attributes are used by `relax` to support fragment alignment.
+ * 
+ * Counter-intuitively, `core_fragments` to not hold a "size" attribute.
+ * To calculate the "size" of a fragment, the entire fragment must be 
+ * walked. This design decision is made to simplify ".align" and ".org"
+ * operations. If the "next" fragment beginning address "relaxed"
+ * (ie min==max), then size is irrelevent and fragment won't be walked.
+ *
+ * A pointer to a `core_fragment` object, along with the fragment `offset`,
+ * are used to make up the `dot` describing the current location counter.
+ *
+ * Refer to "core_segment.h" for more detailed explaination of "segments".
  */
 
 
 #include "core_segment.h"
-#include "kas_object.h"
-#include "core_size.h"
 #include "kas/kas_string.h"
 
 #include <map>
@@ -49,18 +70,18 @@ struct core_fragment : kas_object<core_fragment>
     // instance getters
     //
     
-    auto  next_p()     const { return next_p_;         }
-    auto& segment()    const { return *seg_p;          }
-    auto& section()    const { return *seg_p->section_p; }
-    auto& base_addr()  const { return frag_base_addr;  }
+    auto  next_p()     const { return next_p_;          }
+    auto& segment()    const { return *seg_p;           }
+    auto& section()    const { return seg_p->section(); }
+    auto& base_addr()  const { return frag_base_addr;   }
     auto  end_addr()   const { return base_addr() + frag_size; }
-    auto& size()       const { return frag_size;       }
-    auto  alignment()  const { return frag_alignment;  }
-    auto  delta()      const { return align_delta;     }
-    bool  is_relaxed() const { return frag_is_relaxed; }
+    auto& size()       const { return frag_size;        }
+    auto  alignment()  const { return frag_alignment;   }
+    auto  delta()      const { return align_delta;      }
+    bool  is_relaxed() const { return frag_is_relaxed;  }
 
-    // frag indexes are zero based (and disallow lookup)
-    // force walking the linked-list or using saved pointer
+    // `frag` indexes are zero based (and disallow lookup).
+    // Force walking the linked-list or using saved pointer.
     auto frag_num()    const { return base_t::index() - 1; }
 
     // also tests segment
@@ -100,7 +121,7 @@ struct core_fragment : kas_object<core_fragment>
 private:
     // update base address from previous frag
     // apply appropriate delta to provide requested alignment
-    void set_base(addr_offset_t const& base);
+    void set_base(size_offset_t const& base);
 
     // undo_relax: use when `align` or `org` attributes are applied to frag
     void undo_relax();
@@ -110,9 +131,9 @@ private:
     core_fragment *next_p_ {};      // linked list in segment order
     expr_t        *org_expr;        // expression for "org"
 
-    uint8_t  frag_alignment{};      // alignemnt for fragment
-    bool     frag_is_relaxed{};     // this fragment addressing complete
     uint16_t align_delta{};         // current frag alignment delta
+    uint8_t  frag_alignment{};      // alignment for fragment
+    bool     frag_is_relaxed{};     // this fragment addressing complete
 
     // `frag_size` & `frag_base_addr` values are managed by `relax`
     // values updated at end of `insn_container::do_frag`
@@ -121,7 +142,7 @@ private:
     static constexpr frag_offset_t INIT_SIZE { 0, frag_offset_t::max_limit };
 
     // base_addr is start of fragment (relative segment)
-    addr_offset_t  frag_base_addr{};
+    size_offset_t  frag_base_addr{};
     frag_offset_t  frag_size;
 
     friend std::ostream& operator<<(std::ostream& os, core_fragment const& obj)
@@ -131,11 +152,11 @@ private:
     static inline core::kas_clear _c{base_t::obj_clear};
 };
 
-inline addr_offset_t core_segment::size() const
+inline size_offset_t core_segment::size() const
 {
-    if (last_frag) {
+    if (last_frag)
         return last_frag->end_addr();
-    }
+    
     return {};
 }
 

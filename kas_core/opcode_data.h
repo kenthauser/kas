@@ -7,7 +7,7 @@
 
 
 #include "expr/expr.h"
-#include "core_size.h"
+#include "core_offset.h"
 
 
 namespace kas::core
@@ -29,7 +29,7 @@ namespace opc
         symbol_ref  sym;
         parser::kas_error_t diag;
         parser::kas_loc loc;
-        addr_offset_t offset;
+        frag_offset_t offset;
 
         opcode_fixed_t(fixed_t fixed = {}) : fixed(fixed) {};
 

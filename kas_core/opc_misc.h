@@ -40,9 +40,14 @@ namespace kas::core::opc
             os << data.fixed.fixed;
         }
        
-        // XXX just a copy of `opcode::calc_size` method
         op_size_t calc_size(opcode_data& data, core_fits const& fits) const override
         {
+            auto& dot  = fits.get_dot();
+            
+            if (dot.is_relaxed())
+                // XXX recalc-size
+                ;
+
             return data.size;
         }
         
@@ -84,6 +89,8 @@ namespace kas::core::opc
 
         op_size_t calc_size(data_t& data, core_fits const& fits) const override
         {
+            // XXX ORG is unicorn
+#if 0
             auto iter = data.iter();
             auto& org = *iter;
             auto& dot = fits.get_dot();
@@ -104,7 +111,7 @@ namespace kas::core::opc
             if (auto p = org.get_fixed_p())
             {
                 // this is a lot of work...
-                static constexpr addr_offset_t zero;
+                static constexpr size_offset_t zero;
 
                 auto& segment = dot.frag_p->segment();
                 auto& base = core_addr_t::add().init_addr(segment.initial(), &zero);
@@ -115,18 +122,8 @@ namespace kas::core::opc
                 // need XXX to limit to `uint16_t`
                 return { 0, static_cast<uint16_t>(*p) };
             }
-            
-#if 0
-            //return dot.set_org(*org.get_fixed_p());
-            if (auto p = org.get_fixed_p()) {
-                auto delta = *p - dot;
-                auto ok = fits.disp(delta, 0, 1 << 31);
-                std::cout << "opc_org_calc_size: " << delta;
-                std::cout << " ok = " << std::endl;
-                auto delta_fixed = 
-                return [ 
-            } else
 #endif
+            
                 return {}; //dot.set_org(*org.get_fixed_p());
         }
         

@@ -302,7 +302,7 @@ public:
     }
 
     core::core_fragment const *frag_p {};
-    core::addr_offset_t        frag_offset {};
+    core::frag_offset_t        frag_offset {};
     uint8_t    cmd    {};
     
     static inline core::kas_clear _c{base_t::obj_clear};

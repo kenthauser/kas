@@ -9,15 +9,15 @@
  * Refer to "core_segment.h" for more detailed explaination.
  */
 
+#include "core_terminal_types.h"
 #include "kas_object.h"
-#include "core_size.h"
 #include "kas/kas_string.h"
 
 namespace kas::core
 {
 
 // forward declarations for friend statements
-struct core_fragment;
+//struct core_fragment;
 std::ostream& operator<<(std::ostream& os, core_section const& s);
 
 // a segment is a handle to a linked-list of fragments
@@ -37,7 +37,7 @@ struct core_segment : kas_object<core_segment>
 
     // instance variable getter's
     auto&      section() const   { return *section_p; }
-    addr_offset_t size() const;
+    size_offset_t size() const;
 
     bool operator==(core_segment const& other) const
     {
@@ -92,7 +92,6 @@ struct core_segment : kas_object<core_segment>
     // inited by ctor
     core_section  const *section_p;
     unsigned             subsection;
-    static inline core::kas_clear _c{base_t::obj_clear};
 };
 }
 #endif

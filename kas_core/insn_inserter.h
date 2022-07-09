@@ -40,7 +40,8 @@ struct insn_inserter
     auto& operator++(int) { return *this; }
     auto& operator*()     { return *this; }
 
-    void new_frag(uint8_t align = {}, core_segment *seg_p = {});
+    // default: new fragment in same segment, with no alignment contraints
+    void new_frag(uint8_t align = 0, core_segment *seg_p = {});
   
 // XXX temp
 //private:
@@ -69,7 +70,7 @@ struct insn_inserter
     core_expr_dot dot;
 
     // frag tuning variables...
-    addr_offset_t offset;
+    size_offset_t offset;
     uint16_t frag_insn_max  {};
     uint16_t frag_relax_max {};
 
@@ -164,7 +165,7 @@ auto insn_inserter<INSN_DATA_T>::put_insn(value_t&& data) -> value_t&
 template <typename INSN_DATA_T>
 void insn_inserter<INSN_DATA_T>::put_label(value_t&& data)
 {
-    // emit label insn & init `core_addr` instance
+    // emit label insn & allocate `core_addr` instance
     // NB: if `label` is to be created at this location, 
     // `core_symbol::make_label()` method will have already been
     // called. This routine creates the `core_addr` infrastructure
@@ -176,7 +177,7 @@ void insn_inserter<INSN_DATA_T>::put_label(value_t&& data)
         addr_p = &core_addr_t::get(idx);
 
     // NB: don't allocate two `labels` at the same address. 
-    // convert INSN to `nop`
+    // convert second INSN to `nop`
     if (!addr_p && !core_addr_t::must_init_dot())
     {
         static opc::opc_nop opc{};
