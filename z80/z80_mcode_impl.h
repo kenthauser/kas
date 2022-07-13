@@ -1,24 +1,12 @@
 #ifndef KAS_Z80_Z80_MCODE_IMPL_H
 #define KAS_Z80_Z80_MCODE_IMPL_H
 
-// implement `z80_mcode_t` methods overriden in CRTP derived class
-
-#include "z80_mcode.h"
-
-#include "target/tgt_info_fn.h"
-#include "kas_core/core_emit.h"
-#include "expr/expr_fits.h"
-
-namespace kas::z80
-{
-
 /////////////////////////////////////////////////////////////////////////
 //
 //  Emit z80 instruction: opcode & arguments
 //
 /////////////////////////////////////////////////////////////////////////
 
-using expression::e_fixed_t;
 
 //
 // Z80 opcode emit rules:
@@ -34,15 +22,24 @@ using expression::e_fixed_t;
 // 5. Emit byte or word arg expr
 //
 
-template <typename ARGS_T>
-void z80_mcode_t::emit(
-                   core::core_emit& base
-                 , ARGS_T&&    args
-                 , stmt_info_t const& info
-                 ) const
+#include "z80_mcode.h"
+
+#include "target/tgt_info_fn.h"
+#include "target/tgt_opc_base.h"
+#include "kas_core/core_emit.h"
+
+namespace kas::z80
+{
+
+using expression::e_fixed_t;
+
+void z80_opc_base::do_emit(core::core_emit& base
+               , z80_mcode_t const& mcode
+               , argv_t& args
+               , stmt_info_t info) const
 {
     // 0. get base machine code data
-    auto machine_code = derived().code(info);
+    auto machine_code = mcode.code(info);
     auto code_p       = machine_code.data();
 
     // 1. apply args & emit relocs as required
@@ -50,13 +47,13 @@ void z80_mcode_t::emit(
     
     // Insert args into machine code "base" value
     // if base code has "relocation", emit it
-    auto val_iter = vals().begin();
+    auto val_iter = mcode.vals().begin();
     unsigned n = 0;
     for (auto& arg : args)
     {
         auto val_p = &*val_iter++;
-        if (!fmt().insert(n, code_p, arg, val_p))
-            fmt().emit_reloc(n, base, code_p, arg, val_p);
+        if (!mcode.fmt().insert(n, code_p, arg, val_p))
+            mcode.fmt().emit_reloc(n, base, code_p, arg, val_p);
         ++n;
     }
     
@@ -114,27 +111,14 @@ void z80_mcode_t::emit(
     }
 
     // 5. now rest of opcode (z80 -> two bytes maximum)
-    if (code_size() > sizeof(mcode_size_t))
+    if (mcode.code_size() > sizeof(mcode_size_t))
         base << *++code_p;
 
     // 6. emit arg data
-    auto sz = info.sz(*this); 
+    auto sz = info.sz(mcode); 
     for (auto& arg : args)
         arg.emit(base, sz);
 }
-#if 0
-namespace opc
-{
-struct z80_info_fn_default : z80_mcode_t::info_fn_t
-{
-    uint8_t sz(stmt_info_t const& stmt_info
-             , defn_info_t const& defn_info) const
-    {
-        return defn_info.value;     // size is only thing stored
-    }
-()};
-}
-#endif
 }
 
 #endif

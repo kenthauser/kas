@@ -1,0 +1,49 @@
+/*
+ * Copyright (c) 1997 Twenty-First Designs, Inc.
+ * Unpublished work. All rights reserved.  
+ *
+ * THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF 
+ * TWENTY-FIRST DESIGNS, INC.
+ *
+ * This software source code contains trade secrets and other
+ * proprietary information of Twenty-First Designs, Inc. All
+ * disclosure or use of this source code is strictly restricted
+ * by contract to that required for operation and maintenance 
+ * of equipment provided by Twenty-First Designs, Inc.
+ * All other disclosure or use of this source code is prohibited.
+ *
+ ***********************************************************
+ *
+ * $Id: bzero.z80,v 1.1.1.1 2000/10/18 04:29:57 kent Exp $
+ *
+ ***********************************************************
+ *
+ * bzero.z80
+ *
+ * Clear block of memory. Works for 0 to 0xffff bytes
+ *
+ * Called:	DE = count
+ *		HL = start
+ *
+ * Returns:	DE = zero
+ *		HL = first location after block
+ *		A/BC preserved
+ *
+ ***********************************************************
+ */
+
+	.globl	bzero
+
+bzero:	push	bc			; call-saved register
+	inc	e			; correct for tail djnz
+	inc	d			; correct for tail decr
+	ld	b,e			; copy to djnz reg
+	ld	e,#0			; get a zero
+	jr	1$			; start at bottom of loop
+0$:	ld	(hl),e			; clear location
+	inc	hl			; next location
+1$:	djnz	0$			; inner loop
+	dec	d			; outer loop
+	jr	nz,0$
+	pop	bc			; restore call-saved register
+	ret

@@ -277,7 +277,7 @@ namespace kas::core
             std::cout << std::endl;
 #endif
 #endif
-            // update label with `dot` offset
+            // update `label` with "dot offset"
             if (insn.opc_index == idx_label)
                 insn.fixed().offset = dot.frag_offset();
 

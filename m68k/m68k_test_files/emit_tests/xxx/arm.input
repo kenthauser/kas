@@ -1,0 +1,77 @@
+    str r1, [r2, -r3, asr #4]
+    strb r1, [r2, -r3, asr #4]
+    ldr r2, [r3, +r4, rrx]!
+    ldrb r2, [r3, +r4, rrx]!
+    str r3, [r4], r5, ror #0
+
+	mov 	r7, sp
+	movs	r7, sp
+	movT	r7, sp  ; arm6T2
+	movne  	r7, sp
+	movpl.n	r7, sp
+	moval.w	r7, sp
+    
+    mov r1, r2, LSR #5
+    mov r8, r9, ror #0
+    mov r3, r4, asr r5
+    
+    str r1, [r2, -r3, asr #4]
+    str r2, [r3, +r4, rrx]!
+    str r3, [r4], r5, ror #0
+
+    mov r6, #12
+    movw r5, #:lower16:150000
+    movw r6, #50000
+;    movw r6, #l_label
+;    movt r6, #l_label
+;    mov r5, #50000
+	mov	r0, sp
+
+    ldr r1, [r2]
+    ldr r1, [r3, #+0]
+    ldr r1, [r2, #-0]
+    ldr r2, [r3, #-4]
+    ldr r3, [r4, #5]!
+    ldr r6, [r7], #-8
+    
+;@   ldr r7, l_label
+;  @ ldr r8, g_label
+
+    ldr r0, [r1, -r2, asr #4]
+    ldr r2, [r3, +r4, rrx]!
+    ldr r3, [r4], r5, ror #0
+
+    str r1, [r2]
+    str r1, [r3, #+0]
+    str r1, [r2, #-0]
+    str r2, [r3, #-4]
+    str r3, [r4, #5]!
+    str r6, [r7], #-8
+    
+    strb    r6, [r7]
+    strsb   r6, [r7]
+    strh    r6, [r7]
+    strsh   r6, [r7]
+
+    str r7, l_label
+   @ str r8, g_label
+   
+    ldrne  r1, [r2]
+    ldreqb r1, [r2]
+    ldrcct  r1, [r2]!
+    ldrplbt r1, [r2]
+
+    ldmia   r1
+    ldmia   r1, { r2 }
+    ldmib   r2!, { r3 - r4 }
+    ldmda   r2 , { r5, r6 }
+
+
+l_label:
+    .long   1234
+    .long   l_label
+    .long   . - l_label 
+    .long   g_label - 4
+
+    .globl  g_label
+

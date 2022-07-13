@@ -84,7 +84,8 @@ struct FMT_LIST     : fmt_list, arg1_0b3, arg2_3b3 {};
 // conventional name for `no-args` formatter
 struct FMT_X       : fmt_gen {};
  
-struct FMT_BRANCH  : fmt_branch {};
+struct FMT_JR      : fmt_branch {};
+struct FMT_JR_CC   : fmt_branch, arg1_3b2 {};
 struct FMT_DJNZ    : fmt_djnz         {};
  
 ///////////////////////////////////////////////////////////////////////////

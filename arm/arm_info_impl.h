@@ -180,8 +180,8 @@ struct arm_info_a32_c_sfx : arm_info_fn_base
         extract_ccode(code_p, info);
 
         // if `mcode` requires suffix, extract it
-        auto sfx_code = (defn_info.flags & SZ_DEFN_SFX_MASK) >> SZ_DEFN_SFX_SHIFT;
-        bool sfx_req  = !!(defn_info.flags & SZ_DEFN_SFX_REQ);
+        auto sfx_code = (defn_info() & SZ_DEFN_SFX_MASK) >> SZ_DEFN_SFX_SHIFT;
+        bool sfx_req  = !!(defn_info() & SZ_DEFN_SFX_REQ);
         auto value = code_to_table(code_p, sfx_code);
 
         // value == zero -> no flags inserted

@@ -41,11 +41,12 @@ enum z80_arg_mode : uint8_t
    , MODE_REG_M_OFFSET_IY   // 23   IY with MINUS offset
 
 
-
 // Required enumerations
     , NUM_ARG_MODES
-    , MODE_BRANCH           // relative branch size (Z80, always byte)
-    , MODE_BRANCH_LAST      // only 1 branch insn
+    , MODE_BRANCH           // 25 unresolved
+    , MODE_BRANCH_BYTE      // 26 relative branch size (Z80, always byte)
+    , MODE_BRANCH_WORD      // 27 xlate jr -> jmp
+    , MODE_BRANCH_LAST = MODE_BRANCH_WORD
 };
 
 // `REG_T` & `REGSET_T` args also allow `MCODE_T` to lookup types

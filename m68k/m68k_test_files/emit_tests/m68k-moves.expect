@@ -1,0 +1,2467 @@
+
+
+
+
+gen_insn: arg mode = 0 arg = d0
+gen_insn: arg mode = 1 arg = a1
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0: OK
+validate: arg = a1: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0: OK
+validate: arg = a1: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0: OK
+validate: arg = a1: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0: OK
+validate: arg = a1: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0: OK
+validate: arg = a1: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info [sz: l, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 1, arg_c: 2, tst: void] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info [sz: l, words: 1, arg_c: 2, tst: void] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000000000000000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 1 arg = a1
+gen_insn: arg mode = 2 arg = a2@
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1: OK
+validate: arg = a2@: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1: OK
+validate: arg = a2@: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1: OK
+validate: arg = a2@: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1: OK
+validate: arg = a2@: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: read_ccr] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1: OK
+validate: arg = a2@: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1: OK
+validate: arg = a2@: OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 1, arg_c: 2, tst: void] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, SR [fits: 0]-> [-1,-1] 
+ 4: info [sz: w, words: 1, arg_c: 2, tst: read_ccr] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, CCR [fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 2 arg = a2@
+gen_insn: arg mode = 3 arg = a3@+
+gen_insn: const args = true
+validate: info = info [sz: b, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = a3@+: OK
+validate: OK
+validate: info = info [sz: b, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = a3@+: OK
+validate: OK
+ 0: info [sz: b, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info [sz: b, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+candidates: 1 : 01 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 3 arg = a3@+
+gen_insn: arg mode = 4 arg = a4@-
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@+: OK
+validate: arg = a4@-: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@+: OK
+validate: arg = a4@-: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@+: OK
+validate: arg = a4@-: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@+: OK
+validate: arg = a4@-: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@+: OK
+validate: arg = a4@-: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info [sz: l, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 1, arg_c: 2, tst: void] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info [sz: l, words: 1, arg_c: 2, tst: void] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000000000000000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 4 arg = a4@-
+gen_insn: arg mode = 5 arg = a5@(123)
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a4@-: OK
+validate: arg = a5@(123): OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a4@-: OK
+validate: arg = a5@(123): OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a4@-: OK
+validate: arg = a5@(123): OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a4@-: OK
+validate: arg = a5@(123): OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: read_ccr] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a4@-: OK
+validate: arg = a5@(123): OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a4@-: OK
+validate: arg = a5@(123): OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [4,4] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 1, arg_c: 2, tst: void] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info [sz: w, words: 1, arg_c: 2, tst: read_ccr] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 5 arg = a5@(12)
+gen_insn: arg mode = 6 arg = za0@(d0:l,20:w)
+gen_insn: const args = true
+validate: info = info [sz: b, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a5@(12): OK
+validate: arg = za0@(d0:l,20:w): OK
+validate: OK
+validate: info = info [sz: b, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a5@(12): OK
+validate: arg = za0@(d0:l,20:w): OK
+validate: OK
+ 0: info [sz: b, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [8,8] 
+ 1: info [sz: b, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+candidates: 1 : 01 : size = [8,8] : result = 2
+
+
+gen_insn: arg mode = 12 arg = [short(index: 1)]
+gen_insn: arg mode = 12 arg = [long(index: 2)]
+gen_insn: const args = false
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = [short(index: 1)]: OK
+validate: arg = [long(index: 2)]: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = [short(index: 1)]: OK
+validate: arg = [long(index: 2)]: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = [short(index: 1)]: OK
+validate: arg = [long(index: 2)]: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = [short(index: 1)]: OK
+validate: arg = [long(index: 2)]: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: read_ccr] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = [short(index: 1)]: OK
+validate: arg = [long(index: 2)]: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = [short(index: 1)]: OK
+validate: arg = [long(index: 2)]: OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [6,10] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 1, arg_c: 2, tst: void] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info [sz: w, words: 1, arg_c: 2, tst: read_ccr] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [6,10] : result = 2
+
+
+gen_insn: arg mode = 12 arg = [long(index: 2)]
+gen_insn: arg mode = 11 arg = #[fixed(index: 4)]
+gen_insn: const args = false
+validate: info = info [sz: b, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = [long(index: 2)]: OK
+validate: arg = #[fixed(index: 4)]: OK
+validate: OK
+validate: info = info [sz: b, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = [long(index: 2)]: OK
+validate: arg = #[fixed(index: 4)]: OK
+validate: OK
+ 0: info [sz: b, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 0]-> [-1,-1] 
+ 1: info [sz: b, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+candidates: 0 : 00 : size = [2,0] : result = 0
+
+
+gen_insn: arg mode = 11 arg = #[fixed(index: 4)]
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #[fixed(index: 4)]: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #[fixed(index: 4)]: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #[fixed(index: 4)]: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #[fixed(index: 4)]: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #[fixed(index: 4)]: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [6,6] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info [sz: l, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 1, arg_c: 2, tst: void] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info [sz: l, words: 1, arg_c: 2, tst: void] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000000000000000010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 11 arg = #[zero(index: 3)]
+gen_insn: arg mode = 0 arg = d3
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #[zero(index: 3)]: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #[zero(index: 3)]: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #[zero(index: 3)]: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #[zero(index: 3)]: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: read_ccr] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #[zero(index: 3)]: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #[zero(index: 3)]: OK
+validate: arg = d3: OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [4,4] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 2][fits: 2]-> [2,2] 
+ 2: info [sz: w, words: 1, arg_c: 2, tst: void] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info [sz: w, words: 1, arg_c: 2, tst: read_ccr] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 9 arg = pc@(0)
+gen_insn: arg mode = 0 arg = d4
+gen_insn: const args = true
+validate: info = info [sz: b, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = pc@(0): OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info [sz: b, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = pc@(0): OK
+validate: arg = d4: OK
+validate: OK
+ 0: info [sz: b, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [4,4] 
+ 1: info [sz: b, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+candidates: 1 : 01 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 10 arg = pc@(d1:l,123:w)
+gen_insn: arg mode = 0 arg = d5
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = pc@(d1:l,123:w): OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = pc@(d1:l,123:w): OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = pc@(d1:l,123:w): OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = pc@(d1:l,123:w): OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = pc@(d1:l,123:w): OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [4,4] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info [sz: l, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 1, arg_c: 2, tst: void] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info [sz: l, words: 1, arg_c: 2, tst: void] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000000000000000001 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 10 arg = pc@(d1:l,-123:w)
+gen_insn: arg mode = 0 arg = d5
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = pc@(d1:l,-123:w): OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = pc@(d1:l,-123:w): OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = pc@(d1:l,-123:w): OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = pc@(d1:l,-123:w): OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = pc@(d1:l,-123:w): OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [4,4] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info [sz: l, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 1, arg_c: 2, tst: void] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info [sz: l, words: 1, arg_c: 2, tst: void] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000000000000000001 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 11 arg = #123
+gen_insn: arg mode = 0 arg = d0
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = d0: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = d0: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = d0: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = d0: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = d0: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [6,6] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info [sz: l, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 1, arg_c: 2, tst: void] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info [sz: l, words: 1, arg_c: 2, tst: void] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000000000000000010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 11 arg = #123
+gen_insn: arg mode = 0 arg = d1
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: read_ccr] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = d1: OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [4,4] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 1, arg_c: 2, tst: void] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info [sz: w, words: 1, arg_c: 2, tst: read_ccr] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 11 arg = #123
+gen_insn: arg mode = 1 arg = a2
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = a2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = a2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = a2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = a2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = a2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [6,6] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 2][fits: 0]-> [-1,-1] 
+ 2: info [sz: l, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 1, arg_c: 2, tst: void] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info [sz: l, words: 1, arg_c: 2, tst: void] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000000000000000001 : size = [6,6] : result = 2
+
+
+gen_insn: arg mode = 11 arg = #123
+gen_insn: arg mode = 1 arg = a3
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = a3: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = a3: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = a3: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = a3: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: read_ccr] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = a3: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #123: OK
+validate: arg = a3: OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [4,4] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 1, arg_c: 2, tst: void] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info [sz: w, words: 1, arg_c: 2, tst: read_ccr] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 11 arg = #-100
+gen_insn: arg mode = 0 arg = d4
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #-100: OK
+validate: arg = d4: OK
+validate: OK
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+candidates: 1 : 1 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 11 arg = #-200
+gen_insn: arg mode = 0 arg = d4
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #-200: OK
+validate: arg = d4: OK
+validate: OK
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+candidates: 0 : 0 : size = [2,0] : result = 0
+
+
+gen_insn: arg mode = 11 arg = #200
+gen_insn: arg mode = 0 arg = d5
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #200: OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #200: OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #200: OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #200: OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #200: OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [6,6] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info [sz: l, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 1, arg_c: 2, tst: void] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info [sz: l, words: 1, arg_c: 2, tst: void] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000000000000000001 : size = [6,6] : result = 2
+
+
+gen_insn: arg mode = 11 arg = #0
+gen_insn: arg mode = 0 arg = d6
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #0: OK
+validate: arg = d6: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #0: OK
+validate: arg = d6: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #0: OK
+validate: arg = d6: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #0: OK
+validate: arg = d6: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #0: OK
+validate: arg = d6: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [6,6] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info [sz: l, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 2][fits: 2]-> [2,2] 
+ 3: info [sz: l, words: 1, arg_c: 2, tst: void] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info [sz: l, words: 1, arg_c: 2, tst: void] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000000000000000010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 11 arg = #0
+gen_insn: arg mode = 1 arg = a7
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #0: OK
+validate: arg = a7: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #0: OK
+validate: arg = a7: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #0: OK
+validate: arg = a7: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #0: OK
+validate: arg = a7: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: read_ccr] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #0: OK
+validate: arg = a7: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #0: OK
+validate: arg = a7: OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 2]-> [4,4] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 1, arg_c: 2, tst: void] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info [sz: w, words: 1, arg_c: 2, tst: read_ccr] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 14 arg = sr
+gen_insn: arg mode = 1 arg = a0
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = sr: OK
+validate: arg = a0: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = sr: OK
+validate: arg = a0: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = sr: OK
+validate: arg = a0: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = sr: OK
+validate: arg = a0: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: read_ccr] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = sr: OK
+validate: arg = a0: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = sr: OK
+validate: arg = a0: OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 0]-> [-1,-1] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 1, arg_c: 2, tst: void] SR, DATA_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, SR [fits: 0]-> [-1,-1] 
+ 4: info [sz: w, words: 1, arg_c: 2, tst: read_ccr] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, CCR [fits: 0]-> [-1,-1] 
+candidates: 0 : 000000 : size = [2,0] : result = 0
+
+
+gen_insn: arg mode = 14 arg = sr
+gen_insn: arg mode = 0 arg = d1
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = sr: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = sr: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = sr: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = sr: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: read_ccr] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = sr: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = sr: OK
+validate: arg = d1: OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 0]-> [-1,-1] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 1, arg_c: 2, tst: void] SR, DATA_ALTER [fits: 2][fits: 2]-> [2,2] 
+ 3: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, SR [fits: 0]-> [-1,-1] 
+ 4: info [sz: w, words: 1, arg_c: 2, tst: read_ccr] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, CCR [fits: 0]-> [-1,-1] 
+candidates: 1 : 000100 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 2 arg = a2@
+gen_insn: arg mode = 14 arg = sr
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = sr: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = sr: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = sr: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = sr: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: read_ccr] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = sr: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = sr: OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 0]-> [-1,-1] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 1, arg_c: 2, tst: void] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, SR [fits: 2][fits: 2]-> [2,2] 
+ 4: info [sz: w, words: 1, arg_c: 2, tst: read_ccr] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 001000 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 14 arg = ccr
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = ccr: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = ccr: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = ccr: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = ccr: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: read_ccr] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = ccr: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = ccr: OK
+validate: arg = d2: OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 0]-> [-1,-1] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 1, arg_c: 2, tst: void] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, SR [fits: 0]-> [-1,-1] 
+ 4: info [sz: w, words: 1, arg_c: 2, tst: read_ccr] CCR, DATA_ALTER [fits: 2][fits: 2]-> [2,2] 
+ 5: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, CCR [fits: 0]-> [-1,-1] 
+candidates: 1 : 010000 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 2 arg = a3@
+gen_insn: arg mode = 14 arg = ccr
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@: OK
+validate: arg = ccr: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@: OK
+validate: arg = ccr: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@: OK
+validate: arg = ccr: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@: OK
+validate: arg = ccr: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: read_ccr] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@: OK
+validate: arg = ccr: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@: OK
+validate: arg = ccr: OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 0]-> [-1,-1] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 1, arg_c: 2, tst: void] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info [sz: w, words: 1, arg_c: 2, tst: read_ccr] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info [sz: w, words: 1, arg_c: 2, tst: void] DATA, CCR [fits: 2][fits: 2]-> [2,2] 
+candidates: 1 : 100000 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 1 arg = a2
+gen_insn: arg mode = 14 arg = usp
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2: OK
+validate: arg = usp: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2: OK
+validate: arg = usp: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2: OK
+validate: arg = usp: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2: OK
+validate: arg = usp: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2: OK
+validate: arg = usp: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 2][fits: 0]-> [-1,-1] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info [sz: l, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 1, arg_c: 2, tst: void] ADDR_REG, USP [fits: 2][fits: 2]-> [2,2] 
+ 4: info [sz: l, words: 1, arg_c: 2, tst: void] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000000000000001000 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 14 arg = usp
+gen_insn: arg mode = 1 arg = a3
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = usp: OK
+validate: arg = a3: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = usp: OK
+validate: arg = a3: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = usp: OK
+validate: arg = a3: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = usp: OK
+validate: arg = a3: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = usp: OK
+validate: arg = a3: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 0]-> [-1,-1] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info [sz: l, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 1, arg_c: 2, tst: void] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info [sz: l, words: 1, arg_c: 2, tst: void] USP, ADDR_REG [fits: 2][fits: 2]-> [2,2] 
+candidates: 1 : 0000000000000000000010000 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 14 arg = usp
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = usp: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = usp: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = usp: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = usp: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: void] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = usp: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: mac] 
+validate: info = mac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: emac] 
+validate: info = emac
+ 0: info [sz: l, words: 1, arg_c: 2, tst: void] GEN, ALTERABLE [fits: 0]-> [-1,-1] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: void] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info [sz: l, words: 1, arg_c: 2, tst: void] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 1, arg_c: 2, tst: void] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info [sz: l, words: 1, arg_c: 2, tst: void] USP, ADDR_REG [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 0 : 0000000000000000000000000 : size = [2,0] : result = 0
+
+
+gen_insn: arg mode = 0 arg = d0
+gen_insn: arg mode = 2 arg = a2@
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: movep] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0: OK
+validate: arg = a2@: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: movep] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0: OK
+validate: arg = a2@: OK
+validate: OK
+ 0: info [sz: l, words: 1, arg_c: 2, tst: movep] DATA_REG, MOVEP [fits: 2][fits: 2]-> [4,4] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: movep] MOVEP, DATA_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 01 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d1
+gen_insn: arg mode = 5 arg = a2@(123)
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: movep] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a2@(123): OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: movep] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a2@(123): OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: movep] DATA_REG, MOVEP [fits: 2][fits: 2]-> [4,4] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: movep] MOVEP, DATA_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 01 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 2 arg = a3@
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: movep] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: l, words: 1, arg_c: 2, tst: movep] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@: OK
+validate: arg = d2: OK
+validate: OK
+ 0: info [sz: l, words: 1, arg_c: 2, tst: movep] DATA_REG, MOVEP [fits: 0]-> [-1,-1] 
+ 1: info [sz: l, words: 1, arg_c: 2, tst: movep] MOVEP, DATA_REG [fits: 2][fits: 2]-> [4,4] 
+candidates: 1 : 10 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 5 arg = a3@(123)
+gen_insn: arg mode = 0 arg = d3
+gen_insn: const args = true
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: movep] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@(123): OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info [sz: w, words: 1, arg_c: 2, tst: movep] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@(123): OK
+validate: arg = d3: OK
+validate: OK
+ 0: info [sz: w, words: 1, arg_c: 2, tst: movep] DATA_REG, MOVEP [fits: 0]-> [-1,-1] 
+ 1: info [sz: w, words: 1, arg_c: 2, tst: movep] MOVEP, DATA_REG [fits: 2][fits: 2]-> [4,4] 
+candidates: 1 : 10 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 14 arg = dfc
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = dfc: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = dfc: OK
+validate: arg = d2: OK
+validate: OK
+ 0: info [sz: l, words: 2, arg_c: 2, tst: m68010] CTRL_REG, GEN_REG [fits: 2][fits: 2]-> [4,4] 
+ 1: info [sz: l, words: 2, arg_c: 2, tst: m68010] GEN_REG, CTRL_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 01 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 1 arg = a1
+gen_insn: arg mode = 14 arg = vbr
+gen_insn: const args = true
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1: OK
+validate: arg = vbr: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1: OK
+validate: arg = vbr: OK
+validate: OK
+ 0: info [sz: l, words: 2, arg_c: 2, tst: m68010] CTRL_REG, GEN_REG [fits: 0]-> [-1,-1] 
+ 1: info [sz: l, words: 2, arg_c: 2, tst: m68010] GEN_REG, CTRL_REG [fits: 2][fits: 2]-> [4,4] 
+candidates: 1 : 10 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d1
+gen_insn: arg mode = 3 arg = a2@+
+gen_insn: const args = true
+validate: info = info [sz: b, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a2@+: OK
+validate: OK
+validate: info = info [sz: b, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a2@+: OK
+validate: OK
+ 0: info [sz: b, words: 2, arg_c: 2, tst: m68010] GEN_REG, MEM_ALTER [fits: 2][fits: 2]-> [4,4] 
+ 1: info [sz: b, words: 2, arg_c: 2, tst: m68010] MEM_ALTER, GEN_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 01 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 1 arg = a1
+gen_insn: arg mode = 3 arg = a2@+
+gen_insn: const args = true
+validate: info = info [sz: b, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1: byte operation on address register
+validate: info = info [sz: b, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1: byte operation on address register
+gen_insn: error: byte operation on address register
+
+gen_insn: arg mode = 4 arg = a3@-
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@-: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a3@-: OK
+validate: arg = d2: OK
+validate: OK
+ 0: info [sz: w, words: 2, arg_c: 2, tst: m68010] GEN_REG, MEM_ALTER [fits: 0]-> [-1,-1] 
+ 1: info [sz: w, words: 2, arg_c: 2, tst: m68010] MEM_ALTER, GEN_REG [fits: 2][fits: 2]-> [4,4] 
+candidates: 1 : 10 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 6 arg = za0@(d0:l)
+gen_insn: arg mode = 1 arg = a3
+gen_insn: const args = true
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = za0@(d0:l): OK
+validate: arg = a3: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = za0@(d0:l): OK
+validate: arg = a3: OK
+validate: OK
+ 0: info [sz: l, words: 2, arg_c: 2, tst: m68010] GEN_REG, MEM_ALTER [fits: 0]-> [-1,-1] 
+ 1: info [sz: l, words: 2, arg_c: 2, tst: m68010] MEM_ALTER, GEN_REG [fits: 2][fits: 2]-> [6,6] 
+candidates: 1 : 10 : size = [6,6] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d3
+gen_insn: arg mode = 0 arg = d4
+gen_insn: const args = true
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68010] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d4: OK
+validate: OK
+ 0: info [sz: l, words: 2, arg_c: 2, tst: m68010] GEN_REG, MEM_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 1: info [sz: l, words: 2, arg_c: 2, tst: m68010] MEM_ALTER, GEN_REG [fits: 0]-> [-1,-1] 
+candidates: 0 : 00 : size = [2,0] : result = 0
+
+
+gen_insn: arg mode = 11 arg = #456
+gen_insn: arg mode = 4 arg = a2@-
+gen_insn: const args = true
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #456: OK
+validate: arg = a2@-: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #456: OK
+validate: arg = a2@-: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #456: OK
+validate: arg = a2@-: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = #456: OK
+validate: arg = a2@-: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+ 0: info [sz: l, words: 2, arg_c: 2, tst: m68k] REGSET, CONTROL_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 1: info [sz: l, words: 2, arg_c: 2, tst: m68k] REGSET, PRE_DECR [fits: 2][fits: 2]-> [4,4] 
+ 2: info [sz: l, words: 2, arg_c: 2, tst: m68k] CONTROL, REGSET [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 2, arg_c: 2, tst: m68k] POST_INCR, REGSET [fits: 0]-> [-1,-1] 
+candidates: 1 : 000010 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 15 arg = rs[d0-d2/a0-a2/a6/a7]
+gen_insn: arg mode = 4 arg = a2@-
+gen_insn: const args = true
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: arg = a2@-: OK
+validate: OK
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: arg = a2@-: OK
+validate: OK
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: arg = a2@-: OK
+validate: OK
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: arg = a2@-: OK
+validate: OK
+ 0: info [sz: w, words: 2, arg_c: 2, tst: m68k] REGSET, CONTROL_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 1: info [sz: w, words: 2, arg_c: 2, tst: m68k] REGSET, PRE_DECR [fits: 2][fits: 2]-> [4,4] 
+ 2: info [sz: w, words: 2, arg_c: 2, tst: m68k] CONTROL, REGSET [fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 2, arg_c: 2, tst: m68k] POST_INCR, REGSET [fits: 0]-> [-1,-1] 
+candidates: 1 : 0010 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 3 arg = a6@+
+gen_insn: arg mode = 15 arg = rs[d0-d2/a0-a2/a6/a7]
+gen_insn: const args = true
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a6@+: OK
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a6@+: OK
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a6@+: OK
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a6@+: OK
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+ 0: info [sz: l, words: 2, arg_c: 2, tst: m68k] REGSET, CONTROL_ALTER [fits: 0]-> [-1,-1] 
+ 1: info [sz: l, words: 2, arg_c: 2, tst: m68k] REGSET, PRE_DECR [fits: 0]-> [-1,-1] 
+ 2: info [sz: l, words: 2, arg_c: 2, tst: m68k] CONTROL, REGSET [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 2, arg_c: 2, tst: m68k] POST_INCR, REGSET [fits: 2][fits: 2]-> [4,4] 
+candidates: 1 : 001000 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d1
+gen_insn: arg mode = 4 arg = a3@-
+gen_insn: const args = true
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a3@-: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a3@-: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a3@-: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a3@-: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+ 0: info [sz: l, words: 2, arg_c: 2, tst: m68k] REGSET, CONTROL_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 1: info [sz: l, words: 2, arg_c: 2, tst: m68k] REGSET, PRE_DECR [fits: 2][fits: 2]-> [4,4] 
+ 2: info [sz: l, words: 2, arg_c: 2, tst: m68k] CONTROL, REGSET [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 2, arg_c: 2, tst: m68k] POST_INCR, REGSET [fits: 0]-> [-1,-1] 
+candidates: 1 : 000010 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 30 arg = Err: rs ERR[a0/usp]
+
+gen_insn: arg mode = 15 arg = rs[d0-d2/a0-a2/a6/a7]
+gen_insn: arg mode = 12 arg = [long(index: 2)]
+gen_insn: const args = false
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: arg = [long(index: 2)]: OK
+validate: OK
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: arg = [long(index: 2)]: OK
+validate: OK
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: arg = [long(index: 2)]: OK
+validate: OK
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: arg = [long(index: 2)]: OK
+validate: OK
+ 0: info [sz: w, words: 2, arg_c: 2, tst: m68k] REGSET, CONTROL_ALTER [fits: 2][fits: 2]-> [6,8] 
+ 1: info [sz: w, words: 2, arg_c: 2, tst: m68k] REGSET, PRE_DECR [fits: 2][fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 2, arg_c: 2, tst: m68k] CONTROL, REGSET [fits: 0]-> [-1,-1] 
+ 3: info [sz: w, words: 2, arg_c: 2, tst: m68k] POST_INCR, REGSET [fits: 0]-> [-1,-1] 
+candidates: 1 : 0001 : size = [6,8] : result = 2
+
+
+gen_insn: arg mode = 3 arg = a7@+
+gen_insn: arg mode = 11 arg = #456
+gen_insn: const args = true
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a7@+: OK
+validate: arg = #456: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a7@+: OK
+validate: arg = #456: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a7@+: OK
+validate: arg = #456: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a7@+: OK
+validate: arg = #456: OK
+validate: OK
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+validate: info = info [sz: l, words: 2, arg_c: 2, tst: coldfire] 
+validate: info = coldfire
+ 0: info [sz: l, words: 2, arg_c: 2, tst: m68k] REGSET, CONTROL_ALTER [fits: 0]-> [-1,-1] 
+ 1: info [sz: l, words: 2, arg_c: 2, tst: m68k] REGSET, PRE_DECR [fits: 0]-> [-1,-1] 
+ 2: info [sz: l, words: 2, arg_c: 2, tst: m68k] CONTROL, REGSET [fits: 0]-> [-1,-1] 
+ 3: info [sz: l, words: 2, arg_c: 2, tst: m68k] POST_INCR, REGSET [fits: 2][fits: 2]-> [4,4] 
+candidates: 1 : 001000 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 12 arg = [long(index: 2)]
+gen_insn: arg mode = 15 arg = rs[d0-d2/a0-a2/a6/a7]
+gen_insn: const args = false
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = [long(index: 2)]: OK
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: OK
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = [long(index: 2)]: OK
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: OK
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = [long(index: 2)]: OK
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: OK
+validate: info = info [sz: w, words: 2, arg_c: 2, tst: m68k] 
+validate: info = OK
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = [long(index: 2)]: OK
+validate: arg = rs[d0-d2/a0-a2/a6/a7]: OK
+validate: OK
+ 0: info [sz: w, words: 2, arg_c: 2, tst: m68k] REGSET, CONTROL_ALTER [fits: 0]-> [-1,-1] 
+ 1: info [sz: w, words: 2, arg_c: 2, tst: m68k] REGSET, PRE_DECR [fits: 0]-> [-1,-1] 
+ 2: info [sz: w, words: 2, arg_c: 2, tst: m68k] CONTROL, REGSET [fits: 2][fits: 2]-> [6,8] 
+ 3: info [sz: w, words: 2, arg_c: 2, tst: m68k] POST_INCR, REGSET [fits: 0]-> [-1,-1] 
+candidates: 1 : 0100 : size = [6,8] : result = 2
+
+
+gen_insn: arg mode = 3 arg = a2@+
+gen_insn: arg mode = 3 arg = a4@+
+gen_insn: const args = true
+validate: info = info [sz: v, words: 2, arg_c: 2, tst: m68040] 
+validate: info = m68040
+validate: info = info [sz: v, words: 1, arg_c: 2, tst: m68040] 
+validate: info = m68040
+validate: info = info [sz: v, words: 1, arg_c: 2, tst: m68040] 
+validate: info = m68040
+validate: info = info [sz: v, words: 1, arg_c: 2, tst: m68040] 
+validate: info = m68040
+validate: info = info [sz: v, words: 1, arg_c: 2, tst: m68040] 
+validate: info = m68040
+gen_insn: error: m68040
+
+gen_insn: arg mode = 12 arg = [long(index: 2)]
+gen_insn: arg mode = 3 arg = a3@+
+gen_insn: const args = false
+validate: info = info [sz: v, words: 2, arg_c: 2, tst: m68040] 
+validate: info = m68040
+validate: info = info [sz: v, words: 1, arg_c: 2, tst: m68040] 
+validate: info = m68040
+validate: info = info [sz: v, words: 1, arg_c: 2, tst: m68040] 
+validate: info = m68040
+validate: info = info [sz: v, words: 1, arg_c: 2, tst: m68040] 
+validate: info = m68040
+validate: info = info [sz: v, words: 1, arg_c: 2, tst: m68040] 
+validate: info = m68040
+gen_insn: error: m68040
+
+gen_insn: arg mode = 2 arg = a7@
+gen_insn: arg mode = 12 arg = [long(index: 2)]
+gen_insn: const args = false
+validate: info = info [sz: v, words: 2, arg_c: 2, tst: m68040] 
+validate: info = m68040
+validate: info = info [sz: v, words: 1, arg_c: 2, tst: m68040] 
+validate: info = m68040
+validate: info = info [sz: v, words: 1, arg_c: 2, tst: m68040] 
+validate: info = m68040
+validate: info = info [sz: v, words: 1, arg_c: 2, tst: m68040] 
+validate: info = m68040
+validate: info = info [sz: v, words: 1, arg_c: 2, tst: m68040] 
+validate: info = m68040
+gen_insn: error: m68040
+
+
+
+0000_00dc'                         ;
+                                   ; test move instructions
+                                   
+                                   ; 0. constants used
+                                   
+0000_0000'                         short:
+                                   
+0000_0000'                             .globl  long
+                                   
+            = 0000_0000            zero    = . - short
+            = 0000_0064            fixed   = 100
+                                   
+                                   
+                                   ; 1. test each addression mode for each general move
+                                   
+0000_0000'  2240                       move.l  d0, a1
+0000_0002'  3489                       move.w  a1, a2@
+0000_0004'  16d2                       move.b  a2@, a3@+
+0000_0006'  291b                       move.l  a3@+, a4@-
+0000_0008'  3b64 007b                  move.w  a4@-, a5@(123)
+0000_000c'  11ad 000c 09a0 0014        move.b  a5@(12), d0@(20)
+                                   ;   move.l  a1@(d2, 3), short
+0000_0014'  33fa ffea 0000_0000*       move.w  short, long
+0000_001c'                             move.b  long, #fixed
+                                   Error: invalid arguments
+0000_001c'  7464                       move.l  #fixed, d2
+0000_001e'  4243                       move.w  #zero, d3
+0000_0020'  183a 0000                  move.b  pc@, d4
+0000_0024'  2a3b 187b                  move.l  pc@(d1, +123), d5
+0000_0028'  2a3b 1885                  move.l  pc@(d1, -123), d5
+                                   
+                                   ; 2. test special (moveq), etc
+                                   
+0000_002c'  707b                       move.l  #123, d0
+0000_002e'  323c 007b                  move.w  #123, d1
+0000_0032'  247c 0000_007b             move.l  #123, a2
+0000_0038'  367c 007b                  move.w  #123, a3
+                                   
+0000_003c'  789c                       moveq.l #-100, d4
+0000_003e'                             moveq.l #-200, d4
+                                   Error: invalid arguments
+0000_003e'  2a3c 0000_00c8             move.l  #200, d5
+                                   
+0000_0044'  7c00                       move.l  #0, d6
+0000_0046'  3e7c 0000                  move.w  #0, a7
+                                   
+0000_004a'                             move.w  sr, a0
+                                   Error: invalid arguments
+0000_004a'  40c1                       move.w  sr, d1
+0000_004c'  46d2                       move.w  a2@, sr
+0000_004e'  42c2                       move.w  ccr, d2
+0000_0050'  44d3                       move.w  a3@, ccr
+                                   
+0000_0052'  4e62                       move.l  a2, usp
+0000_0054'  4e6b                       move.l  usp, a3
+0000_0056'                             move.l  usp, d2
+                                   Error: invalid arguments
+                                   
+                                   ; 4. movep
+                                   
+0000_0056'  01ca 0000                  movep.l d0,a2@
+0000_005a'  038a 007b                  movep.w d1,a2@(123)
+0000_005e'  054b 0000                  movep.l a3@, d2
+0000_0062'  070b 007b                  movep.w a3@(123), d3
+                                   
+                                   ; 5. movec/moves
+                                   
+0000_0066'  4e7a 2001                  movec   dfc, d2
+0000_006a'  4e7b 9801                  movec a1, vbr
+                                   
+0000_006e'  0e1a 1000                  moves.b d1,a2@+
+0000_0072'                             moves.b a1,a2@+
+                                   Error: byte operation on address register
+0000_0072'  0e63 2800                  moves.w a3@-,d2
+0000_0076'  0eb0 b800 0990             moves.l d0@,a3
+0000_007c'                             moves.l d3,d4
+                                   Error: invalid arguments
+                                   
+                                   ; 3. movem
+                                   
+0000_007c'  48e2 01c8                  movem.l #456, a2@-
+0000_0080'  48a2 e0e3                  movem.w d0-d2/a0-a2/a6/a7, a2@-
+0000_0084'  4cde c707                  movem.l     fp@+, d0-d2/a0-a2/a6/a7
+0000_0088'  48e3 4000                  movem.l d1,a3@-
+0000_008c'                             movem.w a0/usp,a2@
+                                   Error: invalid regset
+0000_008c'  48b9 c707 0000_0000*       movem.w d0-d2/a0-a2/a6/a7, long
+                                   
+0000_0094'  4cdf 01c8                  movem.l sp@+, #456
+0000_0098'  4cb9 c707 0000_0000*       movem.w long, d0-d2/a0-a2/a6/a7
+                                   
+                                   ; 4. move16
+0000_00a0'                             move16  a2@+, a4@+
+                                   Error: m68040
+0000_00a0'                             move16  long, a3@+
+                                   Error: m68040
+0000_00a0'                             move16  sp@, long
+                                   Error: m68040
+                                   
+                                   
+                                   ;   bra short

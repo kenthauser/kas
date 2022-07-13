@@ -1,0 +1,200 @@
+in :  #NO_APP[\n]
+out:  ERROR	[kas::parser::kas_diag: 1 loc: #NO_APP
+]
+
+in :  .file[\t]"strerror.c"[\n]
+out:  DW_FILE	{[EXPR = "strerror.c": src = ""strerror.c""]}
+
+in :  strerror:[\n]
+out:  ERROR	[kas::parser::kas_diag: 2 loc: rerror:
+]
+
+in :  link.w %fp,#0[\n]
+out:  linkw	{}
+
+in :  move.l 8(%fp),%d1[\n]
+out:  movel	{}
+
+in :  move.l sys_nerr,%d0[\n]
+out:  movel	{}
+
+in :  cmp.l %d1,%d0[\n]
+out:  cmpl	{}
+
+in :  jls .L2[\n]
+out:  jls	{}
+
+in :  move.l 8(%fp),%d0[\n]
+out:  movel	{}
+
+in :  move.l sys_errlist(%d0.l*4),%d0[\n]
+out:  movel	{}
+
+in :  jra .L3[\n]
+out:  jra	{}
+
+in :  .L2:
+out:  LABEL	[sym: 2 loc: 53]
+
+in :  move.l 8(%fp),-(%sp)[\n]
+out:  movel	{}
+
+in :  pea .LC0[\n]
+out:  pea	{}
+
+in :  .long[\t].LC0[\n]
+out:  INT<4>	{[EXPR = [.LC0(index: 5)]: src = ".LC0"]}
+
+in :  pea ebuf.1452[\n]
+out:  pea	{}
+
+in :  jsr sprintf[\n]
+out:  jsr	{}
+
+in :  lea (12,%sp),%sp[\n]
+out:  lea	{}
+
+in :  move.l #ebuf.1452,%d0[\n]
+out:  movel	{}
+
+in :  .L3:
+out:  LABEL	[sym: 4 loc: 58]
+
+in :  unlk %fp[\n]
+out:  unlk	{}
+
+in :  rts[\n]
+out:  rts	{}
+
+in :  .size[\t]strerror, .-strerror[\n]
+out:  SIZE	{[EXPR = [strerror(index: 8)]: src = "strerror"], [EXPR = cx[1](0+ca([dot])-[ident 7:strerror]): src = ".-strerror"]}
+
+in :  .align[\t]2[\n]
+out:  ALIGN	{[EXPR = 2: src = "2"]}
+
+in :  .globl[\t]strerror2[\n]
+out:  SYM	{1}, {[EXPR = [strerror2(index: 9)]: src = "strerror2"]}
+
+in :  .type[\t]strerror2, @function[\n]
+out:  TYPE	{[EXPR = [strerror2(index: 9)]: src = "strerror2"], [@IDENT: src = "@function"]}
+
+in :  .LC0:
+out:  LABEL	[sym: 5 loc: 5d]
+
+in :  .string[\t]"Unknown error: %d"[\n]
+out:  STR<1>	{[EXPR = "Unknown error: %d": src = ""Unknown error: %d""]}
+
+in :  .text[\n]
+out:  SEG	{.text}, {[MISSING: src = ""]}
+
+in :  .align[\t]2[\n]
+out:  ALIGN	{[EXPR = 2: src = "2"]}
+
+in :  .globl[\t]strerror[\n]
+out:  SYM	{1}, {[EXPR = [strerror(index: 8)]: src = "strerror"]}
+
+in :  .type[\t]strerror, @function[\n]
+out:  TYPE	{[EXPR = [strerror(index: 8)]: src = "strerror"], [@IDENT: src = "@function"]}
+
+in :  [\t][\n]strerror2:[\n]
+out:  ERROR	[kas::parser::kas_diag: 3 loc: rerror2:
+]
+
+in :  link.w %fp,#0[\n]
+out:  linkw	{}
+
+in :  move.l 8(%fp),-(%sp)[\n]
+out:  movel	{}
+
+in :  jsr strerror[\n]
+out:  jsr	{}
+
+in :  addq.l #4,%sp[\n]
+out:  addql	{}
+
+in :  move.l 8(%fp),%d1[\n]
+out:  movel	{}
+
+in :  move.l sys_nerr,%d0[\n]
+out:  movel	{}
+
+in :  cmp.l %d1,%d0[\n]
+out:  cmpl	{}
+
+in :  jls .L5[\n]
+out:  jls	{}
+
+in :  move.l 8(%fp),%d0[\n]
+out:  movel	{}
+
+in :  move.l sys_errlist(%d0.l*4),%d0[\n]
+out:  movel	{}
+
+in :  jra .L6[\n]
+out:  jra	{}
+
+in :  .L5:
+out:  LABEL	[sym: a loc: 8a]
+
+in :  move.l 8(%fp),-(%sp)[\n]
+out:  movel	{}
+
+in :  pea .LC0[\n]
+out:  pea	{}
+
+in :  pea ebuf.1461[\n]
+out:  pea	{}
+
+in :  jsr sprintf[\n]
+out:  jsr	{}
+
+in :  lea (12,%sp),%sp[\n]
+out:  lea	{}
+
+in :  move.l #ebuf.1461,%d0[\n]
+out:  movel	{}
+
+in :  .L6:
+out:  LABEL	[sym: b loc: 8f]
+
+in :  unlk %fp[\n]
+out:  unlk	{}
+
+in :  rts[\n]
+out:  rts	{}
+
+in :  .size[\t]strerror2, .-strerror2[\n]
+out:  SIZE	{[EXPR = [strerror2(index: 9)]: src = "strerror2"], [EXPR = cx[2](0+ca([dot])-[ident 8:strerror2]): src = ".-strerror2"]}
+
+in :  .local[\t]ebuf.1452[\n]
+out:  SYM	{0}, {[EXPR = [ebuf.1452(index: 6)]: src = "ebuf.1452"]}
+
+in :  .comm[\t]ebuf.1452,20,1[\n]
+out:  COMM	{1}, {[EXPR = [ebuf.1452(index: 6)]: src = "ebuf.1452"], [EXPR = 14: src = "20"], [EXPR = 1: src = "1"]}
+
+in :  .local[\t]ebuf.1461[\n]
+out:  SYM	{0}, {[EXPR = [ebuf.1461(index: c)]: src = "ebuf.1461"]}
+
+in :  .comm[\t]ebuf.1461,20,1[\n]
+out:  COMM	{1}, {[EXPR = [ebuf.1461(index: c)]: src = "ebuf.1461"], [EXPR = 14: src = "20"], [EXPR = 1: src = "1"]}
+
+in :  .ident[\t]"GCC: (GNU) 5.4.0"[\n]
+out:  IDENT	{[EXPR = "GCC: (GNU) 5.4.0": src = ""GCC: (GNU) 5.4.0""]}
+
+in :  
+out:  EOI	
+
+symbols:
+   0: sys_nerr            U : *undef*
+   1: .L2                 U : *undef*
+   2: sys_errlist         U : *undef*
+   3: .L3                 U : *undef*
+   4: .LC0                U : *undef*
+   5: ebuf.1452           U : *undef*
+   6: sprintf             U : *undef*
+   7: strerror            U : *undef*
+   8: strerror2           U : *undef*
+   9: .L5                 U : *undef*
+  10: .L6                 U : *undef*
+  11: ebuf.1461           U : *undef*
+

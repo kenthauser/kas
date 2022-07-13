@@ -27,7 +27,7 @@ struct val_reg : tgt::opc::tgt_val_reg<val_reg, z80_mcode_t>
     using base_t::base_t;
 };
 
-struct val_branch : tgt::opc::tgt_val_branch<val_branch, z80_mcode_t>
+struct val_branch : tgt::opc::tgt_val_branch<z80_mcode_t>
 {
     using base_t::base_t;
 
@@ -75,7 +75,8 @@ struct val_reg_gen: z80_mcode_t::val_t
     }
     
     // registers by themselves have no size. But IX/IY offsets do
-    fits_result size(z80_arg_t& arg, z80_mcode_t const & mc, stmt_info_t const& info, expr_fits const& fits, op_size_t& insn_size) const override
+    fits_result size(z80_arg_t& arg, uint8_t sz
+                   , expr_fits const& fits, op_size_t& op_size) const override
     {
         switch (arg.mode())
         {
@@ -87,7 +88,7 @@ struct val_reg_gen: z80_mcode_t::val_t
             case MODE_REG_M_OFFSET_IX:
             case MODE_REG_P_OFFSET_IY:
             case MODE_REG_M_OFFSET_IY:
-                insn_size += 1;         // single byte offset
+                op_size += 1;         // single byte offset
                 break;
         }
         return fits.yes;
@@ -340,7 +341,7 @@ struct val_direct: z80_mcode_t::val_t
         return fits.no;
     }
 
-    fits_result size(z80_arg_t& arg, z80_mcode_t const& mc, stmt_info_t const& info
+    fits_result size(z80_arg_t& arg, uint8_t sz
                    , expr_fits const& fits, op_size_t& op_size) const override
     {
         op_size += 2;
@@ -422,10 +423,10 @@ struct val_indir : z80_mcode_t::val_t
     }
 
     // immediates may be inserted in opcode, or added data
-    fits_result size(z80_arg_t& arg, z80_mcode_t const& mc, stmt_info_t const& info
-                   , expr_fits const& fits, op_size_t& insn_size) const override
+    fits_result size(z80_arg_t& arg, uint8_t sz
+                   , expr_fits const& fits, op_size_t& op_size) const override
     {
-        insn_size += _size;
+        op_size += _size;
         return ok(arg, fits);
     }
 

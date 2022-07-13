@@ -9,7 +9,7 @@
 // The `tgt_opc_branch` opcode supports these methods using the following
 // `mcode` attributes
 //
-// 0. The first word of the opcode is calculated from supplied arguments,
+// 0. The first word(s) of the opcode is calculated from supplied arguments,
 //    save for the destination. This includes CCODE and DJcc registers.
 //
 // 1. The `destination` argument must be the last argument.
@@ -59,7 +59,7 @@ struct tgt_opc_branch : tgt_opc_general<MCODE_T>
     OPC_INDEX();
     using NAME = string::str_cat<typename MCODE_T::BASE_NAME, KAS_STRING("_BRANCH")>;
     const char *name() const override { return NAME::value; }
-    
+
     // entrypoint from `mcode` method. used by `opc_list`
     fits_result do_size(mcode_t const& mcode
                       , argv_t& args
@@ -84,19 +84,8 @@ struct tgt_opc_branch : tgt_opc_general<MCODE_T>
                   << std::dec << +arg.mode() << std::endl;
         return result;
     }
-
-    // entrypoint from `mcode` method. used by `opc_list`
-    // NB: Can be deleted and evaluate all args using base method 
-    void do_emit(core::core_emit& base
-                       , mcode_t const& mcode
-                       , argv_t& args
-                       , stmt_info_t info) const override
-    {
-        // NB: don't have `code_p`. must use base_t method
-        base_t::do_emit(base, mcode, args, info);
-    }
-    
-    // mimic argument retrieval from `tgt_opc_general`
+   
+     // mimic argument retrieval from `tgt_opc_general`
     // can "simplify" generation of branch instructions
     void emit(data_t const& data
             , core::core_emit& base

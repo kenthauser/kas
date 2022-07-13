@@ -1,0 +1,41 @@
+	.section	__TEXT,__text,regular,pure_instructions
+	.macosx_version_min 10, 13
+	.syntax unified
+	.globl	__Z5hellov              @ -- Begin function _Z5hellov
+	.p2align	2
+	.code	32                      @ @_Z5hellov
+__Z5hellov:
+@ %bb.0:
+	push	{r7, lr}
+	mov	r7, sp
+	sub	sp, sp, #4
+	ldr	r1, LCPI0_0
+LPC0_0:
+	add	r1, pc, r1
+	mov	r0, sp
+	bl	__ZN3ioslsEPKc
+	ldr	r1, LCPI0_1
+LPC0_1:
+	add	r1, pc, r1
+	bl	__ZN3ioslsEPKc
+	mov	sp, r7
+	pop	{r7, lr}
+	bx	lr
+	.p2align	2
+@ %bb.1:
+	.data_region
+LCPI0_0:
+	.long	L_.str-(LPC0_0+8)
+LCPI0_1:
+	.long	L_.str.1-(LPC0_1+8)
+	.end_data_region
+                                        @ -- End function
+	.section	__TEXT,__cstring,cstring_literals
+L_.str:                                 @ @.str
+	.asciz	"hello, arm"
+
+L_.str.1:                               @ @.str.1
+	.asciz	"\n"
+
+
+.subsections_via_symbols

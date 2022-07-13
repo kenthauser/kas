@@ -1,0 +1,2 @@
+test/expr_tests/a.input:1:Error! Expecting end of input here:
+1 # 2__^_

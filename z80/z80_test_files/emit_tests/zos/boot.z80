@@ -1,0 +1,214 @@
+/*
+ * Copyright (c) 1992 Twenty-First Designs, Inc.
+ * Unpublished work. All rights reserved.  
+ *
+ * THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF 
+ * TWENTY-FIRST DESIGNS, INC.
+ *
+ * This software source code contains trade secrets and other
+ * proprietary information of Twenty-First Designs, Inc. All
+ * disclosure or use of this source code is strictly restricted
+ * by contract to that required for operation and maintenance 
+ * of equipment provided by Twenty-First Designs, Inc.
+ * All other disclosure or use of this source code is prohibited.
+ *
+ ***********************************************************
+ *
+ * $Id: boot.z80,v 1.2 2000/12/21 05:36:34 kent Exp $
+ *
+ ***********************************************************
+ *
+ * Bootstrap the TFD Z80 software
+ *
+ ***********************************************************
+ */
+
+/* Generic Z80 ROM Bootstrap
+ *
+ * Id: boot.z80,v 1.1 1989/06/30 17:25:46 kent Exp 
+ *
+ * Copyright 1989, Kent Hauser
+ *
+ * This routine gains control on reset or on error.
+ *
+ * First it saves the old registers and stack, then it sets
+ * the hardware state to that appropriate to reset. An external
+ * table in `initio' format (described below) is used to program
+ * the hardware devices.
+ *
+ * Next the initialized RAM is copied from the image in ROM,
+ * the unitialized RAM is cleared, & the stack pointer is set to
+ * the highest available RAM location.
+ *
+ * After initialization is complete, it branches to `__main'.
+ *
+ * This module only writes to RAM.  Therefore, any RAM-test
+ * routines required can be executed at `__main'.
+ *
+ * This module *must* be located at the beginning of the load.
+ * It must be linked to location 0 to function correctly.
+ *
+ * This module is also padded to a 32 byte alignment to allow for
+ * an interrupt vector table to immediately follow the bootstrap
+ * module.
+ *
+ * Log: boot.z80,v 
+ * Revision 1.1  1989/06/30  17:25:46  kent
+ * Initial revision
+ *
+ */
+
+
+#ifndef WDOG
+#define	WDOG	in	a,(0)
+#endif
+
+ramend		= 	0		; end of physical ram (+ 1)
+savelen		=	256		; bytes to save
+savearea	=	ramend - savelen
+savesp		=	savearea + savelen - 2
+
+
+
+	.globl	baderror,bad_error, boot, initio, _reti
+	.globl	chl, cix, ciy
+
+	.data
+_bdata:				; declare beginning of data area
+
+	.text
+; the Reset Vector
+; here on power on or wdog timeout
+boot:
+	rst	0x38		; just continue with restart
+;
+;	.asciz	"Copyright 1989, Kent Hauser"
+	.asciz	"Copyright 1992, Twenty-First Designs, Inc"
+
+; a routine to restore the interrupt chain
+; can be called with a "rst 30h" single-byte restart insn.
+	. =	30h
+_reti:
+	ei
+	reti
+
+; general purpose routine to "call" thru HL/IX/IY registers
+chl:	jp	(hl)
+cix:	jp	(ix)
+ciy:	jp	(iy)
+
+
+	. = 	38h
+
+#ifdef NON_VECTORED			/* support "non-vectored" ints */
+	jp	int_38
+#endif
+
+baderror:
+bad_error:
+; this routine is located at 38h
+; save the registers for later inspection
+	ld	(savesp),sp	; save stack pointer
+	ld	sp,savesp
+	push	af
+	xor	a
+	WDOG			; kick the dog, red LED
+	ld	a,i		; get the IFF flag
+	di			; avoid further contention
+	push	bc
+	push	de
+	push	hl
+	push	ix
+	push	iy
+	ex	af,af
+	exx
+	push	af
+	push	bc
+	push	de
+	push	hl
+	ex	af,af
+	push	af		; the IFF flag, etc
+; registers saved, prepare to copy old stack off
+	ld	hl,#-savearea
+	add	hl,sp		; bytes left
+	ld	e,l		; save in DE till ready
+	ld	d,h
+; done saving registers -- now set hardware offline
+	ld	sp,#ret2here	; dummy, for initio "return"
+	ld	hl,#reset_table
+	jr	initio
+
+; base page location
+	. = 	66h
+	jr	nmi		; let user routine handle it
+
+
+; finally past all of the page zero locations.
+	.asciz	"$Id: boot.z80,v 1.2 2000/12/21 05:36:34 kent Exp $"
+/*
+ * The `initio' routine is used to program hardware from a table.
+ * The table has the following format:
+ *
+ * First byte is count of data bytes
+ * Second byte is I/O address
+ * `Count' bytes of data follow.
+ * Count of zero ends table.
+ * 
+ * The `initio' routine outputs each of the data bytes to the
+ * specified I/O address.
+ *
+ * Initio is called with the table pointer in HL
+ */
+
+initio:
+; initialize the I/O from table -- preserves DE
+	ld	a,(hl)
+	or	a
+	ret	z
+	ld	b,(hl)
+	inc	hl
+	ld	c,(hl)
+	inc	hl
+	otir
+	jr	initio
+
+ret2here:
+	.word	. + 2		; dummy stack !
+; now copy old stack area, counts in DE
+	ld	c,e
+	ld	b,d
+	ld	hl,(savesp)	; old stack pointer
+	ld	de,#savearea	; start of reserved area
+	ldir
+; now copy the initialized RAM
+; dont use a single ldir in case wdog time is short!
+	ld	hl,#_edata
+	ld	de,#_bdata
+	xor	a
+	sbc	hl,de
+	ld	c,l
+	ld	b,h
+	ld	hl,#_etext	; initialized data is at end of code
+	jr	z,2$
+1$:	WDOG			; kick the dog
+	ldi			; -- and repeat
+	jp	pe,1$
+; and clear the rest of RAM -- calculate amount remaining
+2$:	ld	hl,#savearea
+	ld	sp,hl		; load stack pointer with same location
+	scf			; to correct for "inc DE" below 
+	sbc	hl,de
+	ld	c,l
+	ld	b,h
+	ld	l,e		; copy next pointer to HL
+	ld	h,d
+	inc	de
+	xor	a
+	ld	(hl),a		; clear 1 byte
+3$:	WDOG			; kick the dog
+	ldi			; -- and repeat
+	jp	pe,3$
+	im	1		; vector to 38H if not reloaded
+	jr	__main		; main executive
+
+	.align 5		; so interrupt vectors can follow this module.

@@ -1,0 +1,3207 @@
+gen_insn: arg mode = 0 arg = d2
+gen_insn: arg mode = 14 arg = acc
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = acc: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+ 5: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MACSR, GEN_REG [fits: 0]-> [-1,-1] 
+ 6: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MACSR, CCR [fits: 0]-> [-1,-1] 
+ 7: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] GEN_REG, MACSR [fits: 2][fits: 0]-> [-1,-1] 
+ 8: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] IMMED, MACSR [fits: 0]-> [-1,-1] 
+ 9: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MASK, GEN_REG [fits: 0]-> [-1,-1] 
+10: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] GEN_REG, MASK [fits: 2][fits: 0]-> [-1,-1] 
+11: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] IMMED, MASK [fits: 0]-> [-1,-1] 
+12: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] ACC, GEN_REG [fits: 0]-> [-1,-1] 
+13: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] GEN_REG, ACC [fits: 2][fits: 2]-> [2,2] 
+14: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] IMMED, ACC [fits: 0]-> [-1,-1] 
+15: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_N, GEN_REG [fits: 0]-> [-1,-1] 
+16: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_N [fits: 2][fits: 0]-> [-1,-1] 
+17: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_N [fits: 0]-> [-1,-1] 
+18: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_N, ACC_N [fits: 0]-> [-1,-1] 
+19: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_EXT01, GEN_REG [fits: 0]-> [-1,-1] 
+20: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_EXT23, GEN_REG [fits: 0]-> [-1,-1] 
+21: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_EXT01 [fits: 2][fits: 0]-> [-1,-1] 
+22: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_EXT23 [fits: 2][fits: 0]-> [-1,-1] 
+23: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_EXT01 [fits: 0]-> [-1,-1] 
+24: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_EXT23 [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000010000000000000 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d0.u
+gen_insn: arg mode = 0 arg = d4.u
+gen_insn: arg mode = 14 arg = <<
+gen_insn: arg mode = 2 arg = a3@
+gen_insn: arg mode = 0 arg = d5
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a3@: OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a3@: OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a3@: OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a3@: OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a3@: OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a3@: OK
+validate: arg = d5: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+ 2: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_LEFT, INDIRECT, GEN_REG [fits: 2][fits: 2][fits: 2][fits: 2][fits: 2]-> [4,4] 
+ 3: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_LEFT, INDIR_MASK, GEN_REG [fits: 2][fits: 2][fits: 2][fits: 2][fits: 2]-> [4,4] 
+ 4: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 6: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 7: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000000000100 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d0.l
+gen_insn: arg mode = 0 arg = d5.u
+gen_insn: arg mode = 14 arg = <<
+gen_insn: arg mode = 2 arg = a1@
+gen_insn: arg mode = 0 arg = d7
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = a1@: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = a1@: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = a1@: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = a1@: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = a1@: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = a1@: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+ 2: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_LEFT, INDIRECT, GEN_REG [fits: 2][fits: 2][fits: 2][fits: 2][fits: 2]-> [4,4] 
+ 3: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_LEFT, INDIR_MASK, GEN_REG [fits: 2][fits: 2][fits: 2][fits: 2][fits: 2]-> [4,4] 
+ 4: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 6: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 7: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000000000100 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 14 arg = acc
+gen_insn: arg mode = 0 arg = d3
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+ 5: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MACSR, GEN_REG [fits: 0]-> [-1,-1] 
+ 6: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MACSR, CCR [fits: 0]-> [-1,-1] 
+ 7: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] GEN_REG, MACSR [fits: 0]-> [-1,-1] 
+ 8: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] IMMED, MACSR [fits: 0]-> [-1,-1] 
+ 9: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MASK, GEN_REG [fits: 0]-> [-1,-1] 
+10: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] GEN_REG, MASK [fits: 0]-> [-1,-1] 
+11: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] IMMED, MASK [fits: 0]-> [-1,-1] 
+12: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] ACC, GEN_REG [fits: 2][fits: 2]-> [2,2] 
+13: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] GEN_REG, ACC [fits: 0]-> [-1,-1] 
+14: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] IMMED, ACC [fits: 0]-> [-1,-1] 
+15: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_N, GEN_REG [fits: 0]-> [-1,-1] 
+16: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_N [fits: 0]-> [-1,-1] 
+17: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_N [fits: 0]-> [-1,-1] 
+18: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_N, ACC_N [fits: 0]-> [-1,-1] 
+19: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_EXT01, GEN_REG [fits: 0]-> [-1,-1] 
+20: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_EXT23, GEN_REG [fits: 0]-> [-1,-1] 
+21: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_EXT01 [fits: 0]-> [-1,-1] 
+22: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_EXT23 [fits: 0]-> [-1,-1] 
+23: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_EXT01 [fits: 0]-> [-1,-1] 
+24: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_EXT23 [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000001000000000000 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d1
+gen_insn: arg mode = 0 arg = d3
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d3: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, DATA_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 01 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d3
+gen_insn: arg mode = 3 arg = a0@+
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a0@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a0@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a0@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a0@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a0@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a0@+: OK
+validate: OK
+ 0: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d2
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d2: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, DATA [fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, MEM_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ADDR_REG [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, ALTERABLE [fits: 0]-> [-1,-1] 
+candidates: 1 : 00010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d1
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d2: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, DATA_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 01 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d3
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d2: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, DATA [fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, MEM_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ADDR_REG [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, ALTERABLE [fits: 0]-> [-1,-1] 
+candidates: 1 : 00010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d2
+gen_insn: arg mode = 3 arg = a2@+
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = a2@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = a2@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = a2@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = a2@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = a2@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = a2@+: OK
+validate: OK
+ 0: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d7
+gen_insn: arg mode = 14 arg = acc
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = acc: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+ 5: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MACSR, GEN_REG [fits: 0]-> [-1,-1] 
+ 6: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MACSR, CCR [fits: 0]-> [-1,-1] 
+ 7: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] GEN_REG, MACSR [fits: 2][fits: 0]-> [-1,-1] 
+ 8: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] IMMED, MACSR [fits: 0]-> [-1,-1] 
+ 9: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MASK, GEN_REG [fits: 0]-> [-1,-1] 
+10: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] GEN_REG, MASK [fits: 2][fits: 0]-> [-1,-1] 
+11: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] IMMED, MASK [fits: 0]-> [-1,-1] 
+12: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] ACC, GEN_REG [fits: 0]-> [-1,-1] 
+13: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] GEN_REG, ACC [fits: 2][fits: 2]-> [2,2] 
+14: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] IMMED, ACC [fits: 0]-> [-1,-1] 
+15: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_N, GEN_REG [fits: 0]-> [-1,-1] 
+16: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_N [fits: 2][fits: 0]-> [-1,-1] 
+17: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_N [fits: 0]-> [-1,-1] 
+18: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_N, ACC_N [fits: 0]-> [-1,-1] 
+19: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_EXT01, GEN_REG [fits: 0]-> [-1,-1] 
+20: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_EXT23, GEN_REG [fits: 0]-> [-1,-1] 
+21: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_EXT01 [fits: 2][fits: 0]-> [-1,-1] 
+22: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_EXT23 [fits: 2][fits: 0]-> [-1,-1] 
+23: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_EXT01 [fits: 0]-> [-1,-1] 
+24: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_EXT23 [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000010000000000000 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d0.l
+gen_insn: arg mode = 0 arg = d4.u
+gen_insn: arg mode = 14 arg = <<
+gen_insn: arg mode = 2 arg = a0@
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a0@: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a0@: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a0@: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a0@: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a0@: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a0@: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+ 2: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_LEFT, INDIRECT, GEN_REG [fits: 2][fits: 2][fits: 2][fits: 2][fits: 2]-> [4,4] 
+ 3: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_LEFT, INDIR_MASK, GEN_REG [fits: 2][fits: 2][fits: 2][fits: 2][fits: 2]-> [4,4] 
+ 4: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 6: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 7: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000000000100 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d0.u
+gen_insn: arg mode = 0 arg = d5.u
+gen_insn: arg mode = 14 arg = <<
+gen_insn: arg mode = 2 arg = a2@
+gen_insn: arg mode = 0 arg = d4
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 5
+ 2: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_LEFT, INDIRECT, GEN_REG [fits: 2][fits: 2][fits: 2][fits: 2][fits: 2]-> [4,4] 
+ 3: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_LEFT, INDIR_MASK, GEN_REG [fits: 2][fits: 2][fits: 2][fits: 2][fits: 2]-> [4,4] 
+ 4: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 6: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, INDIRECT, GEN_REG, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 7: info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, INDIR_MASK, GEN_REG, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000000000100 : size = [4,4] : result = 2
+
+
+gen_insn: arg mode = 14 arg = acc
+gen_insn: arg mode = 0 arg = d3
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc: OK
+validate: arg = d3: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+ 5: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MACSR, GEN_REG [fits: 0]-> [-1,-1] 
+ 6: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MACSR, CCR [fits: 0]-> [-1,-1] 
+ 7: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] GEN_REG, MACSR [fits: 0]-> [-1,-1] 
+ 8: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] IMMED, MACSR [fits: 0]-> [-1,-1] 
+ 9: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MASK, GEN_REG [fits: 0]-> [-1,-1] 
+10: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] GEN_REG, MASK [fits: 0]-> [-1,-1] 
+11: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] IMMED, MASK [fits: 0]-> [-1,-1] 
+12: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] ACC, GEN_REG [fits: 2][fits: 2]-> [2,2] 
+13: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] GEN_REG, ACC [fits: 0]-> [-1,-1] 
+14: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] IMMED, ACC [fits: 0]-> [-1,-1] 
+15: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_N, GEN_REG [fits: 0]-> [-1,-1] 
+16: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_N [fits: 0]-> [-1,-1] 
+17: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_N [fits: 0]-> [-1,-1] 
+18: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_N, ACC_N [fits: 0]-> [-1,-1] 
+19: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_EXT01, GEN_REG [fits: 0]-> [-1,-1] 
+20: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_EXT23, GEN_REG [fits: 0]-> [-1,-1] 
+21: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_EXT01 [fits: 0]-> [-1,-1] 
+22: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_EXT23 [fits: 0]-> [-1,-1] 
+23: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_EXT01 [fits: 0]-> [-1,-1] 
+24: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_EXT23 [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000001000000000000 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d1
+gen_insn: arg mode = 0 arg = d3
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d3: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, DATA_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 01 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d3
+gen_insn: arg mode = 3 arg = a1@+
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a1@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a1@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a1@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a1@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a1@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a1@+: OK
+validate: OK
+ 0: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d7
+gen_insn: arg mode = 0 arg = d7
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d7: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, DATA [fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, MEM_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ADDR_REG [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, ALTERABLE [fits: 0]-> [-1,-1] 
+candidates: 1 : 00010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d1
+gen_insn: arg mode = 0 arg = d7
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d7: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, DATA_REG [fits: 0]-> [-1,-1] 
+candidates: 1 : 01 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d3
+gen_insn: arg mode = 0 arg = d7
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d7: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, DATA [fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, MEM_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ADDR_REG [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, ALTERABLE [fits: 0]-> [-1,-1] 
+candidates: 1 : 00010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d7
+gen_insn: arg mode = 3 arg = a3@+
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = a3@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = a3@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = a3@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = a3@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = a3@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = a3@+: OK
+validate: OK
+ 0: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 2 arg = a2@
+gen_insn: arg mode = 0 arg = d4
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a2@: OK
+validate: arg = d4: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_IMMED, DATA_REG [fits: 0]-> [-1,-1] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ADDR_REG, USP [fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] USP, ADDR_REG [fits: 0]-> [-1,-1] 
+ 5: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MACSR, GEN_REG [fits: 0]-> [-1,-1] 
+ 6: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MACSR, CCR [fits: 0]-> [-1,-1] 
+ 7: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] GEN_REG, MACSR [fits: 0]-> [-1,-1] 
+ 8: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] IMMED, MACSR [fits: 0]-> [-1,-1] 
+ 9: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] MASK, GEN_REG [fits: 0]-> [-1,-1] 
+10: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] GEN_REG, MASK [fits: 0]-> [-1,-1] 
+11: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 20, cp: f, opc = 3] idx: = 20 [opc: 3 cpid: -1 cpu: 10 feat: 0] IMMED, MASK [fits: 0]-> [-1,-1] 
+12: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] ACC, GEN_REG [fits: 0]-> [-1,-1] 
+13: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] GEN_REG, ACC [fits: 0]-> [-1,-1] 
+14: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] IMMED, ACC [fits: 0]-> [-1,-1] 
+15: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_N, GEN_REG [fits: 0]-> [-1,-1] 
+16: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_N [fits: 0]-> [-1,-1] 
+17: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_N [fits: 0]-> [-1,-1] 
+18: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_N, ACC_N [fits: 0]-> [-1,-1] 
+19: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_EXT01, GEN_REG [fits: 0]-> [-1,-1] 
+20: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_EXT23, GEN_REG [fits: 0]-> [-1,-1] 
+21: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_EXT01 [fits: 0]-> [-1,-1] 
+22: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN_REG, ACC_EXT23 [fits: 0]-> [-1,-1] 
+23: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_EXT01 [fits: 0]-> [-1,-1] 
+24: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, ACC_EXT23 [fits: 0]-> [-1,-1] 
+candidates: 1 : 0000000000000000000000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 2 arg = a0@
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a0@: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a0@: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a0@: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a0@: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a0@: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a0@: OK
+validate: arg = d2: OK
+validate: OK
+ 0: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 2 arg = a1@
+gen_insn: arg mode = 0 arg = d7
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1@: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1@: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1@: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1@: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1@: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = a1@: OK
+validate: arg = d7: OK
+validate: OK
+ 0: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d0.u
+gen_insn: arg mode = 0 arg = d4.u
+gen_insn: arg mode = 14 arg = <<
+gen_insn: arg mode = 2 arg = a3@
+gen_insn: arg mode = 0 arg = d5
+gen_insn: arg mode = 14 arg = acc0
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 6
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 6
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 6
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 6
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 6
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 6
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 6
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 6
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 6
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a3@: OK
+validate: arg = d5: OK
+validate: arg = acc0: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 6
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a3@: OK
+validate: arg = d5: OK
+validate: arg = acc0: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 6
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a3@: OK
+validate: arg = d5: OK
+validate: arg = acc0: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 6
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = a3@: OK
+validate: arg = d5: OK
+validate: arg = acc0: OK
+validate: OK
+ 8: info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, SF_LEFT, INDIRECT, GEN_REG, ACC_N [fits: 2][fits: 2][fits: 2][fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 9: info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, SF_LEFT, INDIR_MASK, GEN_REG, ACC_N [fits: 2][fits: 2][fits: 2][fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+10: info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, SF_RIGHT, INDIRECT, GEN_REG, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+11: info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, SF_RIGHT, INDIR_MASK, GEN_REG, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+candidates: 0 : 000000000000 : size = [2,0] : result = 0
+
+
+gen_insn: arg mode = 0 arg = d0.l
+gen_insn: arg mode = 0 arg = d5.u
+gen_insn: arg mode = 14 arg = <<
+gen_insn: arg mode = 14 arg = acc0
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 3, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 3, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = acc0: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = acc0: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 3, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = acc0: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = acc0: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+ 3: info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, INDIRECT, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, INDIR_MASK, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+10: info: [sz: w, opc_cnt: 2, arg_c: 4, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, SF_LEFT, ACC_N [fits: 2][fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+11: info: [sz: w, opc_cnt: 2, arg_c: 4, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, SF_RIGHT, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+candidates: 0 : 000000000000000000 : size = [2,0] : result = 0
+
+
+gen_insn: arg mode = 0 arg = d0.l
+gen_insn: arg mode = 0 arg = d4.u
+gen_insn: arg mode = 14 arg = <<
+gen_insn: arg mode = 14 arg = acc1
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 3, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 3, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = acc1: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = acc1: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 3, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = acc1: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.l: OK
+validate: arg = d4.u: OK
+validate: arg = <<: OK
+validate: arg = acc1: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+ 3: info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, INDIRECT, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, INDIR_MASK, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+10: info: [sz: w, opc_cnt: 2, arg_c: 4, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, SF_LEFT, ACC_N [fits: 2][fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+11: info: [sz: w, opc_cnt: 2, arg_c: 4, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, SF_RIGHT, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+candidates: 0 : 000000000000000000 : size = [2,0] : result = 0
+
+
+gen_insn: arg mode = 0 arg = d0.u
+gen_insn: arg mode = 0 arg = d5.u
+gen_insn: arg mode = 14 arg = <<
+gen_insn: arg mode = 14 arg = acc1
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 2, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 3, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 3, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = acc1: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = acc1: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 3, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = acc1: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 4, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d0.u: OK
+validate: arg = d5.u: OK
+validate: arg = <<: OK
+validate: arg = acc1: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 5, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+validate: info = info: [sz: w, opc_cnt: 2, arg_c: 6, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 4
+ 3: info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, INDIRECT, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 2, arg_c: 4, index: 21, cp: f, opc = 3] idx: = 21 [opc: 3 cpid: -1 cpu: 0 feat: 13] REG_UL, REG_UL, INDIR_MASK, GEN_REG [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+10: info: [sz: w, opc_cnt: 2, arg_c: 4, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, SF_LEFT, ACC_N [fits: 2][fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+11: info: [sz: w, opc_cnt: 2, arg_c: 4, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] REG_UL, REG_UL, SF_RIGHT, ACC_N [fits: 2][fits: 2][fits: 0]-> [-1,-1] 
+candidates: 0 : 000000000000000000 : size = [2,0] : result = 0
+
+
+gen_insn: arg mode = 14 arg = acc0
+gen_insn: arg mode = 0 arg = d3
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc0: OK
+validate: arg = d3: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_N, GEN_REG [fits: 0]-> [-1,-1] 
+candidates: 0 : 0 : size = [2,0] : result = 0
+
+
+gen_insn: arg mode = 14 arg = acc1
+gen_insn: arg mode = 0 arg = d1
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = acc1: OK
+validate: arg = d1: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] ACC_N, GEN_REG [fits: 0]-> [-1,-1] 
+candidates: 0 : 0 : size = [2,0] : result = 0
+
+
+gen_insn: arg mode = 0 arg = d2
+gen_insn: arg mode = 0 arg = d3
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d3: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d3: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, DATA [fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, MEM_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ADDR_REG [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, ALTERABLE [fits: 0]-> [-1,-1] 
+candidates: 1 : 00010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d3
+gen_insn: arg mode = 3 arg = a0@+
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a0@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a0@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a0@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a0@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a0@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = a0@+: OK
+validate: OK
+ 0: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d2
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = d2: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, DATA [fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, MEM_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ADDR_REG [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, ALTERABLE [fits: 0]-> [-1,-1] 
+candidates: 1 : 00010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d3
+gen_insn: arg mode = 0 arg = d2
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d2: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d3: OK
+validate: arg = d2: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, DATA [fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, MEM_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ADDR_REG [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, ALTERABLE [fits: 0]-> [-1,-1] 
+candidates: 1 : 00010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d2
+gen_insn: arg mode = 3 arg = a2@+
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = a2@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = a2@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = a2@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = a2@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = a2@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d2: OK
+validate: arg = a2@+: OK
+validate: OK
+ 0: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d7
+gen_insn: arg mode = 0 arg = d1
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d1: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d1: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, DATA [fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, MEM_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ADDR_REG [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, ALTERABLE [fits: 0]-> [-1,-1] 
+candidates: 1 : 00010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d1
+gen_insn: arg mode = 3 arg = a1@+
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a1@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a1@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a1@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a1@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a1@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = a1@+: OK
+validate: OK
+ 0: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d7
+gen_insn: arg mode = 0 arg = d7
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = d7: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, DATA [fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, MEM_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ADDR_REG [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, ALTERABLE [fits: 0]-> [-1,-1] 
+candidates: 1 : 00010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d1
+gen_insn: arg mode = 0 arg = d7
+gen_insn: const args = true
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d7: OK
+validate: OK
+validate: info = info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d1: OK
+validate: arg = d7: OK
+validate: OK
+ 0: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] IMMED, DATA [fits: 0]-> [-1,-1] 
+ 1: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, DATA_REG [fits: 2][fits: 2]-> [2,2] 
+ 2: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA_REG, MEM_ALTER [fits: 2][fits: 0]-> [-1,-1] 
+ 3: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ADDR_REG [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: l, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Q_MATH, ALTERABLE [fits: 0]-> [-1,-1] 
+candidates: 1 : 00010 : size = [2,2] : result = 2
+
+
+gen_insn: arg mode = 0 arg = d7
+gen_insn: arg mode = 3 arg = a3@+
+gen_insn: const args = true
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = a3@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = a3@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = a3@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = a3@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = a3@+: OK
+validate: OK
+validate: info = info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] 
+validate: info.message()
+validate: count with arg_c = 2
+validate: args with validate_t::cpu(arg, info)
+validate: arg = d7: OK
+validate: arg = a3@+: OK
+validate: OK
+ 0: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] GEN, ALTERABLE [fits: 2][fits: 2]-> [2,2] 
+ 1: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] Z_IMMED, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 2: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] SR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 3: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, SR [fits: 2][fits: 0]-> [-1,-1] 
+ 4: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 1, cp: f, opc = 3] idx: = 1 [opc: 3 cpid: -1 cpu: 0 feat: 4] CCR, DATA_ALTER [fits: 0]-> [-1,-1] 
+ 5: info: [sz: w, opc_cnt: 1, arg_c: 2, index: 0, cp: f, opc = 3] idx: = 0 [opc: 3 cpid: -1 cpu: 0 feat: 0] DATA, CCR [fits: 2][fits: 0]-> [-1,-1] 
+candidates: 1 : 000001 : size = [2,2] : result = 2
+
+
+
+raw : SEG: [0,0] 1 
+fmt : SEG [0,0]: 1 .text:0
+
+raw : M68K_GEN: [2,2] a102101c {ce00} acc 
+fmt : M68K_GEN [2,2]: a102: d2,acc
+
+raw : M68K_GEN: [4,4] 2047 {aa93, 43c0, 0, 2ce} << {1f00} 
+fmt : M68K_GEN [4,4]: aa93 43c0: d0,d0,<<,a3@,d0
+
+raw : M68K_GEN: [4,4] 2047 {ae91, 5380, 0, 2ce} << {1f00} 
+fmt : M68K_GEN [4,4]: ae91 5380: d0,d0,<<,a1@,d0
+
+raw : M68K_GEN: [2,2] a1831016 {ce} acc 
+fmt : M68K_GEN [2,2]: a183: acc,d3
+
+raw : M68K_GEN: [2,2] e2a31012 {0} 
+fmt : M68K_GEN [2,2]: e2a3: d1,d3
+
+raw : M68K_GEN: [2,2] 30c31000 {300} 
+fmt : M68K_GEN [2,2]: 30c3: d3,a0@+
+
+raw : M68K_GEN: [2,2] d4821017 {0} 
+fmt : M68K_GEN [2,2]: d482: d2,d2
+
+raw : M68K_GEN: [2,2] e2a21012 {0} 
+fmt : M68K_GEN [2,2]: e2a2: d1,d2
+
+raw : M68K_GEN: [2,2] 94831017 {0} 
+fmt : M68K_GEN [2,2]: 9483: d3,d2
+
+raw : M68K_GEN: [2,2] 34c21000 {300} 
+fmt : M68K_GEN [2,2]: 34c2: d2,a2@+
+
+raw : M68K_GEN: [2,2] a107101c {ce00} acc 
+fmt : M68K_GEN [2,2]: a107: d7,acc
+
+raw : M68K_GEN: [4,4] 2047 {a490, 4280, 0, 2ce} << {1f00} 
+fmt : M68K_GEN [4,4]: a490 4280: d0,d0,<<,a0@,d0
+
+raw : M68K_GEN: [4,4] 2047 {a892, 53c0, 0, 2ce} << {1f00} 
+fmt : M68K_GEN [4,4]: a892 53c0: d0,d0,<<,a2@,d0
+
+raw : M68K_GEN: [2,2] a1831016 {ce} acc 
+fmt : M68K_GEN [2,2]: a183: acc,d3
+
+raw : M68K_GEN: [2,2] e2a31012 {0} 
+fmt : M68K_GEN [2,2]: e2a3: d1,d3
+
+raw : M68K_GEN: [2,2] 32c31000 {300} 
+fmt : M68K_GEN [2,2]: 32c3: d3,a1@+
+
+raw : M68K_GEN: [2,2] de871017 {0} 
+fmt : M68K_GEN [2,2]: de87: d7,d7
+
+raw : M68K_GEN: [2,2] e2a71012 {0} 
+fmt : M68K_GEN [2,2]: e2a7: d1,d7
+
+raw : M68K_GEN: [2,2] 9e831017 {0} 
+fmt : M68K_GEN [2,2]: 9e83: d3,d7
+
+raw : M68K_GEN: [2,2] 36c71000 {300} 
+fmt : M68K_GEN [2,2]: 36c7: d7,a3@+
+
+raw : M68K_GEN: [2,2] 28121000 {2} 
+fmt : M68K_GEN [2,2]: 2812: a2@,d4
+
+raw : M68K_GEN: [2,2] 34101000 {2} 
+fmt : M68K_GEN [2,2]: 3410: a0@,d2
+
+raw : M68K_GEN: [2,2] 3e111000 {2} 
+fmt : M68K_GEN [2,2]: 3e11: a1@,d7
+
+raw : ERROR: [0,0] 1 
+fmt : ERROR [0,0]: ERROR: invalid arguments
+
+
+raw : ERROR: [0,0] 2 
+fmt : ERROR [0,0]: ERROR: invalid arguments
+
+
+raw : ERROR: [0,0] 3 
+fmt : ERROR [0,0]: ERROR: invalid arguments
+
+
+raw : ERROR: [0,0] 4 
+fmt : ERROR [0,0]: ERROR: invalid arguments
+
+
+raw : ERROR: [0,0] 5 
+fmt : ERROR [0,0]: ERROR: invalid arguments
+
+
+raw : ERROR: [0,0] 6 
+fmt : ERROR [0,0]: ERROR: invalid arguments
+
+
+raw : M68K_GEN: [2,2] d6821017 {0} 
+fmt : M68K_GEN [2,2]: d682: d2,d3
+
+raw : M68K_GEN: [2,2] 30c31000 {300} 
+fmt : M68K_GEN [2,2]: 30c3: d3,a0@+
+
+raw : M68K_GEN: [2,2] d4821017 {0} 
+fmt : M68K_GEN [2,2]: d482: d2,d2
+
+raw : M68K_GEN: [2,2] 94831017 {0} 
+fmt : M68K_GEN [2,2]: 9483: d3,d2
+
+raw : M68K_GEN: [2,2] 34c21000 {300} 
+fmt : M68K_GEN [2,2]: 34c2: d2,a2@+
+
+raw : M68K_GEN: [2,2] d2871017 {0} 
+fmt : M68K_GEN [2,2]: d287: d7,d1
+
+raw : M68K_GEN: [2,2] 32c11000 {300} 
+fmt : M68K_GEN [2,2]: 32c1: d1,a1@+
+
+raw : M68K_GEN: [2,2] de871017 {0} 
+fmt : M68K_GEN [2,2]: de87: d7,d7
+
+raw : M68K_GEN: [2,2] 9e811017 {0} 
+fmt : M68K_GEN [2,2]: 9e81: d1,d7
+
+raw : M68K_GEN: [2,2] 36c71000 {300} 
+fmt : M68K_GEN [2,2]: 36c7: d7,a3@+
+
+raw : EOI: [0,0] 0 
+fmt : EOI [0,0]: 
+
+symbols:
+
+sections:
+   0: .text               :  1        6  0  0                     
+   1: .data               :  1        3  0  0                     
+   2: .bss                :  8        3  0  0                     
+
+dump: core_segment
+   0: : .text               :  0 [74,74] (hex) = 4a
+   1: : .bss                :  0 [0,0] (hex) = 0
+
+dump: core_fragment
+   0: : .text:0             : base = [0,0], size = [74,74], align = 4 (end) = 0x4a (relaxed)
+
+dump: dl_data
+
+                                   ; from coldfire FFT app note (mac)
+                                   ;and.l       #0xffff0000,d2
+0000_0000'  a102                   move.l      d2,ACC
+0000_0002'  aa93 43c0              msacl.w     d0.u,d4.u,<<,(a3),d5
+0000_0006'  ae91 5380              msacl.w     d0.l,d5.u,<<,(a1),d7
+0000_000a'  a183                   move.l      ACC,d3
+0000_000c'  e2a3                   asr.l       d1,d3
+0000_000e'  30c3                   move.w      d3,(a0)+
+0000_0010'  d482                   add.l       d2,d2
+0000_0012'  e2a2                   asr.l       d1,d2
+0000_0014'  9483                   sub.l       d3,d2
+0000_0016'  34c2                   move.w      d2,(a2)+
+                                   ;and.l       #0xffff0000,d7
+0000_0018'  a107                   move.l      d7,ACC
+0000_001a'  a490 4280              macl.w      d0.l,d4.u,<<,(a0),d2
+0000_001e'  a892 53c0              msacl.w     d0.u,d5.u,<<,(a2),d4
+0000_0022'  a183                   move.l      ACC,d3
+0000_0024'  e2a3                   asr.l       d1,d3
+0000_0026'  32c3                   move.w      d3,(a1)+
+0000_0028'  de87                   add.l       d7,d7
+0000_002a'  e2a7                   asr.l       d1,d7
+0000_002c'  9e83                   sub.l       d3,d7
+0000_002e'  36c7                   move.w      d7,(a3)+
+                                   
+                                   
+                                   ; from coldfire FFT app note (emac)
+0000_0030'  2812                   move.l      (a2),d4
+0000_0032'  3410                   move.w      (a0),d2
+0000_0034'  3e11                   move.w      (a1),d7
+0000_0036'                         msacl.w     d0.u,d4.u,<<,(a3),d5,ACC0
+                                   0000_0036'                         msac.w      d0.l,d5.u,<<,ACC0
+                                   0000_0036'                         mac.w       d0.l,d4.u,<<,ACC1
+                                   0000_0036'                         msac.w      d0.u,d5.u,<<,ACC1
+                                   0000_0036'                         movclr.l    ACC0,d3
+                                   0000_0036'                         movclr.l    ACC1,d1
+                                   0000_0036'  d682                   add.l       d2,d3
+0000_0038'  30c3                   move.w      d3,(a0)+
+0000_003a'  d482                   add.l       d2,d2
+0000_003c'  9483                   sub.l       d3,d2
+0000_003e'  34c2                   move.w      d2,(a2)+
+0000_0040'  d287                   add.l       d7,d1
+0000_0042'  32c1                   move.w      d1,(a1)+
+0000_0044'  de87                   add.l       d7,d7
+0000_0046'  9e81                   sub.l       d1,d7
+0000_0048'  36c7                   move.w      d7,(a3)+
+                                   
+symbols:
+
+sections:
+   0: .text               :  1        6  0  0                     
+   1: .data               :  1        3  0  0                     
+   2: .bss                :  8        3  0  0                     
+
+dump: core_segment
+   0: : .text               :  0 [74,74] (hex) = 4a
+   1: : .bss                :  0 [0,0] (hex) = 0
+
+dump: core_fragment
+   0: : .text:0             : base = [0,0], size = [74,74], align = 4 (end) = 0x4a (relaxed)
+
+dump: dl_data
+
+raw : SEG: [0,0] 1 
+fmt : SEG [0,0]: 1 .text:0
+
+raw : M68K_GEN: [2,2] a102101c {ce00} acc 
+fmt : M68K_GEN [2,2]: a102: d2,acc
+
+raw : M68K_GEN: [4,4] 2047 {aa93, 43c0, 0, 2ce} << {1f00} 
+fmt : M68K_GEN [4,4]: aa93 43c0: d0,d0,<<,a3@,d0
+
+raw : M68K_GEN: [4,4] 2047 {ae91, 5380, 0, 2ce} << {1f00} 
+fmt : M68K_GEN [4,4]: ae91 5380: d0,d0,<<,a1@,d0
+
+raw : M68K_GEN: [2,2] a1831016 {ce} acc 
+fmt : M68K_GEN [2,2]: a183: acc,d3
+
+raw : M68K_GEN: [2,2] e2a31012 {0} 
+fmt : M68K_GEN [2,2]: e2a3: d1,d3
+
+raw : M68K_GEN: [2,2] 30c31000 {300} 
+fmt : M68K_GEN [2,2]: 30c3: d3,a0@+
+
+raw : M68K_GEN: [2,2] d4821017 {0} 
+fmt : M68K_GEN [2,2]: d482: d2,d2
+
+raw : M68K_GEN: [2,2] e2a21012 {0} 
+fmt : M68K_GEN [2,2]: e2a2: d1,d2
+
+raw : M68K_GEN: [2,2] 94831017 {0} 
+fmt : M68K_GEN [2,2]: 9483: d3,d2
+
+raw : M68K_GEN: [2,2] 34c21000 {300} 
+fmt : M68K_GEN [2,2]: 34c2: d2,a2@+
+
+raw : M68K_GEN: [2,2] a107101c {ce00} acc 
+fmt : M68K_GEN [2,2]: a107: d7,acc
+
+raw : M68K_GEN: [4,4] 2047 {a490, 4280, 0, 2ce} << {1f00} 
+fmt : M68K_GEN [4,4]: a490 4280: d0,d0,<<,a0@,d0
+
+raw : M68K_GEN: [4,4] 2047 {a892, 53c0, 0, 2ce} << {1f00} 
+fmt : M68K_GEN [4,4]: a892 53c0: d0,d0,<<,a2@,d0
+
+raw : M68K_GEN: [2,2] a1831016 {ce} acc 
+fmt : M68K_GEN [2,2]: a183: acc,d3
+
+raw : M68K_GEN: [2,2] e2a31012 {0} 
+fmt : M68K_GEN [2,2]: e2a3: d1,d3
+
+raw : M68K_GEN: [2,2] 32c31000 {300} 
+fmt : M68K_GEN [2,2]: 32c3: d3,a1@+
+
+raw : M68K_GEN: [2,2] de871017 {0} 
+fmt : M68K_GEN [2,2]: de87: d7,d7
+
+raw : M68K_GEN: [2,2] e2a71012 {0} 
+fmt : M68K_GEN [2,2]: e2a7: d1,d7
+
+raw : M68K_GEN: [2,2] 9e831017 {0} 
+fmt : M68K_GEN [2,2]: 9e83: d3,d7
+
+raw : M68K_GEN: [2,2] 36c71000 {300} 
+fmt : M68K_GEN [2,2]: 36c7: d7,a3@+
+
+raw : M68K_GEN: [2,2] 28121000 {2} 
+fmt : M68K_GEN [2,2]: 2812: a2@,d4
+
+raw : M68K_GEN: [2,2] 34101000 {2} 
+fmt : M68K_GEN [2,2]: 3410: a0@,d2
+
+raw : M68K_GEN: [2,2] 3e111000 {2} 
+fmt : M68K_GEN [2,2]: 3e11: a1@,d7
+
+raw : ERROR: [0,0] 1 
+fmt : ERROR [0,0]: ERROR: invalid arguments
+
+
+raw : ERROR: [0,0] 2 
+fmt : ERROR [0,0]: ERROR: invalid arguments
+
+
+raw : ERROR: [0,0] 3 
+fmt : ERROR [0,0]: ERROR: invalid arguments
+
+
+raw : ERROR: [0,0] 4 
+fmt : ERROR [0,0]: ERROR: invalid arguments
+
+
+raw : ERROR: [0,0] 5 
+fmt : ERROR [0,0]: ERROR: invalid arguments
+
+
+raw : ERROR: [0,0] 6 
+fmt : ERROR [0,0]: ERROR: invalid arguments
+
+
+raw : M68K_GEN: [2,2] d6821017 {0} 
+fmt : M68K_GEN [2,2]: d682: d2,d3
+
+raw : M68K_GEN: [2,2] 30c31000 {300} 
+fmt : M68K_GEN [2,2]: 30c3: d3,a0@+
+
+raw : M68K_GEN: [2,2] d4821017 {0} 
+fmt : M68K_GEN [2,2]: d482: d2,d2
+
+raw : M68K_GEN: [2,2] 94831017 {0} 
+fmt : M68K_GEN [2,2]: 9483: d3,d2
+
+raw : M68K_GEN: [2,2] 34c21000 {300} 
+fmt : M68K_GEN [2,2]: 34c2: d2,a2@+
+
+raw : M68K_GEN: [2,2] d2871017 {0} 
+fmt : M68K_GEN [2,2]: d287: d7,d1
+
+raw : M68K_GEN: [2,2] 32c11000 {300} 
+fmt : M68K_GEN [2,2]: 32c1: d1,a1@+
+
+raw : M68K_GEN: [2,2] de871017 {0} 
+fmt : M68K_GEN [2,2]: de87: d7,d7
+
+raw : M68K_GEN: [2,2] 9e811017 {0} 
+fmt : M68K_GEN [2,2]: 9e81: d1,d7
+
+raw : M68K_GEN: [2,2] 36c71000 {300} 
+fmt : M68K_GEN [2,2]: 36c7: d7,a3@+
+
+raw : EOI: [0,0] 0 
+fmt : EOI [0,0]: 
+

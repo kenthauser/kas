@@ -62,11 +62,15 @@ struct arm_stmt_info_t : alignas_t<arm_stmt_info_t
 };
 
 // declare result of parsing
+// XXX should figure a way to pick up `MCODE` constants instead
+// XXX of redeclaring. Requires more than forward declaration of `mcode_t`
+// XXX posible solution: move all "references" to *impl.h files
 using arm_insn_t = tgt::tgt_insn_t<struct arm_mcode_t
                                   , hw::arm_hw_defs
                                   , KAS_STRING("ARM")
+                                  , 6           // MAX_ARGS
                                   , 32          // mcodes per insn per arch
-                                  , 4           // insn archs    
+                                  , 5           // insn archs    
                                   >;
 
 // forward declare "instruction suffix code" type (from "arm_stmt_flags.h")

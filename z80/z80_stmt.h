@@ -25,11 +25,12 @@ using namespace tgt::parser;
 // NB: not needed for Z80 syntax. Will need to define if INTEL sytnax supported
 
 // declare result of parsing
-// NB: there are (at least) 17 variants of `ld`
 using z80_insn_t = tgt::tgt_insn_t<struct z80_mcode_t
                                   , hw::z80_hw_defs
                                   , KAS_STRING("Z80")
-                                  , 32>;
+                                  ,  6      // MAX count of ARGS per STMT
+                                  , 32      // MAX count of MCODES per INSN
+                                  >;
 
 struct z80_stmt_t : tgt_stmt<z80_stmt_t, z80_insn_t, z80_arg_t>
 {

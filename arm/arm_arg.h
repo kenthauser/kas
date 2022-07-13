@@ -50,7 +50,8 @@ enum arm_arg_mode : uint8_t
 
 // Required enumerations
     , NUM_ARG_MODES
-    , MODE_REG_OFFSET       // register + offset (indirect) (NB: NOT ARM)
+    , MODE_REG_P_OFFSET     // register + positive offset (NB: NOT ARM)
+    , MODE_REG_M_OFFSET     // register + negative offset (NB: NOT ARM)
     , MODE_INDIRECT         // indirect address (NB: NOT ARM)
     
 // special handles...
@@ -121,11 +122,6 @@ struct arm_arg_t : tgt::tgt_arg_t<arm_arg_t
         {
               { 0 }         // 0: Immediate arguments not emited
         };
-
-    auto& immed_info(uint8_t sz) const
-    {
-        return base_t::immed_info(0);
-    }
 
     // handle non-generic modes 
     const char *set_mode(unsigned mode);

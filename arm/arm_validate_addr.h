@@ -744,8 +744,10 @@ struct val_tmb_branch : arm_mcode_t::val_t
         return fits.no;
     }
     
-    fits_result size(arg_t& arg, mcode_t const&, stmt_info_t const& info
-                   , expr_fits const& fits, op_size_t& op_size) const override
+    fits_result size(arg_t& arg
+                   , uint8_t sz
+                   , expr_fits const& fits
+                   , op_size_t& op_size) const override
     {
         return fits.yes;
     }

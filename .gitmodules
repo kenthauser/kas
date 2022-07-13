@@ -1,7 +1,7 @@
+[submodule "spirit"]
+	path = spirit
+	url = github.com/boostorg/spirit
+	branch = develop
 [submodule "meta"]
 	path = meta
 	url = https://github.com/ericniebler/meta.git
-[submodule "spirit"]
-	path = spirit
-	url = git@github.com:kenthauser/spirit.git
-	branch = develop

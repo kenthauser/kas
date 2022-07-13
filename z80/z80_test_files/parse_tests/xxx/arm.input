@@ -1,0 +1,33 @@
+	mov	r7, sp
+    mov r6, #12
+    mov r5, #50000
+    mov r1, r2, LSR #5
+    mov r8, r9, ror #0
+    mov r3, r4, asr r5
+	mov	r0, sp
+
+    ldr r1, [r2]
+    ldr r1, [r3, #+0]
+    ldr r1, [r2, #-0]
+    ldr r2, [r3, #-4]
+    ldr r3, [r4, #5]!
+    ldr r6, [r7], #-8
+
+    ldr r7, l_label
+    ldr r8, g_label
+
+    ldr r0, [r1, -r2, asr #4]
+    ldr r2, [r3, +r4, rrx]!
+    ldr r3, [r4], r5, ror #0
+    ldr r3, [r4], r5, ror a6
+    ldr r4, [r5]
+
+
+
+
+
+l_label:
+    .long   1234
+
+    .globl  g_label
+

@@ -199,10 +199,8 @@ auto tgt_read_args(READER_T& reader
     using  stmt_info_t            = typename MCODE_T::stmt_info_t;
     constexpr auto ARGS_PER_CHUNK = tgt_arg_serial_data_t::ARGS_PER_CHUNK;
 
-    // local statics to hold info on single insn
-    //static arg_t                 static_args[MCODE_T::MAX_ARGS+1];
-    //static detail::arg_serial_t *serial_pp[MCODE_T::MAX_ARGS];
-    std::array<detail::arg_serial_t *, MCODE_T::MAX_ARGS> serial_pp;
+    // NB: `serial_pp` object is returned to caller
+    std::array<detail::arg_serial_t *, MCODE_T::MAX_ARGS+1> serial_pp;
 
     // get "opcode" info
     auto code_size  = m_code.code_size();
@@ -227,32 +225,28 @@ auto tgt_read_args(READER_T& reader
     arg_t::reset();
 
     // read until end flag: eg: MODE_NONE or reader.empty()
-    // get working pointer into static array
-    //auto arg_p             = std::begin(static_args);
+    // get working pointer into return arrays
     auto arg_p             = std::begin(argv);
     auto serial_t_inserter = std::begin(serial_pp);
     auto serial_t_end      = std::end(serial_pp);
     detail::arg_serial_t *p;
    
     // begin by finding next `arg_serial_t *` instance and assigning to `p`
-    for (unsigned n = 0; true ;++n, ++arg_p)
+    for (unsigned n = 0; true ; ++n, ++arg_p)
     {
         typename MCODE_T::val_t const *val_p {};
-        const char *val_name;       // NB: names availble via iter, not ptr
+        const char *val_name;       // NB: names available via iter, not ptr
 
         // serial write_back array only holds MAX_ARGS values
         if (serial_t_inserter == serial_t_end)
             throw std::runtime_error {"tgt_read_args: MAX_ARGS exceeded"};
         
-        // init arg (to MODE_NONE)
-//        *arg_p = {};
-
         // deserialize `arg_info` if needed (get `ARGS_PER_CHUNK` at a time...)
         if ((n % ARGS_PER_CHUNK) == 0)
         {
             if (reader.empty())
                 break;
-            
+
             // retrieve array `arg_info_t` & get pointer to first element
             auto arg_info_p = reader.read(tgt_arg_serial_data_t{});
             

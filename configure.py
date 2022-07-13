@@ -20,7 +20,9 @@ def do_configure(target):
     files = [ 'machine_makefile.inc'
             , 'machine_out.h'
             , 'machine_parsers.h'
-            , 'machine_types.h']
+            , 'machine_types.h'
+            , 'test_files'
+            ]
 
     # create list of symbolic links
     pairs = []
@@ -33,7 +35,7 @@ def do_configure(target):
     for file in files:
         dest = top_dir    / file
         src  = target_dir / (target + '_' + file)
-        if not src.is_file():
+        if not src.exists():
             raise ValueError(src, " not found: invalid target")
         pairs.append({'dest': dest, 'src': src})
 

@@ -1,0 +1,208 @@
+/*
+ * Copyright (c) 1992 Twenty-First Designs, Inc.
+ * Unpublished work. All rights reserved.  
+ *
+ * THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF 
+ * TWENTY-FIRST DESIGNS, INC.
+ *
+ * This software source code contains trade secrets and other
+ * proprietary information of Twenty-First Designs, Inc. All
+ * disclosure or use of this source code is strictly restricted
+ * by contract to that required for operation and maintenance 
+ * of equipment provided by Twenty-First Designs, Inc.
+ * All other disclosure or use of this source code is prohibited.
+ *
+ ***********************************************************
+ *
+ * $Id: router.z80,v 1.1.1.1 2000/10/18 04:29:56 kent Exp $
+ *
+ ***********************************************************
+ *
+ *
+ ***********************************************************
+ */
+
+
+	.globl	router, route, rtable_add, rtable_set
+
+#ifndef RTABLE_SIZE
+#define RTABLE_SIZE	50		/* max routes */
+#endif
+
+#ifndef WDOG
+#define WDOG	0			/* address to kick the dog */
+#endif
+	.lcomm	rtable, RTABLE_SIZE * 4 + 1
+	.comm	sysflag, 1
+	.comm	dummy_iy, 2		; for routes w/o need for IY
+
+/*
+ * Router -- zos executive
+ *
+ * Initialze modules by routing a zero to each
+ * allocated module.
+ */
+
+router:
+	ld	b,#RTABLE_SIZE		; initialize the "rtable"
+	ld	iy,#rtable
+	ld	(iy),b			; save count
+	dec	b
+	inc	iy			; skip length
+	ld	hl,#0			; bid + route #
+	ld	ix,#bidorg		; router used BID # 0
+0$:	ld	a,(iy+1)		; get fn high byte
+	or	a
+	jr	z,1$			; branch if no function installed
+	push	hl			; save call clobbered register
+	call	bputw			; queue the route
+	pop	hl
+1$:	inc	hl			; next route
+	ld	de,#4			; sizeof entry
+	add	iy,de			; point to next
+	djnz	0$			; and loop
+
+; now loop and pull messages off of the queue
+rloop:	ei
+	in	(WDOG)			; prevent barking
+#ifdef DO_REDUND
+; do route 0 -- redundancy update -- every time through
+	ld	hl,(rtable + 1)
+	ld	iy,(rtable + 3)
+	call	chl			; do redundancy 
+#endif
+; get next routing from table
+	ld	ix,#bidorg		; bid 0 is active routings
+	call	bpop
+	jr	z,9$
+	ld	l,a
+	ld	h,#0
+	ld	de,#rtable		; routings table
+	ld	a,(de)			; first entry is highest valid
+	cp	l			; test for good routing
+	call	c,bad_error		; bad routing #
+	add	hl,hl			; convert # to offset
+	add	hl,hl
+	add	hl,de
+	inc	hl
+	ld	e,(hl)			; get vector
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	c,(hl)			; and work area
+	inc	hl
+	ld	b,(hl)
+	push	bc			; save pointer
+	push	bc			;  twice
+	push	de			; and the vector
+	call	bpop			; get the BID argument
+	call	z,bad_error		; better be there
+	pop	hl			; restore the vector
+	pop	iy			; work area to iy and TS
+	ld	(iy),a			; save the BID argument
+0$:	call	chl			; and execute
+	pop	iy			; private copy
+	call	2$			; check for module outputs
+	ld	a,(blkcnt)		; test buffers
+	ld	hl,#sysflag
+	ld	de,NO_BLK		; count to set flag
+	cp	e
+	jr	c,1$			; flag empty
+	ld	de,#LOW_BLK		; count to clear flag
+	cp	e
+	jr	c,rloop			; not time yet
+	res	0,(hl)			; clear flag
+	jr	rloop
+1$:	set	0,(hl)
+	jr	rloop
+
+; check for outputs from routine just finished
+2$:	ld	(iy),#0			; clear BID
+	inc	iy
+	ld	a,(iy)
+	or	a			; last route ?
+	ret	z			; if so, done
+	ld	l,a			; save route
+	inc	iy
+	ld	a,(iy)
+	or	a			; data for this route ?
+	call	nz,route		; if so put on the routings queue
+	jr	2$			; check for more
+
+; here when idle
+9$:	call	memtest			; test a memory location
+	jr	rloop			; loop
+
+route:
+; place entry on routings queue
+; route # in L, bid # in A
+	ld	h,a			; save BID
+	ld	a,(rtable)
+	cp	l
+	call	c,bad_error
+	push	ix			; save users IX
+	ld	ix,#bidorg		; router uses BID # 0
+	call	bputw			; place HL on queue
+	pop	ix			; restore users IX
+	ret
+
+; find an empty slot in the rtable & add entry.
+; return entry #
+rtable_add:
+	push	bc			; call saved register
+	ld	b,#RTABLE_SIZE
+	push	hl			; function pointer
+	ld	de,#4			; sizeof entry
+	ld	hl,#rtable + 2		; first high byte
+	xor	a			; get a zero
+0$:	cp	(hl)			; empty slot?
+	jr	z,1$
+	add	hl,de			; skip
+	djnz	0$			; loop
+	rst	0x38			; bad_error: no slots left
+; here to install info in slot
+1$:	dec	hl			; point to first
+	pop	de			; restore fn pointer
+	ld	(hl),e
+	inc	hl
+	ld	(hl),d
+	inc	hl
+	push	iy			; get IY
+	pop	de
+	ld	(hl),e
+	inc	hl
+	ld	(hl),d
+	ld	a,#RTABLE_SIZE		; calculate assigned route #
+	sub	b			; a holds route #
+	ld	hl,#rtable
+	cp	(hl)			; update max route # if applicable
+	jr	c,2$			; no update
+	ld	(hl),a
+2$:	pop	bc			; restore register
+	ret
+
+rtable_set:
+	cp	#RTABLE_SIZE		; test route #
+	call	nc,bad_error		; out of range
+	push	bc			; save off register
+	ld	a,c
+	ld	b,#0
+	ex	de,hl			; move fn to DE
+	ld	hl,#rtable
+	cp	(hl)			; update max route # if applicable
+	jr	c,1$			; no update
+	ld	(hl),a
+1$:	inc	hl			; base of entries
+	add	hl,bc			; routes are 4 entries
+	add	hl,bc
+	ld	(hl),e			; fn pointer
+	inc	hl
+	ld	(hl),d
+	inc	hl
+	push	iy			; get & save IY
+	pop	de
+	ld	(hl),e
+	inc	hl
+	ld	(hl),d
+	pop	bc			; restore register
+	ret

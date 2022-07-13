@@ -1,0 +1,362 @@
+ELF Header:
+  Magic:   7f 45 4c 46 01 02 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF32
+  Data:                              2's complement, big endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              REL (Relocatable file)
+  Machine:                           MC68000
+  Version:                           0x1
+  Entry point address:               0x0
+  Start of program headers:          0 (bytes into file)
+  Start of section headers:          1312 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               52 (bytes)
+  Size of program headers:           0 (bytes)
+  Number of program headers:         0
+  Size of section headers:           40 (bytes)
+  Number of section headers:         18
+  Section header string table index: 17
+
+Section Headers:
+  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
+  [ 1] .text             PROGBITS        00000000 000034 000032 00  AX  0   0  4
+  [ 2] .data             PROGBITS        00000000 000068 000000 00  WA  0   0  4
+  [ 3] .bss              NOBITS          00000000 000068 000000 00  WA  0   0  4
+  [ 4] .debug_info       PROGBITS        00000000 000068 000093 00      0   0  1
+  [ 5] .rela.debug_info  RELA            00000000 0003a4 0000a8 0c   I 15   4  4
+  [ 6] .debug_abbrev     PROGBITS        00000000 0000fb 000065 00      0   0  1
+  [ 7] .debug_aranges    PROGBITS        00000000 000160 000020 00      0   0  1
+  [ 8] .rela.debug_arang RELA            00000000 00044c 000018 0c   I 15   7  4
+  [ 9] .debug_line       PROGBITS        00000000 000180 00004c 00      0   0  1
+  [10] .rela.debug_line  RELA            00000000 000464 00000c 0c   I 15   9  4
+  [11] .debug_str        PROGBITS        00000000 0001cc 0000b2 01  MS  0   0  1
+  [12] .comment          PROGBITS        00000000 00027e 000012 01  MS  0   0  1
+  [13] .debug_frame      PROGBITS        00000000 000290 00002c 00      0   0  4
+  [14] .rela.debug_frame RELA            00000000 000470 000018 0c   I 15  13  4
+  [15] .symtab           SYMTAB          00000000 0002bc 0000d0 10     16  12  4
+  [16] .strtab           STRTAB          00000000 00038c 000017 00      0   0  1
+  [17] .shstrtab         STRTAB          00000000 000488 000096 00      0   0  1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+  L (link order), O (extra OS processing required), G (group), T (TLS),
+  C (compressed), x (unknown), o (OS specific), E (exclude),
+  p (processor specific)
+
+There are no section groups in this file.
+
+There are no program headers in this file.
+
+There is no dynamic section in this file.
+
+Relocation section '.rela.debug_info' at offset 0x3a4 contains 14 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name + Addend
+00000006  00000601 R_68K_32          00000000   .debug_abbrev + 0
+0000000c  00000901 R_68K_32          00000000   .debug_str + 75
+00000011  00000901 R_68K_32          00000000   .debug_str + 7
+00000015  00000901 R_68K_32          00000000   .debug_str + 13
+00000019  00000201 R_68K_32          00000000   .text + 0
+00000021  00000801 R_68K_32          00000000   .debug_line + 0
+00000026  00000901 R_68K_32          00000000   .debug_str + 0
+00000033  00000901 R_68K_32          00000000   .debug_str + 46
+0000003a  00000901 R_68K_32          00000000   .debug_str + a5
+00000041  00000901 R_68K_32          00000000   .debug_str + 58
+00000048  00000901 R_68K_32          00000000   .debug_str + 92
+0000004f  00000901 R_68K_32          00000000   .debug_str + 66
+0000005d  00000901 R_68K_32          00000000   .debug_str + 6b
+00000063  00000201 R_68K_32          00000000   .text + 0
+
+Relocation section '.rela.debug_aranges' at offset 0x44c contains 2 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name + Addend
+00000006  00000501 R_68K_32          00000000   .debug_info + 0
+00000010  00000201 R_68K_32          00000000   .text + 0
+
+Relocation section '.rela.debug_line' at offset 0x464 contains 1 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name + Addend
+0000003a  00000201 R_68K_32          00000000   .text + 0
+
+Relocation section '.rela.debug_frame' at offset 0x470 contains 2 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name + Addend
+00000018  00000a01 R_68K_32          00000000   .debug_frame + 0
+0000001c  00000201 R_68K_32          00000000   .text + 0
+
+The decoding of unwind sections for machine type MC68000 is not currently supported.
+
+Symbol table '.symtab' contains 13 entries:
+   Num:    Value  Size Type    Bind   Vis      Ndx Name
+     0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 00000000     0 FILE    LOCAL  DEFAULT  ABS gen_llist.c
+     2: 00000000     0 SECTION LOCAL  DEFAULT    1 
+     3: 00000000     0 SECTION LOCAL  DEFAULT    2 
+     4: 00000000     0 SECTION LOCAL  DEFAULT    3 
+     5: 00000000     0 SECTION LOCAL  DEFAULT    4 
+     6: 00000000     0 SECTION LOCAL  DEFAULT    6 
+     7: 00000000     0 SECTION LOCAL  DEFAULT    7 
+     8: 00000000     0 SECTION LOCAL  DEFAULT    9 
+     9: 00000000     0 SECTION LOCAL  DEFAULT   11 
+    10: 00000000     0 SECTION LOCAL  DEFAULT   13 
+    11: 00000000     0 SECTION LOCAL  DEFAULT   12 
+    12: 00000000    50 FUNC    GLOBAL DEFAULT    1 gen_llist
+
+No version information found in this file.
+
+Hex dump of section '.text':
+  0x00000000 4e560000 6016202e 0008d0ae 0010206e NV..`. ....... n
+  0x00000010 00082080 202e0010 d1ae0008 53ae000c .. . .......S...
+  0x00000020 4aae000c 66e0206e 00084290 4e714e5e J...f. n..B.NqN^
+  0x00000030 4e75                                Nu
+
+
+Hex dump of section '.debug_info':
+ NOTE: This section has relocations against it, but these have NOT been applied to this dump.
+  0x00000000 0000008f 00040000 00000401 00000000 ................
+  0x00000010 0c000000 00000000 00000000 00000000 ................
+  0x00000020 32000000 00020000 0000021f 00000030 2..............0
+  0x00000030 03040700 00000003 04070000 00000301 ................
+  0x00000040 08000000 00030207 00000000 03010600 ................
+  0x00000050 00000004 0405696e 74000504 06000000 ......int.......
+  0x00000060 00012300 00000000 00003201 9c077000 ..#.......2...p.
+  0x00000070 01230000 005a0291 00076900 01230000 .#...Z....i..#..
+  0x00000080 00530291 04077300 01230000 00250291 .S....s..#...%..
+  0x00000090 080000                              ...
+
+Contents of the .debug_info section:
+
+  Compilation Unit @ offset 0x0:
+   Length:        0x8f (32-bit)
+   Version:       4
+   Abbrev Offset: 0x0
+   Pointer Size:  4
+ <0><b>: Abbrev Number: 1 (DW_TAG_compile_unit)
+    <c>   DW_AT_producer    : (indirect string, offset: 0x75): GNU C11 5.4.0 -mcpu=68020 -g
+    <10>   DW_AT_language    : 12	(ANSI C99)
+    <11>   DW_AT_name        : (indirect string, offset: 0x7): gen_llist.c
+    <15>   DW_AT_comp_dir    : (indirect string, offset: 0x13): /Users/kent/Desktop/tfd/toll.src/smn/src.m68k/caos
+    <19>   DW_AT_low_pc      : 0x0
+    <1d>   DW_AT_high_pc     : 0x32
+    <21>   DW_AT_stmt_list   : 0x0
+ <1><25>: Abbrev Number: 2 (DW_TAG_typedef)
+    <26>   DW_AT_name        : (indirect string, offset: 0x0): size_t
+    <2a>   DW_AT_decl_file   : 2
+    <2b>   DW_AT_decl_line   : 31
+    <2c>   DW_AT_type        : <0x30>
+ <1><30>: Abbrev Number: 3 (DW_TAG_base_type)
+    <31>   DW_AT_byte_size   : 4
+    <32>   DW_AT_encoding    : 7	(unsigned)
+    <33>   DW_AT_name        : (indirect string, offset: 0x46): long unsigned int
+ <1><37>: Abbrev Number: 3 (DW_TAG_base_type)
+    <38>   DW_AT_byte_size   : 4
+    <39>   DW_AT_encoding    : 7	(unsigned)
+    <3a>   DW_AT_name        : (indirect string, offset: 0xa5): unsigned int
+ <1><3e>: Abbrev Number: 3 (DW_TAG_base_type)
+    <3f>   DW_AT_byte_size   : 1
+    <40>   DW_AT_encoding    : 8	(unsigned char)
+    <41>   DW_AT_name        : (indirect string, offset: 0x58): unsigned char
+ <1><45>: Abbrev Number: 3 (DW_TAG_base_type)
+    <46>   DW_AT_byte_size   : 2
+    <47>   DW_AT_encoding    : 7	(unsigned)
+    <48>   DW_AT_name        : (indirect string, offset: 0x92): short unsigned int
+ <1><4c>: Abbrev Number: 3 (DW_TAG_base_type)
+    <4d>   DW_AT_byte_size   : 1
+    <4e>   DW_AT_encoding    : 6	(signed char)
+    <4f>   DW_AT_name        : (indirect string, offset: 0x66): char
+ <1><53>: Abbrev Number: 4 (DW_TAG_base_type)
+    <54>   DW_AT_byte_size   : 4
+    <55>   DW_AT_encoding    : 5	(signed)
+    <56>   DW_AT_name        : int
+ <1><5a>: Abbrev Number: 5 (DW_TAG_pointer_type)
+    <5b>   DW_AT_byte_size   : 4
+ <1><5c>: Abbrev Number: 6 (DW_TAG_subprogram)
+    <5d>   DW_AT_external    : 1
+    <5d>   DW_AT_name        : (indirect string, offset: 0x6b): gen_llist
+    <61>   DW_AT_decl_file   : 1
+    <62>   DW_AT_decl_line   : 35
+    <63>   DW_AT_prototyped  : 1
+    <63>   DW_AT_low_pc      : 0x0
+    <67>   DW_AT_high_pc     : 0x32
+    <6b>   DW_AT_frame_base  : 1 byte block: 9c 	(DW_OP_call_frame_cfa)
+    <6d>   DW_AT_GNU_all_call_sites: 1
+ <2><6d>: Abbrev Number: 7 (DW_TAG_formal_parameter)
+    <6e>   DW_AT_name        : p
+    <70>   DW_AT_decl_file   : 1
+    <71>   DW_AT_decl_line   : 35
+    <72>   DW_AT_type        : <0x5a>
+    <76>   DW_AT_location    : 2 byte block: 91 0 	(DW_OP_fbreg: 0)
+ <2><79>: Abbrev Number: 7 (DW_TAG_formal_parameter)
+    <7a>   DW_AT_name        : i
+    <7c>   DW_AT_decl_file   : 1
+    <7d>   DW_AT_decl_line   : 35
+    <7e>   DW_AT_type        : <0x53>
+    <82>   DW_AT_location    : 2 byte block: 91 4 	(DW_OP_fbreg: 4)
+ <2><85>: Abbrev Number: 7 (DW_TAG_formal_parameter)
+    <86>   DW_AT_name        : s
+    <88>   DW_AT_decl_file   : 1
+    <89>   DW_AT_decl_line   : 35
+    <8a>   DW_AT_type        : <0x25>
+    <8e>   DW_AT_location    : 2 byte block: 91 8 	(DW_OP_fbreg: 8)
+ <2><91>: Abbrev Number: 0
+ <1><92>: Abbrev Number: 0
+
+Contents of the .debug_abbrev section:
+
+  Number TAG (0x0)
+   1      DW_TAG_compile_unit    [has children]
+    DW_AT_producer     DW_FORM_strp
+    DW_AT_language     DW_FORM_data1
+    DW_AT_name         DW_FORM_strp
+    DW_AT_comp_dir     DW_FORM_strp
+    DW_AT_low_pc       DW_FORM_addr
+    DW_AT_high_pc      DW_FORM_data4
+    DW_AT_stmt_list    DW_FORM_sec_offset
+    DW_AT value: 0     DW_FORM value: 0
+   2      DW_TAG_typedef    [no children]
+    DW_AT_name         DW_FORM_strp
+    DW_AT_decl_file    DW_FORM_data1
+    DW_AT_decl_line    DW_FORM_data1
+    DW_AT_type         DW_FORM_ref4
+    DW_AT value: 0     DW_FORM value: 0
+   3      DW_TAG_base_type    [no children]
+    DW_AT_byte_size    DW_FORM_data1
+    DW_AT_encoding     DW_FORM_data1
+    DW_AT_name         DW_FORM_strp
+    DW_AT value: 0     DW_FORM value: 0
+   4      DW_TAG_base_type    [no children]
+    DW_AT_byte_size    DW_FORM_data1
+    DW_AT_encoding     DW_FORM_data1
+    DW_AT_name         DW_FORM_string
+    DW_AT value: 0     DW_FORM value: 0
+   5      DW_TAG_pointer_type    [no children]
+    DW_AT_byte_size    DW_FORM_data1
+    DW_AT value: 0     DW_FORM value: 0
+   6      DW_TAG_subprogram    [has children]
+    DW_AT_external     DW_FORM_flag_present
+    DW_AT_name         DW_FORM_strp
+    DW_AT_decl_file    DW_FORM_data1
+    DW_AT_decl_line    DW_FORM_data1
+    DW_AT_prototyped   DW_FORM_flag_present
+    DW_AT_low_pc       DW_FORM_addr
+    DW_AT_high_pc      DW_FORM_data4
+    DW_AT_frame_base   DW_FORM_exprloc
+    DW_AT_GNU_all_call_sites DW_FORM_flag_present
+    DW_AT value: 0     DW_FORM value: 0
+   7      DW_TAG_formal_parameter    [no children]
+    DW_AT_name         DW_FORM_string
+    DW_AT_decl_file    DW_FORM_data1
+    DW_AT_decl_line    DW_FORM_data1
+    DW_AT_type         DW_FORM_ref4
+    DW_AT_location     DW_FORM_exprloc
+    DW_AT value: 0     DW_FORM value: 0
+
+Contents of the .debug_aranges section:
+
+  Length:                   28
+  Version:                  2
+  Offset into .debug_info:  0x0
+  Pointer Size:             4
+  Segment Size:             0
+
+    Address    Length
+    00000000 00000032 
+    00000000 00000000 
+
+
+Hex dump of section '.debug_line':
+ NOTE: This section has relocations against it, but these have NOT been applied to this dump.
+  0x00000000 00000048 00020000 002d0201 fb0e0d00 ...H.....-......
+  0x00000010 01010101 00000001 00000100 67656e5f ............gen_
+  0x00000020 6c6c6973 742e6300 00000074 79706573 llist.c....types
+  0x00000030 2e680000 00000000 05020000 00000323 .h.............#
+  0x00000040 012f2175 485c3d02 03000101          ./!uH\=.....
+
+Raw dump of debug contents of section .debug_line:
+
+  Offset:                      0x0
+  Length:                      72
+  DWARF Version:               2
+  Prologue Length:             45
+  Minimum Instruction Length:  2
+  Initial value of 'is_stmt':  1
+  Line Base:                   -5
+  Line Range:                  14
+  Opcode Base:                 13
+
+ Opcodes:
+  Opcode 1 has 0 args
+  Opcode 2 has 1 args
+  Opcode 3 has 1 args
+  Opcode 4 has 1 args
+  Opcode 5 has 1 args
+  Opcode 6 has 0 args
+  Opcode 7 has 0 args
+  Opcode 8 has 0 args
+  Opcode 9 has 1 args
+  Opcode 10 has 0 args
+  Opcode 11 has 0 args
+  Opcode 12 has 1 args
+
+ The Directory Table is empty.
+
+ The File Name Table (offset 0x1c):
+  Entry	Dir	Time	Size	Name
+  1	0	0	0	gen_llist.c
+  2	0	0	0	types.h
+
+ Line Number Statements:
+  [0x00000037]  Extended opcode 2: set Address to 0x0
+  [0x0000003e]  Advance Line by 35 to 36
+  [0x00000040]  Copy
+  [0x00000041]  Special opcode 34: advance Address by 4 to 0x4 and Line by 1 to 37
+  [0x00000042]  Special opcode 20: advance Address by 2 to 0x6 and Line by 1 to 38
+  [0x00000043]  Special opcode 104: advance Address by 14 to 0x14 and Line by 1 to 39
+  [0x00000044]  Special opcode 59: advance Address by 8 to 0x1c and Line by -2 to 37
+  [0x00000045]  Special opcode 79: advance Address by 10 to 0x26 and Line by 4 to 41
+  [0x00000046]  Special opcode 48: advance Address by 6 to 0x2c and Line by 1 to 42
+  [0x00000047]  Advance PC by 6 to 0x32
+  [0x00000049]  Extended opcode 1: End of Sequence
+
+
+Contents of the .debug_str section:
+
+  0x00000000 73697a65 5f740067 656e5f6c 6c697374 size_t.gen_llist
+  0x00000010 2e63002f 55736572 732f6b65 6e742f44 .c./Users/kent/D
+  0x00000020 65736b74 6f702f74 66642f74 6f6c6c2e esktop/tfd/toll.
+  0x00000030 7372632f 736d6e2f 7372632e 6d36386b src/smn/src.m68k
+  0x00000040 2f63616f 73006c6f 6e672075 6e736967 /caos.long unsig
+  0x00000050 6e656420 696e7400 756e7369 676e6564 ned int.unsigned
+  0x00000060 20636861 72006368 61720067 656e5f6c  char.char.gen_l
+  0x00000070 6c697374 00474e55 20433131 20352e34 list.GNU C11 5.4
+  0x00000080 2e30202d 6d637075 3d363830 3230202d .0 -mcpu=68020 -
+  0x00000090 67007368 6f727420 756e7369 676e6564 g.short unsigned
+  0x000000a0 20696e74 00756e73 69676e65 6420696e  int.unsigned in
+  0x000000b0 7400                                t.
+
+
+Hex dump of section '.debug_frame':
+ NOTE: This section has relocations against it, but these have NOT been applied to this dump.
+  0x00000000 00000010 ffffffff 0100027c 180c0f04 ...........|....
+  0x00000010 98010000 00000014 00000000 00000000 ................
+  0x00000020 00000032 428e0240 0c0e0800          ...2B..@....
+
+Contents of the .debug_frame section:
+
+00000000 00000010 ffffffff CIE
+  Version:               1
+  Augmentation:          ""
+  Code alignment factor: 2
+  Data alignment factor: -4
+  Return address column: 24
+
+  DW_CFA_def_cfa: r15 ofs 4
+  DW_CFA_offset: r24 at cfa-4
+  DW_CFA_nop
+  DW_CFA_nop
+
+00000014 00000014 00000000 FDE cie=00000000 pc=00000000..00000032
+  DW_CFA_advance_loc: 4 to 00000004
+  DW_CFA_offset: r14 at cfa-8
+  DW_CFA_advance_loc: 0 to 00000004
+  DW_CFA_def_cfa: r14 ofs 8
+  DW_CFA_nop
+

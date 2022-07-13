@@ -202,8 +202,8 @@ using z80_insn_jmp_l = list<list<>
 , defn<sz_v, STR("jp")  , OP<0xc3>, FMT_X   , DIRECT>
 , defn<sz_v, STR("jp")  , OP<0xc2>, FMT_3   , CC, DIRECT>
 , defn<sz_v, STR("jp")  , OP<0xe9>, FMT_X   , INDIR_IDX>
-, defn<sz_v, STR("jr")  , OP<0x18>, FMT_BRANCH, BRANCH_DEL>
-, defn<sz_v, STR("jr")  , OP<0x20>, FMT_BRANCH, JR_CC, BRANCH_DEL>
+, defn<sz_v, STR("jr")  , OP<0x18>, FMT_JR  , BRANCH_DEL>
+, defn<sz_v, STR("jr")  , OP<0x20>, FMT_JR_CC, JR_CC, BRANCH_DEL>
 , defn<sz_v, STR("djnz"), OP<0x10>, FMT_DJNZ, BRANCH>
 
 //

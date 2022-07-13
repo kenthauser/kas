@@ -196,7 +196,7 @@ protected:
         }
 
         // deserialized values to supplement `argv_t`
-        std::array<detail::arg_serial_t *, mcode_t::MAX_ARGS> serial_pp;
+        std::array<detail::arg_serial_t *, mcode_t::MAX_ARGS+1> serial_pp;
         mcode_size_t  *code_p {};       // nullptr means parsed args
         stmt_info_t    info;
         

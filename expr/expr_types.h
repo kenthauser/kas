@@ -13,6 +13,9 @@ namespace kas::expression
 {
 // forward declare various types
 
+// declare comparision type
+struct expr_fits;
+
 // declare default floating point formatter
 struct ieee754;
 
@@ -138,10 +141,11 @@ namespace kas::expression::ast
     struct expr_t;
 }
 
-// expose expr_t to global namespace
+// expose expr_t, expr_fits to global namespace
 namespace kas
 {
     using expression::ast::expr_t;
+    using expression::expr_fits;
 }
 
 #endif

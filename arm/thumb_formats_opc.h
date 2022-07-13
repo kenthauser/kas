@@ -21,6 +21,7 @@ using t16_branch = tgt::opc::tgt_fmt_opc_branch<arm_mcode_t, struct thumb_branch
 // special for ARM `BL` instruction
 struct thumb_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
 {
+#if 0
     void do_calc_size(data_t&                data
                     , mcode_t const&         mcode
                     , mcode_size_t          *code_p
@@ -30,7 +31,8 @@ struct thumb_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
     {
         data.size = mcode.code_size();
     }
-    
+#endif
+#if 0    
     void do_emit     (data_t const&          data
                     , core::core_emit&       base
                     , mcode_t const&         mcode
@@ -59,6 +61,7 @@ struct thumb_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
         if (data.size() > 2)
             base << *++code_p;
     }
+#endif
 };
 
 

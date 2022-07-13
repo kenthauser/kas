@@ -1,0 +1,6 @@
+.byte	1
+.word	2, 3
+.long	4, 5, 999999
+.quad	7, 8, 9, 10
+.ascii	"hello"
+.asciz	"world"

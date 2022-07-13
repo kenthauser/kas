@@ -36,14 +36,6 @@ TESTS = test_emit
 
 all: $(TESTS)
 
-vtable-test: vtable-test.cc
-	$(LINK.cc) -o $@ $?
-	./$@
-
-str: str.cc
-	$(LINK.cc) -o $@ $?
-	./$@
-
 VPATH = parser:expr:kas_core:bsd:kbfd:test:kas_exec
 
 OBJS =  kas_core.o expr.o parser.o kbfd.o
@@ -54,9 +46,9 @@ OBJS += bsd.o
 
 LIBS = -lboost_regex -lboost_filesystem -lboost_system
 
-#TEST_EXPR_ARGS  = test/expr_tests
-#TEST_PARSE_ARGS = test/parse_tests
-TEST_EMIT_ARGS  = test/emit_tests
+#TEST_EXPR_ARGS  = test_files/expr_tests
+#TEST_PARSE_ARGS = test_files/parse_tests
+TEST_EMIT_ARGS  = test_files/emit_tests
 
 #CXXFLAGS += -DTRACE_DO_FRAG=3
 #expr.o : CXXFLAGS += -DPRINT_EXPR_INFO
@@ -67,6 +59,13 @@ TEST_EMIT_ARGS  = test/emit_tests
 #m68k.o : CXXFLAGS += -DTRACE_M68K_PARSE
 #CXXFLAGS += -DTRACE_ERROR_HANDLER
 
+# make configure from python script
+%: %.py
+	cp $^ $@; chmod +x $@
+
+# make all .o files depend of config.status
+%.o: %.cc config.status
+	$(COMPILE.cc) $(OUTPUT_OPTION) $<
 
 include machine_makefile.inc
 
@@ -87,6 +86,8 @@ test_parse: kas_parse_test
 
 test_emit: kas_emit_test
 	./$< $(TEST_EMIT_ARGS)
+
+
 
 
 as: kas_main.o $(OBJS); $(LINK.o) -o $@ $^ -lboost_system -lboost_filesystem

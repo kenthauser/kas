@@ -1,0 +1,26 @@
+.byte	37, foo, . + 2
+.byte	37 + 73, foo,, . + 2
+equ_1	= 
+equ_1	= 100
+equ_2	= foo + . - 2
+equ_3	= equ_1
+.org	100
+.org    .
+.org    . + 10
+.		= 64
+.		= . + 2
+
+equ_dot = .
+equ_4	= 99$ + 3
+equ_5	= 2f - 2
+2:	.word	2b, 2f
+equ_6	= 3b * 3
+equ_66	= 8
+equ_7	= 4
+
+junk
+.text	2
+.text	1, 2
+.text9	2, 4
+.text
+;.data1

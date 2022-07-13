@@ -1,1 +1,1 @@
-m68k/m68k_machine_makefile.inc
+arm/arm_machine_makefile.inc

@@ -44,8 +44,8 @@ static constexpr auto SZ_DEFN_REQ_SB    = 0x8a << SZ_DEFN_SFX_SHIFT;
 struct arm_mcode_size_t : tgt::tgt_mcode_size_t
 {
     static constexpr auto MAX_ARGS  = 6;
-    static constexpr auto NUM_ARCHS = 4;    // insn archs
-    using mcode_size_t  = uint16_t;     // THUMB emits 16-bit insns
+    static constexpr auto NUM_ARCHS = 5;    // insn archs
+    using mcode_size_t  = uint16_t;         // THUMB emits 16-bit insns
     using val_idx_t     = uint16_t;
     using val_c_idx_t   = uint16_t;
 
@@ -87,9 +87,10 @@ struct arm_mcode_t : tgt::tgt_mcode_t<arm_mcode_t
     //
     
     // determine `arch` for `defn_t`
+    // `ARCH` values declared above (ie ARM7, ARM8, THBxx, etc)
     uint8_t defn_arch() const
     {
-        return defn().info.flags & SZ_ARCH_MASK;
+        return defn().info() & SZ_ARCH_MASK;
     }
 
     // emit depends on ARCH

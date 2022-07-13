@@ -1,0 +1,38 @@
+.byte   100
+.byte   200
+.byte   37, 54 + 37, foo
+.byte   37, 54, foo,, . + 2
+.byte   foo
+equ_0   = 
+equ_1   = 100
+equ_2   = foo + . - 2
+equ_3   = equ_1
+nop     ; create org at "un-dotted" location
+.org        100
+.org        . + 10
+; following is wrong
+.       = 64
+.       = . + 2
+
+equ_dot = .
+equ_4   = 99$ + 3
+equ_5   = 2f - 2
+2:  .word   2b, 2f
+2:
+equ_6   = 3b * 3
+equ_66  = 8
+equ_7   = 4
+ 
+junk
+.text
+.text   2
+.text9  2, 4
+.lcomm  lc1, 5
+.lcomm  lc2, 3.2
+.lcomm  lc3
+.lcomm  4, lc4
+.lcomm  lc4, 4
+.comm   cs, 8
+.comm   cs2, 0
+.globl  cs, lc4, lc2, equ_7
+

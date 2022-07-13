@@ -50,6 +50,7 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
         data.size = mcode.code_size();
     }
 #endif
+#if 0
     void do_emit     (data_t const&          data
                     , core::core_emit&       base
                     , mcode_t const&         mcode
@@ -88,6 +89,7 @@ struct arm_branch : tgt::opc::tgt_opc_branch<arm_mcode_t>
             base << value;
         }
     }
+#endif
 };
 
 // special for `BX` instruction

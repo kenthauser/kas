@@ -1,0 +1,23 @@
+FIXED_VALUE = 6
+.byte
+.skip
+.skip	2
+.skip	5, 44
+.skip 	2, 3, 4
+.skip	2, 1.4
+.skip	2 + x
+.skip	FIXED_VALUE
+.skip	FIXED_VALUE + 2
+.skip	2, x
+.skip	2, FIXED_VALUE + 4
+.align
+.align	2       JUNK
+.align	3,5
+MORE_JUNK
+.align	4.0 
+.even  ! .even FIXED_VALUE
+.even	1   ; comment on line
+ld  a,b
+; data before end
+ld hl,(ext)
+; data at end

@@ -38,21 +38,21 @@ const char *arm_stmt_info_t::ok(arm_mcode_t const &mcode) const
     // check condition code, s-flag, and arch match MCODE & mode
     auto m_info = mcode.defn().info;
     if (ccode != ARM_CC_OMIT)
-        if (~m_info.flags & SZ_DEFN_COND)
+        if (~m_info() & SZ_DEFN_COND)
             return "condition code not allowed";
 
     if (ccode >= ARM_CC_ALL)    // _ALL, or _OMIT
-        if (m_info.flags & SZ_DEFN_NO_AL)
+        if (m_info() & SZ_DEFN_NO_AL)
             return "AL condition code not allowed";
 
     if (has_sflag)
-        if (~m_info.flags & SZ_DEFN_S_FLAG)
+        if (~m_info() & SZ_DEFN_S_FLAG)
             return "S flag not allowed";
 
     // suffix tests should mirror defns in `arm_mcode.h`
     auto msg   = "suffix required";
     auto sfx_p = arm_sfx_t::get_p(sfx_index);
-    auto flags = m_info.flags & SZ_DEFN_SFX_MASK;
+    auto flags = m_info() & SZ_DEFN_SFX_MASK;
 
     // if suffix present, try to "consume" it
     if (sfx_p)
@@ -74,7 +74,7 @@ const char *arm_stmt_info_t::ok(arm_mcode_t const &mcode) const
             // keeping it honest
             // unknown flags -- raise configuration error
             default:
-                return "INTERNAL ERROR: a32_info_flags: unknown value";
+                return "INTERNAL ERROR: a32_info(): unknown value";
         }
     }
 

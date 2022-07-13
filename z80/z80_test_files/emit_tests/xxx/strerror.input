@@ -1,0 +1,58 @@
+	.file	"strerror.c"
+strerror:
+	link.w %fp,#0
+	move.l 8(%fp),%d1
+	move.l sys_nerr,%d0
+	cmp.l %d1,%d0
+	jls .L2
+	move.l 8(%fp),%d0
+	move.l sys_errlist(%d0.l*4),%d0
+	jra .L3
+.L2:
+	move.l 8(%fp),-(%sp)
+	pea .LC0
+	pea ebuf.1452
+	jsr sprintf
+	lea (12,%sp),%sp
+	move.l #ebuf.1452,%d0
+.L3:
+	unlk %fp
+	rts
+	.size	strerror, .-strerror
+	.align	2
+	.globl	strerror2
+	.type	strerror2, @function
+.LC0:
+	.string	"Unknown error: %d"
+	.text
+	.align	2
+	.globl	strerror
+	.type	strerror, @function
+strerror2:
+	link.w %fp,#0
+	move.l 8(%fp),-(%sp)
+	jsr strerror
+	addq.l #4,%sp
+	move.l 8(%fp),%d1
+	move.l sys_nerr,%d0
+	cmp.l %d1,%d0
+	jls .L5
+	move.l 8(%fp),%d0
+	move.l sys_errlist(%d0.l*4),%d0
+	jra .L6
+.L5:
+	move.l 8(%fp),-(%sp)
+	pea .LC0
+	pea ebuf.1461
+	jsr sprintf
+	lea (12,%sp),%sp
+	move.l #ebuf.1461,%d0
+.L6:
+	unlk %fp
+	rts
+	.size	strerror2, .-strerror2
+	.local	ebuf.1452
+	.comm	ebuf.1452,20,1
+	.local	ebuf.1461
+	.comm	ebuf.1461,20,1
+;	.ident	"GCC: (GNU) 5.4.0"
