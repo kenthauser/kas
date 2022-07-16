@@ -29,7 +29,7 @@ TESTS = test_emit
 
 .PHONY: all clean distclean tests clone-boost $(TESTS)
 
-all: $(TESTS)
+all: config.status $(TESTS)
 
 VPATH = parser:expr:kas_core:bsd:kbfd:test:kas_exec
 
@@ -85,6 +85,9 @@ overwrite: $(ALL_TESTS)
 	-./kas_expr_test  --overwrite $(TEST_EXPR_ARGS)
 	-./kas_parse_test --overwrite $(TEST_PARSE_ARGS)
 	-./kas_emit_test  --overwrite $(TEST_EMIT_ARGS)
+
+config.status: configure
+	./configure
 
 # download boost libraries referenced (directly or indirectly) by spirit
 BOOST_LIBS = libs/mpl libs/type_index libs/container_hash libs/static_assert \

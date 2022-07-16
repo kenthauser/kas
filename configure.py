@@ -2,13 +2,14 @@
 
 # set up links for assembler
 
-# eg: configure m68k
+# eg: ./configure m68k
 #
-# at present only single configuration per target supported
-# eventually "arm-none-elf" may be supported, but for now, just "arm"
+# At present only single configuration per target supported.
+# Currently: pseudos are BSD, output is ELF
+# eventually "arm-bsd-elf" may be supported, but for now, just "arm"
 
 from pathlib import Path
-import os, sys
+import os
 
 # declare source and target roots
 top_dir       = Path('.')
@@ -44,21 +45,21 @@ def get_configure(target):
    
     # validate config target
     if not target_dir.is_dir():
-        raise ValueError(target_dir, "is not a directory")
+        raise ValueError(target_dir, "not a directory")
 
     # validate linked to files are present
     for file in files:
         dest = top_dir    / file
         src  = target_dir / (target + '_' + file)
         if not src.exists():
-            raise ValueError(src, " not found: invalid target")
+            raise ValueError(src, "not found")
         pairs.append({'dest': dest, 'src': src})
 
     # return array
     return pairs
 
 
-# link in config files
+# symlink in config files
 def do_configure(target):
     
     # remove existing configuration
@@ -75,13 +76,11 @@ def do_configure(target):
     
 
 if __name__ == '__main__':
-    import glob
     import argparse
-    from os import path
 
     parser = argparse.ArgumentParser(
-        description="Configure kas for target",
-        epilog = "Default is to display current target")
+        description="Configure kas for target architecture",
+        epilog = "Default is to display current configuration")
 
     parser.add_argument("-d", help="unconfigure kas and exit", action="store_true")
     parser.add_argument('target', help="target architecture", nargs='?')
@@ -97,10 +96,11 @@ if __name__ == '__main__':
         except BaseException as err:
             print("configure failed: {0}".format(err))
             exit(1)
-            
-    elif config_status.is_file():
+    
+    # report current configuration
+    if config_status.is_file():
         f = open(config_status)
-        print ("current configuration: " + f.read())
+        print ("configured for " + f.read(), end='')
     else:
         print ("kas is unconfigured")
         print ("valid configurations are: ", end='')
@@ -113,10 +113,5 @@ if __name__ == '__main__':
                 except:
                     pass
         print ('')
-
-
-
-        
-
-    
+        exit(1)
 
