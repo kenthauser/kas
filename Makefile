@@ -1,9 +1,8 @@
 CXXFLAGS += -std=c++17 -I. -g
-//CXXFLAGS += -std=c++2a -I. -g
 CXXFLAGS += -pedantic
-CXXFLAGS += -isystem spirit/include -isystem meta/include   \
-                                    -isystem /opt/homebrew/include \
-                                    -isystem /usr/local/include
+CXXFLAGS += -isystem spirit/include -isystem meta/include -isystem boost \
+                                    -isystem /opt/homebrew/include       \
+                                    -isystem /usr/local/include          \
                                     
 CXXFLAGS += -ftemplate-depth=4096
 CXXFLAGS += -Wno-deprecated-declarations
@@ -18,7 +17,7 @@ CXXFLAGS += -Wno-deprecated-declarations
 OUTPUT_OPTION = -MMD -MP
 # OUTPUT_OPTION = -MD -MP
 # CXXFLAGS += -DBOOST_SPIRIT_X3_DEBUG
-LINK.o = $(LINK.cc) -L /opt/homebrew/lib
+LINK.o = $(LINK.cc) -L /opt/homebrew/lib 
 # LINK.o += -Xlinker -v
 CXXFLAGS += -ftemplate-backtrace-limit=0
 
@@ -27,27 +26,18 @@ TESTS = $(ALL_TESTS)
 #TESTS = test_expr
 #TESTS = test_parse
 TESTS = test_emit
-# TESTS = vtable-test
-# TESTS = str
-#TESTS = as
-#TESTS = tagging_demo
 
-.PHONY: all clean tests $(TESTS) test_kas
+.PHONY: all clean distclean tests clone-boost $(TESTS)
 
 all: $(TESTS)
 
 VPATH = parser:expr:kas_core:bsd:kbfd:test:kas_exec
 
 OBJS =  kas_core.o expr.o parser.o kbfd.o
-OBJS += bsd.o
-#OBJS += m68k.o
-#OBJS += z80.o
-#OBJS += arm.o
+OBJS += bsd.o       # assume BSD pseudos
 
-LIBS = -lboost_regex -lboost_filesystem -lboost_system
-
-#TEST_EXPR_ARGS  = test_files/expr_tests
-#TEST_PARSE_ARGS = test_files/parse_tests
+TEST_EXPR_ARGS  = test_files/expr_tests
+TEST_PARSE_ARGS = test_files/parse_tests
 TEST_EMIT_ARGS  = test_files/emit_tests
 
 #CXXFLAGS += -DTRACE_DO_FRAG=3
@@ -59,23 +49,22 @@ TEST_EMIT_ARGS  = test_files/emit_tests
 #m68k.o : CXXFLAGS += -DTRACE_M68K_PARSE
 #CXXFLAGS += -DTRACE_ERROR_HANDLER
 
-# make configure from python script
+# make executable from python script
 %: %.py
 	cp $^ $@; chmod +x $@
 
-# make all .o files depend of config.status
+# make all .o files depend on config.status
 %.o: %.cc config.status
 	$(COMPILE.cc) $(OUTPUT_OPTION) $<
 
-include machine_makefile.inc
+-include machine_makefile.inc
 
-#kas_expr_test: kas_expr_test.o expr.o kas_core.o bsd.o m68k.o m68k_defns.o
 kas_expr_test: kas_expr_test.o $(OBJS)
-	$(LINK.o) -o $@ $^  -lboost_regex $(LIBS)
+	$(LINK.o) -o $@ $^  $(LIBS)
 kas_parse_test: kas_parse_test.o $(OBJS)
-	$(LINK.o) -o $@ $^  -lboost_regex $(LIBS)
+	$(LINK.o) -o $@ $^  $(LIBS)
 kas_emit_test: kas_emit_test.o $(OBJS)
-	$(LINK.o) -o $@ $^  -lboost_regex $(LIBS)
+	$(LINK.o) -o $@ $^  $(LIBS)
 
 
 test_expr: kas_expr_test
@@ -88,10 +77,7 @@ test_emit: kas_emit_test
 	./$< $(TEST_EMIT_ARGS)
 
 
-
-
-as: kas_main.o $(OBJS); $(LINK.o) -o $@ $^ -lboost_system -lboost_filesystem
-tagging_demo : tagging_demo.o; $(LINK.o) -o $@ $^;./tagging_demo
+as: kas_main.o $(OBJS); $(LINK.o) -o $@ $^
 
 test_kas: as; ./$< $(TEST_KAS_ARGS)
 
@@ -99,6 +85,25 @@ overwrite: $(ALL_TESTS)
 	-./kas_expr_test  --overwrite $(TEST_EXPR_ARGS)
 	-./kas_parse_test --overwrite $(TEST_PARSE_ARGS)
 	-./kas_emit_test  --overwrite $(TEST_EMIT_ARGS)
+
+# download boost libraries referenced (directly or indirectly) by spirit
+BOOST_LIBS = libs/mpl libs/type_index libs/container_hash libs/static_assert \
+             libs/throw_exception libs/assert libs/core libs/type_traits \
+             libs/integer libs/detail libs/preprocessor libs/fusion \
+             libs/utility libs/variant libs/move libs/range libs/optional \
+             libs/regex libs/predef libs/iterator libs/concept_check \
+             libs/math libs/typeof \
+             libs/spirit
+
+XTRA_LIBS  = libs/filesystem libs/locale libs/system libs/io libs/smart_ptr
+ 
+
+clone-boost:
+	-git clone http://github.org/boostorg/boost.git
+	cd boost; git submodule update --init tools libs/config
+	cd boost; git submodule update --init $(BOOST_LIBS) $(XTRA_LIBS)
+	cd boost; ./bootstrap.sh
+	cd boost; ./b2 headers
 
 clean:
 	$(RM) $(TARGET) kas_expr_test kas_parse_test kas_emit_test *.o *.d as

@@ -1,9 +1,0 @@
-in :  start:[\n]
-out:  ERROR	[kas::parser::kas_diag: 1 loc: art:
-]
-
-in :  
-out:  EOI	
-
-symbols:
-

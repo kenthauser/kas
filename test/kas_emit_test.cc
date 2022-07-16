@@ -1,4 +1,3 @@
-//
 #include "parser/parser.h"
 #include "parser/error_handler_base.h"
 #include "parser/parser_obj.h"
@@ -32,7 +31,8 @@
 //#include <boost/spirit/home/x3/support/utility/testing.hpp>
 #include "testing.hpp"
 
-namespace fs = boost::filesystem;
+//namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 namespace testing = boost::spirit::x3::testing;
 
 auto sub_path_ext(std::string s, const std::string& new_ext)
@@ -188,7 +188,7 @@ auto compare = [](fs::path input_path, fs::path expect_path)
 auto overwrite = [](fs::path input_path, fs::path expect_path)
 {
     std::string output = parse(testing::load(input_path), input_path);
-    boost::filesystem::ofstream file(expect_path);
+    std::ofstream file(expect_path.c_str());
     file << output;
 
     ++num_files_tested;

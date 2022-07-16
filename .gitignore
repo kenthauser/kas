@@ -5,3 +5,8 @@ kas_expr_test
 kas_parse_test
 kas_emit_test
 
+machine_*
+configure
+*/*/emit_tests/*.kbfd
+test_files
+config.status

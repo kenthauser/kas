@@ -1,3 +1,8 @@
+//
+// Copied from boost/spirit test utilities
+// Modified to replace boost regex & filesystem calls with
+// c++17 std libraries
+
 /*=============================================================================
     Copyright (c) 2001-2015 Joel de Guzman
 
@@ -7,13 +12,17 @@
 #if !defined(BOOST_SPIRIT_X3_TEST_UTILITIES)
 #define BOOST_SPIRIT_X3_TEST_UTILITIES
 
-#include <boost/regex.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
+//#include <boost/regex.hpp>
+//#include <boost/filesystem.hpp>
+//#include <boost/filesystem/fstream.hpp>
+#include <regex>
+#include <filesystem>
+//#include <boost/filesystem/fstream.hpp>
 
 namespace boost { namespace spirit { namespace x3 { namespace testing
 {
-    namespace fs = boost::filesystem;
+    //namespace fs = boost::filesystem;
+    namespace fs = std::filesystem;
 
     ////////////////////////////////////////////////////////////////////////////
     // compare
@@ -95,11 +104,12 @@ namespace boost { namespace spirit { namespace x3 { namespace testing
       , char const* re_suffix
    )
    {
-       boost::regex e(re_prefix + std::string("(.*?)") + re_suffix);
-       boost::match_results<Iterator> what;
-       if (boost::regex_search(
+       std::regex e(re_prefix + std::string("(.*?)") + re_suffix);
+       std::match_results<Iterator> what;
+       if (std::regex_search(
             first, last, what, e
-          , boost::match_default | boost::match_continuous))
+          , std::regex_constants::match_default
+            | std::regex_constants::match_continuous))
         {
             re = what[1].str();
             first = what[0].second;
@@ -130,11 +140,12 @@ namespace boost { namespace spirit { namespace x3 { namespace testing
        {
             if (is_regex(tem_first, tem_last, re, re_prefix, re_suffix))
             {
-                boost::match_results<iter_t> what;
-                boost::regex e(re);
-                if (!boost::regex_search(
+                std::match_results<iter_t> what;
+                std::regex e(re);
+                if (!std::regex_search(
                     in_first, in_last, what, e
-                  , boost::match_default | boost::match_continuous))
+                  , std::regex_constants::match_default 
+                    | std::regex_constants::match_continuous))
                 {
                     // RE mismatch: exit now.
                     return compare_result_t(in_first, false);
@@ -185,7 +196,8 @@ namespace boost { namespace spirit { namespace x3 { namespace testing
             {
                 for (auto i = fs::directory_iterator(p); i != fs::directory_iterator(); ++i)
                 {
-                   auto ext = fs::extension(i->path());
+                   //auto ext = fs::extension(i->path());
+                   auto ext = i->path().extension();
                    if (ext == ".input")
                    {
                       auto input_path = i->path();
@@ -212,7 +224,8 @@ namespace boost { namespace spirit { namespace x3 { namespace testing
 
     inline std::string load(fs::path p)
     {
-        boost::filesystem::ifstream file(p);
+        std::ifstream file(p.c_str());
+        //fs::ifstream file(p);
         if (!file)
             return "";
         std::string contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
