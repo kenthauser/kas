@@ -108,12 +108,9 @@ namespace impl
     struct stmt_nop : parser_stmt
     {
         using base_t = parser_stmt;
-        
-        // w/o braces, clang drops core on name(). 2019/02/15 KBH
-        static inline OPC opc{};
-
-        // inherit default ctor
         using base_t::base_t;
+
+        static inline OPC opc;
         
         std::string name() const override
         {
@@ -135,11 +132,9 @@ namespace impl
     struct stmt_diag : parser_stmt
     {
         using base_t = parser_stmt;
-        
-        // w/o braces, clang drops core on name(). 2019/02/15 KBH
-        static inline opc_error opc{};
-    
         using base_t::base_t;
+        
+        static inline opc_error opc;
        
         // allow `stmt_diag` to be inited from `diagnostic`
         stmt_diag(kas_error_t diag)

@@ -5,10 +5,6 @@
 
 namespace kas
 {
-// copied from
-// https://stackoverflow.com/questions/12042824/how-to-write-a-type-trait-is-container-or-is-vector
-// KBH 2018/7/7 updated to c++17 idioms (ie std::void_t<> & _v)
-
 template<typename T, typename = void>
 struct is_container : std::false_type {};
 

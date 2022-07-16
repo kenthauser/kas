@@ -126,7 +126,6 @@ void arm_arg_t::extract(Reader& reader
     // here has data, but not expression
     else if (info_p->has_data)
     {
-        // XXX i don't understand this. KBH 2022/03/14
         bool is_signed {false};
         int  bytes = this->size(sz, {}, &is_signed);
         bytes = 2;

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# set up links for assembler
+# set up symlinks to configure assembler
 
 # eg: ./configure m68k
 #
@@ -36,12 +36,11 @@ def un_configure():
         except OSError:
             pass
 
-# validate linked files are present and return as array
+# create list of symlinked file pairs to implement configuration
 def get_configure(target):
-    
-    # create list of symbolic links
-    target_dir = top_dir / target
+    # accumulate result in `pairs`
     pairs = []
+    target_dir = top_dir / target
    
     # validate config target
     if not target_dir.is_dir():
@@ -61,15 +60,14 @@ def get_configure(target):
 
 # symlink in config files
 def do_configure(target):
-    
     # remove existing configuration
     un_configure()
     
-    # symlink in files from config array
+    # symlink file pairs from get_configure list
     for pair in get_configure(target):
         os.symlink(pair.get('src'), pair.get('dest'))
 
-    # save configured target in status file
+    # save configured target in status file (previosly deleted)
     f = open(config_status, 'w')
     f.write(target + '\n')
     f.close()
@@ -86,16 +84,14 @@ if __name__ == '__main__':
     parser.add_argument('target', help="target architecture", nargs='?')
     args = parser.parse_args()
 
+    # perform configuration operations
     if args.d:
         un_configure()
-        exit(0)
-        
-    if args.target:
+    elif args.target:
         try:
             do_configure(args.target)
         except BaseException as err:
             print("configure failed: {0}".format(err))
-            exit(1)
     
     # report current configuration
     if config_status.is_file():
@@ -106,12 +102,12 @@ if __name__ == '__main__':
         print ("valid configurations are: ", end='')
         sep = ''
         for path in os.listdir(top_dir):
-                try:
-                    get_configure(path)
-                    print(sep + path, end='')
-                    sep = ", "
-                except:
-                    pass
+            try:
+                get_configure(path)
+                print(sep + path, end='')
+                sep = ", "
+            except:
+                pass
         print ('')
         exit(1)
 

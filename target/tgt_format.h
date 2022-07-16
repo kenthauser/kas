@@ -66,7 +66,6 @@ struct tgt_format
     };
     
 private: 
-    // NB: using a `static inline` instead of method makes CLANG drop core 2019/08/21 KBH
     auto& default_impl() const
     {
         constexpr static fmt_impl dummy;

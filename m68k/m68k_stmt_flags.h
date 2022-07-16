@@ -16,7 +16,7 @@ struct m68k_sfx
 
     static auto x3()
     {
-        // x3 bug: won't accept `const char *` only literal KBH 2019/07/16
+        // x3 bug: won't accept `const char *` only literal
         //return x3::char_(parse_sfxs);
         return x3::char_("lsxpwdb");
     }
