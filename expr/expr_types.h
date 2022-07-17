@@ -5,6 +5,7 @@
 #include "kas/defn_utils.h"
 
 #include <meta/meta.hpp>
+#include <cstdint>
 #include <type_traits>
 
 

@@ -224,7 +224,7 @@ struct gen_arm_attributes : core::core_section::deferred_ops
         
         // see addenda32, section 3.2.1
         static const auto SHT_ARM_ATTRIBUTES = SHT_LOPROC + 3;
-        auto& s = core_section::get(".ARM.attributes", SHT_ARM_ATTRIBUTES);
+        auto& s = core::core_section::get(".ARM.attributes", SHT_ARM_ATTRIBUTES);
         s.set_deferred_ops(*this);
     }
 

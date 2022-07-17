@@ -5,6 +5,7 @@
 #include "core_terminal_types.h"
 #include "core_chunk_types.h"
 #include <cstdint>
+#include <deque>
 #include <iostream>
 
 namespace kas::core

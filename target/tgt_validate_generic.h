@@ -260,7 +260,7 @@ struct tgt_val_range_u : tgt_val_range<MCODE_T, RANGE_VALUE_T, SCALE>
     using base_t      = tgt_val_range<MCODE_T, RANGE_VALUE_T, SCALE>;
 
     constexpr tgt_val_range_u(uint8_t n)
-            : base_t (0, (1 << n) - 1) {}
+            : base_t (0, (1L << n) - 1) {}
 };
 
 

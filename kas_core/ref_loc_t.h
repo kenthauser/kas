@@ -21,7 +21,7 @@
 
 #include <meta/meta.hpp>
 #include <boost/type_index.hpp>
-
+#include <ostream>
 
 namespace kas::core
 {

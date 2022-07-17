@@ -18,6 +18,7 @@
 
 // registers also need to be expressed as tokens
 #include "parser/token_defn.h"
+#include <map>
 
 namespace kas::tgt
 {

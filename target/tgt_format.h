@@ -46,9 +46,9 @@ struct tgt_format
     struct fmt_impl
     {
         // expose types (base types aren't exposed automatically)
-        using mcode_size_t = mcode_size_t;
-        using val_t        = val_t;
-        using arg_t        = arg_t; 
+        using mcode_size_t = typename tgt_format::mcode_size_t;
+        using val_t        = typename tgt_format::val_t;
+        using arg_t        = typename tgt_format::arg_t; 
 
         virtual bool insert(mcode_size_t* op, arg_t& arg, val_t const * val_p) const
         {

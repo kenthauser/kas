@@ -13,6 +13,7 @@
 
 #include <stdexcept>
 #include <cassert>
+#include <cmath>
 
 namespace kas::expression::literal
 {
@@ -84,7 +85,8 @@ struct c_float_parser : x3::parser<c_float_parser<T>>
 
         
         // compute value as long double (use `powl`)
-        auto value  = std::powl(fmt.is_hex ? 2 : 10, exponent);
+        // g++-11 doesn't have `powl` defined. Use floating point bases
+        auto value  = std::pow(fmt.is_hex ? 2.0L : 10.0L, exponent);
              value *= mantissa;
 
         traits::move_to(value, attr);

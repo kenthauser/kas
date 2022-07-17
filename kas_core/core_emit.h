@@ -107,8 +107,9 @@ struct core_emit
     // set emit "channel"
     void set_chan (e_chan_num);
 
-private:
+//private:
     // be-friend emit stream manipulators
+    // XXX friend declarations don't seem to work with g++-11 KHB 2022/07/17XS
     friend set_size;
     friend emit_reloc;
     friend emit_disp;

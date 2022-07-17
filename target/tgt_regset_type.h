@@ -2,6 +2,7 @@
 #define KAS_TARGET_TGT_REGSET_TYPE_H
 
 #include "kas_core/kas_object.h"
+#include <list>
 
 namespace kas::tgt
 {

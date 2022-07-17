@@ -10,7 +10,8 @@ CXXFLAGS += -Wno-deprecated-declarations
 #CXXFLAGS += -O2 -fomit-frame-pointer
 #CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
 # CXXFLAGS += -O2 -isystem ../boost_1_58_0
-#CXX = g++-8
+#CXX = g++-11
+#CXX = clang++
 # CXXFLAGS += -DPRINT_EXPR_INFO
 
 # clang options to create .deps file & .phony target

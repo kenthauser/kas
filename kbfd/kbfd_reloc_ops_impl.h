@@ -8,6 +8,7 @@
 
 #include <map>
 #include <iostream>
+#include <cstring>
 
 namespace kbfd
 {

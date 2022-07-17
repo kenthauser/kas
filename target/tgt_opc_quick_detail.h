@@ -167,6 +167,7 @@ struct quick_stream : core::emit_stream_base
     std::size_t position() const override
     {
         set_error(__FUNCTION__);
+        return {};      // NOT_REACHED
     }
 
 private:

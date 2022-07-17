@@ -198,8 +198,6 @@ public:
 
 struct core_section::deferred_ops
 {
-    using core_section = core_section;  // expose to derived types
-
     // method diven after all source code parsed
     virtual bool end_of_parse(core_section&) { return true; }
 

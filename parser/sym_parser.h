@@ -91,7 +91,7 @@ struct sym_parser_t
         VALUE_P_T(std::forward<Ts>(ts)...);
         //print_type_name{"sym_parser_t"}.name<VALUE_P_T>();
         //VALUE_P_T::hw_cpu_p = &arg;
-    };
+    }
     
     //
     // Perform all "run-time" operations

@@ -96,8 +96,8 @@ namespace detail
     struct vt_ctor_impl<DFLT, meta::list<NAME, T, Ts...>, void>
     {
         using type = vt_ctor_impl;
-        static const inline T data{Ts::value...};
-        static constexpr auto value = &data;
+        static const inline T instance{Ts::value...};
+        static constexpr auto value = &instance;
     };
 
     // if default type specified, use it to replace "void" base-type

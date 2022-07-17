@@ -26,9 +26,9 @@ struct arm_rel_a32ldr : reloc_op_s_subfield<12>
 {
     using base_t = reloc_op_s_subfield<12>;
     static constexpr value_t u_bit = 1 << 23;
-    
+   
     // support methods for finding MSBs
-    static constexpr arm_immed_constant e;
+    static constexpr arm_immed_constant e{};
 
     value_t extract(value_t data) const override
     {
@@ -140,7 +140,7 @@ struct arm_rel_a32ldc : reloc_op_s_subfield<8>
 
 struct arm_rel_immed12 : kbfd::k_rel_add_t
 {
-    static constexpr arm_immed_constant e;
+    static constexpr arm_immed_constant e{};
 
     const char *insert (value_t& data, value_t value)  const override
     {
@@ -156,7 +156,7 @@ struct arm_rel_immed12 : kbfd::k_rel_add_t
 
 struct arm_rel_a32alu : kbfd::k_rel_add_t
 {
-    static constexpr arm_immed_constant e;
+    static constexpr arm_immed_constant e{};
 
     const char *insert (value_t& data, value_t value)  const override
     {

@@ -15,6 +15,7 @@
 #include "kbfd_external.h"
 
 #include <vector>
+#include <ostream>
 
 namespace kbfd
 {
