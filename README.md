@@ -11,9 +11,9 @@ approximately 2G of disk space.
 
 To compile the system perform the following:
 
-% make      # activates submodules and creates './configure'
-% ./configure [target]
-% make      # builds default target
+     % make      # activates submodules and creates './configure'
+     % ./configure [target]
+     % make      # builds default target
 
 The system currently only supports ELF output and BSD pseudo ops.
 
