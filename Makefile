@@ -87,7 +87,22 @@ overwrite: $(ALL_TESTS)
 	-./kas_emit_test  --overwrite $(TEST_EMIT_ARGS)
 
 config.status: configure
+	@$(MAKE) boost
+	git submodule update --init
+	./configure -h
 	./configure
+
+boost:
+	@echo "*** Boost required for compilation"
+	@echo "*** Use package manager to install boost"
+	@echo "*** Alternately use target 'clone-boost' to download from github.com"
+	@echo "*** NB: download uses 2GB of disk"
+
+distclean: clean
+	git submodule deinit --all
+	@if [ -f ./configure ]; then ./configure -d;fi
+	$(RM) configure
+
 
 # download boost libraries referenced (directly or indirectly) by spirit
 BOOST_LIBS = libs/mpl libs/type_index libs/container_hash libs/static_assert \

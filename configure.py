@@ -87,6 +87,7 @@ if __name__ == '__main__':
     # perform configuration operations
     if args.d:
         un_configure()
+        exit(0)
     elif args.target:
         try:
             do_configure(args.target)
