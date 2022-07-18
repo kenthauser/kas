@@ -107,9 +107,8 @@ struct core_emit
     // set emit "channel"
     void set_chan (e_chan_num);
 
-//private:
+private:
     // be-friend emit stream manipulators
-    // XXX friend declarations don't seem to work with g++-11 KHB 2022/07/17XS
     friend set_size;
     friend emit_reloc;
     friend emit_disp;
@@ -188,9 +187,15 @@ struct set_size
 {
     constexpr set_size(uint8_t w) : w(w) {}
 private: 
+    // g++ requires trampoline for `friend` to work
+    void set_width(core_emit& b) const
+    {
+        b.set_width(w);
+    }
+
     friend core_emit& operator<<(core_emit& b, set_size const& s)
     {
-        b.set_width(s.w);
+        s.set_width(b);
         return b;
     }
 
@@ -243,11 +248,17 @@ struct emit_reloc
     }
     
 private:
+    // g++ requires trampoline for `friend` to work
+    auto& add_reloc(core_emit& base)
+    {
+        base_p = &base;
+        r_p    = &base.add_reloc(reloc, loc_p, addend, offset);
+        return *this;
+    }
+
     friend auto operator<<(core_emit& base, emit_reloc r)
     {
-        r.base_p = &base;
-        r.r_p    = &base.add_reloc(r.reloc, r.loc_p, r.addend, r.offset);
-        return r;
+        return r.add_reloc(base);
     }
 
     // ctor values
@@ -280,14 +291,20 @@ struct emit_disp
     }
 
 private:
-    friend auto operator<<(core_emit& base, emit_disp r)
+    // g++ requires trampoline for `friend` to work
+    auto& add_reloc(core_emit& base)
     {
         // only lookup `K_REL_ADD` (init with zero bits + PC_RELATIVE)
         static kbfd::kbfd_reloc reloc { kbfd::K_REL_ADD(), 0, true };
 
-        r.base_p = &base;
-        r.r_p    = &base.add_reloc(reloc, r.loc_p, r.addend);
-        return r;
+        base_p = &base;
+        r_p    = &base.add_reloc(reloc, loc_p, addend);
+        return *this;
+    }
+
+    friend auto operator<<(core_emit& base, emit_disp r)
+    {
+        return r.add_reloc(base);
     }
 
     core_emit *base_p;

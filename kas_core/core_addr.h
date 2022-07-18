@@ -147,7 +147,7 @@ struct core_addr : kas_object<core_addr<REF>, REF>
         return *this;
     }
 
-    friend std::ostream& operator<< (std::ostream& os, core_addr const& addr)
+    friend std::ostream& operator<< (std::ostream& os, core_addr<REF> const& addr)
     {
         addr.print(os);
         return os;
@@ -162,7 +162,7 @@ struct core_addr : kas_object<core_addr<REF>, REF>
     }
 
 private:
-    friend std::ostream& operator<< (std::ostream&, const core_addr&);
+    //friend std::ostream& operator<< (std::ostream&, const core_addr<REF>&);
     static inline core_addr *current_dot;
     static inline core_addr *next_dot;
 };

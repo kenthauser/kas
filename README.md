@@ -17,8 +17,28 @@ To compile the system perform the following:
 
 The system currently only supports ELF output and BSD pseudo ops.
 
-The ./configure command can be used to display current target, or to
+The `./configure` command can be used to display current target, or to
 change targets.
+
+NB: 2022/07/18 at present, g++ (11.3.0)  doesn't like technique used
+to instantiate type with virtual bases. From `kas/init_from_list.h:95`
+
+    template <typename DFLT, typename NAME, typename T, typename...Ts>
+    struct vt_ctor_impl<DFLT, meta::list<NAME, T, Ts...>, void>
+    {
+        using type = vt_ctor_impl;
+        static const inline T instance{Ts::value...};
+        static constexpr auto value = &instance;
+    };
+
+g++ won't allow `constexpr value` to be inited with address of
+`static const instance`.
+To work around this, use clang++ to compile. ie
+
+    make CXX=clang++ 
+
+or change the `CXX` variable in Makefile
+
 
 NB: This assembler is incomplete and is provided for information.
 
