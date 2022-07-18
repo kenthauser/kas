@@ -39,6 +39,12 @@ To work around this, use clang++ to compile. ie
 
 or change the `CXX` variable in Makefile
 
+If there are boost related link errors, make `clone-boost clean all`. 
+The parts of `boost` used by `kas` are header only.
+Older versions of `boost` may require linking with various libraries.
+
+debian requires `LIB = -lstdc++fs`
+
 
 NB: This assembler is incomplete and is provided for information.
 

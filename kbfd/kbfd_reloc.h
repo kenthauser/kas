@@ -41,12 +41,22 @@ struct kbfd_reloc
     // NB: `bits` & `pc_rel` get separate args as they are most common flags 
     template <typename...Ts>
     constexpr kbfd_reloc(reloc_action action
-                       , uint8_t bits   = 0
-                       , uint8_t pc_rel = false
+                       , uint8_t bits
+                       , uint8_t pc_rel
                        , Ts&&... _flags
                        )
         : action(action)
         , flags ((init_width_pcrel(bits, pc_rel) | ... | _flags))
+        {}
+
+    // prefered over template version above
+    // specify defaults for first two args
+    constexpr kbfd_reloc(reloc_action action
+                       , uint8_t bits   = 0
+                       , uint8_t pc_rel = false
+                       )
+        : action(action)
+        , flags (init_width_pcrel(bits, pc_rel))
         {}
 
     // allow 'action' to be defined as `string`

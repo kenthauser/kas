@@ -11,7 +11,7 @@ CXXFLAGS += -Wno-deprecated-declarations
 #CXXFLAGS += -fsanitize=address -fno-omit-frame-pointer
 # CXXFLAGS += -O2 -isystem ../boost_1_58_0
 #CXX = g++-11
-#CXX = clang++
+CXX = clang++
 # CXXFLAGS += -DPRINT_EXPR_INFO
 
 # clang options to create .deps file & .phony target
@@ -19,6 +19,10 @@ OUTPUT_OPTION = -MMD -MP
 # OUTPUT_OPTION = -MD -MP
 # CXXFLAGS += -DBOOST_SPIRIT_X3_DEBUG
 LINK.o = $(LINK.cc) -L /opt/homebrew/lib 
+
+# debian: required for linking
+#LIBS   = -lstdc++fs
+
 # LINK.o += -Xlinker -v
 CXXFLAGS += -ftemplate-backtrace-limit=0
 
@@ -116,6 +120,12 @@ BOOST_LIBS = libs/mpl libs/type_index libs/container_hash libs/static_assert \
 
 XTRA_LIBS  = libs/filesystem libs/locale libs/system libs/io libs/smart_ptr
  
+
+# don't clone spirit by default. Different versions of spirit and
+# system boost can cause errors
+clone-spirit:
+	-git submodule add http://github.org/boostorg/spirit.git
+	git submodule update --init spirit
 
 clone-boost:
 	-git clone http://github.org/boostorg/boost.git
