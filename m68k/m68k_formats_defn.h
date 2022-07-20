@@ -17,7 +17,7 @@ namespace kas::m68k::opc
 // These formatters are designed to work with the M68K register validators
 // reg-mode sets 6-bits.
 // NB: MODE_BITS can be set to 1 to allow only general register extract
-template <int SHIFT, unsigned WORD = 0, int MODE_OFFSET = 3, unsigned MODE_BITS = 3>
+template <unsigned SHIFT, unsigned WORD = 0, int MODE_OFFSET = 3, unsigned MODE_BITS = 3>
 struct fmt_reg_mode : m68k_mcode_t::fmt_t::fmt_impl
 {
     using val_t = m68k_mcode_t::val_t;
@@ -63,7 +63,8 @@ struct fmt_reg_mode : m68k_mcode_t::fmt_t::fmt_impl
 
 // if MODE_OFFSET is three, just generic with N bits
 template <unsigned SHIFT, unsigned WORD, unsigned BITS>
-struct fmt_reg_mode<SHIFT, WORD, 3, BITS> : fmt_generic<SHIFT, 3 + BITS, WORD> {};
+struct fmt_reg_mode<SHIFT, WORD, 3, BITS> :
+        fmt_generic<SHIFT, unsigned(3 + BITS), WORD> {};
 
 // insert a "branch displacement"
 struct fmt_displacement : m68k_mcode_t::fmt_t::fmt_impl

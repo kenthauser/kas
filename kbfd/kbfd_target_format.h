@@ -23,6 +23,9 @@ struct kbfd_target_sections;
 
 struct kbfd_target_format
 {
+    // work around g++ virtual base bug
+    using vt_base_t = kbfd_target_format;
+
     using target_reloc_index_t = typename kbfd_target_reloc::index_t;
     using reloc_key_t          = typename kbfd_reloc::key_t;
     using reloc_map_t          = std::map<reloc_key_t, target_reloc_index_t>;

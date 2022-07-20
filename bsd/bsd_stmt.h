@@ -13,6 +13,9 @@ namespace kas::bsd
 
 struct bsd_opcode : core::opc::opc_nop<KAS_STRING("BSD_OPCODE")>
 {
+    // work around g++ virtual base bug
+    using vt_base_t = bsd_opcode;
+
     // provide method to interpret args
     virtual void bsd_proc_args(data_t& data, bsd_args&& args
                              , short arg_c

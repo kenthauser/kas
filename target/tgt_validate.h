@@ -74,6 +74,8 @@ using op_size_t   = core::opcode::op_size_t;
 template <typename MCODE_T>
 struct tgt_validate
 {
+    // work around g++ virtual base bug
+    using vt_base_t   = tgt_validate;
     using base_t      = tgt_validate;
     using mcode_t     = MCODE_T;
     using arg_t       = typename mcode_t::arg_t;

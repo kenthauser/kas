@@ -31,7 +31,10 @@ struct reloc_host_fns;
 
 struct reloc_op_fns
 {
-    using value_t  = int64_t;       // integral value
+    // work around g++ virtual base bug
+    using vt_base_t = reloc_op_fns;  // for `init_for_list`
+    
+    using value_t   = int64_t;       // integral value
   
     // include loop: `kfbd_reloc` & `reloc_op_fns` both define `flags_t`
     // NB: this definition should match `kbfd_reloc` defn

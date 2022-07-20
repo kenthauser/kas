@@ -2,6 +2,8 @@
 KAS : Kent's retargetable assembler
 
 This project is a retargetable assembler written in C++
+It was developed in part to explore template metaprogramming.
+It compiles much faster with clang++ than g++.
 
 This project uses the SPIRIT parser which is part of the BOOST C++ libraries.
 To compile this project, the boost library packing should be installed using
@@ -20,20 +22,8 @@ The system currently only supports ELF output and BSD pseudo ops.
 The `./configure` command can be used to display current target, or to
 change targets.
 
-NB: 2022/07/18 at present, g++ (11.3.0)  doesn't like technique used
-to instantiate type with virtual bases. From `kas/init_from_list.h:95`
-
-    template <typename DFLT, typename NAME, typename T, typename...Ts>
-    struct vt_ctor_impl<DFLT, meta::list<NAME, T, Ts...>, void>
-    {
-        using type = vt_ctor_impl;
-        static const inline T instance{Ts::value...};
-        static constexpr auto value = &instance;
-    };
-
-g++ won't allow `constexpr value` to be inited with address of
-`static const instance`.
-To work around this, use clang++ to compile. ie
+`make` uses the default compiler. To use the faster `clang++` compiler
+try:
 
     make CXX=clang++ 
 

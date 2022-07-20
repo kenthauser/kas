@@ -12,6 +12,9 @@ struct tgt_info_fn_t
     using stmt_info_t  = typename MCODE_T::stmt_info_t;
     using defn_info_t  = typename MCODE_T::defn_info_t;
     using code_t       = typename MCODE_T::code_t;
+    
+    // work around g++ virtual base bug
+    using vt_base_t = tgt_info_fn_t;
 
     constexpr tgt_info_fn_t() {}
 

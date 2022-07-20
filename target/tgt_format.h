@@ -26,6 +26,9 @@ namespace kas::tgt::opc
 template <typename MCODE_T>
 struct tgt_format
 {
+    // work around g++ virtual base bug
+    using vt_base_t = tgt_format;
+
     // NB: info only
     static constexpr auto FMT_MAX_ARGS = 6;
 

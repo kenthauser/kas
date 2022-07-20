@@ -179,6 +179,9 @@ struct tgt_stmt_directive : kas::parser::parser_stmt
 
 struct tgt_dir_opcode : core::opc::opc_nop<KAS_STRING("TGT_DIRECTIVE")>
 {
+    // work around g++ virtual bug
+    using vt_base_t = tgt_dir_opcode;
+
     constexpr tgt_dir_opcode() {}
 
     // provide method to interpret args

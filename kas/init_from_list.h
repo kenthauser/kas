@@ -34,27 +34,23 @@
 #include <meta/meta.hpp>
 #include <type_traits>
 #include <array>
+#include <memory>
 
 namespace kas
 {
 namespace detail
 {
-    // support routine: `value_of` is `T::value` iff exists
     template <typename T, typename = void>
-    struct has_value : std::false_type {};
-
-    template <typename T>
-    struct has_value<T, std::void_t<decltype(T::value)>> : std::true_type {};
-
-    template <typename T>
-    constexpr auto value_of(T t)
+    struct value_of
     {
-        // if T has `value` member, return that
-        if constexpr (has_value<T>::value)
-            return T::value;
-        else
-            return t;
-    }
+        // value is constexpr instance of T
+        static constexpr inline T value{};
+        using type = value_of;
+    };
+
+    // if T has `value` member, use it
+    template <typename T>
+    struct value_of<T, std::void_t<decltype(T::value)>> : T {};
 }
 
 // base template: for when `CTOR` specified
@@ -72,8 +68,8 @@ struct init_from_list<T, meta::list<Ts...>, void, CTOR_ARG>
 
     // NB: disallow zero length arrays...
     static constexpr auto size = sizeof...(Ts);
-    static constexpr auto _size = std::max<unsigned>(1, size);
-    static constexpr T data[_size] { detail::value_of(Ts())... };
+    static constexpr decltype(size) _size = size ? size : 1;
+    static constexpr T data[_size] { detail::value_of<Ts>::value... };
     static constexpr T const* value = data;
 };
    
@@ -95,9 +91,15 @@ namespace detail
     template <typename DFLT, typename NAME, typename T, typename...Ts>
     struct vt_ctor_impl<DFLT, meta::list<NAME, T, Ts...>, void>
     {
+        // get around g++ virtual base bug
+        // compilation fails if `value` is type T const* and converted
+        // to `base const *` to initialize `data` array in `init_from_list`
+        // g++ compilation succeeds if `value` is `base const *` to
+        // begin with.  KBH 2022/07/20
         using type = vt_ctor_impl;
+        using vt_base_t = typename T::vt_base_t;
         static const inline T instance{Ts::value...};
-        static constexpr auto value = &instance;
+        static constexpr vt_base_t const *value = &instance;
     };
 
     // if default type specified, use it to replace "void" base-type
